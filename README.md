@@ -1,1 +1,1 @@
-# fight-common
+# $FIGHT Common Library
