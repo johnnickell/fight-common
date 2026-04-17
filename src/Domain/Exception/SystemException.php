@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Domain\Exception;
+namespace Fight\Common\Domain\Exception;
 
 use Exception;
 
