@@ -24,7 +24,7 @@ final class SymfonyMailTransport implements MailTransport
     /**
      * Constructs SymfonyMailTransport
      */
-    public function __construct(private MailerInterface $mailer, array $overrides = [])
+    public function __construct(private readonly MailerInterface $mailer, array $overrides = [])
     {
         if (!empty($overrides)) {
             $this->overrides = [

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Messaging\Command\Sync;
 
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
-use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -13,7 +12,7 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 /**
  * Class RoutingCommandBus
  */
-final class RoutingCommandBus implements SynchronousCommandBus
+final readonly class RoutingCommandBus implements SynchronousCommandBus
 {
     /**
      * Constructs RoutingCommandBus

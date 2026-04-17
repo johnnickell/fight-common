@@ -21,7 +21,7 @@ final class ServiceAwareCommandRouter implements CommandRouter
     /**
      * Constructs ServiceAwareCommandRouter
      */
-    public function __construct(private ContainerInterface $container)
+    public function __construct(private readonly ContainerInterface $container)
     {
     }
 
@@ -30,7 +30,7 @@ final class ServiceAwareCommandRouter implements CommandRouter
      */
     public function match(Command $command): CommandHandler
     {
-        return $this->getHandler(get_class($command));
+        return $this->getHandler($command::class);
     }
 
     /**
