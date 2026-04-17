@@ -53,7 +53,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Fight\\Test\\": "tests"
+            "Fight\\Test\\Common\\": "tests"
         }
     },
     "config": {

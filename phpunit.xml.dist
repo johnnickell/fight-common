@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd"
+    backupGlobals="false"
+    bootstrap="vendor/autoload.php"
+    cacheDirectory="var/cache"
+    colors="true"
+    defaultTestSuite="complete"
+    requireCoverageMetadata="true">
+    <testsuites>
+        <testsuite name="complete">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="test" force="true"/>
+    </php>
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+    <coverage includeUncoveredFiles="true"
+        ignoreDeprecatedCodeUnits="false"
+        pathCoverage="true">
+        <report>
+            <html outputDirectory="var/reports/coverage" lowUpperBound="50" highLowerBound="90" />
+        </report>
+    </coverage>
+</phpunit>
