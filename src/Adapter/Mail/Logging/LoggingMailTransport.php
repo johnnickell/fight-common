@@ -12,7 +12,7 @@ use Psr\Log\LogLevel;
 /**
  * Class LoggingMailTransport
  */
-final class LoggingMailTransport implements MailTransport
+final readonly class LoggingMailTransport implements MailTransport
 {
     /**
      * Constructs LoggingMailTransport

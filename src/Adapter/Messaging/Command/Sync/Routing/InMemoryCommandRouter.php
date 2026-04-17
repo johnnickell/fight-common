@@ -22,7 +22,7 @@ final class InMemoryCommandRouter implements CommandRouter
      */
     public function match(Command $command): CommandHandler
     {
-        return $this->getHandler(get_class($command));
+        return $this->getHandler($command::class);
     }
 
     /**
