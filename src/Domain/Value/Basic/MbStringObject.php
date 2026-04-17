@@ -1,0 +1,1140 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Domain\Value\Basic;
+
+use Fight\Common\Domain\Collection\ArrayList;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Exception\ImmutableException;
+use Fight\Common\Domain\Exception\IndexException;
+use Fight\Common\Domain\Value\Basic\Traits\StringOffsets;
+use Fight\Common\Domain\Value\ValueObject;
+use Fight\Common\Domain\Utility\Validate;
+use Traversable;
+
+/**
+ * Class MbStringObject
+ */
+final readonly class MbStringObject extends ValueObject
+{
+    use StringOffsets;
+
+    private const string ENCODING = 'UTF-8';
+
+    private int $length;
+
+    /**
+     * Constructs MbStringObject
+     */
+    private function __construct(private string $value)
+    {
+        $this->length = (int) mb_strlen($this->value, static::ENCODING);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function fromString(string $value): static
+    {
+        return new static($value);
+    }
+
+    /**
+     * Creates instance
+     */
+    public static function create(string $value): static
+    {
+        return new static($value);
+    }
+
+    /**
+     * Retrieves the string value
+     */
+    public function value(): string
+    {
+        return $this->value;
+    }
+
+    /**
+     * Retrieves the string length
+     */
+    public function length(): int
+    {
+        return $this->length;
+    }
+
+    /**
+     * Checks if empty
+     */
+    public function isEmpty(): bool
+    {
+        return $this->length === 0;
+    }
+
+    /**
+     * Retrieves the character count
+     */
+    public function count(): int
+    {
+        return $this->length;
+    }
+
+    /**
+     * Retrieves the character at an index
+     *
+     * @throws IndexException When the index is invalid
+     */
+    public function get(int $index): string
+    {
+        $length = $this->length;
+
+        if ($index < -$length || $index > $length - 1) {
+            $message = sprintf('Index (%d) out of range[%d, %d]', $index, -$length, $length - 1);
+            throw new IndexException($message);
+        }
+
+        if ($index < 0) {
+            $index += $length;
+        }
+
+        return mb_substr($this->value, $index, 1, static::ENCODING);
+    }
+
+    /**
+     * Checks if an index is valid
+     */
+    public function has(int $index): bool
+    {
+        $length = $this->length;
+
+        if ($index < -$length || $index > $length - 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Not implemented
+     *
+     * @throws ImmutableException When called
+     */
+    public function offsetSet(mixed $offset, mixed $value): never
+    {
+        throw new ImmutableException('Cannot modify immutable string');
+    }
+
+    /**
+     * Retrieves the character at an index
+     *
+     * @throws IndexException When the index is invalid
+     */
+    public function offsetGet(mixed $offset): string
+    {
+        assert(Validate::isInt($offset));
+
+        return $this->get($offset);
+    }
+
+    /**
+     * Checks if an index is valid
+     */
+    public function offsetExists(mixed $offset): bool
+    {
+        assert(Validate::isInt($offset));
+
+        return $this->has($offset);
+    }
+
+    /**
+     * Not implemented
+     *
+     * @throws ImmutableException When called
+     */
+    public function offsetUnset(mixed $offset): never
+    {
+        throw new ImmutableException('Cannot modify immutable string');
+    }
+
+    /**
+     * Retrieves a list of characters
+     */
+    public function chars(): ArrayList
+    {
+        $list = ArrayList::of('string');
+        $value = $this->value;
+
+        for ($i = 0; $i < $this->length; $i++) {
+            $list->add(mb_substr($value, $i, 1, static::ENCODING));
+        }
+
+        return $list;
+    }
+
+    /**
+     * Checks if this string contains a search string
+     */
+    public function contains(string $search, bool $caseSensitive = true): bool
+    {
+        return $this->indexOf($search, null, $caseSensitive) !== -1;
+    }
+
+    /**
+     * Checks if this string starts with a search string
+     */
+    public function startsWith(string $search, bool $caseSensitive = true): bool
+    {
+        if ($this->value === '') {
+            return false;
+        }
+
+        if ($search === '') {
+            return true;
+        }
+
+        $searchLength = mb_strlen($search, static::ENCODING);
+        $start = mb_substr($this->value, 0, $searchLength, static::ENCODING);
+
+        if ($caseSensitive === false) {
+            $search = mb_strtolower($search, static::ENCODING);
+            $start = mb_strtolower($start, static::ENCODING);
+        }
+
+        return $search === $start;
+    }
+
+    /**
+     * Checks if this string ends with a search string
+     */
+    public function endsWith(string $search, bool $caseSensitive = true): bool
+    {
+        $length = $this->length;
+
+        if ($this->value === '') {
+            return false;
+        }
+
+        if ($search === '') {
+            return true;
+        }
+
+        $searchLength = mb_strlen($search, static::ENCODING);
+        $end = mb_substr(
+            $this->value,
+            $length - $searchLength,
+            $searchLength,
+            static::ENCODING
+        );
+
+        if ($caseSensitive === false) {
+            $search = mb_strtolower($search, static::ENCODING);
+            $end = mb_strtolower($end, static::ENCODING);
+        }
+
+        return $search === $end;
+    }
+
+    /**
+     * Retrieves the first index of a search string
+     *
+     * Returns -1 if the search string is not found.
+     *
+     * @throws DomainException When the start index is invalid
+     */
+    public function indexOf(string $search, ?int $start = null, bool $caseSensitive = true): int
+    {
+        if ($this->value === '') {
+            return -1;
+        }
+
+        if ($start === null) {
+            $start = 0;
+        }
+        $start = $this->prepareOffset($start, $this->length);
+
+        if ($search === '') {
+            return $start;
+        }
+
+        if ($caseSensitive === false) {
+            $result = mb_stripos(
+                $this->value,
+                $search,
+                $start,
+                static::ENCODING
+            );
+        } else {
+            $result = mb_strpos(
+                $this->value,
+                $search,
+                $start,
+                static::ENCODING
+            );
+        }
+
+        if ($result === false) {
+            return -1;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Retrieves the last index of a search string
+     *
+     * Returns -1 if the search string is not found.
+     *
+     * @throws DomainException When the stop index is invalid
+     */
+    public function lastIndexOf(string $search, ?int $stop = null, bool $caseSensitive = true): int
+    {
+        $length = $this->length;
+
+        if ($this->value === '') {
+            return -1;
+        }
+
+        if ($stop === null) {
+            $stop = 0;
+        }
+        if ($stop !== 0) {
+            $stop = $this->prepareOffset($stop, $length) - $length;
+        }
+
+        if ($search === '') {
+            return $stop < 0 ? $stop + $length : $stop;
+        }
+
+        if ($caseSensitive === false) {
+            $result = mb_strripos(
+                $this->value,
+                $search,
+                $stop,
+                static::ENCODING
+            );
+        } else {
+            $result = mb_strrpos(
+                $this->value,
+                $search,
+                $stop,
+                static::ENCODING
+            );
+        }
+
+        if ($result === false) {
+            return -1;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Creates a string with the given string appended
+     */
+    public function append(string $string): static
+    {
+        return static::create($this->value.$string);
+    }
+
+    /**
+     * Creates a string with the given string prepended
+     */
+    public function prepend(string $string): static
+    {
+        return static::create($string.$this->value);
+    }
+
+    /**
+     * Creates a string with the given string inserted at a given index
+     *
+     * @throws DomainException When the index is out of bounds
+     */
+    public function insert(int $index, string $string): static
+    {
+        $length = $this->length;
+
+        $index = $this->prepareOffset($index, $length);
+        $start = mb_substr($this->value, 0, $index, static::ENCODING);
+        $end = mb_substr(
+            $this->value,
+            $index,
+            $length - $index,
+            static::ENCODING
+        );
+
+        return static::create($start.$string.$end);
+    }
+
+    /**
+     * Creates a string that is wrapped with a given string
+     */
+    public function surround(string $string): static
+    {
+        return static::create($string.$this->value.$string);
+    }
+
+    /**
+     * Creates a string centered and padded to a given length
+     *
+     * The pad is a single character string used to pad the string.
+     *
+     * @throws DomainException When the string length is invalid
+     * @throws DomainException When the padding character is invalid
+     */
+    public function pad(int $length, ?string $char = null): static
+    {
+        $totalLength = $this->length;
+
+        if ($length < 1) {
+            $message = sprintf('Invalid length for padded string: %d', $length);
+            throw new DomainException($message);
+        }
+
+        if ($char === null) {
+            $char = ' ';
+        }
+
+        if (mb_strlen($char, static::ENCODING) !== 1) {
+            $message = sprintf('Invalid string padding character: %s', $char);
+            throw new DomainException($message);
+        }
+
+        if ($length < $totalLength) {
+            return static::create($this->value);
+        }
+
+        $padLength = (float) ($length - $totalLength);
+
+        return static::create(self::padString(
+            $this->value,
+            (int) floor($padLength / 2),
+            (int) ceil($padLength / 2),
+            $char
+        ));
+    }
+
+    /**
+     * Creates a string padded on the left to a given length
+     *
+     * The pad is a single character string used to pad the string.
+     *
+     * @throws DomainException When the string length is invalid
+     * @throws DomainException When the padding character is invalid
+     */
+    public function padLeft(int $length, ?string $char = null): static
+    {
+        $totalLength = $this->length;
+
+        if ($length < 1) {
+            $message = sprintf('Invalid length for padded string: %d', $length);
+            throw new DomainException($message);
+        }
+
+        if ($char === null) {
+            $char = ' ';
+        }
+
+        if (mb_strlen($char, static::ENCODING) !== 1) {
+            $message = sprintf('Invalid string padding character: %s', $char);
+            throw new DomainException($message);
+        }
+
+        if ($length < $totalLength) {
+            return static::create($this->value);
+        }
+
+        $padLength = $length - $totalLength;
+
+        return static::create(self::padString(
+            $this->value,
+            $padLength,
+            0,
+            $char
+        ));
+    }
+
+    /**
+     * Creates a string padded on the right to a given length
+     *
+     * The pad is a single character string used to pad the string.
+     *
+     * @throws DomainException When the string length is invalid
+     * @throws DomainException When the padding character is invalid
+     */
+    public function padRight(int $length, ?string $char = null): static
+    {
+        $totalLength = $this->length;
+
+        if ($length < 1) {
+            $message = sprintf('Invalid length for padded string: %d', $length);
+            throw new DomainException($message);
+        }
+
+        if ($char === null) {
+            $char = ' ';
+        }
+
+        if (mb_strlen($char, static::ENCODING) !== 1) {
+            $message = sprintf('Invalid string padding character: %s', $char);
+            throw new DomainException($message);
+        }
+
+        if ($length < $totalLength) {
+            return static::create($this->value);
+        }
+
+        $padLength = $length - $totalLength;
+
+        return static::create(self::padString(
+            $this->value,
+            0,
+            $padLength,
+            $char
+        ));
+    }
+
+    /**
+     * Creates a string truncated to a given length
+     *
+     * If a substring is provided, it is appended to the end of the string.
+     *
+     * If truncating occurs, the string is further truncated and the substring
+     * is appended without exceeding the desired length.
+     *
+     * @throws DomainException When the string length is invalid
+     * @throws DomainException When the append string is invalid
+     */
+    public function truncate(int $length, string $append = ''): static
+    {
+        if ($length < 1) {
+            $message = sprintf('Invalid length for truncated string: %d', $length);
+            throw new DomainException($message);
+        }
+
+        $extra = mb_strlen($append, static::ENCODING);
+
+        if ($extra > $length - 1) {
+            $message = sprintf('Append string length (%d) must be less than truncated length (%d)', $extra, $length);
+            throw new DomainException($message);
+        }
+
+        $length -= $extra;
+
+        if ($this->length <= $length) {
+            return static::create($this->value.$append);
+        }
+
+        $truncated = mb_substr($this->value, 0, $length, static::ENCODING);
+
+        return static::create($truncated.$append);
+    }
+
+    /**
+     * Creates a string truncated to a given length without splitting words
+     *
+     * If a substring is provided, it is appended to the end of the string.
+     *
+     * If truncating occurs, the string is further truncated and the substring
+     * is appended without exceeding the desired length.
+     *
+     * @throws DomainException When the string length is invalid
+     * @throws DomainException When the append string is invalid
+     */
+    public function truncateWords(int $length, string $append = ''): static
+    {
+        if ($length < 1) {
+            $message = sprintf('Invalid length for truncated string: %d', $length);
+            throw new DomainException($message);
+        }
+
+        $extra = mb_strlen($append, static::ENCODING);
+
+        if ($extra > $length - 1) {
+            $message = sprintf('Append string length (%d) must be less than truncated length (%d)', $extra, $length);
+            throw new DomainException($message);
+        }
+
+        $length -= $extra;
+
+        if ($this->length <= $length) {
+            return static::create($this->value.$append);
+        }
+
+        $truncated = mb_substr($this->value, 0, $length, static::ENCODING);
+        $last = mb_strpos($this->value, ' ', $length - 1, static::ENCODING);
+
+        if ($last !== $length) {
+            $last = mb_strrpos($truncated, ' ', 0, static::ENCODING);
+            if ($last === false) {
+                return static::create($truncated.$append);
+            }
+            $truncated = mb_substr($truncated, 0, $last, static::ENCODING);
+        }
+
+        return static::create($truncated.$append);
+    }
+
+    /**
+     * Creates a string that repeats the original string
+     *
+     * @throws DomainException When the multiplier is invalid
+     */
+    public function repeat(int $multiplier): static
+    {
+        if ($multiplier < 1) {
+            $message = sprintf('Invalid multiplier: %d', $multiplier);
+            throw new DomainException($message);
+        }
+
+        return static::create(str_repeat($this->value, $multiplier));
+    }
+
+    /**
+     * Creates a substring between two indexes
+     *
+     * @throws DomainException When the start index is invalid
+     * @throws DomainException When the stop index is invalid
+     */
+    public function slice(int $start, ?int $stop = null): static
+    {
+        if ($stop === null) {
+            $stop = 0;
+        }
+
+        $start = $this->prepareOffset($start, $this->length);
+        $length = $this->prepareLengthFromStop($stop, $start, $this->length);
+
+        $slice = mb_substr($this->value, $start, $length, static::ENCODING);
+
+        return static::create($slice);
+    }
+
+    /**
+     * Creates a substring starting at an index
+     *
+     * @throws DomainException When the start index is invalid
+     * @throws DomainException When the string length is invalid
+     */
+    public function substr(int $start, ?int $length = null): static
+    {
+        if ($length === null) {
+            $length = 0;
+        }
+
+        $start = $this->prepareOffset($start, $this->length);
+        $length = $this->prepareLength($length, $start, $this->length);
+
+        $value = mb_substr($this->value, $start, $length, static::ENCODING);
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a list of strings split by a delimiter
+     *
+     * @throws DomainException When the delimiter is empty
+     */
+    public function split(string $delimiter = ' ', ?int $limit = null): ArrayList
+    {
+        if (empty($delimiter)) {
+            throw new DomainException('Delimiter cannot be empty');
+        }
+
+        $pattern = sprintf('#%s#u', preg_quote($delimiter, '#'));
+
+        if ($limit === null) {
+            $parts = preg_split($pattern, $this->value);
+        } else {
+            $parts = preg_split($pattern, $this->value, $limit);
+        }
+
+        $list = ArrayList::of(self::class);
+
+        foreach ($parts as $part) {
+            $list->add(static::create($part));
+        }
+
+        return $list;
+    }
+
+    /**
+     * Creates a list of string chunks
+     *
+     * Each string in the list is represented by a static instance.
+     *
+     * @throws DomainException When the chunk size is invalid
+     */
+    public function chunk(int $size = 1): ArrayList
+    {
+        $value = $this->value();
+
+        if ($size < 1) {
+            $message = sprintf('Invalid chunk size: %d', $size);
+            throw new DomainException($message);
+        }
+
+        $list = ArrayList::of(self::class);
+
+        if ($this->length <= $size) {
+            $list->add(static::create($value));
+        } else {
+            while ($value !== '') {
+                $chunk = static::create(
+                    mb_substr($value, 0, $size, static::ENCODING)
+                );
+                $list->add($chunk);
+                $value = mb_substr(
+                    $value,
+                    $size,
+                    mb_strlen($value, static::ENCODING) - $size,
+                    static::ENCODING
+                );
+            }
+        }
+
+        return $list;
+    }
+
+    /**
+     * Creates a string replacing all occurrences of search with replacement
+     *
+     * If search and replacement are arrays, then a value is used from each
+     * array to search and replace on subject.
+     *
+     * If replacement has fewer values than search, then an empty string is
+     * used for the rest of replacement values.
+     *
+     * If search is an array and replacement is a string, then the replacement
+     * string is used for every value of search.
+     */
+    public function replace($search, $replace): static
+    {
+        return static::create(str_replace($search, $replace, $this->value));
+    }
+
+    /**
+     * Creates a string with both ends trimmed
+     */
+    public function trim(?string $mask = null): static
+    {
+        if ($mask === null) {
+            return static::create(trim($this->value));
+        }
+
+        return static::create(trim($this->value, $mask));
+    }
+
+    /**
+     * Creates a string with the left end trimmed
+     */
+    public function trimLeft(?string $mask = null): static
+    {
+        if ($mask === null) {
+            return static::create(ltrim($this->value));
+        }
+
+        return static::create(ltrim($this->value, $mask));
+    }
+
+    /**
+     * Creates a string with the right end trimmed
+     */
+    public function trimRight(?string $mask = null): static
+    {
+        if ($mask === null) {
+            return static::create(rtrim($this->value));
+        }
+
+        return static::create(rtrim($this->value, $mask));
+    }
+
+    /**
+     * Creates a string with tabs replaced by spaces
+     *
+     * @throws DomainException When the tab size is invalid
+     */
+    public function expandTabs(int $tabSize = 4): static
+    {
+        if ($tabSize < 0) {
+            $message = sprintf('Invalid tab size: %d', $tabSize);
+            throw new DomainException($message);
+        }
+
+        $spaces = str_repeat(' ', $tabSize);
+
+        return static::create(str_replace("\t", $spaces, $this->value));
+    }
+
+    /**
+     * Creates a lower-case string
+     */
+    public function toLowerCase(): static
+    {
+        return static::create(mb_strtolower($this->value, static::ENCODING));
+    }
+
+    /**
+     * Creates an upper-case string
+     */
+    public function toUpperCase(): static
+    {
+        return static::create(mb_strtoupper($this->value, static::ENCODING));
+    }
+
+    /**
+     * Creates a string with the first character lower-case
+     */
+    public function toFirstLowerCase(): static
+    {
+        $length = $this->length;
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $first = mb_substr($this->value, 0, 1, static::ENCODING);
+
+        if ($length < 2) {
+            return static::create(mb_strtolower($first, static::ENCODING));
+        }
+
+        $remaining = mb_substr($this->value, 1, $length - 1, static::ENCODING);
+
+        $value = mb_strtolower($first, static::ENCODING).$remaining;
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a string with the first character upper-case
+     */
+    public function toFirstUpperCase(): static
+    {
+        $length = $this->length;
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $first = mb_substr($this->value, 0, 1, static::ENCODING);
+
+        if ($length < 2) {
+            return static::create(mb_strtoupper($first, static::ENCODING));
+        }
+
+        $remaining = mb_substr($this->value, 1, $length - 1, static::ENCODING);
+
+        $value = mb_strtoupper($first, static::ENCODING).$remaining;
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a camel-case string
+     *
+     * Trims surrounding spaces and capitalizes letters following digits,
+     * spaces, dashes and underscores.
+     *
+     * The first letter is lowercase and spaces, dashes, and underscores are
+     * removed.
+     */
+    public function toCamelCase(): static
+    {
+        return $this->toPascalCase()->toFirstLowerCase();
+    }
+
+    /**
+     * Creates a pascal-case string
+     *
+     * Trims surrounding spaces and capitalizes letters following digits,
+     * spaces, dashes and underscores.
+     *
+     * The first letter is capitalized and spaces, dashes, and underscores are
+     * removed.
+     */
+    public function toPascalCase(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        return static::create(self::capsCase($value));
+    }
+
+    /**
+     * Creates a snake-case string
+     *
+     * Semantic alias for toLowerUnderscored.
+     *
+     * Trims surrounding spaces and adds an underscore before uppercase
+     * characters (except the first character).
+     *
+     * Underscores are added in place of spaces and hyphens, and the string is
+     * converted to lowercase.
+     */
+    public function toSnakeCase(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $value = mb_strtolower(
+            self::delimitString($value, '_'),
+            static::ENCODING
+        );
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a hyphenated lowercase string
+     *
+     * Trims surrounding spaces and adds a hyphen before uppercase characters
+     * (except the first character).
+     *
+     * Hyphens are added in place of spaces and underscores, and the string is
+     * converted to lowercase.
+     */
+    public function toLowerHyphenated(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $value = mb_strtolower(
+            self::delimitString($value, '-'),
+            static::ENCODING
+        );
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a hyphenated uppercase string
+     *
+     * Trims surrounding spaces and adds a hyphen before uppercase characters
+     * (except the first character).
+     *
+     * Hyphens are added in place of spaces and underscores, and the string is
+     * converted to uppercase.
+     */
+    public function toUpperHyphenated(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $value = mb_strtoupper(
+            self::delimitString($value, '-'),
+            static::ENCODING
+        );
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates an underscored lowercase string
+     *
+     * Trims surrounding spaces and adds an underscore before uppercase
+     * characters (except the first character).
+     *
+     * Underscores are added in place of spaces and hyphens, and the string is
+     * converted to lowercase.
+     */
+    public function toLowerUnderscored(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $value = mb_strtolower(
+            self::delimitString($value, '_'),
+            static::ENCODING
+        );
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates an underscored uppercase string
+     *
+     * Trims surrounding spaces and adds an underscore before uppercase
+     * characters (except the first character).
+     *
+     * Underscores are added in place of spaces and hyphens, and the string is
+     * converted to uppercase.
+     */
+    public function toUpperUnderscored(): static
+    {
+        $value = trim($this->value);
+        $length = mb_strlen($value, static::ENCODING);
+
+        if ($length === 0) {
+            return static::create('');
+        }
+
+        $value = mb_strtoupper(
+            self::delimitString($value, '_'),
+            static::ENCODING
+        );
+
+        return static::create($value);
+    }
+
+    /**
+     * Creates a string that is suitable for a URL segment
+     *
+     * Attempts to convert the string to ASCII characters and replaces non-word
+     * characters with hyphens.
+     *
+     * Duplicate hyphens are removed and the string is converted to lowercase.
+     */
+    public function toSlug(): static
+    {
+        $slug = trim($this->value);
+        $slug = iconv(static::ENCODING, 'ASCII//TRANSLIT', $slug);
+        $slug = strtolower($slug);
+        $slug = preg_replace('/\W/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', (string) $slug);
+        $slug = trim((string) $slug, '-');
+
+        return static::create($slug);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function toString(): string
+    {
+        return $this->value;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function compareTo(mixed $object): int
+    {
+        if ($this === $object) {
+            return 0;
+        }
+
+        Assert::areSameType($this, $object);
+
+        $strComp = strnatcmp($this->value, (string) $object->value);
+
+        return $strComp <=> 0;
+    }
+
+    /**
+     * Retrieves an iterator for characters
+     */
+    public function getIterator(): Traversable
+    {
+        return $this->chars();
+    }
+
+    /**
+     * Applies padding to a string
+     */
+    private static function padString(string $string, int $left, int $right, string $char): string
+    {
+        $leftPadding = str_repeat($char, $left);
+        $rightPadding = str_repeat($char, $right);
+
+        return $leftPadding.$string.$rightPadding;
+    }
+
+    /**
+     * Applies caps formatting to a string
+     */
+    private static function capsCase(string $string): string
+    {
+        $output = [];
+
+        if (
+            preg_match('/\A[a-z0-9]+\z/ui', $string)
+            && mb_strtoupper($string, static::ENCODING) !== $string
+        ) {
+            $parts = self::explodeOnCaps($string);
+        } else {
+            $parts = self::explodeOnDelimiters($string);
+        }
+
+        foreach ($parts as $part) {
+            $len = mb_strlen((string) $part, static::ENCODING);
+            $first = mb_substr((string) $part, 0, 1, static::ENCODING);
+            if ($len > 1) {
+                $remaining = mb_substr((string) $part, 1, $len - 1, static::ENCODING);
+                $output[] = mb_strtoupper($first, static::ENCODING)
+                    .mb_strtolower($remaining, static::ENCODING);
+            } else {
+                $output[] = mb_strtoupper($first, static::ENCODING);
+            }
+        }
+
+        return implode('', $output);
+    }
+
+    /**
+     * Applies delimiter formatting to a string
+     */
+    private static function delimitString(string $string, string $delimiter): string
+    {
+        $output = [];
+
+        if (
+            preg_match('/\A[a-z0-9]+\z/ui', $string)
+            && mb_strtoupper($string, static::ENCODING) !== $string
+        ) {
+            $parts = self::explodeOnCaps($string);
+        } else {
+            $parts = self::explodeOnDelimiters($string);
+        }
+
+        foreach ($parts as $part) {
+            $output[] = $part.$delimiter;
+        }
+
+        return rtrim(implode('', $output), $delimiter);
+    }
+
+    /**
+     * Splits a string into a list on capital letters
+     */
+    private static function explodeOnCaps(string $string): array
+    {
+        $string = preg_replace('/\B([A-Z])/u', '_\1', $string);
+        $string = preg_replace('/([0-9]+)/u', '_\1', (string) $string);
+        $string = preg_replace('/_+/', '_', (string) $string);
+        $string = trim((string) $string, '_');
+
+        return explode('_', $string);
+    }
+
+    /**
+     * Splits a string into a list on non-word breaks
+     */
+    private static function explodeOnDelimiters(string $string): array
+    {
+        $string = preg_replace('/[^a-z0-9]+/ui', '_', $string);
+        $string = trim((string) $string, '_');
+
+        return explode('_', $string);
+    }
+}
