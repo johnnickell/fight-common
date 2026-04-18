@@ -446,7 +446,7 @@ readonly class Uri extends ValueObject implements Comparable
 
         assert(Validate::areSameType($this, $other));
 
-        $strComp = strnatcmp($this->toString(), $other->toString());
+        $strComp = strnatcmp($this->toString(), (string) $other->toString());
 
         return $strComp <=> 0;
     }
