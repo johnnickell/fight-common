@@ -438,11 +438,13 @@ readonly class Uri extends ValueObject implements Comparable
     /**
      * @inheritDoc
      */
-    public function compareTo(self $other): int
+    public function compareTo(mixed $other): int
     {
         if ($this === $other) {
             return 0;
         }
+
+        assert(Validate::areSameType($this, $other));
 
         $strComp = strnatcmp($this->toString(), $other->toString());
 

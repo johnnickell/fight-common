@@ -499,11 +499,13 @@ final readonly class Uuid extends ValueObject implements Comparable
     /**
      * @inheritDoc
      */
-    public function compareTo(self $other): int
+    public function compareTo(mixed $other): int
     {
         if ($this === $other) {
             return 0;
         }
+
+        assert(Validate::areSameType($this, $other));
 
         $thisHexChars = $this->toHex();
         $thatHexChars = $other->toHex();

@@ -49,11 +49,13 @@ abstract readonly class UniqueId extends ValueObject implements Identifier, Iden
     /**
      * @inheritDoc
      */
-    public function compareTo(self $other): int
+    public function compareTo(mixed $other): int
     {
         if ($this === $other) {
             return 0;
         }
+
+        assert(Validate::areSameType($this, $other));
 
         return $this->uuid->compareTo($other->uuid);
     }
