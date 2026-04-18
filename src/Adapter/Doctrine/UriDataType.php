@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Doctrine;
 
+use Override;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\Exception\InvalidType;
@@ -17,7 +18,7 @@ use Throwable;
  */
 final class UriDataType extends Type
 {
-    public const TYPE_NAME = 'common_uri';
+    public const string TYPE_NAME = 'common_uri';
 
     /**
      * Gets the SQL declaration snippet for a field of this type
@@ -32,6 +33,7 @@ final class UriDataType extends Type
      *
      * @throws ConversionException When the conversion fails
      */
+    #[Override]
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if (empty($value)) {
@@ -50,6 +52,7 @@ final class UriDataType extends Type
      *
      * @throws ConversionException When the conversion fails
      */
+    #[Override]
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Uri
     {
         if (empty($value)) {
