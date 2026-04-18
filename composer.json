@@ -2,7 +2,7 @@
     "name": "johnnickell/fight-common",
     "version": "0.1.0",
     "description": "A common library for $FIGHT projects",
-    "license": "UNLICENSED",
+    "license": "MIT",
     "require": {
         "php": ">=8.5",
         "psr/cache": "^3.0",
