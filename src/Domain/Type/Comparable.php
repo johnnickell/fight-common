@@ -18,5 +18,5 @@ interface Comparable
      * this instance is less than the passed value, and return 1 if this
      * instance is greater than the passed value.
      */
-    public function compareTo(self $other): int;
+    public function compareTo(mixed $other): int;
 }

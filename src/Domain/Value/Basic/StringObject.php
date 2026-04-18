@@ -948,7 +948,7 @@ final readonly class StringObject extends ValueObject
             return 0;
         }
 
-        Assert::areSameType($this, $object);
+        assert(Validate::areSameType($this, $object));
 
         $strComp = strnatcmp($this->value, (string) $object->value);
 

@@ -127,11 +127,13 @@ abstract class BaseMessage implements Message
     /**
      * @inheritDoc
      */
-    public function compareTo(self $other): int
+    public function compareTo(mixed $other): int
     {
         if ($this === $other) {
             return 0;
         }
+
+        assert(Validate::areSameType($this, $other));
 
         return $this->id->compareTo($other->id);
     }
