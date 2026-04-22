@@ -9,6 +9,6 @@ use Fight\Common\Domain\Identity\UniqueId;
 /**
  * Class MessageId
  */
-final class MessageId extends UniqueId
+final readonly class MessageId extends UniqueId
 {
 }
