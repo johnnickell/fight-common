@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Messaging\Event\Sync;
 
+use Override;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
@@ -21,7 +22,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * Constructs ServiceAwareEventDispatcher
      */
-    public function __construct(private ContainerInterface $container)
+    public function __construct(private readonly ContainerInterface $container)
     {
     }
 
@@ -76,6 +77,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * @inheritDoc
      */
+    #[Override]
     public function dispatch(EventMessage $eventMessage): void
     {
         $this->lazyLoad(ClassName::underscore($eventMessage->payload()));
@@ -86,6 +88,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * @inheritDoc
      */
+    #[Override]
     public function getHandlers(?string $eventType = null): array
     {
         if ($eventType === null) {
@@ -102,6 +105,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * @inheritDoc
      */
+    #[Override]
     public function hasHandlers(?string $eventType = null): bool
     {
         if ($eventType === null) {
@@ -118,6 +122,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     /**
      * @inheritDoc
      */
+    #[Override]
     public function removeHandler(string $eventType, callable $handler): void
     {
         $this->lazyLoad($eventType);
