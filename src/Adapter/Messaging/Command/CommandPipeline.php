@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Messaging\Command\Sync;
+namespace Fight\Common\Adapter\Messaging\Command;
 
 use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
-use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Domain\Collection\LinkedStack;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -15,7 +14,7 @@ use Throwable;
 /**
  * Class CommandPipeline
  */
-final class CommandPipeline implements SynchronousCommandBus, CommandFilter
+final class CommandPipeline implements CommandBus, CommandFilter
 {
     private readonly LinkedStack $filters;
     private ?LinkedStack $executionStack = null;
