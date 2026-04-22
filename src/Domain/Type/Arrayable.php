@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Type;
 
 /**
- * Interface Arrayble
+ * Interface Arrayable
  */
-interface Arrayble
+interface Arrayable
 {
     /**
      * Retrieves an array representation
