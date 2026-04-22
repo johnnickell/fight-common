@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Repository;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Collection\Contract\Collection;
 use Fight\Common\Domain\Collection\Traits\ItemTypeMethods;
+use Fight\Common\Domain\Type\Arrayable;
 use JsonSerializable;
 use Traversable;
 
@@ -109,7 +110,7 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
             'per_page'      => $this->perPage,
             'total_pages'   => $this->totalPages,
             'total_records' => $this->totalRecords,
-            'records'       => $this->records
+            'records'       => $this->records->toArray()
         ];
     }
 
