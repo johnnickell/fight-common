@@ -8,6 +8,7 @@ use Stringable;
 use ArrayIterator;
 use Countable;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Type\Arrayable;
 use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
