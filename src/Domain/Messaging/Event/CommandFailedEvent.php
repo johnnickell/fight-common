@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Messaging\Event;
+namespace Fight\Common\Domain\Messaging\Event;
+
+use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
  * Class CommandFailedEvent
