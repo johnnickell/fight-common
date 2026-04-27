@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Value\Basic;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Utility\VarPrinter;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class JsonObject
