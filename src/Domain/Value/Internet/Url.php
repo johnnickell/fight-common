@@ -10,7 +10,7 @@ use Fight\Common\Domain\Exception\DomainException;
 /**
  * Class Url
  */
-final class Url extends Uri
+final readonly class Url extends Uri
 {
     protected const DEFAULT_PORTS = [
         'http'  => 80,
