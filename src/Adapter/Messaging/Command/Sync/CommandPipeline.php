@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Messaging\Command;
+namespace Fight\Common\Adapter\Messaging\Command\Sync;
 
-use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
+use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Domain\Collection\LinkedStack;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -14,7 +14,7 @@ use Throwable;
 /**
  * Class CommandPipeline
  */
-final class CommandPipeline implements CommandBus, CommandFilter
+final class CommandPipeline implements SynchronousCommandBus, CommandFilter
 {
     private readonly LinkedStack $filters;
     private ?LinkedStack $executionStack = null;
@@ -22,7 +22,7 @@ final class CommandPipeline implements CommandBus, CommandFilter
     /**
      * Constructs CommandPipeline
      */
-    public function __construct(private readonly CommandBus $commandBus)
+    public function __construct(private readonly SynchronousCommandBus $commandBus)
     {
         $this->filters = LinkedStack::of(CommandFilter::class);
         $this->filters->push($this);

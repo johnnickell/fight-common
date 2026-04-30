@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value\Basic;
 
+use Override;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Utility\VarPrinter;
@@ -85,6 +86,7 @@ final readonly class JsonObject extends ValueObject
     /**
      * @inheritDoc
      */
+    #[Override]
     public function jsonSerialize(): mixed
     {
         return $this->data;
