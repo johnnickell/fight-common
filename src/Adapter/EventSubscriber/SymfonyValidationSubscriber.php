@@ -50,7 +50,7 @@ final readonly class SymfonyValidationSubscriber implements EventSubscriberInter
             return;
         }
 
-        $className = get_class($controller[0]);
+        $className = $controller[0]::class;
         $reflection = new ReflectionClass($className);
         $reflectionMethod = $reflection->getMethod($controller[1]);
         $attributes = $reflectionMethod->getAttributes(Validation::class);

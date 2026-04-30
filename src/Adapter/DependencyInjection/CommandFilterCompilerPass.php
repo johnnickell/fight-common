@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\DependencyInjection;
 
 use Exception;
-use Fight\Common\Adapter\Messaging\Command\CommandPipeline;
+use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
