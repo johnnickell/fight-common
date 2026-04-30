@@ -44,7 +44,7 @@ final class HmacAuthenticator implements Authenticator
         foreach (static::$requiredHeaders as $requiredHeader) {
             if (!$request->hasHeader($requiredHeader)) {
                 $message = sprintf('%s is a required header', $requiredHeader);
-                throw new AuthException($message, HttpStatus::UNPROCESSABLE_ENTITY->value);
+                throw new AuthException($message, HttpStatus::UNPROCESSABLE_ENTITY);
             }
         }
 
@@ -53,12 +53,12 @@ final class HmacAuthenticator implements Authenticator
         $timestamp = (int) $request->getHeaderLine('X-Timestamp');
         $tolerance = $this->timeTolerance;
         if ($requestTime < $timestamp || $requestTime - $tolerance > $timestamp) {
-            throw new AuthException('Timestamp out of bounds', HttpStatus::BAD_REQUEST->value);
+            throw new AuthException('Timestamp out of bounds', HttpStatus::BAD_REQUEST);
         }
 
         // validate that the credential matches the public key
         if ($this->public !== $request->getHeaderLine('Credential')) {
-            throw new AuthException('Invalid credential', HttpStatus::UNAUTHORIZED->value);
+            throw new AuthException('Invalid credential', HttpStatus::UNAUTHORIZED);
         }
 
         // validate that the content matches the content-sha256 hash
@@ -66,13 +66,13 @@ final class HmacAuthenticator implements Authenticator
         if (!empty($content) && !$request->hasHeader('X-Content-SHA256')) {
             throw new AuthException(
                 'X-Content-SHA256 header is required with content',
-                HttpStatus::UNPROCESSABLE_ENTITY->value
+                HttpStatus::UNPROCESSABLE_ENTITY
             );
         }
         if (!empty($content)) {
             $contentHash = hash('sha256', $content);
             if (!hash_equals($contentHash, $request->getHeaderLine('X-Content-SHA256'))) {
-                throw new AuthException('Invalid content hash', HttpStatus::BAD_REQUEST->value);
+                throw new AuthException('Invalid content hash', HttpStatus::BAD_REQUEST);
             }
         }
 

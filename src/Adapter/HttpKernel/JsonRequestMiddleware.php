@@ -30,10 +30,10 @@ final class JsonRequestMiddleware implements HttpKernelInterface, TerminableInte
     public function handle(Request $request, int $type = self::MAIN_REQUEST, bool $catch = true): Response
     {
         $stateChangeMethods = [
-            HttpMethod::POST->value,
-            HttpMethod::PUT->value,
-            HttpMethod::PATCH->value,
-            HttpMethod::DELETE->value
+            HttpMethod::POST,
+            HttpMethod::PUT,
+            HttpMethod::PATCH,
+            HttpMethod::DELETE
         ];
 
         $contentType = StringObject::create($request->headers->get('Content-Type', ''));
