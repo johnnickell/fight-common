@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Collection\Chain;
 
 use Countable;
-use Fight\Common\Domain\Utilty\Validate;
+use Fight\Common\Domain\Utility\Validate;
 
 /**
  * Class SetBucketChain
