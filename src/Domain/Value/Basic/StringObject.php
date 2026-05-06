@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value\Basic;
 
+use ArrayAccess;
+use Countable;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\ImmutableException;
 use Fight\Common\Domain\Exception\IndexException;
+use Fight\Common\Domain\Type\Comparable;
 use Fight\Common\Domain\Value\Basic\Traits\StringOffsets;
 use Fight\Common\Domain\Value\ValueObject;
 use Fight\Common\Domain\Utility\Validate;
+use IteratorAggregate;
 use Traversable;
 
 /**
  * Class StringObject
  */
-final readonly class StringObject extends ValueObject
+final readonly class StringObject extends ValueObject implements ArrayAccess, Countable, Comparable, IteratorAggregate
 {
     use StringOffsets;
 
