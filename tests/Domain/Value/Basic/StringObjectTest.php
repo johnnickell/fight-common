@@ -178,6 +178,16 @@ class StringObjectTest extends UnitTestCase
         self::assertFalse($str->startsWith('world'));
     }
 
+    public function test_that_starts_with_returns_false_for_empty_string_value(): void
+    {
+        self::assertFalse(StringObject::create('')->startsWith('hello'));
+    }
+
+    public function test_that_starts_with_returns_true_for_empty_search_on_non_empty_value(): void
+    {
+        self::assertTrue(StringObject::create('hello')->startsWith(''));
+    }
+
     public function test_that_starts_with_is_case_insensitive_when_specified(): void
     {
         self::assertTrue(StringObject::create('Hello')->startsWith('hello', false));
@@ -195,6 +205,16 @@ class StringObjectTest extends UnitTestCase
         $str = StringObject::create('hello world');
 
         self::assertFalse($str->endsWith('hello'));
+    }
+
+    public function test_that_ends_with_returns_false_for_empty_string_value(): void
+    {
+        self::assertFalse(StringObject::create('')->endsWith('hello'));
+    }
+
+    public function test_that_ends_with_returns_true_for_empty_search_on_non_empty_value(): void
+    {
+        self::assertTrue(StringObject::create('hello')->endsWith(''));
     }
 
     public function test_that_ends_with_is_case_insensitive_when_specified(): void
@@ -215,9 +235,19 @@ class StringObjectTest extends UnitTestCase
         self::assertSame(-1, StringObject::create('hello')->indexOf('xyz'));
     }
 
+    public function test_that_index_of_returns_negative_one_for_empty_string_value(): void
+    {
+        self::assertSame(-1, StringObject::create('')->indexOf('hello'));
+    }
+
     public function test_that_index_of_returns_start_for_empty_search(): void
     {
         self::assertSame(0, StringObject::create('hello')->indexOf(''));
+    }
+
+    public function test_that_index_of_is_case_insensitive_when_specified(): void
+    {
+        self::assertSame(0, StringObject::create('Hello World')->indexOf('hello', null, false));
     }
 
     public function test_that_last_index_of_returns_last_position_of_search(): void
@@ -230,6 +260,28 @@ class StringObjectTest extends UnitTestCase
     public function test_that_last_index_of_returns_negative_one_when_not_found(): void
     {
         self::assertSame(-1, StringObject::create('hello')->lastIndexOf('xyz'));
+    }
+
+    public function test_that_last_index_of_returns_negative_one_for_empty_string_value(): void
+    {
+        self::assertSame(-1, StringObject::create('')->lastIndexOf('hello'));
+    }
+
+    public function test_that_last_index_of_respects_non_zero_stop_offset(): void
+    {
+        // stop=5 on 'hello world hello' (len=17) limits the search to the first 5 chars → finds index 0
+        self::assertSame(0, StringObject::create('hello world hello')->lastIndexOf('hello', 5));
+    }
+
+    public function test_that_last_index_of_returns_adjusted_position_for_empty_search_with_negative_stop(): void
+    {
+        // stop=-3 on 'hello' (len=5): prepareOffset(-3,5)-5 = 2-5 = -3 → $stop<0 → return -3+5 = 2
+        self::assertSame(2, StringObject::create('hello')->lastIndexOf('', -3));
+    }
+
+    public function test_that_last_index_of_is_case_insensitive_when_specified(): void
+    {
+        self::assertSame(12, StringObject::create('hello world HELLO')->lastIndexOf('hello', null, false));
     }
 
     // -------------------------------------------------------------------------
@@ -308,11 +360,45 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('   hi', $str->toString());
     }
 
+    public function test_that_pad_left_throws_for_invalid_length(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hi')->padLeft(0);
+    }
+
+    public function test_that_pad_left_throws_for_invalid_character(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hi')->padLeft(6, 'ab');
+    }
+
+    public function test_that_pad_left_returns_original_when_length_is_not_greater(): void
+    {
+        self::assertSame('hello', StringObject::create('hello')->padLeft(3)->toString());
+    }
+
     public function test_that_pad_right_pads_string_on_right(): void
     {
         $str = StringObject::create('hi')->padRight(5);
 
         self::assertSame('hi   ', $str->toString());
+    }
+
+    public function test_that_pad_right_throws_for_invalid_length(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hi')->padRight(0);
+    }
+
+    public function test_that_pad_right_throws_for_invalid_character(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hi')->padRight(6, 'ab');
+    }
+
+    public function test_that_pad_right_returns_original_when_length_is_not_greater(): void
+    {
+        self::assertSame('hello', StringObject::create('hello')->padRight(3)->toString());
     }
 
     // -------------------------------------------------------------------------
@@ -359,6 +445,29 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('hello...', $str->toString());
     }
 
+    public function test_that_truncate_words_throws_for_invalid_length(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hello world')->truncateWords(0);
+    }
+
+    public function test_that_truncate_words_throws_when_append_too_long_for_length(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hello world')->truncateWords(3, '...');
+    }
+
+    public function test_that_truncate_words_returns_original_with_append_when_not_truncated(): void
+    {
+        self::assertSame('hi...', StringObject::create('hi')->truncateWords(5, '...')->toString());
+    }
+
+    public function test_that_truncate_words_truncates_mid_word_when_no_space_in_truncated_portion(): void
+    {
+        // 'superlongword foo' → adjusted length=5 → truncated='super', no space → returns 'super...'
+        self::assertSame('super...', StringObject::create('superlongword foo')->truncateWords(8, '...')->toString());
+    }
+
     // -------------------------------------------------------------------------
     // Repeat and slicing
     // -------------------------------------------------------------------------
@@ -384,12 +493,44 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('world', $str->slice(6)->toString());
     }
 
+    public function test_that_slice_with_negative_stop_returns_substring_from_end(): void
+    {
+        self::assertSame('hell', StringObject::create('hello')->slice(0, -1)->toString());
+    }
+
+    public function test_that_slice_with_stop_beyond_length_returns_full_remainder(): void
+    {
+        self::assertSame('hello', StringObject::create('hello')->slice(0, 10)->toString());
+    }
+
+    public function test_that_slice_throws_for_negative_stop_out_of_range(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hello')->slice(0, -10);
+    }
+
     public function test_that_substr_returns_substring_from_index(): void
     {
         $str = StringObject::create('hello world');
 
         self::assertSame('world', $str->substr(6)->toString());
         self::assertSame('hel', $str->substr(0, 3)->toString());
+    }
+
+    public function test_that_substr_with_negative_length_returns_substring_from_end(): void
+    {
+        self::assertSame('hell', StringObject::create('hello')->substr(0, -1)->toString());
+    }
+
+    public function test_that_substr_with_length_beyond_string_returns_full_remainder(): void
+    {
+        self::assertSame('hello', StringObject::create('hello')->substr(0, 10)->toString());
+    }
+
+    public function test_that_substr_throws_for_negative_length_out_of_range(): void
+    {
+        $this->expectException(DomainException::class);
+        StringObject::create('hello')->substr(0, -10);
     }
 
     // -------------------------------------------------------------------------
@@ -401,6 +542,13 @@ class StringObjectTest extends UnitTestCase
         $list = StringObject::create('a,b,c')->split(',');
 
         self::assertSame(3, $list->count());
+    }
+
+    public function test_that_split_with_limit_returns_at_most_limit_parts(): void
+    {
+        $list = StringObject::create('a,b,c')->split(',', 2);
+
+        self::assertSame(2, $list->count());
     }
 
     public function test_that_split_throws_for_empty_delimiter(): void
@@ -454,11 +602,21 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('hello  ', $str->toString());
     }
 
+    public function test_that_trim_left_removes_mask_characters(): void
+    {
+        self::assertSame('hello***', StringObject::create('***hello***')->trimLeft('*')->toString());
+    }
+
     public function test_that_trim_right_removes_whitespace_from_right(): void
     {
         $str = StringObject::create('  hello  ')->trimRight();
 
         self::assertSame('  hello', $str->toString());
+    }
+
+    public function test_that_trim_right_removes_mask_characters(): void
+    {
+        self::assertSame('***hello', StringObject::create('***hello***')->trimRight('*')->toString());
     }
 
     public function test_that_expand_tabs_replaces_tabs_with_spaces(): void
@@ -523,6 +681,17 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('HelloWorld', StringObject::create('hello_world')->toPascalCase()->toString());
     }
 
+    public function test_that_to_pascal_case_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toPascalCase()->toString());
+    }
+
+    public function test_that_to_pascal_case_capitalises_each_single_character_word(): void
+    {
+        // Parts 'a','b','c' each have length 1 → exercises the single-char else branch in capsCase
+        self::assertSame('ABC', StringObject::create('a b c')->toPascalCase()->toString());
+    }
+
     public function test_that_to_snake_case_converts_camel_case(): void
     {
         self::assertSame('hello_world', StringObject::create('helloWorld')->toSnakeCase()->toString());
@@ -533,9 +702,19 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('hello_world', StringObject::create('hello world')->toSnakeCase()->toString());
     }
 
+    public function test_that_to_snake_case_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toSnakeCase()->toString());
+    }
+
     public function test_that_to_lower_hyphenated_converts_camel_case(): void
     {
         self::assertSame('hello-world', StringObject::create('helloWorld')->toLowerHyphenated()->toString());
+    }
+
+    public function test_that_to_lower_hyphenated_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toLowerHyphenated()->toString());
     }
 
     public function test_that_to_upper_hyphenated_converts_to_uppercase_hyphenated(): void
@@ -543,14 +722,29 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('HELLO-WORLD', StringObject::create('helloWorld')->toUpperHyphenated()->toString());
     }
 
+    public function test_that_to_upper_hyphenated_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toUpperHyphenated()->toString());
+    }
+
     public function test_that_to_lower_underscored_converts_camel_case(): void
     {
         self::assertSame('hello_world', StringObject::create('helloWorld')->toLowerUnderscored()->toString());
     }
 
+    public function test_that_to_lower_underscored_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toLowerUnderscored()->toString());
+    }
+
     public function test_that_to_upper_underscored_converts_to_uppercase_underscored(): void
     {
         self::assertSame('HELLO_WORLD', StringObject::create('helloWorld')->toUpperUnderscored()->toString());
+    }
+
+    public function test_that_to_upper_underscored_returns_empty_for_blank_string(): void
+    {
+        self::assertSame('', StringObject::create('')->toUpperUnderscored()->toString());
     }
 
     public function test_that_to_slug_converts_to_url_safe_string(): void
