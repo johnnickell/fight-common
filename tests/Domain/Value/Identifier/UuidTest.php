@@ -127,6 +127,44 @@ class UuidTest extends UnitTestCase
     }
 
     // -------------------------------------------------------------------------
+    // Validation
+    // -------------------------------------------------------------------------
+
+    public function test_that_is_valid_returns_false_for_an_invalid_uuid_string(): void
+    {
+        self::assertFalse(Uuid::isValid('not-a-uuid'));
+    }
+
+    // -------------------------------------------------------------------------
+    // Field accessors
+    // -------------------------------------------------------------------------
+
+    public function test_that_field_accessors_return_the_correct_components(): void
+    {
+        // NAMESPACE_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
+        $uuid = Uuid::fromString(Uuid::NAMESPACE_DNS);
+
+        self::assertSame('6ba7b810', $uuid->timeLow());
+        self::assertSame('9dad', $uuid->timeMid());
+        self::assertSame('11d1', $uuid->timeHiAndVersion());
+        self::assertSame('80', $uuid->clockSeqHiAndReserved());
+        self::assertSame('b4', $uuid->clockSeqLow());
+        self::assertSame('00c04fd430c8', $uuid->node());
+    }
+
+    public function test_that_most_significant_bits_returns_first_64_bits_as_hex(): void
+    {
+        $uuid = Uuid::fromString(Uuid::NAMESPACE_DNS);
+        self::assertSame('6ba7b8109dad11d1', $uuid->mostSignificantBits());
+    }
+
+    public function test_that_least_significant_bits_returns_last_64_bits_as_hex(): void
+    {
+        $uuid = Uuid::fromString(Uuid::NAMESPACE_DNS);
+        self::assertSame('80b400c04fd430c8', $uuid->leastSignificantBits());
+    }
+
+    // -------------------------------------------------------------------------
     // Version
     // -------------------------------------------------------------------------
 
@@ -148,6 +186,13 @@ class UuidTest extends UnitTestCase
     public function test_that_version_returns_version_sha1_for_a_named_uuid(): void
     {
         self::assertSame(Uuid::VERSION_SHA1, Uuid::named(Uuid::NAMESPACE_DNS, 'test')->version());
+    }
+
+    public function test_that_version_returns_version_unknown_when_version_bits_do_not_match(): void
+    {
+        // Nil UUID has timeHiAndVersion '0000'; first hex digit 0 is not in [1..5]
+        $uuid = Uuid::parse(Uuid::NIL);
+        self::assertSame(Uuid::VERSION_UNKNOWN, $uuid->version());
     }
 
     // -------------------------------------------------------------------------
@@ -215,6 +260,12 @@ class UuidTest extends UnitTestCase
     // -------------------------------------------------------------------------
     // Equality
     // -------------------------------------------------------------------------
+
+    public function test_that_equals_returns_true_for_the_same_instance(): void
+    {
+        $uuid = Uuid::fromString(Uuid::NAMESPACE_DNS);
+        self::assertTrue($uuid->equals($uuid));
+    }
 
     public function test_that_equals_returns_true_for_same_uuid_string(): void
     {
