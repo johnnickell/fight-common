@@ -66,8 +66,9 @@ class JsonObjectTest extends UnitTestCase
 
     public function test_that_from_data_throws_for_non_encodable_value(): void
     {
+        $resource = fopen('php://memory', 'r');
         $this->expectException(DomainException::class);
-        JsonObject::fromData(NAN);
+        JsonObject::fromData($resource);
     }
 
     // -------------------------------------------------------------------------

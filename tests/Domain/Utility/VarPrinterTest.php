@@ -149,6 +149,21 @@ class VarPrinterTest extends UnitTestCase
         self::assertSame('3.14', VarPrinter::toString(3.14));
     }
 
+    public function test_that_to_string_returns_nan_string_for_nan(): void
+    {
+        self::assertSame('NAN', VarPrinter::toString(NAN));
+    }
+
+    public function test_that_to_string_returns_inf_string_for_positive_infinity(): void
+    {
+        self::assertSame('INF', VarPrinter::toString(INF));
+    }
+
+    public function test_that_to_string_returns_negative_inf_string_for_negative_infinity(): void
+    {
+        self::assertSame('-INF', VarPrinter::toString(-INF));
+    }
+
     public function test_that_to_string_returns_string_value_unchanged(): void
     {
         self::assertSame('hello world', VarPrinter::toString('hello world'));

@@ -52,6 +52,15 @@ final class VarPrinter
             return static::readArray($value);
         }
 
+        if (is_float($value)) {
+            if (is_nan($value)) {
+                return 'NAN';
+            }
+            if (is_infinite($value)) {
+                return $value > 0 ? 'INF' : '-INF';
+            }
+        }
+
         return (string) $value;
     }
 
