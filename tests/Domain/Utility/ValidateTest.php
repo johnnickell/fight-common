@@ -221,6 +221,12 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isNotBlank('   '));
     }
 
+    public function test_that_is_not_blank_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isNotBlank([]));
+        self::assertFalse(Validate::isNotBlank(new stdClass()));
+    }
+
     // -------------------------------------------------------------------------
     // Format checks
     // -------------------------------------------------------------------------
@@ -238,6 +244,11 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isAlpha('hello-world'));
     }
 
+    public function test_that_is_alpha_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isAlpha([]));
+    }
+
     public function test_that_is_alnum_returns_true_for_alphanumeric_strings(): void
     {
         self::assertTrue(Validate::isAlnum('hello123'));
@@ -249,6 +260,11 @@ class ValidateTest extends UnitTestCase
     {
         self::assertFalse(Validate::isAlnum('hello-world'));
         self::assertFalse(Validate::isAlnum('hello world'));
+    }
+
+    public function test_that_is_alnum_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isAlnum([]));
     }
 
     public function test_that_is_alpha_dash_returns_true_for_alphabetic_dash_strings(): void
@@ -264,6 +280,11 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isAlphaDash('hello world'));
     }
 
+    public function test_that_is_alpha_dash_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isAlphaDash([]));
+    }
+
     public function test_that_is_alnum_dash_returns_true_for_alphanumeric_dash_strings(): void
     {
         self::assertTrue(Validate::isAlnumDash('hello-world-123'));
@@ -275,6 +296,11 @@ class ValidateTest extends UnitTestCase
     {
         self::assertFalse(Validate::isAlnumDash('hello world'));
         self::assertFalse(Validate::isAlnumDash('hello.world'));
+    }
+
+    public function test_that_is_alnum_dash_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isAlnumDash([]));
     }
 
     public function test_that_is_digits_returns_true_for_digit_only_strings(): void
@@ -290,6 +316,11 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isDigits('12a'));
     }
 
+    public function test_that_is_digits_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isDigits([]));
+    }
+
     public function test_that_is_numeric_returns_true_for_numeric_values(): void
     {
         self::assertTrue(Validate::isNumeric('123'));
@@ -302,6 +333,11 @@ class ValidateTest extends UnitTestCase
     {
         self::assertFalse(Validate::isNumeric('abc'));
         self::assertFalse(Validate::isNumeric('12abc'));
+    }
+
+    public function test_that_is_numeric_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isNumeric([]));
     }
 
     // -------------------------------------------------------------------------
@@ -334,6 +370,11 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isIpAddress('not-an-ip'));
     }
 
+    public function test_that_is_ip_address_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isIpAddress([]));
+    }
+
     public function test_that_is_ip_v4_address_returns_true_for_valid_ipv4(): void
     {
         self::assertTrue(Validate::isIpV4Address('192.168.1.1'));
@@ -347,6 +388,11 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isIpV4Address('2001:db8::1'));
     }
 
+    public function test_that_is_ip_v4_address_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isIpV4Address([]));
+    }
+
     public function test_that_is_ip_v6_address_returns_true_for_valid_ipv6(): void
     {
         self::assertTrue(Validate::isIpV6Address('::1'));
@@ -356,6 +402,11 @@ class ValidateTest extends UnitTestCase
     public function test_that_is_ip_v6_address_returns_false_for_ipv4(): void
     {
         self::assertFalse(Validate::isIpV6Address('192.168.1.1'));
+    }
+
+    public function test_that_is_ip_v6_address_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isIpV6Address([]));
     }
 
     public function test_that_is_uri_returns_true_for_valid_uri(): void
@@ -370,6 +421,78 @@ class ValidateTest extends UnitTestCase
         self::assertFalse(Validate::isUri('not a uri'));
         self::assertFalse(Validate::isUri('//no-scheme'));
         self::assertFalse(Validate::isUri([]));
+    }
+
+    public function test_that_is_uri_returns_true_for_uri_with_empty_path(): void
+    {
+        // authority present, path is empty — exercises the isValidUriPath empty-path early return
+        self::assertTrue(Validate::isUri('http://example.com'));
+    }
+
+    public function test_that_is_uri_returns_true_for_uri_with_ipv4_host(): void
+    {
+        // exercises the IPv4 preg_match branch in isValidAuthHost
+        self::assertTrue(Validate::isUri('http://192.168.1.1/path'));
+    }
+
+    public function test_that_is_uri_returns_true_for_uri_with_empty_userinfo_host(): void
+    {
+        // authority "user@" produces an empty host — exercises the empty-host early return
+        self::assertTrue(Validate::isUri('http://user@/path'));
+    }
+
+    public function test_that_is_uri_returns_true_for_uri_with_ipv6_literal_host(): void
+    {
+        // exercises isValidIpLiteral with a valid IPv6 address
+        self::assertTrue(Validate::isUri('http://[::1]/path'));
+    }
+
+    public function test_that_is_uri_returns_true_for_uri_with_ipvfuture_literal_host(): void
+    {
+        // exercises the IPvFuture branch inside isValidIpLiteral
+        self::assertTrue(Validate::isUri('http://[vF.1:test]/path'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_path_characters(): void
+    {
+        // { and } are not allowed in a URI path — exercises the isValidUriPath false return
+        self::assertFalse(Validate::isUri('http://example.com/{bad}'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_query_characters(): void
+    {
+        // < is not an allowed query character — exercises the isValidUriQuery false return
+        self::assertFalse(Validate::isUri('http://example.com/path?key=<bad>'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_fragment_characters(): void
+    {
+        // < is not an allowed fragment character — exercises the isValidUriFragment false return
+        self::assertFalse(Validate::isUri('http://example.com/path#<bad>'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_userinfo(): void
+    {
+        // < in userinfo is not allowed — exercises the isValidAuthUser false return
+        self::assertFalse(Validate::isUri('http://us<er@example.com/path'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_host_characters(): void
+    {
+        // { in a reg-name host is not allowed — exercises the isValidAuthHost reg-name false return
+        self::assertFalse(Validate::isUri('http://exam{ple.com/path'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_malformed_ip_literal(): void
+    {
+        // host "a[b" contains [ but is not a valid IP literal bracket pair
+        self::assertFalse(Validate::isUri('http://a[b/path'));
+    }
+
+    public function test_that_is_uri_returns_false_for_uri_with_invalid_ip_literal_content(): void
+    {
+        // [invalid] has correct brackets but is neither IPvFuture nor valid IPv6
+        self::assertFalse(Validate::isUri('http://[invalid]/path'));
     }
 
     public function test_that_is_urn_returns_true_for_valid_urn(): void
@@ -746,6 +869,22 @@ class ValidateTest extends UnitTestCase
         self::assertTrue(Validate::areNotEqual('hello', 'world'));
     }
 
+    public function test_that_are_not_equal_returns_true_for_unequal_equatable_objects(): void
+    {
+        $type1 = Type::create(RuntimeException::class);
+        $type2 = Type::create(\Exception::class);
+
+        self::assertTrue(Validate::areNotEqual($type1, $type2));
+    }
+
+    public function test_that_are_not_equal_returns_false_for_equal_equatable_objects(): void
+    {
+        $type1 = Type::create(RuntimeException::class);
+        $type2 = Type::create(RuntimeException::class);
+
+        self::assertFalse(Validate::areNotEqual($type1, $type2));
+    }
+
     public function test_that_are_same_returns_true_for_identical_values(): void
     {
         $object = new stdClass();
@@ -801,6 +940,7 @@ class ValidateTest extends UnitTestCase
         self::assertTrue(Validate::isType(new stdClass(), 'object'));
         self::assertTrue(Validate::isType(true, 'bool'));
         self::assertTrue(Validate::isType(3.14, 'float'));
+        self::assertTrue(Validate::isType(function () {}, 'callable'));
     }
 
     public function test_that_is_type_returns_true_for_matching_class(): void
@@ -827,6 +967,11 @@ class ValidateTest extends UnitTestCase
     {
         self::assertFalse(Validate::isListOf(['hello', 42], 'string'));
         self::assertFalse(Validate::isListOf('not-array', 'string'));
+    }
+
+    public function test_that_is_list_of_returns_true_for_any_traversable_when_type_is_null(): void
+    {
+        self::assertTrue(Validate::isListOf(['a', 1, true], null));
     }
 
     public function test_that_is_string_castable_returns_true_for_castable_values(): void
@@ -862,6 +1007,12 @@ class ValidateTest extends UnitTestCase
         self::assertTrue(Validate::isJsonEncodable('string'));
         self::assertTrue(Validate::isJsonEncodable(42));
         self::assertTrue(Validate::isJsonEncodable(null));
+    }
+
+    public function test_that_is_json_encodable_returns_false_for_non_encodable_value(): void
+    {
+        // INF is not representable in JSON; json_encode returns false for it
+        self::assertFalse(Validate::isJsonEncodable(INF));
     }
 
     public function test_that_is_traversable_returns_true_for_arrays_and_traversables(): void
@@ -1003,5 +1154,85 @@ class ValidateTest extends UnitTestCase
     {
         self::assertFalse(Validate::methodExists('nonExistentMethod', new stdClass()));
         self::assertFalse(Validate::methodExists([], new stdClass()));
+    }
+
+    // -------------------------------------------------------------------------
+    // Filesystem checks
+    // -------------------------------------------------------------------------
+
+    public function test_that_is_path_returns_true_for_existing_path(): void
+    {
+        self::assertTrue(Validate::isPath(__FILE__));
+        self::assertTrue(Validate::isPath(__DIR__));
+    }
+
+    public function test_that_is_path_returns_false_for_non_existing_path(): void
+    {
+        self::assertFalse(Validate::isPath('/tmp/validate_test_nonexistent_path_xyz'));
+    }
+
+    public function test_that_is_path_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isPath([]));
+    }
+
+    public function test_that_is_file_returns_true_for_existing_file(): void
+    {
+        self::assertTrue(Validate::isFile(__FILE__));
+    }
+
+    public function test_that_is_file_returns_false_for_directory(): void
+    {
+        self::assertFalse(Validate::isFile(__DIR__));
+    }
+
+    public function test_that_is_file_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isFile([]));
+    }
+
+    public function test_that_is_dir_returns_true_for_existing_directory(): void
+    {
+        self::assertTrue(Validate::isDir(__DIR__));
+    }
+
+    public function test_that_is_dir_returns_false_for_file(): void
+    {
+        self::assertFalse(Validate::isDir(__FILE__));
+    }
+
+    public function test_that_is_dir_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isDir([]));
+    }
+
+    public function test_that_is_readable_returns_true_for_readable_path(): void
+    {
+        self::assertTrue(Validate::isReadable(__FILE__));
+    }
+
+    public function test_that_is_readable_returns_false_for_non_existing_path(): void
+    {
+        self::assertFalse(Validate::isReadable('/tmp/validate_test_nonexistent_path_xyz'));
+    }
+
+    public function test_that_is_readable_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isReadable([]));
+    }
+
+    public function test_that_is_writable_returns_true_for_writable_path(): void
+    {
+        self::assertTrue(Validate::isWritable(sys_get_temp_dir()));
+    }
+
+    public function test_that_is_writable_returns_false_for_non_existing_path(): void
+    {
+        self::assertFalse(Validate::isWritable('/tmp/validate_test_nonexistent_path_xyz'));
+    }
+
+    public function test_that_is_writable_returns_false_for_non_string_castable_value(): void
+    {
+        self::assertFalse(Validate::isWritable([]));
     }
 }

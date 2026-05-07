@@ -494,6 +494,18 @@ class MbStringObjectTest extends UnitTestCase
         self::assertSame(0, MbStringObject::create('Hello')->lastIndexOf('hello', null, false));
     }
 
+    public function test_that_last_index_of_respects_non_zero_stop_offset(): void
+    {
+        // stop=5 on 'hello world hello' (len=17): prepareOffset(5,17)-17 = -12 → strrpos stops 12 from end
+        self::assertSame(0, MbStringObject::create('hello world hello')->lastIndexOf('hello', 5));
+    }
+
+    public function test_that_last_index_of_returns_adjusted_position_for_empty_search_with_negative_stop(): void
+    {
+        // stop=-3 on 'hello' (len=5): prepareOffset(-3,5)-5 = 2-5 = -3 → $stop<0 → return -3+5 = 2
+        self::assertSame(2, MbStringObject::create('hello')->lastIndexOf('', -3));
+    }
+
     // -------------------------------------------------------------------------
     // Manipulation
     // -------------------------------------------------------------------------
@@ -582,6 +594,18 @@ class MbStringObjectTest extends UnitTestCase
         MbStringObject::create('hi')->padLeft(0);
     }
 
+    public function test_that_pad_left_throws_domain_exception_for_multi_character_pad(): void
+    {
+        self::expectException(DomainException::class);
+
+        MbStringObject::create('hi')->padLeft(5, 'ab');
+    }
+
+    public function test_that_pad_left_returns_original_when_length_is_less_than_string_length(): void
+    {
+        self::assertSame('hello', MbStringObject::create('hello')->padLeft(3)->value());
+    }
+
     public function test_that_pad_right_pads_string_on_the_right(): void
     {
         self::assertSame('hi   ', MbStringObject::create('hi')->padRight(5)->value());
@@ -597,6 +621,18 @@ class MbStringObjectTest extends UnitTestCase
         self::expectException(DomainException::class);
 
         MbStringObject::create('hi')->padRight(0);
+    }
+
+    public function test_that_pad_right_throws_domain_exception_for_multi_character_pad(): void
+    {
+        self::expectException(DomainException::class);
+
+        MbStringObject::create('hi')->padRight(5, 'ab');
+    }
+
+    public function test_that_pad_right_returns_original_when_length_is_less_than_string_length(): void
+    {
+        self::assertSame('hello', MbStringObject::create('hello')->padRight(3)->value());
     }
 
     // -------------------------------------------------------------------------
@@ -653,6 +689,19 @@ class MbStringObjectTest extends UnitTestCase
         self::expectException(DomainException::class);
 
         MbStringObject::create('hello')->truncateWords(0);
+    }
+
+    public function test_that_truncate_words_throws_domain_exception_when_append_exceeds_length(): void
+    {
+        self::expectException(DomainException::class);
+
+        MbStringObject::create('hello world')->truncateWords(3, '...');
+    }
+
+    public function test_that_truncate_words_truncates_mid_word_when_no_space_in_truncated_portion(): void
+    {
+        // 'superlongword foo' → adjusted length=5 → truncated='super', no space → returns 'super...'
+        self::assertSame('super...', MbStringObject::create('superlongword foo')->truncateWords(8, '...')->value());
     }
 
     // -------------------------------------------------------------------------
@@ -855,6 +904,11 @@ class MbStringObjectTest extends UnitTestCase
         self::assertSame('', MbStringObject::create('')->toFirstLowerCase()->value());
     }
 
+    public function test_that_to_first_lower_case_lowercases_single_character_string(): void
+    {
+        self::assertSame('h', MbStringObject::create('H')->toFirstLowerCase()->value());
+    }
+
     public function test_that_to_first_upper_case_uppercases_only_first_character(): void
     {
         self::assertSame('Hello', MbStringObject::create('hello')->toFirstUpperCase()->value());
@@ -863,6 +917,11 @@ class MbStringObjectTest extends UnitTestCase
     public function test_that_to_first_upper_case_returns_empty_string_unchanged(): void
     {
         self::assertSame('', MbStringObject::create('')->toFirstUpperCase()->value());
+    }
+
+    public function test_that_to_first_upper_case_uppercases_single_character_string(): void
+    {
+        self::assertSame('H', MbStringObject::create('h')->toFirstUpperCase()->value());
     }
 
     public static function provideCamelCaseCases(): array
@@ -897,6 +956,12 @@ class MbStringObjectTest extends UnitTestCase
     public function test_that_to_pascal_case_converts_string_to_pascal_case(string $input, string $expected): void
     {
         self::assertSame($expected, MbStringObject::create($input)->toPascalCase()->value());
+    }
+
+    public function test_that_to_pascal_case_capitalises_each_single_character_word(): void
+    {
+        // Parts 'a', 'b', 'c' each have length 1 → exercises the single-char else branch in capsCase
+        self::assertSame('ABC', MbStringObject::create('a b c')->toPascalCase()->value());
     }
 
     public static function provideSnakeCaseCases(): array

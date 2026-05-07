@@ -64,6 +64,12 @@ class JsonObjectTest extends UnitTestCase
         JsonObject::fromString('{invalid}');
     }
 
+    public function test_that_from_data_throws_for_non_encodable_value(): void
+    {
+        $this->expectException(DomainException::class);
+        JsonObject::fromData(NAN);
+    }
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------

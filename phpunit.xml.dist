@@ -25,6 +25,7 @@
         pathCoverage="true">
         <report>
             <html outputDirectory="var/reports/coverage" lowUpperBound="50" highLowerBound="90" />
+            <clover outputFile="var/reports/coverage/clover.xml" />
         </report>
     </coverage>
 </phpunit>
