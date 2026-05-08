@@ -147,4 +147,113 @@ class UriTest extends UnitTestCase
 
         self::assertSame('http://example.com:8080/path/to/resource?foo=bar&baz=qux#section1', $uri->display());
     }
+
+    // -------------------------------------------------------------------------
+    // resolve
+    // -------------------------------------------------------------------------
+
+    public function test_that_resolve_with_an_absolute_reference_returns_the_reference_unchanged(): void
+    {
+        $resolved = Uri::resolve('http://base.com/foo/bar', 'https://other.com/new/path');
+
+        self::assertSame('https://other.com/new/path', $resolved->toString());
+    }
+
+    public function test_that_resolve_with_a_relative_path_merges_it_against_the_base(): void
+    {
+        $resolved = Uri::resolve('http://example.com/a/b/c', 'new');
+
+        self::assertSame('http://example.com/a/b/new', $resolved->toString());
+    }
+
+    public function test_that_resolve_with_a_query_only_reference_inherits_base_scheme_authority_and_path(): void
+    {
+        $resolved = Uri::resolve('http://example.com/path?old=1', '?foo=bar');
+
+        self::assertSame('http://example.com/path?foo=bar', $resolved->toString());
+    }
+
+    public function test_that_resolve_with_a_fragment_only_reference_inherits_base_scheme_authority_path_and_query(): void
+    {
+        $resolved = Uri::resolve('http://example.com/path?query=1', '#section');
+
+        self::assertSame('http://example.com/path?query=1#section', $resolved->toString());
+    }
+
+    public function test_that_resolve_with_an_empty_reference_returns_the_base_uri(): void
+    {
+        $resolved = Uri::resolve('http://example.com/path?q=1', '');
+
+        self::assertSame('http://example.com/path?q=1', $resolved->toString());
+    }
+
+    public function test_that_resolve_with_dotdot_segment_resolves_the_parent_path(): void
+    {
+        $resolved = Uri::resolve('http://example.com/a/b/c', '../d');
+
+        self::assertSame('http://example.com/a/d', $resolved->toString());
+    }
+
+    // -------------------------------------------------------------------------
+    // Equality
+    // -------------------------------------------------------------------------
+
+    public function test_that_equals_returns_true_for_two_uris_created_from_the_same_string(): void
+    {
+        $uri1 = Uri::fromString(self::FULL_URI);
+        $uri2 = Uri::fromString(self::FULL_URI);
+
+        self::assertTrue($uri1->equals($uri2));
+    }
+
+    public function test_that_equals_returns_false_for_two_different_uris(): void
+    {
+        $uri1 = Uri::fromString(self::FULL_URI);
+        $uri2 = Uri::fromString('http://other.com/');
+
+        self::assertFalse($uri1->equals($uri2));
+    }
+
+    public function test_that_equals_returns_false_for_a_non_uri_object(): void
+    {
+        $uri = Uri::fromString(self::FULL_URI);
+
+        self::assertFalse($uri->equals(new \stdClass()));
+    }
+
+    public function test_that_hash_value_returns_the_same_string_for_two_uris_from_the_same_string(): void
+    {
+        $uri1 = Uri::fromString(self::FULL_URI);
+        $uri2 = Uri::fromString(self::FULL_URI);
+
+        self::assertSame($uri1->hashValue(), $uri2->hashValue());
+    }
+
+    // -------------------------------------------------------------------------
+    // Comparison
+    // -------------------------------------------------------------------------
+
+    public function test_that_compare_to_returns_zero_for_equal_uris(): void
+    {
+        $uri1 = Uri::fromString(self::FULL_URI);
+        $uri2 = Uri::fromString(self::FULL_URI);
+
+        self::assertSame(0, $uri1->compareTo($uri2));
+    }
+
+    public function test_that_compare_to_returns_negative_for_a_lesser_uri(): void
+    {
+        $lesser  = Uri::fromString('http://a.example.com/');
+        $greater = Uri::fromString('http://b.example.com/');
+
+        self::assertLessThan(0, $lesser->compareTo($greater));
+    }
+
+    public function test_that_compare_to_returns_positive_for_a_greater_uri(): void
+    {
+        $lesser  = Uri::fromString('http://a.example.com/');
+        $greater = Uri::fromString('http://b.example.com/');
+
+        self::assertGreaterThan(0, $greater->compareTo($lesser));
+    }
 }
