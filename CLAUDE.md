@@ -36,6 +36,10 @@ This is a shared PHP library (`johnnickell/fight-common`) implementing **Hexagon
 - Domain exceptions (`Exception/`)
 - Type system (`Type/`) — `Comparator`, `Comparable`, `Equatable`, `Arrayable`, `Type`
 
+`GeneratorIterator` supports rewind by re-invoking the generator
+function rather than rewinding the generator itself, which is not
+possible in PHP.
+
 **`src/Application/`**
 - CQRS buses — `CommandBus`, `QueryBus` with pipeline support
 - Validation — `ValidationService`, `ValidationCoordinator`, `RulesParser`, rule classes, specifications
