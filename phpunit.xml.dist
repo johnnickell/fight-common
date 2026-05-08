@@ -20,7 +20,7 @@
             <directory suffix=".php">src</directory>
         </include>
     </source>
-    <coverage includeUncoveredFiles="false"
+    <coverage includeUncoveredFiles="true"
         ignoreDeprecatedCodeUnits="false"
         pathCoverage="false">
         <report>
