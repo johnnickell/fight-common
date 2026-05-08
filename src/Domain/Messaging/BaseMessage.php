@@ -101,7 +101,7 @@ abstract class BaseMessage implements Message
         return [
             'id'           => $this->id->toString(),
             'type'         => $this->type->value,
-            'timestamp'    => $this->timestamp->toString(),
+            'timestamp'    => $this->timestamp->format('U'),
             'payload_type' => $this->payloadType->toString(),
             'payload'      => $this->payload->toArray(),
             'meta'         => $this->meta->toArray()
