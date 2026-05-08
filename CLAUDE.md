@@ -129,12 +129,3 @@ Phases in priority order:
 6. **Application Validation** — `RulesParser`, `ValidationCoordinator`, `ValidationService`, all rule classes, `ValidationResult`
 7. **Application Infrastructure** — `Container`, `ValidationException`, `InputData`, `ApplicationData`, `ErrorData`
 8. **Adapter Layer** — Doctrine data types, `SimpleEventDispatcher`, `ServiceAwareEventDispatcher`, command/query buses, auth adapters, `SymfonyFilesystem`
-
-## Future: Event Sourcing
-
-Planned addition: **CLI Projectors** for building transient read state from event streams. When implemented, projectors will live in `src/Application/Projection/` and follow these conventions:
-- A `Projector` interface with a `project(EventMessage $event): void` method
-- CLI entry points in `src/Adapter/Cli/`
-- Projectors depend only on domain event types and application-layer read models
-- State is transient (rebuilt on demand) — no persistent projection store in v1
-- Tests for projectors use real `EventMessage` instances constructed from domain events, not mocks
