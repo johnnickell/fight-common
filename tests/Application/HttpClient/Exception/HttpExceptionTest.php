@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Application\HttpClient\Exception;
 use Fight\Common\Application\HttpClient\Exception\HttpException;
 use Fight\Common\Application\HttpClient\Exception\RequestException;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -16,7 +17,9 @@ class HttpExceptionTest extends UnitTestCase
 {
     public function test_that_construction_sets_message_and_status_code_from_response(): void
     {
+        /** @var MockInterface|RequestInterface $request */
         $request = $this->mock(RequestInterface::class);
+        /** @var MockInterface|ResponseInterface $response */
         $response = $this->mock(ResponseInterface::class);
         $response->shouldReceive('getStatusCode')->andReturn(404);
 
@@ -28,7 +31,9 @@ class HttpExceptionTest extends UnitTestCase
 
     public function test_that_get_status_code_returns_correct_status_code(): void
     {
+        /** @var MockInterface|RequestInterface $request */
         $request = $this->mock(RequestInterface::class);
+        /** @var MockInterface|ResponseInterface $response */
         $response = $this->mock(ResponseInterface::class);
         $response->shouldReceive('getStatusCode')->andReturn(500);
 
@@ -39,7 +44,9 @@ class HttpExceptionTest extends UnitTestCase
 
     public function test_that_get_response_returns_the_response_passed_to_constructor(): void
     {
+        /** @var MockInterface|RequestInterface $request */
         $request = $this->mock(RequestInterface::class);
+        /** @var MockInterface|ResponseInterface $response */
         $response = $this->mock(ResponseInterface::class);
         $response->shouldReceive('getStatusCode')->andReturn(400);
 
@@ -50,10 +57,12 @@ class HttpExceptionTest extends UnitTestCase
 
     public function test_that_create_builds_exception_with_normalized_message(): void
     {
+        /** @var MockInterface|RequestInterface $request */
         $request = $this->mock(RequestInterface::class);
         $request->shouldReceive('getRequestTarget')->andReturn('/api/resource');
         $request->shouldReceive('getMethod')->andReturn('POST');
 
+        /** @var MockInterface|ResponseInterface $response */
         $response = $this->mock(ResponseInterface::class);
         $response->shouldReceive('getStatusCode')->andReturn(422);
         $response->shouldReceive('getReasonPhrase')->andReturn('Unprocessable Entity');
@@ -69,7 +78,9 @@ class HttpExceptionTest extends UnitTestCase
 
     public function test_that_http_exception_extends_request_exception(): void
     {
+        /** @var MockInterface|RequestInterface $request */
         $request = $this->mock(RequestInterface::class);
+        /** @var MockInterface|ResponseInterface $response */
         $response = $this->mock(ResponseInterface::class);
         $response->shouldReceive('getStatusCode')->andReturn(403);
 
