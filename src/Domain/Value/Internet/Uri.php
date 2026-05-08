@@ -6,6 +6,7 @@ namespace Fight\Common\Domain\Value\Internet;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Comparable;
+use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Utility\VarPrinter;
 use Fight\Common\Domain\Value\ValueObject;
 
