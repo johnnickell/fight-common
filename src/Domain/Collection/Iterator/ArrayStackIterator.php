@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Collection\Iterator;
+namespace Fight\Common\Domain\Collection\Iterator;
 
 use Iterator;
 

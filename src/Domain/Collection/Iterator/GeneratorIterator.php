@@ -19,8 +19,8 @@ use Throwable;
  */
 final class GeneratorIterator implements Iterator
 {
-    protected Closure $function;
-    protected ?Generator $generator = null;
+    private Closure $function;
+    private ?Generator $generator = null;
 
     /**
      * Constructs GeneratorIterator
@@ -30,7 +30,7 @@ final class GeneratorIterator implements Iterator
      * @throws DomainException When function is not a generator
      * @throws ReflectionException
      */
-    public function __construct(callable $function, protected array $args = [])
+    public function __construct(callable $function, private array $args = [])
     {
         $reflection = new ReflectionFunction($function);
         if (!$reflection->isGenerator()) {
@@ -45,11 +45,10 @@ final class GeneratorIterator implements Iterator
     public function rewind(): void
     {
         $this->generator = call_user_func_array($this->function, $this->args);
-        $this->generator->rewind();
     }
 
     /**
-     * Checks if position is valid
+     * Checks if the position is valid
      */
     public function valid(): bool
     {
@@ -119,7 +118,7 @@ final class GeneratorIterator implements Iterator
      *
      * If the generator is not at a yield expression when this method is
      * called, it will first be let to advance to the first yield expression
-     * before sending the value. As such it is not necessary to "prime" PHP
+     * before sending the value. As such, it is not necessary to "prime" PHP
      * generators with a Generator::next() call (like it is done in Python).
      */
     public function send(mixed $value = null): mixed
