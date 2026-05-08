@@ -12,7 +12,7 @@ use Fight\Common\Domain\Exception\DomainException;
  */
 final readonly class Url extends Uri
 {
-    protected const DEFAULT_PORTS = [
+    protected const array DEFAULT_PORTS = [
         'http'  => 80,
         'https' => 443
     ];
@@ -35,7 +35,7 @@ final readonly class Url extends Uri
     /**
      * Normalizes the query
      *
-     * Sorts query by key and removes values without keys.
+     * Sorts the query by key and removes values without keys.
      *
      * @throws DomainException When the query is invalid
      */
