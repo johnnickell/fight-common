@@ -212,4 +212,58 @@ class RulesParserTest extends UnitTestCase
             ['field' => 'email', 'label' => 'Email', 'rules' => 'unsupported_rule'],
         ]);
     }
+
+    public function test_that_date_rule_with_missing_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'published_at', 'label' => 'Published At', 'rules' => 'date[]'],
+        ]);
+    }
+
+    public function test_that_date_rule_with_invalid_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'published_at', 'label' => 'Published At', 'rules' => 'date[q]'],
+        ]);
+    }
+
+    public function test_that_time_rule_with_missing_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'start_time', 'label' => 'Start Time', 'rules' => 'time[]'],
+        ]);
+    }
+
+    public function test_that_time_rule_with_invalid_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'start_time', 'label' => 'Start Time', 'rules' => 'time[q]'],
+        ]);
+    }
+
+    public function test_that_date_time_rule_with_missing_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'created_at', 'label' => 'Created At', 'rules' => 'date_time[]'],
+        ]);
+    }
+
+    public function test_that_date_time_rule_with_invalid_format_throws_domain_exception(): void
+    {
+        $this->expectException(DomainException::class);
+
+        RulesParser::parse([
+            ['field' => 'created_at', 'label' => 'Created At', 'rules' => 'date_time[q]'],
+        ]);
+    }
 }
