@@ -13,11 +13,11 @@ class IsEmailTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_valid_email(): void
     {
-        self::assertTrue((new IsEmail())->isSatisfiedBy('user@example.com'));
+        self::assertTrue(new IsEmail()->isSatisfiedBy('user@example.com'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_invalid_email(): void
     {
-        self::assertFalse((new IsEmail())->isSatisfiedBy('notanemail'));
+        self::assertFalse(new IsEmail()->isSatisfiedBy('notanemail'));
     }
 }

@@ -13,11 +13,11 @@ class LengthMaxTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_length_is_within_maximum(): void
     {
-        self::assertTrue((new LengthMax(10))->isSatisfiedBy('hello'));
+        self::assertTrue(new LengthMax(10)->isSatisfiedBy('hello'));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_length_exceeds_maximum(): void
     {
-        self::assertFalse((new LengthMax(3))->isSatisfiedBy('hello'));
+        self::assertFalse(new LengthMax(3)->isSatisfiedBy('hello'));
     }
 }

@@ -13,11 +13,11 @@ class IsUrnTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_valid_urn(): void
     {
-        self::assertTrue((new IsUrn())->isSatisfiedBy('urn:isbn:0451450523'));
+        self::assertTrue(new IsUrn()->isSatisfiedBy('urn:isbn:0451450523'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_plain_string(): void
     {
-        self::assertFalse((new IsUrn())->isSatisfiedBy('plainstring'));
+        self::assertFalse(new IsUrn()->isSatisfiedBy('plainstring'));
     }
 }

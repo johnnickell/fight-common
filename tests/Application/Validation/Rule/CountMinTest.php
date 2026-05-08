@@ -13,11 +13,11 @@ class CountMinTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_count_meets_minimum(): void
     {
-        self::assertTrue((new CountMin(2))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertTrue(new CountMin(2)->isSatisfiedBy(['a', 'b', 'c']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_count_is_below_minimum(): void
     {
-        self::assertFalse((new CountMin(5))->isSatisfiedBy(['a', 'b']));
+        self::assertFalse(new CountMin(5)->isSatisfiedBy(['a', 'b']));
     }
 }

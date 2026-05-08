@@ -13,16 +13,16 @@ class IsFalseTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_boolean_false(): void
     {
-        self::assertTrue((new IsFalse())->isSatisfiedBy(false));
+        self::assertTrue(new IsFalse()->isSatisfiedBy(false));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_integer_zero(): void
     {
-        self::assertFalse((new IsFalse())->isSatisfiedBy(0));
+        self::assertFalse(new IsFalse()->isSatisfiedBy(0));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_string_false(): void
     {
-        self::assertFalse((new IsFalse())->isSatisfiedBy('false'));
+        self::assertFalse(new IsFalse()->isSatisfiedBy('false'));
     }
 }

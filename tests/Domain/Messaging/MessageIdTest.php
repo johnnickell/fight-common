@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Messaging;
 
+use stdClass;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -96,7 +97,7 @@ class MessageIdTest extends UnitTestCase
 
     public function test_that_equals_returns_false_for_wrong_type(): void
     {
-        self::assertFalse(MessageId::fromString(self::KNOWN_UUID)->equals(new \stdClass()));
+        self::assertFalse(MessageId::fromString(self::KNOWN_UUID)->equals(new stdClass()));
     }
 
     public function test_that_hash_value_returns_same_string_for_two_instances_from_the_same_string(): void

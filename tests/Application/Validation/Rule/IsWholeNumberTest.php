@@ -13,16 +13,16 @@ class IsWholeNumberTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_zero(): void
     {
-        self::assertTrue((new IsWholeNumber())->isSatisfiedBy(0));
+        self::assertTrue(new IsWholeNumber()->isSatisfiedBy(0));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_positive_integer(): void
     {
-        self::assertTrue((new IsWholeNumber())->isSatisfiedBy(5));
+        self::assertTrue(new IsWholeNumber()->isSatisfiedBy(5));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_negative_integer(): void
     {
-        self::assertFalse((new IsWholeNumber())->isSatisfiedBy(-1));
+        self::assertFalse(new IsWholeNumber()->isSatisfiedBy(-1));
     }
 }

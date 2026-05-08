@@ -13,21 +13,21 @@ class IsFalsyTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_integer_zero(): void
     {
-        self::assertTrue((new IsFalsy())->isSatisfiedBy(0));
+        self::assertTrue(new IsFalsy()->isSatisfiedBy(0));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_empty_string(): void
     {
-        self::assertTrue((new IsFalsy())->isSatisfiedBy(''));
+        self::assertTrue(new IsFalsy()->isSatisfiedBy(''));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_boolean_false(): void
     {
-        self::assertTrue((new IsFalsy())->isSatisfiedBy(false));
+        self::assertTrue(new IsFalsy()->isSatisfiedBy(false));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_integer_one(): void
     {
-        self::assertFalse((new IsFalsy())->isSatisfiedBy(1));
+        self::assertFalse(new IsFalsy()->isSatisfiedBy(1));
     }
 }

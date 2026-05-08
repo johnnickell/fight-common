@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Specification;
 
+use stdClass;
 use Fight\Common\Domain\Specification\AndSpecification;
 use Fight\Common\Domain\Specification\CompositeSpecification;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -23,7 +24,7 @@ class AndSpecificationTest extends UnitTestCase
 
         $spec = new AndSpecification($first, $second);
 
-        self::assertTrue($spec->isSatisfiedBy(new \stdClass()));
+        self::assertTrue($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_first_specification_fails(): void
@@ -37,7 +38,7 @@ class AndSpecificationTest extends UnitTestCase
 
         $spec = new AndSpecification($first, $second);
 
-        self::assertFalse($spec->isSatisfiedBy(new \stdClass()));
+        self::assertFalse($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_second_specification_fails(): void
@@ -51,6 +52,6 @@ class AndSpecificationTest extends UnitTestCase
 
         $spec = new AndSpecification($first, $second);
 
-        self::assertFalse($spec->isSatisfiedBy(new \stdClass()));
+        self::assertFalse($spec->isSatisfiedBy(new stdClass()));
     }
 }

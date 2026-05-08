@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Specification;
 
+use stdClass;
 use Fight\Common\Domain\Specification\CompositeSpecification;
 use Fight\Common\Domain\Specification\OrSpecification;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -23,7 +24,7 @@ class OrSpecificationTest extends UnitTestCase
 
         $spec = new OrSpecification($first, $second);
 
-        self::assertTrue($spec->isSatisfiedBy(new \stdClass()));
+        self::assertTrue($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_true_when_only_first_specification_is_satisfied(): void
@@ -37,7 +38,7 @@ class OrSpecificationTest extends UnitTestCase
 
         $spec = new OrSpecification($first, $second);
 
-        self::assertTrue($spec->isSatisfiedBy(new \stdClass()));
+        self::assertTrue($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_true_when_only_second_specification_is_satisfied(): void
@@ -51,7 +52,7 @@ class OrSpecificationTest extends UnitTestCase
 
         $spec = new OrSpecification($first, $second);
 
-        self::assertTrue($spec->isSatisfiedBy(new \stdClass()));
+        self::assertTrue($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_both_specifications_fail(): void
@@ -65,6 +66,6 @@ class OrSpecificationTest extends UnitTestCase
 
         $spec = new OrSpecification($first, $second);
 
-        self::assertFalse($spec->isSatisfiedBy(new \stdClass()));
+        self::assertFalse($spec->isSatisfiedBy(new stdClass()));
     }
 }

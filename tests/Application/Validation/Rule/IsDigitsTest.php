@@ -13,11 +13,11 @@ class IsDigitsTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_digit_string(): void
     {
-        self::assertTrue((new IsDigits())->isSatisfiedBy('12345'));
+        self::assertTrue(new IsDigits()->isSatisfiedBy('12345'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_decimal_string(): void
     {
-        self::assertFalse((new IsDigits())->isSatisfiedBy('123.45'));
+        self::assertFalse(new IsDigits()->isSatisfiedBy('123.45'));
     }
 }

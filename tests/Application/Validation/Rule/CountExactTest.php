@@ -13,11 +13,11 @@ class CountExactTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_count_matches(): void
     {
-        self::assertTrue((new CountExact(3))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertTrue(new CountExact(3)->isSatisfiedBy(['a', 'b', 'c']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_count_does_not_match(): void
     {
-        self::assertFalse((new CountExact(3))->isSatisfiedBy(['a', 'b']));
+        self::assertFalse(new CountExact(3)->isSatisfiedBy(['a', 'b']));
     }
 }

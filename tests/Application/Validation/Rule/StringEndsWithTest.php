@@ -13,11 +13,11 @@ class StringEndsWithTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_string_ends_with_suffix(): void
     {
-        self::assertTrue((new StringEndsWith('world'))->isSatisfiedBy('hello world'));
+        self::assertTrue(new StringEndsWith('world')->isSatisfiedBy('hello world'));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_string_does_not_end_with_suffix(): void
     {
-        self::assertFalse((new StringEndsWith('hello'))->isSatisfiedBy('hello world'));
+        self::assertFalse(new StringEndsWith('hello')->isSatisfiedBy('hello world'));
     }
 }

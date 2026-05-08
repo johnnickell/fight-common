@@ -6,7 +6,6 @@ namespace Fight\Test\Common\Domain\Collection;
 
 use AssertionError;
 use Fight\Common\Domain\Collection\Comparison\IntegerComparator;
-use Fight\Common\Domain\Collection\Comparison\StringComparator;
 use Fight\Common\Domain\Collection\SortedSet;
 use Fight\Common\Domain\Value\Basic\StringObject;
 use Fight\Common\Domain\Exception\UnderflowException;

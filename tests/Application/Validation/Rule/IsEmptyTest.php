@@ -13,21 +13,21 @@ class IsEmptyTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_empty_string(): void
     {
-        self::assertTrue((new IsEmpty())->isSatisfiedBy(''));
+        self::assertTrue(new IsEmpty()->isSatisfiedBy(''));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_empty_array(): void
     {
-        self::assertTrue((new IsEmpty())->isSatisfiedBy([]));
+        self::assertTrue(new IsEmpty()->isSatisfiedBy([]));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_null(): void
     {
-        self::assertTrue((new IsEmpty())->isSatisfiedBy(null));
+        self::assertTrue(new IsEmpty()->isSatisfiedBy(null));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_non_empty_string(): void
     {
-        self::assertFalse((new IsEmpty())->isSatisfiedBy('hello'));
+        self::assertFalse(new IsEmpty()->isSatisfiedBy('hello'));
     }
 }

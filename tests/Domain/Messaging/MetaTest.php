@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Messaging;
 
+use stdClass;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -176,7 +177,7 @@ class MetaTest extends UnitTestCase
         $meta = Meta::create();
 
         $this->expectException(DomainException::class);
-        $meta->set('key', new \stdClass());
+        $meta->set('key', new stdClass());
     }
 
     public function test_that_guard_value_throws_for_array_containing_object(): void
@@ -184,7 +185,7 @@ class MetaTest extends UnitTestCase
         $meta = Meta::create();
 
         $this->expectException(DomainException::class);
-        $meta->set('key', ['nested' => new \stdClass()]);
+        $meta->set('key', ['nested' => new stdClass()]);
     }
 
     public function test_that_guard_value_allows_nested_arrays(): void
@@ -198,7 +199,7 @@ class MetaTest extends UnitTestCase
     public function test_that_create_throws_when_array_contains_object(): void
     {
         $this->expectException(DomainException::class);
-        Meta::create(['key' => new \stdClass()]);
+        Meta::create(['key' => new stdClass()]);
     }
 
     // -------------------------------------------------------------------------

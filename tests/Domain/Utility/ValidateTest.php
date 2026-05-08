@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Utility;
 
+use Exception;
 use ArrayObject;
 use Countable;
 use Fight\Common\Domain\Exception\RuntimeException;
@@ -116,9 +117,9 @@ class ValidateTest extends UnitTestCase
 
     public function test_that_is_callable_returns_true_for_callables(): void
     {
-        self::assertTrue(Validate::isCallable(function () {}));
+        self::assertTrue(Validate::isCallable(function (): void {}));
         self::assertTrue(Validate::isCallable('strlen'));
-        self::assertTrue(Validate::isCallable([Validate::class, 'isString']));
+        self::assertTrue(Validate::isCallable(Validate::isString(...)));
     }
 
     public function test_that_is_callable_returns_false_for_non_callables(): void
@@ -872,7 +873,7 @@ class ValidateTest extends UnitTestCase
     public function test_that_are_not_equal_returns_true_for_unequal_equatable_objects(): void
     {
         $type1 = Type::create(RuntimeException::class);
-        $type2 = Type::create(\Exception::class);
+        $type2 = Type::create(Exception::class);
 
         self::assertTrue(Validate::areNotEqual($type1, $type2));
     }
@@ -940,7 +941,7 @@ class ValidateTest extends UnitTestCase
         self::assertTrue(Validate::isType(new stdClass(), 'object'));
         self::assertTrue(Validate::isType(true, 'bool'));
         self::assertTrue(Validate::isType(3.14, 'float'));
-        self::assertTrue(Validate::isType(function () {}, 'callable'));
+        self::assertTrue(Validate::isType(function (): void {}, 'callable'));
     }
 
     public function test_that_is_type_returns_true_for_matching_class(): void
@@ -948,7 +949,7 @@ class ValidateTest extends UnitTestCase
         $exception = new RuntimeException('test');
 
         self::assertTrue(Validate::isType($exception, RuntimeException::class));
-        self::assertTrue(Validate::isType($exception, \Exception::class));
+        self::assertTrue(Validate::isType($exception, Exception::class));
     }
 
     public function test_that_is_type_returns_false_for_non_matching_type(): void
@@ -1100,7 +1101,7 @@ class ValidateTest extends UnitTestCase
         $exception = new RuntimeException('test');
 
         self::assertTrue(Validate::isInstanceOf($exception, RuntimeException::class));
-        self::assertTrue(Validate::isInstanceOf($exception, \Exception::class));
+        self::assertTrue(Validate::isInstanceOf($exception, Exception::class));
     }
 
     public function test_that_is_instance_of_returns_false_for_non_matching_class(): void
@@ -1110,7 +1111,7 @@ class ValidateTest extends UnitTestCase
 
     public function test_that_is_subclass_of_returns_true_for_subclass(): void
     {
-        self::assertTrue(Validate::isSubclassOf(new RuntimeException('test'), \Exception::class));
+        self::assertTrue(Validate::isSubclassOf(new RuntimeException('test'), Exception::class));
     }
 
     public function test_that_is_subclass_of_returns_false_for_same_class(): void

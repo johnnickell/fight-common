@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Specification;
 
+use stdClass;
 use Fight\Common\Domain\Specification\CompositeSpecification;
 use Fight\Common\Domain\Specification\NotSpecification;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -20,7 +21,7 @@ class NotSpecificationTest extends UnitTestCase
 
         $spec = new NotSpecification($inner);
 
-        self::assertFalse($spec->isSatisfiedBy(new \stdClass()));
+        self::assertFalse($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_returns_true_when_wrapped_specification_is_not_satisfied(): void
@@ -31,7 +32,7 @@ class NotSpecificationTest extends UnitTestCase
 
         $spec = new NotSpecification($inner);
 
-        self::assertTrue($spec->isSatisfiedBy(new \stdClass()));
+        self::assertTrue($spec->isSatisfiedBy(new stdClass()));
     }
 
     public function test_that_is_satisfied_by_delegates_to_wrapped_specification_exactly_once(): void
@@ -45,7 +46,7 @@ class NotSpecificationTest extends UnitTestCase
         };
 
         $spec = new NotSpecification($inner);
-        $spec->isSatisfiedBy(new \stdClass());
+        $spec->isSatisfiedBy(new stdClass());
 
         self::assertSame(1, $inner->callCount);
     }
@@ -61,7 +62,7 @@ class NotSpecificationTest extends UnitTestCase
         };
 
         $spec = new NotSpecification($inner);
-        $spec->isSatisfiedBy(new \stdClass());
+        $spec->isSatisfiedBy(new stdClass());
 
         self::assertTrue($inner->wasCalled);
     }

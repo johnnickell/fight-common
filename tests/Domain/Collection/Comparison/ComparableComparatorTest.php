@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Collection\Comparison;
 
+use stdClass;
 use AssertionError;
 use Fight\Common\Domain\Collection\Comparison\ComparableComparator;
 use Fight\Common\Domain\Type\Comparable;
@@ -15,8 +16,8 @@ class ComparableComparatorTest extends UnitTestCase
 {
     private function makeComparable(int $value): Comparable
     {
-        return new class ($value) implements Comparable {
-            public function __construct(private readonly int $value) {}
+        return new readonly class ($value) implements Comparable {
+            public function __construct(private int $value) {}
 
             public function compareTo(mixed $other): int
             {
@@ -57,7 +58,7 @@ class ComparableComparatorTest extends UnitTestCase
         $comparator = new ComparableComparator();
 
         $this->expectException(AssertionError::class);
-        $comparator->compare(new \stdClass(), $this->makeComparable(5));
+        $comparator->compare(new stdClass(), $this->makeComparable(5));
     }
 
     public function test_that_compare_throws_for_mismatched_types(): void
@@ -65,8 +66,8 @@ class ComparableComparatorTest extends UnitTestCase
         $comparator = new ComparableComparator();
 
         $a = $this->makeComparable(5);
-        $b = new class (5) implements Comparable {
-            public function __construct(private readonly int $value) {}
+        $b = new readonly class (5) implements Comparable {
+            public function __construct(private int $value) {}
 
             public function compareTo(mixed $other): int
             {

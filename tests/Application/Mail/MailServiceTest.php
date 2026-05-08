@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mail;
 
+use Override;
 use Fight\Common\Application\Mail\MailService;
 use Fight\Common\Application\Mail\Message\Attachment;
 use Fight\Common\Application\Mail\Message\MailFactory;
@@ -22,6 +23,7 @@ class MailServiceTest extends UnitTestCase
     private $factory;
     private MailService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->transport = $this->mock(MailTransport::class);

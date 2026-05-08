@@ -13,16 +13,16 @@ class IsNaturalNumberTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_positive_integer(): void
     {
-        self::assertTrue((new IsNaturalNumber())->isSatisfiedBy(5));
+        self::assertTrue(new IsNaturalNumber()->isSatisfiedBy(5));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_zero(): void
     {
-        self::assertFalse((new IsNaturalNumber())->isSatisfiedBy(0));
+        self::assertFalse(new IsNaturalNumber()->isSatisfiedBy(0));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_negative_integer(): void
     {
-        self::assertFalse((new IsNaturalNumber())->isSatisfiedBy(-1));
+        self::assertFalse(new IsNaturalNumber()->isSatisfiedBy(-1));
     }
 }
