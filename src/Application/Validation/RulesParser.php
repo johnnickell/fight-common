@@ -24,6 +24,19 @@ final class RulesParser
 
         /** @var array $rule */
         foreach ($rules as $rule) {
+            if (!isset($rule['field'])) {
+                throw new DomainException('Rule definition is missing required key: field');
+            }
+            if (!is_string($rule['field'])) {
+                throw new DomainException('Rule definition key "field" must be a string');
+            }
+            if (!isset($rule['label'])) {
+                throw new DomainException('Rule definition is missing required key: label');
+            }
+            if (!isset($rule['rules'])) {
+                throw new DomainException('Rule definition is missing required key: rules');
+            }
+
             $fieldName = $rule['field'];
             $label = $rule['label'];
 

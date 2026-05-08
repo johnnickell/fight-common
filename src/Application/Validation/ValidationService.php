@@ -71,8 +71,8 @@ final readonly class ValidationService
                 $method = sprintf('add%sValidation', $type);
                 $methodArgs = array_merge([$fieldName, $error], $args);
 
+                // parser should throw exception
                 // @codeCoverageIgnoreStart
-                // exception should be thrown by parser
                 if (!method_exists($this->coordinator, $method)) {
                     $message = sprintf('Unsupported validation: %s', $type);
                     throw new DomainException($message);
