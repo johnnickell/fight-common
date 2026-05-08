@@ -31,6 +31,7 @@
         "symfony/finder": "^8.0",
         "symfony/http-foundation": "^8.0",
         "symfony/http-kernel": "^8.0",
+        "symfony/messenger": "^8.0",
         "symfony/routing": "^8.0"
     },
     "suggest": {
@@ -46,6 +47,7 @@
         "symfony/filesystem": "Required for the filesystem adapter",
         "symfony/http-foundation": "Required for the JSend response and other HTTP related utilities",
         "symfony/http-kernel": "Required for the kernel middleware and other HTTP related utilities",
+        "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
         "symfony/routing": "Required for the URL generator"
     },
     "autoload": {
