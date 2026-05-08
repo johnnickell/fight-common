@@ -12,8 +12,14 @@ use League\Flysystem\FilesystemOperator;
 use League\Flysystem\StorageAttributes;
 use Throwable;
 
+/**
+ * Class FlysystemStorage
+ */
 final readonly class FlysystemStorage implements FileStorageInterface
 {
+    /**
+     * Constructs FlysystemStorage
+     */
     public function __construct(private FilesystemOperator $filesystem)
     {
     }
@@ -23,7 +29,11 @@ final readonly class FlysystemStorage implements FileStorageInterface
      */
     public function putFile(string $path, mixed $contents): void
     {
-        $this->ensureDirectoryExists($path);
+        try {
+            $this->ensureDirectoryExists($path);
+        } catch (FilesystemException|Throwable $e) {
+            throw new FileStorageException($e->getMessage(), 0, $e);
+        }
 
         try {
             if (is_string($contents)) {
@@ -93,9 +103,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
      */
     public function copyFile(string $source, string $destination): void
     {
-        $this->ensureDirectoryExists($destination);
-
         try {
+            $this->ensureDirectoryExists($destination);
             $this->filesystem->copy($source, $destination);
         } catch (FilesystemException|Throwable $e) {
             throw new FileStorageException($e->getMessage(), 0, $e);
@@ -107,9 +116,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
      */
     public function moveFile(string $source, string $destination): void
     {
-        $this->ensureDirectoryExists($destination);
-
         try {
+            $this->ensureDirectoryExists($destination);
             $this->filesystem->move($source, $destination);
         } catch (FilesystemException|Throwable $e) {
             throw new FileStorageException($e->getMessage(), 0, $e);

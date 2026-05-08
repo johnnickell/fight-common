@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\FileStorage;
 
+use Mockery\MockInterface;
 use RuntimeException;
 use DateTimeImmutable;
 use Fight\Common\Adapter\FileStorage\FlysystemStorage;
@@ -22,6 +23,7 @@ class FlysystemStorageTest extends UnitTestCase
 {
     public function test_that_put_file_writes_string_contents(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('write')->once()->with('path/file.txt', 'contents');
         $flysystem->shouldReceive('createDirectory')->once()->with('path');
@@ -36,6 +38,7 @@ class FlysystemStorageTest extends UnitTestCase
         fwrite($resource, 'data');
         rewind($resource);
 
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('writeStream')->once()->with('path/file.txt', $resource);
         $flysystem->shouldReceive('createDirectory')->once()->with('path');
@@ -46,6 +49,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_put_file_skips_directory_creation_for_root_path(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('write')->once()->with('file.txt', 'contents');
         $flysystem->shouldNotReceive('createDirectory');
@@ -56,6 +60,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_put_file_throws_exception_for_invalid_contents(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('createDirectory')->once()->with('path');
 
@@ -68,6 +73,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_get_file_contents_returns_string(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('read')->once()->with('file.txt')->andReturn('contents');
 
@@ -81,6 +87,7 @@ class FlysystemStorageTest extends UnitTestCase
     {
         $resource = fopen('php://memory', 'r+');
 
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('readStream')->once()->with('file.txt')->andReturn($resource);
 
@@ -92,6 +99,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_has_file_returns_true_when_file_exists(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('fileExists')->once()->with('file.txt')->andReturn(true);
 
@@ -102,6 +110,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_has_file_returns_false_when_file_does_not_exist(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('fileExists')->once()->with('file.txt')->andReturn(false);
 
@@ -112,6 +121,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_remove_file_deletes_file(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('delete')->once()->with('file.txt');
 
@@ -121,6 +131,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_copy_file_copies_file_and_creates_destination_directory(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('createDirectory')->once()->with('dest');
         $flysystem->shouldReceive('copy')->once()->with('src/file.txt', 'dest/file.txt');
@@ -131,6 +142,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_move_file_moves_file_and_creates_destination_directory(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('createDirectory')->once()->with('dest');
         $flysystem->shouldReceive('move')->once()->with('src/file.txt', 'dest/file.txt');
@@ -141,6 +153,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_size_returns_file_size(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('fileSize')->once()->with('file.txt')->andReturn(1024);
 
@@ -152,6 +165,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_last_modified_returns_date_time_immutable(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('lastModified')->once()->with('file.txt')->andReturn(1700000000);
 
@@ -164,6 +178,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_list_files_returns_file_paths(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('listContents')
             ->once()
@@ -182,6 +197,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_list_files_recursively_returns_file_paths(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('listContents')
             ->once()
@@ -199,6 +215,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_list_directories_returns_directory_paths(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('listContents')
             ->once()
@@ -216,6 +233,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_list_directories_recursively_returns_directory_paths(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('listContents')
             ->once()
@@ -233,6 +251,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_flysystem_exception_is_wrapped_in_file_storage_exception(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $flysystem->shouldReceive('read')
             ->once()
@@ -249,6 +268,7 @@ class FlysystemStorageTest extends UnitTestCase
 
     public function test_that_storage_implements_file_storage_interface(): void
     {
+        /** @var MockInterface|FilesystemOperator $flysystem */
         $flysystem = $this->mock(FilesystemOperator::class);
         $storage = new FlysystemStorage($flysystem);
 
