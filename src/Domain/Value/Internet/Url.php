@@ -18,6 +18,21 @@ final readonly class Url extends Uri
     ];
 
     /**
+     * Validates the scheme
+     *
+     * Restricts Url instances to the http and https schemes only.
+     */
+    #[Override]
+    protected static function isValidScheme(?string $scheme): bool
+    {
+        if ($scheme === null) {
+            return false;
+        }
+
+        return in_array(strtolower($scheme), ['http', 'https'], true);
+    }
+
+    /**
      * Normalizes the query
      *
      * Sorts query by key and removes values without keys.
