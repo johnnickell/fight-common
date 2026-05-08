@@ -17,7 +17,7 @@ final class PhpSerializer implements Serializer
      */
     public function deserialize(string $state): Serializable
     {
-        $data = unserialize($state);
+        $data = @unserialize($state);
 
         $keys = ['@', '$'];
         foreach ($keys as $key) {
