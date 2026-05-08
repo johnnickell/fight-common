@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain;
 
-use function Fight\Common\Domain\mb_string;
-use function Fight\Common\Domain\json_string;
-use function Fight\Common\Domain\json_data;
-use function Fight\Common\Domain\email;
-use function Fight\Common\Domain\array_list;
-use function Fight\Common\Domain\hash_set;
-use function Fight\Common\Domain\hash_table;
-use function Fight\Common\Domain\array_stack;
-use function Fight\Common\Domain\array_queue;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Collection\ArrayQueue;
 use Fight\Common\Domain\Collection\ArrayStack;
@@ -27,14 +18,40 @@ use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Common\Domain\Value\Internet\Uri;
 use Fight\Common\Domain\Value\Internet\Url;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\CoversFunction;
 
-#[CoversNothing]
+use function Fight\Common\Domain\string;
+use function Fight\Common\Domain\mb_string;
+use function Fight\Common\Domain\json_string;
+use function Fight\Common\Domain\json_data;
+use function Fight\Common\Domain\email;
+use function Fight\Common\Domain\array_list;
+use function Fight\Common\Domain\hash_set;
+use function Fight\Common\Domain\hash_table;
+use function Fight\Common\Domain\array_stack;
+use function Fight\Common\Domain\array_queue;
+use function Fight\Common\Domain\uri;
+use function Fight\Common\Domain\url;
+use function Fight\Common\Domain\uuid;
+
+#[CoversFunction('Fight\Common\Domain\string')]
+#[CoversFunction('Fight\Common\Domain\mb_string')]
+#[CoversFunction('Fight\Common\Domain\json_string')]
+#[CoversFunction('Fight\Common\Domain\json_data')]
+#[CoversFunction('Fight\Common\Domain\email')]
+#[CoversFunction('Fight\Common\Domain\array_list')]
+#[CoversFunction('Fight\Common\Domain\hash_set')]
+#[CoversFunction('Fight\Common\Domain\hash_table')]
+#[CoversFunction('Fight\Common\Domain\array_stack')]
+#[CoversFunction('Fight\Common\Domain\array_queue')]
+#[CoversFunction('Fight\Common\Domain\uri')]
+#[CoversFunction('Fight\Common\Domain\url')]
+#[CoversFunction('Fight\Common\Domain\uuid')]
 class FunctionsTest extends UnitTestCase
 {
     public function test_that_string_returns_string_object_instance(): void
     {
-        $result = \Fight\Common\Domain\string('hello');
+        $result = string('hello');
 
         self::assertInstanceOf(StringObject::class, $result);
         self::assertSame('hello', $result->value());
@@ -80,7 +97,7 @@ class FunctionsTest extends UnitTestCase
 
     public function test_that_uuid_returns_uuid_instance(): void
     {
-        $result = \Fight\Common\Domain\uuid();
+        $result = uuid();
 
         self::assertInstanceOf(Uuid::class, $result);
         self::assertMatchesRegularExpression('/^[0-9a-f-]+$/', $result->toString());
@@ -88,7 +105,7 @@ class FunctionsTest extends UnitTestCase
 
     public function test_that_uri_returns_uri_instance(): void
     {
-        $result = \Fight\Common\Domain\uri('https://example.com');
+        $result = uri('https://example.com');
 
         self::assertInstanceOf(Uri::class, $result);
         self::assertSame('https://example.com', $result->toString());
@@ -98,12 +115,12 @@ class FunctionsTest extends UnitTestCase
     {
         $this->expectException(DomainException::class);
 
-        \Fight\Common\Domain\uri('not a uri');
+        uri('not a uri');
     }
 
     public function test_that_url_returns_url_instance(): void
     {
-        $result = \Fight\Common\Domain\url('https://example.com');
+        $result = url('https://example.com');
 
         self::assertInstanceOf(Url::class, $result);
         self::assertSame('https://example.com', $result->toString());
@@ -113,7 +130,7 @@ class FunctionsTest extends UnitTestCase
     {
         $this->expectException(DomainException::class);
 
-        \Fight\Common\Domain\url('ftp://example.com');
+        url('ftp://example.com');
     }
 
     public function test_that_email_returns_email_address_instance(): void
