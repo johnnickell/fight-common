@@ -22,7 +22,7 @@ class GeneratorIteratorTest extends UnitTestCase
         });
 
         $count = 0;
-        foreach ($iterator as $key => $value) {
+        foreach ($iterator as $value) {
             $count++;
         }
 
