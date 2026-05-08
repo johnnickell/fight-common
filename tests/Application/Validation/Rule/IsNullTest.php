@@ -13,16 +13,16 @@ class IsNullTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_null(): void
     {
-        self::assertTrue((new IsNull())->isSatisfiedBy(null));
+        self::assertTrue(new IsNull()->isSatisfiedBy(null));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_empty_string(): void
     {
-        self::assertFalse((new IsNull())->isSatisfiedBy(''));
+        self::assertFalse(new IsNull()->isSatisfiedBy(''));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_integer_zero(): void
     {
-        self::assertFalse((new IsNull())->isSatisfiedBy(0));
+        self::assertFalse(new IsNull()->isSatisfiedBy(0));
     }
 }

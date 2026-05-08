@@ -19,7 +19,7 @@ use Throwable;
  */
 final class GeneratorIterator implements Iterator
 {
-    private Closure $function;
+    private readonly Closure $function;
     private ?Generator $generator = null;
 
     /**
@@ -30,7 +30,7 @@ final class GeneratorIterator implements Iterator
      * @throws DomainException When function is not a generator
      * @throws ReflectionException
      */
-    public function __construct(callable $function, private array $args = [])
+    public function __construct(callable $function, private readonly array $args = [])
     {
         $reflection = new ReflectionFunction($function);
         if (!$reflection->isGenerator()) {

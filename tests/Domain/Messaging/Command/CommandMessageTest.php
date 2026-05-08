@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Messaging\Command;
 
+use stdClass;
 use DateTimeImmutable;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\BaseMessage;
@@ -178,7 +179,7 @@ class CommandMessageTest extends UnitTestCase
     {
         $message = CommandMessage::create(new SampleCommand());
 
-        self::assertFalse($message->equals(new \stdClass()));
+        self::assertFalse($message->equals(new stdClass()));
     }
 
     public function test_that_hash_value_contains_class_name_and_id(): void

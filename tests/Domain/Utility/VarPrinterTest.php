@@ -54,7 +54,7 @@ class VarPrinterTest extends UnitTestCase
 
     public function test_that_to_string_returns_function_string_for_closure(): void
     {
-        $closure = function () {};
+        $closure = function (): void {};
 
         self::assertSame('Function', VarPrinter::toString($closure));
     }

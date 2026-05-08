@@ -13,11 +13,11 @@ class NumberRangeTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_number_is_within_range(): void
     {
-        self::assertTrue((new NumberRange(1, 100))->isSatisfiedBy(42));
+        self::assertTrue(new NumberRange(1, 100)->isSatisfiedBy(42));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_number_is_outside_range(): void
     {
-        self::assertFalse((new NumberRange(50, 100))->isSatisfiedBy(42));
+        self::assertFalse(new NumberRange(50, 100)->isSatisfiedBy(42));
     }
 }

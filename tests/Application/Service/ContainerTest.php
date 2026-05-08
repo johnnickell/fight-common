@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Service;
 
+use Override;
 use Fight\Common\Application\Service\Container;
 use Fight\Common\Application\Service\Exception\NotFoundException;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -15,6 +16,7 @@ class ContainerTest extends UnitTestCase
 {
     private Container $container;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->container = new Container();

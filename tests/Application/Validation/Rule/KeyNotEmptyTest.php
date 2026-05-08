@@ -13,16 +13,16 @@ class KeyNotEmptyTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_key_exists_and_is_not_empty(): void
     {
-        self::assertTrue((new KeyNotEmpty('name'))->isSatisfiedBy(['name' => 'Alice']));
+        self::assertTrue(new KeyNotEmpty('name')->isSatisfiedBy(['name' => 'Alice']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_key_is_missing(): void
     {
-        self::assertFalse((new KeyNotEmpty('name'))->isSatisfiedBy(['email' => 'alice@example.com']));
+        self::assertFalse(new KeyNotEmpty('name')->isSatisfiedBy(['email' => 'alice@example.com']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_key_exists_but_is_empty(): void
     {
-        self::assertFalse((new KeyNotEmpty('name'))->isSatisfiedBy(['name' => '']));
+        self::assertFalse(new KeyNotEmpty('name')->isSatisfiedBy(['name' => '']));
     }
 }

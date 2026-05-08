@@ -13,11 +13,11 @@ class IsIpV6AddressTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_valid_ipv6_address(): void
     {
-        self::assertTrue((new IsIpV6Address())->isSatisfiedBy('2001:db8::1'));
+        self::assertTrue(new IsIpV6Address()->isSatisfiedBy('2001:db8::1'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_ipv4_address(): void
     {
-        self::assertFalse((new IsIpV6Address())->isSatisfiedBy('192.168.1.1'));
+        self::assertFalse(new IsIpV6Address()->isSatisfiedBy('192.168.1.1'));
     }
 }

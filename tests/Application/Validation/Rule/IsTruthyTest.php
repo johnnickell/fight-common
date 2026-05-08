@@ -13,21 +13,21 @@ class IsTruthyTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_integer_one(): void
     {
-        self::assertTrue((new IsTruthy())->isSatisfiedBy(1));
+        self::assertTrue(new IsTruthy()->isSatisfiedBy(1));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_non_empty_string(): void
     {
-        self::assertTrue((new IsTruthy())->isSatisfiedBy('yes'));
+        self::assertTrue(new IsTruthy()->isSatisfiedBy('yes'));
     }
 
     public function test_that_is_satisfied_by_returns_true_for_boolean_true(): void
     {
-        self::assertTrue((new IsTruthy())->isSatisfiedBy(true));
+        self::assertTrue(new IsTruthy()->isSatisfiedBy(true));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_integer_zero(): void
     {
-        self::assertFalse((new IsTruthy())->isSatisfiedBy(0));
+        self::assertFalse(new IsTruthy()->isSatisfiedBy(0));
     }
 }

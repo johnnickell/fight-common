@@ -13,11 +13,11 @@ class NumberMinTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_number_meets_minimum(): void
     {
-        self::assertTrue((new NumberMin(10))->isSatisfiedBy(42));
+        self::assertTrue(new NumberMin(10)->isSatisfiedBy(42));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_number_is_below_minimum(): void
     {
-        self::assertFalse((new NumberMin(100))->isSatisfiedBy(42));
+        self::assertFalse(new NumberMin(100)->isSatisfiedBy(42));
     }
 }

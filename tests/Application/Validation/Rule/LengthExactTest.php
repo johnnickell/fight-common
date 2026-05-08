@@ -13,11 +13,11 @@ class LengthExactTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_length_matches(): void
     {
-        self::assertTrue((new LengthExact(5))->isSatisfiedBy('hello'));
+        self::assertTrue(new LengthExact(5)->isSatisfiedBy('hello'));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_length_does_not_match(): void
     {
-        self::assertFalse((new LengthExact(5))->isSatisfiedBy('hi'));
+        self::assertFalse(new LengthExact(5)->isSatisfiedBy('hi'));
     }
 }

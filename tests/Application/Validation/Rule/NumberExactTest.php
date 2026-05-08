@@ -13,11 +13,11 @@ class NumberExactTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_number_matches(): void
     {
-        self::assertTrue((new NumberExact(42))->isSatisfiedBy(42));
+        self::assertTrue(new NumberExact(42)->isSatisfiedBy(42));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_number_does_not_match(): void
     {
-        self::assertFalse((new NumberExact(42))->isSatisfiedBy(99));
+        self::assertFalse(new NumberExact(42)->isSatisfiedBy(99));
     }
 }

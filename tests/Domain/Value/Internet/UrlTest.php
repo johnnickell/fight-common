@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Value\Internet;
 
+use stdClass;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\Url;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -160,7 +161,7 @@ class UrlTest extends UnitTestCase
     {
         $url = Url::fromString('https://example.com/');
 
-        self::assertFalse($url->equals(new \stdClass()));
+        self::assertFalse($url->equals(new stdClass()));
     }
 
     // -------------------------------------------------------------------------

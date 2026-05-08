@@ -13,11 +13,11 @@ class IsUriTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_valid_uri(): void
     {
-        self::assertTrue((new IsUri())->isSatisfiedBy('https://example.com/path'));
+        self::assertTrue(new IsUri()->isSatisfiedBy('https://example.com/path'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_invalid_uri(): void
     {
-        self::assertFalse((new IsUri())->isSatisfiedBy('not a uri'));
+        self::assertFalse(new IsUri()->isSatisfiedBy('not a uri'));
     }
 }

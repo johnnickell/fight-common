@@ -28,7 +28,7 @@ class GeneratorIteratorTest extends UnitTestCase
 
         self::assertFalse($iterator->valid());
 
-        foreach ($iterator as $key => $value) {
+        foreach ($iterator as $value) {
             $count++;
         }
     }

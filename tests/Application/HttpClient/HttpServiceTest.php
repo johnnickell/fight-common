@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\HttpClient;
 
+use Override;
 use Fight\Common\Application\HttpClient\HttpService;
 use Fight\Common\Application\HttpClient\Message\MessageFactory;
 use Fight\Common\Application\HttpClient\Message\Promise;
@@ -31,6 +32,7 @@ class HttpServiceTest extends UnitTestCase
     private $uriFactory;
     private HttpService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->httpClient = $this->mock(HttpClient::class);

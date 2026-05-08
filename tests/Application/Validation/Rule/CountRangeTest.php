@@ -13,11 +13,11 @@ class CountRangeTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_count_is_within_range(): void
     {
-        self::assertTrue((new CountRange(2, 5))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertTrue(new CountRange(2, 5)->isSatisfiedBy(['a', 'b', 'c']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_count_is_outside_range(): void
     {
-        self::assertFalse((new CountRange(4, 10))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertFalse(new CountRange(4, 10)->isSatisfiedBy(['a', 'b', 'c']));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Specification;
 
+use stdClass;
 use Fight\Common\Domain\Specification\AndSpecification;
 use Fight\Common\Domain\Specification\CompositeSpecification;
 use Fight\Common\Domain\Specification\NotSpecification;
@@ -45,7 +46,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_and_composition_preserves_boolean_and_semantics(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         self::assertTrue($this->always(true)->and($this->always(true))->isSatisfiedBy($candidate));
         self::assertFalse($this->always(true)->and($this->always(false))->isSatisfiedBy($candidate));
@@ -55,7 +56,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_or_composition_preserves_boolean_or_semantics(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         self::assertTrue($this->always(true)->or($this->always(true))->isSatisfiedBy($candidate));
         self::assertTrue($this->always(true)->or($this->always(false))->isSatisfiedBy($candidate));
@@ -65,7 +66,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_not_composition_preserves_boolean_negation_semantics(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         self::assertFalse($this->always(true)->not()->isSatisfiedBy($candidate));
         self::assertTrue($this->always(false)->not()->isSatisfiedBy($candidate));
@@ -73,7 +74,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_chained_and_or_composition_evaluates_correctly(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         // (true AND false) OR true → true
         $spec = $this->always(true)->and($this->always(false))->or($this->always(true));
@@ -86,7 +87,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_chained_not_and_composition_evaluates_correctly(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         // NOT(true) AND true → false
         $spec = $this->always(true)->not()->and($this->always(true));
@@ -99,7 +100,7 @@ class CompositeSpecificationTest extends UnitTestCase
 
     public function test_that_double_negation_evaluates_correctly(): void
     {
-        $candidate = new \stdClass();
+        $candidate = new stdClass();
 
         self::assertTrue($this->always(true)->not()->not()->isSatisfiedBy($candidate));
         self::assertFalse($this->always(false)->not()->not()->isSatisfiedBy($candidate));

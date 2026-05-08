@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Value\Internet;
 
+use stdClass;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Internet\Uri;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -13,7 +14,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(Uri::class)]
 class UriTest extends UnitTestCase
 {
-    private const FULL_URI = 'http://user:pass@example.com:8080/path/to/resource?foo=bar&baz=qux#section1';
+    private const string FULL_URI = 'http://user:pass@example.com:8080/path/to/resource?foo=bar&baz=qux#section1';
 
     // -------------------------------------------------------------------------
     // fromString
@@ -488,7 +489,7 @@ class UriTest extends UnitTestCase
     {
         $uri = Uri::fromString(self::FULL_URI);
 
-        self::assertFalse($uri->equals(new \stdClass()));
+        self::assertFalse($uri->equals(new stdClass()));
     }
 
     public function test_that_hash_value_returns_the_same_string_for_two_uris_from_the_same_string(): void

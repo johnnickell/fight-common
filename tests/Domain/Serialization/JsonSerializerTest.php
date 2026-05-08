@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Serialization;
 
+use Override;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -18,6 +19,7 @@ class JsonSerializerTest extends UnitTestCase
 {
     private JsonSerializer $serializer;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->serializer = new JsonSerializer();

@@ -13,11 +13,11 @@ class IsAlnumDashedTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_hyphenated_alphanumeric_string(): void
     {
-        self::assertTrue((new IsAlnumDashed())->isSatisfiedBy('hello-1'));
+        self::assertTrue(new IsAlnumDashed()->isSatisfiedBy('hello-1'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_string_with_spaces(): void
     {
-        self::assertFalse((new IsAlnumDashed())->isSatisfiedBy('hello 1'));
+        self::assertFalse(new IsAlnumDashed()->isSatisfiedBy('hello 1'));
     }
 }

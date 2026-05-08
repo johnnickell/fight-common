@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Value\Basic;
 
+use stdClass;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\ImmutableException;
@@ -135,7 +136,7 @@ class MbStringObjectTest extends UnitTestCase
     public function test_that_equals_returns_false_for_different_type(): void
     {
         self::assertFalse(
-            MbStringObject::create('hello')->equals(new \stdClass())
+            MbStringObject::create('hello')->equals(new stdClass())
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\FileStorage;
 
+use Override;
 use Fight\Common\Application\FileStorage\Exception\DuplicateStorageException;
 use Fight\Common\Application\FileStorage\Exception\StorageNotFoundException;
 use Fight\Common\Application\FileStorage\FileStorage;
@@ -17,6 +18,7 @@ class StorageServiceTest extends UnitTestCase
 {
     private StorageService $service;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->service = new StorageService();

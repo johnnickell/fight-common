@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Value\Identifier;
 
+use stdClass;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Identifier\Uuid;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -283,7 +284,7 @@ class UuidTest extends UnitTestCase
 
     public function test_that_equals_returns_false_for_a_non_uuid_value(): void
     {
-        self::assertFalse(Uuid::fromString(Uuid::NAMESPACE_DNS)->equals(new \stdClass()));
+        self::assertFalse(Uuid::fromString(Uuid::NAMESPACE_DNS)->equals(new stdClass()));
     }
 
     public function test_that_hash_value_returns_same_hex_for_two_uuids_from_the_same_string(): void

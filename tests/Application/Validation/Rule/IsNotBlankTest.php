@@ -13,11 +13,11 @@ class IsNotBlankTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_for_non_blank_string(): void
     {
-        self::assertTrue((new IsNotBlank())->isSatisfiedBy('hello'));
+        self::assertTrue(new IsNotBlank()->isSatisfiedBy('hello'));
     }
 
     public function test_that_is_satisfied_by_returns_false_for_empty_string(): void
     {
-        self::assertFalse((new IsNotBlank())->isSatisfiedBy(''));
+        self::assertFalse(new IsNotBlank()->isSatisfiedBy(''));
     }
 }

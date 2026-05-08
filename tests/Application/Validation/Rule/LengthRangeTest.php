@@ -13,11 +13,11 @@ class LengthRangeTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_length_is_within_range(): void
     {
-        self::assertTrue((new LengthRange(3, 10))->isSatisfiedBy('hello'));
+        self::assertTrue(new LengthRange(3, 10)->isSatisfiedBy('hello'));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_length_is_outside_range(): void
     {
-        self::assertFalse((new LengthRange(6, 10))->isSatisfiedBy('hello'));
+        self::assertFalse(new LengthRange(6, 10)->isSatisfiedBy('hello'));
     }
 }

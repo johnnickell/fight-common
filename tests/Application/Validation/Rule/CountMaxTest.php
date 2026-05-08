@@ -13,11 +13,11 @@ class CountMaxTest extends UnitTestCase
 {
     public function test_that_is_satisfied_by_returns_true_when_count_is_within_maximum(): void
     {
-        self::assertTrue((new CountMax(5))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertTrue(new CountMax(5)->isSatisfiedBy(['a', 'b', 'c']));
     }
 
     public function test_that_is_satisfied_by_returns_false_when_count_exceeds_maximum(): void
     {
-        self::assertFalse((new CountMax(2))->isSatisfiedBy(['a', 'b', 'c']));
+        self::assertFalse(new CountMax(2)->isSatisfiedBy(['a', 'b', 'c']));
     }
 }
