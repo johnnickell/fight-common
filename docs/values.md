@@ -4,6 +4,23 @@ Value objects are immutable, self-validating domain primitives. They measure, qu
 
 All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Two value objects are equal when their `toString()` output is identical.
 
+### Recommended: Helper Functions
+
+The recommended way to construct value objects is via the helper functions in `Fight\Common\Domain`. Import with `use function Fight\Common\Domain\{fn};`:
+
+| Helper | Creates | Alias for |
+|---|---|---|
+| `string($value)` | `StringObject` | `StringObject::create($value)` |
+| `mb_string($value)` | `MbStringObject` | `MbStringObject::create($value)` |
+| `json_string($value)` | `JsonObject` | `JsonObject::fromString($value)` |
+| `json_data($data)` | `JsonObject` | `JsonObject::fromData($data)` |
+| `email($address)` | `EmailAddress` | `EmailAddress::fromString($address)` |
+| `uri($uri)` | `Uri` | `Uri::fromString($uri)` |
+| `url($url)` | `Url` | `Url::fromString($url)` |
+| `uuid()` | `Uuid` | `Uuid::comb()` |
+
+Each section below shows both the helper and the direct constructor.
+
 ---
 
 ## Table of Contents
@@ -28,6 +45,7 @@ A byte-oriented string wrapper with rich manipulation methods. Implements `Array
 ### Construction
 
 ```php
+$str = string('hello');                       // helper
 $str = StringObject::create('hello');
 $str = StringObject::fromString('hello');
 ```
@@ -126,6 +144,7 @@ $str->compareTo(StringObject::create('world')); // negative (natural sort)
 Identical API to `StringObject`, but uses multibyte-safe `mb_*` functions with hard-coded UTF-8 encoding. Use this for Unicode strings where character indexes and lengths must account for multi-byte characters.
 
 ```php
+$mb = mb_string('café');                     // helper
 $mb = MbStringObject::create('café');
 $mb->length();                               // 4 (not 5)
 $mb->get(3);                                 // "é"
@@ -159,10 +178,12 @@ Wraps any JSON-encodable data. Validates on construction — throws `DomainExcep
 ### Construction
 
 ```php
-// From raw data
-$json = JsonObject::fromData(['user' => 'alice', 'role' => 'admin']);
+// Helpers
+$json = json_data(['user' => 'alice', 'role' => 'admin']);
+$json = json_string('{"user":"alice","role":"admin"}');
 
-// From a JSON string
+// Direct
+$json = JsonObject::fromData(['user' => 'alice', 'role' => 'admin']);
 $json = JsonObject::fromString('{"user":"alice","role":"admin"}');
 ```
 
@@ -188,6 +209,7 @@ Validates email address format on construction. Throws `DomainException` for inv
 ### Construction
 
 ```php
+$email = email('alice@example.com');          // helper
 $email = EmailAddress::fromString('alice@example.com');
 ```
 
@@ -211,6 +233,9 @@ Full RFC 3986 URI implementation. Parses, validates, normalizes, and resolves UR
 ### Construction
 
 ```php
+// Helper
+$uri = uri('https://user:pass@api.example.com:8080/path/to?q=1#frag');
+
 // From a URI string
 $uri = Uri::parse('https://user:pass@api.example.com:8080/path/to?q=1#frag');
 
@@ -282,6 +307,7 @@ Extends `Uri` with HTTP/HTTPS-specific behavior.
 Only `http` and `https` schemes are accepted:
 
 ```php
+$url = url('https://example.com/path');      // helper
 $url = Url::parse('https://example.com/path');
 Url::parse('ftp://example.com');             // throws DomainException
 ```
@@ -316,10 +342,14 @@ RFC 4122 UUID implementation with support for versions 1, 3, 4, and 5. Implement
 ### Named Constructors
 
 ```php
+// Helper — COMB UUID (default, recommended for DB primary keys)
+$uuid = uuid();                              // timestamp in MSB
+$uuid = uuid(msb: false);                    // timestamp in LSB
+
 // Version 4 — random
 $uuid = Uuid::random();
 
-// Version 4 — sequential (COMB, good for DB primary keys)
+// Version 4 — sequential (COMB)
 $uuid = Uuid::comb();                        // timestamp in MSB
 $uuid = Uuid::comb(msb: false);              // timestamp in LSB
 
