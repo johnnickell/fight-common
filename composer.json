@@ -54,7 +54,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Fight\\Common\\": "src"
+            "Fight\\Common\\": "src",
+            "Fight\\Test\\Common\\TestCase\\": "tests/TestCase"
         },
         "files": [
             "src/Domain/functions.php"
