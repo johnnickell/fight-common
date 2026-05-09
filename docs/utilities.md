@@ -10,6 +10,7 @@ Static utility classes in `Fight\Common\Domain\Utility` that provide common help
 2. [FastHasher](#fasthasher)
 3. [Validate](#validate)
 4. [VarPrinter](#varprinter)
+5. [Type](#type)
 
 ---
 
@@ -269,4 +270,37 @@ try {
 
 enum Status: string { case Active = 'active'; }
 VarPrinter::toString(Status::Active);         // "Enum(Status::Active)"
+```
+
+---
+
+## Type
+
+`Fight\Common\Domain\Type\Type`
+
+Wraps a class name as a value object, using canonical (dot-separated) format internally. Implements `Equatable`, `JsonSerializable`, and `Stringable`, making it safe for serialization, caching, and identity maps.
+
+### `Type::create(object|string $object): Type`
+
+Creates an instance from an object or class name string.
+
+### `Type::toClassName(): string`
+
+Returns the fully qualified class name (backslash-separated).
+
+### `Type::toString(): string`
+
+Returns the canonical class name (dot-separated).
+
+```php
+$type = Type::create(new \App\Dto\User());
+$type = Type::create('App.Dto.User');
+
+$type->toClassName();                        // "App\Dto\User"
+$type->toString();                           // "App.Dto.User"
+(string) $type;                              // "App.Dto.User"
+json_encode($type);                          // '"App.Dto.User"'
+
+// Equality
+Type::create('App.Dto.User')->equals(Type::create('App.Dto.User')); // true
 ```
