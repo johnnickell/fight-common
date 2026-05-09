@@ -195,7 +195,7 @@ final class SymfonyMailTransport implements MailTransport
      */
     private function setPriority(MailMessage $message, Email $email): void
     {
-        $email->priority($message->getPriority()->value());
+        $email->priority($message->getPriority()->value);
     }
 
     /**
