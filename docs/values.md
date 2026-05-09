@@ -33,6 +33,7 @@ Each section below shows both the helper and the direct constructor.
 6. [Url](#url)
 7. [Uuid](#uuid)
 8. [Identity (UniqueId)](#identity-uniqueid)
+9. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -475,3 +476,79 @@ $uid->equals(UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479')); // tru
 | `$id->compareTo($other): int` | Natural order comparison |
 | `$id->equals($other): bool` | Type-safe equality check |
 | `$id->hashValue(): string` | Hash including the type prefix |
+
+---
+
+## Doctrine Data Types
+
+Eleven custom DBAL types in `Fight\Common\Adapter\Doctrine` map domain value objects to SQL
+columns, enabling Doctrine ORM to hydrate and dehydrate them directly. Each type extends
+`Doctrine\DBAL\Types\Type` and registers under a `common_` prefix.
+
+Most types serialize via `$value->toString()` / `ClassName::fromString()`. The
+`MessageDataType` uses `JsonSerializer` instead to support polymorphic message
+deserialization through the `Message` interface.
+
+| Type Name | SQL Column | PHP Class | Namespace |
+|---|---|---|---|
+| `common_uuid` | GUID/UUID | `Uuid` | `Domain\Value\Identifier` |
+| `common_email_address` | VARCHAR | `EmailAddress` | `Domain\Value\Internet` |
+| `common_uri` | VARCHAR | `Uri` | `Domain\Value\Internet` |
+| `common_url` | VARCHAR | `Url` | `Domain\Value\Internet` |
+| `common_string` | VARCHAR | `StringObject` | `Domain\Value\Basic` |
+| `common_string_text` | TEXT/CLOB | `StringObject` | `Domain\Value\Basic` |
+| `common_mb_string` | VARCHAR | `MbStringObject` | `Domain\Value\Basic` |
+| `common_mb_string_text` | TEXT/CLOB | `MbStringObject` | `Domain\Value\Basic` |
+| `common_json` | JSON | `JsonObject` | `Domain\Value\Basic` |
+| `common_type` | VARCHAR | `Type` | `Domain\Type` |
+| `common_message` | JSON | `Message` (interface) | `Domain\Messaging` |
+
+### VARCHAR vs TEXT Variants
+
+`StringObject` and `MbStringObject` each provide two mappings depending on expected field
+length. Use `common_string` / `common_mb_string` (VARCHAR) for short strings and
+`common_string_text` / `common_mb_string_text` (TEXT/CLOB) for large content.
+
+### Usage in an Entity
+
+```php
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+class User
+{
+    #[ORM\Id]
+    #[ORM\Column(type: 'common_uuid')]
+    private Uuid $id;
+
+    #[ORM\Column(type: 'common_email_address')]
+    private EmailAddress $email;
+
+    #[ORM\Column(type: 'common_string', length: 255)]
+    private StringObject $name;
+
+    #[ORM\Column(type: 'common_string_text')]
+    private StringObject $biography;
+}
+```
+
+### Symfony Configuration
+
+Register the types in `config/packages/doctrine.yaml`:
+
+```yaml
+doctrine:
+    dbal:
+        types:
+            common_uuid:            Fight\Common\Adapter\Doctrine\UuidDataType
+            common_email_address:   Fight\Common\Adapter\Doctrine\EmailAddressDataType
+            common_uri:             Fight\Common\Adapter\Doctrine\UriDataType
+            common_url:             Fight\Common\Adapter\Doctrine\UrlDataType
+            common_string:          Fight\Common\Adapter\Doctrine\StringObjectDataType
+            common_string_text:     Fight\Common\Adapter\Doctrine\StringTextDataType
+            common_mb_string:       Fight\Common\Adapter\Doctrine\MbStringObjectDataType
+            common_mb_string_text:  Fight\Common\Adapter\Doctrine\MbStringTextDataType
+            common_json:            Fight\Common\Adapter\Doctrine\JsonObjectDataType
+            common_type:            Fight\Common\Adapter\Doctrine\TypeDataType
+            common_message:         Fight\Common\Adapter\Doctrine\MessageDataType
+```
