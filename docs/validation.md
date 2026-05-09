@@ -12,6 +12,7 @@ The validation system provides declarative, attribute-driven input validation fo
 4. [Defining Rules](#defining-rules)
 5. [Custom Error Messages](#custom-error-messages)
 6. [Handling Validation Errors](#handling-validation-errors)
+    - [Global Exception Subscriber](#global-exception-subscriber)
 7. [Complete Example](#complete-example)
 
 ---
@@ -303,7 +304,64 @@ When validation fails, `SymfonyValidationSubscriber` allows the `ValidationExcep
 
 Each key is a field name; each value is an array of one or more error message strings for that field (multiple rules can fail independently on the same field — all errors are collected).
 
-The recommended way to handle this exception is a global error controller that subscribes to the `kernel.exception` event and converts it into a `JSendResponse`. This keeps the error-handling logic in one place across the entire application and the controller action stays free of try/catch boilerplate. This pattern will be documented separately once the error controller is implemented.
+The recommended way to handle this exception is a global exception subscriber that converts exceptions into a standardized `JSendResponse`. This keeps the error-handling logic in one place and the controller action stays free of try/catch boilerplate. The next section shows how to wire this up.
+
+### Global Exception Subscriber
+
+`SymfonyExceptionSubscriber` listens for `KernelEvents::EXCEPTION` and delegates to `ErrorController`, which produces a `JSendResponse`:
+
+```
+Request
+  └─► controller action
+        └─► ValidationException thrown
+              └─► kernel.exception event
+                    └─► SymfonyExceptionSubscriber::onKernelException()
+                          └─► ErrorController::handle()
+                                ├─► ValidationException  →  JSendResponse::fail()  (400)
+                                ├─► HttpExceptionInterface →  JSendResponse::error() (with status code)
+                                └─► generic Throwable    →  JSendResponse::error()  (500)
+```
+
+#### Exception-to-Response Mapping
+
+| Exception | Response | Status Code |
+|---|---|---|
+| `ValidationException` | `JSendResponse::fail($errors)` | 400 |
+| `NotFoundHttpException` | `JSendResponse::error($message)` | 404 |
+| `AccessDeniedHttpException` | `JSendResponse::error($message)` | 403 |
+| Any other `HttpExceptionInterface` | `JSendResponse::error($message)` | As reported |
+| Generic `Throwable` | `JSendResponse::error($message)` | 500 |
+
+#### Wiring Up the Subscriber
+
+With autowiring and autoconfigure enabled:
+
+```yaml
+# config/services.yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Fight\Common\Adapter\HttpKernel\ErrorController: ~
+
+    Fight\Common\Adapter\EventSubscriber\SymfonyExceptionSubscriber: ~
+```
+
+If you are not using autoconfigure, tag the subscriber manually:
+
+```yaml
+services:
+    Fight\Common\Adapter\HttpKernel\ErrorController: ~
+
+    Fight\Common\Adapter\EventSubscriber\SymfonyExceptionSubscriber:
+        arguments:
+            - '@Fight\Common\Adapter\HttpKernel\ErrorController'
+        tags:
+            - { name: kernel.event_subscriber }
+```
+
+Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) automatically produces a structured JSON fail response instead of a 500 error page.
 
 ---
 
