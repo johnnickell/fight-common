@@ -202,6 +202,23 @@ class SymfonyMessageSerializerTest extends UnitTestCase
         $this->expectException(MessageDecodingFailedException::class);
         $this->serializer->decode($encoded);
     }
+
+    public function test_that_decode_forwards_non_this_file_errors_to_previous_error_handler(): void
+    {
+        $helper = new UnserializeErrorHelper();
+        $serialized = addslashes(serialize([$helper]));
+
+        $encoded = [
+            'body' => '{"@":"Fight.Common.Domain.Messaging.Command.CommandMessage","$":{"id":"test","type":"command","timestamp":"1746748800","payload_type":"Fight.Test.Common.Adapter.Messaging.Serializer.SampleCommand","payload":{"value":"test"},"meta":{}}}',
+            'headers' => [
+                'X-Message-Stamp-Test' => $serialized,
+            ],
+        ];
+
+        $this->expectException(MessageDecodingFailedException::class);
+
+        $this->serializer->decode($encoded);
+    }
 }
 
 class SampleCommand implements Command
@@ -218,5 +235,13 @@ class SampleCommand implements Command
     public function toArray(): array
     {
         return ['value' => $this->value];
+    }
+}
+
+class UnserializeErrorHelper
+{
+    public function __wakeup(): void
+    {
+        trigger_error('test error from helper', E_USER_WARNING);
     }
 }

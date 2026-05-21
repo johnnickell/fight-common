@@ -365,6 +365,184 @@ class RedBlackSearchTreeTest extends UnitTestCase
         self::assertSame(2, $tree->rangeCount(1, 2));
     }
 
+    public function test_that_range_count_returns_rank_difference_when_hi_is_absent(): void
+    {
+        $tree = $this->intTree();
+        $tree->set(1, 'one');
+        $tree->set(2, 'two');
+        $tree->set(3, 'three');
+
+        self::assertSame(3, $tree->rangeCount(1, 10));
+    }
+
+    public function test_that_floor_returns_node_when_right_subtree_floor_is_null(): void
+    {
+        $tree = $this->intTree();
+        $tree->set(2, 'two');
+        $tree->set(1, 'one');
+
+        self::assertSame(2, $tree->floor(3));
+    }
+
+    public function test_that_ceiling_returns_node_when_left_subtree_ceiling_is_null(): void
+    {
+        $tree = $this->intTree();
+        $tree->set(2, 'two');
+        $tree->set(3, 'three');
+
+        self::assertSame(2, $tree->ceiling(1));
+    }
+
+    public function test_that_floor_returns_right_subtree_floor_when_not_null(): void
+    {
+        $tree = $this->intTree();
+        $tree->set(5, 'five');
+        $tree->set(2, 'two');
+        $tree->set(8, 'eight');
+        $tree->set(6, 'six');
+
+        self::assertSame(6, $tree->floor(7));
+    }
+
+    public function test_that_complex_deletions_maintain_tree_integrity(): void
+    {
+        $tree = $this->intTree();
+        foreach ([5, 3, 8, 1, 4, 7, 9, 2, 6, 10] as $n) {
+            $tree->set($n, $n);
+        }
+
+        $order = [8, 3, 6, 1, 9, 5, 2, 7, 10, 4];
+        foreach ($order as $key) {
+            $tree->remove($key);
+        }
+
+        self::assertTrue($tree->isEmpty());
+    }
+
+    public function test_that_alternating_remove_min_and_remove_max_covers_rotation_paths(): void
+    {
+        $tree = $this->intTree();
+        foreach ([3, 1, 5, 2, 4, 7, 6] as $n) {
+            $tree->set($n, $n);
+        }
+
+        $tree->removeMin();
+        $tree->removeMax();
+        $tree->removeMin();
+        $tree->removeMax();
+        $tree->removeMin();
+
+        self::assertSame([4, 5], [$tree->min(), $tree->max()]);
+
+        $tree->remove(4);
+        $tree->remove(5);
+        self::assertTrue($tree->isEmpty());
+    }
+
+    public function test_that_deletion_with_specific_pattern_triggers_move_red_left_rotation(): void
+    {
+        $tree = $this->intTree();
+        foreach ([3, 1, 5, 2, 4, 7, 6, 9, 8] as $n) {
+            $tree->set($n, $n);
+        }
+
+        $tree->removeMin();
+
+        self::assertSame(2, $tree->min());
+    }
+
+    public function test_that_remove_min_on_larger_tree_maintains_order(): void
+    {
+        $tree = $this->intTree();
+        foreach ([6, 2, 8, 1, 4, 7, 9, 3, 5] as $n) {
+            $tree->set($n, $n);
+        }
+
+        $removed = [];
+        while (!$tree->isEmpty()) {
+            $removed[] = $tree->min();
+            $tree->removeMin();
+        }
+
+        self::assertSame([1, 2, 3, 4, 5, 6, 7, 8, 9], $removed);
+    }
+
+    public function test_that_stress_deletion_exercises_move_red_left_rotation(): void
+    {
+        $tree = $this->intTree();
+        for ($n = 1; $n <= 31; $n++) {
+            $tree->set($n, $n);
+        }
+
+        $min = 1;
+        while (!$tree->isEmpty()) {
+            $m = $tree->min();
+            self::assertSame($min, $m);
+            $tree->removeMin();
+            $min++;
+        }
+
+        self::assertTrue($tree->isEmpty());
+    }
+
+    public function test_that_large_mixed_deletions_cover_rotation_paths(): void
+    {
+        $tree = $this->intTree();
+        for ($n = 1; $n <= 63; $n++) {
+            $tree->set($n, $n);
+        }
+
+        for ($i = 0; $i < 20; $i++) {
+            $tree->removeMin();
+            $tree->removeMax();
+        }
+
+        for ($n = 21; $n <= 43; $n++) {
+            self::assertTrue($tree->has($n));
+            $tree->remove($n);
+        }
+
+        while (!$tree->isEmpty()) {
+            $tree->removeMin();
+        }
+
+        self::assertTrue($tree->isEmpty());
+    }
+
+    public function test_that_lopsided_insertions_with_descending_deletions_exercise_all_paths(): void
+    {
+        $tree = $this->intTree();
+        for ($n = 1; $n <= 50; $n++) {
+            $tree->set($n, $n);
+        }
+
+        $deleted = [];
+        for ($n = 5; $n <= 50; $n += 5) {
+            $tree->remove($n);
+            $deleted[] = $n;
+        }
+
+        for ($n = 1; $n <= 50; $n++) {
+            if (in_array($n, $deleted, true)) {
+                self::assertFalse($tree->has($n));
+            }
+        }
+
+        $keys = [];
+        foreach ($tree->keys() as $k) {
+            $keys[] = $k;
+        }
+        self::assertSame(40, count($keys));
+
+        $tree->remove(1);
+        $tree->remove(2);
+        $tree->remove(3);
+
+        for ($n = 46; $n <= 49; $n++) {
+            self::assertTrue($tree->has($n));
+        }
+    }
+
     public function test_that_count_returns_the_correct_number_of_entries(): void
     {
         $tree = $this->intTree();

@@ -3,6 +3,7 @@ phpunit.xml
 /composer.phar
 /composer.lock
 /vendor
+/.claude
 /.idea
 /nbproject
 /*.sublime-project

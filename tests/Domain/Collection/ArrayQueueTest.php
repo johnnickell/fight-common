@@ -57,6 +57,25 @@ class ArrayQueueTest extends UnitTestCase
         self::assertSame(0, $queue->count());
     }
 
+    public function test_that_front_pointer_wraps_to_zero_when_reaching_capacity(): void
+    {
+        $queue = ArrayQueue::of('int');
+
+        for ($i = 1; $i <= 10; $i++) {
+            $queue->enqueue($i);
+        }
+
+        for ($i = 1; $i <= 10; $i++) {
+            self::assertSame($i, $queue->dequeue());
+        }
+
+        self::assertTrue($queue->isEmpty());
+        self::assertSame(0, $queue->count());
+
+        $queue->enqueue(99);
+        self::assertSame(99, $queue->dequeue());
+    }
+
     public function test_that_dequeue_throws_underflow_exception_on_an_empty_queue(): void
     {
         $this->expectException(UnderflowException::class);
