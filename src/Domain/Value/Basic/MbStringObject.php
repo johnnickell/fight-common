@@ -33,7 +33,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
      */
     private function __construct(private string $value)
     {
-        $this->length = (int) mb_strlen($this->value, static::ENCODING);
+        $this->length = mb_strlen($this->value, static::ENCODING);
     }
 
     /**
@@ -255,6 +255,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
         if ($start === null) {
             $start = 0;
         }
+
         $start = $this->prepareOffset($start, $this->length);
 
         if ($search === '') {
@@ -302,6 +303,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
         if ($stop === null) {
             $stop = 0;
         }
+
         if ($stop !== 0) {
             $stop = $this->prepareOffset($stop, $length) - $length;
         }
@@ -573,6 +575,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             if ($last === false) {
                 return static::create($truncated.$append);
             }
+
             $truncated = mb_substr($truncated, 0, $last, static::ENCODING);
         }
 
@@ -671,7 +674,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
      */
     public function chunk(int $size = 1): ArrayList
     {
-        $value = $this->value();
+        $value = $this->value;
 
         if ($size < 1) {
             $message = sprintf('Invalid chunk size: %d', $size);

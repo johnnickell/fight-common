@@ -18,22 +18,37 @@ use Fight\Common\Domain\Value\ValueObject;
 final readonly class Uuid extends ValueObject implements Comparable
 {
     public const int VARIANT_RESERVED_NCS = 0;
+
     public const int VARIANT_RFC_4122 = 2;
+
     public const int VARIANT_RESERVED_MICROSOFT = 6;
+
     public const int VARIANT_RESERVED_FUTURE = 7;
+
     public const int VERSION_TIME = 1;
+
     public const int VERSION_DCE = 2;
+
     public const int VERSION_MD5 = 3;
+
     public const int VERSION_RANDOM = 4;
+
     public const int VERSION_SHA1 = 5;
+
     public const int VERSION_UNKNOWN = 0;
+
     public const string NAMESPACE_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+
     public const string NAMESPACE_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+
     public const string NAMESPACE_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
+
     public const string NAMESPACE_X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8';
+
     public const string NIL = '00000000-0000-0000-0000-000000000000';
 
     private const string UUID = '/\A([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{2})([a-f0-9]{2})-([a-f0-9]{12})\z/';
+
     private const string UUID_HEX = '/\A([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{12})\z/';
 
     /**
@@ -516,6 +531,7 @@ final readonly class Uuid extends ValueObject implements Comparable
             if ($thisHexChar > $thatHexChar) {
                 return 1;
             }
+
             if ($thisHexChar < $thatHexChar) {
                 return -1;
             }
@@ -581,6 +597,7 @@ final readonly class Uuid extends ValueObject implements Comparable
         if ($timestamp === null) {
             $timestamp = static::timestamp();
         }
+
         $timestamp = strtolower($timestamp);
         static::guardTimestamp($timestamp);
 
@@ -595,6 +612,7 @@ final readonly class Uuid extends ValueObject implements Comparable
         if ($clockSeq === null) {
             $clockSeq = random_int(0b0, 0b11111111111111);
         }
+
         static::guardClockSeq($clockSeq);
 
         // format clock sequence with variant
@@ -609,6 +627,7 @@ final readonly class Uuid extends ValueObject implements Comparable
             // remove formatting from MAC address if present
             $node = str_replace([':', '-', '.'], '', $node);
         }
+
         $node = strtolower($node);
         static::guardNode($node);
 

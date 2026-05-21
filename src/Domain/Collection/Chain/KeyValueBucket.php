@@ -10,6 +10,7 @@ namespace Fight\Common\Domain\Collection\Chain;
 final class KeyValueBucket implements Bucket
 {
     private ?Bucket $next = null;
+
     private ?Bucket $prev = null;
 
     /**

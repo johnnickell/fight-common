@@ -24,12 +24,16 @@ class HttpServiceTest extends UnitTestCase
 {
     /** @var MockInterface|HttpClient */
     private $httpClient;
+
     /** @var MockInterface|MessageFactory */
     private $messageFactory;
+
     /** @var MockInterface|StreamFactory */
     private $streamFactory;
+
     /** @var MockInterface|UriFactory */
     private $uriFactory;
+
     private HttpService $service;
 
     #[Override]

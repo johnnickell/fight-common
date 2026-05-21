@@ -17,6 +17,7 @@ final class HmacAuthenticator implements Authenticator
     use HmacMethods;
 
     private string $secret;
+
     private static array $requiredHeaders = [
         'Authorization',
         'Credential',
@@ -69,6 +70,7 @@ final class HmacAuthenticator implements Authenticator
                 HttpStatus::UNPROCESSABLE_ENTITY
             );
         }
+
         if (!empty($content)) {
             $contentHash = hash('sha256', $content);
             if (!hash_equals($contentHash, $request->getHeaderLine('X-Content-SHA256'))) {

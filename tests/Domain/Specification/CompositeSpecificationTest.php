@@ -19,6 +19,7 @@ class CompositeSpecificationTest extends UnitTestCase
     {
         return new class($value) extends CompositeSpecification {
             public function __construct(private readonly bool $value) {}
+
             public function isSatisfiedBy(mixed $candidate): bool { return $this->value; }
         };
     }

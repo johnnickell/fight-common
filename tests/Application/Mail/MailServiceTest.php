@@ -19,8 +19,10 @@ class MailServiceTest extends UnitTestCase
 {
     /** @var MockInterface|MailTransport */
     private $transport;
+
     /** @var MockInterface|MailFactory */
     private $factory;
+
     private MailService $service;
 
     #[Override]

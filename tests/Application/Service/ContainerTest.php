@@ -24,7 +24,7 @@ class ContainerTest extends UnitTestCase
 
     public function test_that_set_registers_shared_factory_and_get_returns_same_instance(): void
     {
-        $this->container->set('svc', fn() => new stdClass());
+        $this->container->set('svc', fn(): stdClass => new stdClass());
 
         $first = $this->container->get('svc');
         $second = $this->container->get('svc');
@@ -34,7 +34,7 @@ class ContainerTest extends UnitTestCase
 
     public function test_that_factory_registers_object_factory_and_get_returns_new_instance(): void
     {
-        $this->container->factory('svc', fn() => new stdClass());
+        $this->container->factory('svc', fn(): stdClass => new stdClass());
 
         $first = $this->container->get('svc');
         $second = $this->container->get('svc');
@@ -52,7 +52,7 @@ class ContainerTest extends UnitTestCase
 
     public function test_that_has_returns_true_for_registered_id(): void
     {
-        $this->container->set('svc', fn() => new stdClass());
+        $this->container->set('svc', fn(): stdClass => new stdClass());
 
         self::assertTrue($this->container->has('svc'));
     }

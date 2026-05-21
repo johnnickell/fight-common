@@ -22,6 +22,7 @@ use Symfony\Component\Messenger\Stamp\SentStamp;
 class SymfonyMessageSerializerTest extends UnitTestCase
 {
     private DomainSerializer $domainSerializer;
+
     private SymfonyMessageSerializer $serializer;
 
     protected function setUp(): void

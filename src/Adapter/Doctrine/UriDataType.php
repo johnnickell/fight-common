@@ -65,8 +65,8 @@ final class UriDataType extends Type
 
         try {
             return Uri::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, Uri::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, Uri::class, $throwable->getMessage(), $throwable);
         }
     }
 

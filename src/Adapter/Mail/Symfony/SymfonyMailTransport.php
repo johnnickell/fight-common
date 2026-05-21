@@ -57,9 +57,11 @@ final class SymfonyMailTransport implements MailTransport
                 foreach ($this->overrides['to'] as $address) {
                     $email->addTo(new Address($address));
                 }
+
                 foreach ($this->overrides['cc'] as $address) {
                     $email->addCc(new Address($address));
                 }
+
                 foreach ($this->overrides['bcc'] as $address) {
                     $email->addBcc(new Address($address));
                 }
@@ -70,8 +72,8 @@ final class SymfonyMailTransport implements MailTransport
             }
 
             $this->mailer->send($email);
-        } catch (Throwable $e) {
-            throw new MailException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new MailException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 

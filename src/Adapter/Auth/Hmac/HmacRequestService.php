@@ -72,7 +72,7 @@ final class HmacRequestService implements RequestService
      *
      * @throws Exception
      */
-    protected function buildHeaders(int $timestamp, string $content): array
+    private function buildHeaders(int $timestamp, string $content): array
     {
         $headers = [];
 

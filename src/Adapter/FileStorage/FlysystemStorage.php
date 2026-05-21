@@ -187,8 +187,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
     {
         try {
             return $this->filesystem->listContents($path, $deep)
-                ->filter(fn (StorageAttributes $item) => $item->isFile())
-                ->map(fn (StorageAttributes $item) => $item->path())
+                ->filter(fn (StorageAttributes $item): bool => $item->isFile())
+                ->map(fn (StorageAttributes $item): string => $item->path())
                 ->toArray();
         } catch (FilesystemException|Throwable $e) {
             throw new FileStorageException($e->getMessage(), 0, $e);
@@ -202,8 +202,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
     {
         try {
             return $this->filesystem->listContents($path, $deep)
-                ->filter(fn (StorageAttributes $item) => $item->isDir())
-                ->map(fn (StorageAttributes $item) => $item->path())
+                ->filter(fn (StorageAttributes $item): bool => $item->isDir())
+                ->map(fn (StorageAttributes $item): string => $item->path())
                 ->toArray();
         } catch (FilesystemException|Throwable $e) {
             throw new FileStorageException($e->getMessage(), 0, $e);

@@ -77,6 +77,7 @@ final readonly class ValidationService
                     $message = sprintf('Unsupported validation: %s', $type);
                     throw new DomainException($message);
                 }
+
                 // @codeCoverageIgnoreEnd
 
                 call_user_func_array(
@@ -100,14 +101,17 @@ final readonly class ValidationService
                 $message = sprintf('Invalid rule definition: %s', VarPrinter::toString($rules));
                 throw new DomainException($message);
             }
+
             if (!isset($rule['field'])) {
                 $message = sprintf('Field is required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);
             }
+
             if (!isset($rule['label'])) {
                 $message = sprintf('Label is required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);
             }
+
             if (!isset($rule['rules'])) {
                 $message = sprintf('Rules are required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);

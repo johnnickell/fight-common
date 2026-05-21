@@ -65,8 +65,8 @@ final class MbStringTextDataType extends Type
 
         try {
             return MbStringObject::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, MbStringObject::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, MbStringObject::class, $throwable->getMessage(), $throwable);
         }
     }
 

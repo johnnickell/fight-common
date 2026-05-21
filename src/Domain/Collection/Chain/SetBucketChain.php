@@ -13,9 +13,13 @@ use Fight\Common\Domain\Utility\Validate;
 final class SetBucketChain implements Countable
 {
     private TerminalBucket $head;
+
     private TerminalBucket $tail;
+
     private Bucket $current;
+
     private int $count = 0;
+
     private int $offset = -1;
 
     /**
@@ -56,7 +60,7 @@ final class SetBucketChain implements Countable
         $added = true;
         $bucket = $this->locate($item);
 
-        if ($bucket !== null) {
+        if ($bucket instanceof ItemBucket) {
             $this->removeBucket($bucket);
             $this->rewind();
             $added = false;
@@ -73,7 +77,7 @@ final class SetBucketChain implements Countable
      */
     public function contains(mixed $item): bool
     {
-        return $this->locate($item) !== null;
+        return $this->locate($item) instanceof ItemBucket;
     }
 
     /**
@@ -86,7 +90,7 @@ final class SetBucketChain implements Countable
         $removed = false;
         $bucket = $this->locate($item);
 
-        if ($bucket !== null) {
+        if ($bucket instanceof ItemBucket) {
             $this->removeBucket($bucket);
             $this->rewind();
             $removed = true;
@@ -187,6 +191,7 @@ final class SetBucketChain implements Countable
         for ($this->rewind(); $this->valid(); $this->next()) {
             $items[] = $this->current();
         }
+
         $this->head = new TerminalBucket();
         $this->tail = new TerminalBucket();
         $this->head->setNext($this->tail);

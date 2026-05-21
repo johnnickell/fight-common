@@ -65,8 +65,8 @@ final class StringObjectDataType extends Type
 
         try {
             return StringObject::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, StringObject::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, StringObject::class, $throwable->getMessage(), $throwable);
         }
     }
 

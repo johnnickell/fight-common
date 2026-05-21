@@ -15,12 +15,12 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Class GuzzleClient
  */
-final class GuzzleClient implements HttpClient
+final readonly class GuzzleClient implements HttpClient
 {
     /**
      * Constructs GuzzleClient
      */
-    public function __construct(protected ClientInterface $client)
+    public function __construct(private ClientInterface $client)
     {
     }
 

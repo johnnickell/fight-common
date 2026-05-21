@@ -17,7 +17,7 @@ final class RequiredFieldSpecification extends CompositeSpecification
     /**
      * Constructs RequiredFieldSpecification
      */
-    public function __construct(protected string $fieldName)
+    public function __construct(private readonly string $fieldName)
     {
     }
 

@@ -23,6 +23,7 @@ final class FastHasher
                 } else {
                     $string = sprintf('o_%s', spl_object_hash($value));
                 }
+
                 break;
             case 'string':
                 $string = sprintf('s_%s', $value);

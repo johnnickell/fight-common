@@ -99,6 +99,7 @@ class ResultSetTest extends UnitTestCase
     {
         $list = ArrayList::of('string');
         $list->add('item');
+
         $resultSet = new ResultSet(1, 25, 1, $list);
 
         self::assertFalse($resultSet->isEmpty());
@@ -109,6 +110,7 @@ class ResultSetTest extends UnitTestCase
         $list = ArrayList::of('string');
         $list->add('a');
         $list->add('b');
+
         $resultSet = new ResultSet(1, 25, 2, $list);
 
         self::assertSame(2, $resultSet->count());
@@ -122,6 +124,7 @@ class ResultSetTest extends UnitTestCase
     {
         $list = ArrayList::of('string');
         $list->add('foo');
+
         $resultSet = new ResultSet(2, 10, 15, $list);
 
         self::assertSame([
@@ -137,6 +140,7 @@ class ResultSetTest extends UnitTestCase
     {
         $list = ArrayList::of('string');
         $list->add('bar');
+
         $resultSet = new ResultSet(1, 5, 1, $list);
 
         self::assertSame($resultSet->toArray(), $resultSet->jsonSerialize());
@@ -152,6 +156,7 @@ class ResultSetTest extends UnitTestCase
         $list->add('x');
         $list->add('y');
         $list->add('z');
+
         $resultSet = new ResultSet(1, 25, 3, $list);
 
         $visited = [];

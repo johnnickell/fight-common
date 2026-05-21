@@ -66,12 +66,19 @@ readonly class Uri extends ValueObject implements Comparable
     protected const DEFAULT_PORTS = [];
 
     protected string $scheme;
+
     protected ?string $authority;
+
     protected string $path;
+
     protected ?string $query;
+
     protected ?string $fragment;
+
     protected ?string $userInfo;
+
     protected ?string $host;
+
     protected ?int $port;
 
     /**
@@ -172,6 +179,7 @@ readonly class Uri extends ValueObject implements Comparable
                 $message = sprintf('First segment in reference (%s) cannot contain a colon (":")', $reference);
                 throw new DomainException($message);
             }
+
             // END: extra check for colon in first segment
             if ($ref['authority'] !== null) {
                 $authority = $ref['authority'];
@@ -192,12 +200,16 @@ readonly class Uri extends ValueObject implements Comparable
                         $path = static::mergePaths($base, $ref['path']);
                         $path = static::removeDotSegments($path);
                     }
+
                     $query = $ref['query'];
                 }
+
                 $authority = $base->authority();
             }
+
             $scheme = $base->scheme();
         }
+
         $fragment = $ref['fragment'];
 
         return new static($path, $scheme, $authority, $query, $fragment);
@@ -468,17 +480,20 @@ readonly class Uri extends ValueObject implements Comparable
         } else {
             $scheme = null;
         }
+
         if (isset($matches[3]) && $matches[3]) {
             $authority = $matches[4] ?? '';
         } else {
             $authority = null;
         }
+
         $path = $matches[5] ?? '';
         if (isset($matches[6]) && $matches[6]) {
             $query = $matches[7] ?? '';
         } else {
             $query = null;
         }
+
         if (isset($matches[8]) && $matches[8]) {
             $fragment = $matches[9] ?? '';
         } else {
@@ -534,6 +549,7 @@ readonly class Uri extends ValueObject implements Comparable
         if ($userInfo !== null) {
             $authority .= sprintf('%s@', $userInfo);
         }
+
         $authority .= $host;
         if ($port !== null) {
             $authority .= sprintf(':%d', $port);
@@ -790,7 +806,7 @@ readonly class Uri extends ValueObject implements Comparable
     {
         return preg_replace_callback(
             static::encodingRegex($excluded),
-            fn(array $matches) => rawurlencode($matches[0]),
+            fn(array $matches): string => rawurlencode((string) $matches[0]),
             $component
         );
     }
@@ -832,6 +848,7 @@ readonly class Uri extends ValueObject implements Comparable
             if ('..' == $path || '.' == $path) {
                 break;
             }
+
             switch (true) {
                 case (str_starts_with($path, './')):
                     $path = substr($path, 2);
@@ -848,9 +865,11 @@ readonly class Uri extends ValueObject implements Comparable
                     if (!empty($output)) {
                         $pos = strrpos($output, '/', -1);
                     }
+
                     if ($pos !== false) {
                         $output = substr($output, 0, $pos);
                     }
+
                     break;
                 case (str_starts_with($path, '/..')
                     && (in_array(substr($path, 3, 1), [false, '', '/'], true))):
@@ -859,9 +878,11 @@ readonly class Uri extends ValueObject implements Comparable
                     if (!empty($output)) {
                         $pos = strrpos($output, '/', -1);
                     }
+
                     if ($pos !== false) {
                         $output = substr($output, 0, $pos);
                     }
+
                     break;
                 case (str_starts_with($path, '/.')
                     && (in_array(substr($path, 2, 1), [false, '', '/'], true))):
@@ -874,6 +895,7 @@ readonly class Uri extends ValueObject implements Comparable
                     } else {
                         $segment = substr($path, 0, $nextSlash);
                     }
+
                     $output .= $segment;
                     $path = substr($path, strlen($segment));
                     break;
@@ -917,7 +939,7 @@ readonly class Uri extends ValueObject implements Comparable
             return false;
         }
 
-        return !!preg_match(static::SCHEME_PATTERN, $scheme);
+        return (bool) preg_match(static::SCHEME_PATTERN, $scheme);
     }
 
     /**
@@ -972,7 +994,7 @@ readonly class Uri extends ValueObject implements Comparable
             static::PCT_ENCODED_SET
         );
 
-        return !!preg_match($pattern, $path);
+        return (bool) preg_match($pattern, $path);
     }
 
     /**
@@ -994,7 +1016,7 @@ readonly class Uri extends ValueObject implements Comparable
             static::PCT_ENCODED_SET
         );
 
-        return !!preg_match($pattern, $query);
+        return (bool) preg_match($pattern, $query);
     }
 
     /**
@@ -1016,7 +1038,7 @@ readonly class Uri extends ValueObject implements Comparable
             static::PCT_ENCODED_SET
         );
 
-        return !!preg_match($pattern, $fragment);
+        return (bool) preg_match($pattern, $fragment);
     }
 
     /**
@@ -1033,7 +1055,7 @@ readonly class Uri extends ValueObject implements Comparable
             static::PCT_ENCODED_SET
         );
 
-        return !!preg_match($pattern, $userInfo);
+        return (bool) preg_match($pattern, $userInfo);
     }
 
     /**
@@ -1065,7 +1087,7 @@ readonly class Uri extends ValueObject implements Comparable
             static::PCT_ENCODED_SET
         );
 
-        return !!preg_match($pattern, $host);
+        return (bool) preg_match($pattern, $host);
     }
 
     /**

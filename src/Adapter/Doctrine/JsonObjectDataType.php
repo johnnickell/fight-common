@@ -65,8 +65,8 @@ final class JsonObjectDataType extends Type
 
         try {
             return JsonObject::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, JsonObject::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, JsonObject::class, $throwable->getMessage(), $throwable);
         }
     }
 

@@ -19,9 +19,13 @@ final class ArrayQueue implements Queue
     use ItemTypeMethods;
 
     private array $items = [];
+
     private int $count = 0;
+
     private int $front = 0;
+
     private int $end = 0;
+
     private int $cap = 10;
 
     /**
@@ -234,7 +238,7 @@ final class ArrayQueue implements Queue
             $callback = (fn($item) => $item);
         }
 
-        return $this->reduce(fn($total, $item, $index) => $total + call_user_func($callback, $item, $index), 0);
+        return $this->reduce(fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index), 0);
     }
 
     /**
@@ -246,7 +250,7 @@ final class ArrayQueue implements Queue
             return null;
         }
 
-        $count = $this->count();
+        $count = $this->count;
 
         return $this->sum($callback) / $count;
     }
@@ -413,6 +417,7 @@ final class ArrayQueue implements Queue
         for ($i = 0; $i < $this->count; $i++) {
             $temp[$i] = $this->items[($i + $this->front) % $this->cap];
         }
+
         $this->items = $temp;
         $this->cap = $capacity;
         $this->front = 0;

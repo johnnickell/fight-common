@@ -27,12 +27,15 @@ final class RulesParser
             if (!isset($rule['field'])) {
                 throw new DomainException('Rule definition is missing required key: field');
             }
+
             if (!is_string($rule['field'])) {
                 throw new DomainException('Rule definition key "field" must be a string');
             }
+
             if (!isset($rule['label'])) {
                 throw new DomainException('Rule definition is missing required key: label');
             }
+
             if (!isset($rule['rules'])) {
                 throw new DomainException('Rule definition is missing required key: rules');
             }
@@ -93,11 +96,12 @@ final class RulesParser
 
                     // validate date/time formats
                     $dateTimeRules = ['date', 'time', 'date_time'];
-                    if (in_array($ruleName->toString(), $dateTimeRules)) {
+                    if (in_array($ruleName->toString(), $dateTimeRules, true)) {
                         if (!isset($args[0]) || empty($args[0])) {
                             $message = sprintf('%s validation requires format', $ruleName->toString());
                             throw new DomainException($message);
                         }
+
                         $format = $args[0];
                         static::validateDateTimeFormat(
                             $ruleName->toString(),
@@ -148,6 +152,7 @@ final class RulesParser
                     $message = sprintf('Invalid date format "%s"', $format);
                     throw new DomainException($message);
                 }
+
                 break;
             case 'time':
                 $pattern = sprintf(
@@ -159,6 +164,7 @@ final class RulesParser
                     $message = sprintf('Invalid time format "%s"', $format);
                     throw new DomainException($message);
                 }
+
                 break;
             case 'date_time':
                 $pattern = sprintf(
@@ -170,6 +176,7 @@ final class RulesParser
                     $message = sprintf('Invalid date/time format "%s"', $format);
                     throw new DomainException($message);
                 }
+
                 break;
         }
     }
@@ -215,7 +222,7 @@ final class RulesParser
      *
      * @throws DomainException
      */
-    protected static function extractMatchString(string $rulesString): array
+    private static function extractMatchString(string $rulesString): array
     {
         $rules = StringObject::create($rulesString);
         $matchString = '';
@@ -232,12 +239,14 @@ final class RulesParser
                 $matchString .= $part->toString();
                 continue;
             }
+
             if ($part->indexOf('[') !== -1) {
                 $ruleName = $part->substr(0, $part->indexOf('['))->toString();
                 if (isset($ruleSet[$ruleName])) {
                     break;
                 }
             }
+
             $matchString .= sprintf('|%s', $part->toString());
         }
 

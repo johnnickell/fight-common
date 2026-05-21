@@ -48,6 +48,7 @@ trait StringOffsets
                 $message = sprintf('Length (%d) out of range[%d, %d]', $length, -$remainder, $remainder);
                 throw new DomainException($message);
             }
+
             $length += $remainder;
         } elseif (($offset + $length) > $total) {
             return $remainder;

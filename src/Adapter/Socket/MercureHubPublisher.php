@@ -31,8 +31,8 @@ final readonly class MercureHubPublisher implements Publisher
 
         try {
             $this->hub->publish($update);
-        } catch (Throwable $e) {
-            throw new SocketException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new SocketException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 }

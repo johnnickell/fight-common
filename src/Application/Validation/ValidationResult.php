@@ -14,9 +14,11 @@ use Fight\Common\Domain\Exception\MethodCallException;
 final class ValidationResult
 {
     public const string PASSED = 'passed';
+
     public const string FAILED = 'failed';
 
     private ?ApplicationData $applicationData = null;
+
     private ?ErrorData $errorData = null;
 
     /**

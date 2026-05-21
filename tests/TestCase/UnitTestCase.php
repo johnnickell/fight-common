@@ -40,10 +40,8 @@ abstract class UnitTestCase extends TestCase
      * 
      * Arguments are passed as-is to Mockery::mock()
      */
-    protected function mock(): MockInterface
+    protected function mock(...$args): MockInterface
     {
-        $args = func_get_args();
-
         return Mockery::mock(...$args);
     }
 }

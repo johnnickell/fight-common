@@ -17,6 +17,7 @@ use Fight\Common\Domain\Utility\ClassName;
 class SimpleEventDispatcher implements SynchronousEventDispatcher
 {
     protected array $handlers = [];
+
     protected array $sorted = [];
 
     /**
@@ -151,6 +152,7 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
                 if (empty($this->handlers[$eventType][$priority])) {
                     unset($this->handlers[$eventType][$priority]);
                 }
+
                 if (empty($this->handlers[$eventType])) {
                     unset($this->handlers[$eventType]);
                 }

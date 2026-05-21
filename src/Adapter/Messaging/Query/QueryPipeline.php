@@ -17,7 +17,9 @@ use Throwable;
 final class QueryPipeline implements QueryBus, QueryFilter
 {
     private readonly LinkedStack $filters;
+
     private ?LinkedStack $executionStack = null;
+
     private mixed $results;
 
     /**

@@ -22,8 +22,8 @@ final class GuzzleUriFactory implements UriFactory
     {
         try {
             return Utils::uriFor($uri);
-        } catch (Throwable $e) {
-            throw new DomainException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new DomainException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 }

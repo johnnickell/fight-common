@@ -10,9 +10,9 @@ use Fight\Common\Domain\Type\Comparator;
 /**
  * Class FunctionComparator
  */
-final class FunctionComparator implements Comparator
+final readonly class FunctionComparator implements Comparator
 {
-    protected Closure $function;
+    private Closure $function;
 
     /**
      * Constructs FunctionComparator

@@ -75,6 +75,7 @@ class TerminalBucketTest extends UnitTestCase
         $head->setNext($node);
         $node->setPrev($head);
         $node->setNext($tail);
+
         $tail->setPrev($node);
 
         // Forward traversal stops at tail sentinel

@@ -13,21 +13,21 @@ class FunctionComparatorTest extends UnitTestCase
 {
     public function test_that_compare_returns_zero_when_callback_returns_zero(): void
     {
-        $comparator = new FunctionComparator(fn($a, $b) => 0);
+        $comparator = new FunctionComparator(fn($a, $b): int => 0);
 
         self::assertSame(0, $comparator->compare('x', 'x'));
     }
 
     public function test_that_compare_returns_negative_when_callback_returns_negative(): void
     {
-        $comparator = new FunctionComparator(fn($a, $b) => -1);
+        $comparator = new FunctionComparator(fn($a, $b): int => -1);
 
         self::assertSame(-1, $comparator->compare('a', 'b'));
     }
 
     public function test_that_compare_returns_positive_when_callback_returns_positive(): void
     {
-        $comparator = new FunctionComparator(fn($a, $b) => 1);
+        $comparator = new FunctionComparator(fn($a, $b): int => 1);
 
         self::assertSame(1, $comparator->compare('b', 'a'));
     }

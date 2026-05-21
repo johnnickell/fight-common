@@ -14,6 +14,7 @@ use Psr\Container\ContainerInterface;
 final class Container implements ArrayAccess, ContainerInterface
 {
     private array $factories = [];
+
     private array $parameters = [];
 
     /**
@@ -46,7 +47,7 @@ final class Container implements ArrayAccess, ContainerInterface
     public function get(string $id): mixed
     {
         if (!$this->has($id)) {
-            throw new NotFoundException("Service '{$id}' not found.");
+            throw new NotFoundException(sprintf("Service '%s' not found.", $id));
         }
 
         return $this->factories[$id]($this);

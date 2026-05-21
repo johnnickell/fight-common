@@ -18,12 +18,12 @@ use Throwable;
 /**
  * Class SymfonyUrlGenerator
  */
-final class SymfonyUrlGenerator implements UrlGenerator
+final readonly class SymfonyUrlGenerator implements UrlGenerator
 {
     /**
      * Constructs SymfonyUrlGenerator
      */
-    public function __construct(protected UrlGeneratorInterface $urlGenerator)
+    public function __construct(private UrlGeneratorInterface $urlGenerator)
     {
     }
 

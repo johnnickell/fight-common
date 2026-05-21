@@ -16,6 +16,6 @@ final class IsTruthy extends CompositeSpecification
      */
     public function isSatisfiedBy(mixed $candidate): bool
     {
-        return !!$candidate;
+        return (bool) $candidate;
     }
 }

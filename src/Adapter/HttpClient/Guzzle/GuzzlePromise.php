@@ -20,8 +20,11 @@ use Throwable;
 final class GuzzlePromise implements Promise
 {
     private readonly PromiseInterface $promise;
+
     private string $state;
+
     private ?ResponseInterface $response;
+
     private ?Throwable $exception;
 
     /**
@@ -114,7 +117,7 @@ final class GuzzlePromise implements Promise
     /**
      * Converts a Guzzle exception into a Novuso exception
      */
-    protected function handleException(Throwable $exception): Throwable
+    private function handleException(Throwable $exception): Throwable
     {
         if ($exception instanceof GuzzleExceptions\ConnectException) {
             return new FightExceptions\NetworkException(

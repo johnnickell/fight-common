@@ -15,9 +15,13 @@ use Fight\Common\Domain\Utility\VarPrinter;
 final class TableBucketChain implements Countable
 {
     private TerminalBucket $head;
+
     private TerminalBucket $tail;
+
     private Bucket $current;
+
     private int $count = 0;
+
     private int $offset = -1;
 
     /**
@@ -58,7 +62,7 @@ final class TableBucketChain implements Countable
         $added = true;
         $bucket = $this->locate($key);
 
-        if ($bucket !== null) {
+        if ($bucket instanceof KeyValueBucket) {
             $this->removeBucket($bucket);
             $this->rewind();
             $added = false;
@@ -79,7 +83,7 @@ final class TableBucketChain implements Countable
     {
         $bucket = $this->locate($key);
 
-        if ($bucket === null) {
+        if (!$bucket instanceof KeyValueBucket) {
             $message = sprintf('Key not found: %s', VarPrinter::toString($key));
             throw new KeyException($message);
         }
@@ -92,7 +96,7 @@ final class TableBucketChain implements Countable
      */
     public function has(mixed $key): bool
     {
-        return $this->locate($key) !== null;
+        return $this->locate($key) instanceof KeyValueBucket;
     }
 
     /**
@@ -105,7 +109,7 @@ final class TableBucketChain implements Countable
         $removed = false;
         $bucket = $this->locate($key);
 
-        if ($bucket !== null) {
+        if ($bucket instanceof KeyValueBucket) {
             $this->removeBucket($bucket);
             $this->rewind();
             $removed = true;
@@ -211,6 +215,7 @@ final class TableBucketChain implements Countable
             $values[] = $this->current();
             $keys[] = $this->key();
         }
+
         $this->head = new TerminalBucket();
         $this->tail = new TerminalBucket();
         $this->head->setNext($this->tail);
