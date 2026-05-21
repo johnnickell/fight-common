@@ -4,18 +4,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-All tooling runs through bash scripts in `./bin/` that execute inside a PHP 8.5 Docker container. Never use `vendor/bin/` directly.
+All tooling runs inside a PHP 8.5 Docker container (`fight-common`). The `./bin/` scripts are convenience wrappers for interactive terminal use — they all pass `-it` (TTY required) and rebuild the image on every call, so **do not use them from Claude Code**.
+
+### For the user (interactive terminal)
 
 ```bash
-./bin/phpunit                                         # run full test suite
-./bin/phpunit tests/Domain/Specification/FooTest.php  # run a single test file
-./bin/phpunit --filter test_method_name               # run a single test by name
-./bin/composer require vendor/package                 # manage dependencies
-./bin/rector process src/                             # run code modernization
-./bin/exec php -r "echo 'hello';"                     # run arbitrary commands
+./bin/phpunit                                          # run full test suite
+./bin/phpunit tests/Adapter/Doctrine/UuidDataTypeTest.php  # run a single file
+./bin/phpunit --filter test_method_name                # run a single test
+./bin/composer require vendor/package                  # manage dependencies
+./bin/rector process src/                              # run code modernization
+./bin/exec php -r "echo 'hello';"                      # run arbitrary PHP
 ```
 
-The `./bin/phpunit` script uses `docker run -it`, so it requires a TTY and must be run by the user in their terminal — it cannot be invoked non-interactively from within Claude Code.
+### For Claude Code (non-interactive Docker)
+
+Claude Code must drop the `-it` flag and call `docker run --rm` directly against the pre-built `fight-common` image. The image must already be built (run any `./bin/` command once to build it).
+
+```bash
+# Run full test suite with coverage
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpunit
+
+# Run a single test file
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpunit tests/Adapter/Doctrine/UuidDataTypeTest.php
+
+# Run tests matching a name pattern
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpunit --filter test_method_name
+
+# Run rector (dry-run first, then without --dry-run to apply)
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/rector process src/ --dry-run
+
+# Run arbitrary PHP
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php -r "echo PHP_VERSION;"
+```
+
+Coverage reports are written to `var/reports/coverage/clover.xml` (XML) and `var/reports/coverage/` (HTML) automatically when the full suite runs with Xdebug loaded. Parse clover.xml with Python to check coverage gaps:
+
+```bash
+python3 -c "
+import xml.etree.ElementTree as ET
+tree = ET.parse('var/reports/coverage/clover.xml')
+root = tree.getroot()
+project = root.find('project')
+total_s = total_c = 0
+gaps = []
+for f in project.findall('.//file'):
+    if '/src/' not in f.get('name', ''):
+        continue
+    m = f.find('metrics')
+    s, c = int(m.get('statements', 0)), int(m.get('coveredstatements', 0))
+    total_s += s; total_c += c
+    if c < s:
+        gaps.append((s - c, f.get('name').split('/src/')[-1], c, s))
+gaps.sort(reverse=True)
+print(f'Overall: {total_c}/{total_s} ({100*total_c/total_s:.2f}%)')
+for gap, path, c, s in gaps:
+    print(f'  -{gap:3d}  {c}/{s}  {path}')
+"
+```
 
 ## Architecture
 

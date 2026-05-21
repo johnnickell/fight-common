@@ -850,9 +850,19 @@ class MbStringObjectTest extends UnitTestCase
         self::assertSame('hello  ', MbStringObject::create('  hello  ')->trimLeft()->value());
     }
 
+    public function test_that_trim_left_removes_custom_mask_characters(): void
+    {
+        self::assertSame('hello--', MbStringObject::create('--hello--')->trimLeft('-')->value());
+    }
+
     public function test_that_trim_right_removes_only_trailing_whitespace(): void
     {
         self::assertSame('  hello', MbStringObject::create('  hello  ')->trimRight()->value());
+    }
+
+    public function test_that_trim_right_removes_custom_mask_characters(): void
+    {
+        self::assertSame('--hello', MbStringObject::create('--hello--')->trimRight('-')->value());
     }
 
     // -------------------------------------------------------------------------
