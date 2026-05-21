@@ -6,10 +6,12 @@ namespace Fight\Test\Common\Adapter\Auth\Security;
 
 use DateTimeImmutable;
 use Fight\Common\Adapter\Auth\Security\JwtEncoder;
+use Fight\Common\Application\Auth\Exception\TokenException;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Throwable;
 
 #[CoversClass(JwtEncoder::class)]
 class JwtEncoderTest extends UnitTestCase
@@ -109,5 +111,14 @@ class JwtEncoderTest extends UnitTestCase
         $this->expectException(DomainException::class);
 
         new JwtEncoder($this->hexSecret, 'RS256');
+    }
+
+    public function test_that_encode_wraps_encoding_failure_in_token_exception(): void
+    {
+        $encoder = new JwtEncoder($this->hexSecret);
+
+        $this->expectException(TokenException::class);
+
+        $encoder->encode(['val' => NAN], new DateTimeImmutable('+1 hour'));
     }
 }

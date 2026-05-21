@@ -676,6 +676,11 @@ class StringObjectTest extends UnitTestCase
         self::assertSame('', StringObject::create('')->toCamelCase()->toString());
     }
 
+    public function test_that_to_camel_case_handles_non_delimited_input(): void
+    {
+        self::assertSame('helloWorld', StringObject::create('helloWorld')->toCamelCase()->toString());
+    }
+
     public function test_that_to_pascal_case_converts_snake_case(): void
     {
         self::assertSame('HelloWorld', StringObject::create('hello_world')->toPascalCase()->toString());
@@ -690,6 +695,11 @@ class StringObjectTest extends UnitTestCase
     {
         // Parts 'a','b','c' each have length 1 → exercises the single-char else branch in capsCase
         self::assertSame('ABC', StringObject::create('a b c')->toPascalCase()->toString());
+    }
+
+    public function test_that_to_pascal_case_handles_non_delimited_input(): void
+    {
+        self::assertSame('HelloWorld', StringObject::create('HelloWorld')->toPascalCase()->toString());
     }
 
     public function test_that_to_snake_case_converts_camel_case(): void
