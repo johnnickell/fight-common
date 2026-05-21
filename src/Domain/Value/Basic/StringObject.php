@@ -266,6 +266,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
         if ($start === null) {
             $start = 0;
         }
+
         $start = $this->prepareOffset($start, $this->length);
 
         if ($search === '') {
@@ -303,6 +304,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
         if ($stop === null) {
             $stop = 0;
         }
+
         if ($stop !== 0) {
             $stop = $this->prepareOffset($stop, $length) - $length;
         }
@@ -557,6 +559,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             if ($last === false) {
                 return static::create($truncated.$append);
             }
+
             $truncated = substr($truncated, 0, $last);
         }
 

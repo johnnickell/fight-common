@@ -53,8 +53,8 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
 
         try {
             $message = $this->serializer->deserialize($body);
-        } catch (Throwable $e) {
-            throw new MessageDecodingFailedException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new MessageDecodingFailedException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
         return new Envelope($message, $stamps);
@@ -137,12 +137,12 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
 
         try {
             return unserialize($contents);
-        } catch (Throwable $e) {
-            if ($e instanceof MessageDecodingFailedException) {
-                throw $e;
+        } catch (Throwable $throwable) {
+            if ($throwable instanceof MessageDecodingFailedException) {
+                throw $throwable;
             }
 
-            throw new MessageDecodingFailedException('Could not decode Envelope: ' . $e->getMessage(), 0, $e);
+            throw new MessageDecodingFailedException('Could not decode Envelope: ' . $throwable->getMessage(), 0, $throwable);
         } finally {
             restore_error_handler();
             ini_set('unserialize_callback_func', $prevUnserializeHandler);

@@ -10,6 +10,7 @@ namespace Fight\Common\Domain\Collection\Chain;
 final class ItemBucket implements Bucket
 {
     private ?Bucket $next = null;
+
     private ?Bucket $prev = null;
 
     /**

@@ -65,8 +65,8 @@ final class UrlDataType extends Type
 
         try {
             return Url::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, Url::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, Url::class, $throwable->getMessage(), $throwable);
         }
     }
 

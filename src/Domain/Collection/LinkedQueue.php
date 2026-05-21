@@ -210,7 +210,7 @@ final class LinkedQueue implements Queue
             $callback = (fn($item) => $item);
         }
 
-        return $this->reduce(fn($total, $item, $index) => $total + call_user_func($callback, $item, $index), 0);
+        return $this->reduce(fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index), 0);
     }
 
     /**

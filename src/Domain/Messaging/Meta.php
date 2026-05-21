@@ -166,7 +166,7 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
      *
      * @throws DomainException When value is not valid
      */
-    protected function guardValue(mixed $value): void
+    private function guardValue(mixed $value): void
     {
         if (!$this->isValid($value)) {
             $message = 'Value must be scalar or an array of scalars';
@@ -177,7 +177,7 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     /**
      * Checks if a value is valid
      */
-    protected function isValid(mixed $value): bool
+    private function isValid(mixed $value): bool
     {
         $type = gettype($value);
         switch ($type) {

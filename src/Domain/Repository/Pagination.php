@@ -10,14 +10,21 @@ namespace Fight\Common\Domain\Repository;
 final readonly class Pagination
 {
     public const string ASC = 'ASC';
+
     public const string DESC = 'DESC';
+
     public const int DEFAULT_PAGE = 1;
+
     public const int DEFAULT_PER_PAGE = 100;
 
     private int $page;
+
     private int $perPage;
+
     private int $offset;
+
     private int $limit;
+
     private array $orderings;
 
     /**

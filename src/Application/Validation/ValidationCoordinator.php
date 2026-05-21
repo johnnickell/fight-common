@@ -67,7 +67,7 @@ use Fight\Common\Domain\Utility\Validate;
  */
 final class ValidationCoordinator
 {
-    protected ArrayList $validators;
+    private ArrayList $validators;
 
     /**
      * Constructs ValidationCoordinator
@@ -87,7 +87,7 @@ final class ValidationCoordinator
         $valid = $this->validators->reduce(
             function (bool $valid, Validator $validator) use ($context) {
                 if (!$validator->validate($context)) {
-                    $valid = false;
+                    return false;
                 }
 
                 return $valid;

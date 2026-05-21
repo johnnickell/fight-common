@@ -65,8 +65,8 @@ final class EmailAddressDataType extends Type
 
         try {
             return EmailAddress::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, EmailAddress::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, EmailAddress::class, $throwable->getMessage(), $throwable);
         }
     }
 

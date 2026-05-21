@@ -65,8 +65,8 @@ final class TypeDataType extends Type
 
         try {
             return SystemType::create($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, SystemType::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, SystemType::class, $throwable->getMessage(), $throwable);
         }
     }
 

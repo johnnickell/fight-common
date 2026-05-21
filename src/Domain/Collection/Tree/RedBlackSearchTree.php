@@ -31,7 +31,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     public function isEmpty(): bool
     {
-        return $this->root === null;
+        return !$this->root instanceof RedBlackNode;
     }
 
     /**
@@ -58,7 +58,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     {
         $node = $this->nodeGet($key, $this->root);
 
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             $message = sprintf('Key not found: %s', VarPrinter::toString($key));
             throw new KeyException($message);
         }
@@ -71,7 +71,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     public function has(mixed $key): bool
     {
-        return $this->nodeGet($key, $this->root) !== null;
+        return $this->nodeGet($key, $this->root) instanceof RedBlackNode;
     }
 
     /**
@@ -209,7 +209,7 @@ final class RedBlackSearchTree implements BinarySearchTree
 
         $node = $this->nodeFloor($key, $this->root);
 
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return null;
         }
 
@@ -227,7 +227,7 @@ final class RedBlackSearchTree implements BinarySearchTree
 
         $node = $this->nodeCeiling($key, $this->root);
 
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return null;
         }
 
@@ -269,7 +269,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function isRed(?RedBlackNode $node): bool
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return false;
         }
 
@@ -281,7 +281,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeSize(?RedBlackNode $node): int
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return 0;
         }
 
@@ -293,7 +293,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeSet(mixed $key, mixed $value, ?RedBlackNode $node): RedBlackNode
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return new RedBlackNode($key, $value, 1, RedBlackNode::RED);
         }
 
@@ -317,7 +317,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeGet(mixed $key, ?RedBlackNode $node): ?RedBlackNode
     {
-        while ($node !== null) {
+        while ($node instanceof RedBlackNode) {
             $comp = $this->comparator->compare($key, $node->key());
             if ($comp < 0) {
                 $node = $node->left();
@@ -343,9 +343,11 @@ final class RedBlackSearchTree implements BinarySearchTree
             if ($this->isRed($node->left())) {
                 $node = $this->rotateRight($node);
             }
-            if ($comp === 0 && $node->right() === null) {
+
+            if ($comp === 0 && !$node->right() instanceof RedBlackNode) {
                 return null;
             }
+
             $node = $this->nodeRemoveRight($key, $node);
         }
 
@@ -365,6 +367,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         ) {
             $node = $this->moveRedLeft($node);
         }
+
         $node->setLeft($this->nodeRemove($key, $node->left()));
 
         return $node;
@@ -383,6 +386,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         ) {
             $node = $this->moveRedRight($node);
         }
+
         if ($this->comparator->compare($key, $node->key()) === 0) {
             $link = $this->nodeMin($node->right());
             $node->setKey($link->key());
@@ -400,7 +404,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function fillKeys(ItemList $list, mixed $lo, mixed $hi, ?RedBlackNode $node): void
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return;
         }
 
@@ -410,9 +414,11 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($compLo < 0) {
             $this->fillKeys($list, $lo, $hi, $node->left());
         }
+
         if ($compLo <= 0 && $compHi >= 0) {
             $list->add($node->key());
         }
+
         if ($compHi > 0) {
             $this->fillKeys($list, $lo, $hi, $node->right());
         }
@@ -423,7 +429,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeMin(RedBlackNode $node): RedBlackNode
     {
-        if ($node->left() === null) {
+        if (!$node->left() instanceof RedBlackNode) {
             return $node;
         }
 
@@ -435,7 +441,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeMax(RedBlackNode $node): RedBlackNode
     {
-        if ($node->right() === null) {
+        if (!$node->right() instanceof RedBlackNode) {
             return $node;
         }
 
@@ -447,7 +453,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeRemoveMin(RedBlackNode $node): ?RedBlackNode
     {
-        if ($node->left() === null) {
+        if (!$node->left() instanceof RedBlackNode) {
             return null;
         }
 
@@ -472,7 +478,7 @@ final class RedBlackSearchTree implements BinarySearchTree
             $node = $this->rotateRight($node);
         }
 
-        if ($node->right() === null) {
+        if (!$node->right() instanceof RedBlackNode) {
             return null;
         }
 
@@ -495,7 +501,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeFloor(mixed $key, ?RedBlackNode $node): ?RedBlackNode
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return null;
         }
 
@@ -504,11 +510,13 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($comp === 0) {
             return $node;
         }
+
         if ($comp < 0) {
             return $this->nodeFloor($key, $node->left());
         }
+
         $right = $this->nodeFloor($key, $node->right());
-        if ($right !== null) {
+        if ($right instanceof RedBlackNode) {
             return $right;
         }
 
@@ -522,7 +530,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeCeiling(mixed $key, ?RedBlackNode $node): ?RedBlackNode
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return null;
         }
 
@@ -531,11 +539,13 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($comp === 0) {
             return $node;
         }
+
         if ($comp > 0) {
             return $this->nodeCeiling($key, $node->right());
         }
+
         $left = $this->nodeCeiling($key, $node->left());
-        if ($left !== null) {
+        if ($left instanceof RedBlackNode) {
             return $left;
         }
 
@@ -547,7 +557,7 @@ final class RedBlackSearchTree implements BinarySearchTree
      */
     private function nodeRank(mixed $key, ?RedBlackNode $node): int
     {
-        if ($node === null) {
+        if (!$node instanceof RedBlackNode) {
             return 0;
         }
 
@@ -556,6 +566,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($comp < 0) {
             return $this->nodeRank($key, $node->left());
         }
+
         if ($comp > 0) {
             return 1
                 + $this->nodeSize($node->left())
@@ -575,6 +586,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($size > $rank) {
             return $this->nodeSelect($rank, $node->left());
         }
+
         if ($size < $rank) {
             return $this->nodeSelect($rank - $size - 1, $node->right());
         }
@@ -593,6 +605,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         $node->setRight($link->left());
         $link->setLeft($node);
         $link->setColor($node->color());
+
         $node->setColor(RedBlackNode::RED);
         $link->setSize($node->size());
         $nodeSize = 1
@@ -614,6 +627,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         $node->setLeft($link->right());
         $link->setRight($node);
         $link->setColor($node->color());
+
         $node->setColor(RedBlackNode::RED);
         $link->setSize($node->size());
         $nodeSize = 1
@@ -678,18 +692,21 @@ final class RedBlackSearchTree implements BinarySearchTree
         if ($this->isRed($node->right())) {
             $node = $this->rotateLeft($node);
         }
+
         if (
             $this->isRed($node->left())
             && $this->isRed($node->left()->left())
         ) {
             $node = $this->rotateRight($node);
         }
+
         if (
             $this->isRed($node->left())
             && $this->isRed($node->right())
         ) {
             $this->flipColors($node);
         }
+
         $nodeSize = 1
             + $this->nodeSize($node->left())
             + $this->nodeSize($node->right());
@@ -709,18 +726,21 @@ final class RedBlackSearchTree implements BinarySearchTree
         ) {
             $node = $this->rotateLeft($node);
         }
+
         if (
             $this->isRed($node->left())
             && $this->isRed($node->left()->left())
         ) {
             $node = $this->rotateRight($node);
         }
+
         if (
             $this->isRed($node->left())
             && $this->isRed($node->right())
         ) {
             $this->flipColors($node);
         }
+
         $nodeSize = 1
             + $this->nodeSize($node->left())
             + $this->nodeSize($node->right());

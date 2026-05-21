@@ -16,20 +16,26 @@ use Throwable;
  */
 final class PhpEngine implements TemplateEngine
 {
-    protected array $helpers = [];
-    protected array $cache = [];
-    protected array $parents = [];
-    protected array $stack = [];
-    protected array $blocks = [];
-    protected array $openBlocks = [];
-    protected string $current;
+    private array $helpers = [];
+
+    private array $cache = [];
+
+    private array $parents = [];
+
+    private array $stack = [];
+
+    private array $blocks = [];
+
+    private array $openBlocks = [];
+
+    private string $current;
 
     /**
      * Constructs PhpEngine
      *
      * @throws Throwable
      */
-    public function __construct(protected array $paths, array $helpers = [])
+    public function __construct(private readonly array $paths, array $helpers = [])
     {
         foreach ($helpers as $helper) {
             $this->addHelper($helper);
@@ -90,13 +96,11 @@ final class PhpEngine implements TemplateEngine
         $this->current = $key;
         $this->parents[$key] = null;
 
-        $content = $this->evaluate($file, $data);
-
         if (is_string($this->parents[$key])) {
-            $content = $this->render($this->parents[$key], $data);
+            return $this->render($this->parents[$key], $data);
         }
 
-        return $content;
+        return $this->evaluate($file, $data);
     }
 
     /**
@@ -296,6 +300,7 @@ final class PhpEngine implements TemplateEngine
                 return $file;
             }
         }
+
         throw TemplateNotFoundException::fromName($template);
     }
 }

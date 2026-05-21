@@ -97,8 +97,8 @@ final class JwtEncoder implements TokenEncoder
             );
 
             return $token->toString();
-        } catch (Throwable $e) {
-            throw new TokenException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new TokenException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 }

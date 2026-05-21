@@ -18,6 +18,7 @@ use Psr\Container\ContainerInterface;
 final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 {
     private array $services = [];
+
     private array $serviceIds = [];
 
     /**
@@ -140,6 +141,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
                     if (empty($this->services[$eventType])) {
                         unset($this->services[$eventType]);
                     }
+
                     unset($this->serviceIds[$eventType][$i]);
                     if (empty($this->serviceIds[$eventType])) {
                         unset($this->serviceIds[$eventType]);
@@ -169,6 +171,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
                     parent::removeHandler($eventType, [$this->services[$eventType][$key], $method]);
                     $this->addHandler($eventType, [$service, $method], $priority);
                 }
+
                 $this->services[$eventType][$key] = $service;
             }
         }

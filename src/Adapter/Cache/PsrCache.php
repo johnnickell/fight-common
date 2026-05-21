@@ -44,8 +44,8 @@ final readonly class PsrCache implements Cache
             }
 
             return $cacheItem->get();
-        } catch (Throwable $e) {
-            throw new CacheException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 }

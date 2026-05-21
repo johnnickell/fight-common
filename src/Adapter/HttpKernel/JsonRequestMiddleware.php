@@ -15,12 +15,12 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 /**
  * Class JsonRequestMiddleware
  */
-final class JsonRequestMiddleware implements HttpKernelInterface, TerminableInterface
+final readonly class JsonRequestMiddleware implements HttpKernelInterface, TerminableInterface
 {
     /**
      * Constructs JsonRequestMiddleware
      */
-    public function __construct(protected HttpKernelInterface $kernel)
+    public function __construct(private HttpKernelInterface $kernel)
     {
     }
 
@@ -38,7 +38,7 @@ final class JsonRequestMiddleware implements HttpKernelInterface, TerminableInte
 
         $contentType = StringObject::create($request->headers->get('Content-Type', ''));
 
-        if (in_array($request->getMethod(), $stateChangeMethods) && $contentType->startsWith('application/json')) {
+        if (in_array($request->getMethod(), $stateChangeMethods, true) && $contentType->startsWith('application/json')) {
             $data = JsonObject::fromString($request->getContent())->toData();
             $request->request->replace(is_array($data) ? $data : []);
         }

@@ -443,6 +443,7 @@ class HashSetTest extends UnitTestCase
         foreach ($set as $item) {
             $seen[] = $item;
         }
+
         sort($seen);
 
         self::assertSame([1, 2, 3], $seen);

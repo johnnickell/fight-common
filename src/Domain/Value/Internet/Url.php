@@ -55,9 +55,13 @@ final readonly class Url extends Uri
 
         // sort query params by key and remove missing keys
         foreach (explode('&', $query) as $param) {
-            if ('' === $param || '=' === $param[0]) {
+            if ('' === $param) {
                 continue;
             }
+            if ('=' === $param[0]) {
+                continue;
+            }
+
             $parts[] = $param;
             $kvp = explode('=', $param, 2);
             $order[] = $kvp[0];

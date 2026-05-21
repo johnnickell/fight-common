@@ -65,8 +65,8 @@ final class UuidDataType extends Type
 
         try {
             return Uuid::fromString($value);
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, Uuid::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, Uuid::class, $throwable->getMessage(), $throwable);
         }
     }
 

@@ -27,13 +27,18 @@ trait HmacMethods
             $parts = [];
             $order = [];
             foreach (explode('&', $queryString) as $param) {
-                if ('' === $param || '=' === $param[0]) {
+                if ('' === $param) {
                     continue;
                 }
+                if ('=' === $param[0]) {
+                    continue;
+                }
+
                 $parts[] = $param;
                 $kvp = explode('=', $param, 2);
                 $order[] = $kvp[0];
             }
+
             array_multisort($order, SORT_ASC, $parts);
             $queryString = implode('&', $parts);
             $uri = $uri->withQuery($queryString);

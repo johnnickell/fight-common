@@ -32,8 +32,8 @@ final class TwigEngine implements TemplateEngine
     {
         try {
             return $this->environment->render($template, $data);
-        } catch (Throwable $e) {
-            throw new TemplatingException($e->getMessage(), $e->getCode(), $e);
+        } catch (Throwable $throwable) {
+            throw new TemplatingException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
 

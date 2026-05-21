@@ -20,6 +20,7 @@ final class HashSet implements Set
     use ItemTypeMethods;
 
     private array $buckets = [];
+
     private int $count = 0;
 
     /**
@@ -281,7 +282,7 @@ final class HashSet implements Set
             $callback = (fn($item) => $item);
         }
 
-        return $this->reduce(fn($total, $item, $index) => $total + call_user_func($callback, $item, $index), 0);
+        return $this->reduce(fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index), 0);
     }
 
     /**
@@ -293,7 +294,7 @@ final class HashSet implements Set
             return null;
         }
 
-        $count = $this->count();
+        $count = $this->count;
 
         return $this->sum($callback) / $count;
     }

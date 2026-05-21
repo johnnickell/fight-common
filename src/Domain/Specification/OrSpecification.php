@@ -23,6 +23,9 @@ final class OrSpecification extends CompositeSpecification
      */
     public function isSatisfiedBy(mixed $candidate): bool
     {
-        return $this->firstSpec->isSatisfiedBy($candidate) || $this->secondSpec->isSatisfiedBy($candidate);
+        if ($this->firstSpec->isSatisfiedBy($candidate)) {
+            return true;
+        }
+        return $this->secondSpec->isSatisfiedBy($candidate);
     }
 }

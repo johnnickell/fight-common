@@ -9,8 +9,9 @@ namespace Fight\Common\Domain\Collection\Chain;
  */
 final class TerminalBucket implements Bucket
 {
-    protected ?Bucket $next = null;
-    protected ?Bucket $prev = null;
+    private ?Bucket $next = null;
+
+    private ?Bucket $prev = null;
 
     /**
      * @inheritDoc

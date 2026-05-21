@@ -20,6 +20,7 @@ final class LinkedStack implements Stack
     use ItemTypeMethods;
 
     private const FORWARD = SplDoublyLinkedList::IT_MODE_LIFO | SplDoublyLinkedList::IT_MODE_KEEP;
+
     private const REVERSE = SplDoublyLinkedList::IT_MODE_FIFO | SplDoublyLinkedList::IT_MODE_KEEP;
 
     private SplDoublyLinkedList $list;
@@ -118,6 +119,7 @@ final class LinkedStack implements Stack
         foreach ($this->getIterator() as $index => $item) {
             $stack->push(call_user_func($callback, $item, $index));
         }
+
         $this->list->setIteratorMode(static::FORWARD);
 
         return $stack;
@@ -217,7 +219,7 @@ final class LinkedStack implements Stack
             $callback = (fn($item) => $item);
         }
 
-        return $this->reduce(fn($total, $item, $index) => $total + call_user_func($callback, $item, $index), 0);
+        return $this->reduce(fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index), 0);
     }
 
     /**
@@ -261,6 +263,7 @@ final class LinkedStack implements Stack
                 $stack->push($item);
             }
         }
+
         $this->list->setIteratorMode(static::FORWARD);
 
         return $stack;
@@ -279,6 +282,7 @@ final class LinkedStack implements Stack
                 $stack->push($item);
             }
         }
+
         $this->list->setIteratorMode(static::FORWARD);
 
         return $stack;
@@ -328,6 +332,7 @@ final class LinkedStack implements Stack
                 $stack2->push($item);
             }
         }
+
         $this->list->setIteratorMode(static::FORWARD);
 
         return [$stack1, $stack2];

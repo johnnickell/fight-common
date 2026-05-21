@@ -39,6 +39,7 @@ class NotSpecificationTest extends UnitTestCase
     {
         $inner = new class extends CompositeSpecification {
             public int $callCount = 0;
+
             public function isSatisfiedBy(mixed $candidate): bool {
                 $this->callCount++;
                 return true;
@@ -55,6 +56,7 @@ class NotSpecificationTest extends UnitTestCase
     {
         $inner = new class extends CompositeSpecification {
             public bool $wasCalled = false;
+
             public function isSatisfiedBy(mixed $candidate): bool {
                 $this->wasCalled = true;
                 return false;

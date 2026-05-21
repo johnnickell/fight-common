@@ -96,8 +96,8 @@ class ValidationServiceTest extends UnitTestCase
                 [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']]
             );
             self::fail('Expected ValidationException was not thrown');
-        } catch (ValidationException $e) {
-            $errors = $e->getErrors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->getErrors();
             self::assertArrayHasKey('email', $errors);
         }
     }

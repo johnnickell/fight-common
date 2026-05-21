@@ -22,6 +22,7 @@ final class HashTable implements Table
     use KeyValueTypeMethods;
 
     private array $buckets = [];
+
     private int $count = 0;
 
     /**
@@ -297,7 +298,7 @@ final class HashTable implements Table
             $callback = (fn($value) => $value);
         }
 
-        return $this->reduce(fn($total, $value, $key) => $total + call_user_func($callback, $value, $key), 0);
+        return $this->reduce(fn($total, $value, $key): float|int|array => $total + call_user_func($callback, $value, $key), 0);
     }
 
     /**
@@ -309,7 +310,7 @@ final class HashTable implements Table
             return null;
         }
 
-        $count = $this->count();
+        $count = $this->count;
 
         return $this->sum($callback) / $count;
     }

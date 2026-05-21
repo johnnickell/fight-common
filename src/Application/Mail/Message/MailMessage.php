@@ -10,22 +10,37 @@ namespace Fight\Common\Application\Mail\Message;
 final class MailMessage
 {
     public const string DEFAULT_CHARSET = 'utf-8';
+
     public const string CONTENT_TYPE_HTML = 'text/html';
+
     public const string CONTENT_TYPE_PLAIN = 'text/plain';
 
     private ?string $subject = null;
+
     private array $from = [];
+
     private array $to = [];
+
     private array $replyTo = [];
+
     private array $cc = [];
+
     private array $bcc = [];
+
     private array $content = [];
+
     private ?array $sender = null;
+
     private ?string $returnPath = null;
+
     private string $charset = self::DEFAULT_CHARSET;
+
     private Priority $priority;
+
     private ?int $timestamp = null;
+
     private ?int $maxLineLength = null;
+
     private array $attachments = [];
 
     /**
@@ -199,7 +214,7 @@ final class MailMessage
      */
     public function addContent(string $content, string $contentType, ?string $charset = null): static
     {
-        $charset = $charset ?: $this->getCharset();
+        $charset = $charset ?: $this->charset;
 
         $this->content[] = [
             'content'      => $content,
@@ -336,7 +351,7 @@ final class MailMessage
         // Each line of characters MUST be no more than 998 characters,
         // and SHOULD be no more than 78 characters, excluding the CRLF.
         // https://tools.ietf.org/html/rfc5322#section-2.1.1
-        $maxLineLength = (int) abs($maxLineLength);
+        $maxLineLength = abs($maxLineLength);
 
         if ($maxLineLength > 998) {
             $maxLineLength = 998;

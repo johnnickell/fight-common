@@ -11,8 +11,9 @@ use Iterator;
  */
 final class ArrayQueueIterator implements Iterator
 {
-    protected int $index = 0;
-    protected int $count;
+    private int $index = 0;
+
+    private readonly int $count;
 
     /**
      * Constructs ArrayQueueIterator
@@ -20,9 +21,9 @@ final class ArrayQueueIterator implements Iterator
      * @codeCoverageIgnore coverage bug
      */
     public function __construct(
-        protected array $items,
-        protected int $front,
-        protected int $cap
+        private array $items,
+        private readonly int $front,
+        private readonly int $cap
     ) {
         $this->count = count($this->items);
     }

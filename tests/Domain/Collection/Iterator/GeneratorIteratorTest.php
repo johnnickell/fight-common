@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(GeneratorIterator::class)]
 class GeneratorIteratorTest extends UnitTestCase
 {
-    public function test_that_rewind_allows_iteration_more_than_once()
+    public function test_that_rewind_allows_iteration_more_than_once(): void
     {
         $iterator = new GeneratorIterator(function () {
             for ($i = 0; $i < 10; $i++) {
@@ -33,7 +33,7 @@ class GeneratorIteratorTest extends UnitTestCase
         }
     }
 
-    public function test_that_valid_returns_true_with_valid_position()
+    public function test_that_valid_returns_true_with_valid_position(): void
     {
         $iterator = new GeneratorIterator(function () {
             for ($i = 0; $i < 10; $i++) {
@@ -44,7 +44,7 @@ class GeneratorIteratorTest extends UnitTestCase
         self::assertTrue($iterator->valid());
     }
 
-    public function test_that_current_returns_first_yielded_value()
+    public function test_that_current_returns_first_yielded_value(): void
     {
         $iterator = new GeneratorIterator(function () {
             for ($i = 0; $i < 10; $i++) {
@@ -55,7 +55,7 @@ class GeneratorIteratorTest extends UnitTestCase
         self::assertSame(0, $iterator->current());
     }
 
-    public function test_that_key_returns_first_yielded_key()
+    public function test_that_key_returns_first_yielded_key(): void
     {
         $iterator = new GeneratorIterator(function () {
             for ($i = 0; $i < 10; $i++) {
@@ -66,7 +66,7 @@ class GeneratorIteratorTest extends UnitTestCase
         self::assertSame(0, $iterator->key());
     }
 
-    public function test_that_next_advances_to_next_position()
+    public function test_that_next_advances_to_next_position(): void
     {
         $iterator = new GeneratorIterator(function () {
             for ($i = 0; $i < 10; $i++) {
@@ -79,7 +79,7 @@ class GeneratorIteratorTest extends UnitTestCase
         self::assertSame(1, $iterator->key());
     }
 
-    public function test_that_send_injects_value_to_generator()
+    public function test_that_send_injects_value_to_generator(): void
     {
         $iterator = new GeneratorIterator(function () {
             $buffer = '';
@@ -95,7 +95,7 @@ class GeneratorIteratorTest extends UnitTestCase
         self::assertSame('Hello World', $iterator->current());
     }
 
-    public function test_that_throw_sends_an_exception_into_generator()
+    public function test_that_throw_sends_an_exception_into_generator(): void
     {
         $iterator = new GeneratorIterator(function () {
             $buffer = '';

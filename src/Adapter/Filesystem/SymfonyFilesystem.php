@@ -252,6 +252,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
             $message = sprintf('Unable to fetch last modified: %s', $path);
             throw new FilesystemException($message, $path);
         }
+
         // @codeCoverageIgnoreEnd
 
         return $timestamp;
@@ -273,6 +274,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
             $message = sprintf('Unable to fetch last accessed: %s', $path);
             throw new FilesystemException($message, $path);
         }
+
         // @codeCoverageIgnoreEnd
 
         return $timestamp;
@@ -294,6 +296,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
             $message = sprintf('Unable to fetch file size: %s', $path);
             throw new FilesystemException($message, $path);
         }
+
         // @codeCoverageIgnoreEnd
 
         return $size;
@@ -388,6 +391,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
             $message = sprintf('Unable to fetch mime type: %s', $path);
             throw new FilesystemException($message, $path);
         }
+
         // @codeCoverageIgnoreEnd
 
         return $mime;

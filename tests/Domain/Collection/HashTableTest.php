@@ -92,6 +92,7 @@ class HashTableTest extends UnitTestCase
         foreach ($table->keys() as $key) {
             $keys[] = $key;
         }
+
         sort($keys);
 
         self::assertSame(['x', 'y'], $keys);
@@ -336,6 +337,7 @@ class HashTableTest extends UnitTestCase
         foreach ($table as $key => $value) {
             $seen[$key] = $value;
         }
+
         ksort($seen);
 
         self::assertSame(['a' => 1, 'b' => 2], $seen);

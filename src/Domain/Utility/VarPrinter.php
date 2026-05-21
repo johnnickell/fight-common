@@ -56,6 +56,7 @@ final class VarPrinter
             if (is_nan($value)) {
                 return 'NAN';
             }
+
             if (is_infinite($value)) {
                 return $value > 0 ? 'INF' : '-INF';
             }

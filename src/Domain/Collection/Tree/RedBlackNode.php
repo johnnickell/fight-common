@@ -10,9 +10,11 @@ namespace Fight\Common\Domain\Collection\Tree;
 final class RedBlackNode
 {
     public const bool RED = true;
+
     public const bool BLACK = false;
 
     private ?RedBlackNode $left = null;
+
     private ?RedBlackNode $right = null;
 
     /**
@@ -127,12 +129,12 @@ final class RedBlackNode
      */
     public function __clone(): void
     {
-        if ($this->left !== null) {
+        if ($this->left instanceof \Fight\Common\Domain\Collection\Tree\RedBlackNode) {
             $left = clone $this->left;
             $this->left = $left;
         }
 
-        if ($this->right !== null) {
+        if ($this->right instanceof \Fight\Common\Domain\Collection\Tree\RedBlackNode) {
             $right = clone $this->right;
             $this->right = $right;
         }

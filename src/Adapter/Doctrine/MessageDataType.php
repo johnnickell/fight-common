@@ -77,8 +77,8 @@ final class MessageDataType extends Type
             $message = $serializer->deserialize($value);
 
             return $message;
-        } catch (Throwable $e) {
-            throw ValueNotConvertible::new($value, Message::class, $e->getMessage(), $e);
+        } catch (Throwable $throwable) {
+            throw ValueNotConvertible::new($value, Message::class, $throwable->getMessage(), $throwable);
         }
     }
 

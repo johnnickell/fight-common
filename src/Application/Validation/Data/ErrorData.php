@@ -32,6 +32,7 @@ final readonly class ErrorData implements Arrayable, Collection
             foreach ($messages as $message) {
                 $set->add($message);
             }
+
             $this->data->set($name, $set);
         }
     }

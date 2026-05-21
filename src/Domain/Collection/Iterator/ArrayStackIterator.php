@@ -11,13 +11,14 @@ use Iterator;
  */
 final class ArrayStackIterator implements Iterator
 {
-    protected int $index;
-    protected int $count;
+    private int $index;
+
+    private readonly int $count;
 
     /**
      * Constructs ArrayStackIterator
      */
-    public function __construct(protected array $items)
+    public function __construct(private array $items)
     {
         $this->count = count($this->items);
         $this->index = $this->count - 1;

@@ -162,7 +162,7 @@ final class Validate
             return false;
         }
 
-        return !!preg_match('/\A[a-z]*\z/ui', (string) $value);
+        return (bool) preg_match('/\A[a-z]*\z/ui', (string) $value);
     }
 
     /**
@@ -174,7 +174,7 @@ final class Validate
             return false;
         }
 
-        return !!preg_match('/\A[a-z0-9]*\z/ui', (string) $value);
+        return (bool) preg_match('/\A[a-z0-9]*\z/ui', (string) $value);
     }
 
     /**
@@ -188,7 +188,7 @@ final class Validate
             return false;
         }
 
-        return !!preg_match('/\A[a-z\-_]*\z/ui', (string) $value);
+        return (bool) preg_match('/\A[a-z\-_]*\z/ui', (string) $value);
     }
 
     /**
@@ -202,7 +202,7 @@ final class Validate
             return false;
         }
 
-        return !!preg_match('/\A[a-z0-9\-_]*\z/ui', (string) $value);
+        return (bool) preg_match('/\A[a-z0-9\-_]*\z/ui', (string) $value);
     }
 
     /**
@@ -375,7 +375,7 @@ final class Validate
             '(?:[a-z0-9()+,\-.:=@;$_!*\']|%(?:0[a-f1-9]|[a-f1-9][a-f0-9]))+'
         );
 
-        return !!preg_match($pattern, (string) $value);
+        return (bool) preg_match($pattern, (string) $value);
     }
 
     /**
@@ -416,7 +416,7 @@ final class Validate
 
         $value = str_replace(['urn:', 'uuid:', '{', '}'], '', (string) $value);
 
-        return !!preg_match($pattern, $value);
+        return (bool) preg_match($pattern, $value);
     }
 
     /**
@@ -456,7 +456,7 @@ final class Validate
             return false;
         }
 
-        return !!preg_match($pattern, (string) $value);
+        return (bool) preg_match($pattern, (string) $value);
     }
 
     /**
@@ -507,7 +507,7 @@ final class Validate
             return false;
         }
 
-        $strLength = (int) mb_strlen((string) $value, $encoding);
+        $strLength = mb_strlen((string) $value, $encoding);
 
         return $strLength === $length;
     }
@@ -524,7 +524,7 @@ final class Validate
             return false;
         }
 
-        $strLength = (int) mb_strlen((string) $value, $encoding);
+        $strLength = mb_strlen((string) $value, $encoding);
 
         return $strLength >= $minLength;
     }
@@ -541,7 +541,7 @@ final class Validate
             return false;
         }
 
-        $strLength = (int) mb_strlen((string) $value, $encoding);
+        $strLength = mb_strlen((string) $value, $encoding);
 
         return $strLength <= $maxLength;
     }
@@ -559,11 +559,12 @@ final class Validate
             return false;
         }
 
-        $strLength = (int) mb_strlen((string) $value, $encoding);
+        $strLength = mb_strlen((string) $value, $encoding);
 
         if ($strLength < $minLength) {
             return false;
         }
+
         if ($strLength > $maxLength) {
             return false;
         }
@@ -622,6 +623,7 @@ final class Validate
         if ($value < $minNumber) {
             return false;
         }
+
         if ($value > $maxNumber) {
             return false;
         }
@@ -725,6 +727,7 @@ final class Validate
         if ($count < $minCount) {
             return false;
         }
+
         if ($count > $maxCount) {
             return false;
         }
@@ -898,6 +901,7 @@ final class Validate
                 if ($value instanceof Stringable) {
                     $result = true;
                 }
+
                 break;
             default:
                 break;
@@ -1005,6 +1009,7 @@ final class Validate
             if (!$exists) {
                 return false;
             }
+
             $value = (string) $value;
         }
 
@@ -1139,6 +1144,7 @@ final class Validate
                 self::$timezones[$zone] = true;
             }
         }
+
         // @codeCoverageIgnoreEnd
 
         return isset(self::$timezones[$timezone]);
@@ -1154,17 +1160,20 @@ final class Validate
         } else {
             $scheme = null;
         }
+
         if (isset($matches[3]) && $matches[3]) {
             $authority = $matches[4] ?? '';
         } else {
             $authority = null;
         }
+
         $path = $matches[5] ?? '';
         if (isset($matches[6]) && $matches[6]) {
             $query = $matches[7] ?? '';
         } else {
             $query = null;
         }
+
         if (isset($matches[8]) && $matches[8]) {
             $fragment = $matches[9] ?? '';
         } else {
@@ -1188,15 +1197,19 @@ final class Validate
         if (!self::isValidUriScheme($uri['scheme'])) {
             return false;
         }
+
         if (!self::isValidUriPath($uri['path'])) {
             return false;
         }
+
         if (!self::isValidUriQuery($uri['query'])) {
             return false;
         }
+
         if (!self::isValidUriFragment($uri['fragment'])) {
             return false;
         }
+
         if (!self::isValidUriAuthority($uri['authority'])) {
             return false;
         }
@@ -1220,7 +1233,7 @@ final class Validate
         // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
         $pattern = '/\A[a-z][a-z0-9+.\-]*\z/i';
 
-        return !!preg_match($pattern, $scheme);
+        return (bool) preg_match($pattern, $scheme);
     }
 
     /**
@@ -1247,6 +1260,7 @@ final class Validate
         if (!$isValidAuthUser) {
             return false;
         }
+
         if (!$isValidAuthHost) {
             return false;
         }
@@ -1289,7 +1303,7 @@ final class Validate
             '%[a-f0-9]{2}'
         );
 
-        return !!preg_match($pattern, $path);
+        return (bool) preg_match($pattern, $path);
     }
 
     /**
@@ -1311,7 +1325,7 @@ final class Validate
             '%[a-f0-9]{2}'
         );
 
-        return !!preg_match($pattern, $query);
+        return (bool) preg_match($pattern, $query);
     }
 
     /**
@@ -1333,7 +1347,7 @@ final class Validate
             '%[a-f0-9]{2}'
         );
 
-        return !!preg_match($pattern, $fragment);
+        return (bool) preg_match($pattern, $fragment);
     }
 
     /**
@@ -1354,7 +1368,7 @@ final class Validate
             '%[a-f0-9]{2}'
         );
 
-        return !!preg_match($pattern, $userinfo);
+        return (bool) preg_match($pattern, $userinfo);
     }
 
     /**
@@ -1390,7 +1404,7 @@ final class Validate
             '%[a-f0-9]{2}'
         );
 
-        return !!preg_match($pattern, $host);
+        return (bool) preg_match($pattern, $host);
     }
 
     /**

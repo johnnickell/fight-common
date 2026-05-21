@@ -20,6 +20,7 @@ use Throwable;
 final class GeneratorIterator implements Iterator
 {
     private readonly Closure $function;
+
     private ?Generator $generator = null;
 
     /**
@@ -36,6 +37,7 @@ final class GeneratorIterator implements Iterator
         if (!$reflection->isGenerator()) {
             throw new DomainException('Invalid generator function');
         }
+
         $this->function = Closure::fromCallable($function);
     }
 
@@ -52,7 +54,7 @@ final class GeneratorIterator implements Iterator
      */
     public function valid(): bool
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
@@ -64,7 +66,7 @@ final class GeneratorIterator implements Iterator
      */
     public function key(): mixed
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
@@ -76,7 +78,7 @@ final class GeneratorIterator implements Iterator
      */
     public function current(): mixed
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
@@ -88,7 +90,7 @@ final class GeneratorIterator implements Iterator
      */
     public function next(): void
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
@@ -102,7 +104,7 @@ final class GeneratorIterator implements Iterator
      */
     public function getReturn(): mixed
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $message = 'Cannot get return value; generator has not returned';
             throw new MethodCallException($message);
         }
@@ -123,7 +125,7 @@ final class GeneratorIterator implements Iterator
      */
     public function send(mixed $value = null): mixed
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
@@ -144,7 +146,7 @@ final class GeneratorIterator implements Iterator
      */
     public function throw(Throwable $exception): mixed
     {
-        if (!$this->generator) {
+        if (!$this->generator instanceof Generator) {
             $this->rewind();
         }
 
