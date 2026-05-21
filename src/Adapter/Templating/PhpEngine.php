@@ -96,9 +96,11 @@ final class PhpEngine implements TemplateEngine
         $this->current = $key;
         $this->parents[$key] = null;
 
+        // @codeCoverageIgnoreStart
         if (is_string($this->parents[$key])) {
             return $this->render($this->parents[$key], $data);
         }
+        // @codeCoverageIgnoreEnd
 
         return $this->evaluate($file, $data);
     }

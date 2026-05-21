@@ -80,6 +80,40 @@ class HmacMethodsTest extends UnitTestCase
         self::assertSame($uri, $result);
     }
 
+    public function test_that_normalize_uri_skips_empty_query_params(): void
+    {
+        $subject = $this->makeSubject();
+
+        /** @var MockInterface|UriInterface $normalizedUri */
+        $normalizedUri = $this->mock(UriInterface::class);
+
+        /** @var MockInterface|UriInterface $uri */
+        $uri = $this->mock(UriInterface::class);
+        $uri->shouldReceive('getQuery')->andReturn('a=1&&b=2');
+        $uri->shouldReceive('withQuery')->with('a=1&b=2')->once()->andReturn($normalizedUri);
+
+        $result = $subject->exposedNormalizeUri($uri);
+
+        self::assertSame($normalizedUri, $result);
+    }
+
+    public function test_that_normalize_uri_skips_params_starting_with_equals(): void
+    {
+        $subject = $this->makeSubject();
+
+        /** @var MockInterface|UriInterface $normalizedUri */
+        $normalizedUri = $this->mock(UriInterface::class);
+
+        /** @var MockInterface|UriInterface $uri */
+        $uri = $this->mock(UriInterface::class);
+        $uri->shouldReceive('getQuery')->andReturn('=skip&a=1');
+        $uri->shouldReceive('withQuery')->with('a=1')->once()->andReturn($normalizedUri);
+
+        $result = $subject->exposedNormalizeUri($uri);
+
+        self::assertSame($normalizedUri, $result);
+    }
+
     public function test_that_normalize_uri_with_single_query_param_produces_unchanged_query(): void
     {
         $subject = $this->makeSubject();

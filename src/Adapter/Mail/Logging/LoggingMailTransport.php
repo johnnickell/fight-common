@@ -39,7 +39,7 @@ final readonly class LoggingMailTransport implements MailTransport
             'sender'          => $message->getSender(),
             'return_path'     => $message->getReturnPath(),
             'charset'         => $message->getCharset(),
-            'priority'        => $message->getPriority()->name(),
+            'priority'        => $message->getPriority()->name,
             'timestamp'       => $message->getTimestamp(),
             'max_line_length' => $message->getMaxLineLength()
         ]);

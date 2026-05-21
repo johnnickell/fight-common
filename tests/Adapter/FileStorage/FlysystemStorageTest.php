@@ -274,4 +274,172 @@ class FlysystemStorageTest extends UnitTestCase
 
         self::assertInstanceOf(FileStorage::class, $storage);
     }
+
+    public function test_that_put_file_throws_when_ensure_directory_fails(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('createDirectory')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->putFile('path/file.txt', 'contents');
+    }
+
+    public function test_that_put_file_throws_when_write_fails(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('createDirectory')->once()->with('path');
+        $flysystem->shouldReceive('write')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->putFile('path/file.txt', 'contents');
+    }
+
+    public function test_that_get_file_resource_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('readStream')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->getFileResource('file.txt');
+    }
+
+    public function test_that_has_file_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('fileExists')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->hasFile('file.txt');
+    }
+
+    public function test_that_remove_file_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('delete')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->removeFile('file.txt');
+    }
+
+    public function test_that_copy_file_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('createDirectory')->once()->with('dest');
+        $flysystem->shouldReceive('copy')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->copyFile('src/file.txt', 'dest/file.txt');
+    }
+
+    public function test_that_move_file_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('createDirectory')->once()->with('dest');
+        $flysystem->shouldReceive('move')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->moveFile('src/file.txt', 'dest/file.txt');
+    }
+
+    public function test_that_size_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('fileSize')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->size('file.txt');
+    }
+
+    public function test_that_last_modified_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('lastModified')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->lastModified('file.txt');
+    }
+
+    public function test_that_list_files_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('listContents')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->listFiles('path');
+    }
+
+    public function test_that_list_directories_throws_on_failure(): void
+    {
+        /** @var MockInterface|FilesystemOperator $flysystem */
+        $flysystem = $this->mock(FilesystemOperator::class);
+        $flysystem->shouldReceive('listContents')
+            ->once()
+            ->andThrow(new class extends RuntimeException implements FilesystemException {});
+
+        $storage = new FlysystemStorage($flysystem);
+
+        $this->expectException(FileStorageException::class);
+
+        $storage->listDirectories('path');
+    }
 }

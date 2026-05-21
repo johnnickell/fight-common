@@ -266,4 +266,37 @@ class RulesParserTest extends UnitTestCase
             ['field' => 'created_at', 'label' => 'Created At', 'rules' => 'date_time[q]'],
         ]);
     }
+
+    public function test_that_in_list_rule_generates_error_with_list_of_values(): void
+    {
+        $result = RulesParser::parse([
+            ['field' => 'role', 'label' => 'Role', 'rules' => 'in_list[admin,user,guest]'],
+        ]);
+
+        self::assertSame('Role must be one of [admin,user,guest]', $result['role'][0]['error']);
+    }
+
+    public function test_that_match_rule_with_pipe_delimited_rules_parses_all_rules(): void
+    {
+        $result = RulesParser::parse([
+            ['field' => 'slug', 'label' => 'Slug', 'rules' => 'match[/[a-z0-9-]+/]|required'],
+        ]);
+
+        self::assertCount(1, $result['slug']);
+        self::assertSame('Match', $result['slug'][0]['type']);
+        self::assertSame(['/[a-z0-9-]+/'], $result['slug'][0]['args']);
+    }
+
+    public function test_that_match_rule_with_known_bracketed_rule_parses_separately(): void
+    {
+        $result = RulesParser::parse([
+            ['field' => 'slug', 'label' => 'Slug', 'rules' => 'match[/[a-z0-9-]+/]|min_length[5]'],
+        ]);
+
+        self::assertCount(2, $result['slug']);
+        self::assertSame('MinLength', $result['slug'][0]['type']);
+        self::assertSame(['5'], $result['slug'][0]['args']);
+        self::assertSame('Match', $result['slug'][1]['type']);
+        self::assertSame(['/[a-z0-9-]+/'], $result['slug'][1]['args']);
+    }
 }

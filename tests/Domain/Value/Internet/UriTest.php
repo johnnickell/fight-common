@@ -575,4 +575,109 @@ class UriTest extends UnitTestCase
 
         self::assertSame(0, $uri->compareTo($uri));
     }
+
+    public function test_that_resolve_throws_when_reference_first_segment_contains_colon(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('cannot contain a colon');
+
+        Uri::resolve('http://example.com/a/b', ':foo');
+    }
+
+    public function test_that_from_array_throws_for_path_with_authority_and_no_leading_slash(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid URI path');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => 'example.com',
+            'path' => 'no-slash',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_path_starting_with_double_slash_without_authority(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid URI path');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'path' => '//double',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_invalid_query(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid URI query');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => 'example.com',
+            'path' => '/',
+            'query' => '{}',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_invalid_fragment(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid URI fragment');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => 'example.com',
+            'path' => '/',
+            'fragment' => '{}',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_invalid_user_info(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid user info');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => 'user{}@example.com',
+            'path' => '/',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_invalid_host(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid host');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => 'in valid',
+            'path' => '/',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_ip_literal_with_invalid_address(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid host');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => '[invalid]',
+            'path' => '/',
+        ]);
+    }
+
+    public function test_that_from_array_throws_for_host_with_missing_closing_bracket(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Invalid host');
+
+        Uri::fromArray([
+            'scheme' => 'http',
+            'authority' => '[ab',
+            'path' => '/',
+        ]);
+    }
 }
