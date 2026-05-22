@@ -18,10 +18,10 @@ class HmacMethodsTest extends UnitTestCase
 {
     private function makeSubject(): object
     {
-        return new class(hex2bin('deadbeef1234567890abcdef12345678')) {
+        return new readonly class(hex2bin('deadbeef1234567890abcdef12345678')) {
             use HmacMethods;
 
-            public function __construct(private readonly string $secret) {}
+            public function __construct(private string $secret) {}
 
             protected function getSecret(): string
             {

@@ -26,7 +26,7 @@ class JsonRequestMiddlewareTest extends UnitTestCase
         /** @var MockInterface|HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
         $kernel->shouldReceive('handle')
-            ->withArgs(fn(Request $r) => $r->request->get('name') === 'Alice')
+            ->withArgs(fn(Request $r): bool => $r->request->get('name') === 'Alice')
             ->once()
             ->andReturn($response);
 
@@ -46,7 +46,7 @@ class JsonRequestMiddlewareTest extends UnitTestCase
         /** @var MockInterface|HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
         $kernel->shouldReceive('handle')
-            ->withArgs(fn(Request $r) => $r->request->get('value') === 'updated')
+            ->withArgs(fn(Request $r): bool => $r->request->get('value') === 'updated')
             ->once()
             ->andReturn($response);
 
@@ -66,7 +66,7 @@ class JsonRequestMiddlewareTest extends UnitTestCase
         /** @var MockInterface|HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
         $kernel->shouldReceive('handle')
-            ->withArgs(fn(Request $r) => $r->request->get('status') === 'active')
+            ->withArgs(fn(Request $r): bool => $r->request->get('status') === 'active')
             ->once()
             ->andReturn($response);
 

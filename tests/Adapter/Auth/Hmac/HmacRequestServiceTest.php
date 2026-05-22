@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Auth\Hmac;
 
+use Mockery;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
@@ -45,9 +46,9 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withUri')->with($uri)->andReturnSelf();
         $request->shouldReceive('withHeader')->with('Authorization', 'HMAC-SHA256')->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('Credential', self::PUBLIC_KEY)->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('Signature', \Mockery::type('string'))->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Nonce', \Mockery::type('string'))->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Timestamp', \Mockery::any())->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('Signature', Mockery::type('string'))->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::any())->once()->andReturnSelf();
 
         $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
         $result = $service->signRequest($request);
@@ -78,10 +79,10 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withUri')->with($uri)->andReturnSelf();
         $request->shouldReceive('withHeader')->with('Authorization', 'HMAC-SHA256')->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('Credential', self::PUBLIC_KEY)->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('Signature', \Mockery::type('string'))->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('Signature', Mockery::type('string'))->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Content-SHA256', $expectedContentHash)->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Nonce', \Mockery::type('string'))->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Timestamp', \Mockery::any())->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::any())->once()->andReturnSelf();
 
         $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
         $result = $service->signRequest($request);

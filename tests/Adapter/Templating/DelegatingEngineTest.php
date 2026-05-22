@@ -10,7 +10,6 @@ use Fight\Common\Application\Templating\Exception\TemplatingException;
 use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Common\Application\Templating\TemplateHelper;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(DelegatingEngine::class)]

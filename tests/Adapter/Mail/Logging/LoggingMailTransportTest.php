@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Mail\Logging;
 
+use Mockery;
 use Fight\Common\Adapter\Mail\Logging\LoggingMailTransport;
 use Fight\Common\Application\Mail\Message\MailMessage;
 use Fight\Common\Application\Mail\Message\Priority;
@@ -75,7 +76,7 @@ class LoggingMailTransportTest extends UnitTestCase
         $logger->shouldReceive('log')->once()->with(
             LogLevel::ERROR,
             '[Email]: Outgoing Mail Message',
-            \Mockery::type('array')
+            Mockery::type('array')
         );
 
         $loggingTransport = new LoggingMailTransport($transport, $logger, LogLevel::ERROR);

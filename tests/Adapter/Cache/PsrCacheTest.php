@@ -34,7 +34,7 @@ class PsrCacheTest extends UnitTestCase
 
         $cache = new PsrCache($pool, $logger);
 
-        $result = $cache->read('key', fn () => 'loader-value', 300);
+        $result = $cache->read('key', fn (): string => 'loader-value', 300);
 
         self::assertSame('cached-value', $result);
     }
@@ -82,6 +82,6 @@ class PsrCacheTest extends UnitTestCase
 
         $this->expectException(CacheException::class);
 
-        $cache->read('key', fn () => null, 60);
+        $cache->read('key', fn (): null => null, 60);
     }
 }

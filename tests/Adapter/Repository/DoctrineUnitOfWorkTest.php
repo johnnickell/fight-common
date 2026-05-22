@@ -27,7 +27,7 @@ class DoctrineUnitOfWorkTest extends UnitTestCase
         $em->shouldReceive('wrapInTransaction')->once()->andReturnUsing(fn(callable $fn) => $fn());
 
         $uow = new DoctrineUnitOfWork($em);
-        $result = $uow->commitTransactional(fn() => 'done');
+        $result = $uow->commitTransactional(fn(): string => 'done');
 
         self::assertSame('done', $result);
     }

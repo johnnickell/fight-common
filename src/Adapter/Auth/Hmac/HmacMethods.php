@@ -30,6 +30,7 @@ trait HmacMethods
                 if ('' === $param) {
                     continue;
                 }
+
                 if ('=' === $param[0]) {
                     continue;
                 }
