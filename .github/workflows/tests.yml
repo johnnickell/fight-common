@@ -23,6 +23,7 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: bcmath, intl, json, pcntl, pdo, posix, sockets
           coverage: xdebug
+          ini-values: zend.assertions=1
 
       - name: Cache Composer packages
         uses: actions/cache@v4
