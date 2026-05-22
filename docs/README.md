@@ -9,9 +9,10 @@ usage examples.
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Symfony Wiring](#symfony-wiring)
-3. [Component Catalog](#component-catalog)
+1. [Quick Start](quickstart.md) — Bootstrap a Symfony project with fight-common in 15 minutes
+2. [Installation](#installation)
+3. [Symfony Wiring](#symfony-wiring)
+4. [Component Catalog](#component-catalog)
 
 ---
 

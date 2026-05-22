@@ -4,6 +4,8 @@ phpunit.xml
 /composer.lock
 /vendor
 /memory
+/site
+/.phpcs-cache
 /.claude
 /.idea
 /nbproject

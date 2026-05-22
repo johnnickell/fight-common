@@ -13,7 +13,7 @@ interface PasswordHasher
 {
     /**
      * Hashes a password
-     * 
+     *
      * @throws PasswordException When password hashing fails
      */
     public function hash(string $password): string;

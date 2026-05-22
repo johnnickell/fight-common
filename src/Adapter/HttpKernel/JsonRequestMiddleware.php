@@ -38,7 +38,8 @@ final readonly class JsonRequestMiddleware implements HttpKernelInterface, Termi
 
         $contentType = StringObject::create($request->headers->get('Content-Type', ''));
 
-        if (in_array($request->getMethod(), $stateChangeMethods, true) && $contentType->startsWith('application/json')) {
+        $isJsonRequest = $contentType->startsWith('application/json');
+        if (in_array($request->getMethod(), $stateChangeMethods, true) && $isJsonRequest) {
             $data = JsonObject::fromString($request->getContent())->toData();
             $request->request->replace(is_array($data) ? $data : []);
         }

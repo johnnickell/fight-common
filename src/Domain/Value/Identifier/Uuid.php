@@ -12,7 +12,7 @@ use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class Uuid
- * 
+ *
  * @link http://tools.ietf.org/html/rfc4122 RFC 4122
  */
 final readonly class Uuid extends ValueObject implements Comparable
@@ -47,8 +47,10 @@ final readonly class Uuid extends ValueObject implements Comparable
 
     public const string NIL = '00000000-0000-0000-0000-000000000000';
 
+    // phpcs:ignore Generic.Files.LineLength
     private const string UUID = '/\A([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{2})([a-f0-9]{2})-([a-f0-9]{12})\z/';
 
+    // phpcs:ignore Generic.Files.LineLength
     private const string UUID_HEX = '/\A([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{12})\z/';
 
     /**
@@ -81,10 +83,10 @@ final readonly class Uuid extends ValueObject implements Comparable
      *
      * This variation is not covered by RFC 4122, but it should provide
      * performance increases when using UUIDs as primary keys. The timestamp
-     * should cover most significant bits or least significant bits depending
+     * should cover the most significant bits or least significant bits depending
      * on how the database orders GUID values.
      *
-     * @param bool $msb Whether or not timestamp covers most significant bits
+     * @param boolean $msb Whether or not timestamp covers most significant bits
      */
     public static function comb(bool $msb = true): static
     {
@@ -111,12 +113,12 @@ final readonly class Uuid extends ValueObject implements Comparable
      * version. The current timestamp can be retrieved in the correct format
      * from the `Uuid::timestamp()` static method.
      *
+     * @param string|null  $node      The node ID or MAC address
+     * @param integer|null $clockSeq  The clock sequence as a 14-bit integer
+     * @param string|null  $timestamp The timestamp
+     *
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.5
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.6
-     *
-     * @param string|null $node      The node ID or MAC address
-     * @param int|null    $clockSeq  The clock sequence as a 14-bit integer
-     * @param string|null $timestamp The timestamp
      *
      * @throws DomainException When clockSeq is not 14-bit unsigned
      * @throws DomainException When the node is not 6 hex octets
@@ -263,9 +265,7 @@ final readonly class Uuid extends ValueObject implements Comparable
         $offset = 122192928000000000;
         $timeOfDay = gettimeofday();
 
-        $time = ($timeOfDay['sec'] * 10000000)
-            + ($timeOfDay['usec'] * 10)
-            + $offset;
+        $time = ($timeOfDay['sec'] * 10000000) + ($timeOfDay['usec'] * 10) + $offset;
         $hi = intval($time / 0xffffffff);
 
         $timestamp = [];
@@ -567,7 +567,7 @@ final readonly class Uuid extends ValueObject implements Comparable
     }
 
     /**
-     * Creates a UUID version 1
+     * Creates a UUID, version 1
      *
      * Since this object does not have access to system state or other
      * persistence, the node and clock sequence may be passed from another
@@ -580,13 +580,13 @@ final readonly class Uuid extends ValueObject implements Comparable
      * version. The current timestamp can be retrieved in the correct format
      * from the `Uuid::timestamp()` static method.
      *
+     * @param string|null  $node      The node ID or MAC address
+     * @param integer|null $clockSeq  The clock sequence as a 14-bit integer
+     * @param string|null  $timestamp The timestamp
+     *
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.5
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.6
      * @link http://tools.ietf.org/html/rfc4122#section-4.2.1
-     *
-     * @param string|null $node      The node ID or MAC address
-     * @param int|null    $clockSeq  The clock sequence as a 14-bit integer
-     * @param string|null $timestamp The timestamp
      *
      * @throws DomainException When clockSeq is not 14-bit unsigned
      * @throws DomainException When the node is not 6 hex octets
@@ -642,7 +642,7 @@ final readonly class Uuid extends ValueObject implements Comparable
     }
 
     /**
-     * Creates a UUID version 3
+     * Creates a UUID, version 3
      *
      * @throws DomainException When the namespace is not a valid UUID
      */
@@ -658,7 +658,7 @@ final readonly class Uuid extends ValueObject implements Comparable
     }
 
     /**
-     * Creates a UUID version 4
+     * Creates a UUID, version 4
      */
     private static function uuid4(): static
     {
@@ -668,7 +668,7 @@ final readonly class Uuid extends ValueObject implements Comparable
     }
 
     /**
-     * Creates a UUID version 5
+     * Creates a UUID, version 5
      *
      * @throws DomainException When the namespace is not a valid UUID
      */
