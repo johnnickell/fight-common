@@ -1,0 +1,68 @@
+site_name: fight-common
+site_description: A shared PHP library for FIGHT projects — Hexagonal Architecture, CQRS, and clean domain primitives.
+site_url: https://johnnickell.github.io/fight-common/
+repo_url: https://github.com/johnnickell/fight-common
+repo_name: johnnickell/fight-common
+edit_uri: edit/main/docs/
+docs_dir: docs
+copyright: Copyright &copy; 2026 John Nickell
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+
+nav:
+  - Home: README.md
+  - Quick Start: quickstart.md
+  - Components:
+    - Values: values.md
+    - Collections: collections.md
+    - Specifications: specifications.md
+    - Messaging (CQRS): messaging.md
+    - Validation: validation.md
+    - Repositories: repositories.md
+    - HTTP Client: http-client.md
+    - Mail: mail.md
+    - Cache: cache.md
+    - Files: files.md
+    - Templating: templating.md
+    - Routing: routing.md
+    - Auth: auth.md
+    - Sockets: sockets.md
+    - Serialization: serialization.md
+    - Dependency Injection: dependency-injection.md
+    - Utilities: utilities.md
+  - Maintenance:
+    - Contributing & Branching: contributing.md
