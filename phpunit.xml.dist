@@ -14,6 +14,7 @@
     </testsuites>
     <php>
         <env name="APP_ENV" value="test" force="true"/>
+        <ini name="zend.assertions" value="1"/>
     </php>
     <source>
         <include>
