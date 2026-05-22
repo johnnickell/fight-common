@@ -29,7 +29,6 @@ final class GeneratorIterator implements Iterator
      * @codeCoverageIgnore coverage bug
      *
      * @throws DomainException When function is not a generator
-     * @throws ReflectionException
      */
     public function __construct(callable $function, private readonly array $args = [])
     {

@@ -181,9 +181,11 @@ class PhpEngineTest extends UnitTestCase
     {
         $engine = new PhpEngine([$this->templateDir]);
 
+        ob_start();
         $engine->startBlock('content');
         echo 'block content';
         $engine->endBlock();
+        ob_end_clean();
 
         self::assertTrue($engine->hasBlock('content'));
         self::assertSame('block content', $engine->getContent('content'));
@@ -286,6 +288,7 @@ class PhpEngineTest extends UnitTestCase
     {
         $engine = new PhpEngine([$this->templateDir]);
 
+        ob_start();
         $engine->startBlock('content');
         echo 'first';
         $engine->endBlock();
@@ -293,6 +296,7 @@ class PhpEngineTest extends UnitTestCase
         $engine->startBlock('content');
         echo 'second';
         $engine->endBlock();
+        ob_end_clean();
 
         self::assertSame('first', $engine->getContent('content'));
     }

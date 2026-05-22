@@ -78,7 +78,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
         $headers = [];
 
         foreach ($envelope->all() as $class => $stamps) {
-            $name = self::STAMP_HEADER_PREFIX . ClassName::short($class);
+            $name = self::STAMP_HEADER_PREFIX.ClassName::short($class);
             $headers[$name] = addslashes(serialize($stamps));
         }
 
@@ -112,7 +112,8 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
     }
 
     /**
-     * @throws MessageDecodingFailedException|ErrorException
+     * @throws MessageDecodingFailedException
+     * @throws ErrorException
      */
     private function safelyUnserialize(string $contents): mixed
     {
@@ -120,7 +121,7 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
             throw new MessageDecodingFailedException('Could not decode an empty message using PHP serialization.');
         }
 
-        $prevUnserializeHandler = ini_set('unserialize_callback_func', self::class . '::handleUnserializeCallback');
+        $prevUnserializeHandler = ini_set('unserialize_callback_func', self::class.'::handleUnserializeCallback');
         $prevErrorHandler = set_error_handler(static function (
             int $type,
             string $msg,
@@ -142,7 +143,11 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
                 throw $throwable;
             }
 
-            throw new MessageDecodingFailedException('Could not decode Envelope: ' . $throwable->getMessage(), 0, $throwable);
+            throw new MessageDecodingFailedException(
+                'Could not decode Envelope: '.$throwable->getMessage(),
+                0,
+                $throwable
+            );
         } finally {
             restore_error_handler();
             ini_set('unserialize_callback_func', $prevUnserializeHandler);

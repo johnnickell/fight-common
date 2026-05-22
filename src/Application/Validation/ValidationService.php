@@ -30,7 +30,6 @@ final readonly class ValidationService
      * Performs validation on input with the given rules
      *
      * @throws ValidationException When validation fails
-     * @throws DomainException When input or rules are formatted incorrectly
      */
     public function validate(array $input, array $rules): ApplicationData
     {
