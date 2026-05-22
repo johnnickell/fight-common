@@ -35,7 +35,7 @@ class MessageDataTypeTest extends UnitTestCase
     {
         $column = ['name' => 'payload'];
         $this->platform->shouldReceive('getJsonTypeDeclarationSQL')
-            ->withArgs(fn(array $c) => $c['length'] === 4294967295)
+            ->withArgs(fn(array $c): bool => $c['length'] === 4294967295)
             ->andReturn('LONGBLOB');
 
         $result = $this->type->getSQLDeclaration($column, $this->platform);
@@ -47,7 +47,7 @@ class MessageDataTypeTest extends UnitTestCase
     {
         $column = ['name' => 'payload', 'length' => 65535];
         $this->platform->shouldReceive('getJsonTypeDeclarationSQL')
-            ->withArgs(fn(array $c) => $c['length'] === 65535)
+            ->withArgs(fn(array $c): bool => $c['length'] === 65535)
             ->andReturn('MEDIUMBLOB');
 
         $result = $this->type->getSQLDeclaration($column, $this->platform);

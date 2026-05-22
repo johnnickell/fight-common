@@ -806,7 +806,7 @@ readonly class Uri extends ValueObject implements Comparable
     {
         return preg_replace_callback(
             static::encodingRegex($excluded),
-            fn(array $matches): string => rawurlencode((string) $matches[0]),
+            fn(array $matches): string => rawurlencode($matches[0]),
             $component
         );
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Templating;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Fight\Common\Adapter\Templating\PhpEngine;
 use Fight\Common\Application\Templating\Exception\DuplicateHelperException;
 use Fight\Common\Application\Templating\Exception\TemplateNotFoundException;
@@ -26,11 +28,12 @@ class PhpEngineTest extends UnitTestCase
 
     protected function tearDown(): void
     {
-        $dirIterator = new \RecursiveDirectoryIterator($this->templateDir, \RecursiveDirectoryIterator::SKIP_DOTS);
-        $files = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::CHILD_FIRST);
+        $dirIterator = new RecursiveDirectoryIterator($this->templateDir, RecursiveDirectoryIterator::SKIP_DOTS);
+        $files = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($files as $file) {
             $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
         }
+
         rmdir($this->templateDir);
         parent::tearDown();
     }

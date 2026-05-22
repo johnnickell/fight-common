@@ -22,9 +22,7 @@ class RoutingCommandBusTest extends UnitTestCase
         $handler = $this->mock(CommandHandler::class);
         $handler->shouldReceive('handle')
             ->once()
-            ->withArgs(function (CommandMessage $msg): bool {
-                return $msg->payload() instanceof SampleRoutingCommand;
-            });
+            ->withArgs(fn(CommandMessage $msg): bool => $msg->payload() instanceof SampleRoutingCommand);
 
         /** @var MockInterface|CommandRouter $router */
         $router = $this->mock(CommandRouter::class);
