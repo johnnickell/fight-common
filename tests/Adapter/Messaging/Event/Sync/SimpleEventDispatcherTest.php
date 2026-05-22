@@ -310,6 +310,7 @@ class SimpleEventDispatcherTest extends UnitTestCase
         $this->dispatcher->getHandlers('my_event');
 
         $this->dispatcher->addHandler('my_event', $handler2, 5);
+
         $handlers = $this->dispatcher->getHandlers('my_event');
 
         self::assertCount(2, $handlers);

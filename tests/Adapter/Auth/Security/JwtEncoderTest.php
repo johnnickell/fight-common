@@ -11,7 +11,6 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Throwable;
 
 #[CoversClass(JwtEncoder::class)]
 class JwtEncoderTest extends UnitTestCase

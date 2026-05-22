@@ -18,6 +18,7 @@ use Psr\Http\Message\UriInterface;
 class HmacAuthenticatorTest extends UnitTestCase
 {
     private const string PUBLIC_KEY = 'test-public-key';
+
     private const array REQUIRED_HEADERS = ['Authorization', 'Credential', 'Signature', 'X-Timestamp', 'X-Nonce'];
 
     private string $privateKeyHex;
@@ -37,10 +38,10 @@ class HmacAuthenticatorTest extends UnitTestCase
         array $headers,
         int $timestamp
     ): string {
-        $signer = new class(hex2bin($privateKeyHex)) {
+        $signer = new readonly class(hex2bin($privateKeyHex)) {
             use HmacMethods;
 
-            public function __construct(private readonly string $secret) {}
+            public function __construct(private string $secret) {}
 
             protected function getSecret(): string
             {
@@ -102,6 +103,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -130,6 +132,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -166,7 +169,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         $request->shouldReceive('getServerParams')->andReturn([]);
         // Return true for all headers except Signature so the loop throws exactly there
         $request->shouldReceive('hasHeader')->andReturnUsing(
-            fn(string $header) => $header !== 'Signature'
+            fn(string $header): bool => $header !== 'Signature'
         );
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
@@ -184,6 +187,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
         $request->shouldReceive('getHeaderLine')->with('Credential')->andReturn('wrong-credential');
@@ -207,6 +211,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -232,6 +237,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(true);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -263,6 +269,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         // X-Content-SHA256 is present and correct so body validation passes,
         // and it is included in the canonical request (lines 92–96)
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(true);
@@ -290,6 +297,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('getServerParams')->andReturn([]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $expiredTimestamp);
 

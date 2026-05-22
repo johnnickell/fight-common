@@ -7,7 +7,6 @@ namespace Fight\Test\Common\Adapter\HttpClient\Guzzle;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzlePromise;
 use Fight\Common\Application\HttpClient\Exception\TransferException;
-use Fight\Common\Application\HttpClient\Message\Promise;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Promise\FulfilledPromise;

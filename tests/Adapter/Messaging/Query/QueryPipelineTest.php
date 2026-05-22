@@ -51,6 +51,7 @@ class QueryPipelineTest extends UnitTestCase
 
         $pipeline = new QueryPipeline($bus);
         $pipeline->dispatch(QueryMessage::create(new SamplePipelineQuery()));
+
         $second = $pipeline->dispatch(QueryMessage::create(new SamplePipelineQuery()));
 
         self::assertSame('result', $second);
@@ -64,9 +65,7 @@ class QueryPipelineTest extends UnitTestCase
         $bus = $this->mock(QueryBus::class);
         $bus->shouldReceive('fetch')
             ->once()
-            ->withArgs(function (Query $q): bool {
-                return $q instanceof SamplePipelineQuery;
-            })
+            ->withArgs(fn(Query $q): bool => $q instanceof SamplePipelineQuery)
             ->andReturn($result);
 
         $pipeline = new QueryPipeline($bus);
@@ -116,7 +115,7 @@ class QueryPipelineTest extends UnitTestCase
 
         $makeFilter = function (string $name) use (&$calls): QueryFilter {
             return new class ($name, $calls) implements QueryFilter {
-                public function __construct(private string $name, private array &$calls) {}
+                public function __construct(private readonly string $name, private array &$calls) {}
 
                 public function process(QueryMessage $queryMessage, callable $next): void
                 {

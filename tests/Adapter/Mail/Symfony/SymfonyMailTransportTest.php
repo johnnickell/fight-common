@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Mail\Symfony;
 
-use DateTime;
-use DateTimeZone;
+use Mockery;
 use Fight\Common\Adapter\Mail\Symfony\SymfonyAttachment;
 use Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport;
 use Fight\Common\Application\Mail\Exception\MailException;
@@ -40,7 +39,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -54,7 +53,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -68,7 +67,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -82,7 +81,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -96,7 +95,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -110,7 +109,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -124,7 +123,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer, [
             'to'  => ['override@example.com'],
@@ -142,7 +141,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer, [
             'to'  => 'a@test.com,b@test.com',
@@ -160,7 +159,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer, [
             'to'  => ['a@test.com'],
@@ -199,7 +198,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);
@@ -217,7 +216,7 @@ class SymfonyMailTransportTest extends UnitTestCase
 
         /** @var MockInterface|MailerInterface $mailer */
         $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(\Mockery::type(Email::class));
+        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
 
         $transport = new SymfonyMailTransport($mailer);
         $transport->send($message);

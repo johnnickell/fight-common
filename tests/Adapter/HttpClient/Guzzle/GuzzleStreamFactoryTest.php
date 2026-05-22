@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\HttpClient\Guzzle;
 
+use stdClass;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleStreamFactory;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -39,6 +40,6 @@ class GuzzleStreamFactoryTest extends UnitTestCase
     public function test_that_create_stream_throws_domain_exception_for_invalid_body(): void
     {
         $this->expectException(DomainException::class);
-        $this->factory->createStream(new \stdClass());
+        $this->factory->createStream(new stdClass());
     }
 }
