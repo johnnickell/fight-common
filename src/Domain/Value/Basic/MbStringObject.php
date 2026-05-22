@@ -1088,8 +1088,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             $first = mb_substr((string) $part, 0, 1, static::ENCODING);
             if ($len > 1) {
                 $remaining = mb_substr((string) $part, 1, $len - 1, static::ENCODING);
-                $output[] = mb_strtoupper($first, static::ENCODING)
-                    .mb_strtolower($remaining, static::ENCODING);
+                $output[] = mb_strtoupper($first, static::ENCODING).mb_strtolower($remaining, static::ENCODING);
             } else {
                 $output[] = mb_strtoupper($first, static::ENCODING);
             }

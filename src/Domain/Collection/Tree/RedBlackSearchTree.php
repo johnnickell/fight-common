@@ -568,9 +568,7 @@ final class RedBlackSearchTree implements BinarySearchTree
         }
 
         if ($comp > 0) {
-            return 1
-                + $this->nodeSize($node->left())
-                + $this->nodeRank($key, $node->right());
+            return 1 + $this->nodeSize($node->left()) + $this->nodeRank($key, $node->right());
         }
 
         return $this->nodeSize($node->left());
@@ -608,9 +606,7 @@ final class RedBlackSearchTree implements BinarySearchTree
 
         $node->setColor(RedBlackNode::RED);
         $link->setSize($node->size());
-        $nodeSize = 1
-            + $this->nodeSize($node->left())
-            + $this->nodeSize($node->right());
+        $nodeSize = 1 + $this->nodeSize($node->left()) + $this->nodeSize($node->right());
         $node->setSize($nodeSize);
 
         return $link;
@@ -630,9 +626,7 @@ final class RedBlackSearchTree implements BinarySearchTree
 
         $node->setColor(RedBlackNode::RED);
         $link->setSize($node->size());
-        $nodeSize = 1
-            + $this->nodeSize($node->left())
-            + $this->nodeSize($node->right());
+        $nodeSize = 1 + $this->nodeSize($node->left()) + $this->nodeSize($node->right());
         $node->setSize($nodeSize);
 
         return $link;
@@ -707,9 +701,7 @@ final class RedBlackSearchTree implements BinarySearchTree
             $this->flipColors($node);
         }
 
-        $nodeSize = 1
-            + $this->nodeSize($node->left())
-            + $this->nodeSize($node->right());
+        $nodeSize = 1 + $this->nodeSize($node->left()) + $this->nodeSize($node->right());
         $node->setSize($nodeSize);
 
         return $node;
@@ -741,9 +733,7 @@ final class RedBlackSearchTree implements BinarySearchTree
             $this->flipColors($node);
         }
 
-        $nodeSize = 1
-            + $this->nodeSize($node->left())
-            + $this->nodeSize($node->right());
+        $nodeSize = 1 + $this->nodeSize($node->left()) + $this->nodeSize($node->right());
         $node->setSize($nodeSize);
 
         return $node;

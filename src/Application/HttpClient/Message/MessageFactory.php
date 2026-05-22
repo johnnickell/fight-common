@@ -16,8 +16,6 @@ interface MessageFactory
 {
     /**
      * Creates a RequestInterface instance
-     *
-     * @param string|StreamInterface|null $body The request body
      */
     public function createRequest(
         string $method,
@@ -29,8 +27,6 @@ interface MessageFactory
 
     /**
      * Creates a ResponseInterface instance
-     *
-     * @param string|StreamInterface|null $body The response body
      */
     public function createResponse(
         int $status = 200,

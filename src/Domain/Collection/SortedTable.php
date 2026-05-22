@@ -366,7 +366,10 @@ final class SortedTable implements OrderedTable
             $callback = (fn($value) => $value);
         }
 
-        return $this->reduce(fn($total, $value, $key): float|int|array => $total + call_user_func($callback, $value, $key), 0);
+        return $this->reduce(
+            fn($total, $value, $key): float|int|array => $total + call_user_func($callback, $value, $key),
+            0
+        );
     }
 
     /**

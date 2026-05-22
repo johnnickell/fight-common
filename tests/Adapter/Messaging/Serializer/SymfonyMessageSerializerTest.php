@@ -242,6 +242,6 @@ class UnserializeErrorHelper
 {
     public function __wakeup(): void
     {
-        trigger_error('test error from helper', E_USER_WARNING);
+        @trigger_error('test error from helper', E_USER_WARNING);
     }
 }

@@ -242,7 +242,10 @@ final class LinkedDeque implements Deque
             $callback = (fn($item) => $item);
         }
 
-        return $this->reduce(fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index), 0);
+        return $this->reduce(
+            fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index),
+            0
+        );
     }
 
     /**
