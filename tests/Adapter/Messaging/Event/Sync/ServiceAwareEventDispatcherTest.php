@@ -171,7 +171,7 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
         $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
         $this->dispatcher->getHandlers($eventType);
 
-        $this->dispatcher->removeHandler($eventType, $subscriber->onEvent(...));
+        $this->dispatcher->removeHandler($eventType, [$subscriber, 'onEvent']);
 
         self::assertFalse($this->dispatcher->hasHandlers($eventType));
     }
