@@ -13,7 +13,7 @@ class ValidationException extends BaseException
 {
     /**
      * Creates instance from validation errors
-     * 
+     *
      * @param array<string, string[]> $errors
      */
     public static function fromErrors(array $errors): static

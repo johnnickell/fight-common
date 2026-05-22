@@ -15,6 +15,7 @@ interface FileStorage
     /**
      * Adds a file to storage
      *
+     * @param string $path The file path
      * @param string|resource $contents The file contents
      *
      * @throws FileStorageException When error occurs
