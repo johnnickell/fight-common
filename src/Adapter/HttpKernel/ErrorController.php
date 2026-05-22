@@ -24,9 +24,11 @@ class ErrorController
             return JSendResponse::fail($exception->getErrors());
         }
 
-        $statusCode = $exception instanceof HttpExceptionInterface
-            ? $exception->getStatusCode()
-            : Response::HTTP_INTERNAL_SERVER_ERROR;
+        if ($exception instanceof HttpExceptionInterface) {
+            $statusCode = $exception->getStatusCode();
+        } else {
+            $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
+        }
 
         return JSendResponse::error($exception->getMessage(), $statusCode);
     }

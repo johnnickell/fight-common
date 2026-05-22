@@ -5,6 +5,7 @@ phpunit.xml
 /vendor
 /memory
 /site
+/.phpcs-cache
 /.claude
 /.idea
 /nbproject
