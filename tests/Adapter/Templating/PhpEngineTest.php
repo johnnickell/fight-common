@@ -76,16 +76,73 @@ class PhpEngineTest extends UnitTestCase
         self::assertSame('cached', $second);
     }
 
-    public function test_that_extends_sets_parent_for_current_template(): void
+    public function test_that_template_inheritance_renders_parent_structure(): void
     {
-        $this->createTemplate('child.php', 'Child content');
+        $this->createTemplate('layout.php', '<html><?php $this->outputContent(\'content\') ?></html>');
+        $this->createTemplate('child.php', '<?php $this->extends(\'layout.php\') ?><?php $this->startBlock(\'content\') ?>Hello<?php $this->endBlock() ?>');
         $engine = new PhpEngine([$this->templateDir]);
 
-        $engine->render('child.php');
+        $result = $engine->render('child.php');
 
-        $engine->extends('parent.php');
+        self::assertSame('<html>Hello</html>', $result);
+    }
 
-        self::assertTrue(true);
+    public function test_that_template_inheritance_discards_child_body(): void
+    {
+        $this->createTemplate('layout.php', '<<?php $this->outputContent(\'body\') ?>>');
+        $this->createTemplate('child.php', '<?php $this->extends(\'layout.php\') ?>ignored<?php $this->startBlock(\'body\') ?>inner<?php $this->endBlock() ?>');
+        $engine = new PhpEngine([$this->templateDir]);
+
+        $result = $engine->render('child.php');
+
+        self::assertSame('<inner>', $result);
+    }
+
+    public function test_that_output_buffer_is_cleaned_on_exception_during_render(): void
+    {
+        $this->createTemplate('throws.php', '<?php throw new \RuntimeException(\'template error\') ?>');
+        $engine = new PhpEngine([$this->templateDir]);
+
+        $levelBefore = ob_get_level();
+
+        try {
+            $engine->render('throws.php');
+        } catch (\RuntimeException) {
+        }
+
+        self::assertSame($levelBefore, ob_get_level());
+    }
+
+    public function test_that_path_traversal_via_dot_dot_is_rejected(): void
+    {
+        $outsideFile = sys_get_temp_dir() . '/php_engine_outside_' . bin2hex(random_bytes(8)) . '.php';
+        file_put_contents($outsideFile, 'leaked');
+        $traversal = '../' . basename($outsideFile);
+
+        $engine = new PhpEngine([$this->templateDir]);
+
+        try {
+            $this->expectException(TemplateNotFoundException::class);
+
+            $engine->render($traversal);
+        } finally {
+            unlink($outsideFile);
+        }
+    }
+
+    public function test_that_exists_returns_false_for_path_traversal(): void
+    {
+        $outsideFile = sys_get_temp_dir() . '/php_engine_outside2_' . bin2hex(random_bytes(8)) . '.php';
+        file_put_contents($outsideFile, 'leaked');
+        $traversal = '../' . basename($outsideFile);
+
+        $engine = new PhpEngine([$this->templateDir]);
+
+        try {
+            self::assertFalse($engine->exists($traversal));
+        } finally {
+            unlink($outsideFile);
+        }
     }
 
     public function test_that_escape_html_encodes_special_chars(): void
