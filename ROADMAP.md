@@ -1,13 +1,16 @@
 # Roadmap
 
-## v1.1 — PhpEngine Hardening
+## v1.1 — PhpEngine Hardening ✅
 
-`src/Adapter/Templating/PhpEngine.php` has several correctness and security issues that should be addressed before further feature work:
+`src/Adapter/Templating/PhpEngine.php` had several correctness, security, and design issues that have been addressed:
 
-- **Output buffer leak on exception** — `require $evalFile` is not wrapped in try/catch; if a template throws, the output buffer is never closed, leaking buffered content into the next request
-- **`ob_get_clean()` null-check missing** — returns `false` if buffering is not active; that `false` is then echoed raw
-- **No path traversal protection** — template paths are normalized but never validated against an allowed base directory via `realpath()`
-- **Hash used as cache key** — `hash('sha256', $file)` is used instead of the actual path, adding indirection with no benefit
+- **Output buffer leak on exception** — `evaluate()` now wraps `ob_start()/require/ob_get_clean()` in try/finally so the buffer is always cleaned up even when the template throws
+- **`ob_get_clean()` null-check** — `endBlock()` now guards against `ob_get_clean()` returning `false` (throws `TemplatingException`)
+- **Path traversal protection** — `getTemplatePath()` validates resolved paths against allowed base directories via `realpath()`
+- **Hash cache key** — replaced `hash('sha256', $file)` with the direct file path as the cache key
+- **Parent-template inheritance** — the dead `@codeCoverageIgnore`d code in `render()` was properly implemented: `extends()` called during template evaluation now triggers parent rendering, enabling layout inheritance via child blocks
+- **`$template` mutation bug** — `getTemplatePath()` no longer mutates the `$template` parameter inside the `foreach` loop
+- **`TemplatingException` coverage** — added dedicated test with `#[CoversClass]` attribution
 
 ---
 

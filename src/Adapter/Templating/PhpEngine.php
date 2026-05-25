@@ -92,18 +92,17 @@ final class PhpEngine implements TemplateEngine
     public function render(string $template, array $data = []): string
     {
         $file = $this->loadTemplate($template);
-        $key = hash('sha256', $file);
+        $key = $file;
         $this->current = $key;
         $this->parents[$key] = null;
 
-        // @codeCoverageIgnoreStart
+        $output = $this->evaluate($file, $data);
+
         if (is_string($this->parents[$key])) {
             return $this->render($this->parents[$key], $data);
         }
 
-        // @codeCoverageIgnoreEnd
-
-        return $this->evaluate($file, $data);
+        return $output;
     }
 
     /**
@@ -141,6 +140,10 @@ final class PhpEngine implements TemplateEngine
         $name = array_pop($this->openBlocks);
 
         $content = ob_get_clean();
+
+        if ($content === false) {
+            throw new TemplatingException('Output buffering is not active');
+        }
 
         if (empty($this->blocks[$name])) {
             $this->blocks[$name] = $content;
@@ -182,11 +185,16 @@ final class PhpEngine implements TemplateEngine
      */
     public function exists(string $template): bool
     {
+        $resolved = str_replace(':', DIRECTORY_SEPARATOR, $template);
+
         foreach ($this->paths as $path) {
-            $template = str_replace(':', DIRECTORY_SEPARATOR, $template);
-            $file = $path.DIRECTORY_SEPARATOR.$template;
+            $file = $path.DIRECTORY_SEPARATOR.$resolved;
             if (is_file($file) && is_readable($file)) {
-                return true;
+                $real = realpath($file);
+                $realPath = realpath($path);
+                if ($real !== false && $realPath !== false && str_starts_with($real, $realPath.DIRECTORY_SEPARATOR)) {
+                    return true;
+                }
             }
         }
 
@@ -268,10 +276,18 @@ final class PhpEngine implements TemplateEngine
         $evalData = null;
 
         ob_start();
-        require $evalFile;
-        $evalFile = null;
+        try {
+            require $evalFile;
+        } finally {
+            $evalFile = null;
+            $content = ob_get_clean();
+        }
 
-        return ob_get_clean();
+        if ($content === false) {
+            throw new TemplatingException('Output buffering is not active');
+        }
+
+        return $content;
     }
 
     /**
@@ -296,11 +312,17 @@ final class PhpEngine implements TemplateEngine
      */
     private function getTemplatePath(string $template): string
     {
+        $resolved = str_replace(':', DIRECTORY_SEPARATOR, $template);
+
         foreach ($this->paths as $path) {
-            $template = str_replace(':', DIRECTORY_SEPARATOR, $template);
-            $file = $path.DIRECTORY_SEPARATOR.$template;
+            $file = $path.DIRECTORY_SEPARATOR.$resolved;
             if (is_file($file) && is_readable($file)) {
-                return $file;
+                $real = realpath($file);
+                $realPath = realpath($path);
+                if ($real === false || $realPath === false || !str_starts_with($real, $realPath.DIRECTORY_SEPARATOR)) {
+                    throw TemplateNotFoundException::fromName($template);
+                }
+                return $real;
             }
         }
 
