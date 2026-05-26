@@ -43,6 +43,15 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php -r "echo PHP_VERSION;"
 ```
 
+### Git Flow
+
+This repo follows [git-flow](https://nvie.com/posts/a-successful-git-branching-model/):
+
+- **`main`** — production-ready code, merges from `develop` only
+- **`develop`** — integration branch for completed features
+- **`feature/<name>`** — branched from `develop`, merged back via `--no-ff`
+- Always create a feature branch before starting work — never commit directly to `develop`
+
 Coverage reports are written to `var/reports/coverage/clover.xml` (XML) and `var/reports/coverage/` (HTML) automatically when the full suite runs with Xdebug loaded. Parse clover.xml with Python to check coverage gaps:
 
 ```bash
