@@ -3,7 +3,7 @@
 [![Tests](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml)
 [![PHP 8.5+](https://img.shields.io/badge/php-8.5%2B-8892BF.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-brightgreen.svg)](CHANGELOG.md)
 
 A shared PHP library for $FIGHT projects implementing Hexagonal (Ports & Adapters) / Clean Architecture. Provides foundational building blocks including value objects, typed collections, CQRS messaging, a composable validation system, and infrastructure adapters.
 
@@ -24,6 +24,7 @@ Optional adapters require additional packages — install only what you need:
 
 ```bash
 composer require doctrine/orm           # Doctrine data types and unit of work
+composer require doctrine/dbal          # Database health check and nonce replay prevention
 composer require symfony/http-kernel    # HTTP middleware and JSend response
 composer require lcobucci/jwt           # JWT encoder and decoder
 composer require guzzlehttp/guzzle      # HTTP client adapter
@@ -87,6 +88,12 @@ $service->validate([
 
 **CQRS Buses** — `CommandBus` and `QueryBus` with pipeline middleware support.
 
+**Observability** — application-layer ports for health checks, metrics, and audit logging:
+
+- `HealthAggregator` / `HealthCheck` — compose N checks into a `HealthReport` (overall status, per-check results)
+- `MetricsCollector` — `increment`, `gauge`, `histogram` with tag support; bus middleware auto-instruments handlers
+- `AuditLog` / `AuditRepository` — structured business-fact records (actor, action, timestamp, context); queryable by actor, action, or time range
+
 **Serializers** — `JsonSerializer` and `PhpSerializer` for message serialization.
 
 **Container** — PSR-11 compatible service container with singleton and factory registration.
@@ -99,6 +106,15 @@ $service->validate([
 | `DoctrineUnitOfWork` | `doctrine/orm` |
 | `SimpleEventDispatcher`, `ServiceAwareEventDispatcher` | — |
 | `RoutingCommandBus`, `RoutingQueryBus` | — |
+| `MetricsCommandFilter`, `MetricsQueryFilter` | — |
+| `HealthReporter`, `DatabaseHealthCheck` | `doctrine/dbal` |
+| `HttpEndpointHealthCheck` | any `HttpClient` adapter |
+| `NullMetricsCollector`, `NullAuditLog` | — |
+| `StatsDMetricsCollector` | `ext-sockets` |
+| `LoggingAuditLog` | any PSR-3 logger |
+| `HmacAuthenticator`, `HmacRequestService`, `HmacWebhookDispatcher` | — |
+| `InMemoryNonceRepository` | — |
+| `DoctrineNonceRepository` | `doctrine/dbal` |
 | `PhpPasswordHasher`, `PhpPasswordValidator` | — |
 | `JwtEncoder`, `JwtDecoder` | `lcobucci/jwt` |
 | `JsonRequestMiddleware`, `JSendResponse` | `symfony/http-foundation` |
