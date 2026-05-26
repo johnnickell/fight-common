@@ -13,19 +13,19 @@ use Fight\Common\Application\Observability\MetricsCollector;
  * Sends metrics over UDP using the StatsD/DogStatsD wire protocol.
  * Requires ext-sockets.
  */
-final class StatsDMetricsCollector implements MetricsCollector
+final readonly class StatsDMetricsCollector implements MetricsCollector
 {
-    private readonly Closure $sender;
+    private Closure $sender;
 
     /**
      * Constructs StatsDMetricsCollector
      *
-     * @param Closure|null $sender Optional injectable sender for testing; defaults to UDP socket
+     * $sender is optional and injectable for testing; defaults to a UDP socket sender
      */
     public function __construct(
-        private readonly string $host,
-        private readonly int $port = 8125,
-        private readonly string $prefix = '',
+        private string $host,
+        private int $port = 8125,
+        private string $prefix = '',
         ?Closure $sender = null
     ) {
         $host = $this->host;
@@ -72,15 +72,16 @@ final class StatsDMetricsCollector implements MetricsCollector
      */
     private function format(string $metric, string $value, string $type, array $tags): string
     {
-        $name = $this->prefix !== '' ? $this->prefix . '.' . $metric : $metric;
+        $name = $this->prefix !== '' ? $this->prefix.'.'.$metric : $metric;
         $line = sprintf('%s:%s|%s', $name, $value, $type);
 
         if (!empty($tags)) {
             $tagParts = [];
             foreach ($tags as $key => $val) {
-                $tagParts[] = $key . ':' . $val;
+                $tagParts[] = $key.':'.$val;
             }
-            $line .= '|#' . implode(',', $tagParts);
+
+            $line .= '|#'.implode(',', $tagParts);
         }
 
         return $line;

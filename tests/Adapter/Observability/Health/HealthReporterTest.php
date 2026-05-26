@@ -27,11 +27,13 @@ class HealthReporterTest extends UnitTestCase
     {
         $healthyCheck = new class implements HealthCheck {
             public function name(): string { return 'db'; }
+
             public function check(): HealthResult { return new HealthResult('db', HealthStatus::healthy()); }
         };
 
         $degradedCheck = new class implements HealthCheck {
             public function name(): string { return 'queue'; }
+
             public function check(): HealthResult { return new HealthResult('queue', HealthStatus::degraded()); }
         };
 
@@ -49,6 +51,7 @@ class HealthReporterTest extends UnitTestCase
     {
         $unhealthyCheck = new class implements HealthCheck {
             public function name(): string { return 'api'; }
+
             public function check(): HealthResult { return new HealthResult('api', HealthStatus::unhealthy(), 'down'); }
         };
 

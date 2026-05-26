@@ -12,7 +12,7 @@ use Throwable;
 /**
  * Class MetricsQueryFilter
  */
-final class MetricsQueryFilter implements QueryFilter
+final readonly class MetricsQueryFilter implements QueryFilter
 {
     /**
      * Constructs MetricsQueryFilter
@@ -35,11 +35,11 @@ final class MetricsQueryFilter implements QueryFilter
             $elapsed = (hrtime(true) - $start) / 1e6;
             $this->metrics->increment('query.executed', $tags);
             $this->metrics->histogram('query.latency_ms', $elapsed, $tags);
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('query.failed', $tags + ['exception' => $e::class]);
+            $this->metrics->increment('query.failed', $tags + ['exception' => $throwable::class]);
             $this->metrics->histogram('query.latency_ms', $elapsed, $tags);
-            throw $e;
+            throw $throwable;
         }
     }
 }

@@ -14,7 +14,7 @@ use Throwable;
 /**
  * Class HttpEndpointHealthCheck
  */
-final class HttpEndpointHealthCheck implements HealthCheck
+final readonly class HttpEndpointHealthCheck implements HealthCheck
 {
     /**
      * Constructs HttpEndpointHealthCheck
@@ -61,11 +61,11 @@ final class HttpEndpointHealthCheck implements HealthCheck
                 HealthStatus::unhealthy(),
                 sprintf('HTTP %d', $statusCode)
             );
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             return new HealthResult(
                 $this->checkName,
                 HealthStatus::unhealthy(),
-                $e->getMessage()
+                $throwable->getMessage()
             );
         }
     }

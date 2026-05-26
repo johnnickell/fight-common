@@ -18,9 +18,9 @@ use Fight\Common\Domain\Auth\Nonce;
  * Persists consumed nonces to a `hmac_nonces` table.
  * Schema: nonce VARCHAR(64) PRIMARY KEY, expires_at DATETIME NOT NULL
  */
-final class DoctrineNonceRepository implements NonceRepository
+final readonly class DoctrineNonceRepository implements NonceRepository
 {
-    private const TABLE = 'hmac_nonces';
+    private const string TABLE = 'hmac_nonces';
 
     /**
      * Constructs DoctrineNonceRepository
@@ -50,8 +50,8 @@ final class DoctrineNonceRepository implements NonceRepository
     public function purgeExpired(): void
     {
         $this->connection->executeStatement(
-            'DELETE FROM ' . self::TABLE . ' WHERE expires_at < :now',
-            ['now' => (new DateTimeImmutable())->format('Y-m-d H:i:s')]
+            'DELETE FROM '.self::TABLE.' WHERE expires_at < :now',
+            ['now' => new DateTimeImmutable()->format('Y-m-d H:i:s')]
         );
     }
 }

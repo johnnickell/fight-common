@@ -13,7 +13,7 @@ use Throwable;
 /**
  * Class DatabaseHealthCheck
  */
-final class DatabaseHealthCheck implements HealthCheck
+final readonly class DatabaseHealthCheck implements HealthCheck
 {
     /**
      * Constructs DatabaseHealthCheck
@@ -47,11 +47,11 @@ final class DatabaseHealthCheck implements HealthCheck
                 HealthStatus::healthy(),
                 sprintf('ping %sms', $elapsed)
             );
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             return new HealthResult(
                 $this->checkName,
                 HealthStatus::unhealthy(),
-                $e->getMessage()
+                $throwable->getMessage()
             );
         }
     }

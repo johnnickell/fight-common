@@ -12,7 +12,7 @@ use JsonSerializable;
  */
 final readonly class AiOperation implements JsonSerializable
 {
-    private const KNOWN_ACTIONS = [
+    private const array KNOWN_ACTIONS = [
         'health_check',
         'clear_cache',
         'run_migration',

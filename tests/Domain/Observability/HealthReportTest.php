@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Observability;
 
+use DateTimeImmutable;
 use Fight\Common\Domain\Observability\HealthReport;
 use Fight\Common\Domain\Observability\HealthResult;
 use Fight\Common\Domain\Observability\HealthStatus;
@@ -65,7 +66,7 @@ class HealthReportTest extends UnitTestCase
     {
         $overall = HealthStatus::healthy();
         $results = [new HealthResult('db', HealthStatus::healthy())];
-        $timestamp = new \DateTimeImmutable('2026-01-01T00:00:00Z');
+        $timestamp = new DateTimeImmutable('2026-01-01T00:00:00Z');
 
         $report = new HealthReport($overall, $results, $timestamp);
 

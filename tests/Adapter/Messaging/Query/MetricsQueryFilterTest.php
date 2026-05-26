@@ -56,5 +56,6 @@ class MetricsQueryFilterTest extends UnitTestCase
 class SampleMetricsQuery implements Query
 {
     public static function fromArray(array $data): static { return new static(); }
+
     public function toArray(): array { return []; }
 }

@@ -23,12 +23,10 @@ class LoggingAuditLogTest extends UnitTestCase
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('log')
             ->once()
-            ->withArgs(function (string $level, string $message, array $context) use ($entry): bool {
-                return $level === LogLevel::INFO
-                    && $message === 'audit'
-                    && $context['actor'] === 'user:1'
-                    && $context['action'] === 'login';
-            });
+            ->withArgs(fn(string $level, string $message, array $context): bool => $level === LogLevel::INFO
+                && $message === 'audit'
+                && $context['actor'] === 'user:1'
+                && $context['action'] === 'login');
 
         $log = new LoggingAuditLog($logger);
         $log->record($entry);

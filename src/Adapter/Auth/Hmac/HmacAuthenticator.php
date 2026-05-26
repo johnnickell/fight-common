@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Auth\Hmac;
 
+use DateTimeImmutable;
 use Fight\Common\Application\Auth\Authenticator;
 use Fight\Common\Application\Auth\NonceRepository;
 use Fight\Common\Application\HttpFoundation\HttpStatus;
@@ -115,8 +116,8 @@ final class HmacAuthenticator implements Authenticator
             throw new AuthException('Invalid signature', HttpStatus::UNAUTHORIZED);
         }
 
-        if ($this->nonces !== null) {
-            $expiresAt = new \DateTimeImmutable('@' . ($timestamp + $this->timeTolerance));
+        if ($this->nonces instanceof NonceRepository) {
+            $expiresAt = new DateTimeImmutable('@'.($timestamp + $this->timeTolerance));
             $nonce = new Nonce($request->getHeaderLine('X-Nonce'), $expiresAt);
             $this->nonces->consume($nonce);
         }

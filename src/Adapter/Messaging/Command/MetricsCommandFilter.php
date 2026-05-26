@@ -12,7 +12,7 @@ use Throwable;
 /**
  * Class MetricsCommandFilter
  */
-final class MetricsCommandFilter implements CommandFilter
+final readonly class MetricsCommandFilter implements CommandFilter
 {
     /**
      * Constructs MetricsCommandFilter
@@ -35,11 +35,11 @@ final class MetricsCommandFilter implements CommandFilter
             $elapsed = (hrtime(true) - $start) / 1e6;
             $this->metrics->increment('command.executed', $tags);
             $this->metrics->histogram('command.latency_ms', $elapsed, $tags);
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('command.failed', $tags + ['exception' => $e::class]);
+            $this->metrics->increment('command.failed', $tags + ['exception' => $throwable::class]);
             $this->metrics->histogram('command.latency_ms', $elapsed, $tags);
-            throw $e;
+            throw $throwable;
         }
     }
 }

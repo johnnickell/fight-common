@@ -12,11 +12,13 @@ use Fight\Common\Domain\Value\ValueObject;
  */
 final readonly class HealthStatus extends ValueObject
 {
-    private const HEALTHY = 'healthy';
-    private const DEGRADED = 'degraded';
-    private const UNHEALTHY = 'unhealthy';
+    private const string HEALTHY = 'healthy';
 
-    private const SEVERITY = [
+    private const string DEGRADED = 'degraded';
+
+    private const string UNHEALTHY = 'unhealthy';
+
+    private const array SEVERITY = [
         self::HEALTHY => 0,
         self::DEGRADED => 1,
         self::UNHEALTHY => 2,

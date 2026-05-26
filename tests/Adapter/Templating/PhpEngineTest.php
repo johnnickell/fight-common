@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Templating;
 
+use RuntimeException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Fight\Common\Adapter\Templating\PhpEngine;
@@ -107,7 +108,7 @@ class PhpEngineTest extends UnitTestCase
 
         try {
             $engine->render('throws.php');
-        } catch (\RuntimeException) {
+        } catch (RuntimeException) {
         }
 
         self::assertSame($levelBefore, ob_get_level());

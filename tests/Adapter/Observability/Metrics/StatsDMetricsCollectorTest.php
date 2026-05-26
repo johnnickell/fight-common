@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 class StatsDMetricsCollectorTest extends UnitTestCase
 {
     private array $captured = [];
+
     private StatsDMetricsCollector $collector;
 
     protected function setUp(): void

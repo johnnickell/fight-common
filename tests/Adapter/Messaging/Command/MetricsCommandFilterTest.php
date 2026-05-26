@@ -56,5 +56,6 @@ class MetricsCommandFilterTest extends UnitTestCase
 class SampleMetricsCommand implements Command
 {
     public static function fromArray(array $data): static { return new static(); }
+
     public function toArray(): array { return []; }
 }

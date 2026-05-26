@@ -13,7 +13,7 @@ use Fight\Common\Domain\Auth\AiOperation;
 /**
  * Class HmacWebhookDispatcher
  */
-final class HmacWebhookDispatcher implements WebhookDispatcher
+final readonly class HmacWebhookDispatcher implements WebhookDispatcher
 {
     /**
      * Constructs HmacWebhookDispatcher

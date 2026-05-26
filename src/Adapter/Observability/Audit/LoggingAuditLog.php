@@ -12,7 +12,7 @@ use Psr\Log\LogLevel;
 /**
  * Class LoggingAuditLog
  */
-final class LoggingAuditLog implements AuditLog
+final readonly class LoggingAuditLog implements AuditLog
 {
     /**
      * Constructs LoggingAuditLog
