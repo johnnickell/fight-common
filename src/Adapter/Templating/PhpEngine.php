@@ -322,6 +322,7 @@ final class PhpEngine implements TemplateEngine
                 if ($real === false || $realPath === false || !str_starts_with($real, $realPath.DIRECTORY_SEPARATOR)) {
                     throw TemplateNotFoundException::fromName($template);
                 }
+
                 return $real;
             }
         }

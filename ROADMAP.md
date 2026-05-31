@@ -14,7 +14,7 @@
 
 ---
 
-## v1.2 — Observability Layer
+## v1.2 — Observability Layer ✅
 
 The library has decorator-pattern logging (HTTP client, mail transport, cache) but no architectural observability contracts. This milestone makes observability a first-class concern at the application layer, with adapters providing the infrastructure.
 
@@ -59,7 +59,7 @@ Exposing `HealthReport` + `AuditLog` over an HTTP endpoint (secured with HMAC, s
 
 ---
 
-## v1.3 — HMAC-Secured AI Operations API
+## v1.3 — HMAC-Secured AI Operations API ✅
 
 Build on the existing HMAC auth adapters (`src/Adapter/Auth/Hmac/`):
 
