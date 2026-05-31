@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-05-25
+
+### Added
+
+**HMAC-Secured AI Operations API**
+- `Domain\Auth\Nonce` — value object with hex value and expiry; `generate()` factory for unique nonces
+- `Domain\Auth\AiOperation` — signed AI operation record; validates against known actions (`health_check`, `clear_cache`, `run_migration`, `deploy`); `fromJson()` / `fromArray()` factories
+- `Application\Auth\NonceRepository` — port: `consume(Nonce)` (throws `AuthException` on replay) and `purgeExpired()`
+- `Application\Auth\WebhookDispatcher` — port: `dispatch(string $url, string $action, array $payload): void`
+- `Adapter\Auth\Nonce\InMemoryNonceRepository` — single-process nonce store; good for testing and short-lived workers
+- `Adapter\Auth\Nonce\DoctrineNonceRepository` — persists to `hmac_nonces` table; atomic replay prevention via unique constraint
+- `Adapter\Auth\Hmac\HmacWebhookDispatcher` — builds, signs, and sends AI operation requests; composes `HttpClient` + `HmacRequestService`
+
+### Changed
+
+- `Adapter\Auth\Hmac\HmacAuthenticator` — `validate()` now always throws `AuthException` instead of returning `false` on signature mismatch (all failure paths now throw consistently); accepts optional `NonceRepository` to prevent replay attacks within the timestamp tolerance window
+
+### Breaking Changes
+
+- `HmacAuthenticator::validate()` previously returned `false` on signature mismatch and `true` on success; it now always returns `true` or throws `AuthException`. Callers checking `if (!$authenticator->validate($request))` must be updated to catch `AuthException` instead.
+
+---
+
+## [1.2.0] - 2026-05-25
+
+### Added
+
+**Observability Layer — Domain**
+- `Domain\Observability\HealthStatus` — value object with severity-ordered statuses (`healthy`, `degraded`, `unhealthy`) and `worst()` aggregation
+- `Domain\Observability\HealthResult` — per-check record (name, status, optional message and context)
+- `Domain\Observability\HealthReport` — aggregated report with `fromResults()` factory (computes overall as worst-of); `isHealthy()` gate; JSON-serializable
+- `Domain\Observability\AuditEntryId` — typed unique identifier for audit entries
+- `Domain\Observability\AuditEntry` — structured business-fact record (actor, action, timestamp, context); `record()` factory; JSON-serializable
+
+**Observability Layer — Application Ports**
+- `Application\Observability\HealthCheck` — interface: `check(): HealthResult`, `name(): string`
+- `Application\Observability\HealthAggregator` — interface: `addCheck()`, `report(): HealthReport`
+- `Application\Observability\MetricsCollector` — interface: `increment()`, `gauge()`, `histogram()` with tag support
+- `Application\Observability\AuditLog` — interface: `record(AuditEntry): void`
+- `Application\Repository\AuditRepository` — queryable audit storage port: `save()`, `findByActor()`, `findByAction()`, `findBetween()`
+
+**Observability Layer — Adapters**
+- `Adapter\Observability\Health\HealthReporter` — aggregates N `HealthCheck` implementations into a `HealthReport`
+- `Adapter\Observability\Health\DatabaseHealthCheck` — Doctrine DBAL ping with latency measurement
+- `Adapter\Observability\Health\HttpEndpointHealthCheck` — HTTP reachability check (2xx = healthy)
+- `Adapter\Observability\Metrics\NullMetricsCollector` — no-op default; zero overhead
+- `Adapter\Observability\Metrics\StatsDMetricsCollector` — DogStatsD UDP adapter with tag support; injectable sender closure for testability
+- `Adapter\Observability\Audit\NullAuditLog` — no-op default
+- `Adapter\Observability\Audit\LoggingAuditLog` — writes structured audit JSON to any PSR-3 logger
+- `Adapter\Messaging\Command\MetricsCommandFilter` — command bus middleware; auto-emits `command.executed`, `command.failed`, `command.latency_ms`
+- `Adapter\Messaging\Query\MetricsQueryFilter` — query bus middleware; auto-emits `query.executed`, `query.failed`, `query.latency_ms`
+
+**Documentation**
+- `docs/observability.md` — full wiring guide for health checks, metrics, audit log, and HMAC AI operations
+
+---
+
 ## [1.0.0] - 2026-05-22
 
 ### Added
