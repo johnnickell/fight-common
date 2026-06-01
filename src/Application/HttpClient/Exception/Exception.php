@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\HttpClient\Exception;
 
-/**
- * Interface Exception
- */
-interface Exception
+interface Exception extends \Throwable
 {
 }

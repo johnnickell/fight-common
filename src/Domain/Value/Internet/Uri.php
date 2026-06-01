@@ -175,7 +175,7 @@ readonly class Uri extends ValueObject implements Comparable
             // cannot contain a colon (":") character.
             // START: extra check for colon in first segment
             $segments = explode('/', trim((string) $ref['path'], '/'));
-            if (isset($segments[0]) && str_contains($segments[0], ':')) {
+            if (str_contains($segments[0], ':')) {
                 $message = sprintf('First segment in reference (%s) cannot contain a colon (":")', $reference);
                 throw new DomainException($message);
             }
@@ -956,8 +956,8 @@ readonly class Uri extends ValueObject implements Comparable
 
         // If a URI contains an authority component, then the path component
         // must either be empty or begin with a slash ("/") character.
-        if (!empty($authority)) {
-            if ($path !== '' && !str_starts_with($path, '/')) {
+        if ($path !== '' && !empty($authority)) {
+            if (!str_starts_with($path, '/')) {
                 return false;
             }
         }

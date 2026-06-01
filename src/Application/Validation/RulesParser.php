@@ -97,7 +97,7 @@ final class RulesParser
                     // validate date/time formats
                     $dateTimeRules = ['date', 'time', 'date_time'];
                     if (in_array($ruleName->toString(), $dateTimeRules, true)) {
-                        if (!isset($args[0]) || empty($args[0])) {
+                        if (empty($args[0])) {
                             $message = sprintf('%s validation requires format', $ruleName->toString());
                             throw new DomainException($message);
                         }

@@ -65,7 +65,7 @@ final class LinkedDeque implements Deque
     /**
      * @inheritDoc
      */
-    public function addFirst($item): void
+    public function addFirst(mixed $item): void
     {
         assert(Validate::isType($item, $this->itemType()));
         $this->list->unshift($item);
@@ -74,7 +74,7 @@ final class LinkedDeque implements Deque
     /**
      * @inheritDoc
      */
-    public function addLast($item): void
+    public function addLast(mixed $item): void
     {
         assert(Validate::isType($item, $this->itemType()));
         $this->list->push($item);

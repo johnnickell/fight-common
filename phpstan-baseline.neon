@@ -1,0 +1,1939 @@
+parameters:
+	ignoreErrors:
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator::createCanonicalRequestString() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Hmac/HmacAuthenticator.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator::$requiredHeaders type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Hmac/HmacAuthenticator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Hmac\HmacRequestService::buildHeaders() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Hmac/HmacRequestService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Hmac\HmacRequestService::createCanonicalRequestString() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Hmac/HmacRequestService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Hmac\HmacWebhookDispatcher::dispatch() has parameter $payload with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Hmac/HmacWebhookDispatcher.php
+
+		-
+			rawMessage: 'Call to an undefined method Lcobucci\JWT\Token::claims().'
+			identifier: method.notFound
+			count: 1
+			path: src/Adapter/Auth/Security/JwtDecoder.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Security\JwtDecoder::decode() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/JwtDecoder.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Auth\Security\JwtDecoder::$algorithms type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/JwtDecoder.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Security\JwtEncoder::encode() has parameter $claims with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/JwtEncoder.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Auth\Security\JwtEncoder::$algorithms type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/JwtEncoder.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Security\PhpPasswordHasher::__construct() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/PhpPasswordHasher.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Auth\Security\PhpPasswordValidator::__construct() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Auth/Security/PhpPasswordValidator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::doListDirectories() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::doListFiles() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::listDirectories() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::listDirectoriesRecursively() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::listFiles() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\FileStorage\FlysystemStorage::listFilesRecursively() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/FileStorage/FlysystemStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::chgrp() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::chmod() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::chown() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::exists() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::mkdir() has parameter $dirs with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::remove() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Filesystem\SymfonyFilesystem::touch() has parameter $files with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Filesystem/SymfonyFilesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient::send() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzleClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient::sendAsync() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzleClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Guzzle\GuzzleMessageFactory::createRequest() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzleMessageFactory.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Guzzle\GuzzleMessageFactory::createResponse() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzleMessageFactory.php
+
+		-
+			rawMessage: Anonymous function has an unused use $request.
+			identifier: closure.unusedUse
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzlePromise.php
+
+		-
+			rawMessage: 'Property Fight\Common\Adapter\HttpClient\Guzzle\GuzzlePromise::$exception (Throwable|null) is never assigned null so it can be removed from the property type.'
+			identifier: property.unusedType
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzlePromise.php
+
+		-
+			rawMessage: 'Property Fight\Common\Adapter\HttpClient\Guzzle\GuzzlePromise::$response (Psr\Http\Message\ResponseInterface|null) is never assigned null so it can be removed from the property type.'
+			identifier: property.unusedType
+			count: 1
+			path: src/Adapter/HttpClient/Guzzle/GuzzlePromise.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Logging\LoggingHttpClient::send() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Logging/LoggingHttpClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpClient\Logging\LoggingHttpClient::sendAsync() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpClient/Logging/LoggingHttpClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::error() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::error() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::fail() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::fail() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::success() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\HttpFoundation\JSendResponse::success() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/HttpFoundation/JSendResponse.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport::__construct() has parameter $overrides with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Mail/Symfony/SymfonyMailTransport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport::setOverride() has parameter $overrides with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Mail/Symfony/SymfonyMailTransport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport::setOverrides() has parameter $overrides with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Mail/Symfony/SymfonyMailTransport.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport::$overrides type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Mail/Symfony/SymfonyMailTransport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter::registerHandlers() has parameter $commandToHandlerMap with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Command/Sync/Routing/InMemoryCommandRouter.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter::$handlers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Command/Sync/Routing/InMemoryCommandRouter.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Command\Sync\Routing\ServiceAwareCommandRouter::registerHandlers() has parameter $commandToHandlerMap with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Command/Sync/Routing/ServiceAwareCommandRouter.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Command\Sync\Routing\ServiceAwareCommandRouter::$handlers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Command/Sync/Routing/ServiceAwareCommandRouter.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher::getHandlers() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Async/MessengerEventDispatcher.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher::getHandlers() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/ServiceAwareEventDispatcher.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher::$serviceIds type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/ServiceAwareEventDispatcher.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher::$services type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/ServiceAwareEventDispatcher.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher::getHandlers() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/SimpleEventDispatcher.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher::$handlers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/SimpleEventDispatcher.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher::$sorted type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Event/Sync/SimpleEventDispatcher.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter::registerHandlers() has parameter $queryToHandlerMap with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Query/Routing/InMemoryQueryRouter.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter::$handlers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Query/Routing/InMemoryQueryRouter.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Query\Routing\ServiceAwareQueryRouter::registerHandlers() has parameter $queryToHandlerMap with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Query/Routing/ServiceAwareQueryRouter.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Messaging\Query\Routing\ServiceAwareQueryRouter::$handlers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Query/Routing/ServiceAwareQueryRouter.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer::decodeStamps() has parameter $encodedEnvelope with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Serializer/SymfonyMessageSerializer.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer::decodeStamps() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Messaging/Serializer/SymfonyMessageSerializer.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\NullMetricsCollector::gauge() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/NullMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\NullMetricsCollector::histogram() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/NullMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\NullMetricsCollector::increment() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/NullMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\StatsDMetricsCollector::format() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/StatsDMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\StatsDMetricsCollector::gauge() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/StatsDMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\StatsDMetricsCollector::histogram() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/StatsDMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Observability\Metrics\StatsDMetricsCollector::increment() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Observability/Metrics/StatsDMetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Routing\SymfonyUrlGenerator::generate() has parameter $parameters with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Routing/SymfonyUrlGenerator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Routing\SymfonyUrlGenerator::generate() has parameter $query with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Routing/SymfonyUrlGenerator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\DelegatingEngine::render() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/DelegatingEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\DelegatingEngine::$engines type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/DelegatingEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\DelegatingEngine::$helpers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/DelegatingEngine.php
+
+		-
+			rawMessage: If condition is always false.
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\PhpEngine::__construct() has parameter $helpers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\PhpEngine::__construct() has parameter $paths with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\PhpEngine::evaluate() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\PhpEngine::render() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\PhpEngine::$blocks type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\PhpEngine::$cache type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\PhpEngine::$helpers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\PhpEngine::$openBlocks type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\PhpEngine::$parents type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/PhpEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Adapter\Templating\TwigEngine::render() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/TwigEngine.php
+
+		-
+			rawMessage: Property Fight\Common\Adapter\Templating\TwigEngine::$helpers type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Adapter/Templating/TwigEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Attribute\Validation::__construct() has parameter $rules with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Attribute/Validation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Attribute\Validation::rules() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Attribute/Validation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Auth\Security\TokenDecoder::decode() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Auth/Security/TokenDecoder.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Auth\Security\TokenEncoder::encode() has parameter $claims with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Auth/Security/TokenEncoder.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Auth\WebhookDispatcher::dispatch() has parameter $payload with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Auth/WebhookDispatcher.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/FileStorage/Exception/DuplicateStorageException.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/FileStorage/Exception/StorageNotFoundException.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\FileStorage\FileStorage::listDirectories() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/FileStorage/FileStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\FileStorage\FileStorage::listDirectoriesRecursively() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/FileStorage/FileStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\FileStorage\FileStorage::listFiles() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/FileStorage/FileStorage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\FileStorage\FileStorage::listFilesRecursively() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/FileStorage/FileStorage.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/Filesystem/Exception/FileNotFoundException.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::chgrp() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::chmod() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::chown() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::exists() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::mkdir() has parameter $dirs with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::remove() has parameter $paths with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Filesystem\Filesystem::touch() has parameter $files with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Filesystem/Filesystem.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/HttpClient/Exception/HttpException.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\HttpService::createRequest() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/HttpService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\HttpService::createResponse() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/HttpService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\HttpService::send() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/HttpService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\HttpService::sendAsync() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/HttpService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\Message\MessageFactory::createRequest() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/Message/MessageFactory.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\Message\MessageFactory::createResponse() has parameter $headers with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/Message/MessageFactory.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\Transport\HttpClient::send() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/Transport/HttpClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\HttpClient\Transport\HttpClient::sendAsync() has parameter $options with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/HttpClient/Transport/HttpClient.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getBcc() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getCc() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getContent() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getFrom() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getReplyTo() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getSender() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Mail\Message\MailMessage::getTo() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$attachments type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$bcc type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$cc type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$content type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$from type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$replyTo type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$sender type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Mail\Message\MailMessage::$to type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Mail/Message/MailMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Messaging\Event\EventDispatcher::getHandlers() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Messaging/Event/EventDispatcher.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Messaging\Event\EventSubscriber::eventRegistration() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Messaging/Event/EventSubscriber.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Observability\MetricsCollector::gauge() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Observability/MetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Observability\MetricsCollector::histogram() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Observability/MetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Observability\MetricsCollector::increment() has parameter $tags with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Observability/MetricsCollector.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Routing\UrlGenerator::generate() has parameter $parameters with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Routing/UrlGenerator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Routing\UrlGenerator::generate() has parameter $query with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Routing/UrlGenerator.php
+
+		-
+			rawMessage: 'Class Fight\Common\Application\Service\Container implements generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Application/Service/Container.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Service\Container::$factories type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Service/Container.php
+
+		-
+			rawMessage: Property Fight\Common\Application\Service\Container::$parameters type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Service/Container.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/Templating/Exception/DuplicateHelperException.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/Templating/Exception/TemplateNotFoundException.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Templating\TemplateEngine::render() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Templating/TemplateEngine.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ApplicationData::__construct() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ApplicationData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ApplicationData::names() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ApplicationData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ApplicationData::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ApplicationData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ErrorData::__construct() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ErrorData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ErrorData::get() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ErrorData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ErrorData::names() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ErrorData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\ErrorData::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/ErrorData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\InputData::__construct() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/InputData.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Data\InputData::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Data/InputData.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 1
+			path: src/Application/Validation/Exception/ValidationException.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\Rule\InList::__construct() has parameter $list with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/Rule/InList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\RulesParser::extractMatchString() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\RulesParser::getErrorMessage() has parameter $args with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\RulesParser::getErrorMessage() has parameter $rule with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\RulesParser::parse() has parameter $rules with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\RulesParser::parse() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: PHPDoc tag @var for variable $rule has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/RulesParser.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationContext::getErrors() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationContext.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationService::addValidators() has parameter $rules with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationService::validate() has parameter $input with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationService::validate() has parameter $rules with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationService::validateInput() has parameter $input with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Application\Validation\ValidationService::validateRules() has parameter $rules with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Application/Validation/ValidationService.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Auth\AiOperation::__construct() has parameter $payload with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Auth/AiOperation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Auth\AiOperation::fromArray() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Auth/AiOperation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Auth\AiOperation::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Auth/AiOperation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Auth\AiOperation::payload() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Auth/AiOperation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Auth\AiOperation::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Auth/AiOperation.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayList::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayList::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayList::replace() has parameter $items with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayList::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayList.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Collection\ArrayList::$items type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayQueue::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayQueue::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayQueue::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayQueue.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Collection\ArrayQueue::$items type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayStack::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayStack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayStack::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayStack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\ArrayStack::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayStack.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Collection\ArrayStack::$items type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/ArrayStack.php
+
+		-
+			rawMessage: 'Interface Fight\Common\Domain\Collection\Contract\Collection extends generic interface IteratorAggregate but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Contract/Collection.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Deque::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Deque.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Deque::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Deque.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\ItemCollection::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/ItemCollection.php
+
+		-
+			rawMessage: 'Interface Fight\Common\Domain\Collection\Contract\ItemList extends generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Contract/ItemList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\ItemList::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/ItemList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\ItemList::replace() has parameter $items with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/ItemList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\ItemList::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/ItemList.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\KeyValueCollection::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/KeyValueCollection.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedItemCollection::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedItemCollection.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedKeyValueCollection::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedKeyValueCollection.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedSet::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedSet::range() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedSet::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedSet.php
+
+		-
+			rawMessage: 'Interface Fight\Common\Domain\Collection\Contract\OrderedTable extends generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedTable::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\OrderedTable::rangeKeys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/OrderedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Queue::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Queue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Queue::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Queue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Set::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Set.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Set::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Set.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Stack::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Stack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Stack::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Stack.php
+
+		-
+			rawMessage: 'Interface Fight\Common\Domain\Collection\Contract\Table extends generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Contract/Table.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Contract\Table::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Contract/Table.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\HashSet::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\HashSet::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\HashSet::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashSet.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Collection\HashSet::$buckets type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\HashTable::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\HashTable::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashTable.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Collection\HashTable::$buckets type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/HashTable.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Collection\Iterator\ArrayQueueIterator implements generic interface Iterator but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Iterator/ArrayQueueIterator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Iterator\ArrayQueueIterator::__construct() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Iterator/ArrayQueueIterator.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Collection\Iterator\ArrayStackIterator implements generic interface Iterator but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Iterator/ArrayStackIterator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Iterator\ArrayStackIterator::__construct() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Iterator/ArrayStackIterator.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Collection\Iterator\GeneratorIterator implements generic interface Iterator but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Iterator/GeneratorIterator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Iterator\GeneratorIterator::__construct() has parameter $args with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Iterator/GeneratorIterator.php
+
+		-
+			rawMessage: 'Property Fight\Common\Domain\Collection\Iterator\GeneratorIterator::$generator with generic class Generator does not specify its types: TKey, TValue, TSend, TReturn'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/Iterator/GeneratorIterator.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedDeque::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedDeque.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedDeque::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedDeque.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedDeque::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedDeque.php
+
+		-
+			rawMessage: 'Property Fight\Common\Domain\Collection\LinkedDeque::$list with generic class SplDoublyLinkedList does not specify its types: TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/LinkedDeque.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedQueue::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedQueue::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedQueue::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedQueue.php
+
+		-
+			rawMessage: 'Property Fight\Common\Domain\Collection\LinkedQueue::$list with generic class SplDoublyLinkedList does not specify its types: TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/LinkedQueue.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedStack::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedStack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedStack::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedStack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\LinkedStack::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/LinkedStack.php
+
+		-
+			rawMessage: 'Property Fight\Common\Domain\Collection\LinkedStack::$list with generic class SplDoublyLinkedList does not specify its types: TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Collection/LinkedStack.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedSet::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedSet::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedSet::range() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedSet::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedTable::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedTable::partition() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\SortedTable::rangeKeys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/SortedTable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Tree\BinarySearchTree::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Tree/BinarySearchTree.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Tree\BinarySearchTree::rangeKeys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Tree/BinarySearchTree.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Tree\RedBlackSearchTree::keys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Tree/RedBlackSearchTree.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Collection\Tree\RedBlackSearchTree::rangeKeys() return type has no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Collection/Tree/RedBlackSearchTree.php
+
+		-
+			rawMessage: 'Unsafe usage of new static() in abstract class Fight\Common\Domain\Identity\UniqueId in static method fromString().'
+			identifier: new.staticInAbstractClassStaticMethod
+			count: 1
+			path: src/Domain/Identity/UniqueId.php
+
+		-
+			rawMessage: 'Unsafe usage of new static() in abstract class Fight\Common\Domain\Identity\UniqueId in static method generate().'
+			identifier: new.staticInAbstractClassStaticMethod
+			count: 1
+			path: src/Domain/Identity/UniqueId.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 2
+			path: src/Domain/Identity/UniqueId.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\BaseMessage::arraySerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/BaseMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\BaseMessage::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/BaseMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\BaseMessage::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/BaseMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Command\CommandMessage::arrayDeserialize() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Command/CommandMessage.php
+
+		-
+			rawMessage: PHPDoc tag @var with type Fight\Common\Domain\Messaging\Command\Command|string is not subtype of native type string.
+			identifier: varTag.nativeType
+			count: 1
+			path: src/Domain/Messaging/Command/CommandMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Event\CommandFailedEvent::fromArray() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Event/CommandFailedEvent.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Event\CommandFailedEvent::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Event/CommandFailedEvent.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Event\EventMessage::arrayDeserialize() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Event/EventMessage.php
+
+		-
+			rawMessage: PHPDoc tag @var with type Fight\Common\Domain\Messaging\Event\Event|string is not subtype of native type string.
+			identifier: varTag.nativeType
+			count: 1
+			path: src/Domain/Messaging/Event/EventMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Message::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Message.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Message::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Message.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Messaging\Meta implements generic interface IteratorAggregate but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Meta::__construct() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Meta::create() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Meta::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Meta::keys() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Meta::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Messaging\Meta::$data type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Meta.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Payload::fromArray() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Payload.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Payload::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Payload.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Messaging\Query\QueryMessage::arrayDeserialize() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Messaging/Query/QueryMessage.php
+
+		-
+			rawMessage: PHPDoc tag @var with type Fight\Common\Domain\Messaging\Query\Query|string is not subtype of native type string.
+			identifier: varTag.nativeType
+			count: 1
+			path: src/Domain/Messaging/Query/QueryMessage.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\AuditEntry::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/AuditEntry.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\AuditEntry::record() has parameter $context with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/AuditEntry.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\AuditEntry::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/AuditEntry.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthReport::__construct() has parameter $results with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthReport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthReport::fromResults() has parameter $results with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthReport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthReport::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthReport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthReport::results() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthReport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthReport::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthReport.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthResult::__construct() has parameter $context with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthResult.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthResult::context() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthResult.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthResult::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthResult.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Observability\HealthResult::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Observability/HealthResult.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Repository\Pagination::__construct() has parameter $orderings with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Repository/Pagination.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Repository\Pagination::orderings() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Repository/Pagination.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Repository\Pagination::$orderings type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Repository/Pagination.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Repository\ResultSet::jsonSerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Repository/ResultSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Repository\ResultSet::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Repository/ResultSet.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Serialization\Serializable::arrayDeserialize() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Serialization/Serializable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Serialization\Serializable::arraySerialize() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Serialization/Serializable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Type\Arrayable::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Type/Arrayable.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Type\Type::__unserialize() has parameter $data with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Type/Type.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Utility\Validate::isOneOf() has parameter $choices with no value type specified in iterable type iterable.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/Validate.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Utility\Validate::isValidUri() has parameter $uri with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/Validate.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Utility\Validate::uriComponentsFromMatches() has parameter $matches with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/Validate.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Utility\Validate::uriComponentsFromMatches() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/Validate.php
+
+		-
+			rawMessage: Property Fight\Common\Domain\Utility\Validate::$timezones type has no value type specified in iterable type array.
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/Validate.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Utility\VarPrinter::readArray() has parameter $array with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Utility/VarPrinter.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Value\Basic\MbStringObject implements generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Value\Basic\MbStringObject implements generic interface IteratorAggregate but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\MbStringObject::explodeOnCaps() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\MbStringObject::explodeOnDelimiters() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\MbStringObject::replace() has parameter $replace with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\MbStringObject::replace() has parameter $search with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/MbStringObject.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Value\Basic\StringObject implements generic interface ArrayAccess but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Class Fight\Common\Domain\Value\Basic\StringObject implements generic interface IteratorAggregate but does not specify its types: TKey, TValue'
+			identifier: missingType.generics
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\StringObject::explodeOnCaps() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\StringObject::explodeOnDelimiters() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\StringObject::replace() has parameter $replace with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Basic\StringObject::replace() has parameter $search with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Basic/StringObject.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Identifier\Uuid::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Identifier/Uuid.php
+
+		-
+			rawMessage: 'Parameter #1 $num of function floor expects float|int, string given.'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Value/Identifier/Uuid.php
+
+		-
+			rawMessage: Unreachable statement - code above always terminates.
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Domain/Value/Identifier/Uuid.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Internet\Uri::componentsFromMatches() has parameter $matches with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Internet\Uri::componentsFromMatches() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Internet\Uri::fromArray() has parameter $components with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Internet\Uri::parseAuthority() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Method Fight\Common\Domain\Value\Internet\Uri::toArray() return type has no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Strict comparison using !== between non-empty-string and '''' will always evaluate to true.'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Unsafe usage of new static().'
+			identifier: new.static
+			count: 8
+			path: src/Domain/Value/Internet/Uri.php
+
+		-
+			rawMessage: 'Function Fight\Common\Domain\array_list() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/functions.php
+
+		-
+			rawMessage: 'Function Fight\Common\Domain\array_queue() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/functions.php
+
+		-
+			rawMessage: 'Function Fight\Common\Domain\array_stack() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/functions.php
+
+		-
+			rawMessage: 'Function Fight\Common\Domain\hash_set() has parameter $items with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/functions.php
+
+		-
+			rawMessage: 'Function Fight\Common\Domain\hash_table() has parameter $entries with no value type specified in iterable type array.'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/functions.php

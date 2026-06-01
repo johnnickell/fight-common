@@ -94,7 +94,6 @@ final readonly class ValidationService
      */
     private function validateRules(array $rules): void
     {
-        /** @var array $rule */
         foreach ($rules as $rule) {
             if (!is_array($rule)) {
                 $message = sprintf('Invalid rule definition: %s', VarPrinter::toString($rules));

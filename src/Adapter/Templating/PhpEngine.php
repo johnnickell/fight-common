@@ -22,8 +22,6 @@ final class PhpEngine implements TemplateEngine
 
     private array $parents = [];
 
-    private array $stack = [];
-
     private array $blocks = [];
 
     private array $openBlocks = [];

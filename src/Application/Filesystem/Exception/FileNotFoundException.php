@@ -14,7 +14,7 @@ class FileNotFoundException extends FilesystemException
     /**
      * Creates exception for a given path
      *
-     * @return FileNotFoundException
+     * @return static
      */
     public static function fromPath(string $path, ?Throwable $previous = null): static
     {

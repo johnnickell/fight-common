@@ -715,7 +715,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
      * If search is an array and replacement is a string, then the replacement
      * string is used for every value of search.
      */
-    public function replace($search, $replace): static
+    public function replace(string|array $search, string|array $replace): static
     {
         return static::create(str_replace($search, $replace, $this->value));
     }

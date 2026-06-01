@@ -37,7 +37,6 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     public function registerService(string $className, string $serviceId): void
     {
         assert(Validate::implementsInterface($className, EventSubscriber::class));
-        /** @var EventSubscriber $className The subscriber class name */
         foreach ($className::eventRegistration() as $eventType => $params) {
             $eventType = ClassName::underscore($eventType);
             if (is_string($params)) {
