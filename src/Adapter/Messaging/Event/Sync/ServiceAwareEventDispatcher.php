@@ -17,8 +17,10 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 {
+    /** @var array<string, array<string, object>> */
     private array $services = [];
 
+    /** @var array<string, array<int, array{string, string, int}>> */
     private array $serviceIds = [];
 
     /**
@@ -37,7 +39,6 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     public function registerService(string $className, string $serviceId): void
     {
         assert(Validate::implementsInterface($className, EventSubscriber::class));
-        /** @var EventSubscriber $className The subscriber class name */
         foreach ($className::eventRegistration() as $eventType => $params) {
             $eventType = ClassName::underscore($eventType);
             if (is_string($params)) {
@@ -88,6 +89,8 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
+     * @return callable[]|array<string, callable[]>
+     *
      * @inheritDoc
      */
     #[Override]

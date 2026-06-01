@@ -46,6 +46,8 @@ final class CommandMessage extends BaseMessage
     }
 
     /**
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public static function arrayDeserialize(array $data): static
@@ -75,7 +77,7 @@ final class CommandMessage extends BaseMessage
         $timestamp = DateTimeImmutable::createFromFormat('U', $data['timestamp']);
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
-        /** @var Command|string $payloadClass */
+        /** @var class-string<Command> $payloadClass */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Command::class));

@@ -8,6 +8,8 @@ use Throwable;
 
 /**
  * Class StorageNotFoundException
+ *
+ * @phpstan-consistent-constructor
  */
 class StorageNotFoundException extends FileStorageException
 {

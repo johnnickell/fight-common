@@ -13,9 +13,15 @@ use Psr\Http\Message\UriInterface;
  */
 interface MessageFactory
 {
-    /**
-     * Creates a RequestInterface instance
-     */
+     /**
+      * Creates a RequestInterface instance
+      *
+      * @param string $method
+      * @param UriInterface|string $uri
+      * @param array<string, string> $headers
+      * @param mixed $body
+      * @param string $protocol
+      */
     public function createRequest(
         string $method,
         string|UriInterface $uri,
@@ -24,9 +30,15 @@ interface MessageFactory
         string $protocol = '1.1'
     ): RequestInterface;
 
-    /**
-     * Creates a ResponseInterface instance
-     */
+     /**
+      * Creates a ResponseInterface instance
+      *
+      * @param integer $status
+      * @param array<string, string> $headers
+      * @param mixed $body
+      * @param string $protocol
+      * @param string|null $reason
+      */
     public function createResponse(
         int $status = 200,
         array $headers = [],

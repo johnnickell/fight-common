@@ -13,6 +13,8 @@ use Traversable;
 
 /**
  * Class ResultSet
+ *
+ * @implements Collection<int, object>
  */
 final class ResultSet implements Arrayable, Collection, JsonSerializable
 {
@@ -22,6 +24,11 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
 
     /**
      * Constructs ResultSet
+     *
+     * @param integer $page
+     * @param integer $perPage
+     * @param integer $totalRecords
+     * @param ArrayList<object> $records
      */
     public function __construct(
         private int $page,
@@ -86,6 +93,8 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
 
     /**
      * Retrieves the records
+     *
+     * @return ArrayList<object>
      */
     public function records(): ArrayList
     {
@@ -102,6 +111,8 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -116,6 +127,8 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

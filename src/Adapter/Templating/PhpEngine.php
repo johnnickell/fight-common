@@ -16,22 +16,28 @@ use Throwable;
  */
 final class PhpEngine implements TemplateEngine
 {
+    /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
+    /** @var array<string, string> */
     private array $cache = [];
 
+    /** @var array<string, ?string> */
     private array $parents = [];
 
-    private array $stack = [];
-
+    /** @var array<string, string> */
     private array $blocks = [];
 
+    /** @var string[] */
     private array $openBlocks = [];
 
     private string $current;
 
     /**
      * Constructs PhpEngine
+     *
+     * @param string[] $paths
+     * @param TemplateHelper[] $helpers
      *
      * @throws Throwable
      */
@@ -87,6 +93,9 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
+     * @param string $template
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string
@@ -259,6 +268,11 @@ final class PhpEngine implements TemplateEngine
 
     /**
      * Evaluates a PHP template
+     *
+     * @param string $file
+     * @param array<string, mixed> $data
+     *
+     * @phpstan-impure
      *
      * @throws TemplatingException When data is not valid
      */

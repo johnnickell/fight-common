@@ -10,6 +10,8 @@ use Throwable;
 
 /**
  * Class HttpException
+ *
+ * @phpstan-consistent-constructor
  */
 class HttpException extends RequestException
 {

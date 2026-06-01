@@ -83,12 +83,16 @@ interface FileStorage
     /**
      * Retrieves a list of files in a given path
      *
+     * @return string[]
+     *
      * @throws FileStorageException When error occurs
      */
     public function listFiles(?string $path = null): array;
 
     /**
      * Retrieves a list of files in a given path recursively
+     *
+     * @return string[]
      *
      * @throws FileStorageException When error occurs
      */
@@ -97,12 +101,16 @@ interface FileStorage
     /**
      * Retrieves a list of directories in a given path
      *
+     * @return string[]
+     *
      * @throws FileStorageException When error occurs
      */
     public function listDirectories(?string $path = null): array;
 
     /**
      * Retrieves a list of directories in a given path recursively
+     *
+     * @return string[]
      *
      * @throws FileStorageException When error occurs
      */

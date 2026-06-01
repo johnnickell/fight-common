@@ -6,6 +6,10 @@ namespace Fight\Common\Domain\Collection\Contract;
 
 /**
  * Interface KeyValueCollection
+ *
+ * @template K
+ * @template V
+ * @extends Collection<K, V>
  */
 interface KeyValueCollection extends Collection
 {
@@ -193,6 +197,8 @@ interface KeyValueCollection extends Collection
      * <code>
      * function (<V> $value, <K> $key): bool {}
      * </code>
+     *
+     * @return array{0: static, 1: static}
      */
     public function partition(callable $predicate): array;
 }

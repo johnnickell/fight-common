@@ -11,6 +11,9 @@ use Stringable;
 
 /**
  * Interface Stack
+ *
+ * @template T
+ * @extends ItemCollection<T>
  */
 interface Stack extends Arrayable, ItemCollection, JsonSerializable, Stringable
 {
@@ -35,6 +38,8 @@ interface Stack extends Arrayable, ItemCollection, JsonSerializable, Stringable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<T>
      */
     public function toArray(): array;
 
@@ -45,6 +50,8 @@ interface Stack extends Arrayable, ItemCollection, JsonSerializable, Stringable
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<T>
      */
     public function jsonSerialize(): array;
 

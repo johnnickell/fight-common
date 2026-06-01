@@ -13,6 +13,8 @@ use Fight\Common\Domain\Value\ValueObject;
 /**
  * Class Uri
  *
+ * @phpstan-consistent-constructor
+ *
  * @link http://tools.ietf.org/html/rfc3986 RFC 3986
  */
 readonly class Uri extends ValueObject implements Comparable
@@ -175,7 +177,7 @@ readonly class Uri extends ValueObject implements Comparable
             // cannot contain a colon (":") character.
             // START: extra check for colon in first segment
             $segments = explode('/', trim((string) $ref['path'], '/'));
-            if (isset($segments[0]) && str_contains($segments[0], ':')) {
+            if (str_contains($segments[0], ':')) {
                 $message = sprintf('First segment in reference (%s) cannot contain a colon (":")', $reference);
                 throw new DomainException($message);
             }
@@ -216,7 +218,7 @@ readonly class Uri extends ValueObject implements Comparable
     }
 
     /**
-     * Creates instance from components
+     * Creates instance from an array
      *
      * The following key names should hold their respective values:
      *
@@ -225,6 +227,8 @@ readonly class Uri extends ValueObject implements Comparable
      * * path
      * * query
      * * fragment
+     *
+     * @param array<string, string|null> $components
      *
      * @throws DomainException When values are not valid
      */
@@ -385,6 +389,8 @@ readonly class Uri extends ValueObject implements Comparable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, string|null>
      */
     public function toArray(): array
     {
@@ -466,6 +472,10 @@ readonly class Uri extends ValueObject implements Comparable
 
     /**
      * Exchanges URI_PATTERN matches for components
+     *
+     * @param array<int, string> $matches
+     *
+     * @return array<string, string|null>
      */
     protected static function componentsFromMatches(array $matches): array
     {
@@ -511,6 +521,8 @@ readonly class Uri extends ValueObject implements Comparable
 
     /**
      * Parses authority component into parts
+     *
+     * @return array<string, string|int|null>
      */
     protected static function parseAuthority(?string $authority): array
     {
@@ -957,7 +969,7 @@ readonly class Uri extends ValueObject implements Comparable
         // If a URI contains an authority component, then the path component
         // must either be empty or begin with a slash ("/") character.
         if (!empty($authority)) {
-            if ($path !== '' && !str_starts_with($path, '/')) {
+            if (!str_starts_with($path, '/')) {
                 return false;
             }
         }

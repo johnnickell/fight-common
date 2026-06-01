@@ -21,6 +21,7 @@ final class HmacAuthenticator implements Authenticator
 
     private string $secret;
 
+    /** @var string[] */
     private static array $requiredHeaders = [
         'Authorization',
         'Credential',

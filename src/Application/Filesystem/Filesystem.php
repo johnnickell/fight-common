@@ -11,18 +11,25 @@ use Fight\Common\Application\Filesystem\Exception\FilesystemException;
  */
 interface Filesystem
 {
-    /**
-     * Creates directories recursively
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Creates directories recursively
+      *
+      * @param string|iterable<string> $dirs
+      * @param integer $mode
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function mkdir(string|iterable $dirs, int $mode = 0775): void;
 
-    /**
-     * Sets access and modification times
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Sets access and modification times
+      *
+      * @param string|iterable<string> $files
+      * @param integer|null $time
+      * @param integer|null $atime
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function touch(string|iterable $files, ?int $time = null, ?int $atime = null): void;
 
     /**
@@ -63,16 +70,20 @@ interface Filesystem
         bool $copyOnWindows = false
     ): void;
 
-    /**
-     * Checks for the existence of files or directories
-     */
+     /**
+      * Checks for the existence of files or directories
+      *
+      * @param string|iterable<string> $paths
+      */
     public function exists(string|iterable $paths): bool;
 
-    /**
-     * Removes files or directories
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Removes files or directories
+      *
+      * @param string|iterable<string> $paths
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function remove(string|iterable $paths): void;
 
     /**
@@ -201,24 +212,37 @@ interface Filesystem
      */
     public function requireOnce(string $path): void;
 
-    /**
-     * Changes mode of files or directories
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Changes mode of files or directories
+      *
+      * @param string|iterable<string> $paths
+      * @param integer $mode
+      * @param integer $umask
+      * @param boolean $recursive
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function chmod(string|iterable $paths, int $mode, int $umask = 0000, bool $recursive = false): void;
 
-    /**
-     * Changes the owner of files or directories
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Changes the owner of files or directories
+      *
+      * @param string|iterable<string> $paths
+      * @param string $user
+      * @param boolean $recursive
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function chown(string|iterable $paths, string $user, bool $recursive = false): void;
 
-    /**
-     * Changes the group of files or directories
-     *
-     * @throws FilesystemException When an error occurs
-     */
+     /**
+      * Changes the group of files or directories
+      *
+      * @param string|iterable<string> $paths
+      * @param string $group
+      * @param boolean $recursive
+      *
+      * @throws FilesystemException When an error occurs
+      */
     public function chgrp(string|iterable $paths, string $group, bool $recursive = false): void;
 }

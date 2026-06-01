@@ -9,18 +9,29 @@ namespace Fight\Common\Application\Observability;
  */
 interface MetricsCollector
 {
-    /**
-     * Increments a counter metric
-     */
+     /**
+      * Increments a counter metric
+      *
+      * @param string $metric
+      * @param array<string, string> $tags
+      */
     public function increment(string $metric, array $tags = []): void;
 
-    /**
-     * Sets a gauge metric to an absolute value
-     */
+     /**
+      * Sets a gauge metric to an absolute value
+      *
+      * @param string $metric
+      * @param float $value
+      * @param array<string, string> $tags
+      */
     public function gauge(string $metric, float $value, array $tags = []): void;
 
-    /**
-     * Records a value in a histogram metric
-     */
+     /**
+      * Records a value in a histogram metric
+      *
+      * @param string $metric
+      * @param float $value
+      * @param array<string, string> $tags
+      */
     public function histogram(string $metric, float $value, array $tags = []): void;
 }

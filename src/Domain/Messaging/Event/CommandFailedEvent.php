@@ -20,6 +20,8 @@ final readonly class CommandFailedEvent implements Event
     }
 
     /**
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public static function fromArray(array $data): static
@@ -42,6 +44,8 @@ final readonly class CommandFailedEvent implements Event
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

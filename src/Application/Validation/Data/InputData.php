@@ -12,15 +12,18 @@ use Traversable;
 
 /**
  * Class InputData
+ *
+ * @implements Collection<string, mixed>
  */
 final readonly class InputData implements Arrayable, Collection
 {
+    /** @var HashTable<string, mixed> */
     private HashTable $data;
 
     /**
      * Constructs InputData
      *
-     * @param array $data An associative array keyed by field name
+     * @param array<string, mixed> $data An associative array keyed by field name
      */
     public function __construct(array $data)
     {
@@ -73,7 +76,7 @@ final readonly class InputData implements Arrayable, Collection
     }
 
     /**
-     * @inheritDoc
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

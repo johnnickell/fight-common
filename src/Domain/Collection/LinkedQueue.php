@@ -14,11 +14,15 @@ use Traversable;
 
 /**
  * Class LinkedQueue
+ *
+ * @template T
+ * @implements Queue<T>
  */
 final class LinkedQueue implements Queue
 {
     use ItemTypeMethods;
 
+    /** @var SplDoublyLinkedList<T> */
     private SplDoublyLinkedList $list;
 
     /**
@@ -305,6 +309,7 @@ final class LinkedQueue implements Queue
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -332,6 +337,7 @@ final class LinkedQueue implements Queue
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -354,6 +360,7 @@ final class LinkedQueue implements Queue
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array
