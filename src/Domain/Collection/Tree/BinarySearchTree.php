@@ -10,6 +10,8 @@ use Fight\Common\Domain\Exception\LookupException;
 use Fight\Common\Domain\Exception\UnderflowException;
 
 /**
+ * Interface BinarySearchTree
+ *
  * @template K
  * @template V
  */

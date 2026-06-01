@@ -12,6 +12,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class ArrayStack
+ *
  * @template T
  * @implements Stack<T>
  */

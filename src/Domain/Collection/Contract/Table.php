@@ -8,6 +8,8 @@ use ArrayAccess;
 use Fight\Common\Domain\Exception\KeyException;
 
 /**
+ * Interface Table
+ *
  * @template K
  * @template V
  * @extends KeyValueCollection<K, V>

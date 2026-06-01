@@ -13,6 +13,8 @@ use SplDoublyLinkedList;
 use Traversable;
 
 /**
+ * Class LinkedQueue
+ *
  * @template T
  * @implements Queue<T>
  */

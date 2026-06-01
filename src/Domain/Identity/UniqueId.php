@@ -11,6 +11,8 @@ use Fight\Common\Domain\Value\Identifier\Uuid;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
+ * Class UniqueId
+ *
  * @phpstan-consistent-constructor
  */
 abstract readonly class UniqueId extends ValueObject implements Identifier, IdentifierFactory

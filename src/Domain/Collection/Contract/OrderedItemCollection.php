@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\UnderflowException;
 use Fight\Common\Domain\Type\Comparator;
 
 /**
+ * Interface OrderedItemCollection
+ *
  * @template T
  * @extends Collection<int, T>
  */

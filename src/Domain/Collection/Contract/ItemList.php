@@ -12,6 +12,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
+ * Interface ItemList
+ *
  * @template T
  * @extends ItemCollection<T>
  * @extends ArrayAccess<int, T>

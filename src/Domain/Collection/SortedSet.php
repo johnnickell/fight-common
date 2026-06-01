@@ -20,6 +20,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class SortedSet
+ *
  * @template T
  * @implements OrderedSet<T>
  */

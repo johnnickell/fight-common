@@ -13,6 +13,8 @@ use SplDoublyLinkedList;
 use Traversable;
 
 /**
+ * Class LinkedDeque
+ *
  * @template T
  * @implements Deque<T>
  */

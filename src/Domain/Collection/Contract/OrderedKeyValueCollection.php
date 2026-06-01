@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\UnderflowException;
 use Fight\Common\Domain\Type\Comparator;
 
 /**
+ * Interface OrderedKeyValueCollection
+ *
  * @template K
  * @template V
  * @extends Collection<K, V>

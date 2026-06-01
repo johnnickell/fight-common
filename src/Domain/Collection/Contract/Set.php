@@ -9,6 +9,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
+ * Interface Set
+ *
  * @template T
  * @extends ItemCollection<T>
  */

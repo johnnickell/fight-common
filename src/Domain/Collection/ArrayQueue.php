@@ -12,6 +12,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class ArrayQueue
+ *
  * @template T
  * @implements Queue<T>
  */

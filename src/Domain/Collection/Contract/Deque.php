@@ -10,6 +10,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
+ * Interface Deque
+ *
  * @template T
  * @extends ItemCollection<T>
  */

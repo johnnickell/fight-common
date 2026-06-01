@@ -10,6 +10,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
+ * Interface Queue
+ *
  * @template T
  * @extends ItemCollection<T>
  */

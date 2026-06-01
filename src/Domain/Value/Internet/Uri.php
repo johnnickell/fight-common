@@ -11,6 +11,8 @@ use Fight\Common\Domain\Utility\VarPrinter;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
+ * Class Uri
+ *
  * @phpstan-consistent-constructor
  *
  * @link http://tools.ietf.org/html/rfc3986 RFC 3986

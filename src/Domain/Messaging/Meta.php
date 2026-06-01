@@ -14,6 +14,8 @@ use JsonSerializable;
 use Traversable;
 
 /**
+ * Class Meta
+ *
  * @implements IteratorAggregate<string, mixed>
  */
 final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSerializable, Stringable

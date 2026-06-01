@@ -9,6 +9,8 @@ use Fight\Common\Application\Service\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 
 /**
+ * Class Container
+ *
  * @implements ArrayAccess<string, mixed>
  */
 final class Container implements ArrayAccess, ContainerInterface

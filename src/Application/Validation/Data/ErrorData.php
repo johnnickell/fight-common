@@ -12,6 +12,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Traversable;
 
 /**
+ * Class ErrorData
+ *
  * @implements Collection<string, mixed>
  */
 final readonly class ErrorData implements Arrayable, Collection

@@ -18,6 +18,8 @@ use IteratorAggregate;
 use Traversable;
 
 /**
+ * Class MbStringObject
+ *
  * @implements ArrayAccess<int, string>
  * @implements IteratorAggregate<int, string>
  */

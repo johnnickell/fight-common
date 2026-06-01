@@ -14,6 +14,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class ArrayList
+ *
  * @template T
  * @implements ItemList<T>
  */

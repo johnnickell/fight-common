@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Collection\Contract;
 
 /**
+ * Interface KeyValueCollection
+ *
  * @template K
  * @template V
  * @extends Collection<K, V>

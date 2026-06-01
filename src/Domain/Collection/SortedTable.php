@@ -20,6 +20,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class SortedTable
+ *
  * @template K
  * @template V
  * @implements OrderedTable<K, V>

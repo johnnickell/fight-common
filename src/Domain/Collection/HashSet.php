@@ -13,6 +13,8 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
+ * Class HashSet
+ *
  * @template T
  * @implements Set<T>
  */

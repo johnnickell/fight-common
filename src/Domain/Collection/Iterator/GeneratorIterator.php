@@ -14,6 +14,8 @@ use ReflectionFunction;
 use Throwable;
 
 /**
+ * Class GeneratorIterator
+ *
  * @implements Iterator<int, mixed>
  */
 final class GeneratorIterator implements Iterator

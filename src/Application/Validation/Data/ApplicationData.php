@@ -11,6 +11,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Traversable;
 
 /**
+ * Class ApplicationData
+ *
  * @implements Collection<string, mixed>
  */
 final readonly class ApplicationData implements Arrayable, Collection

@@ -7,6 +7,8 @@ namespace Fight\Common\Domain\Collection\Iterator;
 use Iterator;
 
 /**
+ * Class ArrayQueueIterator
+ *
  * @implements Iterator<int, mixed>
  */
 final class ArrayQueueIterator implements Iterator

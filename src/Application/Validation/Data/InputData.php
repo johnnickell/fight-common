@@ -11,6 +11,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Traversable;
 
 /**
+ * Class InputData
+ *
  * @implements Collection<string, mixed>
  */
 final readonly class InputData implements Arrayable, Collection

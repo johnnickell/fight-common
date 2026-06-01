@@ -7,6 +7,8 @@ namespace Fight\Common\Domain\Collection\Iterator;
 use Iterator;
 
 /**
+ * Class ArrayStackIterator
+ *
  * @implements Iterator<int, mixed>
  */
 final class ArrayStackIterator implements Iterator

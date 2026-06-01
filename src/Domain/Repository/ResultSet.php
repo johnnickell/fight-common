@@ -12,6 +12,8 @@ use JsonSerializable;
 use Traversable;
 
 /**
+ * Class ResultSet
+ *
  * @implements Collection<int, object>
  */
 final class ResultSet implements Arrayable, Collection, JsonSerializable

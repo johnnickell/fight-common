@@ -11,6 +11,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
+ * Interface OrderedSet
+ *
  * @template T
  * @extends OrderedItemCollection<T>
  */

@@ -18,6 +18,8 @@ use IteratorAggregate;
 use Traversable;
 
 /**
+ * Class StringObject
+ *
  * @implements ArrayAccess<int, string>
  * @implements IteratorAggregate<int, string>
  */

@@ -8,6 +8,8 @@ use Countable;
 use IteratorAggregate;
 
 /**
+ * Interface Collection
+ *
  * @template TKey
  * @template TValue
  * @extends IteratorAggregate<TKey, TValue>

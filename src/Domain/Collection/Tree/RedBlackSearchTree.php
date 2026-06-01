@@ -13,6 +13,8 @@ use Fight\Common\Domain\Type\Comparator;
 use Fight\Common\Domain\Utility\VarPrinter;
 
 /**
+ * Class RedBlackSearchTree
+ *
  * @template K
  * @template V
  * @implements BinarySearchTree<K, V>

@@ -13,6 +13,8 @@ use SplDoublyLinkedList;
 use Traversable;
 
 /**
+ * Class LinkedStack
+ *
  * @template T
  * @implements Stack<T>
  */

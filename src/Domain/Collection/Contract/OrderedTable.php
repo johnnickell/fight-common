@@ -10,6 +10,8 @@ use Fight\Common\Domain\Exception\LookupException;
 use Fight\Common\Domain\Exception\UnderflowException;
 
 /**
+ * Interface OrderedTable
+ *
  * @template K
  * @template V
  * @extends OrderedKeyValueCollection<K, V>

@@ -45,8 +45,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
             }
         } catch (FileStorageException $e) {
             throw $e;
-        } catch (Throwable $e) {
-            throw new FileStorageException($e->getMessage(), 0, $e);
+        } catch (Throwable $throwable) {
+            throw new FileStorageException($throwable->getMessage(), 0, $throwable);
         }
     }
 

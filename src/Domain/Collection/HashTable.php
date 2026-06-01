@@ -15,6 +15,8 @@ use Fight\Common\Domain\Utility\VarPrinter;
 use Traversable;
 
 /**
+ * Class HashTable
+ *
  * @template K
  * @template V
  * @implements Table<K, V>
