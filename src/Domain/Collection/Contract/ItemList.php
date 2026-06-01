@@ -26,7 +26,7 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
     /**
      * Creates a list with the items replaced
      *
-     * @param iterable $items
+     * @param iterable<T> $items
      */
     public function replace(iterable $items): static;
 

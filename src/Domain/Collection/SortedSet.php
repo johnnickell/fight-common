@@ -137,6 +137,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function difference(OrderedSet $other): static
@@ -154,6 +156,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function intersection(OrderedSet $other): static
@@ -166,6 +170,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function complement(OrderedSet $other): static
@@ -182,6 +188,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function union(OrderedSet $other): static

@@ -113,6 +113,8 @@ final class HashSet implements Set
     }
 
     /**
+     * @param Set<T> $other
+     *
      * @inheritDoc
      */
     public function difference(Set $other): static
@@ -130,6 +132,8 @@ final class HashSet implements Set
     }
 
     /**
+     * @param Set<T> $other
+     *
      * @inheritDoc
      */
     public function intersection(Set $other): static
@@ -142,6 +146,8 @@ final class HashSet implements Set
     }
 
     /**
+     * @param Set<T> $other
+     *
      * @inheritDoc
      */
     public function complement(Set $other): static
@@ -158,6 +164,8 @@ final class HashSet implements Set
     }
 
     /**
+     * @param Set<T> $other
+     *
      * @inheritDoc
      */
     public function union(Set $other): static

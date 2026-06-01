@@ -71,6 +71,8 @@ final class ArrayList implements ItemList
     }
 
     /**
+     * @param iterable<T> $items
+     *
      * @inheritDoc
      */
     public function replace(iterable $items): static

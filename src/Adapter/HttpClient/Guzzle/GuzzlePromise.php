@@ -33,7 +33,8 @@ final class GuzzlePromise implements Promise
      * Constructs GuzzlePromise
      */
     public function __construct(
-        PromiseInterface $promise, /** @phpstan-ignore property.onlyWritten */
+        PromiseInterface $promise,
+        /** @phpstan-ignore property.onlyWritten */
         private readonly RequestInterface $request
     ) {
         $this->state = Promise::PENDING;

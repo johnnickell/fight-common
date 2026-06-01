@@ -406,7 +406,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     /**
      * Fills a queue with keys between lo and hi in a subtree
      *
-     * @param ItemList $list
+     * @param ItemList<K> $list
      */
     private function fillKeys(ItemList $list, mixed $lo, mixed $hi, ?RedBlackNode $node): void
     {

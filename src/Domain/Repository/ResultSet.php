@@ -26,7 +26,7 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
      * @param integer $page
      * @param integer $perPage
      * @param integer $totalRecords
-     * @param ArrayList $records
+     * @param ArrayList<object> $records
      */
     public function __construct(
         private int $page,

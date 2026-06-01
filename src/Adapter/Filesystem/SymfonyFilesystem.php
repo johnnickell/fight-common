@@ -27,7 +27,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $dirs
+     * @param string|iterable<string> $dirs
      * @param integer $mode
      *
      * @inheritDoc
@@ -44,7 +44,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $files
+     * @param string|iterable<string> $files
      * @param integer|null $time
      * @param integer|null $atime
      *
@@ -133,7 +133,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $paths
+     * @param string|iterable<string> $paths
      *
      * @inheritDoc
      */
@@ -143,7 +143,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $paths
+     * @param string|iterable<string> $paths
      *
      * @inheritDoc
      */
@@ -433,7 +433,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $paths
+     * @param string|iterable<string> $paths
      * @param integer $mode
      * @param integer $umask
      * @param boolean $recursive
@@ -452,7 +452,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $paths
+     * @param string|iterable<string> $paths
      * @param string $user
      * @param boolean $recursive
      *
@@ -470,7 +470,7 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable $paths
+     * @param string|iterable<string> $paths
      * @param string $group
      * @param boolean $recursive
      *

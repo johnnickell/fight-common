@@ -38,7 +38,7 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      *
      * A ∆ B = {x : (x ∈ A) ⊕ (x ∈ B)}
      *
-     * @param Set $other
+     * @param Set<T> $other
      */
     public function difference(Set $other): static;
 
@@ -50,7 +50,7 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      *
      * A ∩ B = {x : x ∈ A ∧ x ∈ B}
      *
-     * @param Set $other
+     * @param Set<T> $other
      */
     public function intersection(Set $other): static;
 
@@ -62,7 +62,7 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      *
      * B \ A = {x : x ∈ B ∧ x ∉ A}
      *
-     * @param Set $other
+     * @param Set<T> $other
      */
     public function complement(Set $other): static;
 
@@ -74,7 +74,7 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      *
      * A ∪ B = {x : x ∈ A ∨ x ∈ B}
      *
-     * @param Set $other
+     * @param Set<T> $other
      */
     public function union(Set $other): static;
 
