@@ -21,9 +21,7 @@ use Throwable;
  */
 final class JwtEncoder implements TokenEncoder
 {
-    /**
-     * Supported algorithms
-     */
+    /** @var array<string, class-string> */
     private static array $algorithms = [
         'HS256' => Sha256::class,
         'HS384' => Sha384::class,
@@ -51,6 +49,8 @@ final class JwtEncoder implements TokenEncoder
     }
 
     /**
+     * @param array<string, mixed> $claims
+     *
      * @inheritDoc
      */
     public function encode(array $claims, DateTimeImmutable $expiration): string

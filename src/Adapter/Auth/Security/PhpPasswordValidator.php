@@ -13,6 +13,9 @@ final readonly class PhpPasswordValidator implements PasswordValidator
 {
     /**
      * Constructs PhpPasswordValidator
+     *
+     * @param string $algorithm
+     * @param array<string, mixed>|null $options
      */
     public function __construct(private string $algorithm, private ?array $options = null)
     {

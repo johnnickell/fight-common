@@ -15,6 +15,7 @@ use Fight\Common\Domain\Utility\Validate;
  */
 final class InMemoryCommandRouter implements CommandRouter
 {
+    /** @var array<string, CommandHandler> */
     private array $handlers = [];
 
     /**
@@ -32,6 +33,8 @@ final class InMemoryCommandRouter implements CommandRouter
      * [
      *     SomeCommand::class => $someHandlerInstance
      * ]
+     *
+     * @param array<string, CommandHandler> $commandToHandlerMap
      */
     public function registerHandlers(array $commandToHandlerMap): void
     {

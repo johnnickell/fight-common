@@ -14,6 +14,9 @@ use Traversable;
 
 /**
  * Class LinkedStack
+ *
+ * @template T
+ * @implements Stack<T>
  */
 final class LinkedStack implements Stack
 {
@@ -23,6 +26,7 @@ final class LinkedStack implements Stack
 
     private const REVERSE = SplDoublyLinkedList::IT_MODE_FIFO | SplDoublyLinkedList::IT_MODE_KEEP;
 
+    /** @var SplDoublyLinkedList<T> */
     private SplDoublyLinkedList $list;
 
     /**
@@ -320,6 +324,7 @@ final class LinkedStack implements Stack
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -350,6 +355,7 @@ final class LinkedStack implements Stack
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -372,6 +378,7 @@ final class LinkedStack implements Stack
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

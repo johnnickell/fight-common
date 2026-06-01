@@ -7,32 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.3.0] - 2026-05-25
-
 ### Added
 
-**HMAC-Secured AI Operations API**
-- `Domain\Auth\Nonce` — value object with hex value and expiry; `generate()` factory for unique nonces
-- `Domain\Auth\AiOperation` — signed AI operation record; validates against known actions (`health_check`, `clear_cache`, `run_migration`, `deploy`); `fromJson()` / `fromArray()` factories
-- `Application\Auth\NonceRepository` — port: `consume(Nonce)` (throws `AuthException` on replay) and `purgeExpired()`
-- `Application\Auth\WebhookDispatcher` — port: `dispatch(string $url, string $action, array $payload): void`
-- `Adapter\Auth\Nonce\InMemoryNonceRepository` — single-process nonce store; good for testing and short-lived workers
-- `Adapter\Auth\Nonce\DoctrineNonceRepository` — persists to `hmac_nonces` table; atomic replay prevention via unique constraint
-- `Adapter\Auth\Hmac\HmacWebhookDispatcher` — builds, signs, and sends AI operation requests; composes `HttpClient` + `HmacRequestService`
-
-### Changed
-
-- `Adapter\Auth\Hmac\HmacAuthenticator` — `validate()` now always throws `AuthException` instead of returning `false` on signature mismatch (all failure paths now throw consistently); accepts optional `NonceRepository` to prevent replay attacks within the timestamp tolerance window
-
-### Breaking Changes
-
-- `HmacAuthenticator::validate()` previously returned `false` on signature mismatch and `true` on success; it now always returns `true` or throws `AuthException`. Callers checking `if (!$authenticator->validate($request))` must be updated to catch `AuthException` instead.
-
----
-
-## [1.2.0] - 2026-05-25
-
-### Added
+**PhpEngine Hardening**
+- **Output buffer leak on exception** — `evaluate()` now wraps `require` in try/finally so `ob_get_clean()` is always called even when the template throws
+- **`ob_get_clean()` null-check** — `endBlock()` and `evaluate()` both guard against `ob_get_clean()` returning `false` (throws `TemplatingException`)
+- **Path traversal protection** — `exists()` and `getTemplatePath()` validate resolved paths against allowed base directories via `realpath()`; symlink escapes raise `TemplateNotFoundException`
+- **Hash cache key** — replaced `hash('sha256', $file)` with the direct file path as the cache key, avoiding unnecessary hashing
+- **Parent-template inheritance** — the dead `@codeCoverageIgnore`d code in `render()` was properly implemented: `extends()` called during template evaluation now triggers parent rendering, enabling layout inheritance via child blocks
+- **`$template` mutation bug** — `getTemplatePath()` no longer mutates the `$template` parameter inside the `foreach` loop (uses a local `$resolved` variable instead)
+- **`TemplatingException` coverage** — added dedicated test with `#[CoversClass]` attribution
 
 **Observability Layer — Domain**
 - `Domain\Observability\HealthStatus` — value object with severity-ordered statuses (`healthy`, `degraded`, `unhealthy`) and `worst()` aggregation
@@ -59,8 +43,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Messaging\Command\MetricsCommandFilter` — command bus middleware; auto-emits `command.executed`, `command.failed`, `command.latency_ms`
 - `Adapter\Messaging\Query\MetricsQueryFilter` — query bus middleware; auto-emits `query.executed`, `query.failed`, `query.latency_ms`
 
+**HMAC-Secured AI Operations API**
+- `Domain\Auth\Nonce` — value object with hex value and expiry; `generate()` factory for unique nonces
+- `Domain\Auth\AiOperation` — signed AI operation record; validates against known actions (`health_check`, `clear_cache`, `run_migration`, `deploy`); `fromJson()` / `fromArray()` factories
+- `Application\Auth\NonceRepository` — port: `consume(Nonce)` (throws `AuthException` on replay) and `purgeExpired()`
+- `Application\Auth\WebhookDispatcher` — port: `dispatch(string $url, string $action, array $payload): void`
+- `Adapter\Auth\Nonce\InMemoryNonceRepository` — single-process nonce store; good for testing and short-lived workers
+- `Adapter\Auth\Nonce\DoctrineNonceRepository` — persists to `hmac_nonces` table; atomic replay prevention via unique constraint
+- `Adapter\Auth\Hmac\HmacWebhookDispatcher` — builds, signs, and sends AI operation requests; composes `HttpClient` + `HmacRequestService`
+
 **Documentation**
 - `docs/observability.md` — full wiring guide for health checks, metrics, audit log, and HMAC AI operations
+
+### Changed
+
+- `HmacAuthenticator::validate()` now throws `AuthException` on signature mismatch instead of returning `false`. The return type is narrowed from `bool` to `true`. Callers using `if (!$authenticator->validate($request))` should be updated to call `$authenticator->validate($request)` directly (the exception replaces the falsy check path). The method also accepts an optional `NonceRepository` to prevent replay attacks within the timestamp tolerance window.
 
 ---
 

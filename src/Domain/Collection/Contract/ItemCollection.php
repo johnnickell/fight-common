@@ -6,6 +6,9 @@ namespace Fight\Common\Domain\Collection\Contract;
 
 /**
  * Interface ItemCollection
+ *
+ * @template T
+ * @extends Collection<int, T>
  */
 interface ItemCollection extends Collection
 {
@@ -181,6 +184,8 @@ interface ItemCollection extends Collection
      * <code>
      * function (<I> $item, int $index): bool {}
      * </code>
+     *
+     * @return array{0: static, 1: static}
      */
     public function partition(callable $predicate): array;
 }

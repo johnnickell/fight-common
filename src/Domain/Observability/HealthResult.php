@@ -13,6 +13,11 @@ final readonly class HealthResult implements JsonSerializable
 {
     /**
      * Constructs HealthResult
+     *
+     * @param string $name
+     * @param HealthStatus $status
+     * @param string|null $message
+     * @param array<string, mixed> $context
      */
     public function __construct(
         private string $name,
@@ -48,6 +53,8 @@ final readonly class HealthResult implements JsonSerializable
 
     /**
      * Retrieves the additional context
+     *
+     * @return array<string, mixed>
      */
     public function context(): array
     {
@@ -56,6 +63,8 @@ final readonly class HealthResult implements JsonSerializable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -69,6 +78,8 @@ final readonly class HealthResult implements JsonSerializable
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

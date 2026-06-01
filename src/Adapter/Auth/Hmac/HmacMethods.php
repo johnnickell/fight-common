@@ -50,6 +50,12 @@ trait HmacMethods
 
     /**
      * Creates a canonical request string
+     *
+     * @param string $method
+     * @param string $authority
+     * @param string $path
+     * @param string $query
+     * @param array<string, int|string> $headers
      */
     protected function createCanonicalRequestString(
         string $method,

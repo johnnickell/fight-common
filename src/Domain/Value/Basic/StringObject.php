@@ -19,6 +19,9 @@ use Traversable;
 
 /**
  * Class StringObject
+ *
+ * @implements ArrayAccess<int, string>
+ * @implements IteratorAggregate<int, string>
  */
 final readonly class StringObject extends ValueObject implements ArrayAccess, Countable, Comparable, IteratorAggregate
 {
@@ -162,6 +165,8 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
 
     /**
      * Retrieves a list of characters
+     *
+     * @return ArrayList<string>
      */
     public function chars(): ArrayList
     {
@@ -621,6 +626,8 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      * Creates a list of strings split by a delimiter
      *
      * @throws DomainException When the delimiter is empty
+     *
+     * @return ArrayList<string>
      */
     public function split(string $delimiter = ' ', ?int $limit = null): ArrayList
     {
@@ -649,6 +656,8 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      * Each string in the list is represented by a static instance.
      *
      * @throws DomainException When the chunk size is invalid
+     *
+     * @return ArrayList<string>
      */
     public function chunk(int $size = 1): ArrayList
     {
@@ -679,7 +688,11 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      * If search is an array and replacement is a string, then the replacement
      * string is used for every value of search.
      */
-    public function replace($search, $replace): static
+    /**
+     * @param string|array<mixed> $search
+     * @param string|array<mixed> $replace
+     */
+    public function replace(string|array $search, string|array $replace): static
     {
         return static::create(str_replace($search, $replace, $this->value));
     }
@@ -1029,6 +1042,8 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
 
     /**
      * Splits a string into a list on capital letters
+     *
+     * @return string[]
      */
     private static function explodeOnCaps(string $string): array
     {
@@ -1042,6 +1057,8 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
 
     /**
      * Splits a string into a list on non-word breaks
+     *
+     * @return string[]
      */
     private static function explodeOnDelimiters(string $string): array
     {

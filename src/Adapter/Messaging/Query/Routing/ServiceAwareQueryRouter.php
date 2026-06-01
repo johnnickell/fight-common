@@ -16,6 +16,7 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareQueryRouter implements QueryRouter
 {
+    /** @var array<string, string> */
     private array $handlers = [];
 
     /**
@@ -40,6 +41,8 @@ final class ServiceAwareQueryRouter implements QueryRouter
      * [
      *     SomeQuery::class => 'handler_service_name'
      * ]
+     *
+     * @param array<string, string> $queryToHandlerMap
      */
     public function registerHandlers(array $queryToHandlerMap): void
     {

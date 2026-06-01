@@ -1,20 +1,20 @@
 # Roadmap
 
-## v1.1 — PhpEngine Hardening ✅
+## Milestone A — PhpEngine Hardening ✅
 
 `src/Adapter/Templating/PhpEngine.php` had several correctness, security, and design issues that have been addressed:
 
-- **Output buffer leak on exception** — `evaluate()` now wraps `ob_start()/require/ob_get_clean()` in try/finally so the buffer is always cleaned up even when the template throws
-- **`ob_get_clean()` null-check** — `endBlock()` now guards against `ob_get_clean()` returning `false` (throws `TemplatingException`)
-- **Path traversal protection** — `getTemplatePath()` validates resolved paths against allowed base directories via `realpath()`
-- **Hash cache key** — replaced `hash('sha256', $file)` with the direct file path as the cache key
+- **Output buffer leak on exception** — `evaluate()` now wraps `require` in try/finally so `ob_get_clean()` is always called even when the template throws
+- **`ob_get_clean()` null-check** — `endBlock()` and `evaluate()` both guard against `ob_get_clean()` returning `false` (throws `TemplatingException`)
+- **Path traversal protection** — `getTemplatePath()` and `exists()` validate resolved paths against allowed base directories via `realpath()`; symlink escapes raise `TemplateNotFoundException`
+- **Hash cache key** — replaced `hash('sha256', $file)` with the direct file path as the cache key, avoiding unnecessary hashing
 - **Parent-template inheritance** — the dead `@codeCoverageIgnore`d code in `render()` was properly implemented: `extends()` called during template evaluation now triggers parent rendering, enabling layout inheritance via child blocks
-- **`$template` mutation bug** — `getTemplatePath()` no longer mutates the `$template` parameter inside the `foreach` loop
+- **`$template` mutation bug** — `getTemplatePath()` no longer mutates the `$template` parameter inside the `foreach` loop (uses a local `$resolved` variable instead)
 - **`TemplatingException` coverage** — added dedicated test with `#[CoversClass]` attribution
 
 ---
 
-## v1.2 — Observability Layer ✅
+## Milestone B — Observability Layer ✅
 
 The library has decorator-pattern logging (HTTP client, mail transport, cache) but no architectural observability contracts. This milestone makes observability a first-class concern at the application layer, with adapters providing the infrastructure.
 
@@ -55,11 +55,11 @@ Structured business-fact records — `who`, `what`, `when`, `context` — distin
 
 ### AI tool access
 
-Exposing `HealthReport` + `AuditLog` over an HTTP endpoint (secured with HMAC, see v1.3) gives AI agents read access to system state without SSH or log file access. The agent can assess health before making changes, verify a deployment succeeded, or surface anomalies.
+Exposing `HealthReport` + `AuditLog` over an HTTP endpoint (secured with HMAC, see Milestone C) gives AI agents read access to system state without SSH or log file access. The agent can assess health before making changes, verify a deployment succeeded, or surface anomalies.
 
 ---
 
-## v1.3 — HMAC-Secured AI Operations API ✅
+## Milestone C — HMAC-Secured AI Operations API ✅
 
 Build on the existing HMAC auth adapters (`src/Adapter/Auth/Hmac/`):
 
@@ -72,12 +72,25 @@ This is the "local to production updates with AI assistance" pattern: the AI age
 
 ---
 
-## v1.4 — Transport Adapters
+## Milestone D — Static Analysis & Code Quality
 
-Restore adapters from earlier versions of the library when a concrete use case arises:
+Add PHPStan static analysis to catch type errors, dead code, and implicit `mixed` types before they reach runtime:
 
-- SMS messaging (Twilio, AWS SNS)
-- SMTP file transfer
-- FTP adapter
+- Configure PHPStan at level 6, scanning `src/`
+- Add to CI workflow
+- Fix all issues found
+- Ratchet level up to max, fixing iteratively
+- Decide on bleeding-edge ruleset by comparing error counts
 
-These are deferred until needed.
+---
+
+## Milestone E — SMS Notification Adapters
+
+Port definitions and adapter implementations for sending SMS messages:
+
+- `Application/Notifications/SmsSender.php` — send interface
+- `Application/Notifications/SmsMessage.php` — message value object
+- `Adapter/Notifications/TwilioSmsSender.php`
+- `Adapter/Notifications/AwsSnsSmsSender.php`
+
+Adapters will be designed after Milestone D is complete.

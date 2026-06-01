@@ -22,6 +22,9 @@ final readonly class AiOperation implements JsonSerializable
     /**
      * Constructs AiOperation
      *
+     * @param string $action
+     * @param array<string, mixed> $payload
+     *
      * @throws DomainException When the action is unknown
      */
     private function __construct(
@@ -35,6 +38,8 @@ final readonly class AiOperation implements JsonSerializable
 
     /**
      * Creates an instance from an associative array
+     *
+     * @param array<string, mixed> $data
      *
      * @throws DomainException When required fields are missing or the action is unknown
      */
@@ -73,6 +78,8 @@ final readonly class AiOperation implements JsonSerializable
 
     /**
      * Retrieves the action payload
+     *
+     * @return array<string, mixed>
      */
     public function payload(): array
     {
@@ -81,6 +88,8 @@ final readonly class AiOperation implements JsonSerializable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -92,6 +101,8 @@ final readonly class AiOperation implements JsonSerializable
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

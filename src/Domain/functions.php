@@ -94,6 +94,10 @@ function email(string $address): EmailAddress
 
 /**
  * Creates a typed ArrayList from an array of items
+ *
+ * @param array<mixed> $items
+ *
+ * @return ArrayList<mixed>
  */
 function array_list(array $items, ?string $type = null): ArrayList
 {
@@ -102,6 +106,10 @@ function array_list(array $items, ?string $type = null): ArrayList
 
 /**
  * Creates a typed HashSet from an array of items
+ *
+ * @param array<mixed> $items
+ *
+ * @return HashSet<mixed>
  */
 function hash_set(array $items, ?string $type = null): HashSet
 {
@@ -116,6 +124,10 @@ function hash_set(array $items, ?string $type = null): HashSet
 
 /**
  * Creates a typed HashTable from an array of key-value entries
+ *
+ * @param array<mixed, mixed> $entries
+ *
+ * @return HashTable<mixed, mixed>
  */
 function hash_table(array $entries, ?string $keyType = null, ?string $valueType = null): HashTable
 {
@@ -130,6 +142,10 @@ function hash_table(array $entries, ?string $keyType = null, ?string $valueType 
 
 /**
  * Creates a typed ArrayStack from an array of items
+ *
+ * @param array<mixed> $items
+ *
+ * @return ArrayStack<mixed>
  */
 function array_stack(array $items, ?string $type = null): ArrayStack
 {
@@ -144,6 +160,10 @@ function array_stack(array $items, ?string $type = null): ArrayStack
 
 /**
  * Creates a typed ArrayQueue from an array of items
+ *
+ * @param array<mixed> $items
+ *
+ * @return ArrayQueue<mixed>
  */
 function array_queue(array $items, ?string $type = null): ArrayQueue
 {

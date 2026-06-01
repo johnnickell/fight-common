@@ -37,6 +37,11 @@ final class JSendResponse extends JsonResponse
 
     /**
      * Creates a success response
+     *
+     * @param array<string, mixed>|null $data
+     * @param integer $statusCode
+     * @param array<string, string|string[]> $headers
+     * @param integer $options
      */
     public static function success(
         ?array $data = null,
@@ -58,6 +63,11 @@ final class JSendResponse extends JsonResponse
 
     /**
      * Creates a fail response
+     *
+     * @param array<string, mixed>|null $data
+     * @param integer $statusCode
+     * @param array<string, string|string[]> $headers
+     * @param integer $options
      */
     public static function fail(
         ?array $data = null,
@@ -79,6 +89,13 @@ final class JSendResponse extends JsonResponse
 
     /**
      * Creates an error response
+     *
+     * @param string $message
+     * @param integer $statusCode
+     * @param array<string, mixed>|null $data
+     * @param integer|null $code
+     * @param array<string, string|string[]> $headers
+     * @param integer $options
      */
     public static function error(
         string $message,

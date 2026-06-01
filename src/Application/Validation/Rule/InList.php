@@ -14,6 +14,8 @@ final class InList extends CompositeSpecification
 {
     /**
      * Constructs InList
+     *
+     * @param mixed[] $list
      */
     public function __construct(private readonly array $list)
     {

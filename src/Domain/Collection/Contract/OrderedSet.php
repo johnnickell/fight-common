@@ -12,6 +12,9 @@ use Stringable;
 
 /**
  * Interface OrderedSet
+ *
+ * @template T
+ * @extends OrderedItemCollection<T>
  */
 interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable, Stringable
 {
@@ -38,6 +41,8 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      * the current set.
      *
      * A ∆ B = {x : (x ∈ A) ⊕ (x ∈ B)}
+     *
+     * @param OrderedSet<T> $other
      */
     public function difference(OrderedSet $other): static;
 
@@ -48,6 +53,8 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      * set and the provided set.
      *
      * A ∩ B = {x : x ∈ A ∧ x ∈ B}
+     *
+     * @param OrderedSet<T> $other
      */
     public function intersection(OrderedSet $other): static;
 
@@ -58,6 +65,8 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      * found in the current set.
      *
      * B \ A = {x : x ∈ B ∧ x ∉ A}
+     *
+     * @param OrderedSet<T> $other
      */
     public function complement(OrderedSet $other): static;
 
@@ -68,11 +77,15 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      * the provided set.
      *
      * A ∪ B = {x : x ∈ A ∨ x ∈ B}
+     *
+     * @param OrderedSet<T> $other
      */
     public function union(OrderedSet $other): static;
 
     /**
      * Retrieves an inclusive list of items between given items
+     *
+     * @return iterable<T>
      */
     public function range(mixed $lo, mixed $hi): iterable;
 
@@ -143,6 +156,8 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<T>
      */
     public function toArray(): array;
 
@@ -153,6 +168,8 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<T>
      */
     public function jsonSerialize(): array;
 

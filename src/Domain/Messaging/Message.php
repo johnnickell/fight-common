@@ -69,11 +69,15 @@ interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Se
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array;
 
     /**
      * Retrieves a value for JSON encoding
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array;
 }

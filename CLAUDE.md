@@ -15,6 +15,8 @@ All tooling runs inside a PHP 8.5 Docker container (`fight-common`). The `./bin/
 ./bin/composer require vendor/package                  # manage dependencies
 ./bin/rector process src/                              # run code modernization
 ./bin/exec php -r "echo 'hello';"                      # run arbitrary PHP
+./bin/exec php vendor/bin/phpstan analyse              # static analysis (level 6)
+./bin/exec php vendor/bin/phpstan analyse --bleeding-edge  # with bleeding-edge rules
 ```
 
 ### For Claude Code (non-interactive Docker)
@@ -37,6 +39,14 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 # Run rector (dry-run first, then without --dry-run to apply)
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/rector process src/ --dry-run
+
+# Run static analysis (level 6)
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpstan analyse
+
+# With bleeding-edge rules
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpstan analyse --bleeding-edge
 
 # Run arbitrary PHP
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \

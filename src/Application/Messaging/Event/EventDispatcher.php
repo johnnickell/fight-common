@@ -46,6 +46,8 @@ interface EventDispatcher
 
     /**
      * Retrieves handlers for an event or all events
+     *
+     * @return array<string, callable[]>
      */
     public function getHandlers(?string $eventType = null): array;
 

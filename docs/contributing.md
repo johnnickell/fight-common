@@ -105,6 +105,7 @@ git push origin main 1.1.0
 - 100% statement coverage must be maintained (enforced by `requireCoverageMetadata` in `phpunit.xml.dist`)
 - Every new class in `src/` requires a corresponding test class with `#[CoversClass]`
 - Follow the existing code style (PSR-12, enforced by PHP_CodeSniffer)
+- PHPStan must pass at the configured level (currently level 6, enforced by CI)
 
 ---
 
@@ -117,6 +118,7 @@ All tooling runs inside the `fight-common` Docker container. The `./bin/` script
 ./bin/phpunit --filter MyTest              # single test
 ./bin/composer require vendor/package      # add a dependency
 ./bin/rector process src/                  # apply code modernization
+./bin/exec php vendor/bin/phpstan analyse  # static analysis (level 6)
 ```
 
 See the [CLAUDE.md](../CLAUDE.md) for non-interactive (CI-style) Docker commands.

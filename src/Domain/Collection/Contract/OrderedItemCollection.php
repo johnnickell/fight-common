@@ -9,6 +9,9 @@ use Fight\Common\Domain\Type\Comparator;
 
 /**
  * Interface OrderedItemCollection
+ *
+ * @template T
+ * @extends Collection<int, T>
  */
 interface OrderedItemCollection extends Collection
 {
@@ -242,6 +245,8 @@ interface OrderedItemCollection extends Collection
      * <code>
      * function (<I> $item, int $index): bool {}
      * </code>
+     *
+     * @return array{0: static, 1: static}
      */
     public function partition(callable $predicate): array;
 }

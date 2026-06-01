@@ -11,6 +11,9 @@ use Stringable;
 
 /**
  * Interface Deque
+ *
+ * @template T
+ * @extends ItemCollection<T>
  */
 interface Deque extends Arrayable, ItemCollection, JsonSerializable, Stringable
 {
@@ -54,6 +57,8 @@ interface Deque extends Arrayable, ItemCollection, JsonSerializable, Stringable
 
     /**
      * Retrieves array representation
+     *
+     * @return array<T>
      */
     public function toArray(): array;
 
@@ -64,6 +69,8 @@ interface Deque extends Arrayable, ItemCollection, JsonSerializable, Stringable
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<T>
      */
     public function jsonSerialize(): array;
 

@@ -21,11 +21,15 @@ use Traversable;
 
 /**
  * Class SortedSet
+ *
+ * @template T
+ * @implements OrderedSet<T>
  */
 final class SortedSet implements OrderedSet
 {
     use ItemTypeMethods;
 
+    /** @var BinarySearchTree<T, bool> */
     private BinarySearchTree $tree;
 
     /**
@@ -112,7 +116,7 @@ final class SortedSet implements OrderedSet
     /**
      * @inheritDoc
      */
-    public function add($item): void
+    public function add(mixed $item): void
     {
         assert(Validate::isType($item, $this->itemType()));
         $this->tree->set($item, true);
@@ -121,7 +125,7 @@ final class SortedSet implements OrderedSet
     /**
      * @inheritDoc
      */
-    public function contains($item): bool
+    public function contains(mixed $item): bool
     {
         return $this->tree->has($item);
     }
@@ -129,12 +133,14 @@ final class SortedSet implements OrderedSet
     /**
      * @inheritDoc
      */
-    public function remove($item): void
+    public function remove(mixed $item): void
     {
         $this->tree->remove($item);
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function difference(OrderedSet $other): static
@@ -152,6 +158,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function intersection(OrderedSet $other): static
@@ -164,6 +172,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function complement(OrderedSet $other): static
@@ -180,6 +190,8 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @param OrderedSet<T> $other
+     *
      * @inheritDoc
      */
     public function union(OrderedSet $other): static
@@ -193,6 +205,7 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @return iterable<T>
      * @inheritDoc
      */
     public function range(mixed $lo, mixed $hi): iterable
@@ -465,6 +478,7 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -498,6 +512,7 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -520,6 +535,7 @@ final class SortedSet implements OrderedSet
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

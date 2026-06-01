@@ -44,6 +44,9 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
     }
 
     /**
+     * @param string $metric
+     * @param array<string, string> $tags
+     *
      * @inheritDoc
      */
     public function increment(string $metric, array $tags = []): void
@@ -52,6 +55,10 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
     }
 
     /**
+     * @param string $metric
+     * @param float $value
+     * @param array<string, string> $tags
+     *
      * @inheritDoc
      */
     public function gauge(string $metric, float $value, array $tags = []): void
@@ -60,6 +67,10 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
     }
 
     /**
+     * @param string $metric
+     * @param float $value
+     * @param array<string, string> $tags
+     *
      * @inheritDoc
      */
     public function histogram(string $metric, float $value, array $tags = []): void
@@ -69,6 +80,11 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
 
     /**
      * Formats a metric line in DogStatsD wire format
+     *
+     * @param string $metric
+     * @param string $value
+     * @param string $type
+     * @param array<string, string> $tags
      */
     private function format(string $metric, string $value, string $type, array $tags): string
     {

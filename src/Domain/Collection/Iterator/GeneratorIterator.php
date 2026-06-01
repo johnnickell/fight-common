@@ -15,15 +15,21 @@ use Throwable;
 
 /**
  * Class GeneratorIterator
+ *
+ * @implements Iterator<int, mixed>
  */
 final class GeneratorIterator implements Iterator
 {
     private readonly Closure $function;
 
+    /** @var Generator<mixed, mixed, mixed, mixed> */
     private ?Generator $generator = null;
 
     /**
      * Constructs GeneratorIterator
+     *
+     * @param callable $function
+     * @param array<mixed> $args
      *
      * @codeCoverageIgnore coverage bug
      *

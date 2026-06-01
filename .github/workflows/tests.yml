@@ -38,5 +38,8 @@ jobs:
       - name: Check code style
         run: php vendor/bin/phpcs
 
+      - name: Static analysis
+        run: php vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress --error-format=github
+
       - name: Run tests
         run: php vendor/bin/phpunit

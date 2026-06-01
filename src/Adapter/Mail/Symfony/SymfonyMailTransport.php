@@ -19,10 +19,14 @@ use Throwable;
  */
 final class SymfonyMailTransport implements MailTransport
 {
+    /** @var array<string, array<int, string>> */
     private array $overrides = [];
 
     /**
      * Constructs SymfonyMailTransport
+     *
+     * @param MailerInterface $mailer
+     * @param array<string, string|string[]> $overrides
      */
     public function __construct(private readonly MailerInterface $mailer, array $overrides = [])
     {
@@ -240,6 +244,8 @@ final class SymfonyMailTransport implements MailTransport
 
     /**
      * Sets override destinations
+     *
+     * @param array<string, string|string[]> $overrides
      */
     private function setOverrides(array $overrides): void
     {
@@ -250,6 +256,8 @@ final class SymfonyMailTransport implements MailTransport
 
     /**
      * Sets override destinations by type
+     *
+     * @param array<string, string|string[]> $overrides
      */
     private function setOverride(array $overrides, string $type): void
     {
