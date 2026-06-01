@@ -10,7 +10,8 @@ use Fight\Common\Domain\Exception\LookupException;
 use Fight\Common\Domain\Exception\UnderflowException;
 
 /**
- * Interface BinarySearchTree
+ * @template K
+ * @template V
  */
 interface BinarySearchTree extends Countable
 {
@@ -43,11 +44,15 @@ interface BinarySearchTree extends Countable
 
     /**
      * Retrieves an iterator for keys
+     *
+     * @return iterable<K>
      */
     public function keys(): iterable;
 
     /**
      * Retrieves an inclusive list of keys between given keys
+     *
+     * @return iterable<K>
      */
     public function rangeKeys(mixed $lo, mixed $hi): iterable;
 

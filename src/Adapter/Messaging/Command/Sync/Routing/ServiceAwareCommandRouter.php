@@ -16,6 +16,7 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareCommandRouter implements CommandRouter
 {
+    /** @var array<string, string> */
     private array $handlers = [];
 
     /**
@@ -40,6 +41,8 @@ final class ServiceAwareCommandRouter implements CommandRouter
      * [
      *     SomeCommand::class => 'handler_service_name'
      * ]
+     *
+     * @param array<string, string> $commandToHandlerMap
      */
     public function registerHandlers(array $commandToHandlerMap): void
     {

@@ -14,14 +14,17 @@ use JsonSerializable;
 use Traversable;
 
 /**
- * Class Meta
+ * @implements IteratorAggregate<string, mixed>
  */
 final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSerializable, Stringable
 {
+    /** @var array<string, mixed> */
     private array $data = [];
 
     /**
      * Constructs Meta
+     *
+     * @param array<string, mixed> $data
      *
      * @throws DomainException When data is not valid
      */
@@ -34,6 +37,8 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * Creates instance from array representation
+     *
+     * @param array<string, mixed> $data
      *
      * @throws DomainException When data is not valid
      */
@@ -103,6 +108,8 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * Retrieves a list of keys
+     *
+     * @return string[]
      */
     public function keys(): array
     {
@@ -123,6 +130,8 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -147,6 +156,8 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * Retrieves a value for JSON encoding
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

@@ -13,7 +13,9 @@ use Fight\Common\Domain\Type\Comparator;
 use Fight\Common\Domain\Utility\VarPrinter;
 
 /**
- * Class RedBlackSearchTree
+ * @template K
+ * @template V
+ * @implements BinarySearchTree<K, V>
  */
 final class RedBlackSearchTree implements BinarySearchTree
 {
@@ -95,6 +97,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
+     * @return iterable<K>
      * @inheritDoc
      */
     public function keys(): iterable
@@ -107,6 +110,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
+     * @return iterable<K>
      * @inheritDoc
      */
     public function rangeKeys(mixed $lo, mixed $hi): iterable
@@ -401,6 +405,8 @@ final class RedBlackSearchTree implements BinarySearchTree
 
     /**
      * Fills a queue with keys between lo and hi in a subtree
+     *
+     * @param ItemList $list
      */
     private function fillKeys(ItemList $list, mixed $lo, mixed $hi, ?RedBlackNode $node): void
     {

@@ -46,6 +46,8 @@ final class QueryMessage extends BaseMessage
     }
 
     /**
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public static function arrayDeserialize(array $data): static
@@ -75,7 +77,7 @@ final class QueryMessage extends BaseMessage
         $timestamp = DateTimeImmutable::createFromFormat('U', $data['timestamp']);
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
-        /** @var Query|string $payloadClass */
+        /** @var class-string<Query> $payloadClass */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Query::class));

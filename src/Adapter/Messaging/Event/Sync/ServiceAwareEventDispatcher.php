@@ -17,8 +17,10 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 {
+    /** @var array<string, array<string, object>> */
     private array $services = [];
 
+    /** @var array<string, array<int, array{string, string, int}>> */
     private array $serviceIds = [];
 
     /**
@@ -87,6 +89,8 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
+     * @return callable[]|array<string, callable[]>
+     *
      * @inheritDoc
      */
     #[Override]

@@ -13,12 +13,14 @@ use SplDoublyLinkedList;
 use Traversable;
 
 /**
- * Class LinkedDeque
+ * @template T
+ * @implements Deque<T>
  */
 final class LinkedDeque implements Deque
 {
     use ItemTypeMethods;
 
+    /** @var SplDoublyLinkedList<T> */
     private SplDoublyLinkedList $list;
 
     /**
@@ -337,6 +339,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -364,6 +367,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -386,6 +390,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

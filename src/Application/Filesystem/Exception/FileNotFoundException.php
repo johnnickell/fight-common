@@ -8,6 +8,8 @@ use Throwable;
 
 /**
  * Class FileNotFoundException
+ *
+ * @phpstan-consistent-constructor
  */
 class FileNotFoundException extends FilesystemException
 {

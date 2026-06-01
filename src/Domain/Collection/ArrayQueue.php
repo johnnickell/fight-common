@@ -12,12 +12,14 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
- * Class ArrayQueue
+ * @template T
+ * @implements Queue<T>
  */
 final class ArrayQueue implements Queue
 {
     use ItemTypeMethods;
 
+    /** @var array<T> */
     private array $items = [];
 
     private int $count = 0;
@@ -333,6 +335,7 @@ final class ArrayQueue implements Queue
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -360,6 +363,7 @@ final class ArrayQueue implements Queue
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -382,6 +386,7 @@ final class ArrayQueue implements Queue
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

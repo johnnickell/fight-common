@@ -20,12 +20,15 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
- * Class SortedTable
+ * @template K
+ * @template V
+ * @implements OrderedTable<K, V>
  */
 final class SortedTable implements OrderedTable
 {
     use KeyValueTypeMethods;
 
+    /** @var BinarySearchTree<K, V> */
     private BinarySearchTree $tree;
 
     /**
@@ -177,6 +180,7 @@ final class SortedTable implements OrderedTable
     }
 
     /**
+     * @return iterable<K>
      * @inheritDoc
      */
     public function keys(): iterable
@@ -185,6 +189,7 @@ final class SortedTable implements OrderedTable
     }
 
     /**
+     * @return iterable<K>
      * @inheritDoc
      */
     public function rangeKeys(mixed $lo, mixed $hi): iterable
@@ -469,6 +474,7 @@ final class SortedTable implements OrderedTable
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array

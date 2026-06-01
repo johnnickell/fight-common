@@ -8,7 +8,10 @@ use ArrayAccess;
 use Fight\Common\Domain\Exception\KeyException;
 
 /**
- * Interface Table
+ * @template K
+ * @template V
+ * @extends KeyValueCollection<K, V>
+ * @extends ArrayAccess<K, V>
  */
 interface Table extends ArrayAccess, KeyValueCollection
 {
@@ -36,6 +39,8 @@ interface Table extends ArrayAccess, KeyValueCollection
 
     /**
      * Retrieves an iterator for keys
+     *
+     * @return iterable<K>
      */
     public function keys(): iterable;
 }

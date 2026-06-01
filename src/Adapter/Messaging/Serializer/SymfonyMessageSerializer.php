@@ -89,6 +89,10 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
     }
 
     /**
+     * @param array{body: string, headers?: array<string, string>} $encodedEnvelope
+     *
+     * @return array<int, object>
+     *
      * @throws MessageDecodingFailedException|ErrorException
      */
     private function decodeStamps(array $encodedEnvelope): array

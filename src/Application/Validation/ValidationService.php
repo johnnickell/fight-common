@@ -29,6 +29,9 @@ final readonly class ValidationService
     /**
      * Performs validation on input with the given rules
      *
+     * @param array<string, mixed> $input
+     * @param array<int, array{field: string, label: string, rules: string}> $rules
+     *
      * @throws ValidationException When validation fails
      */
     public function validate(array $input, array $rules): ApplicationData
@@ -56,6 +59,8 @@ final readonly class ValidationService
 
     /**
      * Adds validators to the validation coordinator
+     *
+     * @param array<int, array{field: string, label: string, rules: string}> $rules
      *
      * @throws DomainException When rules are formatted incorrectly
      */
@@ -90,26 +95,31 @@ final readonly class ValidationService
     /**
      * Validates validation rules
      *
+     * @param array<int, array{field: string, label: string, rules: string}> $rules
+     *
      * @throws DomainException When rules are formatted incorrectly
      */
     private function validateRules(array $rules): void
     {
         foreach ($rules as $rule) {
-            if (!is_array($rule)) {
+            if (!is_array($rule)) { // @phpstan-ignore function.alreadyNarrowedType
                 $message = sprintf('Invalid rule definition: %s', VarPrinter::toString($rules));
                 throw new DomainException($message);
             }
 
+            // @phpstan-ignore isset.offset
             if (!isset($rule['field'])) {
                 $message = sprintf('Field is required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);
             }
 
+            // @phpstan-ignore isset.offset
             if (!isset($rule['label'])) {
                 $message = sprintf('Label is required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);
             }
 
+            // @phpstan-ignore isset.offset
             if (!isset($rule['rules'])) {
                 $message = sprintf('Rules are required: %s', VarPrinter::toString($rule));
                 throw new DomainException($message);
@@ -119,6 +129,8 @@ final readonly class ValidationService
 
     /**
      * Validates input data
+     *
+     * @param array<string, mixed> $input
      *
      * @throws DomainException When input is formatted incorrectly
      */

@@ -7,7 +7,7 @@ namespace Fight\Common\Domain\Collection\Iterator;
 use Iterator;
 
 /**
- * Class ArrayStackIterator
+ * @implements Iterator<int, mixed>
  */
 final class ArrayStackIterator implements Iterator
 {
@@ -17,6 +17,8 @@ final class ArrayStackIterator implements Iterator
 
     /**
      * Constructs ArrayStackIterator
+     *
+     * @param array<mixed> $items
      */
     public function __construct(private array $items)
     {

@@ -28,6 +28,10 @@ final readonly class AuditEntry implements JsonSerializable
 
     /**
      * Records a new audit entry at the current time
+     *
+     * @param string $actor
+     * @param string $action
+     * @param array<string, mixed> $context
      */
     public static function record(string $actor, string $action, array $context = []): static
     {
@@ -82,6 +86,8 @@ final readonly class AuditEntry implements JsonSerializable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -96,6 +102,8 @@ final readonly class AuditEntry implements JsonSerializable
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

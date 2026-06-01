@@ -12,6 +12,7 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Hmac\Sha384;
 use Lcobucci\JWT\Signer\Hmac\Sha512;
 use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Token\Plain;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Throwable;
 
@@ -20,9 +21,7 @@ use Throwable;
  */
 final class JwtDecoder implements TokenDecoder
 {
-    /**
-     * Supported algorithms
-     */
+    /** @var array<string, class-string> */
     private static array $algorithms = [
         'HS256' => Sha256::class,
         'HS384' => Sha384::class,
@@ -51,6 +50,8 @@ final class JwtDecoder implements TokenDecoder
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @inheritDoc
      */
     public function decode(string $token): array
@@ -63,6 +64,8 @@ final class JwtDecoder implements TokenDecoder
             if (!$this->configuration->validator()->validate($token, ...$constraints)) {
                 throw new DomainException('Token invalid at this time');
             }
+
+            assert($token instanceof Plain);
 
             return $token->claims()->all();
         } catch (Throwable $throwable) {

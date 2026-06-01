@@ -11,7 +11,7 @@ use Fight\Common\Domain\Value\Identifier\Uuid;
 use Fight\Common\Domain\Value\ValueObject;
 
 /**
- * Class UniqueId
+ * @phpstan-consistent-constructor
  */
 abstract readonly class UniqueId extends ValueObject implements Identifier, IdentifierFactory
 {
@@ -27,6 +27,7 @@ abstract readonly class UniqueId extends ValueObject implements Identifier, Iden
      */
     public static function generate(): static
     {
+        /** @phpstan-ignore new.staticInAbstractClassStaticMethod */
         return new static(Uuid::comb());
     }
 
@@ -35,6 +36,7 @@ abstract readonly class UniqueId extends ValueObject implements Identifier, Iden
      */
     public static function fromString(string $value): static
     {
+        /** @phpstan-ignore new.staticInAbstractClassStaticMethod */
         return new static(Uuid::parse($value));
     }
 

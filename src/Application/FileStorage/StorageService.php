@@ -14,6 +14,7 @@ use Fight\Common\Domain\Collection\HashTable;
  */
 final readonly class StorageService
 {
+    /** @var HashTable<string, FileStorage> */
     private HashTable $storage;
 
     /**

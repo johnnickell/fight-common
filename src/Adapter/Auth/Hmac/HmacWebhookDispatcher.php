@@ -26,6 +26,10 @@ final readonly class HmacWebhookDispatcher implements WebhookDispatcher
     }
 
     /**
+     * @param string $url
+     * @param string $action
+     * @param array<string, mixed> $payload
+     *
      * @inheritDoc
      */
     public function dispatch(string $url, string $action, array $payload = []): void

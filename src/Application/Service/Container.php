@@ -9,12 +9,14 @@ use Fight\Common\Application\Service\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 
 /**
- * Class Container
+ * @implements ArrayAccess<string, mixed>
  */
 final class Container implements ArrayAccess, ContainerInterface
 {
+    /** @var array<string, callable> */
     private array $factories = [];
 
+    /** @var array<string, mixed> */
     private array $parameters = [];
 
     /**

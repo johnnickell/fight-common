@@ -9,7 +9,8 @@ use Fight\Common\Domain\Type\Arrayable;
 use Stringable;
 
 /**
- * Interface Set
+ * @template T
+ * @extends ItemCollection<T>
  */
 interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
 {
@@ -36,6 +37,8 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      * the current set.
      *
      * A ∆ B = {x : (x ∈ A) ⊕ (x ∈ B)}
+     *
+     * @param Set $other
      */
     public function difference(Set $other): static;
 
@@ -46,6 +49,8 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      * set and the provided set.
      *
      * A ∩ B = {x : x ∈ A ∧ x ∈ B}
+     *
+     * @param Set $other
      */
     public function intersection(Set $other): static;
 
@@ -56,6 +61,8 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      * found in the current set.
      *
      * B \ A = {x : x ∈ B ∧ x ∉ A}
+     *
+     * @param Set $other
      */
     public function complement(Set $other): static;
 
@@ -66,11 +73,15 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
      * the provided set.
      *
      * A ∪ B = {x : x ∈ A ∨ x ∈ B}
+     *
+     * @param Set $other
      */
     public function union(Set $other): static;
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<T>
      */
     public function toArray(): array;
 
@@ -81,6 +92,8 @@ interface Set extends Arrayable, ItemCollection, JsonSerializable, Stringable
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<T>
      */
     public function jsonSerialize(): array;
 

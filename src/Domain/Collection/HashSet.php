@@ -13,12 +13,14 @@ use Fight\Common\Domain\Utility\Validate;
 use Traversable;
 
 /**
- * Class HashSet
+ * @template T
+ * @implements Set<T>
  */
 final class HashSet implements Set
 {
     use ItemTypeMethods;
 
+    /** @var array<T> */
     private array $buckets = [];
 
     private int $count = 0;
@@ -377,6 +379,7 @@ final class HashSet implements Set
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -413,6 +416,7 @@ final class HashSet implements Set
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -435,6 +439,7 @@ final class HashSet implements Set
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

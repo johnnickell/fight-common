@@ -14,6 +14,7 @@ use Fight\Common\Domain\Exception\KeyException;
  */
 final readonly class ValidationContext
 {
+    /** @var HashTable<string, HashSet<string>> */
     private HashTable $errors;
 
     /**
@@ -51,13 +52,15 @@ final readonly class ValidationContext
             $this->errors->set($name, HashSet::of('string'));
         }
 
-        /** @var HashSet $messages */
+        /** @var HashSet<string> $messages */
         $messages = $this->errors->get($name);
         $messages->add($message);
     }
 
     /**
      * Retrieves the collection of errors
+     *
+     * @return array<string, string[]>
      */
     public function getErrors(): array
     {

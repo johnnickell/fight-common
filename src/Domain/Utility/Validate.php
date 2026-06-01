@@ -15,6 +15,7 @@ use Traversable;
  */
 final class Validate
 {
+    /** @var array<string, bool>|null */
     private static ?array $timezones = null;
 
     /**
@@ -737,6 +738,9 @@ final class Validate
 
     /**
      * Checks if value is one of a set of choices
+     *
+     * @param mixed $value
+     * @param iterable $choices
      */
     public static function isOneOf(mixed $value, iterable $choices): bool
     {
@@ -1152,6 +1156,10 @@ final class Validate
 
     /**
      * Retrieves URI components from regex matches
+     *
+     * @param array<int, string> $matches
+     *
+     * @return array<string, string|null>
      */
     private static function uriComponentsFromMatches(array $matches): array
     {
@@ -1191,6 +1199,8 @@ final class Validate
 
     /**
      * Checks if URI components are valid
+     *
+     * @param array<string, string|null> $uri
      */
     private static function isValidUri(array $uri): bool
     {

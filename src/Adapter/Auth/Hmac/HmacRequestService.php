@@ -70,6 +70,8 @@ final class HmacRequestService implements RequestService
     /**
      * Builds standard headers
      *
+     * @return array<string, int|string>
+     *
      * @throws Exception
      */
     private function buildHeaders(int $timestamp, string $content): array

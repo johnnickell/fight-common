@@ -12,11 +12,15 @@ use Fight\Common\Application\HttpClient\Exception\Exception as HttpException;
  */
 interface WebhookDispatcher
 {
-    /**
-     * Signs and dispatches an outbound webhook payload
-     *
-     * @throws CredentialsException When signing fails
-     * @throws HttpException When the HTTP request fails
-     */
+     /**
+      * Signs and dispatches an outbound webhook payload
+      *
+      * @param string $url
+      * @param string $action
+      * @param array<string, mixed> $payload
+      *
+      * @throws CredentialsException When signing fails
+      * @throws HttpException When the HTTP request fails
+      */
     public function dispatch(string $url, string $action, array $payload = []): void;
 }

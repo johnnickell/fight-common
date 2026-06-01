@@ -8,6 +8,8 @@ use Throwable;
 
 /**
  * Class DuplicateHelperException
+ *
+ * @phpstan-consistent-constructor
  */
 class DuplicateHelperException extends TemplatingException
 {

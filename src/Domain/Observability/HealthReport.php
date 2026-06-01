@@ -15,6 +15,10 @@ final readonly class HealthReport implements JsonSerializable
 {
     /**
      * Constructs HealthReport
+     *
+     * @param HealthStatus $overall
+     * @param array<HealthResult> $results
+     * @param DateTimeImmutable $timestamp
      */
     public function __construct(
         private HealthStatus $overall,
@@ -25,6 +29,8 @@ final readonly class HealthReport implements JsonSerializable
 
     /**
      * Creates a report from a set of results, computing the overall status
+     *
+     * @param array<HealthResult> $results
      */
     public static function fromResults(array $results): static
     {
@@ -47,6 +53,8 @@ final readonly class HealthReport implements JsonSerializable
 
     /**
      * Retrieves per-check results
+     *
+     * @return array<HealthResult>
      */
     public function results(): array
     {
@@ -71,6 +79,8 @@ final readonly class HealthReport implements JsonSerializable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -83,6 +93,8 @@ final readonly class HealthReport implements JsonSerializable
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {

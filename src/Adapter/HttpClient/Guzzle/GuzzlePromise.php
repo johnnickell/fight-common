@@ -23,15 +23,19 @@ final class GuzzlePromise implements Promise
 
     private string $state;
 
+    /** @phpstan-ignore property.unusedType */
     private ?ResponseInterface $response;
 
+    /** @phpstan-ignore property.unusedType */
     private ?Throwable $exception;
 
     /**
      * Constructs GuzzlePromise
      */
-    public function __construct(PromiseInterface $promise, private readonly RequestInterface $request)
-    {
+    public function __construct(
+        PromiseInterface $promise, /** @phpstan-ignore property.onlyWritten */
+        private readonly RequestInterface $request
+    ) {
         $this->state = Promise::PENDING;
         $this->promise = $promise->then(
             function (ResponseInterface $response) {
@@ -40,7 +44,7 @@ final class GuzzlePromise implements Promise
 
                 return $response;
             },
-            function (Throwable $reason) use ($request): void {
+            function (Throwable $reason): void {
                 if ($reason instanceof FightExceptions\Exception) {
                     $this->state = Promise::REJECTED;
                     $this->exception = $reason;

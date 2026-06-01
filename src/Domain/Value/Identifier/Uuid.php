@@ -483,6 +483,8 @@ final readonly class Uuid extends ValueObject implements Comparable
     /**
      * Retrieves an array representation
      *
+     * @return array<string, string>
+     *
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.2
      */
     public function toArray(): array
