@@ -12,7 +12,7 @@ use JsonSerializable;
 /**
  * Class AuditEntry
  */
-final readonly class AuditEntry implements JsonSerializable
+readonly class AuditEntry implements JsonSerializable
 {
     /**
      * Constructs AuditEntry
@@ -35,6 +35,7 @@ final readonly class AuditEntry implements JsonSerializable
      */
     public static function record(string $actor, string $action, array $context = []): static
     {
+        /** @phpstan-ignore new.static */
         return new static(
             AuditEntryId::generate(),
             $actor,

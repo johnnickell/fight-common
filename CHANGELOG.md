@@ -23,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Domain\Observability\HealthResult` — per-check record (name, status, optional message and context)
 - `Domain\Observability\HealthReport` — aggregated report with `fromResults()` factory (computes overall as worst-of); `isHealthy()` gate; JSON-serializable
 - `Domain\Observability\AuditEntryId` — typed unique identifier for audit entries
-- `Domain\Observability\AuditEntry` — structured business-fact record (actor, action, timestamp, context); `record()` factory; JSON-serializable
+- `Domain\Observability\AuditEntry` — structured business-fact record (actor, action, timestamp, context); `record()` factory; JSON-serializable; `readonly` (no longer `final` for Doctrine ORM compatibility)
+- `Domain\Observability\AuditRepository` — queryable audit storage port (moved from Application layer): `getByActor()`, `getByAction()`, `getBetween()`, `add()`
 
 **Observability Layer — Application Ports**
 - `Application\Observability\HealthCheck` — interface: `check(): HealthResult`, `name(): string`
 - `Application\Observability\HealthAggregator` — interface: `addCheck()`, `report(): HealthReport`
 - `Application\Observability\MetricsCollector` — interface: `increment()`, `gauge()`, `histogram()` with tag support
 - `Application\Observability\AuditLog` — interface: `record(AuditEntry): void`
-- `Application\Repository\AuditRepository` — queryable audit storage port: `save()`, `findByActor()`, `findByAction()`, `findBetween()`
 
 **Observability Layer — Adapters**
 - `Adapter\Observability\Health\HealthReporter` — aggregates N `HealthCheck` implementations into a `HealthReport`
@@ -51,6 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Auth\Nonce\InMemoryNonceRepository` — single-process nonce store; good for testing and short-lived workers
 - `Adapter\Auth\Nonce\DoctrineNonceRepository` — persists to `hmac_nonces` table; atomic replay prevention via unique constraint
 - `Adapter\Auth\Hmac\HmacWebhookDispatcher` — builds, signs, and sends AI operation requests; composes `HttpClient` + `HmacRequestService`
+
+**Doctrine Audit Repository**
+- `Adapter\Repository\DoctrineRepository` — abstract base class providing `createQueryBuilder()` and `createPaginator()` helpers for Doctrine ORM repositories
+- `Adapter\Repository\DoctrineAuditRepository` — implements `AuditRepository`; persists `AuditEntry` via Doctrine ORM; supports pagination with ordering and all query methods
+- `Adapter\Doctrine\AuditEntryIdDataType` — custom DBAL type for `AuditEntryId` (UUID-backed)
+- `Adapter\Doctrine\MetaDataType` — custom DBAL type for `Meta` (JSON-backed)
+- `database/schema/Observability.AuditEntry.orm.xml` — Doctrine ORM XML mapping for the `audit_entries` table
 
 **Documentation**
 - `docs/observability.md` — full wiring guide for health checks, metrics, audit log, and HMAC AI operations
