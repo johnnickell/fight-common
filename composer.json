@@ -35,7 +35,8 @@
         "symfony/mercure": "^0.7",
         "symfony/messenger": "^8.0",
         "symfony/routing": "^8.0",
-        "twig/twig": "^3.0"
+        "twig/twig": "^3.0",
+        "twilio/sdk": "^8.0"
     },
     "suggest": {
         "doctrine/dbal": "Required by the custom doctrine data types",
@@ -54,6 +55,7 @@
         "symfony/mercure": "Required by the Mercure hub publisher",
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
         "symfony/routing": "Required for the URL generator",
+        "twilio/sdk": "Required by the Twilio SMS transport adapter",
         "twig/twig": "Required by the Twig template engine adapter"
     },
     "autoload": {
