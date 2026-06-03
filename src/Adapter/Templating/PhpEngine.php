@@ -151,7 +151,7 @@ final class PhpEngine implements TemplateEngine
         $content = ob_get_clean();
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active');
+            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
         }
 
         if (empty($this->blocks[$name])) {
@@ -298,7 +298,7 @@ final class PhpEngine implements TemplateEngine
         }
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active');
+            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
         }
 
         return $content;
