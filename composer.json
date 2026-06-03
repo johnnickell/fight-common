@@ -39,7 +39,7 @@
     },
     "suggest": {
         "doctrine/dbal": "Required by the custom doctrine data types",
-        "doctrine/orm": "Required by the doctrine unit of work",
+        "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
         "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
         "guzzlehttp/promises": "Required by the guzzle http client adapter",
         "guzzlehttp/psr7": "Required by the guzzle http client adapter",

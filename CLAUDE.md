@@ -14,9 +14,9 @@ All tooling runs inside a PHP 8.5 Docker container (`fight-common`). The `./bin/
 ./bin/phpunit --filter test_method_name                # run a single test
 ./bin/composer require vendor/package                  # manage dependencies
 ./bin/rector process src/                              # run code modernization
+./bin/phpstan                                           # static analysis (level 6 default)
+./bin/phpstan --bleeding-edge                           # with bleeding-edge rules
 ./bin/exec php -r "echo 'hello';"                      # run arbitrary PHP
-./bin/exec php vendor/bin/phpstan analyse              # static analysis (level 6)
-./bin/exec php vendor/bin/phpstan analyse --bleeding-edge  # with bleeding-edge rules
 ```
 
 ### For Claude Code (non-interactive Docker)
