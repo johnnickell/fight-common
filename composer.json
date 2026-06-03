@@ -21,6 +21,7 @@
         "lcobucci/jwt": "^5.6",
         "league/flysystem": "^3.0",
         "mockery/mockery": "^1.6",
+        "phpseclib/phpseclib": "^3.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.0",
         "rector/rector": "^2.4",
@@ -55,6 +56,7 @@
         "symfony/mercure": "Required by the Mercure hub publisher",
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
         "symfony/routing": "Required for the URL generator",
+        "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
         "twilio/sdk": "Required by the Twilio SMS transport adapter",
         "twig/twig": "Required by the Twig template engine adapter"
     },
