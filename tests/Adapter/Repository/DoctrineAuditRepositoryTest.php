@@ -51,11 +51,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
         $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            private Paginator $paginator;
-
-            public function __construct(EntityManagerInterface $em, Paginator $paginator)
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
             {
-                $this->paginator = $paginator;
                 parent::__construct($em);
             }
 
@@ -94,11 +91,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
         $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            private Paginator $paginator;
-
-            public function __construct(EntityManagerInterface $em, Paginator $paginator)
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
             {
-                $this->paginator = $paginator;
                 parent::__construct($em);
             }
 
@@ -136,11 +130,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
         $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            private Paginator $paginator;
-
-            public function __construct(EntityManagerInterface $em, Paginator $paginator)
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
             {
-                $this->paginator = $paginator;
                 parent::__construct($em);
             }
 
@@ -176,11 +167,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
         $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            private Paginator $paginator;
-
-            public function __construct(EntityManagerInterface $em, Paginator $paginator)
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
             {
-                $this->paginator = $paginator;
                 parent::__construct($em);
             }
 
@@ -215,11 +203,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([]));
 
         $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            private Paginator $paginator;
-
-            public function __construct(EntityManagerInterface $em, Paginator $paginator)
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
             {
-                $this->paginator = $paginator;
                 parent::__construct($em);
             }
 

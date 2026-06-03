@@ -65,7 +65,7 @@ final class MetaDataType extends Type
 
         try {
             /** @var array<string, mixed> $data */
-            $data = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+            $data = json_decode((string) $value, true, 512, JSON_THROW_ON_ERROR);
 
             return Meta::create($data);
         } catch (Throwable $throwable) {

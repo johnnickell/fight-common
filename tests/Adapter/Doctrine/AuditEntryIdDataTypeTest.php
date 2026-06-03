@@ -10,7 +10,6 @@ use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Fight\Common\Adapter\Doctrine\AuditEntryIdDataType;
 use Fight\Common\Domain\Observability\AuditEntryId;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(AuditEntryIdDataType::class)]

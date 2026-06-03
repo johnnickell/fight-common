@@ -10,7 +10,6 @@ use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Fight\Common\Adapter\Doctrine\MetaDataType;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(MetaDataType::class)]
