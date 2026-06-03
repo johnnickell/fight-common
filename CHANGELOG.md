@@ -59,6 +59,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Doctrine\MetaDataType` — custom DBAL type for `Meta` (JSON-backed)
 - `database/schema/Observability.AuditEntry.orm.xml` — Doctrine ORM XML mapping for the `audit_entries` table
 
+**SMS Module**
+- `Application\Sms\Message\SmsMessage` — immutable message value object (to, from, body, media URLs); fluent `setBody()`, `addMedia()`
+- `Application\Sms\Message\SmsFactory` — port: `createMessage(to, from, body?, mediaUrls[])` with auto-parser for URL strings and `Url` objects
+- `Application\Sms\Transport\SmsTransport` — port: `send(SmsMessage): void` (throws `SmsException`)
+- `Application\Sms\SmsService` — implements both `SmsTransport` and `SmsFactory`; decorates a transport with factory capabilities
+- `Application\Sms\Exception\SmsException` — extends `SystemException`
+
+**SMS Adapters**
+- `Adapter\Sms\Null\NullSmsTransport` — no-op adapter (mirrors `NullMailTransport`)
+- `Adapter\Sms\Logging\LoggingSmsTransport` — PSR-3 logging decorator for any `SmsTransport` (mirrors `LoggingMailTransport`)
+- `Adapter\Sms\Twilio\TwilioSmsTransport` — Twilio Programmable SMS adapter; maps `SmsMessage` to `$client->messages->create()`; wraps `TwilioException` in `SmsException`
+
 **Documentation**
 - `docs/observability.md` — full wiring guide for health checks, metrics, audit log, and HMAC AI operations
 
