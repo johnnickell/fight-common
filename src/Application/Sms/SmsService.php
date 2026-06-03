@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Sms;
 
-use Fight\Common\Application\Sms\Exception\SmsException;
 use Fight\Common\Application\Sms\Message\SmsFactory;
 use Fight\Common\Application\Sms\Message\SmsMessage;
 use Fight\Common\Application\Sms\Transport\SmsTransport;

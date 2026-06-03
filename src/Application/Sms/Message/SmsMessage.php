@@ -19,7 +19,7 @@ final class SmsMessage
     /**
      * Constructs SmsMessage
      */
-    public function __construct(private string $to, private string $from)
+    public function __construct(private readonly string $to, private readonly string $from)
     {
     }
 
