@@ -156,6 +156,7 @@ final class FtpFileTransport implements FileTransport
             if ($name === '.') {
                 continue;
             }
+
             if ($name === '..') {
                 continue;
             }
