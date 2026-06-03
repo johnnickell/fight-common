@@ -35,6 +35,7 @@
         "symfony/mailer": "^8.0",
         "symfony/mercure": "^0.7",
         "symfony/messenger": "^8.0",
+        "symfony/process": "^7.0",
         "symfony/routing": "^8.0",
         "twig/twig": "^3.0",
         "twilio/sdk": "^8.0"
@@ -55,6 +56,7 @@
         "symfony/mailer": "Required by the Symfony mail transport and attachment adapters",
         "symfony/mercure": "Required by the Mercure hub publisher",
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
+        "symfony/process": "Required by the Symfony process runner adapter",
         "symfony/routing": "Required for the URL generator",
         "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
         "twilio/sdk": "Required by the Twilio SMS transport adapter",
