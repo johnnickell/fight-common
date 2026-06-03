@@ -59,6 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Doctrine\MetaDataType` — custom DBAL type for `Meta` (JSON-backed)
 - `database/schema/Observability.AuditEntry.orm.xml` — Doctrine ORM XML mapping for the `audit_entries` table
 
+**SMS Module**
+- `Application\Sms\Message\SmsMessage` — immutable message value object (to, from, body, media URLs); fluent `setBody()`, `addMedia()`
+- `Application\Sms\Message\SmsFactory` — port: `createMessage(to, from, body?, mediaUrls[])` with auto-parser for URL strings and `Url` objects
+- `Application\Sms\Transport\SmsTransport` — port: `send(SmsMessage): void` (throws `SmsException`)
+- `Application\Sms\SmsService` — implements both `SmsTransport` and `SmsFactory`; decorates a transport with factory capabilities
+- `Application\Sms\Exception\SmsException` — extends `SystemException`
+
 **Documentation**
 - `docs/observability.md` — full wiring guide for health checks, metrics, audit log, and HMAC AI operations
 
