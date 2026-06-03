@@ -92,9 +92,11 @@ final readonly class SftpFileTransport implements FileTransport
                 if ($name === '.') {
                     continue;
                 }
+
                 if ($name === '..') {
                     continue;
                 }
+
                 $resourceType = match ((int) $data['type']) {
                     1 => ResourceType::FILE,
                     2 => ResourceType::DIR,
