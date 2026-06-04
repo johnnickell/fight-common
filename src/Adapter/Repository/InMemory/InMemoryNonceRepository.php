@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Auth\Nonce;
+namespace Fight\Common\Adapter\Repository\InMemory;
 
 use DateTimeImmutable;
-use Fight\Common\Application\Auth\Exception\AuthException;
-use Fight\Common\Application\Auth\NonceRepository;
-use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Domain\Auth\Nonce;
+use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
+use Fight\Common\Domain\Auth\NonceRepository;
 
 /**
  * Class InMemoryNonceRepository
@@ -26,7 +25,7 @@ final class InMemoryNonceRepository implements NonceRepository
         $this->purgeExpired();
 
         if (isset($this->consumed[$nonce->value()])) {
-            throw new AuthException('Nonce already consumed', HttpStatus::UNAUTHORIZED);
+            throw new NonceAlreadyConsumedException('Nonce already consumed');
         }
 
         $this->consumed[$nonce->value()] = $nonce->expiresAt();
