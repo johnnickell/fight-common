@@ -8,23 +8,33 @@ This document describes the long-term maintenance model for `johnnickell/fight-c
 
 ```
 main      ←── protected; every merge is a tagged stable release
+1.1       ←── maintenance branch for 1.1.x bug fixes
 1.0       ←── maintenance branch for 1.0.x bug fixes
 develop   ←── integration branch for upcoming features
 feature/* ←── short-lived; branched off develop
+release/* ←── short-lived; branched off develop for release candidates
 hotfix/*  ←── short-lived; branched off 1.0
 ```
 
 ### `main`
 
-The default and protected branch. Every commit on `main` has a version tag. Direct pushes are blocked — changes land here only via PR from `develop` (for minor/major releases) or from `1.0` (for patch backports).
+The default and protected branch. Every commit on `main` has a version tag. Direct pushes are blocked — changes land here only via PR from `release/*` (for minor/major releases) or from a maintenance branch (`1.0`, `1.1`, etc.) (for patch backports).
+
+### `1.1`
+
+Created from the `v1.1.0` tag. Accepts bug fixes and security patches for the 1.1 release line. No new features. PRs target `1.1`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
 
 ### `1.0`
 
-Created from the `1.0.0` tag. Accepts bug fixes and security patches for the 1.0 release line. No new features. PRs target `1.0`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
+Created from the `v1.0.0` tag. Accepts bug fixes and security patches for the 1.0 release line. No new features. PRs target `1.0`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
 
 ### `develop`
 
-The active development branch. All feature work merges here first. When a minor or major release is ready, `develop` is merged to `main` via PR and tagged.
+The active development branch for the next minor/major release. All feature work merges here first.
+
+### `release/*`
+
+Short-lived branches off `develop` for release preparation. Name them `release/<version>` (e.g. `release/1.1.0`). Use for CHANGELOG updates, version bumps, and final QA. Merge into `main` (via `--no-ff`) and back into `develop` (via `--no-ff`). Delete after merging.
 
 ### `feature/*`
 
@@ -32,7 +42,7 @@ Short-lived branches off `develop`. Name them `feature/short-description`. Delet
 
 ### `hotfix/*`
 
-Short-lived branches off `1.0`. Name them `hotfix/short-description`. Merge back into `1.0`, then cherry-pick the commit(s) to `develop`.
+Short-lived branches off the relevant maintenance branch (`1.0`, `1.1`, etc.). Name them `hotfix/short-description`. Merge back into the maintenance branch, then cherry-pick the commit(s) to `develop`.
 
 ---
 
@@ -42,9 +52,9 @@ This library follows [semver](https://semver.org/):
 
 | Change type | Version component | Branch target |
 |-------------|------------------|---------------|
-| Bug fix, no API change | **Patch** `1.0.x` | `1.0` → cherry-pick to `develop` |
-| New feature, backwards-compatible | **Minor** `1.x.0` | `develop` → `main` |
-| Breaking change | **Major** `x.0.0` | `develop` with deprecation notice first |
+| Bug fix, no API change | **Patch** `1.x.y` | maintenance branch → cherry-pick to `develop` |
+| New feature, backwards-compatible | **Minor** `x.y.0` | `main` via release branch |
+| Breaking change | **Major** `x.0.0` | `main` via release branch, with deprecation notice first |
 
 ### What counts as a breaking change
 
@@ -76,8 +86,8 @@ git push origin hotfix/fix-description
 
 # after merge:
 git checkout 1.0 && git pull
-git tag 1.0.1
-git push origin 1.0.1
+git tag v1.0.1
+git push origin v1.0.1
 
 # backport to develop
 git checkout develop
@@ -85,16 +95,35 @@ git cherry-pick <commit-sha>
 git push origin develop
 ```
 
-Update `CHANGELOG.md` under the new `[1.0.1]` heading before tagging.
+Update `CHANGELOG.md` under the new `[v1.0.1]` heading before tagging.
 
 ### Minor / major release
 
 ```bash
 # ensure develop is green
+git checkout develop
+git checkout -b release/<version>
+
+# update CHANGELOG.md and any version references
+# run full submit gate
+
+git commit -m "Release v<version>"
 git checkout main
-git merge --no-ff develop
-git tag 1.1.0
-git push origin main 1.1.0
+git merge --no-ff release/<version>
+git tag v<version>
+git push origin main v<version>
+
+# back to develop
+git checkout develop
+git merge --no-ff release/<version>
+git push origin develop
+
+# cleanup
+git branch -d release/<version>
+
+# create maintenance branch
+git checkout -b <major>.<minor> v<version>
+git push origin <major>.<minor>
 ```
 
 ---

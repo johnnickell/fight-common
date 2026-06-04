@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+—
+
+## [1.1.0] - 2026-06-03
+
+### Added
+
 **PhpEngine Hardening**
 - **Output buffer leak on exception** — `evaluate()` now wraps `require` in try/finally so `ob_get_clean()` is always called even when the template throws
 - **`ob_get_clean()` null-check** — `endBlock()` and `evaluate()` both guard against `ob_get_clean()` returning `false` (throws `TemplatingException`)
@@ -153,5 +159,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/1.0.0...HEAD
-[1.0.0]: https://github.com/johnnickell/fight-common/releases/tag/1.0.0
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/johnnickell/fight-common/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/johnnickell/fight-common/releases/tag/v1.0.0
