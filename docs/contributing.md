@@ -8,19 +8,19 @@ This document describes the long-term maintenance model for `johnnickell/fight-c
 
 ```
 main      ←── protected; every merge is a tagged stable release
-1.x       ←── maintenance branch for 1.0.x bug fixes
+1.0       ←── maintenance branch for 1.0.x bug fixes
 develop   ←── integration branch for upcoming features
 feature/* ←── short-lived; branched off develop
-hotfix/*  ←── short-lived; branched off 1.x
+hotfix/*  ←── short-lived; branched off 1.0
 ```
 
 ### `main`
 
-The default and protected branch. Every commit on `main` has a version tag. Direct pushes are blocked — changes land here only via PR from `develop` (for minor/major releases) or from `1.x` (for patch backports).
+The default and protected branch. Every commit on `main` has a version tag. Direct pushes are blocked — changes land here only via PR from `develop` (for minor/major releases) or from `1.0` (for patch backports).
 
-### `1.x`
+### `1.0`
 
-Created from the `1.0.0` tag. Accepts bug fixes and security patches for the 1.0 release line. No new features. PRs target `1.x`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
+Created from the `1.0.0` tag. Accepts bug fixes and security patches for the 1.0 release line. No new features. PRs target `1.0`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
 
 ### `develop`
 
@@ -32,7 +32,7 @@ Short-lived branches off `develop`. Name them `feature/short-description`. Delet
 
 ### `hotfix/*`
 
-Short-lived branches off `1.x`. Name them `hotfix/short-description`. Merge back into `1.x`, then cherry-pick the commit(s) to `develop`.
+Short-lived branches off `1.0`. Name them `hotfix/short-description`. Merge back into `1.0`, then cherry-pick the commit(s) to `develop`.
 
 ---
 
@@ -42,7 +42,7 @@ This library follows [semver](https://semver.org/):
 
 | Change type | Version component | Branch target |
 |-------------|------------------|---------------|
-| Bug fix, no API change | **Patch** `1.0.x` | `1.x` → cherry-pick to `develop` |
+| Bug fix, no API change | **Patch** `1.0.x` | `1.0` → cherry-pick to `develop` |
 | New feature, backwards-compatible | **Minor** `1.x.0` | `develop` → `main` |
 | Breaking change | **Major** `x.0.0` | `develop` with deprecation notice first |
 
@@ -67,15 +67,15 @@ This library follows [semver](https://semver.org/):
 ### Patch release (1.0.x)
 
 ```bash
-git checkout 1.x
+git checkout 1.0
 git checkout -b hotfix/fix-description
 
 # make changes, commit, ensure tests pass
 git push origin hotfix/fix-description
-# open PR → 1.x
+# open PR → 1.0
 
 # after merge:
-git checkout 1.x && git pull
+git checkout 1.0 && git pull
 git tag 1.0.1
 git push origin 1.0.1
 
