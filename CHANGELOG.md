@@ -59,6 +59,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Doctrine\MetaDataType` — custom DBAL type for `Meta` (JSON-backed)
 - `database/schema/Observability.AuditEntry.orm.xml` — Doctrine ORM XML mapping for the `audit_entries` table
 
+**Scheduler Module**
+- `Application\Scheduler\Scheduler` — cron-driven job runner; supports cron expressions, datetime strings, and callable schedules; file-based exclusive locking; per-job output capture (stdout, file path, or suppressed); configurable max-runtime guard; error logging via `LoggerInterface` and failure notification via `MailService`; injectable `processFactory` for testable shell command dispatch
+- `Application\Scheduler\Exception\SchedulerException` — extends `SystemException`; raised on job failure, bad return value, or non-zero exit code
+- `Application\Scheduler\Exception\LockException` — extends `SchedulerException`; raised when a job's lock file is held by another process
+- `Domain\Value\DateTime\Timezone` — immutable value object wrapping `DateTimeZone` with construction-time validation
+
+**Process Module**
+- `Application\Process\Process` — immutable value object representing a completed process result (command, exit code, stdout, stderr)
+- `Application\Process\ProcessRunner` — port: `run(string $command, ProcessErrorBehavior $onError): Process`
+- `Application\Process\ProcessErrorBehavior` — enum controlling whether a non-zero exit code throws or returns
+- `Application\Process\Exception\ProcessException` — extends `SystemException`
+- `Application\Process\Exception\ProcessFailedException` — extends `ProcessException`; raised on non-zero exit when `ProcessErrorBehavior::THROW` is set
+- `Adapter\Process\Symfony\SymfonyProcessRunner` — implements `ProcessRunner` via `symfony/process`
+
+**FileTransfer Module**
+- `Application\FileTransfer\Resource\Resource` — immutable value object representing a file resource (path, name, type)
+- `Application\FileTransfer\Resource\ResourceType` — enum of supported resource types
+- `Application\FileTransfer\Transport\FileTransport` — port: `upload(Resource): void`, `download(string $remote): Resource`, `delete(string $remote): void`, `list(string $directory): array`
+- `Application\FileTransfer\FileTransferService` — composes a `FileTransport` with higher-level transfer helpers
+- `Application\FileTransfer\Exception\FileTransferException` — extends `SystemException`
+- `Adapter\FileTransfer\Sftp\SftpFileTransport` — implements `FileTransport` via `phpseclib/phpseclib` SFTP
+- `Adapter\FileTransfer\Ftp\FtpFileTransport` — implements `FileTransport` via PHP's native FTP extension
+- `Adapter\FileTransfer\Logging\LoggingFileTransport` — PSR-3 logging decorator for any `FileTransport`
+- `Adapter\FileTransfer\Null\NullFileTransport` — no-op adapter for testing
+
 **SMS Module**
 - `Application\Sms\Message\SmsMessage` — immutable message value object (to, from, body, media URLs); fluent `setBody()`, `addMedia()`
 - `Application\Sms\Message\SmsFactory` — port: `createMessage(to, from, body?, mediaUrls[])` with auto-parser for URL strings and `Url` objects
