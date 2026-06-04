@@ -15,6 +15,7 @@
     "require-dev": {
         "doctrine/dbal": "^4.4",
         "doctrine/orm": "^3.6",
+        "dragonmantank/cron-expression": "^3.0",
         "guzzlehttp/guzzle": "^7.10",
         "guzzlehttp/promises": "^2.3",
         "guzzlehttp/psr7": "^2.9",
@@ -41,6 +42,7 @@
         "twilio/sdk": "^8.0"
     },
     "suggest": {
+        "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
         "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
         "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
