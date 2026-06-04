@@ -19,14 +19,18 @@ final class ProcessBuilder
     private array $arguments = [];
 
     private ?string $directory = null;
+
     private mixed $input = null;
+
     private ?float $timeout = 60.0;
 
     /** @var array<string, string> */
     private array $environment = [];
 
     private mixed $stdout = null;
+
     private mixed $stderr = null;
+
     private bool $outputDisabled = false;
 
     /**
@@ -85,7 +89,7 @@ final class ProcessBuilder
         }
 
         if (!str_starts_with($option, '-')) {
-            $option = '--' . $option;
+            $option = '--'.$option;
         }
 
         $this->arguments[] = $option;
@@ -107,7 +111,7 @@ final class ProcessBuilder
         }
 
         if (!str_starts_with($option, '-')) {
-            $option = '-' . $option;
+            $option = '-'.$option;
         }
 
         $this->arguments[] = $option;
@@ -245,7 +249,7 @@ final class ProcessBuilder
         }
 
         $parts = array_merge($this->prefix, $this->arguments);
-        $command = implode(' ', array_map('escapeshellarg', $parts));
+        $command = implode(' ', array_map(escapeshellarg(...), $parts));
 
         return new Process(
             command:        $command,
