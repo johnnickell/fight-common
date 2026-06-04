@@ -53,6 +53,30 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php -r "echo PHP_VERSION;"
 ```
 
+### Submit Gate
+
+**Always run the full submit gate before committing or pushing any feature work.** Run these in order and fix all findings before committing:
+
+```bash
+# 1. Apply Rector modernisations (apply first, then re-check)
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/rector process src/ --dry-run
+
+# 2. Static analysis
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpstan analyse
+
+# 3. Code style
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpcs
+
+# 4. Full test suite with coverage
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/phpunit
+```
+
+All four must be clean before a commit lands on any branch.
+
 ### Git Flow
 
 This repo follows [git-flow](https://nvie.com/posts/a-successful-git-branching-model/):
