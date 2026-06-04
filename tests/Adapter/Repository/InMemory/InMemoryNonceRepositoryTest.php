@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Auth\Nonce;
+namespace Fight\Test\Common\Adapter\Repository\InMemory;
 
 use DateTimeImmutable;
-use Fight\Common\Adapter\Auth\Nonce\InMemoryNonceRepository;
-use Fight\Common\Application\Auth\Exception\AuthException;
+use Fight\Common\Adapter\Repository\InMemory\InMemoryNonceRepository;
 use Fight\Common\Domain\Auth\Nonce;
+use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -34,7 +34,7 @@ class InMemoryNonceRepositoryTest extends UnitTestCase
         $nonce = new Nonce('abc123', new DateTimeImmutable('+5 minutes'));
         $this->repository->consume($nonce);
 
-        $this->expectException(AuthException::class);
+        $this->expectException(NonceAlreadyConsumedException::class);
         $this->repository->consume($nonce);
     }
 
@@ -64,7 +64,7 @@ class InMemoryNonceRepositoryTest extends UnitTestCase
 
         $this->repository->purgeExpired();
 
-        $this->expectException(AuthException::class);
+        $this->expectException(NonceAlreadyConsumedException::class);
         $this->repository->consume(new Nonce('current-nonce', new DateTimeImmutable('+5 minutes')));
     }
 }

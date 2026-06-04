@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Adapter\Auth\Hmac;
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacMethods;
 use Fight\Common\Application\Auth\Exception\AuthException;
-use Fight\Common\Application\Auth\NonceRepository;
+use Fight\Common\Domain\Auth\NonceRepository;
 use Fight\Common\Domain\Auth\Nonce;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;

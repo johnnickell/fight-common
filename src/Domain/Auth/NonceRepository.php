@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Auth;
+namespace Fight\Common\Domain\Auth;
 
-use Fight\Common\Application\Auth\Exception\AuthException;
-use Fight\Common\Domain\Auth\Nonce;
+use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
 
 /**
  * Interface NonceRepository
@@ -15,7 +14,7 @@ interface NonceRepository
     /**
      * Consumes a nonce, preventing replay attacks
      *
-     * @throws AuthException When the nonce has already been consumed
+     * @throws NonceAlreadyConsumedException When the nonce has already been consumed
      */
     public function consume(Nonce $nonce): void;
 
