@@ -64,6 +64,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * @return callable[]
+     *
      * @inheritDoc
      */
     public function getHandlers(?string $eventType = null): array

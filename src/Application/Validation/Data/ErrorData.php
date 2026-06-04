@@ -13,16 +13,19 @@ use Traversable;
 
 /**
  * Class ErrorData
+ *
+ * @implements Collection<string, mixed>
  */
 final readonly class ErrorData implements Arrayable, Collection
 {
+    /** @var HashTable<string, HashSet<string>> */
     private HashTable $data;
 
     /**
      * Constructs ErrorData
      *
-     * @param array $data An associated array keyed by field name
-     *                    Values must be arrays of error messages
+     * @param array<string, string[]> $data An associated array keyed by field name
+     *                                       Values must be arrays of error messages
      */
     public function __construct(array $data)
     {
@@ -39,13 +42,15 @@ final readonly class ErrorData implements Arrayable, Collection
 
     /**
      * Retrieves a list of errors by field name
+     *
+     * @return string[]
      */
     public function get(string $name): array
     {
         $errors = [];
 
         try {
-            /** @var HashSet $set */
+            /** @var HashSet<string> $set */
             $set = $this->data->get($name);
 
             foreach ($set as $message) {
@@ -68,6 +73,8 @@ final readonly class ErrorData implements Arrayable, Collection
 
     /**
      * Retrieves a list of names
+     *
+     * @return string[]
      */
     public function names(): array
     {
@@ -105,7 +112,7 @@ final readonly class ErrorData implements Arrayable, Collection
     }
 
     /**
-     * @inheritDoc
+     * @return array<string, string[]>
      */
     public function toArray(): array
     {

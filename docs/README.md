@@ -36,6 +36,9 @@ and PSR-11 (`psr/container`) interfaces. Optional adapters require additional pa
 | `symfony/dependency-injection` | Compiler passes for auto-wiring handlers | [messaging](messaging.md) |
 | `symfony/event-dispatcher` | Validation event subscriber | [validation](validation.md) |
 | `symfony/filesystem` | Local filesystem adapter | [files](files.md) |
+| `dragonmantank/cron-expression` | Cron expression parsing for Scheduler | [scheduler](scheduler.md) |
+| `phpseclib/phpseclib` | SFTP file transport adapter | [file-transfer](file-transfer.md) |
+| `twilio/sdk` | Twilio SMS transport adapter | [sms](sms.md) |
 | `symfony/http-foundation` | JSend response, JSON middleware | [utilities](utilities.md) |
 | `symfony/http-kernel` | Request middleware, error controller | [http-client](http-client.md) |
 | `symfony/mercure` | Mercure hub publisher | [sockets](sockets.md) |
@@ -204,3 +207,18 @@ See [validation](validation.md) for rule definitions and usage.
 17. **[utilities](utilities.md)** — Static utility classes: `ClassName`,
     `FastHasher`, `Validate`, `VarPrinter`, and `Type` for common cross-cutting
     operations.
+
+18. **[sms](sms.md)** — SMS/MMS transport abstraction with `SmsMessage`, `SmsService`
+    facade, and adapters for Twilio, PSR-3 logging, and no-op null.
+
+19. **[file-transfer](file-transfer.md)** — Remote file transfer port (`FileTransport`)
+    with `FileTransferService` registry and adapters for SFTP (phpseclib3), FTP, logging,
+    and null.
+
+20. **[process](process.md)** — Concurrent shell process runner with configurable
+    concurrency, retry logic, output streaming, and PSR-3 logging via
+    `SymfonyProcessRunner`.
+
+21. **[scheduler](scheduler.md)** — Cron-style job scheduler with file-based locking,
+    cron/datetime/callable schedules, output capture, failure notification, and max
+    runtime guard.

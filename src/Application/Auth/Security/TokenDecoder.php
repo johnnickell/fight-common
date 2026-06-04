@@ -14,6 +14,8 @@ interface TokenDecoder
     /**
      * Decodes a token into claims
      *
+     * @return array<string, mixed>
+     *
      * @throws TokenException When an error occurs during decoding
      */
     public function decode(string $token): array;

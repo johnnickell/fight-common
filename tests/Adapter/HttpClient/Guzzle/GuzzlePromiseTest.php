@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\HttpClient\Guzzle;
 
+use Throwable;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzlePromise;
 use Fight\Common\Application\HttpClient\Exception\HttpException;
 use Fight\Common\Application\HttpClient\Exception\NetworkException;
@@ -20,7 +21,6 @@ use GuzzleHttp\Promise\FulfilledPromise;
 use GuzzleHttp\Promise\RejectedPromise;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -69,7 +69,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         $this->expectException(MethodCallException::class);
@@ -94,7 +94,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -108,7 +108,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -123,7 +123,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -139,7 +139,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -154,7 +154,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -169,7 +169,7 @@ class GuzzlePromiseTest extends UnitTestCase
 
         try {
             $promise->wait();
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertSame(Promise::REJECTED, $promise->getState());
@@ -184,7 +184,7 @@ class GuzzlePromiseTest extends UnitTestCase
         $innerPromise = new FulfilledPromise($response);
         $promise = new GuzzlePromise($innerPromise, $this->request);
 
-        $chained = $promise->then(fn(ResponseInterface $r) => $r);
+        $chained = $promise->then(fn(ResponseInterface $r): ResponseInterface => $r);
 
         self::assertInstanceOf(GuzzlePromise::class, $chained);
     }

@@ -15,12 +15,16 @@ interface Payload extends Arrayable
     /**
      * Creates instance from array representation
      *
+     * @param array<string, mixed> $data
+     *
      * @throws DomainException When data is not valid
      */
     public static function fromArray(array $data): static;
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array;
 }

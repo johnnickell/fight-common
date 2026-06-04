@@ -25,10 +25,15 @@ final readonly class Pagination
 
     private int $limit;
 
+    /** @var array<string, string> */
     private array $orderings;
 
     /**
      * Constructs Pagination
+     *
+     * @param integer|null $page
+     * @param integer|null $perPage
+     * @param array<string, string> $orderings
      */
     public function __construct(?int $page = null, ?int $perPage = null, array $orderings = [])
     {
@@ -79,6 +84,8 @@ final readonly class Pagination
 
     /**
      * Retrieves the orderings
+     *
+     * @return array<string, string>
      */
     public function orderings(): array
     {

@@ -16,26 +16,33 @@ final class RulesParser
     /**
      * Parses validation rules
      *
+     * @param array<int, array{field: string, label: string, rules: string, errors?: array<string, string>}> $rules
+     *
+     * @return array<string, array<int, array{type: string, args: string[], error: string}>>
+     *
      * @throws DomainException When rules are formatted incorrectly
      */
     public static function parse(array $rules): array
     {
         $output = [];
 
-        /** @var array $rule */
+        /** @var array{field: string, label: string, rules: string, errors?: array<string, string>} $rule */
         foreach ($rules as $rule) {
+            // @phpstan-ignore isset.offset
             if (!isset($rule['field'])) {
                 throw new DomainException('Rule definition is missing required key: field');
             }
 
-            if (!is_string($rule['field'])) {
+            if (!is_string($rule['field'])) { // @phpstan-ignore booleanNot.alwaysFalse
                 throw new DomainException('Rule definition key "field" must be a string');
             }
 
+            // @phpstan-ignore isset.offset
             if (!isset($rule['label'])) {
                 throw new DomainException('Rule definition is missing required key: label');
             }
 
+            // @phpstan-ignore isset.offset
             if (!isset($rule['rules'])) {
                 throw new DomainException('Rule definition is missing required key: rules');
             }
@@ -55,7 +62,7 @@ final class RulesParser
                 $rule['rules'] = $rulesString;
             }
 
-            $validations = explode('|', (string) $rule['rules']);
+            $validations = explode('|', $rule['rules']);
 
             if ($matchString !== null) {
                 $validations[] = $matchString;
@@ -97,7 +104,7 @@ final class RulesParser
                     // validate date/time formats
                     $dateTimeRules = ['date', 'time', 'date_time'];
                     if (in_array($ruleName->toString(), $dateTimeRules, true)) {
-                        if (!isset($args[0]) || empty($args[0])) {
+                        if (empty($args[0])) {
                             $message = sprintf('%s validation requires format', $ruleName->toString());
                             throw new DomainException($message);
                         }
@@ -181,11 +188,16 @@ final class RulesParser
         }
     }
 
-    /**
-     * Retrieves the error message for a rule
-     *
-     * @throws DomainException When rules are formatted incorrectly
-     */
+     /**
+      * Retrieves the error message for a rule
+      *
+      * @param array{field: string, label: string, rules: string, errors?: array<string, string>} $rule
+      * @param string $ruleName
+      * @param string $label
+      * @param string[] $args
+      *
+      * @throws DomainException When rules are formatted incorrectly
+      */
     private static function getErrorMessage(array $rule, string $ruleName, string $label, array $args = []): string
     {
         $errorKey = StringObject::create($ruleName)
@@ -219,6 +231,8 @@ final class RulesParser
 
     /**
      * Extracts match portion of the rules string
+     *
+     * @return string[]
      *
      * @throws DomainException
      */

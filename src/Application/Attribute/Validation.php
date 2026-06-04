@@ -12,9 +12,12 @@ use Attribute;
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class Validation
 {
-    /**
-     * Constructs Validation
-     */
+     /**
+      * Constructs Validation
+      *
+      * @param string|null $formName
+      * @param array<int, array{field: string, label: string, rules: string}> $rules
+      */
     public function __construct(
         private ?string $formName = null,
         private array $rules = []
@@ -31,6 +34,8 @@ final readonly class Validation
 
     /**
      * Retrieves the rules
+     *
+     * @return array<int, array{field: string, label: string, rules: string}>
      */
     public function rules(): array
     {

@@ -28,6 +28,9 @@ final readonly class LoggingHttpClient implements HttpClient
     }
 
     /**
+     * @param RequestInterface $request
+     * @param array<string, mixed> $options
+     *
      * @inheritDoc
      */
     public function send(RequestInterface $request, array $options = []): ResponseInterface
@@ -43,6 +46,9 @@ final readonly class LoggingHttpClient implements HttpClient
     }
 
     /**
+     * @param RequestInterface $request
+     * @param array<string, mixed> $options
+     *
      * @inheritDoc
      */
     public function sendAsync(RequestInterface $request, array $options = []): Promise

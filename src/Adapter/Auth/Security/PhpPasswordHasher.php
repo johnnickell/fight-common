@@ -14,6 +14,9 @@ final readonly class PhpPasswordHasher implements PasswordHasher
 {
     /**
      * Constructs PhpPasswordHasher
+     *
+     * @param string $algorithm
+     * @param array<string, mixed>|null $options
      */
     public function __construct(private string $algorithm, private ?array $options = null)
     {

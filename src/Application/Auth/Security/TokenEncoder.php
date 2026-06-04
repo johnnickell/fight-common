@@ -15,6 +15,8 @@ interface TokenEncoder
     /**
      * Encodes claims into a token
      *
+     * @param array<string, mixed> $claims
+     *
      * @throws TokenException When an error occurs during encoding
      */
     public function encode(array $claims, DateTimeImmutable $expiration): string;

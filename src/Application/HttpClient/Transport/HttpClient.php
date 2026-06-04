@@ -14,17 +14,23 @@ use Psr\Http\Message\ResponseInterface;
  */
 interface HttpClient
 {
-    /**
-     * Sends a request
-     *
-     * @throws Exception When an error occurs
-     */
+     /**
+      * Sends a request
+      *
+      * @param RequestInterface $request
+      * @param array<string, mixed> $options
+      *
+      * @throws Exception When an error occurs
+      */
     public function send(RequestInterface $request, array $options = []): ResponseInterface;
 
-    /**
-     * Sends a request asynchronously with options
-     *
-     * @throws Exception When an error occurs
-     */
+     /**
+      * Sends a request asynchronously with options
+      *
+      * @param RequestInterface $request
+      * @param array<string, mixed> $options
+      *
+      * @throws Exception When an error occurs
+      */
     public function sendAsync(RequestInterface $request, array $options = []): Promise;
 }

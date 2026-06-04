@@ -13,11 +13,15 @@ use Traversable;
 
 /**
  * Class ArrayStack
+ *
+ * @template T
+ * @implements Stack<T>
  */
 final class ArrayStack implements Stack
 {
     use ItemTypeMethods;
 
+    /** @var array<T> */
     private array $items = [];
 
     private int $count = 0;
@@ -310,6 +314,7 @@ final class ArrayStack implements Stack
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -337,6 +342,7 @@ final class ArrayStack implements Stack
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -355,6 +361,7 @@ final class ArrayStack implements Stack
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

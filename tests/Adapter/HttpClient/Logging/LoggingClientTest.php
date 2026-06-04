@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\HttpClient\Logging;
 
+use Mockery;
 use Fight\Common\Adapter\HttpClient\Logging\LoggingHttpClient;
 use Fight\Common\Application\HttpClient\Message\Promise;
 use Fight\Common\Application\HttpClient\Transport\HttpClient;
@@ -45,7 +46,7 @@ class LoggingClientTest extends UnitTestCase
         /** @var MockInterface|LoggerInterface $logger */
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('log')
-            ->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', \Mockery::type('array'))
+            ->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', Mockery::type('array'))
             ->once();
 
         $client = new LoggingHttpClient($innerClient, $logger);
@@ -67,7 +68,7 @@ class LoggingClientTest extends UnitTestCase
         /** @var MockInterface|LoggerInterface $logger */
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('log')
-            ->with(LogLevel::INFO, \Mockery::type('string'), \Mockery::type('array'))
+            ->with(LogLevel::INFO, Mockery::type('string'), Mockery::type('array'))
             ->once();
 
         $client = new LoggingHttpClient($innerClient, $logger, LogLevel::INFO);
@@ -106,9 +107,9 @@ class LoggingClientTest extends UnitTestCase
 
         /** @var MockInterface|LoggerInterface $logger */
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('log')->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', \Mockery::any());
+        $logger->shouldReceive('log')->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', Mockery::any());
         $logger->shouldReceive('log')
-            ->with(LogLevel::DEBUG, '[HTTP]: Incoming HTTP Response', \Mockery::type('array'))
+            ->with(LogLevel::DEBUG, '[HTTP]: Incoming HTTP Response', Mockery::type('array'))
             ->once();
 
         $client = new LoggingHttpClient($innerClient, $logger);
@@ -138,9 +139,9 @@ class LoggingClientTest extends UnitTestCase
 
         /** @var MockInterface|LoggerInterface $logger */
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('log')->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', \Mockery::any());
+        $logger->shouldReceive('log')->with(LogLevel::DEBUG, '[HTTP]: Outgoing HTTP Request', Mockery::any());
         $logger->shouldReceive('log')
-            ->with(LogLevel::DEBUG, '[HTTP]: HTTP Error Exception', \Mockery::type('array'))
+            ->with(LogLevel::DEBUG, '[HTTP]: HTTP Error Exception', Mockery::type('array'))
             ->once();
 
         $client = new LoggingHttpClient($innerClient, $logger);
@@ -178,7 +179,7 @@ class LoggingClientTest extends UnitTestCase
                 return true;
             })
             ->andReturnSelf();
-        $innerPromise->shouldReceive('wait')->andReturnUsing(function () use (&$capturedFulfilled, $mockedResponse) {
+        $innerPromise->shouldReceive('wait')->andReturnUsing(function () use (&$capturedFulfilled, $mockedResponse): void {
             $capturedFulfilled($mockedResponse);
         });
         $innerPromise->shouldReceive('getState')->andReturn(Promise::FULFILLED);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Templating;
 
+use Mockery;
 use Fight\Common\Adapter\Templating\TwigEngine;
 use Fight\Common\Application\Templating\Exception\DuplicateHelperException;
 use Fight\Common\Application\Templating\Exception\TemplatingException;
@@ -95,7 +96,7 @@ class TwigEngineTest extends UnitTestCase
     {
         /** @var MockInterface|Environment $environment */
         $environment = $this->mock(Environment::class);
-        $environment->shouldReceive('addGlobal')->once()->with('my_helper', \Mockery::type(TemplateHelper::class));
+        $environment->shouldReceive('addGlobal')->once()->with('my_helper', Mockery::type(TemplateHelper::class));
 
         $helper = new class implements TemplateHelper {
             public function getName(): string { return 'my_helper'; }

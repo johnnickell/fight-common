@@ -8,6 +8,8 @@ use Throwable;
 
 /**
  * Class DuplicateStorageException
+ *
+ * @phpstan-consistent-constructor
  */
 class DuplicateStorageException extends FileStorageException
 {

@@ -17,18 +17,25 @@ final class MailMessage
 
     private ?string $subject = null;
 
+    /** @var array<int, array{address: string, name: ?string}> */
     private array $from = [];
 
+    /** @var array<int, array{address: string, name: ?string}> */
     private array $to = [];
 
+    /** @var array<int, array{address: string, name: ?string}> */
     private array $replyTo = [];
 
+    /** @var array<int, array{address: string, name: ?string}> */
     private array $cc = [];
 
+    /** @var array<int, array{address: string, name: ?string}> */
     private array $bcc = [];
 
+    /** @var array<int, array{content: string, content_type: string, charset: string}> */
     private array $content = [];
 
+    /** @var null|array{address: string, name: ?string} */
     private ?array $sender = null;
 
     private ?string $returnPath = null;
@@ -41,6 +48,7 @@ final class MailMessage
 
     private ?int $maxLineLength = null;
 
+    /** @var array<int, Attachment> */
     private array $attachments = [];
 
     /**
@@ -97,6 +105,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return array<int, array{address: string, name: ?string}>
      */
     public function getFrom(): array
     {
@@ -123,6 +133,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return array<int, array{address: string, name: ?string}>
      */
     public function getTo(): array
     {
@@ -149,6 +161,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return array<int, array{address: string, name: ?string}>
      */
     public function getReplyTo(): array
     {
@@ -175,6 +189,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return array<int, array{address: string, name: ?string}>
      */
     public function getCc(): array
     {
@@ -201,6 +217,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return array<int, array{address: string, name: ?string}>
      */
     public function getBcc(): array
     {
@@ -233,6 +251,8 @@ final class MailMessage
      * * content      => string
      * * content_type => string
      * * charset      => string
+     *
+     * @return array<int, array{content: string, content_type: string, charset: string}>
      */
     public function getContent(): array
     {
@@ -261,6 +281,8 @@ final class MailMessage
      *
      * * address => string
      * * name    => string|null
+     *
+     * @return null|array{address: string, name: ?string}
      */
     public function getSender(): ?array
     {

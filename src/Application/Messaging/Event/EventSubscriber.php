@@ -39,6 +39,8 @@ interface EventSubscriber
      * <code>
      * function (EventMessage $eventMessage): void {}
      * </code>
+     *
+     * @return array<string, string|array{0: string, 1?: int}|array<int, array{0: string, 1?: int}>>
      */
     public static function eventRegistration(): array;
 }

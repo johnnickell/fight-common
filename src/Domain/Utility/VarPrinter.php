@@ -112,6 +112,8 @@ final class VarPrinter
 
     /**
      * Reads a string representation from an array
+     *
+     * @param array<mixed> $array
      */
     private static function readArray(array $array): string
     {

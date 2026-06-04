@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, develop, '1.x', 'release/*']
+    branches: [main, develop, '1.0', 'release/*']
 
 jobs:
   test:
@@ -37,6 +37,9 @@ jobs:
 
       - name: Check code style
         run: php vendor/bin/phpcs
+
+      - name: Static analysis
+        run: php vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress --error-format=github
 
       - name: Run tests
         run: php vendor/bin/phpunit

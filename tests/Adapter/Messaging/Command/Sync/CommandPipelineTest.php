@@ -22,9 +22,7 @@ class CommandPipelineTest extends UnitTestCase
         $bus = $this->mock(SynchronousCommandBus::class);
         $bus->shouldReceive('dispatch')
             ->once()
-            ->withArgs(function (CommandMessage $msg): bool {
-                return $msg->payload() instanceof SamplePipelineCommand;
-            });
+            ->withArgs(fn(CommandMessage $msg): bool => $msg->payload() instanceof SamplePipelineCommand);
 
         $pipeline = new CommandPipeline($bus);
         $pipeline->execute(new SamplePipelineCommand());
@@ -90,7 +88,7 @@ class CommandPipelineTest extends UnitTestCase
 
         $makeFilter = function (string $name) use (&$calls): CommandFilter {
             return new class ($name, $calls) implements CommandFilter {
-                public function __construct(private string $name, private array &$calls) {}
+                public function __construct(private readonly string $name, private array &$calls) {}
 
                 public function process(CommandMessage $commandMessage, callable $next): void
                 {

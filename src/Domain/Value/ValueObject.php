@@ -44,7 +44,7 @@ abstract readonly class ValueObject implements Value
     /**
      * @inheritDoc
      */
-    public function equals($object): bool
+    public function equals(mixed $object): bool
     {
         if ($this === $object) {
             return true;

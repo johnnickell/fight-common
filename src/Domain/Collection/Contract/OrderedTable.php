@@ -11,6 +11,11 @@ use Fight\Common\Domain\Exception\UnderflowException;
 
 /**
  * Interface OrderedTable
+ *
+ * @template K
+ * @template V
+ * @extends OrderedKeyValueCollection<K, V>
+ * @extends ArrayAccess<K, V>
  */
 interface OrderedTable extends ArrayAccess, OrderedKeyValueCollection
 {
@@ -38,11 +43,15 @@ interface OrderedTable extends ArrayAccess, OrderedKeyValueCollection
 
     /**
      * Retrieves an iterator for keys
+     *
+     * @return iterable<K>
      */
     public function keys(): iterable;
 
     /**
      * Retrieves an inclusive list of keys between given keys
+     *
+     * @return iterable<K>
      */
     public function rangeKeys(mixed $lo, mixed $hi): iterable;
 

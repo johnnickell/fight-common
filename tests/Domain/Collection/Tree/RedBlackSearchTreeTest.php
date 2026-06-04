@@ -532,6 +532,7 @@ class RedBlackSearchTreeTest extends UnitTestCase
         foreach ($tree->keys() as $k) {
             $keys[] = $k;
         }
+
         self::assertSame(40, count($keys));
 
         $tree->remove(1);

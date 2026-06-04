@@ -17,6 +17,12 @@ use Psr\Http\Message\UriInterface;
 final class GuzzleMessageFactory implements MessageFactory
 {
     /**
+     * @param string $method
+     * @param string|UriInterface $uri
+     * @param array<string, string|string[]> $headers
+     * @param mixed $body
+     * @param string $protocol
+     *
      * @inheritDoc
      */
     public function createRequest(
@@ -30,6 +36,12 @@ final class GuzzleMessageFactory implements MessageFactory
     }
 
     /**
+     * @param integer $status
+     * @param array<string, string|string[]> $headers
+     * @param mixed $body
+     * @param string $protocol
+     * @param string|null $reason
+     *
      * @inheritDoc
      */
     public function createResponse(

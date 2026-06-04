@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="Fight\Common\Domain\Observability\AuditEntry" table="audit_entries">
+        <id name="id" column="id" type="audit_entry_id" length="36">
+            <generator strategy="NONE"/>
+        </id>
+
+        <field name="actor" column="actor" type="string" length="255"/>
+        <field name="action" column="action" type="string" length="255"/>
+        <field name="timestamp" column="timestamp" type="datetime_immutable"/>
+        <field name="context" column="context" type="common_meta"/>
+    </entity>
+</doctrine-mapping>

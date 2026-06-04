@@ -16,8 +16,10 @@ use Fight\Common\Domain\Utility\ClassName;
  */
 class SimpleEventDispatcher implements SynchronousEventDispatcher
 {
+    /** @var array<string, array<int, array<int, callable>>> */
     protected array $handlers = [];
 
+    /** @var array<string, array<int, callable>> */
     protected array $sorted = [];
 
     /**
@@ -102,6 +104,8 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
     }
 
     /**
+     * @return callable[]|array<string, callable[]>
+     *
      * @inheritDoc
      */
     public function getHandlers(?string $eventType = null): array

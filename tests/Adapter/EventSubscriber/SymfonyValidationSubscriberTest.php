@@ -43,7 +43,7 @@ class SymfonyValidationSubscriberTest extends UnitTestCase
 
         $event = new ControllerEvent(
             $this->mock(HttpKernelInterface::class),
-            [$controller, 'index'],
+            $controller->index(...),
             $request,
             HttpKernelInterface::MAIN_REQUEST
         );
@@ -65,7 +65,7 @@ class SymfonyValidationSubscriberTest extends UnitTestCase
 
         $event = new ControllerEvent(
             $this->mock(HttpKernelInterface::class),
-            [$controller, 'submit'],
+            $controller->submit(...),
             $request,
             HttpKernelInterface::MAIN_REQUEST
         );
@@ -121,7 +121,7 @@ class SymfonyValidationSubscriberTest extends UnitTestCase
 
         $event = new ControllerEvent(
             $this->mock(HttpKernelInterface::class),
-            [StaticControllerStub::class, 'action'],
+            StaticControllerStub::action(...),
             $request,
             HttpKernelInterface::MAIN_REQUEST
         );
@@ -142,7 +142,7 @@ class SymfonyValidationSubscriberTest extends UnitTestCase
 
         $event = new ControllerEvent(
             $this->mock(HttpKernelInterface::class),
-            [$controller, 'index'],
+            $controller->index(...),
             $request,
             HttpKernelInterface::MAIN_REQUEST
         );

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Filesystem;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
 use Fight\Common\Adapter\Filesystem\SymfonyFilesystem;
 use Fight\Common\Application\Filesystem\Exception\FileNotFoundException;
 use Fight\Common\Application\Filesystem\Exception\FilesystemException;
@@ -54,11 +57,12 @@ class SymfonyFilesystemTest extends UnitTestCase
 
     protected function tearDown(): void
     {
-        $dirIterator = new \RecursiveDirectoryIterator($this->tmpDir, \RecursiveDirectoryIterator::SKIP_DOTS);
-        $files = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::CHILD_FIRST);
+        $dirIterator = new RecursiveDirectoryIterator($this->tmpDir, RecursiveDirectoryIterator::SKIP_DOTS);
+        $files = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($files as $file) {
             $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
         }
+
         rmdir($this->tmpDir);
         parent::tearDown();
     }
@@ -108,7 +112,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('mkdir')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('mkdir')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -233,7 +237,7 @@ class SymfonyFilesystemTest extends UnitTestCase
 
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('copy')->once()->andThrow(new \RuntimeException('boom'));
+        $symfony->shouldReceive('copy')->once()->andThrow(new RuntimeException('boom'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -307,7 +311,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('remove')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('remove')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -709,7 +713,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('touch')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('touch')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -722,7 +726,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('rename')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('rename')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -735,7 +739,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('symlink')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('symlink')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -748,7 +752,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('mirror')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('mirror')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -776,7 +780,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('dumpFile')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('dumpFile')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -798,7 +802,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('chmod')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('chmod')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -811,7 +815,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('chown')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('chown')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
@@ -824,7 +828,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     {
         /** @var MockInterface|Filesystem $symfony */
         $symfony = $this->mock(Filesystem::class);
-        $symfony->shouldReceive('chgrp')->once()->andThrow(new \RuntimeException('unexpected'));
+        $symfony->shouldReceive('chgrp')->once()->andThrow(new RuntimeException('unexpected'));
 
         $filesystem = new SymfonyFilesystem($symfony);
 
