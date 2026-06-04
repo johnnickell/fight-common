@@ -1,6 +1,5 @@
 {
     "name": "johnnickell/fight-common",
-    "version": "1.0.0",
     "description": "A common library for $FIGHT projects",
     "license": "MIT",
     "require": {
