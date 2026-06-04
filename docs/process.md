@@ -7,6 +7,7 @@ A port-and-adapter layer for running shell processes. `Process` describes what t
 ```
 Application\Process
 ├── Process                             — Immutable process descriptor
+├── ProcessBuilder                      — Fluent builder for Process
 ├── ProcessRunner (interface)           — attach(), clear(), run()
 ├── ProcessErrorBehavior (enum: int)    — EXCEPTION, IGNORE, RETRY
 └── Exception\
@@ -23,11 +24,12 @@ Adapter\Process
 ## Table of Contents
 
 1. [Process](#process-descriptor)
-2. [ProcessRunner](#processrunner)
-3. [ProcessErrorBehavior](#processerrorbehavior)
-4. [SymfonyProcessRunner](#symfonyprocessrunner)
-5. [Symfony Configuration](#symfony-configuration)
-6. [Usage Examples](#usage-examples)
+2. [ProcessBuilder](#processbuilder)
+3. [ProcessRunner](#processrunner)
+4. [ProcessErrorBehavior](#processerrorbehavior)
+5. [SymfonyProcessRunner](#symfonyprocessrunner)
+6. [Symfony Configuration](#symfony-configuration)
+7. [Usage Examples](#usage-examples)
 
 ---
 
@@ -65,6 +67,65 @@ $process = new Process(
 | `stdout()` | `callable\|null` | Called for each chunk of stdout output |
 | `stderr()` | `callable\|null` | Called for each chunk of stderr output |
 | `isOutputDisabled()` | `bool` | Whether output capturing is disabled |
+
+---
+
+## ProcessBuilder
+
+`Fight\Common\Application\Process\ProcessBuilder`
+
+A fluent builder for constructing `Process` descriptors. Accepts an optional initial argument
+list in the constructor (or via `create()`), then assembles the shell command using
+`escapeshellarg` so that arguments with spaces or special characters are always safe.
+
+```php
+use Fight\Common\Application\Process\ProcessBuilder;
+
+$process = ProcessBuilder::create('vendor/bin/phpunit')
+    ->option('filter', 'test_my_feature')
+    ->option('no-coverage')
+    ->directory('/var/www/html')
+    ->timeout(120)
+    ->stdout(fn(string $data) => print($data))
+    ->getProcess();
+```
+
+### Building the Command
+
+The builder distinguishes between a **prefix** (fixed leading tokens, e.g. the executable)
+and **arguments** (variable tokens appended after the prefix). Both are escaped and joined
+with spaces when `getProcess()` is called.
+
+```php
+// Prefix + arguments
+$process = ProcessBuilder::create()
+    ->prefix(['php', 'artisan'])   // fixed executable tokens
+    ->arg('migrate')               // positional argument
+    ->option('force')              // --force
+    ->short('n')                   // -n
+    ->getProcess();
+// → 'php' 'artisan' 'migrate' '--force' '-n'
+```
+
+### Methods
+
+| Method | Description |
+|---|---|
+| `create(string\|array\|null $args)` | Static factory; accepts an initial argument string or list |
+| `prefix(string\|array $prefix)` | Sets fixed leading tokens (replaces any previous prefix) |
+| `arg(string $arg)` | Appends a positional argument; empty strings are ignored |
+| `option(string $option, ?string $value)` | Appends a long option; `--` added if absent |
+| `short(string $option, ?string $value)` | Appends a short option; `-` added if absent |
+| `clearArgs()` | Removes all positional arguments (prefix unaffected) |
+| `directory(?string $dir)` | Sets working directory |
+| `input(mixed $input)` | Sets stdin; accepts string, resource, or null |
+| `timeout(int\|float\|null $s)` | Sets timeout in seconds (default 60.0); null = unlimited |
+| `setEnv(string $name, string $value)` | Adds or overrides an environment variable |
+| `stdout(callable\|null $fn)` | Sets callback for stdout chunks |
+| `stderr(callable\|null $fn)` | Sets callback for stderr chunks |
+| `disableOutput()` | Disables output capturing |
+| `enableOutput()` | Re-enables output capturing |
+| `getProcess()` | Returns the built `Process`; throws `MethodCallException` if empty |
 
 ---
 
@@ -169,11 +230,10 @@ When a `LoggerInterface` is provided, the runner logs:
 Attach per-process callbacks to stream output in real time:
 
 ```php
-$process = new Process(
-    command: 'bin/long-running-task',
-    stdout:  fn(string $data) => $this->logger->info($data),
-    stderr:  fn(string $data) => $this->logger->error($data),
-);
+$process = ProcessBuilder::create('bin/long-running-task')
+    ->stdout(fn(string $data) => $this->logger->info($data))
+    ->stderr(fn(string $data) => $this->logger->error($data))
+    ->getProcess();
 ```
 
 ---
@@ -206,7 +266,7 @@ services:
 ### Running a Single Process
 
 ```php
-use Fight\Common\Application\Process\Process;
+use Fight\Common\Application\Process\ProcessBuilder;
 use Fight\Common\Application\Process\ProcessRunner;
 
 class CacheClearer
@@ -215,11 +275,13 @@ class CacheClearer
 
     public function clear(string $env): void
     {
-        $this->runner->attach(new Process(
-            command:   'bin/console cache:clear',
-            directory: '/var/www/html',
-            environment: ['APP_ENV' => $env]
-        ));
+        $this->runner->attach(
+            ProcessBuilder::create('bin/console')
+                ->arg('cache:clear')
+                ->directory('/var/www/html')
+                ->setEnv('APP_ENV', $env)
+                ->getProcess()
+        );
 
         $this->runner->run();
     }
@@ -232,7 +294,11 @@ class CacheClearer
 $runner = new SymfonyProcessRunner(maxConcurrent: 4);
 
 foreach ($files as $file) {
-    $runner->attach(new Process("bin/process-file {$file}"));
+    $runner->attach(
+        ProcessBuilder::create('bin/process-file')
+            ->arg($file)
+            ->getProcess()
+    );
 }
 
 $runner->run();  // 4 at a time until all complete
@@ -249,7 +315,11 @@ $runner->run(ProcessErrorBehavior::IGNORE);  // non-zero exit silently discarded
 
 ```php
 $runner = new SymfonyProcessRunner(tries: 3);
-$runner->attach(new Process('curl https://api.example.com/sync'));
+$runner->attach(
+    ProcessBuilder::create('curl')
+        ->arg('https://api.example.com/sync')
+        ->getProcess()
+);
 $runner->run(ProcessErrorBehavior::RETRY);
 // retries up to 3 times; throws ProcessFailedException if all attempts fail
 ```
@@ -259,12 +329,13 @@ $runner->run(ProcessErrorBehavior::RETRY);
 ```php
 $lines = [];
 
-$runner->attach(new Process(
-    command: 'bin/generate-report',
-    stdout:  function (string $data) use (&$lines): void {
-        $lines[] = trim($data);
-    }
-));
+$runner->attach(
+    ProcessBuilder::create('bin/generate-report')
+        ->stdout(function (string $data) use (&$lines): void {
+            $lines[] = trim($data);
+        })
+        ->getProcess()
+);
 
 $runner->run();
 ```
