@@ -31,24 +31,30 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
-     * @inheritDoc
-     */
+      * @param RequestInterface $request
+      * @param array<string, mixed> $options
+      */
     public function send(RequestInterface $request, array $options = []): ResponseInterface
     {
         return $this->httpClient->send($request, $options);
     }
 
     /**
-     * @inheritDoc
-     */
+      * @param RequestInterface $request
+      * @param array<string, mixed> $options
+      */
     public function sendAsync(RequestInterface $request, array $options = []): Promise
     {
         return $this->httpClient->sendAsync($request, $options);
     }
 
     /**
-     * @inheritDoc
-     */
+      * @param string $method
+      * @param UriInterface|string $uri
+      * @param array<string, string> $headers
+      * @param mixed $body
+      * @param string $protocol
+      */
     public function createRequest(
         string $method,
         UriInterface|string $uri,
@@ -66,8 +72,12 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
-     * @inheritDoc
-     */
+      * @param integer $status
+      * @param array<string, string> $headers
+      * @param mixed $body
+      * @param string $protocol
+      * @param string|null $reason
+      */
     public function createResponse(
         int $status = 200,
         array $headers = [],

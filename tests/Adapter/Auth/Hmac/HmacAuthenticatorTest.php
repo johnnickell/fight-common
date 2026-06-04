@@ -7,6 +7,8 @@ namespace Fight\Test\Common\Adapter\Auth\Hmac;
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacMethods;
 use Fight\Common\Application\Auth\Exception\AuthException;
+use Fight\Common\Domain\Auth\NonceRepository;
+use Fight\Common\Domain\Auth\Nonce;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -18,6 +20,7 @@ use Psr\Http\Message\UriInterface;
 class HmacAuthenticatorTest extends UnitTestCase
 {
     private const string PUBLIC_KEY = 'test-public-key';
+
     private const array REQUIRED_HEADERS = ['Authorization', 'Credential', 'Signature', 'X-Timestamp', 'X-Nonce'];
 
     private string $privateKeyHex;
@@ -37,10 +40,10 @@ class HmacAuthenticatorTest extends UnitTestCase
         array $headers,
         int $timestamp
     ): string {
-        $signer = new class(hex2bin($privateKeyHex)) {
+        $signer = new readonly class(hex2bin($privateKeyHex)) {
             use HmacMethods;
 
-            public function __construct(private readonly string $secret) {}
+            public function __construct(private string $secret) {}
 
             protected function getSecret(): string
             {
@@ -102,6 +105,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -117,7 +121,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         self::assertTrue($authenticator->validate($request));
     }
 
-    public function test_that_validate_returns_false_when_signature_does_not_match(): void
+    public function test_that_validate_throws_when_signature_does_not_match(): void
     {
         $timestamp = time();
         $nonce = 'test-nonce';
@@ -130,6 +134,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -142,7 +147,8 @@ class HmacAuthenticatorTest extends UnitTestCase
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
 
-        self::assertFalse($authenticator->validate($request));
+        $this->expectException(AuthException::class);
+        $authenticator->validate($request);
     }
 
     public function test_that_validate_throws_when_required_header_is_missing(): void
@@ -166,7 +172,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         $request->shouldReceive('getServerParams')->andReturn([]);
         // Return true for all headers except Signature so the loop throws exactly there
         $request->shouldReceive('hasHeader')->andReturnUsing(
-            fn(string $header) => $header !== 'Signature'
+            fn(string $header): bool => $header !== 'Signature'
         );
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
@@ -184,6 +190,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
         $request->shouldReceive('getHeaderLine')->with('Credential')->andReturn('wrong-credential');
@@ -207,6 +214,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -232,6 +240,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(true);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -245,7 +254,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         $authenticator->validate($request);
     }
 
-    public function test_that_validate_returns_false_when_signature_does_not_match_for_request_with_body(): void
+    public function test_that_validate_throws_when_signature_does_not_match_for_request_with_body(): void
     {
         $timestamp = time();
         $content = 'request-body';
@@ -263,8 +272,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
-        // X-Content-SHA256 is present and correct so body validation passes,
-        // and it is included in the canonical request (lines 92–96)
+
         $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(true);
         $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
@@ -278,7 +286,8 @@ class HmacAuthenticatorTest extends UnitTestCase
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
 
-        self::assertFalse($authenticator->validate($request));
+        $this->expectException(AuthException::class);
+        $authenticator->validate($request);
     }
 
     public function test_that_validate_throws_when_timestamp_is_expired(): void
@@ -290,6 +299,7 @@ class HmacAuthenticatorTest extends UnitTestCase
         foreach (self::REQUIRED_HEADERS as $header) {
             $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
         }
+
         $request->shouldReceive('getServerParams')->andReturn([]);
         $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $expiredTimestamp);
 
@@ -297,5 +307,46 @@ class HmacAuthenticatorTest extends UnitTestCase
 
         $this->expectException(AuthException::class);
         $authenticator->validate($request);
+    }
+
+    public function test_that_validate_consumes_nonce_when_repository_is_provided(): void
+    {
+        $timestamp = time();
+        $nonce = 'test-nonce';
+        $method = 'GET';
+        $authority = 'example.com';
+        $path = '/api';
+
+        $hmacHeaders = ['X-Timestamp' => $timestamp, 'X-Nonce' => $nonce];
+        $signature = $this->computeSignature($this->privateKeyHex, $method, $authority, $path, '', $hmacHeaders, $timestamp);
+
+        $uri = $this->mockUri($authority, $path);
+        $body = $this->mockEmptyBody();
+
+        /** @var MockInterface|ServerRequestInterface $request */
+        $request = $this->mock(ServerRequestInterface::class);
+        foreach (self::REQUIRED_HEADERS as $header) {
+            $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
+        }
+
+        $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
+        $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
+        $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
+        $request->shouldReceive('getHeaderLine')->with('Credential')->andReturn(self::PUBLIC_KEY);
+        $request->shouldReceive('getHeaderLine')->with('X-Nonce')->andReturn($nonce);
+        $request->shouldReceive('getHeaderLine')->with('Signature')->andReturn($signature);
+        $request->shouldReceive('getBody')->andReturn($body);
+        $request->shouldReceive('getMethod')->andReturn($method);
+        $request->shouldReceive('getUri')->andReturn($uri);
+
+        /** @var MockInterface|NonceRepository $nonces */
+        $nonces = $this->mock(NonceRepository::class);
+        $nonces->shouldReceive('consume')
+            ->once()
+            ->withArgs(fn(Nonce $n): bool => $n->value() === $nonce);
+
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonces);
+
+        self::assertTrue($authenticator->validate($request));
     }
 }

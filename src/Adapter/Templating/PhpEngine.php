@@ -16,22 +16,28 @@ use Throwable;
  */
 final class PhpEngine implements TemplateEngine
 {
+    /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
+    /** @var array<string, string> */
     private array $cache = [];
 
+    /** @var array<string, ?string> */
     private array $parents = [];
 
-    private array $stack = [];
-
+    /** @var array<string, string> */
     private array $blocks = [];
 
+    /** @var string[] */
     private array $openBlocks = [];
 
     private string $current;
 
     /**
      * Constructs PhpEngine
+     *
+     * @param string[] $paths
+     * @param TemplateHelper[] $helpers
      *
      * @throws Throwable
      */
@@ -87,22 +93,25 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
+     * @param string $template
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string
     {
         $file = $this->loadTemplate($template);
-        $key = hash('sha256', $file);
+        $key = $file;
         $this->current = $key;
         $this->parents[$key] = null;
 
-        // @codeCoverageIgnoreStart
+        $output = $this->evaluate($file, $data);
+
         if (is_string($this->parents[$key])) {
             return $this->render($this->parents[$key], $data);
         }
-        // @codeCoverageIgnoreEnd
 
-        return $this->evaluate($file, $data);
+        return $output;
     }
 
     /**
@@ -140,6 +149,10 @@ final class PhpEngine implements TemplateEngine
         $name = array_pop($this->openBlocks);
 
         $content = ob_get_clean();
+
+        if ($content === false) {
+            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+        }
 
         if (empty($this->blocks[$name])) {
             $this->blocks[$name] = $content;
@@ -181,11 +194,16 @@ final class PhpEngine implements TemplateEngine
      */
     public function exists(string $template): bool
     {
+        $resolved = str_replace(':', DIRECTORY_SEPARATOR, $template);
+
         foreach ($this->paths as $path) {
-            $template = str_replace(':', DIRECTORY_SEPARATOR, $template);
-            $file = $path.DIRECTORY_SEPARATOR.$template;
+            $file = $path.DIRECTORY_SEPARATOR.$resolved;
             if (is_file($file) && is_readable($file)) {
-                return true;
+                $real = realpath($file);
+                $realPath = realpath($path);
+                if ($real !== false && $realPath !== false && str_starts_with($real, $realPath.DIRECTORY_SEPARATOR)) {
+                    return true;
+                }
             }
         }
 
@@ -251,6 +269,11 @@ final class PhpEngine implements TemplateEngine
     /**
      * Evaluates a PHP template
      *
+     * @param string $file
+     * @param array<string, mixed> $data
+     *
+     * @phpstan-impure
+     *
      * @throws TemplatingException When data is not valid
      */
     private function evaluate(string $file, array $data = []): string
@@ -267,10 +290,18 @@ final class PhpEngine implements TemplateEngine
         $evalData = null;
 
         ob_start();
-        require $evalFile;
-        $evalFile = null;
+        try {
+            require $evalFile;
+        } finally {
+            $evalFile = null;
+            $content = ob_get_clean();
+        }
 
-        return ob_get_clean();
+        if ($content === false) {
+            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+        }
+
+        return $content;
     }
 
     /**
@@ -295,11 +326,18 @@ final class PhpEngine implements TemplateEngine
      */
     private function getTemplatePath(string $template): string
     {
+        $resolved = str_replace(':', DIRECTORY_SEPARATOR, $template);
+
         foreach ($this->paths as $path) {
-            $template = str_replace(':', DIRECTORY_SEPARATOR, $template);
-            $file = $path.DIRECTORY_SEPARATOR.$template;
+            $file = $path.DIRECTORY_SEPARATOR.$resolved;
             if (is_file($file) && is_readable($file)) {
-                return $file;
+                $real = realpath($file);
+                $realPath = realpath($path);
+                if ($real === false || $realPath === false || !str_starts_with($real, $realPath.DIRECTORY_SEPARATOR)) {
+                    throw TemplateNotFoundException::fromName($template);
+                }
+
+                return $real;
             }
         }
 

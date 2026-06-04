@@ -91,8 +91,10 @@ final readonly class Uuid extends ValueObject implements Comparable
     public static function comb(bool $msb = true): static
     {
         $hash = bin2hex(random_bytes(10));
-        $time = explode(' ', microtime());
-        $milliseconds = sprintf('%d%03d', $time[1], $time[0] * 1000);
+        $time = microtime(true);
+        $seconds = (int) $time;
+        $micro = (int) (($time - $seconds) * 1000);
+        $milliseconds = sprintf('%d%03d', $seconds, $micro);
         $timestamp = sprintf('%012x', $milliseconds);
         if ($msb) {
             $hex = $timestamp.$hash;
@@ -480,6 +482,8 @@ final readonly class Uuid extends ValueObject implements Comparable
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<string, string>
      *
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.2
      */

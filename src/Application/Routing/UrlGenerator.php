@@ -11,10 +11,15 @@ use Fight\Common\Application\Routing\Exception\UrlGenerationException;
  */
 interface UrlGenerator
 {
-    /**
-     * Generates a URL for the given route and parameters
-     *
-     * @throws UrlGenerationException When an error occurs
-     */
+     /**
+      * Generates a URL for the given route and parameters
+      *
+      * @param string $name
+      * @param array<string, mixed> $parameters
+      * @param array<string, mixed> $query
+      * @param boolean $absolute
+      *
+      * @throws UrlGenerationException When an error occurs
+      */
     public function generate(string $name, array $parameters = [], array $query = [], bool $absolute = false): string;
 }

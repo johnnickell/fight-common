@@ -15,12 +15,14 @@
     "require-dev": {
         "doctrine/dbal": "^4.4",
         "doctrine/orm": "^3.6",
+        "dragonmantank/cron-expression": "^3.0",
         "guzzlehttp/guzzle": "^7.10",
         "guzzlehttp/promises": "^2.3",
         "guzzlehttp/psr7": "^2.9",
         "lcobucci/jwt": "^5.6",
         "league/flysystem": "^3.0",
         "mockery/mockery": "^1.6",
+        "phpseclib/phpseclib": "^3.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.0",
         "rector/rector": "^2.4",
@@ -34,11 +36,15 @@
         "symfony/mailer": "^8.0",
         "symfony/mercure": "^0.7",
         "symfony/messenger": "^8.0",
-        "symfony/routing": "^8.0"
+        "symfony/process": "^7.0",
+        "symfony/routing": "^8.0",
+        "twig/twig": "^3.0",
+        "twilio/sdk": "^8.0"
     },
     "suggest": {
+        "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
-        "doctrine/orm": "Required by the doctrine unit of work",
+        "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
         "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
         "guzzlehttp/promises": "Required by the guzzle http client adapter",
         "guzzlehttp/psr7": "Required by the guzzle http client adapter",
@@ -52,7 +58,11 @@
         "symfony/mailer": "Required by the Symfony mail transport and attachment adapters",
         "symfony/mercure": "Required by the Mercure hub publisher",
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
-        "symfony/routing": "Required for the URL generator"
+        "symfony/process": "Required by the Symfony process runner adapter",
+        "symfony/routing": "Required for the URL generator",
+        "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
+        "twilio/sdk": "Required by the Twilio SMS transport adapter",
+        "twig/twig": "Required by the Twig template engine adapter"
     },
     "autoload": {
         "psr-4": {

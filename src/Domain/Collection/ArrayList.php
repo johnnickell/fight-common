@@ -15,11 +15,15 @@ use Traversable;
 
 /**
  * Class ArrayList
+ *
+ * @template T
+ * @implements ItemList<T>
  */
 final class ArrayList implements ItemList
 {
     use ItemTypeMethods;
 
+    /** @var array<T> */
     private array $items = [];
 
     /**
@@ -69,6 +73,8 @@ final class ArrayList implements ItemList
     }
 
     /**
+     * @param iterable<T> $items
+     *
      * @inheritDoc
      */
     public function replace(iterable $items): static
@@ -708,6 +714,7 @@ final class ArrayList implements ItemList
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -735,6 +742,7 @@ final class ArrayList implements ItemList
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -753,6 +761,7 @@ final class ArrayList implements ItemList
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

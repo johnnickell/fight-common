@@ -23,9 +23,7 @@ class RoutingQueryBusTest extends UnitTestCase
         /** @var MockInterface|QueryHandler $handler */
         $handler = $this->mock(QueryHandler::class);
         $handler->shouldReceive('handle')
-            ->withArgs(function (QueryMessage $msg): bool {
-                return $msg->payload() instanceof SampleRoutingQuery;
-            })
+            ->withArgs(fn(QueryMessage $msg): bool => $msg->payload() instanceof SampleRoutingQuery)
             ->andReturn($expected);
 
         /** @var MockInterface|QueryRouter $router */

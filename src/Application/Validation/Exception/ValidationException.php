@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\ValidationException as BaseException;
 
 /**
  * Class ValidationException
+ *
+ * @phpstan-consistent-constructor
  */
 class ValidationException extends BaseException
 {

@@ -12,11 +12,14 @@ use Fight\Common\Application\Templating\Exception\TemplatingException;
  */
 interface TemplateEngine
 {
-    /**
-     * Renders a template
-     *
-     * @throws TemplatingException When an error occurs
-     */
+     /**
+      * Renders a template
+      *
+      * @param string $template
+      * @param array<string, mixed> $data
+      *
+      * @throws TemplatingException When an error occurs
+      */
     public function render(string $template, array $data = []): string;
 
     /**

@@ -18,7 +18,7 @@ final class GuzzleUriFactory implements UriFactory
     /**
      * @inheritDoc
      */
-    public function createUri($uri): UriInterface
+    public function createUri(string $uri): UriInterface
     {
         try {
             return Utils::uriFor($uri);

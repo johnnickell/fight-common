@@ -13,6 +13,10 @@ use Stringable;
 
 /**
  * Interface ItemList
+ *
+ * @template T
+ * @extends ItemCollection<T>
+ * @extends ArrayAccess<int, T>
  */
 interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializable, Stringable
 {
@@ -23,6 +27,8 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
 
     /**
      * Creates a list with the items replaced
+     *
+     * @param iterable<T> $items
      */
     public function replace(iterable $items): static;
 
@@ -216,6 +222,8 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
 
     /**
      * Retrieves an array representation
+     *
+     * @return array<T>
      */
     public function toArray(): array;
 
@@ -226,6 +234,8 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
 
     /**
      * Retrieves a representation for JSON encoding
+     *
+     * @return array<T>
      */
     public function jsonSerialize(): array;
 

@@ -8,6 +8,8 @@ use Iterator;
 
 /**
  * Class ArrayQueueIterator
+ *
+ * @implements Iterator<int, mixed>
  */
 final class ArrayQueueIterator implements Iterator
 {
@@ -17,6 +19,8 @@ final class ArrayQueueIterator implements Iterator
 
     /**
      * Constructs ArrayQueueIterator
+     *
+     * @param array<mixed> $items
      *
      * @codeCoverageIgnore coverage bug
      */

@@ -73,6 +73,8 @@ final class Type implements Equatable, JsonSerializable, Stringable
 
     /**
      * Handles construction from serialized data
+     *
+     * @param array<string, mixed> $data
      */
     public function __unserialize(array $data): void
     {

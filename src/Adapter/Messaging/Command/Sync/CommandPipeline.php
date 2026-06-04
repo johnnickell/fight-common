@@ -16,8 +16,10 @@ use Throwable;
  */
 final class CommandPipeline implements SynchronousCommandBus, CommandFilter
 {
+    /** @var LinkedStack<CommandFilter> */
     private readonly LinkedStack $filters;
 
+    /** @var LinkedStack<object> */
     private ?LinkedStack $executionStack = null;
 
     /**

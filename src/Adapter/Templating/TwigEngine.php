@@ -16,6 +16,7 @@ use Twig\Environment;
  */
 final class TwigEngine implements TemplateEngine
 {
+    /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
     /**
@@ -26,6 +27,9 @@ final class TwigEngine implements TemplateEngine
     }
 
     /**
+     * @param string $template
+     * @param array<string, mixed> $data
+     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string

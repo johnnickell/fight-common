@@ -8,6 +8,8 @@ use Throwable;
 
 /**
  * Class TemplateNotFoundException
+ *
+ * @phpstan-consistent-constructor
  */
 class TemplateNotFoundException extends TemplatingException
 {

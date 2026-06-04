@@ -14,11 +14,15 @@ use Traversable;
 
 /**
  * Class LinkedDeque
+ *
+ * @template T
+ * @implements Deque<T>
  */
 final class LinkedDeque implements Deque
 {
     use ItemTypeMethods;
 
+    /** @var SplDoublyLinkedList<T> */
     private SplDoublyLinkedList $list;
 
     /**
@@ -65,7 +69,7 @@ final class LinkedDeque implements Deque
     /**
      * @inheritDoc
      */
-    public function addFirst($item): void
+    public function addFirst(mixed $item): void
     {
         assert(Validate::isType($item, $this->itemType()));
         $this->list->unshift($item);
@@ -74,7 +78,7 @@ final class LinkedDeque implements Deque
     /**
      * @inheritDoc
      */
-    public function addLast($item): void
+    public function addLast(mixed $item): void
     {
         assert(Validate::isType($item, $this->itemType()));
         $this->list->push($item);
@@ -337,6 +341,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -364,6 +369,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -386,6 +392,7 @@ final class LinkedDeque implements Deque
     }
 
     /**
+     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Routing;
 
+use RuntimeException;
 use Fight\Common\Adapter\Routing\SymfonyUrlGenerator;
 use Fight\Common\Application\Routing\Exception\InvalidParameterException;
 use Fight\Common\Application\Routing\Exception\MissingParametersException;
@@ -108,7 +109,7 @@ class SymfonyUrlGeneratorTest extends UnitTestCase
     {
         /** @var MockInterface|UrlGeneratorInterface $symfony */
         $symfony = $this->mock(UrlGeneratorInterface::class);
-        $symfony->shouldReceive('generate')->once()->andThrow(new \RuntimeException('Unexpected'));
+        $symfony->shouldReceive('generate')->once()->andThrow(new RuntimeException('Unexpected'));
 
         $generator = new SymfonyUrlGenerator($symfony);
 

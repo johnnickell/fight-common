@@ -12,13 +12,18 @@ use Traversable;
 
 /**
  * Class ApplicationData
+ *
+ * @implements Collection<string, mixed>
  */
 final readonly class ApplicationData implements Arrayable, Collection
 {
+    /** @var HashTable<string, mixed> */
     private HashTable $data;
 
     /**
      * Constructs ApplicationData
+     *
+     * @param array<string, mixed> $data
      */
     public function __construct(array $data)
     {
@@ -50,6 +55,8 @@ final readonly class ApplicationData implements Arrayable, Collection
 
     /**
      * Retrieves a list of names
+     *
+     * @return string[]
      */
     public function names(): array
     {
@@ -87,7 +94,7 @@ final readonly class ApplicationData implements Arrayable, Collection
     }
 
     /**
-     * @inheritDoc
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {

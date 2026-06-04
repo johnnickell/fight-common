@@ -26,6 +26,7 @@ final class OrSpecification extends CompositeSpecification
         if ($this->firstSpec->isSatisfiedBy($candidate)) {
             return true;
         }
+
         return $this->secondSpec->isSatisfiedBy($candidate);
     }
 }

@@ -58,6 +58,7 @@ final readonly class Url extends Uri
             if ('' === $param) {
                 continue;
             }
+
             if ('=' === $param[0]) {
                 continue;
             }
