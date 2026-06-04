@@ -6,7 +6,7 @@ namespace Fight\Common\Adapter\Auth\Hmac;
 
 use DateTimeImmutable;
 use Fight\Common\Application\Auth\Authenticator;
-use Fight\Common\Application\Auth\NonceRepository;
+use Fight\Common\Domain\Auth\NonceRepository;
 use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Application\Auth\Exception\AuthException;
 use Fight\Common\Domain\Auth\Nonce;

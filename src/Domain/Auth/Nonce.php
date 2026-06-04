@@ -10,7 +10,7 @@ use Fight\Common\Adapter\Auth\Hmac\HmacKeyGenerator;
 /**
  * Class Nonce
  */
-final readonly class Nonce
+readonly class Nonce
 {
     /**
      * Constructs Nonce
@@ -29,6 +29,7 @@ final readonly class Nonce
         $value = HmacKeyGenerator::generateSecureRandom($bytes);
         $expiresAt = new DateTimeImmutable(sprintf('+%d seconds', $ttlSeconds));
 
+        /** @phpstan-ignore new.static */
         return new static($value, $expiresAt);
     }
 

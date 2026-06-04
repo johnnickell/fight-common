@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Repository;
+namespace Fight\Test\Common\Adapter\Repository\Doctrine;
 
 use ArrayIterator;
 use DateTimeImmutable;
@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Fight\Common\Adapter\Repository\DoctrineAuditRepository;
+use Fight\Common\Adapter\Repository\Doctrine\DoctrineAuditRepository;
 use Fight\Common\Adapter\Repository\DoctrineRepository;
 use Fight\Common\Domain\Observability\AuditEntry;
 use Fight\Common\Domain\Repository\Pagination;

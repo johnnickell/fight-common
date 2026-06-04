@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Repository;
+namespace Fight\Common\Adapter\Repository\Doctrine;
 
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Fight\Common\Adapter\Repository\DoctrineRepository;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Observability\AuditEntry;
 use Fight\Common\Domain\Observability\AuditRepository;
