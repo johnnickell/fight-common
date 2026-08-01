@@ -1,5 +1,5 @@
 site_name: fight-common
-site_description: A shared PHP library for FIGHT projects — Hexagonal Architecture, CQRS, and clean domain primitives.
+site_description: A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives.
 site_url: https://johnnickell.github.io/fight-common/
 repo_url: https://github.com/johnnickell/fight-common
 repo_name: johnnickell/fight-common
