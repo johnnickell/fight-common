@@ -1,6 +1,6 @@
 # Project Context and Ubiquitous Language
 
-`fight-common` is the shared PHP library for Fight applications. It supplies domain primitives, application ports, and optional infrastructure adapters without defining the business language of any one consuming application.
+This project is a shared PHP library for applications using Hexagonal Architecture and CQRS. It supplies domain primitives, application ports, and optional infrastructure adapters without defining the business language of any one consuming application.
 
 This file records how terms are used inside this library. Public APIs, documentation, tickets, and ADRs should use these meanings consistently.
 
