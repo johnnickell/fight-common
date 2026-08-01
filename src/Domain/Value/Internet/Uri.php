@@ -884,7 +884,7 @@ readonly class Uri extends ValueObject implements Comparable
 
                     break;
                 case (str_starts_with($path, '/..')
-                    && (in_array(substr($path, 3, 1), [false, '', '/'], true))):
+                    && (in_array(substr($path, 3, 1), ['', '/'], true))):
                     $path = '/'.substr($path, 3);
                     $pos = false;
                     if (!empty($output)) {
@@ -897,7 +897,7 @@ readonly class Uri extends ValueObject implements Comparable
 
                     break;
                 case (str_starts_with($path, '/.')
-                    && (in_array(substr($path, 2, 1), [false, '', '/'], true))):
+                    && (in_array(substr($path, 2, 1), ['', '/'], true))):
                     $path = '/'.substr($path, 2);
                     break;
                 default:
