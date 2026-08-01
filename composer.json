@@ -1,6 +1,6 @@
 {
     "name": "johnnickell/fight-common",
-    "description": "A common library for $FIGHT projects",
+    "description": "A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives",
     "license": "MIT",
     "require": {
         "php": ">=8.5",
