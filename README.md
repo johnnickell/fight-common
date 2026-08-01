@@ -1,4 +1,4 @@
-# $FIGHT Common
+# PHP Common Abstraction Library
 
 [![Tests](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/johnnickell/fight-common/actions/workflows/tests.yml)
 [![PHP 8.5+](https://img.shields.io/badge/php-8.5%2B-8892BF.svg?logo=php&logoColor=white)](https://www.php.net/)
@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/badge/version-1.1.0-brightgreen.svg)](CHANGELOG.md)
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%206-brightgreen.svg)](phpstan.neon.dist)
 
-A shared PHP library for $FIGHT projects implementing Hexagonal (Ports & Adapters) / Clean Architecture. Provides foundational building blocks including value objects, typed collections, CQRS messaging, a composable validation system, and infrastructure adapters.
+A shared PHP library for projects implementing Hexagonal (Ports & Adapters) / Clean Architecture. Provides foundational building blocks including value objects, typed collections, CQRS messaging, a composable validation system, and infrastructure adapters.
 
 **[Documentation](https://johnnickell.github.io/fight-common/)** · **[Quick Start](https://johnnickell.github.io/fight-common/quickstart/)** · **[Changelog](CHANGELOG.md)**
 
