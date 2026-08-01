@@ -1,7 +1,7 @@
 # Documentation
 
 This directory contains the full documentation for `johnnickell/fight-common`, a shared PHP
-library for $FIGHT projects implementing Hexagonal (Ports & Adapters) / Clean Architecture.
+library for projects implementing Hexagonal (Ports & Adapters) / Clean Architecture.
 Each component is documented in its own file with API references, Symfony configuration, and
 usage examples.
 
