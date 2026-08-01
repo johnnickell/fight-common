@@ -6,12 +6,14 @@
 
 ## Ready frontier
 
-- T-00003 — AggregateRoot lifecycle
-- T-00004 — Stored-event and Event Store contracts
-- T-00014 — Package the reusable FightCommon coding standard
-- T-00018 — Introduce mandatory architecture enforcement
+- T-00003 — Message-envelope metadata isolation
+- T-00004 — Aggregate lifecycle
+- T-00012 — Synchronous dispatcher failure isolation
+- T-00018 — Package the reusable FightCommon coding standard
+- T-00022 — Introduce mandatory architecture enforcement
 
 ## Later
 
-- T-00005 through T-00013 and T-00015 through T-00017 follow their declared dependency edges.
-- T-00019 follows completion of the coding-standard migration and architecture gate.
+- EPIC-00001: T-00005 through T-00011 and T-00013 through T-00017 follow their declared dependency edges.
+- EPIC-00002: T-00019 through T-00021 follow their declared dependency edges.
+- T-00023 follows completion of the coding-standard migration and architecture gate.

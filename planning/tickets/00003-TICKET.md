@@ -1,16 +1,27 @@
 ---
 id: T-00003
 prd: PRD-00003
-title: Implement AggregateRoot lifecycle
+title: Isolate metadata across message envelopes
 status: ready-for-agent
 blocked_by: T-00002
 ---
 
-# Implement AggregateRoot Lifecycle
+# Isolate Metadata Across Message Envelopes
+
+## What to Build
+
+Make every existing command, query, and event message an effective metadata boundary. Consumers can inspect or derive enriched same-ID envelopes without mutating the metadata snapshot already held by another message.
+
+## Blocked By
+
+- T-00002 — Establish Event Sourcing context and decisions.
 
 ## Acceptance
 
-- Aggregates record plain events through explicit `apply()` routing.
-- Replay increments versions without re-recording.
-- Releasing events returns them in order and clears pending state.
-- Behavior has complete coverage.
+- [ ] Every command, query, and event message copies `Meta` at construction and returns a copy from `meta()`.
+- [ ] `withMeta()` and `mergeMeta()` create derived envelopes with the same `MessageId` and a new isolated metadata snapshot.
+- [ ] Standalone `Meta` remains mutable, while mutation through a message getter cannot alter the message.
+- [ ] Message serialization and equality continue to reflect the envelope's isolated snapshot and identity.
+- [ ] Existing public method signatures remain compatible.
+- [ ] The behavioral change is identified for the 1.2 release notes.
+- [ ] All envelope behavior has complete coverage.
