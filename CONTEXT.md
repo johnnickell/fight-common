@@ -84,6 +84,17 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Transport services** | HTTP clients, mail transports, SMS transports, and socket publishers are outbound ports with concrete adapters. A **null adapter** intentionally performs no external delivery; a **logging adapter** records and delegates or substitutes an operation as documented. |
 | **Registry service** | A service such as `StorageService` or `FileTransferService` that selects a named port implementation. It is not itself the storage or transport backend. |
 
+## Engineering quality language
+
+| Term | Meaning in Fight Common |
+| --- | --- |
+| **Coding standard** | The reusable, opinionated set of PHP formatting, documentation, and declaration-layout rules published by Fight Common. A consuming project chooses the files to which the standard applies. |
+| **Quality gate** | A mandatory automated check that must pass before work is accepted. A report without an enforced pass/fail condition is not a gate. |
+| **Architecture gate** | The quality gate that verifies inward dependency direction between Domain, Application, and Adapter. |
+| **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
+| **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |
+| **Build** | The complete ordered set of quality gates used to decide whether the repository is acceptable. |
+
 ## Proposed Event Sourcing language for 1.2
 
 These terms describe the planned optional extension. They do not describe existing production APIs until their tickets are implemented.
@@ -120,4 +131,4 @@ Committed planning state lives in `planning/`. Coordinate-build artifacts live u
 
 ## Decisions
 
-Architectural decisions for Event Sourcing live in `planning/adr/`. Public integration documentation lives in `docs/event-sourcing.md`.
+Architectural decisions live in `planning/adr/`. Public Event Sourcing integration documentation lives in `docs/event-sourcing.md`.
