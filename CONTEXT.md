@@ -33,7 +33,8 @@ This file records how terms are used inside this library. Public APIs, documenta
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Payload** | The domain content carried by a message. It has an array representation and can be reconstructed from that representation. |
-| **Message** | An immutable envelope containing a `MessageId`, message type, timestamp, payload type, payload, and metadata. |
+| **Message** | An effectively immutable technical envelope containing a `MessageId`, message type, timestamp, payload type, payload, and an isolated metadata snapshot. Standalone `Meta` values remain mutable, but a message copies metadata at its boundary and returns a copy from `meta()`. Metadata carries application, transport, audit, or observability context and is not domain state. |
+| **Message identity** | A `MessageId` is the idempotency identity of one event occurrence and its payload. `withMeta()` and `mergeMeta()` derive a same-ID envelope with a different isolated metadata snapshot without creating a new occurrence or changing message equality. |
 | **Metadata (`Meta`)** | Scalar, nested contextual data attached to a message without changing its payload. |
 | **Command** | An imperative payload requesting a state-changing action. Commands do not return application data. |
 | **Command message** | The message envelope carrying a command. |
@@ -46,9 +47,9 @@ This file records how terms are used inside this library. Public APIs, documenta
 | **Query handler** | The application component registered for and responsible for one query type. |
 | **Query filter** | Pipeline behavior surrounding query handling. |
 | **Event** | A domain payload describing something that happened. It is stated in past tense and is not an instruction. |
-| **Event message** | The message envelope carrying an event. A domain event and its event message are related but not interchangeable terms. |
-| **Event dispatcher** | The application port that triggers or dispatches event messages to zero or more handlers. |
-| **Event subscriber** | A component declaring the event types it observes and the handlers and priorities used for them. |
+| **Event message** | The technical message envelope carrying an event. Its timestamp records envelope creation, not necessarily the domain occurrence time; domain-significant time belongs in the event payload. A domain event and its event message are related but not interchangeable terms. |
+| **Event dispatcher** | The application port that triggers or dispatches event messages to zero or more handlers. A synchronous dispatcher attempts every matching handler even when one fails, then reports the collected failures after fan-out completes. Event-specific handlers form the first priority-ordered phase; `AllEvents` handlers form a second priority-ordered phase. |
+| **Event subscriber** | A component declaring the event types it observes and the handlers and priorities used for them. Idempotence is encouraged for subscribers that receive published stored events but is not required by the general subscriber contract. |
 
 Commands use `execute()` for payloads and `dispatch()` for messages. Queries use `fetch()` for payloads and `dispatch()` for messages. Events use `trigger()` for payloads and `dispatch()` for messages.
 
@@ -101,20 +102,106 @@ These terms describe the planned optional extension. They do not describe existi
 
 | Term | Planned meaning |
 | --- | --- |
-| **Aggregate root** | A consistency boundary whose state changes only by explicitly applying domain events. |
+| **Event-sourced aggregate** | The framework-free lifecycle contract used by repositories for an aggregate whose state changes only by explicitly applying domain events. It owns a static named constructor for reconstitution from history and exposes its identity through the existing `Identifier` contract. |
+| **Aggregate root** | The reference abstract implementation of the event-sourced aggregate contract. It stores the consumer's domain-specific `Identifier`, implements `id()`, and owns version tracking and pending-event lifecycle while the consumer aggregate owns explicit event routing and semantic state transitions. |
 | **Recorded event** | A new event held by an aggregate until it is persisted. |
-| **Released event** | A recorded event removed from the aggregate's pending collection for persistence. |
-| **Stored event** | An immutable envelope containing an event message, stream version, stable event name, schema version, and global position. |
-| **Stream** | The ordered event history of one aggregate, identified by aggregate type and identifier. |
-| **Expected version** | The stream version observed during load and checked during append for optimistic concurrency. |
-| **Event Store** | The append-only port that writes versioned streams and exposes stream-ordered and globally ordered reads. |
-| **Event mapper** | The boundary between stable event names/schema versions and current PHP event classes. |
-| **Upcaster** | A one-event-to-one-event transformation from an older stored schema to the next supported schema. |
-| **Projector** | An idempotent consumer that moves stored events into a read model. |
+| **Released event** | A recorded event returned in recording order and immediately removed from the aggregate's pending collection for persistence. |
+| **Stored event** | An append-only storage envelope containing an event message, stream version, stable event name, persisted schema version, and global position. Its stored identity is the stable event name, not the event payload's PHP class name. After upcasting, the message contains the current payload while the envelope retains the schema version actually persisted. Publication may derive a same-ID message with additional technical metadata without rewriting the stored snapshot. Global position provides prefix-stable commit visibility: once a position is visible, no lower-positioned event may become visible later. |
+| **Aggregate definition** | Repository configuration pairing one stable aggregate name with the current PHP aggregate class. It maps durable stream identity without requiring a global aggregate registry. |
+| **Stream** | The ordered event history of one aggregate, identified by a stable aggregate name and aggregate identifier rather than by the PHP aggregate class name. |
+| **Expected version** | The stream version observed before new events were recorded and checked during append for optimistic concurrency. An empty stream has version zero and its first event has stream version one. |
+| **Event Store** | The append-only port that accepts event messages, maps them to durable event identity and schema, writes versioned streams, and returns hydrated stored events from stream-ordered and globally ordered reads. |
+| **Event mapper** | The explicit, bidirectional registry for one Event Store that maps a stable event name to the current PHP event class and reconstructs an event message from stored data. It must contain every event persisted in that store, and aliases must be unique across the store. Consumer configuration registers every stored event; attribute scanning, convention-based discovery, and FQCN fallback are not part of the contract. A PHP class rename changes the mapping without changing stored history. |
+| **Event mapping provider** | A portable declaration of typed event mappings owned by one bounded context. It declares a durable event namespace plus locally unique event names; each typed mapping owns the current PHP class, current schema version, and complete upcaster chain. The event mapper qualifies local names into canonical stored names. Multiple providers may compose the complete catalog for one Event Store and may be registered directly or collected by optional framework integration. |
+| **Upcaster** | A one-event-to-one-event in-memory transformation from one stored payload schema version to the next integer version. It does not rewrite stored history, and class renames alone do not require upcasting. |
+| **Projector** | A stably named idempotent consumer that declares the current event payload FQCNs it understands and moves matching, already-upcasted stored events into a read model. Its stable name owns checkpoint identity independently of its PHP class. Projectors do not know stable storage aliases or legacy schemas. |
+| **Projection runner** | The worker-facing service that polls stored events for one projector, handles them in global order, and advances that projector's checkpoint only after each successful projection. |
 | **Read model** | Query-oriented data derived from events; it is not the authoritative event history. |
-| **Checkpoint** | The last global event position successfully handled by one named projector. |
+| **Checkpoint** | The last global event position successfully processed by one named projector. Processing means either successfully projecting a declared current event type or successfully skipping an undeclared type. The runner advances it per event, not only after a complete fetched batch. |
+| **Event publication** | Post-commit fan-out of stored event messages through the Event Dispatcher in a worker process separate from projection. Publication attempts all matching subscribers and does not automatically replay an event because a subscriber failed. |
+| **Publication cursor** | The last global position for which event publication attempted all matching subscribers. It advances after the complete attempt even when subscriber failures were collected; unlike a projection checkpoint, it records attempted fan-out rather than successful state projection. |
+| **Event publication runner** | A stably named worker-facing service that polls committed stored events, dispatches their original event messages through a `SynchronousEventDispatcher`, reports collected subscriber failures, and advances its publication cursor after each complete attempt. Multiple named runners may publish independently from one Event Store. |
+| **Publication cursor store** | The port that loads and monotonically saves attempted-fan-out positions independently by stable publication name. It has no reset operation in 1.2 and is distinct from a projector checkpoint store even when adapters share persistence mechanics. |
+| **Event dispatch failure** | The aggregate exception thrown by a Synchronous Event Dispatcher only after it has attempted every matching handler and one or more failed. It contains the ordered handler failures and proves fan-out completed despite those failures. |
+| **Event handler failure** | A transient value pairing one failed callable description with its original `Throwable`. It allows callers such as the Event Publication Runner to distinguish completed fan-out with handler failures from an unexpected dispatcher or infrastructure failure. |
+| **Event publication failure** | A structured snapshot of one stored-event publication attempt that had handler failures. It includes publication, stored-event, and message identity, the UTC time at which dispatch began, and each failed callable's description, exception FQCN, integer code, and bounded diagnostic message. It excludes original throwables, stack traces, event payloads, and message metadata. |
+| **Publication failure recorder** | The port used by the Event Publication Runner to record one aggregated `EventPublicationFailure` before advancing its publication cursor. Fight Common 1.2 provides in-memory and DBAL implementations plus a PSR-3 logging decorator that requires and delegates to another implementation. |
 
 Event Sourcing remains additive to CQRS. Aggregates record plain `Event` payloads; repositories create messages and storage envelopes. Projectors consume stored events independently using at-least-once delivery.
+
+`EventMessage` remains the live messaging contract and may identify its payload by PHP class. Durable Event Store adapters persist the stable event name and schema version instead of treating the serialized `EventMessage` payload type as the stored event identity. Only events persisted by the Event Store require mappings; events used solely by the Event Dispatcher do not.
+
+An event namespace is durable storage identity rather than a display name or PHP namespace. For example, an `orders` provider may declare the local name `order-placed`, producing the canonical stored name `orders.order-placed`. Renaming a bounded context in code does not by itself rename its stored event namespace.
+
+Schema versions begin at one. Each event mapping owns and validates an unbroken upcaster chain from version one to its declared current schema version; version-one mappings have no upcasters. Missing, duplicate, or skipping steps make registration invalid.
+
+Stored-event mapping is fail-closed. Reading an unknown stable event name, a schema newer than the registered current version, or an older schema without a complete upcast path raises a dedicated mapping failure. Readers never downcast, skip, or best-effort hydrate unsupported history.
+
+Event Store append is idempotent by message identity. If every requested `MessageId` already occupies the intended stream positions immediately after the supplied expected version, the operation succeeds as already appended without writing again or comparing payload or metadata content. A partial batch match or any message ID in a different stream or position fails closed.
+
+Event Store implementations own event mapping on both sides of persistence. Append accepts `EventMessage` instances and snapshots their current metadata while mapping payload classes to stable event names and current schemas. Reads upcast payloads, hydrate current event classes and messages, and return `StoredEvent` envelopes. Aggregate repositories do not handle aliases, schemas, or upcasters.
+
+`Meta` is a mutable technical-context value, but messages isolate it: construction stores a copy, `meta()` returns a copy, and `withMeta()` or `mergeMeta()` creates a same-ID envelope with a new snapshot. The single append persists one metadata snapshot; later derived publication timing or transport context does not update Event Store history or affect domain reconstitution.
+
+The Event Store preserves the EventMessage creation timestamp as technical envelope time, normalized to UTC with microsecond precision. It does not infer domain occurrence time from that value, and ordering remains defined only by stream and global positions.
+
+Fight Common 1.2 does not introduce an EventMessage factory or clock abstraction. Aggregate repositories create messages through the existing `EventMessage::create()` contract; callers and tests that require exact IDs, timestamps, or metadata may use the public constructor.
+
+Global ordering must be safe for checkpoint polling, not merely unique and increasing after all transactions finish. Durable stores serialize global-position allocation inside the append transaction so a reader that checkpoints a visible position cannot later miss a lower position committed out of order. An auto-increment event-table key alone does not provide this guarantee on MySQL.
+
+Projection batches bound polling work but do not define checkpoint atomicity. The runner handles and checkpoints each event in global order so a failure resumes from the failed event rather than replaying the successfully handled prefix of its fetched batch.
+
+Projectors declare current event payload FQCNs, following the same code-facing convention as Event Subscribers. The Event Store has already resolved stable aliases, applied upcasters, and hydrated current payloads before projection routing. The runner invokes a projector only for declared FQCNs and advances its checkpoint over undeclared types as successful skips. Adding a handled type later requires a checkpoint reset and rebuild to process its history.
+
+Each projector declares an explicit stable name, such as `orders.order-summary`, used as its checkpoint key. Renaming or moving the PHP projector class does not rename or reset that durable processing identity.
+
+Normal checkpoint saves are monotonic and reject backward movement. `reset(projectorName)` is a distinct administrative operation that returns one projector to position zero. Consumers stop its worker and clear or recreate the read model before reset; Fight Common does not coordinate read-model replacement. Arbitrary backward checkpoint positions are outside 1.2.
+
+A projector failure stops the current batch immediately, leaves the failed event uncheckpointed, and propagates to the caller. The core runner never processes a later global position after an earlier one fails; consuming workers own retry, backoff, and dead-letter policy.
+
+`ProjectionRunner` and `EventPublicationRunner` execute in separate worker processes with different guarantees. Projection is ordered at-least-once processing: successful idempotent state updates advance a projector checkpoint, while failures stop and retry. Event publication considers only committed stored events, attempts every matching subscriber, records one aggregated `EventPublicationFailure` through a `PublicationFailureRecorder` when any subscribers fail, and advances its position through a distinct `PublicationCursorStore` after the complete attempt without automatically redispatching that event. A crash before cursor advancement can still cause duplicate delivery, so subscriber idempotence remains advisable.
+
+Fight Common 1.2 records publication failures but does not define automatic or targeted replay. A consuming project may implement replay, including invoking only subscribers that originally failed, and a proven implementation may inform a later shared contract.
+
+Each subscriber failure identifies the invoked handler by its current subscriber FQCN and method. Symfony's default service registration uses the subscriber FQCN as its service ID, so a consuming project can resolve and invoke that handler again while the class and method remain unchanged. This is operational identity rather than durable storage identity: subscriber refactors may require project-owned migration or interpretation of old failure records.
+
+The Event Dispatcher continues to support handlers registered directly as arbitrary callables. Named functions are described by function name and closures by a non-replayable `Closure` descriptor. Those fallbacks preserve dispatcher compatibility, but only a class-and-method description is an intended candidate for project-owned targeted invocation.
+
+`SynchronousEventDispatcher::dispatch()` retains its `void` return contract and existing two-phase ordering. It first attempts event-specific handlers by priority, then attempts `AllEvents` handlers by priority. Each handler invocation catches any `Throwable`, including PHP `Error` values such as `TypeError`, and continues within and across both phases. Afterward it throws one `EventDispatchFailed` aggregate containing ordered `EventHandlerFailure` values with their original throwables. The aggregate is thrown only after both phases complete. Failures while resolving or preparing handlers remain dispatcher infrastructure failures and do not prove fan-out completed.
+
+The Event Publication Runner catches `EventDispatchFailed`, converts it into one `EventPublicationFailure`, records it, and may then advance the publication cursor. Any other dispatcher exception propagates without cursor advancement because the runner cannot prove that every handler was attempted.
+
+At the beginning of each stored-event dispatch attempt, the runner captures the current time directly with `DateTimeImmutable`, normalizes it to UTC with microsecond precision, and reuses that value if it creates an `EventPublicationFailure`. Fight Common does not introduce a clock abstraction solely for this operational timestamp. Comparing it with the EventMessage creation timestamp can estimate storage-to-publication latency without treating either timestamp as domain occurrence time.
+
+Conversion snapshots each handler failure as its callable description, exception FQCN, integer exception code, and bounded diagnostic message. The message is normalized to valid UTF-8, stripped of unsafe control characters, and limited to 4 KiB. Fight Common does not attempt secret detection or redaction; consuming projects treat exception messages as user-surfaceable text and do not place credentials or sensitive payload data in them. The publication failure does not retain the original `Throwable`, stack trace, event payload, or message metadata. Both DBAL persistence and the PSR-3 logging decorator consume this same portable snapshot; full throwable diagnostics remain transient on `EventDispatchFailed`.
+
+The DBAL publication-failure recorder durably stores one aggregated record per publication name and global position, including message and event identity, attempt time, and the bounded handler-failure snapshots. Its purpose in 1.2 is operational evidence; failure queries and replay APIs remain deferred.
+
+The PSR-3 publication-failure recorder is a decorator rather than an independent persistence choice. It requires another recorder, logs an `EventPublicationFailure` first, and then delegates the same record to that recorder, such as the in-memory or DBAL adapter. Either logging or delegation failure propagates and prevents publication-cursor advancement. A failed delegate may therefore produce a duplicate log on retry; publication name and global position provide the correlation key. This composes observability with the desired storage behavior and prevents logging from silently replacing recording.
+
+Subscriber failures do not block publication-cursor advancement after their aggregated publication failure is successfully recorded. Failure-recorder or cursor-store infrastructure errors do block advancement and propagate, causing the publication attempt to retry. Failure recorders are idempotent by publication name and global position so partial recording or a crash does not create duplicate operational records.
+
+Each Event Publication Runner has an explicitly configured stable publication name. Publication cursors and failure records are scoped by that name, allowing independent subscriber pipelines to consume the same Event Store without sharing progress.
+
+The Event Publication Runner requires `SynchronousEventDispatcher` because its contract observes completion and collected failures from every matching subscriber. An asynchronous dispatcher acknowledges transport submission rather than subscriber execution and is outside the publication-runner boundary.
+
+Publication cursor saves are monotonic. `PublicationCursorStore` has no reset operation in 1.2 because resetting would redispatch stored history to subscribers that are not required to be idempotent. Whole-stream and targeted republication belong to the deferred replay workflow.
+
+Releasing events is a fail-stop boundary. If a repository save fails after release, that aggregate instance is invalid and must be discarded; retry begins by loading a fresh aggregate. Event Store implementations may perform safe transient retries internally while they retain the released events.
+
+Aggregate version is the number of events applied to its current state, including newly recorded events. Replay increments version without recording, and recording both applies the event and increments version. When releasing a batch, its expected version is the aggregate version minus the number of released events.
+
+Aggregate event application is fail-closed. Recording or replaying an event that the aggregate does not explicitly route raises a domain failure. An intentionally state-neutral historical event is still routed explicitly to a no-op transition.
+
+Reconstitution belongs to the aggregate rather than an infrastructure factory. A generic repository receives the aggregate class, loads its history, and invokes the aggregate's static reconstitution contract; the aggregate retains control of its constructor and initialization rules.
+
+Aggregate reconstitution consumes ordered plain `Event` payloads. The repository unwraps stored envelopes and live messages before invoking the aggregate, keeping storage aliases, schema versions, positions, message identity, and metadata outside aggregate state. Domain-significant values belong in the event payload.
+
+Generic event-sourced repository lookup uses nullable `find(Identifier)`. An empty Event Store stream becomes `null`, and reconstitution is not invoked. Application services and handlers decide whether absence is exceptional and choose the use-case-specific failure.
+
+Each generic aggregate repository receives an `AggregateDefinition` for its one aggregate type. The definition supplies the stable aggregate name used to construct stream identity and the current PHP class used for reconstitution. A class refactor updates the definition without changing stored stream names.
+
+An event-sourced aggregate identifier implements `Identifier`. Repositories convert it to its stable string representation when constructing a stream identity; the stable aggregate name distinguishes identical identifier strings belonging to different aggregate types.
 
 ## Language rules
 

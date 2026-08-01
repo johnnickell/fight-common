@@ -1,17 +1,26 @@
 ---
 id: T-00017
-prd: PRD-00007
-title: Migrate and enable documentation rules
+prd: PRD-00006
+title: Complete 1.2 compatibility and release acceptance
 status: ready-for-agent
 blocked_by: T-00016
 ---
 
-# Migrate and Enable Documentation Rules
+# Complete 1.2 Compatibility and Release Acceptance
+
+## What to Build
+
+Prove that the additive Event Sourcing release preserves existing CQRS contracts, intentionally isolates message metadata, satisfies every portable and durable conformance guarantee, and passes the repository's complete acceptance gate.
+
+## Blocked By
+
+- T-00016 — Document Event Sourcing integration and operations.
 
 ## Acceptance
 
-- Named production declarations follow the canonical type and method documentation grammar.
-- Documentation describes actual semantics and is not added mechanically when domain meaning requires judgment.
-- Inherited documentation and PHPStan-specific type refinements remain accurate.
-- Documentation rules are enabled with zero baseline or suppressed legacy violations.
-- The complete submit gate remains green with exact complete coverage.
+- [ ] Existing public CQRS method signatures remain compatible, with message metadata isolation covered as an intentional behavioral change.
+- [ ] Contract and adapter conformance suites cover all Event Sourcing, projection, dispatcher, and publication guarantees.
+- [ ] Optional Symfony autoconfiguration does not block acceptance when it has not shipped.
+- [ ] Planning validation and every non-interactive Docker submit gate pass with exact complete statement coverage.
+- [ ] Release notes target additive 1.2.0, explain the metadata behavior change, and do not alter existing tags.
+- [ ] The epic, PRDs, tickets, board, documentation, and release surfaces agree on delivered and deferred scope.
