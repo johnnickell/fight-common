@@ -1,19 +1,17 @@
 ---
 id: T-00019
-prd: PRD-00009
-title: Enforce the complete build and dependency verification pipeline
+prd: PRD-00007
+title: Migrate and enable mechanical coding rules
 status: ready-for-agent
-blocked_by: T-00017,T-00018
+blocked_by: T-00018
 ---
 
-# Enforce the Complete Build and Dependency Verification Pipeline
+# Migrate and Enable Mechanical Coding Rules
 
 ## Acceptance
 
-- `bin/build` builds the PHP image once and runs the complete local quality pipeline in one disposable container.
-- `bin/build --latest` explicitly refreshes local Composer dependencies before verification; the default local build uses the current resolution.
-- CI resolves the latest dependency versions permitted by `composer.json` before running direct, non-Docker quality commands.
-- The ordered pipeline covers Composer validation, PHP syntax, planning integrity, PHPCS, PHPStan, Deptrac, Rector dry-run, PHPUnit, and coverage enforcement.
-- The coverage gate rejects a missing or malformed Clover report and requires covered statements to equal all executable statements without percentage rounding.
-- Coverage-gate and build-wrapper failure behavior has focused automated tests.
-- Local and CI documentation names the same authoritative gates while preserving their different execution models.
+- Production imports are alphabetically ordered.
+- Strict types, array comma and alignment conventions, and blank lines before non-trivial returns match the published standard.
+- Automatically fixable changes are reviewed for semantic preservation before acceptance.
+- The migrated rules are enabled with zero baseline or suppressed legacy violations.
+- The complete submit gate remains green with exact complete coverage.

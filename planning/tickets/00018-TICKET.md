@@ -1,17 +1,17 @@
 ---
 id: T-00018
-prd: PRD-00008
-title: Introduce mandatory architecture enforcement
+prd: PRD-00007
+title: Package the reusable FightCommon coding standard
 status: ready-for-agent
 blocked_by:
 ---
 
-# Introduce Mandatory Architecture Enforcement
+# Package the Reusable FightCommon Coding Standard
 
 ## Acceptance
 
-- Deptrac verifies the canonical `Domain <- Application <- Adapter` dependency direction.
-- Domain cannot depend on Application or Adapter; Application cannot depend on Adapter; Adapter may depend on both inward layers.
-- External dependency allowances are explicit and justified per layer.
-- Existing violations are resolved without a baseline or skipped violations.
-- Deptrac is a development dependency, is documented as optional for consumers, and becomes a mandatory build and CI gate.
+- One `FightCommon` ruleset reproduces the Omphalos production PHP conventions without selecting consumer paths.
+- The Omphalos custom sniffs and supporting helpers are ported into an optional Fight Common adapter surface with focused fixtures and complete coverage.
+- PHP_CodeSniffer and Slevomat are development dependencies used to verify the package and Composer suggestions explain consumer opt-in requirements.
+- A consumer can reference the installed standard and then declare its own files, exclusions, and explicit rule overrides.
+- Fight Common's existing source scan remains green before the staged migration tickets begin.
