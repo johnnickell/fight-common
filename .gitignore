@@ -9,6 +9,7 @@ phpunit.xml
 /.claude
 /.idea
 /.runs/
+/graphify-out/
 /nbproject
 /*.sublime-project
 /*.sublime-workspace
