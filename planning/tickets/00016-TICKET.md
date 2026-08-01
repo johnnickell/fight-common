@@ -1,17 +1,30 @@
 ---
 id: T-00016
-prd: PRD-00007
-title: Migrate and enable member layout rules
+prd: PRD-00006
+title: Document Event Sourcing integration and operations
 status: ready-for-agent
-blocked_by: T-00015
+blocked_by: T-00009,T-00011,T-00014
 ---
 
-# Migrate and Enable Member Layout Rules
+# Document Event Sourcing Integration and Operations
+
+## What to Build
+
+Publish one complete guide for manually wiring and safely operating aggregates, mapping, storage, repositories, projections, publication, failure recording, migration, and recovery. Include Symfony provider autoconfiguration only if the stretch ticket ships.
+
+## Blocked By
+
+- T-00009 — Implement EventSourcedRepository.
+- T-00011 — Persist projection checkpoints with DBAL.
+- T-00014 — Persist and log publication operational state.
 
 ## Acceptance
 
-- Named production types use the canonical constant, property, constructor, method, and magic-member order.
-- Visibility groups and adjacent members use the canonical spacing.
-- Formatting changes preserve public APIs and behavior.
-- The member-layout rules are enabled with zero baseline or suppressed legacy violations.
-- The complete submit gate remains green with exact complete coverage.
+- [ ] Public documentation covers aggregate, mapper, repository, Event Store, projection, publication, failure recording, and separate worker wiring.
+- [ ] Manual framework-free construction is documented as the portable baseline.
+- [ ] At-least-once projector idempotency, publication crash duplicates, subscriber failure behavior, and cursor/checkpoint differences are explicit.
+- [ ] Migration guidance covers stable aliases, class refactors, upcasters, metadata snapshots, aggregate reload after failed save, and read-model rebuilds.
+- [ ] Failure-recording limits and consumer responsibility for safe exception messages are explicit.
+- [ ] The optional Symfony mapping-provider integration is documented only if the stretch ticket ships.
+- [ ] Event Sourcing appears in MkDocs navigation.
+- [ ] Documentation examples use only supported public contracts.

@@ -1,17 +1,29 @@
 ---
 id: T-00014
-prd: PRD-00007
-title: Package the reusable FightCommon coding standard
+prd: PRD-00005
+title: Persist and log publication operational state
 status: ready-for-agent
-blocked_by:
+blocked_by: T-00008,T-00013
 ---
 
-# Package the Reusable FightCommon Coding Standard
+# Persist and Log Publication Operational State
+
+## What to Build
+
+Persist publication progress and aggregated failure evidence through DBAL, and provide composable PSR-3 observability that logs the same portable snapshot without replacing the configured recorder.
+
+## Blocked By
+
+- T-00008 — Implement the Doctrine DBAL Event Store.
+- T-00013 — Publish committed events with in-memory operational state.
 
 ## Acceptance
 
-- One `FightCommon` ruleset reproduces the Omphalos production PHP conventions without selecting consumer paths.
-- The Omphalos custom sniffs and supporting helpers are ported into an optional Fight Common adapter surface with focused fixtures and complete coverage.
-- PHP_CodeSniffer and Slevomat are development dependencies used to verify the package and Composer suggestions explain consumer opt-in requirements.
-- A consumer can reference the installed standard and then declare its own files, exclusions, and explicit rule overrides.
-- Fight Common's existing source scan remains green before the staged migration tickets begin.
+- [ ] DBAL publication cursor storage independently and monotonically tracks each stable publication name without a reset operation.
+- [ ] DBAL failure recording idempotently stores one portable aggregated record per publication name and global position.
+- [ ] SQLite and MySQL-compatible adapters satisfy the in-memory cursor and failure-recorder contracts.
+- [ ] The PSR-3 logging recorder requires another recorder, logs the portable snapshot first, and then delegates the same record.
+- [ ] Logging or delegation failure propagates and blocks cursor advancement.
+- [ ] Retry duplicates remain correlatable by publication name and global position.
+- [ ] Query, automatic replay, and targeted-replay APIs remain outside 1.2.
+- [ ] Persistence and decorator behavior have complete coverage.
