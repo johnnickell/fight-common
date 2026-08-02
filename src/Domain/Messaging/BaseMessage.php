@@ -27,6 +27,7 @@ abstract class BaseMessage implements Message
         protected Meta $meta
     ) {
         $this->payloadType = Type::create($this->payload);
+        $this->meta = clone $meta;
     }
 
     /**
@@ -74,7 +75,7 @@ abstract class BaseMessage implements Message
      */
     public function meta(): Meta
     {
-        return $this->meta;
+        return clone $this->meta;
     }
 
     /**
