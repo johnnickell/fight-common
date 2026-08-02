@@ -9,11 +9,12 @@ This file records how terms are used inside this library. Public APIs, documenta
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Domain** | Framework-free business concepts and reusable domain primitives. Domain code does not depend on Application or Adapter code. |
-| **Application** | Use-case coordination and ports. It may depend on Domain contracts but not on concrete adapters. |
+| **Application** | Use-case coordination and ports. It may depend on Domain contracts, PHP internals, neutral PSR contracts, and the documented `CronExpression` utility exception, but not on concrete adapters or framework implementations. |
 | **Port** | An interface owned by an inward layer that describes a capability required from the outside. Examples include `CommandBus`, `UnitOfWork`, `HttpClient`, and `FileStorage`. |
-| **Adapter** | A concrete implementation of a port using infrastructure such as Doctrine, Symfony, Guzzle, Flysystem, or an external transport. |
+| **Adapter** | An outer runtime integration that makes a third-party library, framework extension point, or infrastructure capability convenient for consumers. An Adapter often implements an inward-owned port, but it may instead translate a framework-facing contract or package external behavior behind a Fight Common API. |
+| **Standard** | Development-time policy published under `src/Standards`. Standards are orthogonal to the runtime Domain, Application, and Adapter dependency chain; they depend only on the tooling contracts they extend, and runtime layers do not depend on them. |
 | **Service** | An application-level coordinator or named registry. A service does not make an infrastructure implementation part of the domain. |
-| **Dependency direction** | Dependencies point inward: Adapter -> Application -> Domain. |
+| **Dependency direction** | Runtime dependencies point inward: Adapter -> Application -> Domain. Domain uses only Domain and PHP internals. Application additionally permits neutral PSR contracts and the documented `CronExpression` utility exception. Standards remain outside that chain and cannot depend on a runtime layer. |
 
 ## Shared domain primitives
 
