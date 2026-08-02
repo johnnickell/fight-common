@@ -2,7 +2,7 @@
 
 | ID | Title | Status |
 | --- | --- | --- |
-| [00001](00001-PRD.md) | Existing-Application Migration Evaluation | ready-for-human |
+| [00001](00001-PRD.md) | Existing-Application Migration Evaluation | done |
 | [00002](00002-PRD.md) | Event-Sourcing Vocabulary and Architecture Contract | done |
 | [00003](00003-PRD.md) | Event-Sourced Aggregate and Stream Core | ready-for-agent |
 | [00004](00004-PRD.md) | Durable Storage and Aggregate Repository | ready-for-agent |

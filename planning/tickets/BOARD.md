@@ -16,9 +16,7 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-| Track | Ticket | Parent PRD | Why Now |
-|-------|--------|------------|---------|
-| Human decision | [T-00001 — Evaluate a Consumer Migration Pilot](00001-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Selects the real consumer and migration evidence needed to validate the additive 1.2 release. |
+No human decision is currently active.
 
 ## Ready Frontier
 
@@ -77,4 +75,5 @@ build.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00001 — Evaluate a Consumer Migration Pilot](00001-TICKET.md) | [PRD-00001](../specs/00001-PRD.md) | Selected Omphalos Metis `Operation` as the one bounded, non-release-blocking migration pilot after an equal-criteria comparison with Fight CMS and the Fight project template. |
 | [T-00002 — Establish Event Sourcing Context and Decisions](00002-TICKET.md) | [PRD-00002](../specs/00002-PRD.md) | Established the ubiquitous language and durable architectural decisions that unblock both Event Sourcing implementation branches. |
