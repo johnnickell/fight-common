@@ -99,6 +99,13 @@ This repo follows [git-flow](https://nvie.com/posts/a-successful-git-branching-m
 - **`feature/<name>`** — branched from `develop`, merged back via `--no-ff`
 - Always create a feature branch before starting work — never commit directly to `develop`
 
+### GitHub CLI Authentication
+
+On macOS, a sandboxed `gh auth status` may falsely report an invalid token when the process cannot access the
+keyring. Before asking the user to authenticate again, rerun `gh auth status` with keyring-enabled access. Treat
+a successful user-shell or keyring-enabled check as authoritative; do not require the user to repeatedly prove an
+existing authenticated session.
+
 Coverage reports are written to `var/reports/coverage/clover.xml` (XML) and `var/reports/coverage/` (HTML) automatically when the full suite runs with Xdebug loaded. Parse clover.xml with Python to check coverage gaps:
 
 ```bash
