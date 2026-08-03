@@ -70,7 +70,7 @@ build.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
-| [T-00008 — Implement the Doctrine DBAL Event Store](00008-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Added SQLite/MySQL DBAL storage with transactional sequence allocation, exact retry recovery, conformance coverage, and CI-backed MySQL verification. |
+| [T-00008 — Implement the Doctrine DBAL Event Store](00008-TICKET.md) | [PRD-00004](../specs/00004-PRD.md) | Added SQLite/MySQL/PostgreSQL DBAL storage with transactional sequence allocation, exact retry recovery, and CI-backed conformance verification. |
 | [T-00007 — Implement the In-Memory Event Store](00007-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Added atomic mapped append, exact retry classification, historical hydration, ordered polling, and the reusable Event Store conformance suite. |
 | [T-00006 — Implement Event Mapping and Upcasting](00006-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Added explicit direct/provider mapping registration, stable bidirectional event identity, validated sequential upcasting, and fail-closed current-event hydration. |
 | [T-00005 — Define Stored-Event and Event Store Contracts](00005-TICKET.md) | [PRD-00003](../specs/00003-PRD.md) | Defined stable stream identity, immutable stored-event envelopes, ordered Event Store operations, exact retries, optimistic concurrency, and prefix-stable global visibility. |

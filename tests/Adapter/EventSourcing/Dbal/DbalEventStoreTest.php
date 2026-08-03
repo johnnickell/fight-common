@@ -10,7 +10,7 @@ use Doctrine\DBAL\Driver\Exception as DriverFailure;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreSchema;
 use Fight\Common\Domain\EventSourcing\EventMapper;
@@ -34,11 +34,11 @@ final class DbalEventStoreTest extends EventStoreConformanceTestCase
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('getDatabasePlatform')
             ->once()
-            ->andReturn(new PostgreSQLPlatform());
+            ->andReturn(new OraclePlatform());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'DbalEventStore supports only SQLite and MySQL-compatible database platforms; received Doctrine\\DBAL\\Platforms\\PostgreSQLPlatform.',
+            'DbalEventStore supports SQLite, MySQL-compatible, and PostgreSQL only; received Doctrine\\DBAL\\Platforms\\OraclePlatform.',
         );
 
         new DbalEventStore(

@@ -21,7 +21,7 @@ Persist publication progress and aggregated failure evidence through DBAL, and p
 
 - [ ] DBAL publication cursor storage independently and monotonically tracks each stable publication name without a reset operation.
 - [ ] DBAL failure recording idempotently stores one portable aggregated record per publication name and global position.
-- [ ] SQLite and MySQL-compatible adapters satisfy the in-memory cursor and failure-recorder contracts.
+- [ ] SQLite, MySQL-compatible, and PostgreSQL adapters satisfy the in-memory cursor and failure-recorder contracts.
 - [ ] The PSR-3 logging recorder requires another recorder, logs the portable snapshot first, and then delegates the same record.
 - [ ] Logging or delegation failure propagates and blocks cursor advancement.
 - [ ] Retry duplicates remain correlatable by publication name and global position.
