@@ -10,6 +10,21 @@ jobs:
   test:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4.11
+        env:
+          MYSQL_DATABASE: fight_common
+          MYSQL_USER: fight_common
+          MYSQL_PASSWORD: fight_common
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root --password=root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     strategy:
       matrix:
         php: ['8.5']
@@ -21,7 +36,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: bcmath, intl, json, pcntl, pdo, posix, sockets
+          extensions: bcmath, intl, json, pcntl, pdo, pdo_mysql, pdo_sqlite, posix, sockets
           coverage: xdebug
           ini-values: zend.assertions=1
 
@@ -46,3 +61,5 @@ jobs:
 
       - name: Run tests
         run: php vendor/bin/phpunit
+        env:
+          FIGHT_COMMON_MYSQL_DSN: mysql://fight_common:fight_common@127.0.0.1:3306/fight_common
