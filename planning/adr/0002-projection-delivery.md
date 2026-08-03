@@ -17,7 +17,7 @@ Ordinary checkpoint saves are monotonic and reject lower positions. A separate a
 
 If handling fails, the runner stops the batch immediately, does not process later positions, and propagates the exception. The consuming worker owns retry, backoff, and dead-letter policy; the core runner does not skip poison events or reorder delivery.
 
-Global position has prefix-stable commit visibility: after a projector observes position N, no lower-positioned event can become visible later. Event Store implementations enforce that property by serializing position allocation through commit; an auto-increment event-table key is insufficient on MySQL because allocation order is not transaction commit order. A projector may therefore poll strictly after its checkpoint without skipping a late commit at a lower position.
+Global position has prefix-stable commit visibility: after a projector observes position N, no lower-positioned event can become visible later. Event Store implementations enforce that property by serializing position allocation through commit; MySQL and PostgreSQL lock a transactional sequence row, while SQLite reserves its serialized writer. An auto-increment event-table key is insufficient on MySQL because allocation order is not transaction commit order. A projector may therefore poll strictly after its checkpoint without skipping a late commit at a lower position.
 
 Fight Common supplies batch execution and checkpoint adapters. Consuming applications own commands, scheduling, process supervision, and read-database schemas.
 

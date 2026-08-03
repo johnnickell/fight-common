@@ -22,6 +22,6 @@ Persist each projector's monotonic progress and explicit reset-to-zero behavior 
 - [ ] The DBAL checkpoint store independently loads and monotonically saves each stable projector name.
 - [ ] Explicit reset sets only the named projector to position zero.
 - [ ] Arbitrary backward positions are rejected.
-- [ ] SQLite and MySQL-compatible behavior matches the in-memory checkpoint contract under initial, duplicate, forward, backward, reset, and concurrent progress.
+- [ ] SQLite, MySQL-compatible, and PostgreSQL behavior matches the in-memory checkpoint contract under initial, duplicate, forward, backward, reset, and concurrent progress.
 - [ ] Operational documentation requires stopping the projector worker and clearing or recreating its read model before reset.
 - [ ] Adapter behavior has complete coverage.

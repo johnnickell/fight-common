@@ -10,6 +10,7 @@ use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Domain\EventSourcing\EventMapper;
 use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
@@ -35,9 +36,13 @@ final readonly class DbalEventStore implements EventStore
     ) {
         $platform = $this->connection->getDatabasePlatform();
 
-        if (!$platform instanceof SQLitePlatform && !$platform instanceof AbstractMySQLPlatform) {
+        if (
+            !$platform instanceof SQLitePlatform
+            && !$platform instanceof AbstractMySQLPlatform
+            && !$platform instanceof PostgreSQLPlatform
+        ) {
             throw new InvalidArgumentException(sprintf(
-                'DbalEventStore supports only SQLite and MySQL-compatible database platforms; received %s.',
+                'DbalEventStore supports SQLite, MySQL-compatible, and PostgreSQL only; received %s.',
                 $platform::class,
             ));
         }
@@ -73,7 +78,7 @@ final readonly class DbalEventStore implements EventStore
                 $globalPosition = (int) $this->connection->fetchOne(
                     sprintf(
                         'SELECT position FROM event_store_global_position WHERE singleton = ?%s',
-                        $platform instanceof AbstractMySQLPlatform ? ' FOR UPDATE' : '',
+                        $platform instanceof SQLitePlatform ? '' : ' FOR UPDATE',
                     ),
                     [1],
                 );
