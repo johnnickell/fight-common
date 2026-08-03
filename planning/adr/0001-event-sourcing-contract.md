@@ -27,7 +27,7 @@ Every event-sourced aggregate exposes its identity through Fight Common's existi
 
 The reference `AggregateRoot` stores any consumer-provided domain-specific `Identifier` and implements `id()` centrally. Fight Common does not introduce or require a generic `AggregateId`; consumers retain types such as `OrderId` and `CustomerId`.
 
-Global event position provides prefix-stable commit visibility: once position N is visible, no event at a lower position may become visible later. Durable stores serialize global-position allocation inside the append transaction. The MySQL adapter uses a transactional sequence row held through commit rather than relying on an event-table auto-increment key, whose allocation order does not guarantee commit order. SQLite's serialized writer behavior must satisfy the same observable contract.
+Global event position provides prefix-stable commit visibility: once position N is visible, no event at a lower position may become visible later. Durable stores serialize global-position allocation inside the append transaction. MySQL and PostgreSQL lock a transactional sequence row through commit; MySQL does not rely on an event-table auto-increment key, whose allocation order does not guarantee commit order. SQLite's serialized writer behavior must satisfy the same observable contract.
 
 Event publication occurs only after events are committed to the Event Store. A synchronous Event Dispatcher catches failures from individual matching subscribers, continues fan-out in priority order through event-specific and `AllEvents` subscribers, and reports the collected failures after every subscriber has been attempted. This behavior does not apply to downstream consumers of an asynchronous transport.
 
