@@ -1,5 +1,5 @@
 site_name: fight-common
-site_description: A shared PHP library for FIGHT projects — Hexagonal Architecture, CQRS, and clean domain primitives.
+site_description: A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives.
 site_url: https://johnnickell.github.io/fight-common/
 repo_url: https://github.com/johnnickell/fight-common
 repo_name: johnnickell/fight-common
@@ -9,26 +9,35 @@ copyright: Copyright &copy; 2026 John Nickell
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     - scheme: default
-      primary: deep purple
-      accent: purple
+      primary: blue grey
+      accent: cyan
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: deep purple
-      accent: purple
+      primary: blue grey
+      accent: light blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.expand
     - navigation.top
     - search.highlight
     - content.code.copy
     - content.code.annotate
+  font:
+    text: Source Sans 3
+    code: JetBrains Mono
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - pymdownx.highlight:

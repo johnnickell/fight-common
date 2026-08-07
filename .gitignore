@@ -5,9 +5,12 @@ phpunit.xml
 /vendor
 /memory
 /site
+/graphify-out
 /.phpcs-cache
 /.claude
 /.idea
+/.runs/
+/graphify-out/
 /nbproject
 /*.sublime-project
 /*.sublime-workspace
