@@ -29,8 +29,9 @@ release decision.
 - Symfony is a precedent for strict patch compatibility, fixing the oldest maintained line first,
   and moving fixes forward. Fight Common owns its own policy and does not inherit Symfony's scale,
   calendar, or governance automatically.
-- Every consequential decision is human-approved one at a time. Deterministic tooling may recommend
-  or verify; it may not silently authorize local or external mutations.
+- Every consequential decision is explicitly human-approved. Independent frontier questions may be
+  grouped in grilling rounds. Deterministic tooling may recommend or verify; it may not silently
+  authorize local or external mutations.
 - Refer to tickets by their linked names rather than bare identifiers.
 
 ## Decisions so far
@@ -39,10 +40,13 @@ release decision.
   fixed the project scope, skill catalog, deterministic-first principle, authorization model,
   branch topology, support baseline, compatibility evidence, publication authority, provenance,
   and package boundary.
+- [Define supported release lines and the compatibility contract](tickets/WF-002-supported-lines-and-compatibility-contract.md)
+  fixed manifested public operations and behavior, non-structural compatibility, support-policy
+  data and clocks, canonical `vX.Y.Z` tags and immutable baselines, affected-line proof, patch
+  exceptions, SemVer authorization, and composed fail-closed certification evidence.
 
 ## Frontier
 
-- [Define supported release lines and the compatibility contract](tickets/WF-002-supported-lines-and-compatibility-contract.md)
 - [Design deterministic release commands and evidence](tickets/WF-003-deterministic-release-commands-and-evidence.md)
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
@@ -50,8 +54,6 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 ## Not yet specified
 
-- Whether the compatibility checker should be an existing PHP tool, a repository-owned comparison,
-  or a composed set of checks.
 - Exact release-evidence manifest schema, detailed-log custody, retention, and publication surface.
 - Signing implementation, signer identity, key custody, and verification mechanism for future
   annotated tags.

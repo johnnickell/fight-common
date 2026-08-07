@@ -10,3 +10,8 @@
 | [0006](0006-dependency-resolution-build-modes.md) | Persistent local and ephemeral CI dependency resolution | accepted |
 | [0007](0007-exact-complete-statement-coverage.md) | Zero-exclusion exact statement coverage | accepted |
 | [0008](0008-shared-quality-gate-definition.md) | Shared executable local and CI quality gate | accepted |
+| [0009](0009-public-api-manifest-baseline.md) | Public API manifest seeded from the published 1.1.0 surface | accepted |
+| [0010](0010-behavioral-contract-authority.md) | Explicit documented behavior with linked compatibility evidence | accepted |
+| [0011](0011-non-structural-compatibility-policy.md) | Exception, serialization, persistence, environment, and deprecation compatibility | accepted |
+| [0012](0012-supported-lines-baselines-and-release-authorization.md) | Support authority, baselines, affected lines, exceptions, and authorization | accepted |
+| [0013](0013-compatibility-manifest-and-certification-composition.md) | Compatibility manifest, release classification, and composed evidence | accepted |
