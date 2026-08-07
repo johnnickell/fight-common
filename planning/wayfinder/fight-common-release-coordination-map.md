@@ -44,25 +44,28 @@ release decision.
   fixed manifested public operations and behavior, non-structural compatibility, support-policy
   data and clocks, canonical `vX.Y.Z` tags and immutable baselines, affected-line proof, patch
   exceptions, SemVer authorization, and composed fail-closed certification evidence.
+- [Design deterministic release commands and evidence](tickets/WF-003-deterministic-release-commands-and-evidence.md)
+  fixed the single command surface, content-addressed plans, durable run state, postcondition-driven
+  resume, machine results, evidence-manifest authority, explicit stop states, publication authorization,
+  and test seams. Exact implementation and hosted-operation details remain deferred to dependent tickets.
 
 ## Frontier
 
-- [Design deterministic release commands and evidence](tickets/WF-003-deterministic-release-commands-and-evidence.md)
+- [Define the plan, package, certify, and publish skill contracts](tickets/WF-004-release-skill-contracts.md)
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
 
 ## Not yet specified
 
-- Exact release-evidence manifest schema, detailed-log custody, retention, and publication surface.
+- Exact release-evidence manifest fields, storage locking, event-chain integrity, and detailed-log
+  retention.
 - Signing implementation, signer identity, key custody, and verification mechanism for future
   annotated tags.
-- Exact Packagist observation and manually approved recovery mechanism when automatic propagation
-  fails.
-- Exact branch-protection and GitHub-environment changes required before the workflows may mutate
-  remote state.
-- Whether deterministic release commands should be one command with subcommands or several narrow
-  commands.
+- Exact archive normalization and committed exclusion policy.
+- Exact Packagist observation and manually approved recovery mechanism when automatic propagation fails.
+- Exact branch-protection and GitHub-environment changes required before workflows may mutate remote
+  state.
 
 ## Out of scope
 
