@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent Skills and Planning
+
+Read root `CONTEXT.md` for project vocabulary and accepted Event Sourcing boundaries. Durable work tracking lives in `planning/`; use its focused instructions:
+
+- `planning/agents/issue-tracker.md` — canonical ticket resolution and synchronization.
+- `planning/agents/triage-labels.md` — allowed workflow states.
+- `planning/agents/domain.md` — architecture and Event Sourcing rules.
+
+For coordinated builds, use `.runs/<YYYY-MM-DD>-<slug>/` for local plans, spokes, results, and traces. `.runs/` is gitignored and must never be staged. Copy durable outcomes and deviations back to the canonical ticket.
+
 ## Commands
 
 All tooling runs inside a PHP 8.5 Docker container (`fight-common`). The `./bin/` scripts are convenience wrappers for interactive terminal use — they all pass `-it` (TTY required) and rebuild the image on every call, so **do not use them from Claude Code**.
@@ -73,9 +83,12 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 # 4. Full test suite with coverage
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/phpunit
+
+# 5. Validate planning metadata and dependency edges
+./bin/planning-check
 ```
 
-All four must be clean before a commit lands on any branch.
+All five must be clean before a commit lands on any branch.
 
 ### Git Flow
 
@@ -85,6 +98,13 @@ This repo follows [git-flow](https://nvie.com/posts/a-successful-git-branching-m
 - **`develop`** — integration branch for completed features
 - **`feature/<name>`** — branched from `develop`, merged back via `--no-ff`
 - Always create a feature branch before starting work — never commit directly to `develop`
+
+### GitHub CLI Authentication
+
+On macOS, a sandboxed `gh auth status` may falsely report an invalid token when the process cannot access the
+keyring. Before asking the user to authenticate again, rerun `gh auth status` with keyring-enabled access. Treat
+a successful user-shell or keyring-enabled check as authoritative; do not require the user to repeatedly prove an
+existing authenticated session.
 
 Coverage reports are written to `var/reports/coverage/clover.xml` (XML) and `var/reports/coverage/` (HTML) automatically when the full suite runs with Xdebug loaded. Parse clover.xml with Python to check coverage gaps:
 

@@ -36,6 +36,30 @@ class QueryMessageTest extends UnitTestCase
         self::assertTrue($message->meta()->isEmpty());
     }
 
+    public function test_that_construction_copies_meta(): void
+    {
+        $meta = Meta::create(['trace_id' => 'original']);
+        $message = new QueryMessage(MessageId::generate(), new DateTimeImmutable(), new SampleQuery(), $meta);
+
+        $meta->set('trace_id', 'changed');
+
+        self::assertSame('original', $message->meta()->get('trace_id'));
+    }
+
+    public function test_that_meta_returns_a_copy(): void
+    {
+        $message = new QueryMessage(
+            MessageId::generate(),
+            new DateTimeImmutable(),
+            new SampleQuery(),
+            Meta::create(['trace_id' => 'original'])
+        );
+
+        $message->meta()->set('trace_id', 'changed');
+
+        self::assertSame('original', $message->meta()->get('trace_id'));
+    }
+
     // -------------------------------------------------------------------------
     // withMeta
     // -------------------------------------------------------------------------
@@ -61,6 +85,19 @@ class QueryMessageTest extends UnitTestCase
         self::assertSame($message->type(), $updated->type());
     }
 
+    public function test_that_with_meta_copies_replacement_meta(): void
+    {
+        $message = QueryMessage::create(new SampleQuery());
+        $replacement = Meta::create(['trace_id' => 'original']);
+
+        $updated = $message->withMeta($replacement);
+        $replacement->set('trace_id', 'changed');
+
+        self::assertSame('original', $updated->meta()->get('trace_id'));
+        self::assertTrue($updated->equals($message));
+        self::assertSame('original', $updated->toArray()['meta']['trace_id']);
+    }
+
     // -------------------------------------------------------------------------
     // mergeMeta
     // -------------------------------------------------------------------------
@@ -69,12 +106,15 @@ class QueryMessageTest extends UnitTestCase
     {
         $id = MessageId::generate();
         $message = new QueryMessage($id, new DateTimeImmutable(), new SampleQuery(), Meta::create(['a' => 1]));
+        $additional = Meta::create(['b' => 2]);
 
-        $updated = $message->mergeMeta(Meta::create(['b' => 2]));
+        $updated = $message->mergeMeta($additional);
+        $additional->set('b', 3);
 
         self::assertNotSame($message, $updated);
         self::assertSame(1, $updated->meta()->get('a'));
         self::assertSame(2, $updated->meta()->get('b'));
+        self::assertTrue($updated->equals($message));
     }
 
     public function test_that_merge_meta_does_not_mutate_original(): void
