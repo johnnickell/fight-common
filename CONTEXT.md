@@ -223,6 +223,19 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 - Distinguish File Storage, Filesystem, and File Transfer.
 - Consumer applications own their business-specific aggregate, command, query, event, and read-model names.
 
+## Release coordination language
+
+| Term | Meaning in Fight Common |
+| --- | --- |
+| **Release plan** | An immutable, content-addressed description of one intended release operation. Its `plan_id` is the SHA-256 digest of its canonical JSON representation and binds the candidate, baselines, policy inputs, expected effects, evidence requirements, version, and approvals. |
+| **Release run** | One execution attempt associated with one release plan. A run has its own unique `run_id`, append-only transition evidence, bounded logs, receipts, and current-state projection; retry creates a new run and resume continues the named run only after revalidation. |
+| **Evidence manifest** | The compact, versioned, immutable machine authority for release inputs, checks, package digests, Git identities, external receipts, and expected downstream projections. Its canonical JSON has a SHA-256 `manifest_id` that authorization may bind. Detailed logs support the manifest but do not replace it. |
+| **Partial publication** | A fail-closed release state entered after an external effect occurs but the intended verified publication is incomplete or uncertain. Automatic deletion, force-push, tag reuse, version substitution, and blind retry are not valid recovery actions. |
+| **Release command** | The repository-owned `bin/release` executable and its narrow subcommands. It computes policy and evidence deterministically; human or hosted controls retain consequential authorization. |
+| **Postcondition-driven resume** | Re-entry behavior that re-resolves every bound input and re-verifies every completed postcondition before advancing, rather than trusting a prior state label or exit code. |
+| **Machine result** | A versioned JSON result emitted by every release-command invocation. Human-readable output renders this result; stable coarse exit codes classify the outcome and detailed finding IDs carry the explanation. |
+| **Release state** | The current verified position of one release run. Progress states describe completed work; stop states describe drift, failed checks, missing authority, conflicts, external uncertainty, supersession, or an expired support boundary. Every state exposes the next permitted operation or required human action. |
+
 ## Durable and ephemeral work
 
 Committed planning state lives in `planning/`. Coordinate-build artifacts live under `.runs/<date>-<slug>/`; `.runs/` is gitignored and is never canonical project history. Important results and deviations from a run must be copied back to its ticket.

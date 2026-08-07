@@ -15,3 +15,4 @@
 | [0011](0011-non-structural-compatibility-policy.md) | Exception, serialization, persistence, environment, and deprecation compatibility | accepted |
 | [0012](0012-supported-lines-baselines-and-release-authorization.md) | Support authority, baselines, affected lines, exceptions, and authorization | accepted |
 | [0013](0013-compatibility-manifest-and-certification-composition.md) | Compatibility manifest, release classification, and composed evidence | accepted |
+| [0014](0014-deterministic-release-commands-and-evidence.md) | Deterministic release commands, run state, and evidence authority | accepted |
