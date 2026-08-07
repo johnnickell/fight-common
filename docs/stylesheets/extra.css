@@ -1,0 +1,23 @@
+/* Keep the reading measure comfortable while giving code examples more room. */
+.md-grid {
+  max-width: 1280px;
+}
+
+:root {
+  --md-text-font: "Source Sans 3";
+  --md-code-font: "JetBrains Mono";
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  letter-spacing: -0.015em;
+}
+
+.md-typeset h1 {
+  font-weight: 650;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 210;
+}
