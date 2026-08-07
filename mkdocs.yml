@@ -9,26 +9,35 @@ copyright: Copyright &copy; 2026 John Nickell
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     - scheme: default
-      primary: deep purple
-      accent: purple
+      primary: blue grey
+      accent: cyan
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: deep purple
-      accent: purple
+      primary: blue grey
+      accent: light blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.expand
     - navigation.top
     - search.highlight
     - content.code.copy
     - content.code.annotate
+  font:
+    text: Source Sans 3
+    code: JetBrains Mono
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - pymdownx.highlight:
