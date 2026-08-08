@@ -56,17 +56,19 @@ release decision.
   fixed the reviewed-fix boundary, supported-line and oldest-first selection, per-line compatibility
   and certification, ordered forward ports, safe current-line integration, maintenance lifecycle,
   EOL preservation, and guided urgent handling without a safety bypass.
+- [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md)
+  fixed the OpenPGP signer and custody boundary, signed-tag and commit authority, release topology,
+  immutable GitHub publication gate, deterministic assets, Packagist observation and recovery,
+  clean-install proof, single-operator approval, and postcondition-driven resumption.
 
 ## Frontier
 
-- [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md)
+- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md)
 
 ## Waiting
 
-- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md) — waiting
-  for WF-006, [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md).
 - [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
-  — waiting for WF-006 and WF-007.
+  — waiting for WF-007.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
@@ -75,12 +77,8 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 - Exact release-evidence manifest fields, storage locking, event-chain integrity, and detailed-log
   retention.
-- Signing implementation, signer identity, key custody, and verification mechanism for future
-  annotated tags.
-- Exact archive normalization and committed exclusion policy.
-- Exact Packagist observation and manually approved recovery mechanism when automatic propagation fails.
-- Exact branch-protection and GitHub-environment changes required before workflows may mutate remote
-  state.
+- Actual signer fingerprint, operator identity, and hosted environment provisioning remain
+  implementation and configuration work for the release handoff.
 
 ## Out of scope
 
