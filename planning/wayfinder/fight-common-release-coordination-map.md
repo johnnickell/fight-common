@@ -60,15 +60,18 @@ release decision.
   fixed the OpenPGP signer and custody boundary, signed-tag and commit authority, release topology,
   immutable GitHub publication gate, deterministic assets, Packagist observation and recovery,
   clean-install proof, single-operator approval, and postcondition-driven resumption.
+- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md)
+  fixed the single dispatcher and journey-card information architecture, routing precedence,
+  operator loop, stop and cancellation handling, bounded troubleshooting, Git-flow examples,
+  oldest-supported-line routing, and independent publication recovery.
 
 ## Frontier
 
-- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md)
+- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
 
 ## Waiting
 
-- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
-  — waiting for WF-007.
+None.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
