@@ -1,29 +1,36 @@
 ---
 id: T-00035
 prd: PRD-00011
-title: Implement immutable publication and partial-publication recovery
+title: Publish the signed tag and immutable GitHub release
 status: ready-for-agent
 blocked_by: T-00034
 ---
 
-# Implement Immutable Publication and Partial-Publication Recovery
+# Publish the Signed Tag and Immutable GitHub Release
 
 ## What to Build
 
-Implement separately authorized Git, signed-tag, GitHub Release, Packagist observation, clean-install,
-and incomplete-publication recovery effects using the boundary ports and fakes from T-00032.
+Publish the exact certified candidate through separately authorized merge, signed-tag, push, and immutable
+GitHub Release effects. Reconcile every possibly completed Git or GitHub effect independently after a crash
+or ambiguous provider response and emit a durable handoff for downstream projection verification.
 
 ## Acceptance Criteria
 
-- [ ] Each external effect has a separate authorization bound to the exact plan and manifest.
-- [ ] Signed tag, peeled commit, GitHub release, approved assets, and immutable state are reverified.
-- [ ] Packagist observation uses the bounded window and emits `packagist_incomplete` on timeout or mismatch.
-- [ ] Recovery reconciles possible effects independently and never blindly retries.
-- [ ] Successful publication emits durable provenance and clean-install receipts.
+- [ ] Merge, signed-tag creation, push, draft preparation, and public GitHub publication each require a
+      separate authorization bound to the exact plan, candidate, version, manifest, and exceptions.
+- [ ] The approved signer fingerprint, annotated tag object, peeled candidate commit, remote ref, release
+      assets, and immutable GitHub state are verified as postconditions.
+- [ ] Public publication stops unless immutable releases and the protected publication checkpoint are
+      verified; a mutable fallback is rejected.
+- [ ] A possibly completed effect enters `partial_publication`, preserves evidence, and is reconciled without
+      deletion, tag reuse, force-push, version substitution, or blind retry.
+- [ ] Verified already-satisfied postconditions resume idempotently and successful GitHub publication emits a
+      durable downstream-verification handoff.
 
 ## Verification
 
-Full submit gate and offline effect-ledger tests for every success, uncertainty, and recovery branch.
+Full submit gate and offline Git, signing, authorization, and GitHub effect-ledger tests for every success,
+uncertainty, crash, and reconciliation branch.
 
 ## Parent
 

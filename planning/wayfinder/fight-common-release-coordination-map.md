@@ -67,8 +67,9 @@ release decision.
 - [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
   fixed the four-PRD decomposition, first normal-release vertical slice, deterministic boundary fakes,
   ticket-sized branch and completion rules, implementation order, one-home planning migration,
-  composed acceptance gate, and eight executable implementation slices. The result is EPIC-00003,
-  PRD-00010 through PRD-00013, and T-00032 through T-00039.
+  composed acceptance gate, and an initial eight executable implementation slices. After the full PRDs were
+  approved, the oversized foundation, publication, patch, and integration slices were refined into twelve.
+  The result is EPIC-00003, PRD-00010 through PRD-00013, and T-00032 through T-00043.
 
 ## Frontier
 
