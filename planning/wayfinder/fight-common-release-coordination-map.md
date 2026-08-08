@@ -59,7 +59,14 @@ release decision.
 
 ## Frontier
 
-No takeable frontier ticket is currently declared.
+- [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md)
+
+## Waiting
+
+- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md) — waiting
+  for WF-006, [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md).
+- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
+  — waiting for WF-006 and WF-007.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
