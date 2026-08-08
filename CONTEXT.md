@@ -265,6 +265,11 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 | **Postcondition-driven resume** | Re-entry behavior that re-resolves every bound input and re-verifies every completed postcondition before advancing, rather than trusting a prior state label or exit code. |
 | **Machine result** | A versioned JSON result emitted by every release-command invocation. Human-readable output renders this result; stable coarse exit codes classify the outcome and detailed finding IDs carry the explanation. |
 | **Release state** | The current verified position of one release run. Progress states describe completed work; stop states describe drift, failed checks, missing authority, conflicts, external uncertainty, supersession, or an expired support boundary. Every state exposes the next permitted operation or required human action. |
+| **Operator journey** | One supported release-operation path from routing through its bounded effects, verification, and handoff or stop. |
+| **Journey card** | The runbook section that defines one operator journey's routing, inputs, evidence, approvals, commands, postconditions, stop handling, and next action. |
+| **Routing decision** | A deterministic classification of repository state, release state, change intent, affected lines, urgency metadata, and release class that selects the correct operator journey. |
+| **Stop handoff** | Durable evidence of a blocked, failed, uncertain, cancelled, or otherwise stopped operation together with its owning escalation and exactly one resumable next action. |
+| **Effect authorization** | Explicit human approval for one bounded local or external mutation identified by the release plan and its immutable inputs. |
 
 ## Durable and ephemeral work
 
