@@ -3,7 +3,7 @@ id: T-00033
 prd: PRD-00011
 title: Prove the normal feature package journey
 status: ready-for-agent
-blocked_by: T-00032
+blocked_by: T-00040
 ---
 
 # Prove the Normal Feature Package Journey
