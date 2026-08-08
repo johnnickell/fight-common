@@ -48,10 +48,14 @@ release decision.
   fixed the single command surface, content-addressed plans, durable run state, postcondition-driven
   resume, machine results, evidence-manifest authority, explicit stop states, publication authorization,
   and test seams. Exact implementation and hosted-operation details remain deferred to dependent tickets.
+- [Define the plan, package, certify, and publish skill contracts](tickets/WF-004-release-skill-contracts.md)
+  fixed one-phase skill ownership, `.runs`-only planning bookkeeping, immutable source/candidate/
+  baseline/support-policy bindings, bounded local and per-effect external approvals, composed
+  certification, durable stop handoffs, single-source routing, and closed capability boundaries.
 
 ## Frontier
 
-- [Define the plan, package, certify, and publish skill contracts](tickets/WF-004-release-skill-contracts.md)
+- [Define patch and maintenance-line workflows](tickets/WF-005-patch-and-maintenance-workflows.md)
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.

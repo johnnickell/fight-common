@@ -106,6 +106,20 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
 | **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |
 | **Build** | The complete ordered set of quality gates used to decide whether the repository is acceptable. |
+| **Release skill** | A guided operator workflow that owns one release phase. It may inspect release state and invoke the deterministic commands allowed for that phase, but it does not own release policy or cross into another phase's effect class. |
+| **Phase handoff** | The durable, content-addressed output of one release phase. It binds the phase's inputs, verified postconditions, and resumable next action for explicit acceptance by the next release skill. |
+| **Planning control artifact** | An immutable plan, run-state projection, machine result, or bounded log written under `.runs/` for release coordination. It is operational bookkeeping, not a mutation of tracked repository content, dependencies, Git refs, or external release state. |
+| **Version authorization** | The human approval of one exact release version after deterministic inspection recommends the minimum valid SemVer increment. The authorized version is a bound plan input; changing it requires a new immutable plan. |
+| **Source commit** | The immutable commit OID inspected and bound by a release plan before packaging. A source branch is descriptive context only and may not substitute for the OID. |
+| **Support-policy binding** | The digest or immutable identity of the support-policy data used by a release plan, including supported-line status and boundaries. A changed policy requires a new plan. |
+| **Candidate commit** | The immutable commit OID produced by packaging and carried by its phase handoff. It is distinct from the plan's source commit and is required for certification and publication authorization. |
+| **Packaging effect set** | The explicit, dry-run manifest of local branch, file, dependency-metadata, and candidate-artifact effects approved for one packaging run. Packaging may not perform effects outside this set. |
+| **Certification stop handoff** | The durable phase handoff emitted when certification fails or cannot classify evidence. It records the stop state, evidence, and resumable next action without changing the candidate or external state. |
+| **Publication authorization** | A human approval for one bounded external release effect, bound to the exact plan, candidate, version, baselines, evidence manifest, and exceptions. It is not reusable for a different effect or changed input. |
+| **Partial publication** | The persistent stop state entered when an external effect may have occurred but its postcondition is uncertain. Resumption requires operator-directed reconciliation and fresh verification. |
+| **Handoff record** | The machine-readable phase handoff fields: `plan_id`, `run_id`, phase and status, bound object IDs and digests, approvals, evidence references, any stop state, and one resumable next action. |
+| **Certification manifest** | The compact, immutable digest-bearing record that composes every required certification lane. A single hosted check or raw log cannot substitute for it. |
+| **Capability boundary** | The closed set of actions a release skill may perform in its phase. An action outside that set is rejected even when an underlying command could technically perform it. |
 
 ## Proposed Event Sourcing language for 1.2
 
