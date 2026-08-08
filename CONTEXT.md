@@ -120,6 +120,10 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Handoff record** | The machine-readable phase handoff fields: `plan_id`, `run_id`, phase and status, bound object IDs and digests, approvals, evidence references, any stop state, and one resumable next action. |
 | **Certification manifest** | The compact, immutable digest-bearing record that composes every required certification lane. A single hosted check or raw log cannot substitute for it. |
 | **Capability boundary** | The closed set of actions a release skill may perform in its phase. An action outside that set is rejected even when an underlying command could technically perform it. |
+| **Reviewed fix** | An immutable, already-reviewed change set identified by exact commit OIDs and its merged pull request provenance: base and head OIDs, approvals, required-check conclusions, and merge receipt. A branch or pull request number alone is not a fix identity. |
+| **Affected-line patch** | A patch workflow execution for one supported release line, based on that line's exact current tip and independently classified and certified for compatibility. EOL lines are read-only. |
+| **Forward port** | A separately reviewed and certified application of an older affected-line fix to a newer affected supported line, ordered oldest to newest and carrying predecessor and source provenance. |
+| **Urgent release mode** | Guided metadata and operator ergonomics for a time-sensitive patch. It collects the ordinary evidence and approvals into one action packet; it does not bypass review, compatibility, certification, or authorization. |
 
 ## Proposed Event Sourcing language for 1.2
 
