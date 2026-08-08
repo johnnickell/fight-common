@@ -11,3 +11,7 @@
 | [00007](00007-PRD.md) | Reusable Fight Coding Standard | ready-for-agent |
 | [00008](00008-PRD.md) | Architecture Enforcement | ready-for-agent |
 | [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | ready-for-agent |
+| [00010](00010-PRD.md) | Deterministic Release Foundation | ready-for-agent |
+| [00011](00011-PRD.md) | Release Lifecycle and Publication Recovery | ready-for-agent |
+| [00012](00012-PRD.md) | Maintenance-Line and Patch Workflows | ready-for-agent |
+| [00013](00013-PRD.md) | Operator Surfaces and Release Integration | ready-for-agent |

@@ -1,7 +1,7 @@
 # Fight Common Release Coordination
 
 **Label:** `wayfinder:map`
-**Status:** Open
+**Status:** Closed
 
 ## Destination
 
@@ -64,10 +64,15 @@ release decision.
   fixed the single dispatcher and journey-card information architecture, routing precedence,
   operator loop, stop and cancellation handling, bounded troubleshooting, Git-flow examples,
   oldest-supported-line routing, and independent publication recovery.
+- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
+  fixed the four-PRD decomposition, first normal-release vertical slice, deterministic boundary fakes,
+  ticket-sized branch and completion rules, implementation order, one-home planning migration,
+  composed acceptance gate, and eight executable implementation slices. The result is EPIC-00003,
+  PRD-00010 through PRD-00013, and T-00032 through T-00039.
 
 ## Frontier
 
-- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
+None. The implementation handoff is complete; implementation requires its normal ticket and branch approvals.
 
 ## Waiting
 
