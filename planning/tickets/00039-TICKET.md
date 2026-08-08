@@ -1,31 +1,32 @@
 ---
 id: T-00039
 prd: PRD-00013
-title: Add runbook, CI integration, and final handoff validation
+title: Integrate CI and validate the final epic handoff
 status: ready-for-agent
-blocked_by: T-00038
+blocked_by: T-00043
 ---
 
-# Add Runbook, CI Integration, and Final Handoff Validation
+# Integrate CI and Validate the Final Epic Handoff
 
 ## What to Build
 
-Add the dispatcher and journey-card runbook, integrate the deterministic verification surface with CI,
-and validate final traceability from the epic through every executable ticket.
+Integrate the deterministic verification surface with CI and prove the complete implementation handoff from
+EPIC-00003 through every PRD, executable ticket, operator journey, command result, and acceptance artifact.
 
 ## Acceptance Criteria
 
-- [ ] Journey cards cover feature, unreleased fix, patch, forward port, release, maintenance transition,
-  and incomplete publication.
-- [ ] Routing cannot select a workflow that contradicts repository or release state.
-- [ ] Troubleshooting gives diagnosis, evidence, canonical recovery selection, and escalation ownership;
-  it never gives blind retry instructions.
 - [ ] CI invokes the canonical gate without duplicating release policy.
-- [ ] All epic, PRD, ticket, acceptance, and verification links resolve and `./bin/planning-check` passes.
+- [ ] Hosted permissions, artifact transport, and evidence ingestion preserve the command's capability and
+      machine-result contracts.
+- [ ] Queued, running, skipped, cancelled, missing, and failed hosted checks cannot satisfy a composed lane.
+- [ ] Catalog, skill, command, journey-card, ADR, PRD, ticket, acceptance, and verification links resolve.
+- [ ] Traceability covers T-00032 through T-00043 with no unresolved or contradictory dependency or evidence
+      edge, and `./bin/planning-check` passes.
 
 ## Verification
 
-Full submit gate, planning validation, link checks, and the complete deterministic offline journey suite.
+Full submit gate, planning validation, CI contract and hosted-status fixtures, link checks, and the complete
+deterministic offline journey suite.
 
 ## Parent
 

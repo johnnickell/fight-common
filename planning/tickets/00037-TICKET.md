@@ -1,29 +1,35 @@
 ---
 id: T-00037
 prd: PRD-00012
-title: Implement affected-line patching and ordered forward ports
+title: Release the oldest affected supported-line patch
 status: ready-for-agent
-blocked_by: T-00035,T-00036
+blocked_by: T-00036,T-00041
 ---
 
-# Implement Affected-Line Patching and Ordered Forward Ports
+# Release the Oldest Affected Supported-Line Patch
 
 ## What to Build
 
-Implement patch-line routing from affected-line evidence, oldest-supported-line-first execution, and
-separate reviewed and certified forward ports through newer affected lines.
+Consume one immutable reviewed fix, classify every supported line through focused behavioral evidence, and
+release the patch from the exact tip of the oldest affected supported line. Carry the candidate through its
+own compatibility classification, certification, publication, and verified downstream handoff.
 
 ## Acceptance Criteria
 
 - [ ] Every supported line is classified affected, unaffected, or unknown before selection.
 - [ ] Unknown classification stops before base-branch selection.
-- [ ] The oldest affected line uses its exact current tip as the patch base.
-- [ ] Each forward port carries predecessor provenance and its own certification evidence.
-- [ ] No `hotfix/*` or urgency path bypasses review, compatibility, or authorization.
+- [ ] The reviewed fix binds exact commit OIDs, review approvals, required-check conclusions, and merge
+      provenance rather than a mutable branch or pull-request number.
+- [ ] The oldest affected line uses its exact current tip as the patch base and stops on ref movement,
+      unreleased maintenance content, or an expired support boundary.
+- [ ] Patch eligibility is independently classified and any exception is bound to this candidate, version,
+      baselines, findings, and evidence manifest.
+- [ ] The patch is certified, published, and verified through the ordinary release gates; no `hotfix/*` or
+      urgency path bypasses review, compatibility, evidence, or authorization.
 
 ## Verification
 
-Full submit gate and offline multi-line fixtures covering affected, unaffected, unknown, conflict, and EOL cases.
+Full submit gate and offline reviewed-fix, affected-line, compatibility, publication, and EOL journey fixtures.
 
 ## Parent
 

@@ -1,30 +1,36 @@
 ---
 id: T-00032
 prd: PRD-00010
-title: Establish release plans, runs, handoffs, and boundary fakes
+title: Establish release inspection, plans, and boundary fakes
 status: ready-for-agent
 blocked_by:
 ---
 
-# Establish Release Plans, Runs, Handoffs, and Boundary Fakes
+# Establish Release Inspection, Plans, and Boundary Fakes
 
 ## What to Build
 
-Implement the immutable plan/run foundation behind `bin/release`, including canonical JSON digests,
-phase handoffs, machine results, postcondition-driven resume, and deterministic fakes/effect ledgers
-for Git, signing, authorization, GitHub, and Packagist.
+Implement the public inspection and planning journey behind `bin/release`. An operator can inspect a
+candidate, approve an exact version, create an immutable content-addressed plan, and receive a versioned
+machine result without performing a release effect. Establish the capability boundary and deterministic
+fakes/effect ledgers required by later journeys.
 
 ## Acceptance Criteria
 
-- [ ] Plans and handoffs contain the agreed immutable bindings and exactly one next action.
-- [ ] Bound-input drift creates a new plan identity and resume revalidates postconditions.
-- [ ] Boundary fakes cover success, failure, uncertainty, and crash points without external mutation.
-- [ ] Unit and contract tests cover the public seams completely.
-- [ ] `bin/release` rejects commands outside their declared capability boundary.
+- [ ] Inspection recommends the minimum valid SemVer increment without making it authoritative.
+- [ ] Plan creation requires approval of one exact version and binds every agreed immutable input.
+- [ ] Canonically equivalent inputs produce the same `plan_id`; any material bound-input change produces a
+      different identity.
+- [ ] Every invocation emits the versioned machine result, stable exit classification, detailed findings,
+      proposed effects, and exactly one next action.
+- [ ] Boundary fakes cover success, refusal, failure, uncertainty, drift, and configured crash points without
+      loading production credentials or performing external mutation.
+- [ ] `bin/release` rejects commands and effects outside their declared capability boundary before recording
+      an effect.
 
 ## Verification
 
-Full submit gate, `./bin/planning-check`, and deterministic offline journey tests.
+Full submit gate, `./bin/planning-check`, and public-command inspection and planning journey tests.
 
 ## Parent
 

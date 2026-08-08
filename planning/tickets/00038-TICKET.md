@@ -3,7 +3,7 @@ id: T-00038
 prd: PRD-00013
 title: Add release skills and catalog routing
 status: ready-for-agent
-blocked_by: T-00035,T-00037
+blocked_by: T-00041,T-00042
 ---
 
 # Add Release Skills and Catalog Routing
@@ -20,7 +20,8 @@ stops, and one next action.
 - [ ] Capability boundaries reject cross-phase effects before execution.
 - [ ] Catalog links resolve to the canonical epic, PRDs, tickets, and runbook.
 - [ ] Operator output identifies bound plan/run IDs, evidence, approvals, and next action.
-- [ ] Offline routing fixtures cover normal, patch, urgent, EOL, and incomplete-publication cases.
+- [ ] Offline skill fixtures cover normal, patch, forward-port, urgent, EOL, and incomplete-publication
+      handoffs without choosing the top-level journey.
 
 ## Verification
 

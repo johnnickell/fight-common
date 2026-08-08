@@ -33,7 +33,7 @@ ticket materially cheaper.
 | 6 | [T-00025 — Cover Adapter Failure Boundaries](00025-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Opens deterministic coverage of filesystem, template-buffering, and metrics failures. |
 | 7 | [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaces live-infrastructure exclusions with owned deterministic seams. |
 | 8 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Reuses the completed portable provider-registration path without blocking the Event Store implementation chain. |
-| 9 | [T-00032 — Establish Release Plans, Runs, Handoffs, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the deterministic release-coordination foundation after the Wayfinder handoff. |
+| 9 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
 
 ## Waiting
 
@@ -55,13 +55,17 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 20 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 21 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 22 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00029 |
-| 23 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00032 |
-| 24 | [T-00034 — Compose Certification Evidence and Compatibility Lanes](00034-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00033 |
-| 25 | [T-00035 — Implement Immutable Publication and Partial-Publication Recovery](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
-| 26 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00033, T-00034 |
-| 27 | [T-00037 — Implement Affected-Line Patching and Ordered Forward Ports](00037-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00035, T-00036 |
-| 28 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00035, T-00037 |
-| 29 | [T-00039 — Add Runbook, CI Integration, and Final Handoff Validation](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
+| 23 | [T-00040 — Prove Resumable Release Runs and Phase Handoffs](00040-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | T-00032 |
+| 24 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00040 |
+| 25 | [T-00034 — Compose Certification Evidence and Compatibility Lanes](00034-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00033 |
+| 26 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
+| 27 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
+| 28 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00033, T-00034 |
+| 29 | [T-00037 — Release the Oldest Affected Supported-Line Patch](00037-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00036, T-00041 |
+| 30 | [T-00042 — Forward-Port Patches Through Newer Affected Lines](00042-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00037 |
+| 31 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
+| 32 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
+| 33 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
 
 The completed generic aggregate repository closes the durable-storage PRD and removes its blocker from the
 integration guide. In-memory projection execution and dispatcher failure isolation remain independent ready
@@ -73,6 +77,12 @@ can begin at T-00023, T-00025, and T-00026. Scheduler coverage follows the archi
 All four coverage slices join at T-00027; T-00028 then establishes the shared gate, after which local build
 and CI delivery split into T-00029 and T-00030. T-00031 attaches pre-commit enforcement to the completed local
 build.
+
+The release path starts at T-00032 and T-00040, then proves packaging and certification through T-00033 and
+T-00034. GitHub publication continues through T-00035 and downstream verification through T-00041, while
+maintenance lifecycle work may proceed independently at T-00036 after certification. Those paths join for
+the oldest affected-line patch at T-00037 and ordered forward ports at T-00042. Operator skills, dispatcher
+and runbook, and final CI traceability then close the epic through T-00038, T-00043, and T-00039.
 
 ## Recently Done
 
