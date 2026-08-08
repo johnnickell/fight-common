@@ -47,8 +47,10 @@ normal release packaging, certification, publication and recovery, maintenance, 
 ports, then operator skills/catalog and runbook/CI integration.
 
 Accepted decisions are synthesized once into their epic, PRD, or ticket home and linked to the closed
-Wayfinder record. The eight tickets are T-00032 through T-00039; their exact blockers, acceptance
-criteria, and verification commands are canonical in the ticket files.
+Wayfinder record. The original eight-ticket handoff was refined after the full PRDs were approved: the
+oversized foundation, publication, patch, and integration slices became twelve tickets, T-00032 through
+T-00043. Their exact blockers, acceptance criteria, and verification commands are canonical in the ticket
+files.
 
 The complete handoff gate includes planning validation; Rector, PHPStan, PHPCS, PHPUnit, and exact
 coverage; locked/lowest/latest dependency lanes; public API and compatibility evidence; deterministic
