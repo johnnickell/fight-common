@@ -52,10 +52,21 @@ release decision.
   fixed one-phase skill ownership, `.runs`-only planning bookkeeping, immutable source/candidate/
   baseline/support-policy bindings, bounded local and per-effect external approvals, composed
   certification, durable stop handoffs, single-source routing, and closed capability boundaries.
+- [Define patch and maintenance-line workflows](tickets/WF-005-patch-and-maintenance-workflows.md)
+  fixed the reviewed-fix boundary, supported-line and oldest-first selection, per-line compatibility
+  and certification, ordered forward ports, safe current-line integration, maintenance lifecycle,
+  EOL preservation, and guided urgent handling without a safety bypass.
 
 ## Frontier
 
-- [Define patch and maintenance-line workflows](tickets/WF-005-patch-and-maintenance-workflows.md)
+- [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md)
+
+## Waiting
+
+- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md) — waiting
+  for WF-006, [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md).
+- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
+  — waiting for WF-006 and WF-007.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
