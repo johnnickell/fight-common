@@ -33,6 +33,7 @@ ticket materially cheaper.
 | 6 | [T-00025 — Cover Adapter Failure Boundaries](00025-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Opens deterministic coverage of filesystem, template-buffering, and metrics failures. |
 | 7 | [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaces live-infrastructure exclusions with owned deterministic seams. |
 | 8 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Reuses the completed portable provider-registration path without blocking the Event Store implementation chain. |
+| 9 | [T-00032 — Establish Release Plans, Runs, Handoffs, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the deterministic release-coordination foundation after the Wayfinder handoff. |
 
 ## Waiting
 
@@ -54,6 +55,13 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 20 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 21 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 22 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00029 |
+| 23 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00032 |
+| 24 | [T-00034 — Compose Certification Evidence and Compatibility Lanes](00034-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00033 |
+| 25 | [T-00035 — Implement Immutable Publication and Partial-Publication Recovery](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
+| 26 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00033, T-00034 |
+| 27 | [T-00037 — Implement Affected-Line Patching and Ordered Forward Ports](00037-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00035, T-00036 |
+| 28 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00035, T-00037 |
+| 29 | [T-00039 — Add Runbook, CI Integration, and Final Handoff Validation](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 
 The completed generic aggregate repository closes the durable-storage PRD and removes its blocker from the
 integration guide. In-memory projection execution and dispatcher failure isolation remain independent ready
