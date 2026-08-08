@@ -16,3 +16,4 @@
 | [0012](0012-supported-lines-baselines-and-release-authorization.md) | Support authority, baselines, affected lines, exceptions, and authorization | accepted |
 | [0013](0013-compatibility-manifest-and-certification-composition.md) | Compatibility manifest, release classification, and composed evidence | accepted |
 | [0014](0014-deterministic-release-commands-and-evidence.md) | Deterministic release commands, run state, and evidence authority | accepted |
+| [0015](0015-patch-and-maintenance-line-workflows.md) | Patch and maintenance-line workflows with guided urgent handling | accepted |
