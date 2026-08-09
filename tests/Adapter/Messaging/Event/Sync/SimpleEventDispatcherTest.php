@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Messaging\Event\Sync;
 
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
+use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\AllEvents;
 use Fight\Common\Domain\Messaging\Event\Event;
@@ -12,6 +14,8 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
+use TypeError;
 
 #[CoversClass(SimpleEventDispatcher::class)]
 class SimpleEventDispatcherTest extends UnitTestCase
@@ -57,6 +61,79 @@ class SimpleEventDispatcherTest extends UnitTestCase
         $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
 
         self::assertSame(['event', 'all'], $calls);
+    }
+
+    public function test_that_dispatch_collects_every_handler_failure_after_both_priority_phases(): void
+    {
+        FailureDispatchCallLog::reset();
+        $objectFailure = new RuntimeException('object handler failed');
+        $functionFailure = new \Error('function handler failed');
+        $staticFailure = new RuntimeException('static handler failed');
+        $invokableFailure = new RuntimeException('invokable handler failed');
+        $closureFailure = new TypeError('closure handler failed');
+        $objectHandler = new FailureDispatchHandler($objectFailure);
+        $invokableHandler = new InvokableFailureDispatchHandler($invokableFailure);
+        FailureDispatchCallLog::$functionFailure = $functionFailure;
+        StaticFailureDispatchHandler::$failure = $staticFailure;
+        $eventType = ClassName::underscore(SampleDispatchEvent::class);
+        $allEvents = ClassName::underscore(AllEvents::class);
+
+        $this->dispatcher->addHandler($eventType, [$objectHandler, 'onEvent'], 30);
+        $this->dispatcher->addHandler($eventType, __NAMESPACE__ . '\\sample_failing_dispatch_handler', 20);
+        $this->dispatcher->addHandler($eventType, [StaticFailureDispatchHandler::class, 'onEvent'], 17);
+        $this->dispatcher->addHandler($eventType, $invokableHandler, 15);
+        $this->dispatcher->addHandler(
+            $eventType,
+            static function (): void {
+                FailureDispatchCallLog::record('event-success');
+            },
+            10,
+        );
+        $this->dispatcher->addHandler(
+            $allEvents,
+            static function () use ($closureFailure): void {
+                FailureDispatchCallLog::record('closure');
+                throw $closureFailure;
+            },
+            20,
+        );
+        $this->dispatcher->addHandler(
+            $allEvents,
+            static function (): void {
+                FailureDispatchCallLog::record('all-success');
+            },
+            10,
+        );
+
+        try {
+            $this->dispatcher->dispatch(EventMessage::create(new SampleDispatchEvent()));
+            self::fail('Dispatch should report the collected handler failures.');
+        } catch (EventDispatchFailed $failed) {
+            self::assertSame(
+                ['object', 'function', 'static', 'invokable', 'event-success', 'closure', 'all-success'],
+                FailureDispatchCallLog::$calls,
+            );
+            self::assertSame(
+                [
+                    FailureDispatchHandler::class . '::onEvent',
+                    __NAMESPACE__ . '\\sample_failing_dispatch_handler',
+                    StaticFailureDispatchHandler::class . '::onEvent',
+                    InvokableFailureDispatchHandler::class . '::__invoke',
+                    'Closure (non-replayable)',
+                ],
+                array_map(
+                    static fn (EventHandlerFailure $failure): string => $failure->callableDescription(),
+                    $failed->failures(),
+                ),
+            );
+            self::assertSame(
+                [$objectFailure, $functionFailure, $staticFailure, $invokableFailure, $closureFailure],
+                array_map(
+                    static fn (EventHandlerFailure $failure): \Throwable => $failure->throwable(),
+                    $failed->failures(),
+                ),
+            );
+        }
     }
 
     public function test_that_dispatch_with_no_handlers_does_nothing(): void
@@ -329,4 +406,66 @@ class SampleDispatchEvent implements Event
     {
         return [];
     }
+}
+
+final class FailureDispatchCallLog
+{
+    /** @var string[] */
+    public static array $calls = [];
+
+    public static ?\Throwable $functionFailure = null;
+
+    public static function reset(): void
+    {
+        self::$calls = [];
+        self::$functionFailure = null;
+    }
+
+    public static function record(string $call): void
+    {
+        self::$calls[] = $call;
+    }
+}
+
+final readonly class FailureDispatchHandler
+{
+    public function __construct(private \Throwable $failure)
+    {
+    }
+
+    public function onEvent(): void
+    {
+        FailureDispatchCallLog::record('object');
+        throw $this->failure;
+    }
+}
+
+final readonly class InvokableFailureDispatchHandler
+{
+    public function __construct(private \Throwable $failure)
+    {
+    }
+
+    public function __invoke(): void
+    {
+        FailureDispatchCallLog::record('invokable');
+        throw $this->failure;
+    }
+}
+
+final class StaticFailureDispatchHandler
+{
+    public static ?\Throwable $failure = null;
+
+    public static function onEvent(): void
+    {
+        FailureDispatchCallLog::record('static');
+        throw self::$failure ?? new RuntimeException('Missing static failure.');
+    }
+}
+
+function sample_failing_dispatch_handler(): void
+{
+    FailureDispatchCallLog::record('function');
+    throw FailureDispatchCallLog::$functionFailure ?? new RuntimeException('Missing function failure.');
 }
