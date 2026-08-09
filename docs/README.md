@@ -222,3 +222,6 @@ See [validation](validation.md) for rule definitions and usage.
 21. **[scheduler](scheduler.md)** — Cron-style job scheduler with file-based locking,
     cron/datetime/callable schedules, output capture, failure notification, and max
     runtime guard.
+
+22. **[coding-standard](coding-standard.md)** — Optional `FightCommon` PHP_CodeSniffer standard,
+    copy-ready consumer configuration, stable identifiers, configurable properties, and parity evidence.

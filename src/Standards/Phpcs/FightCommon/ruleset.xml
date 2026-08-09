@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="FightCommon">
+    <description>Fight Common coding standard</description>
+
+    <config name="installed_paths" value="../../slevomat/coding-standard" />
+
+    <rule ref="PSR12">
+        <exclude name="Squiz.WhiteSpace.CastSpacing" />
+        <exclude name="PSR12.Operators.OperatorSpacing" />
+    </rule>
+
+    <rule ref="Generic.Formatting.SpaceAfterCast" />
+    <rule ref="Squiz.WhiteSpace.OperatorSpacing" />
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="0" />
+        </properties>
+    </rule>
+
+    <rule ref="Squiz.Commenting.ClassComment">
+        <exclude name="Squiz.Commenting.ClassComment.TagNotAllowed" />
+    </rule>
+
+    <rule ref="Squiz.Commenting.FunctionComment">
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamName" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingReturn" />
+        <exclude name="Squiz.Commenting.FunctionComment.MissingReturnTag" />
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentFullStop" />
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentNotCapital" />
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamName" />
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamType" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNoFullStop" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNotCapital" />
+        <exclude name="Squiz.Commenting.FunctionComment.EmptyThrows" />
+        <exclude name="Squiz.Commenting.FunctionComment.ThrowsNotForType" />
+    </rule>
+
+    <rule ref="Squiz.Commenting.FunctionCommentThrowTag">
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag.WrongType" />
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag.Missing" />
+    </rule>
+
+    <rule ref="Generic.Commenting.DocComment">
+        <exclude name="Generic.Commenting.DocComment.TagValueIndent" />
+        <exclude name="Generic.Commenting.DocComment.MissingShort" />
+        <exclude name="Generic.Commenting.DocComment.ContentAfterOpen" />
+        <exclude name="Generic.Commenting.DocComment.ContentBeforeClose" />
+    </rule>
+
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120" />
+        </properties>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
+
+    <rule ref="./Sniffs/Arrays/DisallowTrailingArrayCommaSniff.php" />
+    <rule ref="./Sniffs/Arrays/RequireAlignedArrayArrowSniff.php" />
+    <rule ref="./Sniffs/Files/RequireStrictTypesSniff.php" />
+    <rule ref="./Sniffs/Formatting/RequireBlankLineBeforeReturnSniff.php" />
+
+    <rule ref="./Sniffs/Classes/NamedClassStructureSniff.php">
+        <properties>
+            <property name="groups" type="array">
+                <element value="uses" />
+                <element value="enum cases" />
+                <element value="public constants" />
+                <element value="protected constants" />
+                <element value="private constants" />
+                <element value="public static properties" />
+                <element value="public properties" />
+                <element value="protected static properties" />
+                <element value="protected properties" />
+                <element value="private static properties" />
+                <element value="private properties" />
+                <element value="constructor" />
+                <element value="static constructors, public static final methods, public static abstract methods, public static methods" />
+                <element value="public final methods, public abstract methods, public methods" />
+                <element value="protected static final methods, protected static abstract methods, protected static methods" />
+                <element value="protected final methods, protected abstract methods, protected methods" />
+                <element value="private static methods" />
+                <element value="private methods" />
+                <element value="destructor, invoke method, magic methods" />
+            </property>
+        </properties>
+    </rule>
+    <rule ref="./Sniffs/Classes/NamedClassMemberSpacingSniff.php">
+        <properties>
+            <property name="linesCountBetweenMembers" value="1" />
+        </properties>
+    </rule>
+    <rule ref="./Sniffs/Classes/NamedMethodSpacingSniff.php">
+        <properties>
+            <property name="minLinesCount" value="1" />
+            <property name="maxLinesCount" value="1" />
+        </properties>
+    </rule>
+    <rule ref="./Sniffs/Formatting/RequireVisibilityGroupSpacingSniff.php" />
+
+    <rule ref="./Sniffs/Commenting/RequireMethodDocCommentSniff.php" />
+    <rule ref="./Sniffs/Commenting/RequireTypeDocCommentSniff.php">
+        <properties>
+            <property name="strict" value="true" />
+        </properties>
+    </rule>
+</ruleset>
