@@ -25,7 +25,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00018 — Package the Reusable FightCommon Coding Standard](00018-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Opens the reusable quality-gate chain and the staged internal migration. |
+| 1 | [T-00019 — Migrate and Enable Mechanical Coding Rules](00019-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | The canonical standard is packaged; begin the first green internal migration stage. |
 | 2 | [T-00014 — Persist and Log Publication Operational State](00014-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | T-00013 and skip-free disposable database verification are complete. |
 | 3 | [T-00022 — Introduce Mandatory Architecture Enforcement](00022-TICKET.md) | [PRD-00008](../specs/00008-PRD.md) | Proves the inward dependency boundary independently of the coding-standard migration. |
 | 4 | [T-00023 — Eliminate Core Coverage Exclusions](00023-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Revalidates core coverage workarounds and covers deterministic Domain and Application failures. |
@@ -42,7 +42,6 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 |-----------------|--------|------------|------------|
 | 9 | [T-00016 — Document Event Sourcing Integration and Operations](00016-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00014 |
 | 10 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00016 |
-| 11 | [T-00019 — Migrate and Enable Mechanical Coding Rules](00019-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | T-00018 |
 | 12 | [T-00020 — Migrate and Enable Member Layout Rules](00020-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | T-00019 |
 | 13 | [T-00021 — Migrate and Enable Documentation Rules](00021-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | T-00020 |
 | 14 | [T-00024 — Make Scheduler Coverage Exact](00024-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00022 |
@@ -67,8 +66,8 @@ The completed projection path now combines ordered at-least-once handling and fa
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation
 and in-memory event publication are complete. Skip-free disposable database verification now precedes durable
 publication state so the next DBAL slice cannot hide behind environment skips. The quality-gate
-paths also open independently: the coding-standard migration advances sequentially through
-T-00018 to T-00021, architecture enforcement proceeds through T-00022, and independent coverage migrations
+paths also open independently: the canonical coding standard is packaged, and its staged internal migration
+advances sequentially through T-00019 to T-00021. Architecture enforcement proceeds through T-00022, and independent coverage migrations
 can begin at T-00023, T-00025, and T-00026. Scheduler coverage follows the architecture repair at T-00024.
 All four coverage slices join at T-00027; T-00028 then establishes the shared gate, after which local build
 and CI delivery split into T-00029 and T-00030. T-00031 attaches pre-commit enforcement to the completed local
@@ -84,6 +83,7 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00018 — Package the Reusable FightCommon Coding Standard](00018-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Published the optional path-free standard, accepted Omphalos parity, stable compatibility contracts, dist-like consumer discovery, complete custom-sniff coverage, and copy-ready integration guidance. |
 | [T-00044 — Eliminate Environment-Skipped Database Tests](00044-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added skip-free disposable MySQL/PostgreSQL verification, complete and fast PHPUnit workflows, scoped cleanup, CI fail-on-skipped enforcement, and exact Clover evidence. |
 | [T-00013 — Publish Committed Events with In-Memory Operational State](00013-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Added committed-event publication with monotonic named cursors, idempotent bounded failure records, explicit infrastructure-failure propagation, and crash-retry duplicate coverage. |
 | [T-00012 — Isolate Synchronous Dispatcher Handler Failures](00012-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Added complete two-phase handler fan-out with ordered transient failure aggregation and raw infrastructure-failure propagation across simple and service-aware dispatchers. |
