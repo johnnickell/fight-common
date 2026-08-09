@@ -3,7 +3,7 @@ id: T-00014
 prd: PRD-00005
 title: Persist and log publication operational state
 status: ready-for-agent
-blocked_by: T-00008,T-00013
+blocked_by: T-00008,T-00013,T-00044
 ---
 
 # Persist and Log Publication Operational State
@@ -16,6 +16,7 @@ Persist publication progress and aggregated failure evidence through DBAL, and p
 
 - T-00008 — Implement the Doctrine DBAL Event Store.
 - T-00013 — Publish committed events with in-memory operational state.
+- T-00044 — Eliminate environment-skipped database tests.
 
 ## Acceptance
 
