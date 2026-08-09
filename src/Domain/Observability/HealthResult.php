@@ -72,7 +72,7 @@ final readonly class HealthResult implements JsonSerializable
             'name'    => $this->name,
             'status'  => $this->status->toString(),
             'message' => $this->message,
-            'context' => $this->context,
+            'context' => $this->context
         ];
     }
 

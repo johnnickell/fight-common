@@ -11,9 +11,9 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\ImmutableException;
 use Fight\Common\Domain\Exception\IndexException;
 use Fight\Common\Domain\Type\Comparable;
+use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Value\Basic\Traits\StringOffsets;
 use Fight\Common\Domain\Value\ValueObject;
-use Fight\Common\Domain\Utility\Validate;
 use IteratorAggregate;
 use Traversable;
 

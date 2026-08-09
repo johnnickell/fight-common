@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Collection\Contract;
 
-use JsonSerializable;
 use Fight\Common\Domain\Exception\UnderflowException;
 use Fight\Common\Domain\Type\Arrayable;
+use JsonSerializable;
 use Stringable;
 
 /**
