@@ -254,10 +254,12 @@ final class FtpFileTransport implements FileTransport
 
         if (@ftp_chdir($this->connection, $path)) {
             ftp_chdir($this->connection, $pwd);
+
             return true;
         }
 
         ftp_chdir($this->connection, $pwd);
+
         return false;
     }
 

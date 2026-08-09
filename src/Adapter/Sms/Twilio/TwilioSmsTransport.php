@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Sms\Twilio;
 
-use Throwable;
 use Fight\Common\Application\Sms\Exception\SmsException;
 use Fight\Common\Application\Sms\Message\SmsMessage;
 use Fight\Common\Application\Sms\Transport\SmsTransport;
+use Throwable;
 use Twilio\Rest\Client;
 
 /**
@@ -28,7 +28,7 @@ final readonly class TwilioSmsTransport implements SmsTransport
     public function send(SmsMessage $message): void
     {
         $args = [
-            'from' => $message->getFrom(),
+            'from' => $message->getFrom()
         ];
 
         if ($message->getBody() !== null) {

@@ -47,8 +47,8 @@ final class DocumentationComment
 
             return [
                 'start' => $start,
-                'end' => $previous,
-                'lines' => self::lines($phpcsFile, $start, $previous),
+                'end'   => $previous,
+                'lines' => self::lines($phpcsFile, $start, $previous)
             ];
         }
     }

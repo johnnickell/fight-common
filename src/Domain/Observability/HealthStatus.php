@@ -19,9 +19,9 @@ final readonly class HealthStatus extends ValueObject
     private const string UNHEALTHY = 'unhealthy';
 
     private const array SEVERITY = [
-        self::HEALTHY => 0,
-        self::DEGRADED => 1,
-        self::UNHEALTHY => 2,
+        self::HEALTHY   => 0,
+        self::DEGRADED  => 1,
+        self::UNHEALTHY => 2
     ];
 
     /**

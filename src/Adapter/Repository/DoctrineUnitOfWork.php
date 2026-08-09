@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Repository;
 
-use Fight\Common\Application\Repository\UnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
+use Fight\Common\Application\Repository\UnitOfWork;
 
 /**
  * Class DoctrineUnitOfWork

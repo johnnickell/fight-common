@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Messaging;
 
-use Stringable;
 use ArrayIterator;
 use Countable;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 use IteratorAggregate;
 use JsonSerializable;
+use Stringable;
 use Traversable;
 
 /**

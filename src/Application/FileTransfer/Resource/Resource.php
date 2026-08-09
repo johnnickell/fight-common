@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\FileTransfer\Resource;
 
-use Stringable;
 use DateTimeImmutable;
+use Stringable;
 
 /**
  * Class Resource
