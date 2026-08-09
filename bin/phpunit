@@ -1,13 +1,110 @@
 #!/usr/bin/env bash
 
-# change to the project root
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd $DIR/..
+set -euo pipefail
 
-docker build -t fight-common ./etc/docker/
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+MYSQL_IMAGE="mysql:8.4.11"
+POSTGRESQL_IMAGE="postgres:17"
+RUN_ID="$(date +%s)-$$-${RANDOM}"
+NETWORK="fight-common-test-network-${RUN_ID}"
+MYSQL_CONTAINER="fight-common-test-mysql-${RUN_ID}"
+POSTGRESQL_CONTAINER="fight-common-test-postgresql-${RUN_ID}"
+MYSQL_DSN="mysql://fight_common:fight_common@mysql:3306/fight_common"
+POSTGRESQL_DSN="postgresql://fight_common:fight_common@postgresql:5432/fight_common"
 
-docker container run \
-    --rm -it \
-    -v $(pwd):/app:delegated \
+mode="complete"
+if [[ "${1:-}" == "--fast" ]]; then
+    mode="fast"
+    shift
+fi
+
+cleanup() {
+    local status=$?
+
+    "${DOCKER_BIN}" container rm --force "${MYSQL_CONTAINER}" "${POSTGRESQL_CONTAINER}" >/dev/null 2>&1 || true
+    "${DOCKER_BIN}" network rm "${NETWORK}" >/dev/null 2>&1 || true
+
+    return "${status}"
+}
+
+trap cleanup EXIT
+
+cd "${ROOT_DIR}"
+
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+
+if [[ "${mode}" == "fast" ]]; then
+    exec "${DOCKER_BIN}" container run \
+        --rm \
+        -v "${ROOT_DIR}:/app:delegated" \
+        -w /app \
+        "${PHP_IMAGE}" \
+        php vendor/bin/phpunit --exclude-group server-database --fail-on-skipped "$@"
+fi
+
+"${DOCKER_BIN}" network create "${NETWORK}" >/dev/null
+
+"${DOCKER_BIN}" container run \
+    --detach \
+    --name "${MYSQL_CONTAINER}" \
+    --network "${NETWORK}" \
+    --network-alias mysql \
+    --env MYSQL_DATABASE=fight_common \
+    --env MYSQL_USER=fight_common \
+    --env MYSQL_PASSWORD=fight_common \
+    --env MYSQL_ROOT_PASSWORD=root \
+    --health-cmd='mysqladmin ping --host=127.0.0.1 --user=root --password=root' \
+    --health-interval=2s \
+    --health-timeout=5s \
+    --health-retries=30 \
+    "${MYSQL_IMAGE}" >/dev/null
+
+"${DOCKER_BIN}" container run \
+    --detach \
+    --name "${POSTGRESQL_CONTAINER}" \
+    --network "${NETWORK}" \
+    --network-alias postgresql \
+    --env POSTGRES_DB=fight_common \
+    --env POSTGRES_USER=fight_common \
+    --env POSTGRES_PASSWORD=fight_common \
+    --health-cmd='pg_isready --username=fight_common --dbname=fight_common' \
+    --health-interval=2s \
+    --health-timeout=5s \
+    --health-retries=30 \
+    "${POSTGRESQL_IMAGE}" >/dev/null
+
+wait_for_health() {
+    local container="$1"
+    local deadline=$((SECONDS + 90))
+    local health
+
+    while (( SECONDS < deadline )); do
+        health="$("${DOCKER_BIN}" inspect --format '{{.State.Health.Status}}' "${container}")"
+        if [[ "${health}" == "healthy" ]]; then
+            return 0
+        fi
+        if [[ "${health}" == "unhealthy" || "${health}" == "" ]]; then
+            echo "Database container ${container} did not become healthy (status: ${health:-unknown})." >&2
+            return 1
+        fi
+        sleep 2
+    done
+
+    echo "Timed out waiting for database container ${container} to become healthy." >&2
+    return 1
+}
+
+wait_for_health "${MYSQL_CONTAINER}"
+wait_for_health "${POSTGRESQL_CONTAINER}"
+
+"${DOCKER_BIN}" container run \
+    --rm \
+    --network "${NETWORK}" \
+    -v "${ROOT_DIR}:/app:delegated" \
     -w /app \
-    fight-common php vendor/bin/phpunit "$@"
+    --env "FIGHT_COMMON_MYSQL_DSN=${MYSQL_DSN}" \
+    --env "FIGHT_COMMON_POSTGRESQL_DSN=${POSTGRESQL_DSN}" \
+    "${PHP_IMAGE}" \
+    php vendor/bin/phpunit --fail-on-skipped "$@"
