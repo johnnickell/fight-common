@@ -18,7 +18,7 @@ final readonly class DbalEventStoreSchema
 
     private const array TABLES = [
         self::EVENTS_TABLE,
-        self::GLOBAL_POSITION_TABLE,
+        self::GLOBAL_POSITION_TABLE
     ];
 
     /**
@@ -75,7 +75,7 @@ final readonly class DbalEventStoreSchema
         ) {
             $connection->insert(self::GLOBAL_POSITION_TABLE, [
                 'singleton' => 1,
-                'position' => 0,
+                'position'  => 0
             ]);
         }
     }

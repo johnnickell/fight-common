@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
-use Doctrine\DBAL\ParameterType;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Domain\EventSourcing\EventMapper;
-use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\EventStore;
+use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\StoredEvent;
 use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -131,18 +131,18 @@ final readonly class DbalEventStore implements EventStore
                     ++$globalPosition;
 
                     $this->connection->insert('event_store_events', [
-                        'aggregate_name' => $streamId->aggregateName(),
+                        'aggregate_name'       => $streamId->aggregateName(),
                         'aggregate_identifier' => $streamId->identifier(),
-                        'stream_version' => $expectedVersion + $offset + 1,
-                        'global_position' => $globalPosition,
-                        'event_name' => $mappedEvent->eventName(),
-                        'schema_version' => $mappedEvent->schemaVersion(),
-                        'payload' => json_encode($mappedEvent->data(), JSON_THROW_ON_ERROR),
-                        'message_id' => (string) $message->id(),
-                        'message_timestamp' => $message->timestamp()
+                        'stream_version'       => $expectedVersion + $offset + 1,
+                        'global_position'      => $globalPosition,
+                        'event_name'           => $mappedEvent->eventName(),
+                        'schema_version'       => $mappedEvent->schemaVersion(),
+                        'payload'              => json_encode($mappedEvent->data(), JSON_THROW_ON_ERROR),
+                        'message_id'           => (string) $message->id(),
+                        'message_timestamp'    => $message->timestamp()
                             ->setTimezone(new DateTimeZone('UTC'))
                             ->format('Y-m-d\TH:i:s.uP'),
-                        'message_meta' => json_encode($message->meta()->toArray(), JSON_THROW_ON_ERROR),
+                        'message_meta'         => json_encode($message->meta()->toArray(), JSON_THROW_ON_ERROR)
                     ]);
                 }
 

@@ -120,7 +120,7 @@ final class SymfonyProcessRunner implements ProcessRunner
             $this->processes[$pid] = [
                 'iteration' => 1,
                 'original'  => $process,
-                'process'   => $symfonyProcess,
+                'process'   => $symfonyProcess
             ];
 
             $this->logProcessStarted($symfonyProcess);
@@ -179,7 +179,7 @@ final class SymfonyProcessRunner implements ProcessRunner
                     $this->processes[$retryPid] = [
                         'iteration' => $iteration + 1,
                         'original'  => $original,
-                        'process'   => $retried,
+                        'process'   => $retried
                     ];
 
                     $this->logProcessRestarted($retried);

@@ -97,7 +97,7 @@ readonly class AuditEntry implements JsonSerializable
             'actor'     => $this->actor,
             'action'    => $this->action,
             'timestamp' => $this->timestamp->format(DateTimeInterface::ATOM),
-            'context'   => $this->context->toArray(),
+            'context'   => $this->context->toArray()
         ];
     }
 

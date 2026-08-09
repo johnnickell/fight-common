@@ -328,7 +328,7 @@ final class Scheduler
             '',
             sprintf('Line: %d', $e->getLine()),
             '',
-            $e->getTraceAsString(),
+            $e->getTraceAsString()
         ]);
 
         $message = $this->mailService->createMessage()
@@ -501,7 +501,7 @@ final class Scheduler
             'output'      => $output,
             'maxRuntime'  => $maxRuntime,
             'notify'      => array_values($notifyAddresses),
-            'environment' => $environment,
+            'environment' => $environment
         ];
     }
 }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Type;
 
-use JsonSerializable;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
+use JsonSerializable;
 use Stringable;
 
 /**
