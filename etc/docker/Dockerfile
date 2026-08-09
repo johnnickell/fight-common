@@ -14,6 +14,7 @@ RUN apt-get update \
         locales \
         libxml2-dev \
         libssl-dev \
+        libpq-dev \
         libzip-dev \
         libicu-dev \
     && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
@@ -26,6 +27,7 @@ RUN docker-php-ext-configure intl \
     && docker-php-ext-install pcntl \
     && docker-php-ext-install pdo \
     && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install pdo_pgsql \
     && docker-php-ext-install simplexml \
     && docker-php-ext-install zip \
     && docker-php-ext-install bcmath \

@@ -4,7 +4,7 @@
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing core, durable SQLite/MySQL/PostgreSQL storage, aggregate repository, and in-memory checkpointed projection complete; durable checkpoints, publication, and integration remain |
+| [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing core, durable SQLite/MySQL/PostgreSQL storage, aggregate repository, and durable checkpointed projection complete; publication and integration remain |
 | [EPIC-00002](epics/00002-EPIC.md) | 1.2.0 | in-progress | Reusable Omphalos-derived coding standards and enforceable quality gates |
 | [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | Deterministic release planning, certification, publication recovery, maintenance workflows, and operator integration |
 
