@@ -56,8 +56,8 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
 
         try {
             $this->connection->insert('projection_checkpoints', [
-                'projector_name' => $projectorName,
-                'global_position' => $globalPosition,
+                'projector_name'  => $projectorName,
+                'global_position' => $globalPosition
             ]);
 
             return;
@@ -108,8 +108,8 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
         ) {
             try {
                 $this->connection->insert('projection_checkpoints', [
-                    'projector_name' => $projectorName,
-                    'global_position' => 0,
+                    'projector_name'  => $projectorName,
+                    'global_position' => 0
                 ]);
             } catch (UniqueConstraintViolationException) {
                 $this->connection->update(

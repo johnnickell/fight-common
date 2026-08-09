@@ -5,11 +5,6 @@
     <file>src</file>
 
     <rule ref="./src/Standards/Phpcs/FightCommon/ruleset.xml">
-        <exclude name="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
-        <exclude name="FightCommon.Arrays.DisallowTrailingArrayComma" />
-        <exclude name="FightCommon.Arrays.RequireAlignedArrayArrow" />
-        <exclude name="FightCommon.Files.RequireStrictTypes" />
-        <exclude name="FightCommon.Formatting.RequireBlankLineBeforeReturn" />
 
         <exclude name="FightCommon.Classes.NamedClassStructure" />
         <exclude name="FightCommon.Classes.NamedClassMemberSpacing" />

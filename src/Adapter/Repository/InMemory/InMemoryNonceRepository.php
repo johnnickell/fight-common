@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Repository\InMemory;
 
 use DateTimeImmutable;
-use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
+use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\NonceRepository;
 
 /**

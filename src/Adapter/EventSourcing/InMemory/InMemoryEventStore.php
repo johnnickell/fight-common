@@ -6,8 +6,8 @@ namespace Fight\Common\Adapter\EventSourcing\InMemory;
 
 use DateTimeZone;
 use Fight\Common\Domain\EventSourcing\EventMapper;
-use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\EventStore;
+use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\StoredEvent;
 use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\MessageId;

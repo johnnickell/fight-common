@@ -87,7 +87,7 @@ final readonly class HealthReport implements JsonSerializable
         return [
             'status'    => $this->overall->toString(),
             'timestamp' => $this->timestamp->format(DateTimeInterface::ATOM),
-            'checks'    => array_map(fn(HealthResult $r): array => $r->toArray(), $this->results),
+            'checks'    => array_map(fn(HealthResult $r): array => $r->toArray(), $this->results)
         ];
     }
 

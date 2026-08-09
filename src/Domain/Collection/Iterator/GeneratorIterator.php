@@ -6,10 +6,10 @@ namespace Fight\Common\Domain\Collection\Iterator;
 
 use Closure;
 use Exception;
-use Generator;
-use Iterator;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\MethodCallException;
+use Generator;
+use Iterator;
 use ReflectionFunction;
 use Throwable;
 
