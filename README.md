@@ -127,11 +127,18 @@ $service->validate([
 All tooling runs inside a PHP 8.5 Docker container via scripts in `./bin/`. Never use `vendor/bin/` directly.
 
 ```bash
-./bin/phpunit                  # run full test suite with coverage
-./bin/phpunit --filter foo     # run a single test by name
+./bin/phpunit                  # complete suite with disposable MySQL/PostgreSQL and coverage
+./bin/phpunit --fast            # fast suite; excludes server-database tests and is not submit evidence
+./bin/phpunit --filter foo     # filter the complete suite by test name
 ./bin/rector process src/      # run code modernization
 ./bin/composer require pkg     # manage dependencies
 ```
+
+The complete PHPUnit command creates disposable MySQL 8.4.11 and PostgreSQL 17
+containers, injects their DSNs, and removes the containers and isolated network
+on success, failure, or interruption. Missing or unreachable complete-suite
+database infrastructure is a failure, never a skipped test. Use `--fast` only
+for deliberately focused local feedback; it is not submit or release evidence.
 
 ### Coverage
 
