@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Messaging\Event\Sync;
 
 use Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher;
+use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
+use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
+use Fight\Common\Domain\Messaging\Event\AllEvents;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
@@ -13,6 +16,9 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
+use Throwable;
+use TypeError;
 
 #[CoversClass(ServiceAwareEventDispatcher::class)]
 class ServiceAwareEventDispatcherTest extends UnitTestCase
@@ -101,6 +107,81 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
         $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
 
         self::assertTrue($subscriber->called);
+    }
+
+    public function test_that_dispatch_completes_service_handler_fan_out_and_reports_ordered_failures(): void
+    {
+        ServiceAwareDispatchCallLog::reset();
+        $eventFailure = new RuntimeException('event service handler failed');
+        $allEventsFailure = new TypeError('all-events service handler failed');
+        $eventType = ClassName::underscore(SampleServiceEvent::class);
+        $allEvents = ClassName::underscore(AllEvents::class);
+
+        $this->container->shouldReceive('get')
+            ->with('event_failure')
+            ->andReturn(new FailingServiceAwareHandler('event-failure', $eventFailure));
+        $this->container->shouldReceive('get')
+            ->with('event_success')
+            ->andReturn(new SuccessfulServiceAwareHandler('event-success'));
+        $this->container->shouldReceive('get')
+            ->with('all_events_failure')
+            ->andReturn(new FailingServiceAwareHandler('all-events-failure', $allEventsFailure));
+        $this->container->shouldReceive('get')
+            ->with('all_events_success')
+            ->andReturn(new SuccessfulServiceAwareHandler('all-events-success'));
+
+        $this->dispatcher->addHandlerService($eventType, 'event_failure', 'handle', 20);
+        $this->dispatcher->addHandlerService($eventType, 'event_success', 'handle', 10);
+        $this->dispatcher->addHandlerService($allEvents, 'all_events_failure', 'handle', 20);
+        $this->dispatcher->addHandlerService($allEvents, 'all_events_success', 'handle', 10);
+
+        try {
+            $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+            self::fail('Dispatch should report the collected service handler failures.');
+        } catch (EventDispatchFailed $failed) {
+            self::assertSame(
+                ['event-failure', 'event-success', 'all-events-failure', 'all-events-success'],
+                ServiceAwareDispatchCallLog::$calls,
+            );
+            self::assertSame(
+                [
+                    FailingServiceAwareHandler::class . '::handle',
+                    FailingServiceAwareHandler::class . '::handle',
+                ],
+                array_map(
+                    static fn (EventHandlerFailure $failure): string => $failure->callableDescription(),
+                    $failed->failures(),
+                ),
+            );
+            self::assertSame(
+                [$eventFailure, $allEventsFailure],
+                array_map(
+                    static fn (EventHandlerFailure $failure): Throwable => $failure->throwable(),
+                    $failed->failures(),
+                ),
+            );
+        }
+    }
+
+    public function test_that_dispatch_propagates_container_resolution_failures_without_aggregation(): void
+    {
+        $resolutionFailure = new RuntimeException('service resolution failed');
+        $eventType = ClassName::underscore(SampleServiceEvent::class);
+
+        $this->container->shouldReceive('get')
+            ->with('resolution_failure')
+            ->andThrow($resolutionFailure);
+
+        $dispatcher = new ServiceAwareEventDispatcher($this->container);
+        $dispatcher->addHandlerService($eventType, 'resolution_failure', 'handle');
+
+        try {
+            $dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+            self::fail('Dispatch should propagate the service resolution failure.');
+        } catch (Throwable $throwable) {
+            self::assertSame($resolutionFailure, $throwable);
+            self::assertNotInstanceOf(EventDispatchFailed::class, $throwable);
+        }
     }
 
     public function test_that_get_handlers_with_null_lazy_loads_all_types(): void
@@ -272,5 +353,43 @@ class SampleServiceSubscriberMultiple implements EventSubscriber
     public function onSecond(EventMessage $m): void
     {
         $this->calls[] = 'second';
+    }
+}
+
+final class ServiceAwareDispatchCallLog
+{
+    /** @var string[] */
+    public static array $calls = [];
+
+    public static function reset(): void
+    {
+        self::$calls = [];
+    }
+}
+
+final readonly class FailingServiceAwareHandler
+{
+    public function __construct(
+        private string $call,
+        private Throwable $failure,
+    ) {
+    }
+
+    public function handle(): void
+    {
+        ServiceAwareDispatchCallLog::$calls[] = $this->call;
+        throw $this->failure;
+    }
+}
+
+final readonly class SuccessfulServiceAwareHandler
+{
+    public function __construct(private string $call)
+    {
+    }
+
+    public function handle(): void
+    {
+        ServiceAwareDispatchCallLog::$calls[] = $this->call;
     }
 }
