@@ -14,6 +14,8 @@ use SlevomatCodingStandard\Helpers\PropertyHelper;
 use SlevomatCodingStandard\Helpers\TokenHelper;
 
 /**
+ * Class RequireVisibilityGroupSpacingSniff
+ *
  * Enforces visibility-sensitive constant and property spacing on named production types.
  */
 final class RequireVisibilityGroupSpacingSniff implements Sniff
@@ -21,7 +23,11 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
     private const string KIND_CONSTANT = 'constant';
     private const string KIND_PROPERTY = 'property';
 
-    /** @return list<int|string> */
+    /**
+     * Registers named and anonymous type tokens for spacing enforcement
+     *
+     * @return list<int|string>
+     */
     public function register(): array
     {
         return TokenHelper::CLASS_TYPE_WITH_ANONYMOUS_CLASS_TOKEN_CODES;
@@ -59,7 +65,11 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
         }
     }
 
-    /** @return list<array{pointer: int, kind: string|null, visibility: string|null}> */
+    /**
+     * Collects top-level members and their spacing groups
+     *
+     * @return list<array{pointer: int, kind: string|null, visibility: string|null}>
+     */
     private function members(File $phpcsFile, int $stackPtr): array
     {
         $tokens = $phpcsFile->getTokens();

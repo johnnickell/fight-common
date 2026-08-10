@@ -45,7 +45,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Rewinds the iterator
+     * Initializes the iterator with a fresh generator
      */
     public function rewind(): void
     {
@@ -89,7 +89,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Moves to the next position
+     * Advances to the next position
      */
     public function next(): void
     {
@@ -136,7 +136,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Throws an exception into the generator
+     * Injects an exception into the generator
      *
      * Throws an exception into the generator and resumes execution of the
      * generator.

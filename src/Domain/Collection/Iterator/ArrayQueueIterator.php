@@ -32,7 +32,7 @@ final class ArrayQueueIterator implements Iterator
     }
 
     /**
-     * Rewinds the iterator
+     * Initializes the iterator at the first item
      */
     public function rewind(): void
     {
@@ -77,7 +77,7 @@ final class ArrayQueueIterator implements Iterator
     }
 
     /**
-     * Moves the iterator to the next item
+     * Advances the iterator to the next item
      */
     public function next(): void
     {

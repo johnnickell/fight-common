@@ -7,6 +7,8 @@ namespace Fight\Common\Domain\EventSourcing;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class StreamId
+ *
  * Stable identity of one event stream
  */
 final readonly class StreamId

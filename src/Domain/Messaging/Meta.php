@@ -119,7 +119,7 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     }
 
     /**
-     * Merges the given meta
+     * Updates metadata with given values, replacing duplicate keys
      *
      * @throws DomainException When value is not valid
      */
@@ -132,8 +132,6 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function toArray(): array
     {

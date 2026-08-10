@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use ReflectionClass;
 
 /**
+ * Class AggregateDefinition
+ *
  * Stable repository configuration for one aggregate type
  */
 final readonly class AggregateDefinition
@@ -15,8 +17,10 @@ final readonly class AggregateDefinition
     /**
      * Constructs AggregateDefinition
      *
-     * @param string                               $name
-     * @param class-string<EventSourcedAggregate> $aggregateClass
+     * @param string $name
+     * @param string $aggregateClass
+     *
+     * @phpstan-param class-string<EventSourcedAggregate> $aggregateClass
      */
     public function __construct(
         private string $name,

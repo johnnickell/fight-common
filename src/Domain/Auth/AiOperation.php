@@ -100,7 +100,7 @@ final readonly class AiOperation implements JsonSerializable
     }
 
     /**
-     * @inheritDoc
+     * Returns data for JSON serialization
      *
      * @return array<string, mixed>
      */

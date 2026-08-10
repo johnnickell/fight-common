@@ -79,7 +79,7 @@ interface ItemCollection extends Collection
     public function min(?callable $callback = null): mixed;
 
     /**
-     * Reduces the collection to a single value
+     * Aggregates the collection into a single value
      *
      * Callback signature:
      *

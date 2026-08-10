@@ -28,7 +28,7 @@ final class ArrayStackIterator implements Iterator
     }
 
     /**
-     * Rewinds the iterator
+     * Initializes the iterator at the top item
      */
     public function rewind(): void
     {
@@ -68,7 +68,7 @@ final class ArrayStackIterator implements Iterator
     }
 
     /**
-     * Moves the iterator to the next item
+     * Advances the iterator to the next item
      */
     public function next(): void
     {

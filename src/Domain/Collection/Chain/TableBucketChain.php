@@ -141,7 +141,7 @@ final class TableBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the next bucket
+     * Advances the pointer to the next bucket
      */
     public function next(): void
     {
@@ -154,7 +154,7 @@ final class TableBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the previous bucket
+     * Sets the pointer to the previous bucket
      */
     public function prev(): void
     {
@@ -201,7 +201,7 @@ final class TableBucketChain implements Countable
     }
 
     /**
-     * Locates a bucket by key
+     * Finds a bucket by key
      *
      * Returns null if the key is not found.
      */

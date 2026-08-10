@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\EventSourcing;
 
 /**
+ * Interface Upcaster
+ *
  * Transforms one stored event payload schema into the next schema
  */
 interface Upcaster
@@ -20,7 +22,7 @@ interface Upcaster
     public function targetSchemaVersion(): int;
 
     /**
-     * Transforms stored payload data in memory
+     * Converts stored payload data in memory
      *
      * @param array<string, mixed> $data
      *

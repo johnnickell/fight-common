@@ -102,7 +102,7 @@ readonly class AuditEntry implements JsonSerializable
     }
 
     /**
-     * @inheritDoc
+     * Returns data for JSON serialization
      *
      * @return array<string, mixed>
      */

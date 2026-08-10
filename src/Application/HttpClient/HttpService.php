@@ -31,6 +31,8 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
+      * Sends an HTTP request synchronously
+      *
       * @param RequestInterface $request
       * @param array<string, mixed> $options
       */
@@ -40,6 +42,8 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
+      * Sends an HTTP request asynchronously
+      *
       * @param RequestInterface $request
       * @param array<string, mixed> $options
       */
@@ -49,6 +53,8 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
+      * Creates an HTTP request
+      *
       * @param string $method
       * @param UriInterface|string $uri
       * @param array<string, string> $headers
@@ -72,6 +78,8 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
+      * Creates an HTTP response
+      *
       * @param integer $status
       * @param array<string, string> $headers
       * @param mixed $body

@@ -64,7 +64,7 @@ final class CommandPipeline implements SynchronousCommandBus, CommandFilter
     }
 
     /**
-     * Pipes command message to the next filter
+     * Invokes the next command filter
      *
      * @throws Throwable
      */

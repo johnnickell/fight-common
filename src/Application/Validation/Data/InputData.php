@@ -76,6 +76,8 @@ final readonly class InputData implements Arrayable, Collection
     }
 
     /**
+     * Returns input data as an array
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array

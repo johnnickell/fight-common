@@ -741,8 +741,10 @@ final class Validate
     /**
      * Checks if value is one of a set of choices
      *
-     * @param mixed $value
-     * @param iterable<mixed> $choices
+     * @param mixed    $value
+     * @param iterable $choices
+     *
+     * @phpstan-param iterable<mixed> $choices
      */
     public static function isOneOf(mixed $value, iterable $choices): bool
     {

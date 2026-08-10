@@ -45,7 +45,7 @@ final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterf
     }
 
     /**
-     * Determines whether the client expects a JSON response.
+     * Determines whether the client expects a JSON response
      *
      * Returns true when the request carries an XMLHttpRequest header or
      * explicitly accepts application/json ahead of text/html.

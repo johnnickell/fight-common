@@ -88,8 +88,6 @@ abstract class BaseMessage implements Message
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -105,8 +103,6 @@ abstract class BaseMessage implements Message
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function jsonSerialize(): array
     {
@@ -115,8 +111,6 @@ abstract class BaseMessage implements Message
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function arraySerialize(): array
     {

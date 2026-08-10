@@ -129,7 +129,13 @@ final class DocumentationComment
         $phpcsFile->fixer->endChangeset();
     }
 
-    /** @param list<string> $lines */
+    /**
+     * Finds the first non-empty normalized docblock line
+     *
+     * @param array $lines Normalized docblock lines
+     *
+     * @phpstan-param list<string> $lines
+     */
     public static function firstContentLine(array $lines): ?int
     {
         foreach ($lines as $index => $line) {
@@ -142,9 +148,13 @@ final class DocumentationComment
     }
 
     /**
-     * @param list<string> $lines
+     * Normalizes the separator after a docblock summary
+     *
+     * @param array $lines Normalized docblock lines
      *
      * @return array{lines: list<string>, changed: bool}
+     *
+     * @phpstan-param list<string> $lines
      */
     public static function normalizeSeparator(array $lines): array
     {
@@ -163,7 +173,11 @@ final class DocumentationComment
         return ['lines' => $normalized, 'changed' => $normalized !== $lines];
     }
 
-    /** @return list<string> */
+    /**
+     * Parses normalized lines from a complete docblock
+     *
+     * @return list<string>
+     */
     private static function lines(File $phpcsFile, int $start, int $end): array
     {
         $raw = $phpcsFile->getTokensAsString($start, ($end - $start) + 1);
@@ -193,7 +207,13 @@ final class DocumentationComment
         return $lines;
     }
 
-    /** @param list<string> $lines */
+    /**
+     * Renders normalized lines as an indented docblock
+     *
+     * @param array $lines Normalized docblock lines
+     *
+     * @phpstan-param list<string> $lines
+     */
     private static function render(array $lines, string $indent, string $eol): string
     {
         $rendered = '/**'.$eol;

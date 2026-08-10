@@ -56,7 +56,11 @@ final class RequireMethodDocCommentSniff implements Sniff
         'Update'    => 'Updates'
     ];
 
-    /** @return list<int> */
+    /**
+     * Registers function tokens for method documentation enforcement
+     *
+     * @return list<int>
+     */
     public function register(): array
     {
         return [T_FUNCTION];
@@ -189,7 +193,9 @@ final class RequireMethodDocCommentSniff implements Sniff
      *
      * @param File $phpcsFile The file being scanned
      * @param integer $stackPtr The method token pointer
-     * @param list<string> $lines Normalized docblock lines
+     * @param array $lines Normalized docblock lines
+     *
+     * @phpstan-param list<string> $lines
      */
     private function validateMethodSummary(File $phpcsFile, int $stackPtr, array &$lines): ?bool
     {
@@ -236,7 +242,11 @@ final class RequireMethodDocCommentSniff implements Sniff
         return $fix;
     }
 
-    /** @return array{pointer: int, name: string}|null */
+    /**
+     * Finds the named type that owns a method
+     *
+     * @return array{pointer: int, name: string}|null
+     */
     private function owningType(File $phpcsFile, int $stackPtr): ?array
     {
         $tokens = $phpcsFile->getTokens();

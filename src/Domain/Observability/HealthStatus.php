@@ -22,6 +22,8 @@ final readonly class HealthStatus extends ValueObject
     ];
 
     /**
+     * Constructs HealthStatus
+     *
      * @throws DomainException When the status is invalid
      */
     private function __construct(private string $value)

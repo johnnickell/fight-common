@@ -48,8 +48,6 @@ final class JwtEncoder implements TokenEncoder
     }
 
     /**
-     * @param array<string, mixed> $claims
-     *
      * @inheritDoc
      */
     public function encode(array $claims, DateTimeImmutable $expiration): string

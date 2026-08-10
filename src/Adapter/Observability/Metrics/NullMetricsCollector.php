@@ -12,9 +12,6 @@ use Fight\Common\Application\Observability\MetricsCollector;
 final class NullMetricsCollector implements MetricsCollector
 {
     /**
-     * @param string $metric
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function increment(string $metric, array $tags = []): void
@@ -22,10 +19,6 @@ final class NullMetricsCollector implements MetricsCollector
     }
 
     /**
-     * @param string $metric
-     * @param float $value
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function gauge(string $metric, float $value, array $tags = []): void
@@ -33,10 +26,6 @@ final class NullMetricsCollector implements MetricsCollector
     }
 
     /**
-     * @param string $metric
-     * @param float $value
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function histogram(string $metric, float $value, array $tags = []): void

@@ -77,7 +77,7 @@ final readonly class HealthResult implements JsonSerializable
     }
 
     /**
-     * @inheritDoc
+     * Returns data for JSON serialization
      *
      * @return array<string, mixed>
      */

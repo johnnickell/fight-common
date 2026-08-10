@@ -11,11 +11,17 @@ use SlevomatCodingStandard\Helpers\TokenHelper;
 use SlevomatCodingStandard\Sniffs\Classes\ClassMemberSpacingSniff;
 
 /**
+ * Class NamedClassMemberSpacingSniff
+ *
  * Restricts Slevomat's member-spacing implementation to named production types.
  */
 final class NamedClassMemberSpacingSniff extends ClassMemberSpacingSniff
 {
-    /** @return list<int> */
+    /**
+     * Registers named type tokens for member-spacing enforcement
+     *
+     * @return list<int>
+     */
     #[Override]
     public function register(): array
     {

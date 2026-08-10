@@ -905,7 +905,7 @@ readonly class Uri extends ValueObject implements Comparable
     }
 
     /**
-     * Merges a base URI and relative path
+     * Composes a path from a base URI and relative path
      *
      * @link http://tools.ietf.org/html/rfc3986#section-5.2.3
      */
@@ -1118,7 +1118,7 @@ readonly class Uri extends ValueObject implements Comparable
     }
 
     /**
-     * Provides the encoding regex to prevent double encoding
+     * Returns the encoding regex that prevents double encoding
      */
     protected static function encodingRegex(string $excluded): string
     {

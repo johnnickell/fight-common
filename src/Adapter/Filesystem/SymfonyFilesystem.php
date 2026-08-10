@@ -27,9 +27,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $dirs
-     * @param integer $mode
-     *
      * @inheritDoc
      */
     public function mkdir(string|iterable $dirs, int $mode = 0775): void
@@ -44,10 +41,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $files
-     * @param integer|null $time
-     * @param integer|null $atime
-     *
      * @inheritDoc
      */
     public function touch(string|iterable $files, ?int $time = null, ?int $atime = null): void
@@ -133,8 +126,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $paths
-     *
      * @inheritDoc
      */
     public function exists(string|iterable $paths): bool
@@ -143,8 +134,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $paths
-     *
      * @inheritDoc
      */
     public function remove(string|iterable $paths): void
@@ -433,11 +422,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $paths
-     * @param integer $mode
-     * @param integer $umask
-     * @param boolean $recursive
-     *
      * @inheritDoc
      */
     public function chmod(string|iterable $paths, int $mode, int $umask = 0000, bool $recursive = false): void
@@ -452,10 +436,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $paths
-     * @param string $user
-     * @param boolean $recursive
-     *
      * @inheritDoc
      */
     public function chown(string|iterable $paths, string $user, bool $recursive = false): void
@@ -470,10 +450,6 @@ final readonly class SymfonyFilesystem implements FilesystemInterface
     }
 
     /**
-     * @param string|iterable<string> $paths
-     * @param string $group
-     * @param boolean $recursive
-     *
      * @inheritDoc
      */
     public function chgrp(string|iterable $paths, string $group, bool $recursive = false): void

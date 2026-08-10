@@ -61,7 +61,7 @@ abstract class AggregateRoot implements EventSourcedAggregate
     }
 
     /**
-     * Replays an event without recording it as pending
+     * Applies an event without recording it as pending
      */
     final protected function replay(Event $event): void
     {

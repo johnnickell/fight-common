@@ -12,7 +12,7 @@ use Exception;
 interface UnitOfWork
 {
     /**
-     * Commits the unit of work
+     * Persists pending changes in the underlying persistence context
      *
      * @throws Exception When an error occurs
      */

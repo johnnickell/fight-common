@@ -8,6 +8,8 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 /**
+ * Class StoredEvent
+ *
  * Immutable envelope for one stored event occurrence
  */
 final readonly class StoredEvent

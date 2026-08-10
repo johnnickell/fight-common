@@ -10,7 +10,7 @@ namespace Fight\Common\Domain\Type;
 interface Comparator
 {
     /**
-     * Compares two values of compatible types
+     * Determines the ordering of two compatible values
      *
      * The passed values must be a compatible type. The implementation may
      * determine what types are compatible, but this is most often restricted
