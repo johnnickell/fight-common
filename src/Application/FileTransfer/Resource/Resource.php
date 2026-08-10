@@ -13,7 +13,6 @@ use Stringable;
 final readonly class Resource implements Stringable
 {
     private string $path;
-
     private int $mode;
 
     /**

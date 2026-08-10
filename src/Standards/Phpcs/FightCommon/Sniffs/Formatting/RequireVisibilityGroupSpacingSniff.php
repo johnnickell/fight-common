@@ -19,7 +19,6 @@ use SlevomatCodingStandard\Helpers\TokenHelper;
 final class RequireVisibilityGroupSpacingSniff implements Sniff
 {
     private const string KIND_CONSTANT = 'constant';
-
     private const string KIND_PROPERTY = 'property';
 
     /** @return list<int|string> */

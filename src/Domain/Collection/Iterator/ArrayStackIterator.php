@@ -14,7 +14,6 @@ use Iterator;
 final class ArrayStackIterator implements Iterator
 {
     private int $index;
-
     private readonly int $count;
 
     /**

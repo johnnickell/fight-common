@@ -24,7 +24,6 @@ final class HashSet implements Set
 
     /** @var array<T> */
     private array $buckets = [];
-
     private int $count = 0;
 
     /**

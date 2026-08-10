@@ -262,15 +262,6 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Handles deep cloning
-     */
-    public function __clone(): void
-    {
-        $root = clone $this->root;
-        $this->root = $root;
-    }
-
-    /**
      * Checks if a node is red
      */
     private function isRed(?RedBlackNode $node): bool
@@ -745,5 +736,14 @@ final class RedBlackSearchTree implements BinarySearchTree
         $node->setSize($nodeSize);
 
         return $node;
+    }
+
+    /**
+     * Handles deep cloning
+     */
+    public function __clone(): void
+    {
+        $root = clone $this->root;
+        $this->root = $root;
     }
 }

@@ -15,13 +15,9 @@ use Fight\Common\Domain\Utility\VarPrinter;
 final class TableBucketChain implements Countable
 {
     private TerminalBucket $head;
-
     private TerminalBucket $tail;
-
     private Bucket $current;
-
     private int $count = 0;
-
     private int $offset = -1;
 
     /**
@@ -205,34 +201,6 @@ final class TableBucketChain implements Countable
     }
 
     /**
-     * Handles deep cloning
-     */
-    public function __clone(): void
-    {
-        $keys = [];
-        $values = [];
-        for ($this->rewind(); $this->valid(); $this->next()) {
-            $values[] = $this->current();
-            $keys[] = $this->key();
-        }
-
-        $this->head = new TerminalBucket();
-        $this->tail = new TerminalBucket();
-        $this->head->setNext($this->tail);
-        $this->tail->setPrev($this->head);
-        $this->current = $this->head;
-        $this->count = 0;
-        $this->offset = -1;
-        $prev = $this->head;
-        $next = $this->tail;
-        $count = count($keys);
-        for ($i = 0; $i < $count; $i++) {
-            $this->insertBetween($keys[$i], $values[$i], $prev, $next);
-            $prev = $this->current;
-        }
-    }
-
-    /**
      * Locates a bucket by key
      *
      * Returns null if the key is not found.
@@ -279,5 +247,33 @@ final class TableBucketChain implements Countable
 
         $this->current = $bucket;
         $this->count++;
+    }
+
+    /**
+     * Handles deep cloning
+     */
+    public function __clone(): void
+    {
+        $keys = [];
+        $values = [];
+        for ($this->rewind(); $this->valid(); $this->next()) {
+            $values[] = $this->current();
+            $keys[] = $this->key();
+        }
+
+        $this->head = new TerminalBucket();
+        $this->tail = new TerminalBucket();
+        $this->head->setNext($this->tail);
+        $this->tail->setPrev($this->head);
+        $this->current = $this->head;
+        $this->count = 0;
+        $this->offset = -1;
+        $prev = $this->head;
+        $next = $this->tail;
+        $count = count($keys);
+        for ($i = 0; $i < $count; $i++) {
+            $this->insertBetween($keys[$i], $values[$i], $prev, $next);
+            $prev = $this->current;
+        }
     }
 }

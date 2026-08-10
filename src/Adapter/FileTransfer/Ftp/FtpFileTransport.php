@@ -36,14 +36,6 @@ final class FtpFileTransport implements FileTransport
     }
 
     /**
-     * Handles FtpFileTransport destruct
-     */
-    public function __destruct()
-    {
-        $this->disconnect();
-    }
-
-    /**
      * @inheritDoc
      */
     public function sendFile(string $path, mixed $contents): void
@@ -296,5 +288,13 @@ final class FtpFileTransport implements FileTransport
         }
 
         ftp_chdir($this->connection, $pwd);
+    }
+
+    /**
+     * Handles FtpFileTransport destruct
+     */
+    public function __destruct()
+    {
+        $this->disconnect();
     }
 }
