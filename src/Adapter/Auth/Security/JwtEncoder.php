@@ -27,7 +27,6 @@ final class JwtEncoder implements TokenEncoder
         'HS384' => Sha384::class,
         'HS512' => Sha512::class
     ];
-
     private readonly Configuration $configuration;
 
     /**

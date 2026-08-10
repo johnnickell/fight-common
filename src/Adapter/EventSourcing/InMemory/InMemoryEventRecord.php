@@ -14,6 +14,8 @@ use Fight\Common\Domain\Messaging\MessageId;
  */
 final readonly class InMemoryEventRecord
 {
+    private DateTimeImmutable $timestamp;
+
     /**
      * Constructs InMemoryEventRecord
      *
@@ -40,8 +42,6 @@ final readonly class InMemoryEventRecord
     ) {
         $this->timestamp = $timestamp->setTimezone(new DateTimeZone('UTC'));
     }
-
-    private DateTimeImmutable $timestamp;
 
     /**
      * Returns the event stream identity

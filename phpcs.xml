@@ -6,10 +6,6 @@
 
     <rule ref="./src/Standards/Phpcs/FightCommon/ruleset.xml">
 
-        <exclude name="FightCommon.Classes.NamedClassStructure" />
-        <exclude name="FightCommon.Classes.NamedClassMemberSpacing" />
-        <exclude name="FightCommon.Classes.NamedMethodSpacing" />
-        <exclude name="FightCommon.Formatting.RequireVisibilityGroupSpacing" />
 
         <exclude name="FightCommon.Commenting.RequireMethodDocComment" />
         <exclude name="FightCommon.Commenting.RequireTypeDocComment" />

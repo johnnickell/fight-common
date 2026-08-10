@@ -13,7 +13,6 @@ use Fight\Common\Domain\Messaging\Event\Event;
 abstract class AggregateRoot implements EventSourcedAggregate
 {
     private int $version = 0;
-
     /** @var list<Event> */
     private array $pendingEvents = [];
 

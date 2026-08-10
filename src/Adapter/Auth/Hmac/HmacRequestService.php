@@ -68,6 +68,14 @@ final class HmacRequestService implements RequestService
     }
 
     /**
+     * @inheritDoc
+     */
+    protected function getSecret(): string
+    {
+        return $this->secret;
+    }
+
+    /**
      * Builds standard headers
      *
      * @return array<string, int|string>
@@ -87,13 +95,5 @@ final class HmacRequestService implements RequestService
         }
 
         return $headers;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getSecret(): string
-    {
-        return $this->secret;
     }
 }

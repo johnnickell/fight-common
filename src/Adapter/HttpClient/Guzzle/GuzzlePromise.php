@@ -20,12 +20,9 @@ use Throwable;
 final class GuzzlePromise implements Promise
 {
     private readonly PromiseInterface $promise;
-
     private string $state;
-
     /** @phpstan-ignore property.unusedType */
     private ?ResponseInterface $response;
-
     /** @phpstan-ignore property.unusedType */
     private ?Throwable $exception;
 

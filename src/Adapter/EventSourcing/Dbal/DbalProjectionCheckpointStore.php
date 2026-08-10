@@ -78,23 +78,6 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     }
 
     /**
-     * Advances an existing checkpoint when the stored position permits it
-     *
-     * @phpstan-impure
-     */
-    private function advance(string $projectorName, int $globalPosition): int
-    {
-        return $this->connection->executeStatement(
-            <<<'SQL'
-                UPDATE projection_checkpoints
-                SET global_position = ?
-                WHERE projector_name = ? AND global_position <= ?
-                SQL,
-            [$globalPosition, $projectorName, $globalPosition],
-        );
-    }
-
-    /**
      * Resets one projector checkpoint to the start of history
      */
     public function reset(string $projectorName): void
@@ -119,5 +102,22 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
                 );
             }
         }
+    }
+
+    /**
+     * Advances an existing checkpoint when the stored position permits it
+     *
+     * @phpstan-impure
+     */
+    private function advance(string $projectorName, int $globalPosition): int
+    {
+        return $this->connection->executeStatement(
+            <<<'SQL'
+                UPDATE projection_checkpoints
+                SET global_position = ?
+                WHERE projector_name = ? AND global_position <= ?
+                SQL,
+            [$globalPosition, $projectorName, $globalPosition],
+        );
     }
 }

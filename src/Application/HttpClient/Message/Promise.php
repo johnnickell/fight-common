@@ -14,9 +14,7 @@ use Throwable;
 interface Promise
 {
     public const PENDING = 'pending';
-
     public const FULFILLED = 'fulfilled';
-
     public const REJECTED = 'rejected';
 
     /**

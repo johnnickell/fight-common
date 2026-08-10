@@ -25,10 +25,8 @@ final class SymfonyProcessRunner implements ProcessRunner
 {
     /** @var Queue<Process> */
     private Queue $queue;
-
     /** @var array<int, array{iteration: int, original: Process, process: SymfonyProcess}> */
     private array $processes = [];
-
     private readonly int $delay;
 
     /**
@@ -52,14 +50,6 @@ final class SymfonyProcessRunner implements ProcessRunner
 
         $this->delay = $delay;
         $this->queue = LinkedQueue::of(Process::class);
-    }
-
-    /**
-     * Handles SymfonyProcessRunner destruct
-     */
-    public function __destruct()
-    {
-        $this->stop();
     }
 
     /**
@@ -347,5 +337,13 @@ final class SymfonyProcessRunner implements ProcessRunner
                 $process->getErrorOutput()
             )
         );
+    }
+
+    /**
+     * Handles SymfonyProcessRunner destruct
+     */
+    public function __destruct()
+    {
+        $this->stop();
     }
 }

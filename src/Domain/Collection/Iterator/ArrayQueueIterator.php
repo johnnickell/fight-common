@@ -14,7 +14,6 @@ use Iterator;
 final class ArrayQueueIterator implements Iterator
 {
     private int $index = 0;
-
     private readonly int $count;
 
     /**

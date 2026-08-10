@@ -31,7 +31,6 @@ final class RequireMethodDocCommentSniff implements Sniff
         'Strips', 'Summarizes', 'Synchronizes', 'Tests', 'Transitions', 'Translates', 'Unloads', 'Updates', 'Uses',
         'Validates', 'Verifies', 'Wraps', 'Writes'
     ];
-
     private const array IMPERATIVE_MAP = [
         'Add'       => 'Adds',
         'Build'     => 'Builds',

@@ -23,13 +23,9 @@ final class ArrayQueue implements Queue
 
     /** @var array<T> */
     private array $items = [];
-
     private int $count = 0;
-
     private int $front = 0;
-
     private int $end = 0;
-
     private int $cap = 10;
 
     /**
@@ -405,14 +401,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @inheritDoc
-     */
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
-    /**
      * Re-indexes the underlying array
      *
      * This is needed to keep wrapping under control. Using direct indices
@@ -432,5 +420,13 @@ final class ArrayQueue implements Queue
         $this->cap = $capacity;
         $this->front = 0;
         $this->end = $this->count;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }
