@@ -460,7 +460,7 @@ final class Scheduler
     }
 
     /**
-     * Sanitizes a job name for use as a filename
+     * Normalizes a job name for use as a filename
      */
     private function escape(string $name): string
     {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\EventSourcing;
 
 /**
+ * Class EventMapping
+ *
  * Maps one local stored name to its current event class and schema
  */
 final readonly class EventMapping
@@ -15,10 +17,13 @@ final readonly class EventMapping
     /**
      * Constructs EventMapping
      *
-     * @param string              $localName
-     * @param class-string        $eventClass
-     * @param integer             $currentSchemaVersion
-     * @param iterable<Upcaster>  $upcasters
+     * @param string   $localName
+     * @param string   $eventClass
+     * @param integer  $currentSchemaVersion
+     * @param iterable $upcasters
+     *
+     * @phpstan-param class-string $eventClass
+     * @phpstan-param iterable<Upcaster> $upcasters
      */
     public function __construct(
         private string $localName,

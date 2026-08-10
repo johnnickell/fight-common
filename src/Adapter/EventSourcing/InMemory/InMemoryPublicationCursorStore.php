@@ -8,6 +8,8 @@ use Fight\Common\Application\EventSourcing\PublicationCursorStore;
 use InvalidArgumentException;
 
 /**
+ * Class InMemoryPublicationCursorStore
+ *
  * In-memory reference adapter for event-publication cursors
  */
 final class InMemoryPublicationCursorStore implements PublicationCursorStore
@@ -24,7 +26,7 @@ final class InMemoryPublicationCursorStore implements PublicationCursorStore
     }
 
     /**
-     * Saves a completed fan-out position without moving backward
+     * Advances a completed fan-out position without moving backward
      */
     public function save(string $publicationName, int $globalPosition): void
     {

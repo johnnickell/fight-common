@@ -21,6 +21,8 @@ final readonly class SymfonyCommandMessageHandler
     }
 
     /**
+     * Dispatches one command message synchronously
+     *
      * @throws Throwable When an error occurs
      */
     public function __invoke(CommandMessage $commandMessage): void

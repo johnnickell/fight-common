@@ -149,8 +149,6 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
-     * @return string[]
-     *
      * @inheritDoc
      */
     public function listFiles(?string $path = null): array
@@ -159,8 +157,6 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
-     * @return string[]
-     *
      * @inheritDoc
      */
     public function listFilesRecursively(?string $path = null): array
@@ -169,8 +165,6 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
-     * @return string[]
-     *
      * @inheritDoc
      */
     public function listDirectories(?string $path = null): array
@@ -179,8 +173,6 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
-     * @return string[]
-     *
      * @inheritDoc
      */
     public function listDirectoriesRecursively(?string $path = null): array
@@ -189,6 +181,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
+     * Lists files at a storage path with optional recursion
+     *
      * @return string[]
      *
      * @throws FileStorageException
@@ -206,6 +200,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
+     * Lists directories at a storage path with optional recursion
+     *
      * @return string[]
      *
      * @throws FileStorageException
@@ -223,6 +219,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
     }
 
     /**
+     * Ensures the parent directory exists
+     *
      * @throws FilesystemException
      */
     private function ensureDirectoryExists(string $path): void

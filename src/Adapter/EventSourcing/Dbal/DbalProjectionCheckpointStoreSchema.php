@@ -8,6 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 
 /**
+ * Class DbalProjectionCheckpointStoreSchema
+ *
  * Portable Doctrine DBAL schema for durable projection checkpoints
  */
 final readonly class DbalProjectionCheckpointStoreSchema
@@ -29,7 +31,7 @@ final readonly class DbalProjectionCheckpointStoreSchema
     }
 
     /**
-     * Installs the projection-checkpoint schema independently and idempotently
+     * Creates the projection-checkpoint schema independently and idempotently
      */
     public function install(Connection $connection): void
     {

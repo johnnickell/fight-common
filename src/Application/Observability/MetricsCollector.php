@@ -10,7 +10,7 @@ namespace Fight\Common\Application\Observability;
 interface MetricsCollector
 {
      /**
-      * Increments a counter metric
+      * Adds one to a counter metric
       *
       * @param string $metric
       * @param array<string, string> $tags

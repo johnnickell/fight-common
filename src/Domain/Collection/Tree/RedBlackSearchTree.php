@@ -99,7 +99,6 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * @return iterable<K>
      * @inheritDoc
      */
     public function keys(): iterable
@@ -112,7 +111,6 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * @return iterable<K>
      * @inheritDoc
      */
     public function rangeKeys(mixed $lo, mixed $hi): iterable
@@ -397,9 +395,11 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Fills a queue with keys between lo and hi in a subtree
+     * Adds keys between lo and hi in a subtree to a list
      *
-     * @param ItemList<K> $list
+     * @param ItemList $list
+     *
+     * @phpstan-param ItemList<K> $list
      */
     private function fillKeys(ItemList $list, mixed $lo, mixed $hi, ?RedBlackNode $node): void
     {
@@ -592,7 +592,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Rotates a right-learning link to the left
+     * Reorders a right-leaning link to the left
      *
      * Assumes $node->right is red.
      */
@@ -612,7 +612,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Rotates a left-leaning link to the right
+     * Reorders a left-leaning link to the right
      *
      * Assumes $node->left is red.
      */
@@ -632,7 +632,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Flips the colors of a node and its two children
+     * Changes the colors of a node and its two children
      *
      * Used to maintain symmetric order and perfect black balance when a black
      * node has two red children.
@@ -645,7 +645,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Makes a left link or child red
+     * Changes a left link or child to red
      *
      * Assumes red $node and $node->left and $node->left->left are black.
      */
@@ -662,7 +662,7 @@ final class RedBlackSearchTree implements BinarySearchTree
     }
 
     /**
-     * Makes a right link or child red
+     * Changes a right link or child to red
      *
      * Assumes red $node and $node->right and $node->right->left are black.
      */

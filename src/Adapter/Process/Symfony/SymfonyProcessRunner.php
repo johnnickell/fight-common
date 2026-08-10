@@ -253,7 +253,7 @@ final class SymfonyProcessRunner implements ProcessRunner
     }
 
     /**
-     * Stops all running processes
+     * Ends all running processes
      *
      * @codeCoverageIgnore Requires live processes to test
      */

@@ -88,9 +88,9 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
-     * @return callable[]|array<string, callable[]>
+     * Retrieves handlers for an event or all events after loading matching services
      *
-     * @inheritDoc
+     * @return callable[]|array<string, callable[]>
      */
     #[Override]
     public function getHandlers(?string $eventType = null): array
@@ -156,7 +156,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
-     * Lazy loads event handlers from the service container
+     * Loads event handlers lazily from the service container
      *
      * @throws ContainerExceptionInterface When an error occurs
      */

@@ -107,9 +107,9 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
     }
 
     /**
-     * @return callable[]|array<string, callable[]>
+     * Retrieves handlers for an event or all events
      *
-     * @inheritDoc
+     * @return callable[]|array<string, callable[]>
      */
     public function getHandlers(?string $eventType = null): array
     {

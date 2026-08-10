@@ -221,7 +221,7 @@ final class FtpFileTransport implements FileTransport
     }
 
     /**
-     * Closes the FTP connection
+     * Ends the FTP connection
      */
     private function disconnect(): void
     {
