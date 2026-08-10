@@ -7,6 +7,8 @@ namespace Fight\Common\Application\EventSourcing;
 use Fight\Common\Domain\EventSourcing\EventStore;
 
 /**
+ * Class ProjectionRunner
+ *
  * Runs one bounded projection batch from the projector's saved checkpoint
  */
 final readonly class ProjectionRunner

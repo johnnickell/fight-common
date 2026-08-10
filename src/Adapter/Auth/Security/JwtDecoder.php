@@ -49,8 +49,6 @@ final class JwtDecoder implements TokenDecoder
     }
 
     /**
-     * @return array<string, mixed>
-     *
      * @inheritDoc
      */
     public function decode(string $token): array

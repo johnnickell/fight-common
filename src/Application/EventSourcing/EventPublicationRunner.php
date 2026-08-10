@@ -10,6 +10,8 @@ use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 use Fight\Common\Domain\EventSourcing\EventStore;
 
 /**
+ * Class EventPublicationRunner
+ *
  * Publishes one bounded batch of committed stored events
  */
 final readonly class EventPublicationRunner
@@ -27,7 +29,7 @@ final readonly class EventPublicationRunner
     }
 
     /**
-     * Publishes one bounded batch after the named publication cursor
+     * Dispatches a bounded stored-event batch, records completed fan-out failures, and advances its cursor
      */
     public function run(int $limit): void
     {

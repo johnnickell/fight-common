@@ -122,7 +122,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the next bucket
+     * Advances the pointer to the next bucket
      */
     public function next(): void
     {
@@ -135,7 +135,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the previous bucket
+     * Sets the pointer to the previous bucket
      */
     public function prev(): void
     {
@@ -179,7 +179,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Locates a bucket by item
+     * Finds a bucket by item
      *
      * Returns null if the item is not found.
      */

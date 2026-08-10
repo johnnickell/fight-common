@@ -14,7 +14,11 @@ final class RequireTypeDocCommentSniff implements Sniff
 {
     public bool $strict = false;
 
-    /** @return list<int> */
+    /**
+     * Registers named type tokens for type documentation enforcement
+     *
+     * @return list<int>
+     */
     public function register(): array
     {
         return [T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM];

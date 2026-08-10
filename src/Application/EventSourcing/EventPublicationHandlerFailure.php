@@ -7,6 +7,8 @@ namespace Fight\Common\Application\EventSourcing;
 use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
 
 /**
+ * Class EventPublicationHandlerFailure
+ *
  * Portable snapshot of one failed event-handler invocation
  */
 final readonly class EventPublicationHandlerFailure
@@ -14,7 +16,7 @@ final readonly class EventPublicationHandlerFailure
     private const int MAX_DIAGNOSTIC_BYTES = 4096;
 
     /**
-     * Constructs an event-publication handler-failure snapshot
+     * Constructs EventPublicationHandlerFailure
      */
     private function __construct(
         private string $callableDescription,
@@ -25,7 +27,7 @@ final readonly class EventPublicationHandlerFailure
     }
 
     /**
-     * Snapshots one transient dispatcher handler failure
+     * Creates a portable snapshot of one transient dispatcher handler failure
      */
     public static function fromHandlerFailure(EventHandlerFailure $failure): self
     {

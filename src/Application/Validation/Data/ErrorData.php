@@ -112,6 +112,8 @@ final readonly class ErrorData implements Arrayable, Collection
     }
 
     /**
+     * Returns validation errors as an array
+     *
      * @return array<string, string[]>
      */
     public function toArray(): array

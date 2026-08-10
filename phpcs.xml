@@ -7,8 +7,5 @@
     <rule ref="./src/Standards/Phpcs/FightCommon/ruleset.xml">
 
 
-        <exclude name="FightCommon.Commenting.RequireMethodDocComment" />
-        <exclude name="FightCommon.Commenting.RequireTypeDocComment" />
-        <exclude name="Squiz.Commenting.FunctionComment.IncorrectTypeHint" />
     </rule>
 </ruleset>

@@ -313,7 +313,6 @@ final class ArrayStack implements Stack
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -341,7 +340,6 @@ final class ArrayStack implements Stack
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -360,7 +358,6 @@ final class ArrayStack implements Stack
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

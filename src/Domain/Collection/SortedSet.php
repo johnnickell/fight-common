@@ -139,8 +139,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @param OrderedSet<T> $other
-     *
      * @inheritDoc
      */
     public function difference(OrderedSet $other): static
@@ -158,8 +156,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @param OrderedSet<T> $other
-     *
      * @inheritDoc
      */
     public function intersection(OrderedSet $other): static
@@ -172,8 +168,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @param OrderedSet<T> $other
-     *
      * @inheritDoc
      */
     public function complement(OrderedSet $other): static
@@ -190,8 +184,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @param OrderedSet<T> $other
-     *
      * @inheritDoc
      */
     public function union(OrderedSet $other): static
@@ -205,7 +197,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @return iterable<T>
      * @inheritDoc
      */
     public function range(mixed $lo, mixed $hi): iterable
@@ -478,7 +469,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -512,7 +502,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -535,7 +524,6 @@ final class SortedSet implements OrderedSet
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

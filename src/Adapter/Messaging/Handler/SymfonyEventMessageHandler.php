@@ -21,6 +21,8 @@ final readonly class SymfonyEventMessageHandler
     }
 
     /**
+     * Dispatches one event message synchronously
+     *
      * @throws Throwable When an error occurs
      */
     public function __invoke(EventMessage $eventMessage): void

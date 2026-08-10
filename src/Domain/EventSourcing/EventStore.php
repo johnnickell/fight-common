@@ -8,7 +8,9 @@ use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 /**
- * Append-only storage boundary for mapped event messages.
+ * Interface EventStore
+ *
+ * Append-only storage boundary for mapped event messages
  *
  * Every event returned by this store is committed with prefix-stable global
  * visibility: after global position N becomes visible, no event at a position
@@ -17,7 +19,7 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 interface EventStore
 {
     /**
-     * Appends one ordered batch of event messages to a stream.
+     * Appends one ordered batch of event messages to a stream
      *
      * The expected version is the version observed before the batch. An empty
      * stream has expected version zero, and its first stored event has stream
@@ -33,16 +35,18 @@ interface EventStore
      * and the expected version is stale, the operation throws an
      * optimistic-concurrency failure.
      *
-     * @param StreamId           $streamId       Stream receiving the event batch.
-     * @param integer            $expectedVersion Stream version observed before the append.
-     * @param list<EventMessage> $messages       Ordered event-message batch to append.
+     * @param StreamId $streamId        Stream receiving the event batch.
+     * @param integer  $expectedVersion Stream version observed before the append.
+     * @param array    $messages        Ordered event-message batch to append.
+     *
+     * @phpstan-param list<EventMessage> $messages
      *
      * @throws OptimisticConcurrencyException
      */
     public function append(StreamId $streamId, int $expectedVersion, array $messages): void;
 
     /**
-     * Reads a stream in ascending stream-version order.
+     * Reads a stream in ascending stream-version order
      *
      * A missing stream returns an empty iterable.
      *
@@ -51,7 +55,7 @@ interface EventStore
     public function readStream(StreamId $streamId): iterable;
 
     /**
-     * Reads at most the requested limit strictly after a global position.
+     * Reads at most the requested limit strictly after a global position
      *
      * Results contain only committed events and are returned in ascending
      * global-position order under the store's prefix-stable visibility

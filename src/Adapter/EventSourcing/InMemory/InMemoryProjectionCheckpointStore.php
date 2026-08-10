@@ -8,6 +8,8 @@ use Fight\Common\Application\EventSourcing\ProjectionCheckpointStore;
 use InvalidArgumentException;
 
 /**
+ * Class InMemoryProjectionCheckpointStore
+ *
  * In-memory reference adapter for projection checkpoints
  */
 final class InMemoryProjectionCheckpointStore implements ProjectionCheckpointStore
@@ -24,7 +26,7 @@ final class InMemoryProjectionCheckpointStore implements ProjectionCheckpointSto
     }
 
     /**
-     * Saves a projector checkpoint without moving backward
+     * Advances a projector checkpoint without moving backward
      */
     public function save(string $projectorName, int $globalPosition): void
     {
@@ -43,7 +45,7 @@ final class InMemoryProjectionCheckpointStore implements ProjectionCheckpointSto
     }
 
     /**
-     * Resets one projector checkpoint to the start of history
+     * Clears one projector checkpoint to the start of history
      */
     public function reset(string $projectorName): void
     {

@@ -10,7 +10,7 @@ namespace Fight\Common\Domain\Type;
 interface Comparable
 {
     /**
-     * Compares to another object
+     * Determines ordering relative to another object
      *
      * The passed object must be an instance of the same type.
      *

@@ -12,7 +12,7 @@ use Fight\Common\Application\Socket\Exception\SocketException;
 interface Publisher
 {
     /**
-     * Pushes a socket message
+     * Sends a socket message
      *
      * @throws SocketException When an error occurs
      */

@@ -7,6 +7,8 @@ namespace Fight\Common\Domain\EventSourcing\Exception;
 use Fight\Common\Domain\Exception\DomainException;
 
 /**
+ * Class EventMappingException
+ *
  * Reports an invalid event mapping or unsupported stored event identity
  */
 final class EventMappingException extends DomainException

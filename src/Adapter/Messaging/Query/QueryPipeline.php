@@ -72,7 +72,7 @@ final class QueryPipeline implements QueryBus, QueryFilter
     }
 
     /**
-     * Pipes query message to the next filter
+     * Invokes the next query filter
      *
      * @throws Throwable
      */

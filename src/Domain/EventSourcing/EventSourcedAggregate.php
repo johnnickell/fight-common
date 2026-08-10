@@ -15,7 +15,9 @@ interface EventSourcedAggregate
     /**
      * Reconstitutes an aggregate from ordered event history
      *
-     * @param iterable<Event> $events
+     * @param iterable $events
+     *
+     * @phpstan-param iterable<Event> $events
      */
     public static function reconstitute(iterable $events): static;
 

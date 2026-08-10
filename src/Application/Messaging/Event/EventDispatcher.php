@@ -14,7 +14,7 @@ use Throwable;
 interface EventDispatcher
 {
     /**
-     * Triggers an event
+     * Dispatches an event payload
      *
      * The dispatcher should wrap the event in an event message, then dispatch
      *
@@ -35,7 +35,7 @@ interface EventDispatcher
     public function register(EventSubscriber $subscriber): void;
 
     /**
-     * Unregisters a subscriber from handling events
+     * Removes a subscriber from event handling
      */
     public function unregister(EventSubscriber $subscriber): void;
 

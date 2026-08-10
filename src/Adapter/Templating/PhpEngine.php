@@ -67,7 +67,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Escapes HTML content
+     * Encodes HTML content
      */
     public function escape(string $value): string
     {
@@ -80,7 +80,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Extends the current template
+     * Sets the parent of the current template
      */
     public function extends(string $template): void
     {
@@ -88,9 +88,6 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * @param string $template
-     * @param array<string, mixed> $data
-     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string
@@ -242,7 +239,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Outputs a block
+     * Writes a block to the output buffer
      */
     public function outputContent(string $name, ?string $default = null): bool
     {

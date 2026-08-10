@@ -12,7 +12,7 @@ use Fight\Common\Application\Process\Exception\ProcessException;
 interface ProcessRunner
 {
     /**
-     * Attaches a process
+     * Adds a process
      */
     public function attach(Process $process): void;
 

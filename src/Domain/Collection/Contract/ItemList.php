@@ -28,7 +28,9 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
     /**
      * Creates a list with the items replaced
      *
-     * @param iterable<T> $items
+     * @param iterable $items
+     *
+     * @phpstan-param iterable<T> $items
      */
     public function replace(iterable $items): static;
 
@@ -172,12 +174,12 @@ interface ItemList extends Arrayable, ArrayAccess, ItemCollection, JsonSerializa
     public function valid(): bool;
 
     /**
-     * Moves the internal pointer to the next value
+     * Advances the internal pointer to the next value
      */
     public function next(): void;
 
     /**
-     * Moves the internal pointer to the previous value
+     * Sets the internal pointer to the previous value
      */
     public function prev(): void;
 

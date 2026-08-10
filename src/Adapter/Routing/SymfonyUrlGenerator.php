@@ -28,11 +28,6 @@ final readonly class SymfonyUrlGenerator implements UrlGenerator
     }
 
     /**
-     * @param string $name
-     * @param array<string, mixed> $parameters
-     * @param array<string, mixed> $query
-     * @param boolean $absolute
-     *
      * @inheritDoc
      */
     public function generate(string $name, array $parameters = [], array $query = [], bool $absolute = false): string
