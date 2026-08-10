@@ -18,19 +18,14 @@ final class PhpEngine implements TemplateEngine
 {
     /** @var array<string, TemplateHelper> */
     private array $helpers = [];
-
     /** @var array<string, string> */
     private array $cache = [];
-
     /** @var array<string, ?string> */
     private array $parents = [];
-
     /** @var array<string, string> */
     private array $blocks = [];
-
     /** @var string[] */
     private array $openBlocks = [];
-
     private string $current;
 
     /**

@@ -63,11 +63,6 @@ interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Se
     public function toString(): string;
 
     /**
-     * Handles casting to a string
-     */
-    public function __toString(): string;
-
-    /**
      * Retrieves an array representation
      *
      * @return array<string, mixed>
@@ -80,4 +75,9 @@ interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Se
      * @return array<string, mixed>
      */
     public function jsonSerialize(): array;
+
+    /**
+     * Handles casting to a string
+     */
+    public function __toString(): string;
 }

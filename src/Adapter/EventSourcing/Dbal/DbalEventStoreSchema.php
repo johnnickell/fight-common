@@ -13,9 +13,7 @@ use Doctrine\DBAL\Schema\Schema;
 final readonly class DbalEventStoreSchema
 {
     private const string EVENTS_TABLE = 'event_store_events';
-
     private const string GLOBAL_POSITION_TABLE = 'event_store_global_position';
-
     private const array TABLES = [
         self::EVENTS_TABLE,
         self::GLOBAL_POSITION_TABLE

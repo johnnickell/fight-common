@@ -38,7 +38,6 @@ final class Scheduler
 {
     /** @var list<JobConfig> */
     private array $jobs = [];
-
     /** @var array<string, resource> */
     private array $lockHandles = [];
 

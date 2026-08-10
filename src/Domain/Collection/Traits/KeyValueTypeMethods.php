@@ -10,7 +10,6 @@ namespace Fight\Common\Domain\Collection\Traits;
 trait KeyValueTypeMethods
 {
     private ?string $keyType;
-
     private ?string $valueType;
 
     /**

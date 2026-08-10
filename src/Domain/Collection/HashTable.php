@@ -27,7 +27,6 @@ final class HashTable implements Table
 
     /** @var array<K, V> */
     private array $buckets = [];
-
     private int $count = 0;
 
     /**

@@ -175,37 +175,6 @@ final readonly class DbalEventStore implements EventStore
     }
 
     /**
-     * Reports whether every requested identity now occupies its intended position
-     *
-     * @param StreamId           $streamId       Event stream identity
-     * @param integer            $expectedVersion Expected stream version
-     * @param list<EventMessage> $messages       Events requested for persistence
-     */
-    private function isExactRetry(StreamId $streamId, int $expectedVersion, array $messages): bool
-    {
-        foreach ($messages as $offset => $message) {
-            $record = $this->connection->fetchAssociative(
-                sprintf(
-                    'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                    'FROM event_store_events WHERE message_id = ?',
-                ),
-                [(string) $message->id()],
-            );
-
-            if (
-                false === $record
-                || $record['aggregate_name'] !== $streamId->aggregateName()
-                || $record['aggregate_identifier'] !== $streamId->identifier()
-                || (int) $record['stream_version'] !== $expectedVersion + $offset + 1
-            ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Reads a stream in ascending stream-version order
      */
     public function readStream(StreamId $streamId): iterable
@@ -237,6 +206,37 @@ final readonly class DbalEventStore implements EventStore
         foreach ($records as $record) {
             yield $this->hydrate($record);
         }
+    }
+
+    /**
+     * Reports whether every requested identity now occupies its intended position
+     *
+     * @param StreamId           $streamId       Event stream identity
+     * @param integer            $expectedVersion Expected stream version
+     * @param list<EventMessage> $messages       Events requested for persistence
+     */
+    private function isExactRetry(StreamId $streamId, int $expectedVersion, array $messages): bool
+    {
+        foreach ($messages as $offset => $message) {
+            $record = $this->connection->fetchAssociative(
+                sprintf(
+                    'SELECT aggregate_name, aggregate_identifier, stream_version %s',
+                    'FROM event_store_events WHERE message_id = ?',
+                ),
+                [(string) $message->id()],
+            );
+
+            if (
+                false === $record
+                || $record['aggregate_name'] !== $streamId->aggregateName()
+                || $record['aggregate_identifier'] !== $streamId->identifier()
+                || (int) $record['stream_version'] !== $expectedVersion + $offset + 1
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

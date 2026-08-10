@@ -26,11 +26,8 @@ final class JSendResponse extends JsonResponse
      *      | JSON_HEX_QUOT
      */
     public const DEFAULT_ENCODING_OPTIONS = 79;
-
     public const string SUCCESS = 'success';
-
     public const string FAIL = 'fail';
-
     public const string ERROR = 'error';
 
     private string $statusType;

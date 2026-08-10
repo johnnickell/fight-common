@@ -18,10 +18,8 @@ final class QueryPipeline implements QueryBus, QueryFilter
 {
     /** @var LinkedStack<QueryFilter> */
     private readonly LinkedStack $filters;
-
     /** @var LinkedStack<object> */
     private ?LinkedStack $executionStack = null;
-
     private mixed $results;
 
     /**

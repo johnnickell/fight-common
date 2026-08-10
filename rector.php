@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodingStyle\Rector\ClassLike\NewlineBetweenClassLikeStmtsRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
@@ -14,6 +15,7 @@ return RectorConfig::configure()
     ])
     ->withPhpSets(php84: true)
     ->withSkip([
+        NewlineBetweenClassLikeStmtsRector::class,
         RemoveParentCallWithoutParentRector::class,
         AddOverrideAttributeToOverriddenMethodsRector::class,
         // Array callables are load-bearing here: removeHandler compares with === against

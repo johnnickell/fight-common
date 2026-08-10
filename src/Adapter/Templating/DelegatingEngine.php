@@ -16,7 +16,6 @@ final class DelegatingEngine implements TemplateEngine
 {
     /** @var TemplateEngine[] */
     private array $engines = [];
-
     /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
