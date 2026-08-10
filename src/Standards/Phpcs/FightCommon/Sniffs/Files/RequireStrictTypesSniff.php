@@ -45,7 +45,7 @@ final class RequireStrictTypesSniff implements Sniff
         );
 
         if ($fix) {
-            $phpcsFile->fixer->addContent($stackPtr, "\ndeclare(strict_types=1);\n");
+            $phpcsFile->fixer->addContent($stackPtr, "\n\ndeclare(strict_types=1);");
         }
     }
 

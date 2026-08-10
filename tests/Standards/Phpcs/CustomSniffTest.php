@@ -121,17 +121,18 @@ final class CustomSniffTest extends UnitTestCase
         $file->fixer = $fixer;
         $file->shouldReceive('getTokens')->andReturn([
             1 => ['code' => T_STRING, 'line' => 10],
-            2 => ['code' => T_RETURN, 'line' => 11],
+            2 => ['code' => T_WHITESPACE, 'line' => 11],
+            3 => ['code' => T_RETURN, 'line' => 11],
         ]);
         $file->shouldReceive('findPrevious')->times(3)->andReturn(false, 1, 1);
         $file->shouldReceive('addFixableError')
             ->once()
-            ->with('Expected a blank line before the return statement', 2, 'Missing')
+            ->with('Expected a blank line before the return statement', 3, 'Missing')
             ->andReturnTrue();
         $fixer->shouldReceive('addNewlineBefore')->once()->with(2);
 
-        $sniff->process($file, 2);
-        $sniff->process($file, 2);
+        $sniff->process($file, 3);
+        $sniff->process($file, 3);
 
         self::assertSame([T_RETURN], $sniff->register());
     }
@@ -167,13 +168,45 @@ final class CustomSniffTest extends UnitTestCase
         self::assertSame(0, $file->getFixableCount());
     }
 
-    public function test_that_strict_types_reports_and_fixes_a_missing_declaration(): void
+    public function test_that_strict_types_fixes_a_missing_declaration_canonically_and_idempotently(): void
     {
-        $file = $this->processSource("<?php\n\nreturn 1;\n");
+        $file = $this->processSource("<?php\n\nnamespace Example;\n");
 
         self::assertContains('FightCommon.Files.RequireStrictTypes.Missing', $this->errorSources($file));
         self::assertTrue($file->fixer->fixFile());
-        self::assertSame("<?php\ndeclare(strict_types=1);\n\n\nreturn 1;\n", $file->fixer->getContents());
+        self::assertSame(
+            "<?php\n\ndeclare(strict_types=1);\n\nnamespace Example;\n",
+            $file->fixer->getContents(),
+        );
+
+        $fixed = $this->processSource($file->fixer->getContents());
+
+        self::assertSame([], $this->errorSources($fixed));
+        self::assertFalse($fixed->fixer->fixFile());
+    }
+
+    public function test_that_blank_line_before_return_preserves_indentation_and_is_idempotent(): void
+    {
+        $file = $this->processSource(
+            "<?php\n\ndeclare(strict_types=1);\n\nfunction answer(): int\n"
+            ."{\n    \$value = 1;\n    return \$value;\n}\n",
+        );
+
+        self::assertContains(
+            'FightCommon.Formatting.RequireBlankLineBeforeReturn.Missing',
+            $this->errorSources($file),
+        );
+        self::assertTrue($file->fixer->fixFile());
+        self::assertSame(
+            "<?php\n\ndeclare(strict_types=1);\n\nfunction answer(): int\n"
+            ."{\n    \$value = 1;\n\n    return \$value;\n}\n",
+            $file->fixer->getContents(),
+        );
+
+        $fixed = $this->processSource($file->fixer->getContents());
+
+        self::assertSame([], $this->errorSources($fixed));
+        self::assertFalse($fixed->fixer->fixFile());
     }
 
     public function test_that_strict_types_only_evaluates_the_first_open_tag_and_all_declarations(): void
