@@ -88,14 +88,6 @@ abstract class BaseMessage implements Message
 
     /**
      * @inheritDoc
-     */
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * @inheritDoc
      *
      * @return array<string, mixed>
      */
@@ -171,5 +163,13 @@ abstract class BaseMessage implements Message
             ClassName::short(static::class),
             $this->id->hashValue()
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

@@ -149,14 +149,6 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     }
 
     /**
-     * Handles casting to a string
-     */
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
-    /**
      * Retrieves a value for JSON encoding
      *
      * @return array<string, mixed>
@@ -213,5 +205,13 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
         }
 
         return false;
+    }
+
+    /**
+     * Handles casting to a string
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

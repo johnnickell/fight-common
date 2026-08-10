@@ -14,23 +14,15 @@ final class ProcessBuilder
 {
     /** @var list<string> */
     private array $prefix = [];
-
     /** @var list<string> */
     private array $arguments = [];
-
     private ?string $directory = null;
-
     private mixed $input = null;
-
     private ?float $timeout = 60.0;
-
     /** @var array<string, string> */
     private array $environment = [];
-
     private mixed $stdout = null;
-
     private mixed $stderr = null;
-
     private bool $outputDisabled = false;
 
     /**

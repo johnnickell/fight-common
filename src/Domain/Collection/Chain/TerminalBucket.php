@@ -10,7 +10,6 @@ namespace Fight\Common\Domain\Collection\Chain;
 final class TerminalBucket implements Bucket
 {
     private ?Bucket $next = null;
-
     private ?Bucket $prev = null;
 
     /**

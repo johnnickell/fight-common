@@ -12,7 +12,6 @@ use Fight\Common\Domain\Value\Internet\Url;
 final class SmsMessage
 {
     private ?string $body = null;
-
     /** @var array<int, Url> */
     private array $media = [];
 

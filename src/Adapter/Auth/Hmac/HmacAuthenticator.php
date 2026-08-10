@@ -19,8 +19,6 @@ final class HmacAuthenticator implements Authenticator
 {
     use HmacMethods;
 
-    private string $secret;
-
     /** @var string[] */
     private static array $requiredHeaders = [
         'Authorization',
@@ -29,6 +27,7 @@ final class HmacAuthenticator implements Authenticator
         'X-Timestamp',
         'X-Nonce'
     ];
+    private string $secret;
 
     /**
      * Constructs HmacAuthenticator

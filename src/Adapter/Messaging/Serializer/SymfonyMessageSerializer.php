@@ -38,6 +38,14 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
     }
 
     /**
+     * @throws MessageDecodingFailedException
+     */
+    public static function handleUnserializeCallback(string $class): never
+    {
+        throw new MessageDecodingFailedException(sprintf('Message class "%s" not found during decoding', $class));
+    }
+
+    /**
      * @inheritDoc
      */
     public function decode(array $encodedEnvelope): Envelope
@@ -156,13 +164,5 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
             restore_error_handler();
             ini_set('unserialize_callback_func', $prevUnserializeHandler);
         }
-    }
-
-    /**
-     * @throws MessageDecodingFailedException
-     */
-    public static function handleUnserializeCallback(string $class): never
-    {
-        throw new MessageDecodingFailedException(sprintf('Message class "%s" not found during decoding', $class));
     }
 }

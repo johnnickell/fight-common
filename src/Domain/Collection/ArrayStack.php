@@ -23,7 +23,6 @@ final class ArrayStack implements Stack
 
     /** @var array<T> */
     private array $items = [];
-
     private int $count = 0;
 
     /**
