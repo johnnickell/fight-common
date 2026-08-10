@@ -196,7 +196,7 @@ final class RequireMethodDocCommentSniff implements Sniff
     {
         $summary = $lines[0];
 
-        if (isset($lines[1]) && $lines[1] !== '' && !str_starts_with((string) $lines[1], '@')) {
+        if (isset($lines[1]) && $lines[1] !== '' && !str_starts_with($lines[1], '@')) {
             $phpcsFile->addError('Method summary must occupy exactly one line', $stackPtr, 'WrappedSummary');
 
             return null;

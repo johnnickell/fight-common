@@ -54,7 +54,7 @@ final class RequireBlankLineBeforeReturnSniff implements Sniff
         );
 
         if ($fix) {
-            $phpcsFile->fixer->addNewlineBefore($blockTop);
+            $phpcsFile->fixer->addNewlineBefore($blockTop - 1);
         }
     }
 
