@@ -23,6 +23,8 @@ use Fight\Common\Domain\Messaging\Meta;
 use InvalidArgumentException;
 
 /**
+ * Class DbalEventStore
+ *
  * Doctrine DBAL adapter for durable mapped event storage
  */
 final readonly class DbalEventStore implements EventStore
@@ -211,9 +213,11 @@ final readonly class DbalEventStore implements EventStore
     /**
      * Reports whether every requested identity now occupies its intended position
      *
-     * @param StreamId           $streamId       Event stream identity
-     * @param integer            $expectedVersion Expected stream version
-     * @param list<EventMessage> $messages       Events requested for persistence
+     * @param StreamId $streamId        Event stream identity
+     * @param integer  $expectedVersion Expected stream version
+     * @param array    $messages        Events requested for persistence
+     *
+     * @phpstan-param list<EventMessage> $messages
      */
     private function isExactRetry(StreamId $streamId, int $expectedVersion, array $messages): bool
     {
@@ -253,7 +257,9 @@ final readonly class DbalEventStore implements EventStore
     /**
      * Reports whether any requested message identity exists after rollback
      *
-     * @param list<EventMessage> $messages
+     * @param array $messages
+     *
+     * @phpstan-param list<EventMessage> $messages
      */
     private function hasExistingMessageId(array $messages): bool
     {
@@ -264,7 +270,7 @@ final readonly class DbalEventStore implements EventStore
     }
 
     /**
-     * Hydrates one database record into a stored event
+     * Reconstitutes one database record as a stored event
      *
      * @param array<string, mixed> $record
      */

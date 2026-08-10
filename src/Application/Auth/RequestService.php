@@ -13,7 +13,7 @@ use Psr\Http\Message\RequestInterface;
 interface RequestService
 {
     /**
-     * Signs a request with authentication credentials
+     * Authenticates an HTTP request by signing it with configured credentials
      *
      * @throws CredentialsException When an error signing credentials occurs
      */

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\EventSourcing;
 
 /**
+ * Class MappedEvent
+ *
  * Immutable storage-facing identity, schema, and payload data
  */
 final readonly class MappedEvent

@@ -12,6 +12,8 @@ use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 
 /**
+ * Class EventMapper
+ *
  * Maps current event messages to and from stable storage identity
  */
 final class EventMapper
@@ -22,9 +24,11 @@ final class EventMapper
     private array $mappingsByClass = [];
 
     /**
-     * Constructs one complete per-store mapper
+     * Constructs EventMapper
      *
-     * @param iterable<EventMappingProvider> $providers
+     * @param iterable $providers
+     *
+     * @phpstan-param iterable<EventMappingProvider> $providers
      */
     public function __construct(iterable $providers)
     {
@@ -91,7 +95,7 @@ final class EventMapper
     }
 
     /**
-     * Hydrates a current event message from stored identity and data
+     * Reconstitutes a current event message from stored identity and data
      *
      * @param string               $eventName
      * @param integer              $schemaVersion
@@ -139,7 +143,7 @@ final class EventMapper
     }
 
     /**
-     * Guards one durable event-name segment
+     * Validates one durable event-name segment
      */
     private function guardValidName(string $name): void
     {
@@ -149,7 +153,7 @@ final class EventMapper
     }
 
     /**
-     * Guards one typed event mapping and its schema evolution chain
+     * Validates one typed event mapping and its schema evolution chain
      *
      * @return class-string<Event>
      */

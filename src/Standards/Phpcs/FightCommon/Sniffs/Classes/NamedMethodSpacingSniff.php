@@ -10,6 +10,8 @@ use SlevomatCodingStandard\Helpers\ClassHelper;
 use SlevomatCodingStandard\Sniffs\Classes\MethodSpacingSniff;
 
 /**
+ * Class NamedMethodSpacingSniff
+ *
  * Restricts Slevomat's method-spacing implementation to methods on named production types.
  */
 final class NamedMethodSpacingSniff extends MethodSpacingSniff

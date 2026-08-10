@@ -11,11 +11,17 @@ use SlevomatCodingStandard\Helpers\TokenHelper;
 use SlevomatCodingStandard\Sniffs\Classes\ClassStructureSniff;
 
 /**
+ * Class NamedClassStructureSniff
+ *
  * Restricts Slevomat's class-structure implementation to named production types.
  */
 final class NamedClassStructureSniff extends ClassStructureSniff
 {
-    /** @return list<int> */
+    /**
+     * Registers named type tokens for class-structure enforcement
+     *
+     * @return list<int>
+     */
     #[Override]
     public function register(): array
     {

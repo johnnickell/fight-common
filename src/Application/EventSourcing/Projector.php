@@ -8,7 +8,9 @@ use Fight\Common\Domain\EventSourcing\StoredEvent;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
- * Builds one read model from already-upcasted stored events.
+ * Interface Projector
+ *
+ * Builds one read model from already-upcasted stored events
  *
  * Projection operations must be idempotent because at-least-once delivery can
  * repeat an event when read-state persistence succeeds before its checkpoint.

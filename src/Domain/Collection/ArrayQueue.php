@@ -333,7 +333,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -361,7 +360,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -384,7 +382,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array
@@ -401,7 +398,7 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * Re-indexes the underlying array
+     * Reindexes the underlying array
      *
      * This is needed to keep wrapping under control. Using direct indices
      * allows operations in constant amortized time instead of O(n).

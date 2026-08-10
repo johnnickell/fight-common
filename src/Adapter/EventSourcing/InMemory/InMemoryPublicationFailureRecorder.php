@@ -8,6 +8,8 @@ use Fight\Common\Application\EventSourcing\EventPublicationFailure;
 use Fight\Common\Application\EventSourcing\PublicationFailureRecorder;
 
 /**
+ * Class InMemoryPublicationFailureRecorder
+ *
  * In-memory reference adapter for publication-failure recording
  */
 final class InMemoryPublicationFailureRecorder implements PublicationFailureRecorder

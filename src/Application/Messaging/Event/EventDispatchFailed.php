@@ -7,6 +7,8 @@ namespace Fight\Common\Application\Messaging\Event;
 use RuntimeException;
 
 /**
+ * Class EventDispatchFailed
+ *
  * Reports every handler failure from one completed synchronous event dispatch
  */
 final class EventDispatchFailed extends RuntimeException

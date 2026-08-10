@@ -27,9 +27,6 @@ final class TwigEngine implements TemplateEngine
     }
 
     /**
-     * @param string $template
-     * @param array<string, mixed> $data
-     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string

@@ -12,22 +12,26 @@ use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\MessageId;
 
 /**
+ * Class EventPublicationFailure
+ *
  * Portable snapshot of one completed event-publication attempt with failures
  */
 final readonly class EventPublicationFailure
 {
     /**
-     * Constructs an event-publication failure snapshot
+     * Constructs EventPublicationFailure
      *
-     * @param string                               $publicationName   Stable publication name.
-     * @param StreamId                             $streamId          Published stream identity.
-     * @param string                               $eventName         Stable stored event name.
-     * @param integer                              $schemaVersion     Persisted payload schema version.
-     * @param integer                              $streamVersion     Position within the event stream.
-     * @param integer                              $globalPosition    Position in global event order.
-     * @param MessageId                            $messageId         Published message identity.
-     * @param DateTimeImmutable                    $dispatchStartedAt UTC dispatch-start time.
-     * @param list<EventPublicationHandlerFailure> $handlerFailures
+     * @param string            $publicationName   Stable publication name.
+     * @param StreamId          $streamId          Published stream identity.
+     * @param string            $eventName         Stable stored event name.
+     * @param integer           $schemaVersion     Persisted payload schema version.
+     * @param integer           $streamVersion     Position within the event stream.
+     * @param integer           $globalPosition    Position in global event order.
+     * @param MessageId         $messageId         Published message identity.
+     * @param DateTimeImmutable $dispatchStartedAt UTC dispatch-start time.
+     * @param array             $handlerFailures
+     *
+     * @phpstan-param list<EventPublicationHandlerFailure> $handlerFailures
      */
     private function __construct(
         private string $publicationName,
@@ -43,7 +47,7 @@ final readonly class EventPublicationFailure
     }
 
     /**
-     * Snapshots a completed synchronous dispatch failure
+     * Creates a portable snapshot of a completed synchronous dispatch failure
      */
     public static function fromDispatchFailure(
         string $publicationName,

@@ -12,7 +12,7 @@ use Fight\Common\Application\Auth\Exception\PasswordException;
 interface PasswordHasher
 {
     /**
-     * Hashes a password
+     * Generates a password hash
      *
      * @throws PasswordException When password hashing fails
      */

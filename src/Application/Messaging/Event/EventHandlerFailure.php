@@ -7,6 +7,8 @@ namespace Fight\Common\Application\Messaging\Event;
 use Throwable;
 
 /**
+ * Class EventHandlerFailure
+ *
  * Describes one synchronous event handler failure
  */
 final readonly class EventHandlerFailure

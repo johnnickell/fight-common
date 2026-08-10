@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\EventSourcing;
 
 /**
+ * Interface EventMappingProvider
+ *
  * Provides typed event mappings under one durable namespace
  */
 interface EventMappingProvider
