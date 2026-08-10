@@ -4,86 +4,41 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\EventSourcing\InMemory;
 
-use DateTimeImmutable;
 use Fight\Common\Adapter\EventSourcing\InMemory\InMemoryPublicationFailureRecorder;
 use Fight\Common\Application\EventSourcing\EventPublicationFailure;
-use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
-use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
-use Fight\Common\Domain\EventSourcing\StoredEvent;
-use Fight\Common\Domain\EventSourcing\StreamId;
-use Fight\Common\Domain\Messaging\Event\Event;
-use Fight\Common\Domain\Messaging\Event\EventMessage;
-use Fight\Common\Domain\Messaging\MessageId;
-use Fight\Common\Domain\Messaging\Meta;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Common\Application\EventSourcing\PublicationFailureRecorder;
+use Fight\Test\Common\TestCase\EventSourcing\PublicationFailureRecorderConformanceTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use RuntimeException;
 
 #[CoversClass(InMemoryPublicationFailureRecorder::class)]
-final class InMemoryPublicationFailureRecorderTest extends UnitTestCase
+final class InMemoryPublicationFailureRecorderTest extends PublicationFailureRecorderConformanceTestCase
 {
-    public function test_that_recording_is_idempotent_by_publication_name_and_global_position(): void
+    /**
+     * Creates the in-memory publication failure recorder under test
+     */
+    protected function createPublicationFailureRecorder(): PublicationFailureRecorder
     {
-        $recorder = new InMemoryPublicationFailureRecorder();
-        $primaryFirst = $this->failure('orders.primary', 1);
+        return new InMemoryPublicationFailureRecorder();
+    }
 
-        $recorder->record($primaryFirst);
-        $recorder->record($primaryFirst);
-        $recorder->record($this->failure('orders.primary', 2));
-        $recorder->record($this->failure('orders.secondary', 1));
+    /**
+     * Returns in-memory correlation keys and their first aggregate evidence
+     */
+    protected function recordedFailureCorrelations(
+        PublicationFailureRecorder $recorder,
+    ): array {
+        self::assertInstanceOf(InMemoryPublicationFailureRecorder::class, $recorder);
 
-        self::assertSame(
-            [
-                ['orders.primary', 1],
-                ['orders.primary', 2],
-                ['orders.secondary', 1],
+        $correlations = array_map(
+            static fn (EventPublicationFailure $failure): array => [
+                $failure->publicationName(),
+                $failure->globalPosition(),
+                $failure->streamId()->identifier(),
             ],
-            array_map(
-                static fn (EventPublicationFailure $failure): array => [
-                    $failure->publicationName(),
-                    $failure->globalPosition(),
-                ],
-                $recorder->failures(),
-            ),
+            $recorder->failures(),
         );
-    }
+        sort($correlations);
 
-    private function failure(string $publicationName, int $globalPosition): EventPublicationFailure
-    {
-        $storedEvent = new StoredEvent(
-            new StreamId('order', sprintf('order-%d', $globalPosition)),
-            'orders.order-placed',
-            1,
-            $globalPosition,
-            $globalPosition,
-            new EventMessage(
-                MessageId::fromString('6ba7b841-9dad-11d1-80b4-00c04fd430c8'),
-                new DateTimeImmutable('2026-08-09T09:14:00.000001+00:00'),
-                new RecordedPublicationFailedEvent(),
-                Meta::create(),
-            ),
-        );
-
-        return EventPublicationFailure::fromDispatchFailure(
-            $publicationName,
-            $storedEvent,
-            new DateTimeImmutable('2026-08-09T09:15:30.123456+00:00'),
-            new EventDispatchFailed([
-                new EventHandlerFailure('OrdersSubscriber::onOrderPlaced', new RuntimeException('Failed.', 41)),
-            ]),
-        );
-    }
-}
-
-final readonly class RecordedPublicationFailedEvent implements Event
-{
-    public static function fromArray(array $data): static
-    {
-        return new self();
-    }
-
-    public function toArray(): array
-    {
-        return [];
+        return $correlations;
     }
 }
