@@ -25,13 +25,13 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 2 | [T-00014 — Persist and Log Publication Operational State](00014-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | T-00013 and skip-free disposable database verification are complete. |
 | 3 | [T-00022 — Introduce Mandatory Architecture Enforcement](00022-TICKET.md) | [PRD-00008](../specs/00008-PRD.md) | Proves the inward dependency boundary independently of the coding-standard migration. |
 | 4 | [T-00023 — Eliminate Core Coverage Exclusions](00023-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Revalidates core coverage workarounds and covers deterministic Domain and Application failures. |
 | 5 | [T-00025 — Cover Adapter Failure Boundaries](00025-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Opens deterministic coverage of filesystem, template-buffering, and metrics failures. |
 | 6 | [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaces live-infrastructure exclusions with owned deterministic seams. |
 | 7 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Reuses the completed portable provider-registration path without blocking the Event Store implementation chain. |
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
+| 10 | [T-00016 — Document Event Sourcing Integration and Operations](00016-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Durable publication state now completes the implementation surface that the integration guide must document. |
 
 ## Waiting
 
@@ -39,7 +39,6 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 10 | [T-00016 — Document Event Sourcing Integration and Operations](00016-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00014 |
 | 11 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00016 |
 | 15 | [T-00024 — Make Scheduler Coverage Exact](00024-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00022 |
 | 16 | [T-00027 — Enforce Zero-Exclusion Exact Coverage](00027-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00023, T-00024, T-00025, T-00026 |
@@ -60,9 +59,10 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 32 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
-named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation
-and in-memory event publication are complete. Skip-free disposable database verification now precedes durable
-publication state so the next DBAL slice cannot hide behind environment skips. The quality-gate
+named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
+in-memory event publication, durable named publication cursors, transactional failure evidence, and composable PSR-3
+logging are complete across the same database matrix. T-00016 is now ready to document the completed integration and
+operations surface. The quality-gate
 paths also open independently: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement proceeds through T-00022, and independent coverage migrations
@@ -81,6 +81,7 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00014 — Persist and Log Publication Operational State](00014-TICKET.md) | [PRD-00005](../specs/00005-PRD.md) | Added monotonic DBAL publication cursors, transactional first-evidence failure recording, shared SQLite/MySQL/PostgreSQL conformance, and required-delegate PSR-3 logging while preserving exact coverage. |
 | [T-00021 — Migrate and Enable Documentation Rules](00021-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Resolved 288 documentation findings across 124 production files, retained semantic and static-analysis contracts, enabled all documentation rules without suppressions, and preserved exact complete coverage. |
 | [T-00020 — Migrate and Enable Member Layout Rules](00020-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Enabled four canonical member-layout rules, corrected 273 order and spacing violations without changing nonblank production content, aligned Rector ownership, and preserved exact complete coverage. |
 | [T-00045 — Repair Mechanical PHPCBF Fixer Output](00045-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Corrected canonical strict-types whitespace and return indentation, proved second-pass PHPCBF idempotence, and preserved exact complete coverage. |
