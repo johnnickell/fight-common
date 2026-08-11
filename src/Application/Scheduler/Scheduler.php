@@ -138,15 +138,12 @@ final class Scheduler
 
         try {
             $this->checkMaxRuntime($lockFile, $job['maxRuntime']);
-        // @codeCoverageIgnoreStart
         } catch (Throwable $throwable) {
             $this->logError($throwable);
             $this->notify($throwable, $job);
 
             return;
         }
-
-        // @codeCoverageIgnoreEnd
 
         try {
             $this->acquireLock($lockFile);
@@ -338,7 +335,6 @@ final class Scheduler
 
         $runtime = $this->getLockLifetime($lockFile);
 
-        // @codeCoverageIgnoreStart
         if ($runtime > $maxRuntime) {
             throw new SchedulerException(sprintf(
                 'Max runtime of %d seconds exceeded (current runtime: %d seconds)',
@@ -346,8 +342,6 @@ final class Scheduler
                 $runtime
             ));
         }
-
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -359,7 +353,6 @@ final class Scheduler
             return 0;
         }
 
-        // @codeCoverageIgnoreStart
         $pid = file_get_contents($lockFile);
 
         if (empty($pid)) {
@@ -373,7 +366,6 @@ final class Scheduler
         $stat = stat($lockFile);
 
         return (time() - $stat['mtime']);
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -388,7 +380,6 @@ final class Scheduler
             throw new RuntimeException(sprintf('Lock already acquired (File: %s)', $lockFile));
         }
 
-        // @codeCoverageIgnoreStart
         if (!file_exists($lockFile) && !touch($lockFile)) {
             throw new RuntimeException(sprintf('Unable to create lock file (File: %s)', $lockFile));
         }
@@ -414,7 +405,6 @@ final class Scheduler
         }
 
         throw new LockException(sprintf('Job is still locked (File: %s)', $lockFile));
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -422,14 +412,11 @@ final class Scheduler
      */
     private function releaseLock(string $lockFile): void
     {
-        // @codeCoverageIgnoreStart
         if (!empty($this->lockHandles[$lockFile])) {
             ftruncate($this->lockHandles[$lockFile], 0);
             flock($this->lockHandles[$lockFile], LOCK_UN);
             fclose($this->lockHandles[$lockFile]);
         }
-
-        // @codeCoverageIgnoreEnd
 
         unset($this->lockHandles[$lockFile]);
     }
