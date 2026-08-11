@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Arrays;
+namespace Fight\Common\Standards\Phpcs\Sniffs\Arrays;
 
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;

@@ -26,6 +26,11 @@ Focused compatibility tests cover the stable standard name, custom sniff identif
 documented property names. Consumer examples reference those public identifiers rather than implementation
 class paths where PHPCS supports the stable identifier.
 
+T-00046 establishes the initial custom identifiers under `Phpcs.*` before the standard's first release because
+PHP_CodeSniffer derives that prefix from the flat `Fight\Common\Standards\Phpcs\Sniffs` implementation namespace.
+The compatibility policy applies to those identifiers beginning with the first release that contains the standard;
+the unreleased development names require no alias or deprecation path.
+
 ## Consequences
 
 Fight Common may improve correctness in patch and minor releases when doing so removes false positives or

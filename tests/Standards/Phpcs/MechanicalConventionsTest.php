@@ -21,9 +21,9 @@ final class MechanicalConventionsTest extends TestCase
         $messages = array_values($report['files'])[0]['messages'];
         $sources = array_column($messages, 'source');
 
-        self::assertContains('FightCommon.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma', $sources);
-        self::assertContains('FightCommon.Arrays.RequireAlignedArrayArrow.ArrowNotAligned', $sources);
-        self::assertContains('FightCommon.Formatting.RequireBlankLineBeforeReturn.Missing', $sources);
+        self::assertContains('Phpcs.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma', $sources);
+        self::assertContains('Phpcs.Arrays.RequireAlignedArrayArrow.ArrowNotAligned', $sources);
+        self::assertContains('Phpcs.Formatting.RequireBlankLineBeforeReturn.Missing', $sources);
         self::assertContains('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses.IncorrectlyOrderedUses', $sources);
 
         $compliant = $this->runPhpcs('MechanicalConventions.compliant.inc');
@@ -37,7 +37,7 @@ final class MechanicalConventionsTest extends TestCase
         $process = new Process([
             PHP_BINARY,
             $root.'/vendor/bin/phpcs',
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--report=json',
             __DIR__.'/'.$fixture,
         ], $root);

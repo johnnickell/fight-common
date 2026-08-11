@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="FightCommon">
+<ruleset name="FightCommon" namespace="Fight\Common\Standards\Phpcs">
     <description>Fight Common coding standard</description>
 
     <config name="installed_paths" value="../../slevomat/coding-standard" />

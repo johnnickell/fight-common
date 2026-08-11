@@ -11,7 +11,7 @@ parameters:
     ignoreErrors:
         -
             identifier: classConstant.internalClass
-            path: src/Standards/Phpcs/FightCommon/Sniffs/*/*Sniff.php
+            path: src/Standards/Phpcs/Sniffs/*/*Sniff.php
         -
             identifier: staticMethod.internalClass
-            path: src/Standards/Phpcs/FightCommon/Sniffs/*/*Sniff.php
+            path: src/Standards/Phpcs/Sniffs/*/*Sniff.php

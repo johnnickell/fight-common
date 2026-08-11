@@ -32,13 +32,13 @@ Create `phpcs.xml` in the consumer repository:
     <exclude-pattern>tests/Fixtures/*</exclude-pattern>
 
     <!-- Load the installed standard explicitly; no Composer plugin is needed. -->
-    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml">
+    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml">
         <!-- A consumer may exclude an individual public sniff. -->
-        <exclude name="FightCommon.Commenting.RequireMethodDocComment" />
+        <exclude name="Phpcs.Commenting.RequireMethodDocComment" />
     </rule>
 
     <!-- A consumer may override a documented public property. -->
-    <rule ref="FightCommon.Commenting.RequireTypeDocComment">
+    <rule ref="Phpcs.Commenting.RequireTypeDocComment">
         <properties>
             <property name="strict" value="false" />
         </properties>
@@ -59,15 +59,15 @@ To run only individual sniffs while retaining the full standard's configuration,
 identifiers in the consumer configuration:
 
 ```xml
-<arg name="sniffs" value="FightCommon.Files.RequireStrictTypes,FightCommon.Arrays.RequireAlignedArrayArrow" />
-<rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml" />
+<arg name="sniffs" value="Phpcs.Files.RequireStrictTypes,Phpcs.Arrays.RequireAlignedArrayArrow" />
+<rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml" />
 ```
 
 The equivalent one-off command is:
 
 ```bash
 vendor/bin/phpcs --standard=phpcs.xml \
-    --sniffs=FightCommon.Files.RequireStrictTypes,FightCommon.Arrays.RequireAlignedArrayArrow
+    --sniffs=Phpcs.Files.RequireStrictTypes,Phpcs.Arrays.RequireAlignedArrayArrow
 ```
 
 ## Public compatibility reference
@@ -77,30 +77,30 @@ eleventh custom production unit, `DocumentationComment`, is a supporting helper 
 
 | Public sniff identifier | Diagnostic codes |
 | --- | --- |
-| `FightCommon.Arrays.DisallowTrailingArrayComma` | `DisallowTrailingArrayComma` |
-| `FightCommon.Arrays.RequireAlignedArrayArrow` | `ArrowNotAligned` |
-| `FightCommon.Classes.NamedClassMemberSpacing` | `IncorrectCountOfBlankLinesBetweenMembers` |
-| `FightCommon.Classes.NamedClassStructure` | `IncorrectGroupOrder` |
-| `FightCommon.Classes.NamedMethodSpacing` | `IncorrectLinesCountBetweenMethods` |
-| `FightCommon.Commenting.RequireMethodDocComment` | `AmbiguousSummary`, `InheritDocWithContent`, `InvalidConstructorSummary`, `MissingBlankLine`, `MissingDocComment`, `TerminalPunctuation`, `UnapprovedVerb`, `WrappedSummary` |
-| `FightCommon.Commenting.RequireTypeDocComment` | `IncorrectSummary`, `Missing`, `MissingBlankLine`, `MissingDocComment`, `TerminalPunctuation` |
-| `FightCommon.Files.RequireStrictTypes` | `Missing` |
-| `FightCommon.Formatting.RequireBlankLineBeforeReturn` | `Missing` |
-| `FightCommon.Formatting.RequireVisibilityGroupSpacing` | `MissingBlankLineBetweenVisibilityGroups`, `UnexpectedBlankLineWithinVisibilityGroup` |
+| `Phpcs.Arrays.DisallowTrailingArrayComma` | `DisallowTrailingArrayComma` |
+| `Phpcs.Arrays.RequireAlignedArrayArrow` | `ArrowNotAligned` |
+| `Phpcs.Classes.NamedClassMemberSpacing` | `IncorrectCountOfBlankLinesBetweenMembers` |
+| `Phpcs.Classes.NamedClassStructure` | `IncorrectGroupOrder` |
+| `Phpcs.Classes.NamedMethodSpacing` | `IncorrectLinesCountBetweenMethods` |
+| `Phpcs.Commenting.RequireMethodDocComment` | `AmbiguousSummary`, `InheritDocWithContent`, `InvalidConstructorSummary`, `MissingBlankLine`, `MissingDocComment`, `TerminalPunctuation`, `UnapprovedVerb`, `WrappedSummary` |
+| `Phpcs.Commenting.RequireTypeDocComment` | `IncorrectSummary`, `Missing`, `MissingBlankLine`, `MissingDocComment`, `TerminalPunctuation` |
+| `Phpcs.Files.RequireStrictTypes` | `Missing` |
+| `Phpcs.Formatting.RequireBlankLineBeforeReturn` | `Missing` |
+| `Phpcs.Formatting.RequireVisibilityGroupSpacing` | `MissingBlankLineBetweenVisibilityGroups`, `UnexpectedBlankLineWithinVisibilityGroup` |
 
 PHPCS reports a complete source such as
-`FightCommon.Commenting.RequireTypeDocComment.MissingDocComment` by joining the standard, category, sniff,
+`Phpcs.Commenting.RequireTypeDocComment.MissingDocComment` by joining the identifier prefix, category, sniff,
 and diagnostic code.
 
 These custom-sniff properties are also public compatibility contracts:
 
 | Public sniff identifier | Property | Default in `FightCommon` | Meaning |
 | --- | --- | --- | --- |
-| `FightCommon.Classes.NamedClassStructure` | `groups` | canonical 18-group declaration order | Ordered declaration groups accepted by the inherited Slevomat implementation |
-| `FightCommon.Classes.NamedClassMemberSpacing` | `linesCountBetweenMembers` | `1` | Required blank lines between named-class members |
-| `FightCommon.Classes.NamedMethodSpacing` | `minLinesCount` | `1` | Minimum blank lines between named-class methods |
-| `FightCommon.Classes.NamedMethodSpacing` | `maxLinesCount` | `1` | Maximum blank lines between named-class methods |
-| `FightCommon.Commenting.RequireTypeDocComment` | `strict` | `true` | When `false`, ordinary classes may omit type documentation; interfaces, traits, and enums still require it |
+| `Phpcs.Classes.NamedClassStructure` | `groups` | canonical 18-group declaration order | Ordered declaration groups accepted by the inherited Slevomat implementation |
+| `Phpcs.Classes.NamedClassMemberSpacing` | `linesCountBetweenMembers` | `1` | Required blank lines between named-class members |
+| `Phpcs.Classes.NamedMethodSpacing` | `minLinesCount` | `1` | Minimum blank lines between named-class methods |
+| `Phpcs.Classes.NamedMethodSpacing` | `maxLinesCount` | `1` | Maximum blank lines between named-class methods |
+| `Phpcs.Commenting.RequireTypeDocComment` | `strict` | `true` | When `false`, ordinary classes may omit type documentation; interfaces, traits, and enums still require it |
 
 Consumers may override these properties with a `<rule>` and `<properties>` block like the `strict` example.
 Changing or removing the standard name, a listed sniff or diagnostic, or one of these properties follows
