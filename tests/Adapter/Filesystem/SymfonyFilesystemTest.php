@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Filesystem;
 
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RuntimeException;
 use Fight\Common\Adapter\Filesystem\SymfonyFilesystem;
 use Fight\Common\Application\Filesystem\Exception\FileNotFoundException;
 use Fight\Common\Application\Filesystem\Exception\FilesystemException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RuntimeException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
+
+require_once __DIR__ . '/FilesystemFunctionOverrides.php';
 
 class FailStream
 {
@@ -57,6 +59,8 @@ class SymfonyFilesystemTest extends UnitTestCase
 
     protected function tearDown(): void
     {
+        FilesystemFunctionOverrides::reset();
+
         $dirIterator = new RecursiveDirectoryIterator($this->tmpDir, RecursiveDirectoryIterator::SKIP_DOTS);
         $files = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($files as $file) {
@@ -447,6 +451,18 @@ class SymfonyFilesystemTest extends UnitTestCase
         $filesystem->lastModified('/nonexistent');
     }
 
+    public function test_that_last_modified_throws_filesystem_exception_when_metadata_fetch_fails(): void
+    {
+        $path = $this->createFile('modified.txt');
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\filemtime', $path);
+        $filesystem = new SymfonyFilesystem();
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage('Unable to fetch last modified: ' . $path);
+
+        $filesystem->lastModified($path);
+    }
+
     public function test_that_last_accessed_returns_timestamp(): void
     {
         $file = $this->createFile('accessed.txt');
@@ -466,6 +482,18 @@ class SymfonyFilesystemTest extends UnitTestCase
         $filesystem->lastAccessed('/nonexistent');
     }
 
+    public function test_that_last_accessed_throws_filesystem_exception_when_metadata_fetch_fails(): void
+    {
+        $path = $this->createFile('accessed.txt');
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\fileatime', $path);
+        $filesystem = new SymfonyFilesystem();
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage('Unable to fetch last accessed: ' . $path);
+
+        $filesystem->lastAccessed($path);
+    }
+
     public function test_that_file_size_returns_size(): void
     {
         $file = $this->createFile('size.txt', '12345');
@@ -483,6 +511,18 @@ class SymfonyFilesystemTest extends UnitTestCase
         $this->expectException(FileNotFoundException::class);
 
         $filesystem->fileSize('/nonexistent');
+    }
+
+    public function test_that_file_size_throws_filesystem_exception_when_metadata_fetch_fails(): void
+    {
+        $path = $this->createFile('size.txt');
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\filesize', $path);
+        $filesystem = new SymfonyFilesystem();
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage('Unable to fetch file size: ' . $path);
+
+        $filesystem->fileSize($path);
     }
 
     public function test_that_file_name_returns_filename_with_extension(): void
@@ -600,6 +640,18 @@ class SymfonyFilesystemTest extends UnitTestCase
         $this->expectException(FileNotFoundException::class);
 
         $filesystem->mimeType('/nonexistent');
+    }
+
+    public function test_that_mime_type_throws_filesystem_exception_when_detection_fails(): void
+    {
+        $path = $this->createFile('mime.txt');
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\finfo_file', $path);
+        $filesystem = new SymfonyFilesystem();
+
+        $this->expectException(FilesystemException::class);
+        $this->expectExceptionMessage('Unable to fetch mime type: ' . $path);
+
+        $filesystem->mimeType($path);
     }
 
     public function test_that_get_return_returns_php_result(): void

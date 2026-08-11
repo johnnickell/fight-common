@@ -28,19 +28,7 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
         private string $prefix = '',
         ?Closure $sender = null
     ) {
-        $host = $this->host;
-        $port = $this->port;
-
-        $this->sender = $sender ?? static function (string $metric) use ($host, $port): void {
-            $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-
-            if ($socket === false) {
-                return; // @codeCoverageIgnore
-            }
-
-            @socket_sendto($socket, $metric, strlen($metric), 0, $host, $port);
-            socket_close($socket);
-        };
+        $this->sender = $sender ?? new UdpMetricSender($this->host, $this->port)->send(...);
     }
 
     /**
