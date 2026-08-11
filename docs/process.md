@@ -113,6 +113,7 @@ $process = ProcessBuilder::create()
 |---|---|
 | `create(string\|array\|null $args)` | Static factory; accepts an initial argument string or list |
 | `prefix(string\|array $prefix)` | Sets fixed leading tokens (replaces any previous prefix) |
+| `shellCommand(string $command)` | Preserves an already accepted shell command, including operators and quoting |
 | `arg(string $arg)` | Appends a positional argument; empty strings are ignored |
 | `option(string $option, ?string $value)` | Appends a long option; `--` added if absent |
 | `short(string $option, ?string $value)` | Appends a short option; `-` added if absent |
@@ -126,6 +127,10 @@ $process = ProcessBuilder::create()
 | `disableOutput()` | Disables output capturing |
 | `enableOutput()` | Re-enables output capturing |
 | `getProcess()` | Returns the built `Process`; throws `MethodCallException` if empty |
+
+Use `shellCommand()` only when the entire command string is already trusted, such as a command accepted by
+Scheduler configuration. For untrusted or independently supplied arguments, use `prefix()`, `arg()`,
+`option()`, and `short()` so each token is escaped.
 
 ---
 

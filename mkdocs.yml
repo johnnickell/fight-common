@@ -74,4 +74,5 @@ nav:
     - Dependency Injection: dependency-injection.md
     - Utilities: utilities.md
   - Maintenance:
+    - Architecture Enforcement: architecture.md
     - Contributing & Branching: contributing.md

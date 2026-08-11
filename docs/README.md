@@ -24,10 +24,11 @@ composer require johnnickell/fight-common
 
 PHP 8.5+ is required. The library depends on PSR-7 (`psr/http-message`), PSR-17
 (`psr/http-factory`), PSR-18 (`psr/http-client`), PSR-3 (`psr/log`), PSR-20 (`psr/cache`),
-and PSR-11 (`psr/container`) interfaces. Optional adapters require additional packages:
+and PSR-11 (`psr/container`) interfaces. Optional adapters and tooling require additional packages:
 
 | Package | Enables | Doc |
 |---|---|---|
+| `deptrac/deptrac` | Optional architecture enforcement in consuming repositories | [architecture](architecture.md) |
 | `doctrine/dbal` | Custom Doctrine data types for value objects | [values](values.md) |
 | `doctrine/orm` | Doctrine unit of work | [repositories](repositories.md) |
 | `guzzlehttp/guzzle` `guzzlehttp/psr7` | HTTP client adapter | [http-client](http-client.md) |
@@ -223,5 +224,8 @@ See [validation](validation.md) for rule definitions and usage.
     cron/datetime/callable schedules, output capture, failure notification, and max
     runtime guard.
 
-22. **[coding-standard](coding-standard.md)** — Optional `FightCommon` PHP_CodeSniffer standard,
+22. **[architecture](architecture.md)** — Enforced inward dependency direction, exact external allowances,
+    and optional consumer Deptrac guidance.
+
+23. **[coding-standard](coding-standard.md)** — Optional `FightCommon` PHP_CodeSniffer standard,
     copy-ready consumer configuration, stable identifiers, configurable properties, and parity evidence.

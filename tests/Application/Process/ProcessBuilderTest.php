@@ -370,6 +370,15 @@ class ProcessBuilderTest extends UnitTestCase
         self::assertStringContainsString("'hello world'", $process->command());
     }
 
+    public function test_that_get_process_preserves_a_raw_shell_command(): void
+    {
+        $process = ProcessBuilder::create()
+            ->shellCommand('bin/console cache:warmup --env=prod')
+            ->getProcess();
+
+        self::assertSame('bin/console cache:warmup --env=prod', $process->command());
+    }
+
     public function test_that_builder_methods_return_same_instance(): void
     {
         $builder = ProcessBuilder::create();
