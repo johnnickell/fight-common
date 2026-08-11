@@ -122,6 +122,19 @@ class ValidationServiceTest extends UnitTestCase
         );
     }
 
+    public function test_that_validate_rejects_an_unsupported_rule_name(): void
+    {
+        $service = new ValidationService();
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Unsupported rule name: unknown');
+
+        $service->validate(
+            ['name' => 'Alice'],
+            [['field' => 'name', 'label' => 'Name', 'rules' => 'unknown']]
+        );
+    }
+
     public function test_that_validate_throws_domain_exception_when_rule_entry_is_not_an_array(): void
     {
         $service = new ValidationService();
