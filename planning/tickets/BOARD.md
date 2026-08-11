@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-10
+Last updated: 2026-08-11
 
 ## “What’s Next?” Contract
 
@@ -25,7 +25,6 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 6 | [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaces live-infrastructure exclusions with owned deterministic seams. |
 | 15 | [T-00024 — Make Scheduler Coverage Exact](00024-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Exercises the repaired required-`ProcessRunner` boundary and removes Scheduler coverage exclusions. |
 | 7 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Reuses the completed portable provider-registration path without blocking the Event Store implementation chain. |
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
@@ -38,7 +37,7 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
 | 11 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00016 |
-| 16 | [T-00027 — Enforce Zero-Exclusion Exact Coverage](00027-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00024, T-00026 |
+| 16 | [T-00027 — Enforce Zero-Exclusion Exact Coverage](00027-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00024 |
 | 17 | [T-00028 — Establish the Shared Executable Quality Gate](00028-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00027 |
 | 18 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 19 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
@@ -65,9 +64,9 @@ documentation migrations, and its reusable fixer repairs are complete without ba
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
 failure, and Scheduler command execution through the required `ProcessRunner`. Core iterator, timezone, and
 validation-service coverage is exact without inline exclusions or test-order dependence. Filesystem,
-template-buffering, and StatsD failure boundaries are now deterministic without public-contract or production
-filesystem-semantic changes. The remaining coverage migrations can proceed independently at T-00024 and T-00026.
-All four coverage slices join at T-00027; T-00028 then establishes the shared gate, after which local build
+template-buffering, StatsD, process, and FTP failure boundaries are now deterministic without public-contract
+or production filesystem-semantic changes. T-00024 is the remaining coverage migration before all four slices
+join at T-00027; T-00028 then establishes the shared gate, after which local build
 and CI delivery split into T-00029 and T-00030. T-00031 attaches pre-commit enforcement to the completed local
 build.
 
@@ -81,6 +80,7 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Removed the process and FTP exclusions through real Symfony process execution and an isolated native-delegating FTP test boundary while preserving public contracts and exact complete coverage. |
 | [T-00025 — Cover Adapter Failure Boundaries](00025-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Removed seven filesystem, template-buffering, and StatsD exclusions through deterministic test controls and an internal UDP sender while preserving public contracts and exact complete coverage. |
 | [T-00023 — Eliminate Core Coverage Exclusions](00023-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Removed core iterator, timezone, and validation-service exclusions, covered public failure behavior, eliminated hidden test-order dependence, and retained exact complete statement coverage. |
 | [T-00022 — Introduce Mandatory Architecture Enforcement](00022-TICKET.md) | [PRD-00008](../specs/00008-PRD.md) | Enforced exact runtime and Standards dependency allowances with mandatory violation and unassigned-token checks, repaired Scheduler through `ProcessBuilder` and required `ProcessRunner`, and retained exact complete coverage without baselines or skips. |
