@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Scheduler;
 
+require_once __DIR__.'/RuntimeInspectionFunctionController.php';
+require_once __DIR__.'/LockLifecycleFunctionController.php';
+
 use Fight\Common\Application\Mail\MailService;
 use Fight\Common\Application\Mail\Message\MailFactory;
 use Fight\Common\Application\Mail\Message\MailMessage;
@@ -37,8 +40,18 @@ class SchedulerTest extends UnitTestCase
         self::assertFalse($parameters[2]->allowsNull());
     }
 
+    public function test_that_scheduler_source_has_no_coverage_exclusions(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 3).'/src/Application/Scheduler/Scheduler.php');
+
+        self::assertIsString($source);
+        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
+    }
+
     protected function setUp(): void
     {
+        LockLifecycleFunctionController::reset();
+        RuntimeInspectionFunctionController::reset();
         $this->tempDir  = sys_get_temp_dir().'/test_scheduler_'.uniqid();
         mkdir($this->tempDir, 0777, true);
         $this->timezone = new Timezone('UTC');
@@ -47,6 +60,8 @@ class SchedulerTest extends UnitTestCase
 
     protected function tearDown(): void
     {
+        LockLifecycleFunctionController::reset();
+        RuntimeInspectionFunctionController::reset();
         array_map('unlink', glob($this->tempDir.'/*.lock') ?: []);
         @rmdir($this->tempDir);
         parent::tearDown();
@@ -387,62 +402,350 @@ class SchedulerTest extends UnitTestCase
         self::assertTrue(true);
     }
 
-    // -------------------------------------------------------------------------
-    // acquireLock — duplicate lock exception
-    // -------------------------------------------------------------------------
-
-    public function test_that_duplicate_lock_acquire_throws_runtime_exception(): void
+    public function test_that_empty_lock_file_has_zero_lifetime_and_job_runs(): void
     {
-        // Inject a job that tries to acquire its own lock a second time
-        // by calling run() while the lock is already held from a first run.
-        // We simulate this by injecting a job whose callable calls the same
-        // scheduler's run() recursively — but the simpler path is to test
-        // acquireLock's guard via the array_key_exists check indirectly.
-        // We reach it by having the job callable force a recursive call on a
-        // scheduler that already holds the lock for "test".
+        $ran      = false;
+        $lockFile = $this->tempDir.'/test.lock';
+        touch($lockFile);
+
         $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
+            $ran = true;
 
-        // Use a capture to get inside the running state and see the lockHandles guard.
-        // Instead: create two schedulers sharing the same tempDir and same job name,
-        // and verify that when the lock file can't be acquired (LockException), the
-        // job is quietly skipped (logger.debug is called).
+            return true;
+        }, maxRuntime: 5);
+        $scheduler->run();
+
+        self::assertTrue($ran);
+    }
+
+    public function test_that_dead_lock_process_has_zero_lifetime_and_job_runs(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/test.lock';
+        file_put_contents($lockFile, '4242');
+        RuntimeInspectionFunctionController::control($lockFile, processActive: false);
+
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
+            $ran = true;
+
+            return true;
+        }, maxRuntime: 5);
+        $scheduler->run();
+
+        self::assertTrue($ran);
+    }
+
+    public function test_that_active_lock_within_max_runtime_allows_job_to_run(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/test.lock';
+        file_put_contents($lockFile, '4242');
+        touch($lockFile, 1_999_999_999);
+        RuntimeInspectionFunctionController::control($lockFile, processActive: true, currentTime: 2_000_000_000);
+
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
+            $ran = true;
+
+            return true;
+        }, maxRuntime: 5);
+        $scheduler->run();
+
+        self::assertTrue($ran);
+    }
+
+    public function test_that_expired_lock_logs_notifies_and_leaves_job_unexecuted(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/test.lock';
+        file_put_contents($lockFile, '4242');
+        touch($lockFile, 1_999_999_990);
+        RuntimeInspectionFunctionController::control($lockFile, processActive: true, currentTime: 2_000_000_000);
+
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('debug')->once();
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === 'Max runtime of 5 seconds exceeded (current runtime: 10 seconds)'
+                && $context['exception'] instanceof SchedulerException
+        );
 
-        $schedulerA = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
-        $schedulerB = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
+        $message = new MailMessage();
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldReceive('createMessage')->once()->andReturn($message);
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldReceive('send')->once()->with($message);
 
-        // Both register the same job name, both are due.
-        // schedulerA runs first, holds the lock during job execution.
-        // schedulerB tries to run and gets LockException → logs debug.
-        $lockFile = $this->tempDir.'/'.'test.lock';
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            $this->processRunner,
+            logger: $logger,
+            mailService: new MailService($transport, $factory),
+            fromEmail: 'scheduler@example.com'
+        );
+        $scheduler->addJob(
+            'test',
+            fn() => true,
+            function () use (&$ran): bool {
+                $ran = true;
 
-        // Pre-create and flock the lock file manually to simulate a held lock.
+                return true;
+            },
+            maxRuntime: 5,
+            notify: ['admin@example.com'],
+            environment: 'test'
+        );
+        $scheduler->run();
+
+        self::assertFalse($ran);
+        self::assertSame('4242', \file_get_contents($lockFile));
+        self::assertSame('[Scheduler] Job "test" failed', $message->getSubject());
+        self::assertStringContainsString(
+            'Error: Max runtime of 5 seconds exceeded (current runtime: 10 seconds)',
+            $message->getContent()[0]['content']
+        );
+    }
+
+    public function test_that_runtime_inspection_failure_logs_notifies_and_leaves_job_unexecuted(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/test.lock';
+        file_put_contents($lockFile, '4242');
+        $failure = new RuntimeException('Runtime inspection failed');
+        RuntimeInspectionFunctionController::control($lockFile, readFailure: $failure);
+
+        $logger = $this->mock(LoggerInterface::class);
+        $logger->shouldReceive('error')->once()->with('Runtime inspection failed', ['exception' => $failure]);
+
+        $message = new MailMessage();
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldReceive('createMessage')->once()->andReturn($message);
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldReceive('send')->once()->with($message);
+
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            $this->processRunner,
+            logger: $logger,
+            mailService: new MailService($transport, $factory),
+            fromEmail: 'scheduler@example.com'
+        );
+        $scheduler->addJob(
+            'test',
+            fn() => true,
+            function () use (&$ran): bool {
+                $ran = true;
+
+                return true;
+            },
+            maxRuntime: 5,
+            notify: ['admin@example.com'],
+            environment: 'test'
+        );
+        $scheduler->run();
+
+        self::assertFalse($ran);
+        self::assertSame('4242', \file_get_contents($lockFile));
+        self::assertSame('[Scheduler] Job "test" failed', $message->getSubject());
+        self::assertStringContainsString('Error: Runtime inspection failed', $message->getContent()[0]['content']);
+    }
+
+    // -------------------------------------------------------------------------
+    // acquireLock / releaseLock
+    // -------------------------------------------------------------------------
+
+    public function test_that_lock_creation_failure_logs_notifies_and_leaves_job_unexecuted(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/creation_failure.lock';
+        LockLifecycleFunctionController::control($lockFile, failCreate: true);
+
+        $logger = $this->mock(LoggerInterface::class);
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === sprintf('Unable to create lock file (File: %s)', $lockFile)
+                && $context['exception'] instanceof RuntimeException
+        );
+
+        $message = new MailMessage();
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldReceive('createMessage')->once()->andReturn($message);
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldReceive('send')->once()->with($message);
+
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            $this->processRunner,
+            logger: $logger,
+            mailService: new MailService($transport, $factory),
+            fromEmail: 'scheduler@example.com'
+        );
+        $scheduler->addJob(
+            'creation failure',
+            fn() => true,
+            function () use (&$ran): bool {
+                $ran = true;
+
+                return true;
+            },
+            notify: ['admin@example.com'],
+            environment: 'test'
+        );
+        $scheduler->run();
+
+        self::assertFalse($ran);
+        self::assertFileDoesNotExist($lockFile);
+        self::assertSame('[Scheduler] Job "creation failure" failed', $message->getSubject());
+        self::assertStringContainsString(
+            sprintf('Error: Unable to create lock file (File: %s)', $lockFile),
+            $message->getContent()[0]['content']
+        );
+    }
+
+    public function test_that_lock_open_failure_logs_notifies_and_leaves_job_unexecuted(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/open_failure.lock';
+        touch($lockFile);
+        LockLifecycleFunctionController::control($lockFile, failOpen: true);
+
+        $logger = $this->mock(LoggerInterface::class);
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === sprintf('Unable to open lock file (File: %s)', $lockFile)
+                && $context['exception'] instanceof RuntimeException
+        );
+
+        $message = new MailMessage();
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldReceive('createMessage')->once()->andReturn($message);
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldReceive('send')->once()->with($message);
+
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            $this->processRunner,
+            logger: $logger,
+            mailService: new MailService($transport, $factory),
+            fromEmail: 'scheduler@example.com'
+        );
+        $scheduler->addJob(
+            'open failure',
+            fn() => true,
+            function () use (&$ran): bool {
+                $ran = true;
+
+                return true;
+            },
+            notify: ['admin@example.com'],
+            environment: 'test'
+        );
+        $scheduler->run();
+
+        self::assertFalse($ran);
+        self::assertSame('', file_get_contents($lockFile));
+        self::assertSame('[Scheduler] Job "open failure" failed', $message->getSubject());
+        self::assertStringContainsString(
+            sprintf('Error: Unable to open lock file (File: %s)', $lockFile),
+            $message->getContent()[0]['content']
+        );
+    }
+
+    public function test_that_lock_held_by_another_process_logs_debug_and_skips_job(): void
+    {
+        $ran      = false;
+        $lockFile = $this->tempDir.'/contended.lock';
+
+        $logger = $this->mock(LoggerInterface::class);
+        $logger->shouldReceive('debug')->once()->with(
+            sprintf('Job is still locked (File: %s)', $lockFile),
+            ['job' => 'contended']
+        );
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldNotReceive('createMessage');
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldNotReceive('send');
+
         touch($lockFile);
         $handle = fopen($lockFile, 'rb+');
         flock($handle, LOCK_EX | LOCK_NB);
 
-        $schedulerB->addJob('test', fn() => true, fn() => true);
-        $schedulerB->run();  // should detect locked file, log debug, not throw
+        try {
+            $scheduler = new Scheduler(
+                $this->timezone,
+                $this->tempDir,
+                $this->processRunner,
+                logger: $logger,
+                mailService: new MailService($transport, $factory),
+                fromEmail: 'scheduler@example.com'
+            );
+            $scheduler->addJob('contended', fn() => true, function () use (&$ran): bool {
+                $ran = true;
 
-        flock($handle, LOCK_UN);
-        fclose($handle);
+                return true;
+            });
+            $scheduler->run();
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+        }
+
+        self::assertFalse($ran);
     }
 
-    public function test_that_recursive_run_within_callable_logs_error_for_duplicate_lock(): void
+    public function test_that_recursive_run_logs_notifies_and_executes_the_outer_job_once(): void
     {
+        $lockFile = $this->tempDir.'/recursive.lock';
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('error')->once();
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === sprintf('Lock already acquired (File: %s)', $lockFile)
+                && $context['exception'] instanceof RuntimeException
+        );
+
+        $message = new MailMessage();
+        $factory = $this->mock(MailFactory::class);
+        $factory->shouldReceive('createMessage')->once()->andReturn($message);
+        $transport = $this->mock(MailTransport::class);
+        $transport->shouldReceive('send')->once()->with($message);
 
         $scheduler = null;
-        $callable  = function () use (&$scheduler): int {
+        $runCount  = 0;
+        $callable  = function () use (&$scheduler, &$runCount): int {
+            $runCount++;
             /** @var Scheduler $scheduler */
-            $scheduler->run(); // inner run: lock already held → RuntimeException → logError
+            $scheduler->run();
+
             return 0;
         };
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
-        $scheduler->addJob('test', fn() => true, $callable);
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            $this->processRunner,
+            logger: $logger,
+            mailService: new MailService($transport, $factory),
+            fromEmail: 'scheduler@example.com'
+        );
+        $scheduler->addJob(
+            'recursive',
+            fn() => true,
+            $callable,
+            notify: ['admin@example.com'],
+            environment: 'test'
+        );
         $scheduler->run();
+
+        self::assertSame(1, $runCount);
+        self::assertSame('[Scheduler] Job "recursive" failed', $message->getSubject());
+        self::assertStringContainsString(
+            sprintf('Error: Lock already acquired (File: %s)', $lockFile),
+            $message->getContent()[0]['content']
+        );
     }
 
     // -------------------------------------------------------------------------
