@@ -14,8 +14,6 @@ use Fight\Common\Application\FileTransfer\Transport\FileTransport;
  * Class FtpFileTransport
  *
  * Requires the PHP FTP extension and libssl for SSL connections.
- *
- * @codeCoverageIgnore Requires FTP connection to test
  */
 final class FtpFileTransport implements FileTransport
 {
