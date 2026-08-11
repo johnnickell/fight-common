@@ -15,9 +15,11 @@ final class ConsumerContractTest extends UnitTestCase
     public function test_that_builtin_documentation_rule_exclusions_remain_compatible(): void
     {
         $ruleset = simplexml_load_file(
-            dirname(__DIR__, 3).'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            dirname(__DIR__, 3).'/src/Standards/Phpcs/ruleset.xml',
         );
         self::assertNotFalse($ruleset);
+        self::assertSame('FightCommon', (string) $ruleset['name']);
+        self::assertSame('Fight\Common\Standards\Phpcs', (string) $ruleset['namespace']);
 
         $expectedExclusions = [
             'Squiz.Commenting.ClassComment' => [
@@ -130,7 +132,7 @@ final class ConsumerContractTest extends UnitTestCase
                 <ruleset name="DistConsumer">
                     <arg name="sniffs" value="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
                     <file>src</file>
-                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml" />
+                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml" />
                 </ruleset>
                 XML);
 
@@ -189,10 +191,10 @@ final class ConsumerContractTest extends UnitTestCase
                 <ruleset name="Consumer">
                     <file>src</file>
                     <exclude-pattern>src/Excluded/*</exclude-pattern>
-                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml">
-                        <exclude name="FightCommon.Commenting.RequireMethodDocComment" />
+                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml">
+                        <exclude name="Phpcs.Commenting.RequireMethodDocComment" />
                     </rule>
-                    <rule ref="FightCommon.Commenting.RequireTypeDocComment">
+                    <rule ref="Phpcs.Commenting.RequireTypeDocComment">
                         <properties>
                             <property name="strict" value="false" />
                         </properties>
@@ -209,9 +211,9 @@ final class ConsumerContractTest extends UnitTestCase
             file_put_contents($consumer.'/phpcs-selected.xml', <<<'XML'
                 <?xml version="1.0" encoding="UTF-8"?>
                 <ruleset name="Selected">
-                    <arg name="sniffs" value="FightCommon.Files.RequireStrictTypes" />
+                    <arg name="sniffs" value="Phpcs.Files.RequireStrictTypes" />
                     <file>selected</file>
-                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml" />
+                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml" />
                 </ruleset>
                 XML);
             $selected = new Process([
@@ -225,27 +227,27 @@ final class ConsumerContractTest extends UnitTestCase
 
             self::assertNotSame(0, $selected->getExitCode());
             self::assertSame(
-                ['FightCommon.Files.RequireStrictTypes.Missing'],
+                ['Phpcs.Files.RequireStrictTypes.Missing'],
                 array_column($selectedMessages, 'source'),
             );
 
             $listing = new Process([
                 $root.'/vendor/bin/phpcs',
                 '-e',
-                '--standard='.$consumer.'/vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml',
+                '--standard='.$consumer.'/vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml',
             ], $consumer);
             $listing->mustRun();
             $enabledSniffs = [
-                'FightCommon.Arrays.DisallowTrailingArrayComma',
-                'FightCommon.Arrays.RequireAlignedArrayArrow',
-                'FightCommon.Classes.NamedClassMemberSpacing',
-                'FightCommon.Classes.NamedClassStructure',
-                'FightCommon.Classes.NamedMethodSpacing',
-                'FightCommon.Commenting.RequireMethodDocComment',
-                'FightCommon.Commenting.RequireTypeDocComment',
-                'FightCommon.Files.RequireStrictTypes',
-                'FightCommon.Formatting.RequireBlankLineBeforeReturn',
-                'FightCommon.Formatting.RequireVisibilityGroupSpacing',
+                'Phpcs.Arrays.DisallowTrailingArrayComma',
+                'Phpcs.Arrays.RequireAlignedArrayArrow',
+                'Phpcs.Classes.NamedClassMemberSpacing',
+                'Phpcs.Classes.NamedClassStructure',
+                'Phpcs.Classes.NamedMethodSpacing',
+                'Phpcs.Commenting.RequireMethodDocComment',
+                'Phpcs.Commenting.RequireTypeDocComment',
+                'Phpcs.Files.RequireStrictTypes',
+                'Phpcs.Formatting.RequireBlankLineBeforeReturn',
+                'Phpcs.Formatting.RequireVisibilityGroupSpacing',
             ];
             $builtinDocumentationSniffs = [
                 'Generic.Commenting.DocComment',
@@ -274,7 +276,7 @@ final class ConsumerContractTest extends UnitTestCase
 
             $documentation = file_get_contents($root.'/docs/coding-standard.md');
             self::assertIsString($documentation);
-            $ruleset = file_get_contents($root.'/src/Standards/Phpcs/FightCommon/ruleset.xml');
+            $ruleset = file_get_contents($root.'/src/Standards/Phpcs/ruleset.xml');
             self::assertIsString($ruleset);
             self::assertStringNotContainsString('<file>', $ruleset);
             self::assertStringNotContainsString('<exclude-pattern>', $ruleset);
@@ -322,8 +324,8 @@ final class ConsumerContractTest extends UnitTestCase
             file_put_contents($consumer.'/phpcs-properties.xml', <<<'XML'
                 <?xml version="1.0" encoding="UTF-8"?>
                 <ruleset name="Properties">
-                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/FightCommon/ruleset.xml" />
-                    <rule ref="FightCommon.Classes.NamedClassStructure">
+                    <rule ref="./vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml" />
+                    <rule ref="Phpcs.Classes.NamedClassStructure">
                         <properties>
                             <property name="groups" type="array">
                                 <element value="uses" />
@@ -331,18 +333,18 @@ final class ConsumerContractTest extends UnitTestCase
                             </property>
                         </properties>
                     </rule>
-                    <rule ref="FightCommon.Classes.NamedClassMemberSpacing">
+                    <rule ref="Phpcs.Classes.NamedClassMemberSpacing">
                         <properties>
                             <property name="linesCountBetweenMembers" value="2" />
                         </properties>
                     </rule>
-                    <rule ref="FightCommon.Classes.NamedMethodSpacing">
+                    <rule ref="Phpcs.Classes.NamedMethodSpacing">
                         <properties>
                             <property name="minLinesCount" value="0" />
                             <property name="maxLinesCount" value="2" />
                         </properties>
                     </rule>
-                    <rule ref="FightCommon.Commenting.RequireTypeDocComment">
+                    <rule ref="Phpcs.Commenting.RequireTypeDocComment">
                         <properties>
                             <property name="strict" value="false" />
                         </properties>

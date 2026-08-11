@@ -20,15 +20,15 @@ final class MemberLayoutTest extends TestCase
         $report = json_decode($result->getOutput(), true, flags: JSON_THROW_ON_ERROR);
         $sources = array_column(array_values($report['files'])[0]['messages'], 'source');
 
-        self::assertContains('FightCommon.Classes.NamedClassMemberSpacing.IncorrectCountOfBlankLinesBetweenMembers', $sources);
-        self::assertContains('FightCommon.Classes.NamedClassStructure.IncorrectGroupOrder', $sources);
-        self::assertContains('FightCommon.Classes.NamedMethodSpacing.IncorrectLinesCountBetweenMethods', $sources);
+        self::assertContains('Phpcs.Classes.NamedClassMemberSpacing.IncorrectCountOfBlankLinesBetweenMembers', $sources);
+        self::assertContains('Phpcs.Classes.NamedClassStructure.IncorrectGroupOrder', $sources);
+        self::assertContains('Phpcs.Classes.NamedMethodSpacing.IncorrectLinesCountBetweenMethods', $sources);
         self::assertContains(
-            'FightCommon.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
+            'Phpcs.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
             $sources,
         );
         self::assertContains(
-            'FightCommon.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup',
+            'Phpcs.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup',
             $sources,
         );
     }
@@ -39,7 +39,7 @@ final class MemberLayoutTest extends TestCase
         $process = new Process([
             PHP_BINARY,
             $root.'/vendor/bin/phpcs',
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--report=json',
             __DIR__.'/'.$fixture,
         ], $root);

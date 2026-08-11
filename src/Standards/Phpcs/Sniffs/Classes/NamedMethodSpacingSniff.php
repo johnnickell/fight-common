@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Classes;
+namespace Fight\Common\Standards\Phpcs\Sniffs\Classes;
 
 use Override;
 use PHP_CodeSniffer\Files\File;

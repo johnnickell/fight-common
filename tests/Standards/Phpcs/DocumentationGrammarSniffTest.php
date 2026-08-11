@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Standards\Phpcs;
 
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Commenting\DocumentationComment;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Commenting\RequireMethodDocCommentSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Commenting\RequireTypeDocCommentSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Commenting\DocumentationComment;
+use Fight\Common\Standards\Phpcs\Sniffs\Commenting\RequireMethodDocCommentSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Commenting\RequireTypeDocCommentSniff;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Files\LocalFile;
@@ -30,18 +30,18 @@ final class DocumentationGrammarSniffTest extends UnitTestCase
         $file = $this->processFixture('DocumentationGrammar.noncompliant.inc');
 
         self::assertSame([
-            'FightCommon.Commenting.RequireMethodDocComment.AmbiguousSummary',
-            'FightCommon.Commenting.RequireMethodDocComment.InheritDocWithContent',
-            'FightCommon.Commenting.RequireMethodDocComment.InvalidConstructorSummary',
-            'FightCommon.Commenting.RequireMethodDocComment.MissingBlankLine',
-            'FightCommon.Commenting.RequireMethodDocComment.MissingDocComment',
-            'FightCommon.Commenting.RequireMethodDocComment.TerminalPunctuation',
-            'FightCommon.Commenting.RequireMethodDocComment.UnapprovedVerb',
-            'FightCommon.Commenting.RequireMethodDocComment.WrappedSummary',
-            'FightCommon.Commenting.RequireTypeDocComment.IncorrectSummary',
-            'FightCommon.Commenting.RequireTypeDocComment.MissingBlankLine',
-            'FightCommon.Commenting.RequireTypeDocComment.MissingDocComment',
-            'FightCommon.Commenting.RequireTypeDocComment.TerminalPunctuation',
+            'Phpcs.Commenting.RequireMethodDocComment.AmbiguousSummary',
+            'Phpcs.Commenting.RequireMethodDocComment.InheritDocWithContent',
+            'Phpcs.Commenting.RequireMethodDocComment.InvalidConstructorSummary',
+            'Phpcs.Commenting.RequireMethodDocComment.MissingBlankLine',
+            'Phpcs.Commenting.RequireMethodDocComment.MissingDocComment',
+            'Phpcs.Commenting.RequireMethodDocComment.TerminalPunctuation',
+            'Phpcs.Commenting.RequireMethodDocComment.UnapprovedVerb',
+            'Phpcs.Commenting.RequireMethodDocComment.WrappedSummary',
+            'Phpcs.Commenting.RequireTypeDocComment.IncorrectSummary',
+            'Phpcs.Commenting.RequireTypeDocComment.MissingBlankLine',
+            'Phpcs.Commenting.RequireTypeDocComment.MissingDocComment',
+            'Phpcs.Commenting.RequireTypeDocComment.TerminalPunctuation',
         ], array_values(array_unique($this->errorSources($file))));
     }
 
@@ -73,8 +73,8 @@ final class DocumentationGrammarSniffTest extends UnitTestCase
     {
         $sources = $this->errorSources($this->processFixture('DocumentationGrammar.legacy.inc'));
 
-        self::assertContains('FightCommon.Commenting.RequireTypeDocComment.IncorrectSummary', $sources);
-        self::assertContains('FightCommon.Commenting.RequireTypeDocComment.MissingDocComment', $sources);
+        self::assertContains('Phpcs.Commenting.RequireTypeDocComment.IncorrectSummary', $sources);
+        self::assertContains('Phpcs.Commenting.RequireTypeDocComment.MissingDocComment', $sources);
     }
 
     public function test_that_lenient_type_grammar_requires_docs_only_for_interfaces_traits_and_enums(): void
@@ -84,14 +84,14 @@ final class DocumentationGrammarSniffTest extends UnitTestCase
             $this->errorSources($file),
             static fn (string $source): bool => str_starts_with(
                 $source,
-                'FightCommon.Commenting.RequireTypeDocComment.',
+                'Phpcs.Commenting.RequireTypeDocComment.',
             ),
         ));
 
         self::assertSame([
-            'FightCommon.Commenting.RequireTypeDocComment.Missing',
-            'FightCommon.Commenting.RequireTypeDocComment.Missing',
-            'FightCommon.Commenting.RequireTypeDocComment.Missing',
+            'Phpcs.Commenting.RequireTypeDocComment.Missing',
+            'Phpcs.Commenting.RequireTypeDocComment.Missing',
+            'Phpcs.Commenting.RequireTypeDocComment.Missing',
         ], $sources);
         self::assertSame(0, $file->getFixableCount());
     }
@@ -118,10 +118,10 @@ final class DocumentationGrammarSniffTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 3);
         $config = new Config([
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--sniffs='.implode(',', [
-                'FightCommon.Commenting.RequireMethodDocComment',
-                'FightCommon.Commenting.RequireTypeDocComment',
+                'Phpcs.Commenting.RequireMethodDocComment',
+                'Phpcs.Commenting.RequireTypeDocComment',
             ]),
         ]);
         $config->cache = false;
