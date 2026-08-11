@@ -2,7 +2,7 @@
 id: T-00027
 prd: PRD-00009
 title: Enforce zero-exclusion exact coverage
-status: ready-for-agent
+status: done
 blocked_by: T-00023,T-00024,T-00025,T-00026
 ---
 
@@ -23,16 +23,16 @@ accepts a run only when covered statements equal all executable statements exact
 
 ## Acceptance Criteria
 
-- [ ] Production source contains no `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, or
+- [x] Production source contains no `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, or
   `@codeCoverageIgnoreEnd` directive.
-- [ ] The gate fails when any forbidden directive is introduced into production source.
-- [ ] The gate fails when Clover is absent, malformed, or lacks the required project statement metrics.
-- [ ] The gate fails whenever covered statements are fewer than executable statements, regardless of rounded
+- [x] The gate fails when any forbidden directive is introduced into production source.
+- [x] The gate fails when Clover is absent, malformed, or lacks the required project statement metrics.
+- [x] The gate fails whenever covered statements are fewer than executable statements, regardless of rounded
   percentage output.
-- [ ] The gate passes only when covered statements equal executable statements exactly.
-- [ ] Focused fixtures prove directive variants, missing and malformed reports, incomplete coverage, and exact
+- [x] The gate passes only when covered statements equal executable statements exactly.
+- [x] Focused fixtures prove directive variants, missing and malformed reports, incomplete coverage, and exact
   equality.
-- [ ] The complete existing test suite produces acceptable exact coverage evidence.
+- [x] The complete existing test suite produces acceptable exact coverage evidence.
 
 ## Parent
 

@@ -25,7 +25,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 16 | [T-00027 — Enforce Zero-Exclusion Exact Coverage](00027-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | All four exclusion-removal slices are complete; enforce the permanent zero-directive, exact-Clover contract. |
+| 17 | [T-00028 — Establish the Shared Executable Quality Gate](00028-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Compose the completed standards, architecture, test, and exact-coverage contracts into one host-neutral gate. |
 | 7 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Reuses the completed portable provider-registration path without blocking the Event Store implementation chain. |
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
 | 10 | [T-00016 — Document Event Sourcing Integration and Operations](00016-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Durable publication state now completes the implementation surface that the integration guide must document. |
@@ -37,7 +37,6 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
 | 11 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00016 |
-| 17 | [T-00028 — Establish the Shared Executable Quality Gate](00028-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00027 |
 | 18 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 19 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00028 |
 | 20 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00029 |
@@ -64,8 +63,9 @@ violations. Architecture enforcement is complete with exact layer allowances, ma
 failure, and Scheduler command execution through the required `ProcessRunner`. Core iterator, timezone, and
 validation-service coverage is exact without inline exclusions or test-order dependence. Filesystem,
 template-buffering, StatsD, process, FTP, and Scheduler failure boundaries are now deterministic without
-public-contract or production filesystem-semantic changes. All four coverage-migration slices now join at
-ready T-00027; T-00028 then establishes the shared gate, after which local build
+public-contract or production filesystem-semantic changes. The permanent coverage gate now rejects every
+production exclusion directive and fails closed unless the provided Clover project metrics prove exact statement
+equality. T-00028 is ready to compose that contract into the shared gate, after which local build
 and CI delivery split into T-00029 and T-00030. T-00031 attaches pre-commit enforcement to the completed local
 build.
 
@@ -79,6 +79,7 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00027 — Enforce Zero-Exclusion Exact Coverage](00027-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added a fail-closed production-directive and Clover-metric gate with deterministic process fixtures, exact 9,033/9,033 statement evidence, and no stale-report orchestration leakage from T-00028. |
 | [T-00046 — Flatten the PHPCS Standard Implementation Layout](00046-TICKET.md) | [PRD-00007](../specs/00007-PRD.md) | Flattened the unreleased ruleset, sniff filesystem, and PHP namespace; established `Phpcs.*` custom identifiers while retaining the `FightCommon` standard name and behavior. |
 | [T-00024 — Make Scheduler Coverage Exact](00024-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Removed all ten Scheduler exclusions through deterministic runtime and lock controls while preserving public behavior, exact `ProcessRunner` outcomes, and complete coverage. |
 | [T-00026 — Cover Process and FTP Integration Boundaries](00026-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Removed the process and FTP exclusions through real Symfony process execution and an isolated native-delegating FTP test boundary while preserving public contracts and exact complete coverage. |
