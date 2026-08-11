@@ -26,6 +26,8 @@ final class PhpEngine implements TemplateEngine
     private array $blocks = [];
     /** @var string[] */
     private array $openBlocks = [];
+    /** @var int[] */
+    private array $blockBufferLevels = [];
     private string $current;
 
     /**
@@ -125,6 +127,7 @@ final class PhpEngine implements TemplateEngine
 
         ob_start();
         ob_implicit_flush(false);
+        $this->blockBufferLevels[] = ob_get_level();
     }
 
     /**
@@ -139,11 +142,12 @@ final class PhpEngine implements TemplateEngine
         }
 
         $name = array_pop($this->openBlocks);
+        $bufferLevel = array_pop($this->blockBufferLevels);
 
-        $content = ob_get_clean();
+        $content = ob_get_level() < $bufferLevel ? false : ob_get_clean();
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+            throw new TemplatingException('Output buffering is not active');
         }
 
         if (empty($this->blocks[$name])) {
@@ -282,15 +286,16 @@ final class PhpEngine implements TemplateEngine
         $evalData = null;
 
         ob_start();
+        $bufferLevel = ob_get_level();
         try {
             require $evalFile;
         } finally {
             $evalFile = null;
-            $content = ob_get_clean();
+            $content = ob_get_level() < $bufferLevel ? false : ob_get_clean();
         }
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+            throw new TemplatingException('Output buffering is not active');
         }
 
         return $content;

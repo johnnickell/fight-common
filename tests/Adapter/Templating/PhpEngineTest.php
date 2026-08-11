@@ -114,6 +114,31 @@ class PhpEngineTest extends UnitTestCase
         self::assertSame($levelBefore, ob_get_level());
     }
 
+    public function test_that_render_throws_when_its_output_buffer_is_not_active(): void
+    {
+        $this->createTemplate('closes-buffer.php', '<?php ob_end_clean(); ?>');
+        $engine = new PhpEngine([$this->templateDir]);
+        $levelBefore = ob_get_level();
+
+        ob_start();
+        $callerLevel = ob_get_level();
+
+        try {
+            try {
+                $engine->render('closes-buffer.php');
+                self::fail('Expected the lost output buffer to be reported');
+            } catch (TemplatingException $exception) {
+                self::assertSame('Output buffering is not active', $exception->getMessage());
+            }
+
+            self::assertSame($callerLevel, ob_get_level());
+        } finally {
+            while (ob_get_level() > $levelBefore) {
+                ob_end_clean();
+            }
+        }
+    }
+
     public function test_that_path_traversal_via_dot_dot_is_rejected(): void
     {
         $outsideFile = sys_get_temp_dir() . '/php_engine_outside_' . bin2hex(random_bytes(8)) . '.php';
@@ -278,6 +303,33 @@ class PhpEngineTest extends UnitTestCase
         $this->expectExceptionMessage('No block started');
 
         $engine->endBlock();
+    }
+
+    public function test_that_end_block_throws_when_its_output_buffer_is_not_active(): void
+    {
+        $engine = new PhpEngine([$this->templateDir]);
+        $levelBefore = ob_get_level();
+
+        ob_start();
+        $callerLevel = ob_get_level();
+
+        try {
+            $engine->startBlock('content');
+            ob_end_clean();
+
+            try {
+                $engine->endBlock();
+                self::fail('Expected the lost output buffer to be reported');
+            } catch (TemplatingException $exception) {
+                self::assertSame('Output buffering is not active', $exception->getMessage());
+            }
+
+            self::assertSame($callerLevel, ob_get_level());
+        } finally {
+            while (ob_get_level() > $levelBefore) {
+                ob_end_clean();
+            }
+        }
     }
 
     public function test_that_set_content_sets_block_content(): void
