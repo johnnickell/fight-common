@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Standards\Phpcs;
 
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Arrays\DisallowTrailingArrayCommaSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Arrays\RequireAlignedArrayArrowSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Files\RequireStrictTypesSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Formatting\RequireBlankLineBeforeReturnSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Arrays\DisallowTrailingArrayCommaSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Arrays\RequireAlignedArrayArrowSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Files\RequireStrictTypesSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Formatting\RequireBlankLineBeforeReturnSniff;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Files\File;
@@ -143,8 +143,8 @@ final class CustomSniffTest extends UnitTestCase
 
         self::assertSame(
             [
-                'FightCommon.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma' => 7,
-                'FightCommon.Arrays.RequireAlignedArrayArrow.ArrowNotAligned' => 5,
+                'Phpcs.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma' => 7,
+                'Phpcs.Arrays.RequireAlignedArrayArrow.ArrowNotAligned' => 5,
             ],
             array_count_values($this->errorSources($file)),
         );
@@ -172,7 +172,7 @@ final class CustomSniffTest extends UnitTestCase
     {
         $file = $this->processSource("<?php\n\nnamespace Example;\n");
 
-        self::assertContains('FightCommon.Files.RequireStrictTypes.Missing', $this->errorSources($file));
+        self::assertContains('Phpcs.Files.RequireStrictTypes.Missing', $this->errorSources($file));
         self::assertTrue($file->fixer->fixFile());
         self::assertSame(
             "<?php\n\ndeclare(strict_types=1);\n\nnamespace Example;\n",
@@ -193,7 +193,7 @@ final class CustomSniffTest extends UnitTestCase
         );
 
         self::assertContains(
-            'FightCommon.Formatting.RequireBlankLineBeforeReturn.Missing',
+            'Phpcs.Formatting.RequireBlankLineBeforeReturn.Missing',
             $this->errorSources($file),
         );
         self::assertTrue($file->fixer->fixFile());
@@ -238,12 +238,12 @@ final class CustomSniffTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 3);
         $config = new Config([
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--sniffs='.implode(',', [
-                'FightCommon.Arrays.DisallowTrailingArrayComma',
-                'FightCommon.Arrays.RequireAlignedArrayArrow',
-                'FightCommon.Files.RequireStrictTypes',
-                'FightCommon.Formatting.RequireBlankLineBeforeReturn',
+                'Phpcs.Arrays.DisallowTrailingArrayComma',
+                'Phpcs.Arrays.RequireAlignedArrayArrow',
+                'Phpcs.Files.RequireStrictTypes',
+                'Phpcs.Formatting.RequireBlankLineBeforeReturn',
             ]),
         ]);
         $config->cache = false;

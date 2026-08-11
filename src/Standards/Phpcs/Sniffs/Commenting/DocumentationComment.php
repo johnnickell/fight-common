@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Commenting;
+namespace Fight\Common\Standards\Phpcs\Sniffs\Commenting;
 
 use PHP_CodeSniffer\Files\File;
 

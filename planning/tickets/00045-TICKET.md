@@ -20,10 +20,10 @@ T-00018 — Package the Reusable FightCommon Coding Standard.
 
 ## Acceptance Criteria
 
-- [x] A focused regression proves `FightCommon.Files.RequireStrictTypes` inserts `declare(strict_types=1);`
+- [x] A focused regression proves `Phpcs.Files.RequireStrictTypes` inserts `declare(strict_types=1);`
   with exactly the canonical surrounding blank lines when a production file begins with an open tag followed
   by namespace content.
-- [x] A focused regression proves `FightCommon.Formatting.RequireBlankLineBeforeReturn` adds exactly one blank
+- [x] A focused regression proves `Phpcs.Formatting.RequireBlankLineBeforeReturn` adds exactly one blank
   line without displacing the return statement from its existing indentation.
 - [x] Applying PHPCBF a second time to each regression fixture makes no further change.
 - [x] The fixes preserve the existing rule behavior, public sniff identifiers, and diagnostic codes and do not
