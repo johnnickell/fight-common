@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Message envelopes now isolate their mutable `Meta` snapshots by copying metadata on construction and access. Code that previously mutated metadata through `meta()` must derive a same-ID envelope with `withMeta()` or `mergeMeta()` instead.
+- `Application\Scheduler\Scheduler` now requires an Application `ProcessRunner` as its third constructor argument and builds command jobs through `ProcessBuilder`; the former Scheduler `processFactory` constructor seam has been removed.
 
 ## [1.1.0] - 2026-06-03
 

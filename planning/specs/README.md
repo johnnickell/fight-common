@@ -9,7 +9,7 @@
 | [00005](00005-PRD.md) | Checkpointed Projections and Event Publication | ready-for-agent |
 | [00006](00006-PRD.md) | Integration Guide and 1.2 Release Acceptance | ready-for-agent |
 | [00007](00007-PRD.md) | Reusable Fight Coding Standard | done |
-| [00008](00008-PRD.md) | Architecture Enforcement | ready-for-agent |
+| [00008](00008-PRD.md) | Architecture Enforcement | done |
 | [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | ready-for-agent |
 | [00010](00010-PRD.md) | Deterministic Release Foundation | ready-for-agent |
 | [00011](00011-PRD.md) | Release Lifecycle and Publication Recovery | ready-for-agent |

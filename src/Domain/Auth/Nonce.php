@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Auth;
 
 use DateTimeImmutable;
-use Fight\Common\Adapter\Auth\Hmac\HmacKeyGenerator;
 
 /**
  * Class Nonce
@@ -26,7 +25,7 @@ readonly class Nonce
      */
     public static function generate(int $bytes = 8, int $ttlSeconds = 300): static
     {
-        $value = HmacKeyGenerator::generateSecureRandom($bytes);
+        $value = bin2hex(random_bytes($bytes));
         $expiresAt = new DateTimeImmutable(sprintf('+%d seconds', $ttlSeconds));
 
         /** @phpstan-ignore new.static */

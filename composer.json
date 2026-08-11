@@ -12,6 +12,7 @@
         "psr/log": "^3.0"
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
         "doctrine/dbal": "^4.4",
         "doctrine/orm": "^3.6",
         "dragonmantank/cron-expression": "^3.0",
@@ -42,6 +43,7 @@
         "twilio/sdk": "^8.0"
     },
     "suggest": {
+        "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
         "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
         "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
