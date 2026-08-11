@@ -30,8 +30,6 @@ final class GeneratorIterator implements Iterator
      * @param callable $function
      * @param array<mixed> $args
      *
-     * @codeCoverageIgnore coverage bug
-     *
      * @throws DomainException When function is not a generator
      */
     public function __construct(callable $function, private readonly array $args = [])

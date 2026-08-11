@@ -20,8 +20,6 @@ final class ArrayQueueIterator implements Iterator
      * Constructs ArrayQueueIterator
      *
      * @param array<mixed> $items
-     *
-     * @codeCoverageIgnore coverage bug
      */
     public function __construct(
         private array $items,
