@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Domain\Collection\Iterator;
 
 use Exception;
 use Fight\Common\Domain\Collection\Iterator\GeneratorIterator;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\MethodCallException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -13,6 +14,13 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(GeneratorIterator::class)]
 class GeneratorIteratorTest extends UnitTestCase
 {
+    public function test_that_constructor_rejects_a_function_that_is_not_a_generator(): void
+    {
+        $this->expectException(DomainException::class);
+
+        new GeneratorIterator(static fn (): int => 1);
+    }
+
     public function test_that_rewind_allows_iteration_more_than_once(): void
     {
         $iterator = new GeneratorIterator(function () {

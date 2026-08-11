@@ -17,9 +17,6 @@ use Traversable;
  */
 final class Validate
 {
-    /** @var array<string, bool>|null */
-    private static ?array $timezones = null;
-
     /**
      * Checks if value is scalar
      */
@@ -1145,17 +1142,7 @@ final class Validate
      */
     private static function isValidTimezone(string $timezone): bool
     {
-        // @codeCoverageIgnoreStart
-        if (self::$timezones === null) {
-            self::$timezones = [];
-            foreach (timezone_identifiers_list() as $zone) {
-                self::$timezones[$zone] = true;
-            }
-        }
-
-        // @codeCoverageIgnoreEnd
-
-        return isset(self::$timezones[$timezone]);
+        return in_array($timezone, timezone_identifiers_list(), true);
     }
 
     /**
