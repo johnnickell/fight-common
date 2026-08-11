@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Scheduler;
 
-use Closure;
 use Cron\CronExpression;
 use DateTimeImmutable;
 use DateTimeZone;
 use Fight\Common\Application\Mail\Exception\MailException;
 use Fight\Common\Application\Mail\MailService;
 use Fight\Common\Application\Mail\Message\MailMessage;
+use Fight\Common\Application\Process\Exception\ProcessException;
+use Fight\Common\Application\Process\ProcessBuilder;
+use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Common\Application\Scheduler\Exception\LockException;
 use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Common\Domain\Exception\RuntimeException;
 use Fight\Common\Domain\Utility\VarPrinter;
 use Fight\Common\Domain\Value\DateTime\Timezone;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Process\Process;
 use Throwable;
 
 /**
@@ -47,10 +48,10 @@ final class Scheduler
     public function __construct(
         private readonly Timezone $timezone,
         private readonly string $tempDirectory,
+        private readonly ProcessRunner $processRunner,
         private readonly ?LoggerInterface $logger = null,
         private readonly ?MailService $mailService = null,
-        private readonly string $fromEmail = '',
-        private readonly ?Closure $processFactory = null
+        private readonly string $fromEmail = ''
     ) {
     }
 
@@ -239,36 +240,18 @@ final class Scheduler
      *
      * @phpstan-param JobConfig $job
      *
-     * @throws SchedulerException When the command exits with a non-zero status
+     * @throws ProcessException When the process runner cannot execute the command
      */
     private function runCommand(array $job): void
     {
-        $process = $this->createProcess($job['command']);
+        $process = ProcessBuilder::create()
+            ->shellCommand($job['command'])
+            ->stdout(fn(string $data) => $this->writeLine($data, $job))
+            ->stderr(fn(string $data) => $this->writeLine($data, $job))
+            ->getProcess();
 
-        $process->run(function (string $type, string $data) use ($job): void {
-            $this->writeLine($data, $job);
-        });
-
-        if (!$process->isSuccessful()) {
-            throw new SchedulerException(sprintf(
-                'Command exited with non-zero status %d',
-                $process->getExitCode()
-            ));
-        }
-    }
-
-    /**
-     * Creates a Symfony Process for the given command
-     */
-    private function createProcess(string $command): Process
-    {
-        if ($this->processFactory instanceof Closure) {
-            return ($this->processFactory)($command);
-        }
-
-        // @codeCoverageIgnoreStart
-        return Process::fromShellCommandline($command);
-        // @codeCoverageIgnoreEnd
+        $this->processRunner->attach($process);
+        $this->processRunner->run();
     }
 
     /**

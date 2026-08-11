@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# change to the project root
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$DIR/.." || exit 1
+
+docker build -t fight-common ./etc/docker/
+
+docker container run \
+    --rm -it \
+    -v "$(pwd):/app:delegated" \
+    -w /app \
+    fight-common php vendor/bin/deptrac \
+    --fail-on-uncovered \
+    --report-uncovered \
+    --report-skipped \
+    "$@"
+
+docker container run \
+    --rm -it \
+    -v "$(pwd):/app:delegated" \
+    -w /app \
+    fight-common php vendor/bin/deptrac debug:unassigned --no-cache
