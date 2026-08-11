@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Standards\Phpcs;
 
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Classes\NamedClassMemberSpacingSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Classes\NamedClassStructureSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Classes\NamedMethodSpacingSniff;
-use Fight\Common\Standards\Phpcs\FightCommon\Sniffs\Formatting\RequireVisibilityGroupSpacingSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Classes\NamedClassMemberSpacingSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Classes\NamedClassStructureSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Classes\NamedMethodSpacingSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\Formatting\RequireVisibilityGroupSpacingSniff;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Files\File;
@@ -33,14 +33,14 @@ final class MemberLayoutSniffTest extends UnitTestCase
         $sources = $this->errorSources($this->processFixture('MemberLayout.noncompliant.inc'));
 
         self::assertSame([
-            'FightCommon.Classes.NamedClassMemberSpacing.IncorrectCountOfBlankLinesBetweenMembers',
-            'FightCommon.Classes.NamedClassStructure.IncorrectGroupOrder',
-            'FightCommon.Classes.NamedClassStructure.IncorrectGroupOrder',
-            'FightCommon.Classes.NamedClassStructure.IncorrectGroupOrder',
-            'FightCommon.Classes.NamedMethodSpacing.IncorrectLinesCountBetweenMethods',
-            'FightCommon.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
-            'FightCommon.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
-            'FightCommon.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup',
+            'Phpcs.Classes.NamedClassMemberSpacing.IncorrectCountOfBlankLinesBetweenMembers',
+            'Phpcs.Classes.NamedClassStructure.IncorrectGroupOrder',
+            'Phpcs.Classes.NamedClassStructure.IncorrectGroupOrder',
+            'Phpcs.Classes.NamedClassStructure.IncorrectGroupOrder',
+            'Phpcs.Classes.NamedMethodSpacing.IncorrectLinesCountBetweenMethods',
+            'Phpcs.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
+            'Phpcs.Formatting.RequireVisibilityGroupSpacing.MissingBlankLineBetweenVisibilityGroups',
+            'Phpcs.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup',
         ], $sources);
     }
 
@@ -75,7 +75,7 @@ final class MemberLayoutSniffTest extends UnitTestCase
         $file = $this->processFixture('MemberLayout.intervening-content.inc');
 
         self::assertSame(
-            ['FightCommon.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup'],
+            ['Phpcs.Formatting.RequireVisibilityGroupSpacing.UnexpectedBlankLineWithinVisibilityGroup'],
             $this->errorSources($file),
         );
         self::assertSame(0, $file->getFixableCount());
@@ -137,12 +137,12 @@ final class MemberLayoutSniffTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 3);
         $config = new Config([
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--sniffs='.implode(',', [
-                'FightCommon.Classes.NamedClassMemberSpacing',
-                'FightCommon.Classes.NamedClassStructure',
-                'FightCommon.Classes.NamedMethodSpacing',
-                'FightCommon.Formatting.RequireVisibilityGroupSpacing',
+                'Phpcs.Classes.NamedClassMemberSpacing',
+                'Phpcs.Classes.NamedClassStructure',
+                'Phpcs.Classes.NamedMethodSpacing',
+                'Phpcs.Formatting.RequireVisibilityGroupSpacing',
             ]),
         ]);
         $config->cache = false;

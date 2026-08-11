@@ -32,8 +32,8 @@ final class DocumentationGrammarTest extends TestCase
         $report = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
         $sources = array_column(array_values($report['files'])[0]['messages'], 'source');
 
-        self::assertContains('FightCommon.Commenting.RequireTypeDocComment.MissingDocComment', $sources);
-        self::assertContains('FightCommon.Commenting.RequireMethodDocComment.MissingDocComment', $sources);
+        self::assertContains('Phpcs.Commenting.RequireTypeDocComment.MissingDocComment', $sources);
+        self::assertContains('Phpcs.Commenting.RequireMethodDocComment.MissingDocComment', $sources);
     }
 
     private function runPhpcs(string $fixture): Process
@@ -42,7 +42,7 @@ final class DocumentationGrammarTest extends TestCase
         $process = new Process([
             PHP_BINARY,
             $root.'/vendor/bin/phpcs',
-            '--standard='.$root.'/src/Standards/Phpcs/FightCommon/ruleset.xml',
+            '--standard='.$root.'/src/Standards/Phpcs/ruleset.xml',
             '--report=json',
             __DIR__.'/'.$fixture,
         ], $root);

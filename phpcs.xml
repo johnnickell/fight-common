@@ -4,7 +4,7 @@
 
     <file>src</file>
 
-    <rule ref="./src/Standards/Phpcs/FightCommon/ruleset.xml">
+    <rule ref="./src/Standards/Phpcs/ruleset.xml">
 
 
     </rule>
