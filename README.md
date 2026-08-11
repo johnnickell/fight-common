@@ -131,6 +131,7 @@ All tooling runs inside a PHP 8.5 Docker container via scripts in `./bin/`. Neve
 ./bin/phpunit --fast            # fast suite; excludes server-database tests and is not submit evidence
 ./bin/phpunit --filter foo     # filter the complete suite by test name
 ./bin/rector process src/      # run code modernization
+./bin/deptrac                  # enforce inward architecture and complete classification
 ./bin/composer require pkg     # manage dependencies
 ```
 

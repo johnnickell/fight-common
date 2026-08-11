@@ -85,15 +85,21 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/phpcs
 
-# 4. Full test suite with coverage
+# 4. Architecture dependency enforcement
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/deptrac debug:unassigned --no-cache
+
+# 5. Full test suite with coverage
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/phpunit
 
-# 5. Validate planning metadata and dependency edges
+# 6. Validate planning metadata and dependency edges
 ./bin/planning-check
 ```
 
-All five must be clean before a commit lands on any branch.
+Both architecture commands, and all six submit-gate steps, must be clean before a commit lands on any branch.
 
 ### Git Flow
 
