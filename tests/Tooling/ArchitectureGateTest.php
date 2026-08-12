@@ -26,21 +26,31 @@ YAML,
         );
     }
 
-    public function test_that_every_documented_architecture_gate_rejects_unassigned_classes(): void
+    public function test_that_documented_architecture_gates_delegate_to_executables_that_reject_unassigned_classes(): void
     {
         $root = dirname(__DIR__, 2);
         $wrapper = file_get_contents($root.'/bin/deptrac');
         $instructions = file_get_contents($root.'/CLAUDE.md');
+        $qualityGate = file_get_contents($root.'/bin/quality');
 
         self::assertIsString($wrapper);
         self::assertIsString($instructions);
+        self::assertIsString($qualityGate);
         self::assertStringContainsString(
             'fight-common php vendor/bin/deptrac debug:unassigned --no-cache',
             $wrapper,
         );
         self::assertStringContainsString(
-            'php vendor/bin/deptrac debug:unassigned --no-cache',
+            '`./bin/quality` is the single host-neutral ordered gate',
             $instructions,
+        );
+        self::assertStringContainsString(
+            'php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped',
+            $qualityGate,
+        );
+        self::assertStringContainsString(
+            'php vendor/bin/deptrac debug:unassigned --no-cache',
+            $qualityGate,
         );
     }
 }
