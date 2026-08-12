@@ -156,6 +156,15 @@ quality gate in a disposable container. Use this reproducible path for ordinary 
 verification. Running `./bin/build --latest` explicitly updates the worktree's lockfile for review before an
 intentional commit.
 
+To opt into the tracked pre-commit build gate for this repository, configure Git's hooks path:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook runs the default `./bin/build` before each commit. When an explicit bypass is necessary, use Git's
+standard `git commit --no-verify` escape hatch.
+
 Hosted CI runs `composer update` ephemerally and invokes `./bin/quality` directly on the runner with disposable
 MySQL and PostgreSQL services. The generated lockfile is evidence for that latest-compatible run only; CI does
 not commit or publish it.
