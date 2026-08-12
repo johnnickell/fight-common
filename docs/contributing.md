@@ -151,6 +151,15 @@ All tooling runs inside the `fight-common` Docker container through the standard
 ./bin/exec php vendor/bin/phpstan analyse  # static analysis (level 6)
 ```
 
+The default `./bin/build` installs the dependency versions recorded in `composer.lock` and runs the shared
+quality gate in a disposable container. Use this reproducible path for ordinary local development and release
+verification. Running `./bin/build --latest` explicitly updates the worktree's lockfile for review before an
+intentional commit.
+
+Hosted CI runs `composer update` ephemerally and invokes `./bin/quality` directly on the runner with disposable
+MySQL and PostgreSQL services. The generated lockfile is evidence for that latest-compatible run only; CI does
+not commit or publish it.
+
 Complete mode provisions disposable MySQL 8.4.11 and PostgreSQL 17 services,
 waits for health, injects both `FIGHT_COMMON_*_DSN` values, and cleans up its
 containers and network on every exit. Unavailable complete-suite infrastructure
