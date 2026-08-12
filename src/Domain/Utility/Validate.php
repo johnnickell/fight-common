@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Fight\Common\Domain\Utility;
 
 use ArrayAccess;
@@ -15,9 +17,6 @@ use Traversable;
  */
 final class Validate
 {
-    /** @var array<string, bool>|null */
-    private static ?array $timezones = null;
-
     /**
      * Checks if value is scalar
      */
@@ -739,8 +738,10 @@ final class Validate
     /**
      * Checks if value is one of a set of choices
      *
-     * @param mixed $value
-     * @param iterable<mixed> $choices
+     * @param mixed    $value
+     * @param iterable $choices
+     *
+     * @phpstan-param iterable<mixed> $choices
      */
     public static function isOneOf(mixed $value, iterable $choices): bool
     {
@@ -1141,17 +1142,7 @@ final class Validate
      */
     private static function isValidTimezone(string $timezone): bool
     {
-        // @codeCoverageIgnoreStart
-        if (self::$timezones === null) {
-            self::$timezones = [];
-            foreach (timezone_identifiers_list() as $zone) {
-                self::$timezones[$zone] = true;
-            }
-        }
-
-        // @codeCoverageIgnoreEnd
-
-        return isset(self::$timezones[$timezone]);
+        return in_array($timezone, timezone_identifiers_list(), true);
     }
 
     /**

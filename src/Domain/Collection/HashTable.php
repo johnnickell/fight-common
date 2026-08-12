@@ -27,7 +27,6 @@ final class HashTable implements Table
 
     /** @var array<K, V> */
     private array $buckets = [];
-
     private int $count = 0;
 
     /**
@@ -167,7 +166,6 @@ final class HashTable implements Table
     }
 
     /**
-     * @return iterable<K>
      * @inheritDoc
      */
     public function keys(): iterable
@@ -399,7 +397,6 @@ final class HashTable implements Table
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array

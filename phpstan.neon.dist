@@ -5,3 +5,13 @@ parameters:
     level: 6
     paths:
         - src
+    bootstrapFiles:
+        - vendor/squizlabs/php_codesniffer/autoload.php
+        - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
+    ignoreErrors:
+        -
+            identifier: classConstant.internalClass
+            path: src/Standards/Phpcs/Sniffs/*/*Sniff.php
+        -
+            identifier: staticMethod.internalClass
+            path: src/Standards/Phpcs/Sniffs/*/*Sniff.php

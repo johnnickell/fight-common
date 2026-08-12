@@ -14,23 +14,16 @@ final class ProcessBuilder
 {
     /** @var list<string> */
     private array $prefix = [];
-
     /** @var list<string> */
     private array $arguments = [];
-
+    private ?string $shellCommand = null;
     private ?string $directory = null;
-
     private mixed $input = null;
-
     private ?float $timeout = 60.0;
-
     /** @var array<string, string> */
     private array $environment = [];
-
     private mixed $stdout = null;
-
     private mixed $stderr = null;
-
     private bool $outputDisabled = false;
 
     /**
@@ -62,6 +55,7 @@ final class ProcessBuilder
      */
     public function prefix(string|array $prefix): static
     {
+        $this->shellCommand = null;
         $this->prefix = (array) $prefix;
 
         return $this;
@@ -73,6 +67,7 @@ final class ProcessBuilder
     public function arg(string $arg): static
     {
         if ($arg !== '') {
+            $this->shellCommand = null;
             $this->arguments[] = $arg;
         }
 
@@ -87,6 +82,8 @@ final class ProcessBuilder
         if ($option === '') {
             return $this;
         }
+
+        $this->shellCommand = null;
 
         if (!str_starts_with($option, '-')) {
             $option = '--'.$option;
@@ -110,6 +107,8 @@ final class ProcessBuilder
             return $this;
         }
 
+        $this->shellCommand = null;
+
         if (!str_starts_with($option, '-')) {
             $option = '-'.$option;
         }
@@ -129,6 +128,18 @@ final class ProcessBuilder
     public function clearArgs(): static
     {
         $this->arguments = [];
+
+        return $this;
+    }
+
+    /**
+     * Sets an already accepted shell command without escaping its operators or arguments
+     */
+    public function shellCommand(string $command): static
+    {
+        $this->prefix = [];
+        $this->arguments = [];
+        $this->shellCommand = $command;
 
         return $this;
     }
@@ -242,14 +253,14 @@ final class ProcessBuilder
      */
     public function getProcess(): Process
     {
-        if ($this->prefix === [] && $this->arguments === []) {
+        if ($this->shellCommand === null && $this->prefix === [] && $this->arguments === []) {
             throw new MethodCallException(
                 'You must add arguments before calling getProcess()'
             );
         }
 
         $parts = array_merge($this->prefix, $this->arguments);
-        $command = implode(' ', array_map(escapeshellarg(...), $parts));
+        $command = $this->shellCommand ?? implode(' ', array_map(escapeshellarg(...), $parts));
 
         return new Process(
             command:        $command,

@@ -33,7 +33,7 @@ final readonly class LoggingSmsTransport implements SmsTransport
             'to'          => $message->getTo(),
             'from'        => $message->getFrom(),
             'body'        => $message->getBody(),
-            'media_count' => count($message->getMedia()),
+            'media_count' => count($message->getMedia())
         ]);
 
         $this->transport->send($message);

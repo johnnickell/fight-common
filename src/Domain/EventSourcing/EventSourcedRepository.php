@@ -10,6 +10,8 @@ use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 
 /**
+ * Class EventSourcedRepository
+ *
  * Repository for one configured event-sourced aggregate type
  */
 final readonly class EventSourcedRepository
@@ -47,7 +49,7 @@ final readonly class EventSourcedRepository
     }
 
     /**
-     * Saves newly recorded events for the configured aggregate type
+     * Persists newly recorded events for the configured aggregate type
      */
     public function save(EventSourcedAggregate $aggregate): void
     {

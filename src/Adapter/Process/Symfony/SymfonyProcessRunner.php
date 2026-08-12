@@ -25,10 +25,8 @@ final class SymfonyProcessRunner implements ProcessRunner
 {
     /** @var Queue<Process> */
     private Queue $queue;
-
     /** @var array<int, array{iteration: int, original: Process, process: SymfonyProcess}> */
     private array $processes = [];
-
     private readonly int $delay;
 
     /**
@@ -52,14 +50,6 @@ final class SymfonyProcessRunner implements ProcessRunner
 
         $this->delay = $delay;
         $this->queue = LinkedQueue::of(Process::class);
-    }
-
-    /**
-     * Handles SymfonyProcessRunner destruct
-     */
-    public function __destruct()
-    {
-        $this->stop();
     }
 
     /**
@@ -114,13 +104,18 @@ final class SymfonyProcessRunner implements ProcessRunner
             $process = $this->queue->dequeue();
             $symfonyProcess = $this->exchangeProcess($process);
 
-            $this->startProcess($symfonyProcess, $process->stdout(), $process->stderr());
+            $this->startProcess(
+                $symfonyProcess,
+                $process->stdout(),
+                $process->stderr(),
+                $process->isOutputDisabled()
+            );
 
             $pid = (int) $symfonyProcess->getPid();
             $this->processes[$pid] = [
                 'iteration' => 1,
                 'original'  => $process,
-                'process'   => $symfonyProcess,
+                'process'   => $symfonyProcess
             ];
 
             $this->logProcessStarted($symfonyProcess);
@@ -173,13 +168,18 @@ final class SymfonyProcessRunner implements ProcessRunner
                     }
 
                     $retried = $this->exchangeProcess($original);
-                    $this->startProcess($retried, $original->stdout(), $original->stderr());
+                    $this->startProcess(
+                        $retried,
+                        $original->stdout(),
+                        $original->stderr(),
+                        $original->isOutputDisabled()
+                    );
 
                     $retryPid = (int) $retried->getPid();
                     $this->processes[$retryPid] = [
                         'iteration' => $iteration + 1,
                         'original'  => $original,
-                        'process'   => $retried,
+                        'process'   => $retried
                     ];
 
                     $this->logProcessRestarted($retried);
@@ -206,8 +206,15 @@ final class SymfonyProcessRunner implements ProcessRunner
     private function startProcess(
         SymfonyProcess $process,
         mixed $stdout = null,
-        mixed $stderr = null
+        mixed $stderr = null,
+        bool $outputDisabled = false
     ): void {
+        if ($outputDisabled) {
+            $process->start();
+
+            return;
+        }
+
         $out = SymfonyProcess::OUT;
 
         $process->start(function ($type, $data) use ($stdout, $stderr, $out): void {
@@ -232,7 +239,6 @@ final class SymfonyProcessRunner implements ProcessRunner
             return ($this->processFactory)($process);
         }
 
-        // @codeCoverageIgnoreStart
         $symfonyProcess = SymfonyProcess::fromShellCommandline(
             $process->command(),
             $process->directory(),
@@ -246,7 +252,6 @@ final class SymfonyProcessRunner implements ProcessRunner
         }
 
         return $symfonyProcess;
-        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -263,9 +268,7 @@ final class SymfonyProcessRunner implements ProcessRunner
     }
 
     /**
-     * Stops all running processes
-     *
-     * @codeCoverageIgnore Requires live processes to test
+     * Ends all running processes
      */
     private function stop(): void
     {
@@ -347,5 +350,13 @@ final class SymfonyProcessRunner implements ProcessRunner
                 $process->getErrorOutput()
             )
         );
+    }
+
+    /**
+     * Handles SymfonyProcessRunner destruct
+     */
+    public function __destruct()
+    {
+        $this->stop();
     }
 }

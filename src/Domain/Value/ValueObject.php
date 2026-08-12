@@ -28,14 +28,6 @@ abstract readonly class ValueObject implements Value
     /**
      * @inheritDoc
      */
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function jsonSerialize(): mixed
     {
         return $this->toString();
@@ -61,6 +53,14 @@ abstract readonly class ValueObject implements Value
      * @inheritDoc
      */
     public function hashValue(): string
+    {
+        return $this->toString();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
     {
         return $this->toString();
     }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Messaging;
 
-use Stringable;
 use ArrayIterator;
 use Countable;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 use IteratorAggregate;
 use JsonSerializable;
+use Stringable;
 use Traversable;
 
 /**
@@ -119,7 +119,7 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     }
 
     /**
-     * Merges the given meta
+     * Updates metadata with given values, replacing duplicate keys
      *
      * @throws DomainException When value is not valid
      */
@@ -132,8 +132,6 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function toArray(): array
     {
@@ -146,14 +144,6 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     public function toString(): string
     {
         return json_encode($this->data, JSON_UNESCAPED_SLASHES);
-    }
-
-    /**
-     * Handles casting to a string
-     */
-    public function __toString(): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -213,5 +203,13 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
         }
 
         return false;
+    }
+
+    /**
+     * Handles casting to a string
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

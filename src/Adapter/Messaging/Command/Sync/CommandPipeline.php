@@ -18,7 +18,6 @@ final class CommandPipeline implements SynchronousCommandBus, CommandFilter
 {
     /** @var LinkedStack<CommandFilter> */
     private readonly LinkedStack $filters;
-
     /** @var LinkedStack<object> */
     private ?LinkedStack $executionStack = null;
 
@@ -65,7 +64,7 @@ final class CommandPipeline implements SynchronousCommandBus, CommandFilter
     }
 
     /**
-     * Pipes command message to the next filter
+     * Invokes the next command filter
      *
      * @throws Throwable
      */

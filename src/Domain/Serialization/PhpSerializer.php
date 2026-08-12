@@ -43,7 +43,7 @@ final class PhpSerializer implements Serializer
     {
         $data = [
             '@' => ClassName::canonical($object),
-            '$' => $object->arraySerialize(),
+            '$' => $object->arraySerialize()
         ];
 
         return serialize($data);

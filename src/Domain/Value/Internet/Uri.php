@@ -27,7 +27,6 @@ readonly class Uri extends ValueObject implements Comparable
      * @link http://tools.ietf.org/html/rfc3986#appendix-B
      */
     protected const URI_PATTERN = '/\A(?:([^:\/?#]+)(:))?(?:(\/\/)([^\/?#]*))?([^?#]*)(?:(\?)([^#]*))?(?:(#)(.*))?\z/';
-
     /**
      * Authority capture pattern
      *
@@ -36,51 +35,39 @@ readonly class Uri extends ValueObject implements Comparable
      * @link http://tools.ietf.org/html/rfc3986#section-3.2
      */
     protected const AUTHORITY_PATTERN = '/\A(?:([^@]*)@)?(\[[^\]]*\]|[^:]*)(?::(\d*))?\z/';
-
     /**
      * Scheme validation pattern
      *
      * @link http://tools.ietf.org/html/rfc3986#section-3.1
      */
     protected const SCHEME_PATTERN = '/\A[a-z][a-z0-9+.\-]*\z/i';
-
     /**
      * Percent encoded characters
      *
      * @link http://tools.ietf.org/html/rfc3986#section-2.1
      */
     protected const PCT_ENCODED_SET = '%[a-fA-F0-9]{2}';
-
     /**
      * Sub-component delimiters
      *
      * @link http://tools.ietf.org/html/rfc3986#section-2.2
      */
     protected const SUB_DELIMS_SET = '!$&\'()*+,;=';
-
     /**
      * Set of unreserved characters
      *
      * @link http://tools.ietf.org/html/rfc3986#section-2.3
      */
     protected const UNRESERVED_SET = 'a-zA-Z0-9\-._~';
-
     protected const DEFAULT_PORTS = [];
 
     protected string $scheme;
-
     protected ?string $authority;
-
     protected string $path;
-
     protected ?string $query;
-
     protected ?string $fragment;
-
     protected ?string $userInfo;
-
     protected ?string $host;
-
     protected ?int $port;
 
     /**
@@ -918,7 +905,7 @@ readonly class Uri extends ValueObject implements Comparable
     }
 
     /**
-     * Merges a base URI and relative path
+     * Composes a path from a base URI and relative path
      *
      * @link http://tools.ietf.org/html/rfc3986#section-5.2.3
      */
@@ -1131,7 +1118,7 @@ readonly class Uri extends ValueObject implements Comparable
     }
 
     /**
-     * Provides the encoding regex to prevent double encoding
+     * Returns the encoding regex that prevents double encoding
      */
     protected static function encodingRegex(string $excluded): string
     {

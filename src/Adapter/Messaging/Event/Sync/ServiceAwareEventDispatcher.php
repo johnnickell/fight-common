@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Messaging\Event\Sync;
 
-use Override;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
+use Override;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 
@@ -19,7 +19,6 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 {
     /** @var array<string, array<string, object>> */
     private array $services = [];
-
     /** @var array<string, array<int, array{string, string, int}>> */
     private array $serviceIds = [];
 
@@ -89,9 +88,9 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
-     * @return callable[]|array<string, callable[]>
+     * Retrieves handlers for an event or all events after loading matching services
      *
-     * @inheritDoc
+     * @return callable[]|array<string, callable[]>
      */
     #[Override]
     public function getHandlers(?string $eventType = null): array
@@ -157,7 +156,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
     }
 
     /**
-     * Lazy loads event handlers from the service container
+     * Loads event handlers lazily from the service container
      *
      * @throws ContainerExceptionInterface When an error occurs
      */

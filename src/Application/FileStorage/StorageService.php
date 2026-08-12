@@ -40,7 +40,7 @@ final readonly class StorageService
     }
 
     /**
-     * Copies a file across file storage instances
+     * Creates a file copy across storage instances
      *
      * @throws FileStorageException When an error occurs
      */
@@ -57,7 +57,7 @@ final readonly class StorageService
     }
 
     /**
-     * Moves a file across file storage instances
+     * Replaces a file's storage location across instances
      *
      * @throws FileStorageException When an error occurs
      */

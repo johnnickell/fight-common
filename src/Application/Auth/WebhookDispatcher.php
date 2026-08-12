@@ -13,7 +13,7 @@ use Fight\Common\Application\HttpClient\Exception\Exception as HttpException;
 interface WebhookDispatcher
 {
      /**
-      * Signs and dispatches an outbound webhook payload
+      * Authenticates and dispatches an outbound webhook by signing its request
       *
       * @param string $url
       * @param string $action

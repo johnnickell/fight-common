@@ -16,7 +16,7 @@ final readonly class AiOperation implements JsonSerializable
         'health_check',
         'clear_cache',
         'run_migration',
-        'deploy',
+        'deploy'
     ];
 
     /**
@@ -95,12 +95,12 @@ final readonly class AiOperation implements JsonSerializable
     {
         return [
             'action'  => $this->action,
-            'payload' => $this->payload,
+            'payload' => $this->payload
         ];
     }
 
     /**
-     * @inheritDoc
+     * Returns data for JSON serialization
      *
      * @return array<string, mixed>
      */

@@ -106,6 +106,24 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
 | **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |
 | **Build** | The complete ordered set of quality gates used to decide whether the repository is acceptable. |
+| **Release skill** | A guided operator workflow that owns one release phase. It may inspect release state and invoke the deterministic commands allowed for that phase, but it does not own release policy or cross into another phase's effect class. |
+| **Phase handoff** | The durable, content-addressed output of one release phase. It binds the phase's inputs, verified postconditions, and resumable next action for explicit acceptance by the next release skill. |
+| **Planning control artifact** | An immutable plan, run-state projection, machine result, or bounded log written under `.runs/` for release coordination. It is operational bookkeeping, not a mutation of tracked repository content, dependencies, Git refs, or external release state. |
+| **Version authorization** | The human approval of one exact release version after deterministic inspection recommends the minimum valid SemVer increment. The authorized version is a bound plan input; changing it requires a new immutable plan. |
+| **Source commit** | The immutable commit OID inspected and bound by a release plan before packaging. A source branch is descriptive context only and may not substitute for the OID. |
+| **Support-policy binding** | The digest or immutable identity of the support-policy data used by a release plan, including supported-line status and boundaries. A changed policy requires a new plan. |
+| **Candidate commit** | The immutable commit OID produced by packaging and carried by its phase handoff. It is distinct from the plan's source commit and is required for certification and publication authorization. |
+| **Packaging effect set** | The explicit, dry-run manifest of local branch, file, dependency-metadata, and candidate-artifact effects approved for one packaging run. Packaging may not perform effects outside this set. |
+| **Certification stop handoff** | The durable phase handoff emitted when certification fails or cannot classify evidence. It records the stop state, evidence, and resumable next action without changing the candidate or external state. |
+| **Publication authorization** | A human approval for one bounded external release effect, bound to the exact plan, candidate, version, baselines, evidence manifest, and exceptions. It is not reusable for a different effect or changed input. |
+| **Partial publication** | The persistent stop state entered when an external effect may have occurred but its postcondition is uncertain. Resumption requires operator-directed reconciliation and fresh verification. |
+| **Handoff record** | The machine-readable phase handoff fields: `plan_id`, `run_id`, phase and status, bound object IDs and digests, approvals, evidence references, any stop state, and one resumable next action. |
+| **Certification manifest** | The compact, immutable digest-bearing record that composes every required certification lane. A single hosted check or raw log cannot substitute for it. |
+| **Capability boundary** | The closed set of actions a release skill may perform in its phase. An action outside that set is rejected even when an underlying command could technically perform it. |
+| **Reviewed fix** | An immutable, already-reviewed change set identified by exact commit OIDs and its merged pull request provenance: base and head OIDs, approvals, required-check conclusions, and merge receipt. A branch or pull request number alone is not a fix identity. |
+| **Affected-line patch** | A patch workflow execution for one supported release line, based on that line's exact current tip and independently classified and certified for compatibility. EOL lines are read-only. |
+| **Forward port** | A separately reviewed and certified application of an older affected-line fix to a newer affected supported line, ordered oldest to newest and carrying predecessor and source provenance. |
+| **Urgent release mode** | Guided metadata and operator ergonomics for a time-sensitive patch. It collects the ordinary evidence and approvals into one action packet; it does not bypass review, compatibility, certification, or authorization. |
 
 ## Proposed Event Sourcing language for 1.2
 
@@ -227,6 +245,18 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 
 | Term | Meaning in Fight Common |
 | --- | --- |
+| **Release signer** | The one approved OpenPGP identity authorized to sign new release tags. Its documented fingerprint is the trust root for publication verification; private key custody remains with an operator or hardware-backed signer and never with CI. |
+| **Signed release tag** | A signed annotated Git tag whose tag object, verified OpenPGP identity, tag name, and peeled candidate commit are all checked before publication. New releases require this form; legacy lightweight tags are historical and are not rewritten. |
+| **Signer rotation** | A change, loss, or revocation of the release signer pauses publication until a new fingerprint set is explicitly approved in a new release plan. Historical signatures remain verified against their recorded fingerprint. |
+| **Immutable publication** | A GitHub release publication permitted only after immutable-release capability and protected approval are verified, with the exact signed tag, commit, and approved assets rechecked. A mutable release is not equivalent provenance. |
+| **Protected publication checkpoint** | The GitHub `release-publication` environment must require a named human approval before an immutable release is made public. Preparing a draft is allowed before approval; publishing without the checkpoint or falling back to a mutable release is not. |
+| **Single-operator publication** | Fight Common permits one named operator to create and verify the signed tag and approve the protected GitHub publication when no second operator exists. The dual role is recorded in the evidence manifest rather than represented as independent approval. |
+| **Downstream projection** | Packagist's Composer metadata and distribution archive view of the GitHub release. It is observed and verified after GitHub publication but never becomes release authority. |
+| **Incomplete publication** | A fail-closed state entered when Packagist propagation, metadata, installation, or external-effect verification cannot complete. Recovery is explicit and remains bound to the original plan and evidence. |
+| **Clean-install proof** | A bounded receipt from a temporary Composer consumer that resolves the exact published version through Packagist, verifies source and distribution metadata, and passes the approved public smoke behavior. |
+| **Packagist observation window** | The bounded downstream verification period: poll at 15 seconds, 30 seconds, 1 minute, 2 minutes, then every 5 minutes for at most 30 minutes. Timeout produces `packagist_incomplete`. |
+| **Release archive** | The deterministic rootless ZIP named `fight-common-vX.Y.Z.zip`, built with committed Composer exclusions and normalized timestamps and ordering. Its SHA-256 is recorded in the evidence manifest. |
+| **Clean-install receipt** | Evidence from `composer install --prefer-dist --no-dev` in a temporary consumer, including production autoload verification and a representative public-API probe. The manifest and receipt are permanent release assets; detailed logs are retained for 90 days. |
 | **Release plan** | An immutable, content-addressed description of one intended release operation. Its `plan_id` is the SHA-256 digest of its canonical JSON representation and binds the candidate, baselines, policy inputs, expected effects, evidence requirements, version, and approvals. |
 | **Release run** | One execution attempt associated with one release plan. A run has its own unique `run_id`, append-only transition evidence, bounded logs, receipts, and current-state projection; retry creates a new run and resume continues the named run only after revalidation. |
 | **Evidence manifest** | The compact, versioned, immutable machine authority for release inputs, checks, package digests, Git identities, external receipts, and expected downstream projections. Its canonical JSON has a SHA-256 `manifest_id` that authorization may bind. Detailed logs support the manifest but do not replace it. |
@@ -235,6 +265,11 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 | **Postcondition-driven resume** | Re-entry behavior that re-resolves every bound input and re-verifies every completed postcondition before advancing, rather than trusting a prior state label or exit code. |
 | **Machine result** | A versioned JSON result emitted by every release-command invocation. Human-readable output renders this result; stable coarse exit codes classify the outcome and detailed finding IDs carry the explanation. |
 | **Release state** | The current verified position of one release run. Progress states describe completed work; stop states describe drift, failed checks, missing authority, conflicts, external uncertainty, supersession, or an expired support boundary. Every state exposes the next permitted operation or required human action. |
+| **Operator journey** | One supported release-operation path from routing through its bounded effects, verification, and handoff or stop. |
+| **Journey card** | The runbook section that defines one operator journey's routing, inputs, evidence, approvals, commands, postconditions, stop handling, and next action. |
+| **Routing decision** | A deterministic classification of repository state, release state, change intent, affected lines, urgency metadata, and release class that selects the correct operator journey. |
+| **Stop handoff** | Durable evidence of a blocked, failed, uncertain, cancelled, or otherwise stopped operation together with its owning escalation and exactly one resumable next action. |
+| **Effect authorization** | Explicit human approval for one bounded local or external mutation identified by the release plan and its immutable inputs. |
 
 ## Durable and ephemeral work
 

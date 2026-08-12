@@ -6,10 +6,10 @@ namespace Fight\Common\Domain\Collection\Iterator;
 
 use Closure;
 use Exception;
-use Generator;
-use Iterator;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\MethodCallException;
+use Generator;
+use Iterator;
 use ReflectionFunction;
 use Throwable;
 
@@ -21,7 +21,6 @@ use Throwable;
 final class GeneratorIterator implements Iterator
 {
     private readonly Closure $function;
-
     /** @var Generator<mixed, mixed, mixed, mixed> */
     private ?Generator $generator = null;
 
@@ -30,8 +29,6 @@ final class GeneratorIterator implements Iterator
      *
      * @param callable $function
      * @param array<mixed> $args
-     *
-     * @codeCoverageIgnore coverage bug
      *
      * @throws DomainException When function is not a generator
      */
@@ -46,7 +43,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Rewinds the iterator
+     * Initializes the iterator with a fresh generator
      */
     public function rewind(): void
     {
@@ -90,7 +87,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Moves to the next position
+     * Advances to the next position
      */
     public function next(): void
     {
@@ -137,7 +134,7 @@ final class GeneratorIterator implements Iterator
     }
 
     /**
-     * Throws an exception into the generator
+     * Injects an exception into the generator
      *
      * Throws an exception into the generator and resumes execution of the
      * generator.

@@ -53,14 +53,14 @@ interface FileStorage
     public function removeFile(string $path): void;
 
     /**
-     * Copies a file to another location in storage
+     * Creates a file copy at another storage location
      *
      * @throws FileStorageException When error occurs
      */
     public function copyFile(string $source, string $destination): void;
 
     /**
-     * Moves a file to another location in storage
+     * Replaces a file's storage location
      *
      * @throws FileStorageException When error occurs
      */

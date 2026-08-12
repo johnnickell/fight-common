@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Observability\Health;
 
-use Fight\Common\Application\HttpClient\Transport\HttpClient;
 use Fight\Common\Application\HttpClient\Message\MessageFactory;
+use Fight\Common\Application\HttpClient\Transport\HttpClient;
 use Fight\Common\Application\Observability\HealthCheck;
 use Fight\Common\Domain\Observability\HealthResult;
 use Fight\Common\Domain\Observability\HealthStatus;

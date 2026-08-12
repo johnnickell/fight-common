@@ -6,10 +6,10 @@ namespace Fight\Common\Adapter\Auth\Hmac;
 
 use DateTimeImmutable;
 use Fight\Common\Application\Auth\Authenticator;
-use Fight\Common\Domain\Auth\NonceRepository;
-use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Application\Auth\Exception\AuthException;
+use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Domain\Auth\Nonce;
+use Fight\Common\Domain\Auth\NonceRepository;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -19,8 +19,6 @@ final class HmacAuthenticator implements Authenticator
 {
     use HmacMethods;
 
-    private string $secret;
-
     /** @var string[] */
     private static array $requiredHeaders = [
         'Authorization',
@@ -29,6 +27,7 @@ final class HmacAuthenticator implements Authenticator
         'X-Timestamp',
         'X-Nonce'
     ];
+    private string $secret;
 
     /**
      * Constructs HmacAuthenticator

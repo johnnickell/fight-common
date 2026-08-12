@@ -10,6 +10,11 @@ Read root `CONTEXT.md` for project vocabulary and accepted Event Sourcing bounda
 - `planning/agents/triage-labels.md` — allowed workflow states.
 - `planning/agents/domain.md` — architecture and Event Sourcing rules.
 
+Release coordination is documented in the canonical [Wayfinder map](planning/wayfinder/fight-common-release-coordination-map.md)
+and its linked ticket contracts, including [WF-004 release skill contracts](planning/wayfinder/tickets/WF-004-release-skill-contracts.md).
+Keep release policy in those planning artifacts and repository-owned commands; do not duplicate it in
+`AGENTS.md` or other agent instructions.
+
 For coordinated builds, use `.runs/<YYYY-MM-DD>-<slug>/` for local plans, spokes, results, and traces. `.runs/` is gitignored and must never be staged. Copy durable outcomes and deviations back to the canonical ticket.
 
 ## Commands
@@ -80,15 +85,21 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/phpcs
 
-# 4. Full test suite with coverage
+# 4. Architecture dependency enforcement
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
+docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
+    php vendor/bin/deptrac debug:unassigned --no-cache
+
+# 5. Full test suite with coverage
 docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
     php vendor/bin/phpunit
 
-# 5. Validate planning metadata and dependency edges
+# 6. Validate planning metadata and dependency edges
 ./bin/planning-check
 ```
 
-All five must be clean before a commit lands on any branch.
+Both architecture commands, and all six submit-gate steps, must be clean before a commit lands on any branch.
 
 ### Git Flow
 

@@ -18,19 +18,16 @@ final class PhpEngine implements TemplateEngine
 {
     /** @var array<string, TemplateHelper> */
     private array $helpers = [];
-
     /** @var array<string, string> */
     private array $cache = [];
-
     /** @var array<string, ?string> */
     private array $parents = [];
-
     /** @var array<string, string> */
     private array $blocks = [];
-
     /** @var string[] */
     private array $openBlocks = [];
-
+    /** @var int[] */
+    private array $blockBufferLevels = [];
     private string $current;
 
     /**
@@ -72,7 +69,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Escapes HTML content
+     * Encodes HTML content
      */
     public function escape(string $value): string
     {
@@ -85,7 +82,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Extends the current template
+     * Sets the parent of the current template
      */
     public function extends(string $template): void
     {
@@ -93,9 +90,6 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * @param string $template
-     * @param array<string, mixed> $data
-     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string
@@ -133,6 +127,7 @@ final class PhpEngine implements TemplateEngine
 
         ob_start();
         ob_implicit_flush(false);
+        $this->blockBufferLevels[] = ob_get_level();
     }
 
     /**
@@ -147,11 +142,12 @@ final class PhpEngine implements TemplateEngine
         }
 
         $name = array_pop($this->openBlocks);
+        $bufferLevel = array_pop($this->blockBufferLevels);
 
-        $content = ob_get_clean();
+        $content = ob_get_level() < $bufferLevel ? false : ob_get_clean();
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+            throw new TemplatingException('Output buffering is not active');
         }
 
         if (empty($this->blocks[$name])) {
@@ -247,7 +243,7 @@ final class PhpEngine implements TemplateEngine
     }
 
     /**
-     * Outputs a block
+     * Writes a block to the output buffer
      */
     public function outputContent(string $name, ?string $default = null): bool
     {
@@ -290,15 +286,16 @@ final class PhpEngine implements TemplateEngine
         $evalData = null;
 
         ob_start();
+        $bufferLevel = ob_get_level();
         try {
             require $evalFile;
         } finally {
             $evalFile = null;
-            $content = ob_get_clean();
+            $content = ob_get_level() < $bufferLevel ? false : ob_get_clean();
         }
 
         if ($content === false) {
-            throw new TemplatingException('Output buffering is not active'); // @codeCoverageIgnore
+            throw new TemplatingException('Output buffering is not active');
         }
 
         return $content;

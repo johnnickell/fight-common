@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Collection\Contract;
 
-use JsonSerializable;
 use Fight\Common\Domain\Exception\LookupException;
 use Fight\Common\Domain\Exception\UnderflowException;
 use Fight\Common\Domain\Type\Arrayable;
+use JsonSerializable;
 use Stringable;
 
 /**
@@ -42,7 +42,9 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      *
      * A ∆ B = {x : (x ∈ A) ⊕ (x ∈ B)}
      *
-     * @param OrderedSet<T> $other
+     * @param OrderedSet $other
+     *
+     * @phpstan-param OrderedSet<T> $other
      */
     public function difference(OrderedSet $other): static;
 
@@ -54,7 +56,9 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      *
      * A ∩ B = {x : x ∈ A ∧ x ∈ B}
      *
-     * @param OrderedSet<T> $other
+     * @param OrderedSet $other
+     *
+     * @phpstan-param OrderedSet<T> $other
      */
     public function intersection(OrderedSet $other): static;
 
@@ -66,7 +70,9 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      *
      * B \ A = {x : x ∈ B ∧ x ∉ A}
      *
-     * @param OrderedSet<T> $other
+     * @param OrderedSet $other
+     *
+     * @phpstan-param OrderedSet<T> $other
      */
     public function complement(OrderedSet $other): static;
 
@@ -78,7 +84,9 @@ interface OrderedSet extends Arrayable, OrderedItemCollection, JsonSerializable,
      *
      * A ∪ B = {x : x ∈ A ∨ x ∈ B}
      *
-     * @param OrderedSet<T> $other
+     * @param OrderedSet $other
+     *
+     * @phpstan-param OrderedSet<T> $other
      */
     public function union(OrderedSet $other): static;
 

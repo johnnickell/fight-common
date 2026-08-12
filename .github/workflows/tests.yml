@@ -72,8 +72,13 @@ jobs:
       - name: Static analysis
         run: php vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress --error-format=github
 
+      - name: Enforce architecture
+        run: |
+          php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
+          php vendor/bin/deptrac debug:unassigned --no-cache
+
       - name: Run tests
-        run: php vendor/bin/phpunit
+        run: php vendor/bin/phpunit --fail-on-skipped
         env:
           FIGHT_COMMON_MYSQL_DSN: mysql://fight_common:fight_common@127.0.0.1:3306/fight_common
           FIGHT_COMMON_POSTGRESQL_DSN: postgresql://fight_common:fight_common@127.0.0.1:5432/fight_common

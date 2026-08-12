@@ -581,8 +581,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a field has a count equal to or less than
-     * a given count maximum
+     * Adds a validation for a maximum field count
      */
     public function addMaxCountValidation(string $fieldName, string $errorMessage, string $maxCount): void
     {
@@ -599,8 +598,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a string is less than or equal to a
-     * maximum length
+     * Adds a validation for a maximum string length
      */
     public function addMaxLengthValidation(string $fieldName, string $errorMessage, string $maxLength): void
     {
@@ -617,8 +615,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a number is less than or equal to a
-     * maximum number
+     * Adds a validation for a maximum numeric value
      */
     public function addMaxNumberValidation(string $fieldName, string $errorMessage, string $maxNumber): void
     {
@@ -639,8 +636,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a field has a count equal to or greater
-     * than a given count minimum
+     * Adds a validation for a minimum field count
      */
     public function addMinCountValidation(string $fieldName, string $errorMessage, string $minCount): void
     {
@@ -657,8 +653,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a string is greater than or equal to a
-     * minimum length
+     * Adds a validation for a minimum string length
      */
     public function addMinLengthValidation(string $fieldName, string $errorMessage, string $minLength): void
     {
@@ -675,8 +670,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Adds a validation that asserts a number is greater than or equal to a
-     * minimum number
+     * Adds a validation for a minimum numeric value
      */
     public function addMinNumberValidation(string $fieldName, string $errorMessage, string $minNumber): void
     {
@@ -1137,7 +1131,7 @@ final class ValidationCoordinator
     }
 
     /**
-     * Resets the list of validators
+     * Clears the list of validators
      */
     private function resetValidators(): void
     {

@@ -17,7 +17,6 @@ final class Container implements ArrayAccess, ContainerInterface
 {
     /** @var array<string, callable> */
     private array $factories = [];
-
     /** @var array<string, mixed> */
     private array $parameters = [];
 

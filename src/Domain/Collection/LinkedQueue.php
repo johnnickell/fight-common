@@ -309,7 +309,6 @@ final class LinkedQueue implements Queue
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -337,7 +336,6 @@ final class LinkedQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -360,7 +358,6 @@ final class LinkedQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

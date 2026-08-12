@@ -11,9 +11,9 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Exception\ImmutableException;
 use Fight\Common\Domain\Exception\IndexException;
 use Fight\Common\Domain\Type\Comparable;
+use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Value\Basic\Traits\StringOffsets;
 use Fight\Common\Domain\Value\ValueObject;
-use Fight\Common\Domain\Utility\Validate;
 use IteratorAggregate;
 use Traversable;
 
@@ -122,7 +122,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
     }
 
     /**
-     * Not implemented
+     * Rejects mutation through array access
      *
      * @throws ImmutableException When called
      */
@@ -154,7 +154,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
     }
 
     /**
-     * Not implemented
+     * Rejects removal through array access
      *
      * @throws ImmutableException When called
      */
@@ -687,8 +687,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      *
      * If search is an array and replacement is a string, then the replacement
      * string is used for every value of search.
-     */
-    /**
+     *
      * @param string|array<mixed> $search
      * @param string|array<mixed> $replace
      */
@@ -1041,7 +1040,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
     }
 
     /**
-     * Splits a string into a list on capital letters
+     * Returns string parts separated at capital letters
      *
      * @return string[]
      */
@@ -1056,7 +1055,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
     }
 
     /**
-     * Splits a string into a list on non-word breaks
+     * Returns string parts separated at non-word breaks
      *
      * @return string[]
      */

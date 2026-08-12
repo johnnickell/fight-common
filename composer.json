@@ -12,6 +12,7 @@
         "psr/log": "^3.0"
     },
     "require-dev": {
+        "deptrac/deptrac": "^4.7",
         "doctrine/dbal": "^4.4",
         "doctrine/orm": "^3.6",
         "dragonmantank/cron-expression": "^3.0",
@@ -25,6 +26,7 @@
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^13.0",
         "rector/rector": "^2.4",
+        "slevomat/coding-standard": "^8.27",
         "squizlabs/php_codesniffer": "^4.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/event-dispatcher": "^8.0",
@@ -41,6 +43,7 @@
         "twilio/sdk": "^8.0"
     },
     "suggest": {
+        "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
         "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
         "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
@@ -59,6 +62,8 @@
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
         "symfony/process": "Required by the Symfony process runner adapter",
         "symfony/routing": "Required for the URL generator",
+        "slevomat/coding-standard": "Required by the optional FightCommon PHP_CodeSniffer standard",
+        "squizlabs/php_codesniffer": "Required to run the optional FightCommon PHP_CodeSniffer standard",
         "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
         "twilio/sdk": "Required by the Twilio SMS transport adapter",
         "twig/twig": "Required by the Twig template engine adapter"
@@ -78,6 +83,9 @@
         }
     },
     "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": false
+        },
         "platform": {
             "php": "8.5.4",
             "ext-bcmath": "8.5.4",

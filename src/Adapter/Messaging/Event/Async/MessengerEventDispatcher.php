@@ -64,9 +64,9 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
-     * @return callable[]
+     * Retrieves no locally registered handlers for an event or all events
      *
-     * @inheritDoc
+     * @return callable[]
      */
     public function getHandlers(?string $eventType = null): array
     {

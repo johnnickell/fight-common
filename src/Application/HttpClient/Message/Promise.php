@@ -14,9 +14,7 @@ use Throwable;
 interface Promise
 {
     public const PENDING = 'pending';
-
     public const FULFILLED = 'fulfilled';
-
     public const REJECTED = 'rejected';
 
     /**
@@ -44,7 +42,7 @@ interface Promise
     public function getException(): Throwable;
 
     /**
-     * Waits for the promise to be fulfilled or rejected
+     * Returns after the promise is fulfilled or rejected
      */
     public function wait(): void;
 }

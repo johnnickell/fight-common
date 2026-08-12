@@ -47,14 +47,14 @@ interface Filesystem
     public function symlink(string $origin, string $target, bool $copyOnWindows = false): void;
 
     /**
-     * Copies a file
+     * Creates a file copy
      *
      * @throws FilesystemException When an error occurs
      */
     public function copy(string $originFile, string $targetFile, bool $override = false): void;
 
     /**
-     * Mirrors a directory
+     * Synchronizes a target directory with an origin directory
      *
      * Override will overwrite existing targets.
      *

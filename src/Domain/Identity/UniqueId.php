@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Identity;
 
-use Override;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Value\Identifier\Uuid;
 use Fight\Common\Domain\Value\ValueObject;
+use Override;
 
 /**
  * Class UniqueId

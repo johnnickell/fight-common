@@ -13,18 +13,17 @@ use Fight\Common\Domain\Value\ValueObject;
 final readonly class HealthStatus extends ValueObject
 {
     private const string HEALTHY = 'healthy';
-
     private const string DEGRADED = 'degraded';
-
     private const string UNHEALTHY = 'unhealthy';
-
     private const array SEVERITY = [
-        self::HEALTHY => 0,
-        self::DEGRADED => 1,
-        self::UNHEALTHY => 2,
+        self::HEALTHY   => 0,
+        self::DEGRADED  => 1,
+        self::UNHEALTHY => 2
     ];
 
     /**
+     * Constructs HealthStatus
+     *
      * @throws DomainException When the status is invalid
      */
     private function __construct(private string $value)

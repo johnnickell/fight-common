@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
-use Doctrine\DBAL\ParameterType;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Domain\EventSourcing\EventMapper;
-use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\EventStore;
+use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\StoredEvent;
 use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -23,6 +23,8 @@ use Fight\Common\Domain\Messaging\Meta;
 use InvalidArgumentException;
 
 /**
+ * Class DbalEventStore
+ *
  * Doctrine DBAL adapter for durable mapped event storage
  */
 final readonly class DbalEventStore implements EventStore
@@ -131,18 +133,18 @@ final readonly class DbalEventStore implements EventStore
                     ++$globalPosition;
 
                     $this->connection->insert('event_store_events', [
-                        'aggregate_name' => $streamId->aggregateName(),
+                        'aggregate_name'       => $streamId->aggregateName(),
                         'aggregate_identifier' => $streamId->identifier(),
-                        'stream_version' => $expectedVersion + $offset + 1,
-                        'global_position' => $globalPosition,
-                        'event_name' => $mappedEvent->eventName(),
-                        'schema_version' => $mappedEvent->schemaVersion(),
-                        'payload' => json_encode($mappedEvent->data(), JSON_THROW_ON_ERROR),
-                        'message_id' => (string) $message->id(),
-                        'message_timestamp' => $message->timestamp()
+                        'stream_version'       => $expectedVersion + $offset + 1,
+                        'global_position'      => $globalPosition,
+                        'event_name'           => $mappedEvent->eventName(),
+                        'schema_version'       => $mappedEvent->schemaVersion(),
+                        'payload'              => json_encode($mappedEvent->data(), JSON_THROW_ON_ERROR),
+                        'message_id'           => (string) $message->id(),
+                        'message_timestamp'    => $message->timestamp()
                             ->setTimezone(new DateTimeZone('UTC'))
                             ->format('Y-m-d\TH:i:s.uP'),
-                        'message_meta' => json_encode($message->meta()->toArray(), JSON_THROW_ON_ERROR),
+                        'message_meta'         => json_encode($message->meta()->toArray(), JSON_THROW_ON_ERROR)
                     ]);
                 }
 
@@ -172,37 +174,6 @@ final readonly class DbalEventStore implements EventStore
 
             throw $uniqueConstraintViolationException;
         }
-    }
-
-    /**
-     * Reports whether every requested identity now occupies its intended position
-     *
-     * @param StreamId           $streamId       Event stream identity
-     * @param integer            $expectedVersion Expected stream version
-     * @param list<EventMessage> $messages       Events requested for persistence
-     */
-    private function isExactRetry(StreamId $streamId, int $expectedVersion, array $messages): bool
-    {
-        foreach ($messages as $offset => $message) {
-            $record = $this->connection->fetchAssociative(
-                sprintf(
-                    'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                    'FROM event_store_events WHERE message_id = ?',
-                ),
-                [(string) $message->id()],
-            );
-
-            if (
-                false === $record
-                || $record['aggregate_name'] !== $streamId->aggregateName()
-                || $record['aggregate_identifier'] !== $streamId->identifier()
-                || (int) $record['stream_version'] !== $expectedVersion + $offset + 1
-            ) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -240,6 +211,39 @@ final readonly class DbalEventStore implements EventStore
     }
 
     /**
+     * Reports whether every requested identity now occupies its intended position
+     *
+     * @param StreamId $streamId        Event stream identity
+     * @param integer  $expectedVersion Expected stream version
+     * @param array    $messages        Events requested for persistence
+     *
+     * @phpstan-param list<EventMessage> $messages
+     */
+    private function isExactRetry(StreamId $streamId, int $expectedVersion, array $messages): bool
+    {
+        foreach ($messages as $offset => $message) {
+            $record = $this->connection->fetchAssociative(
+                sprintf(
+                    'SELECT aggregate_name, aggregate_identifier, stream_version %s',
+                    'FROM event_store_events WHERE message_id = ?',
+                ),
+                [(string) $message->id()],
+            );
+
+            if (
+                false === $record
+                || $record['aggregate_name'] !== $streamId->aggregateName()
+                || $record['aggregate_identifier'] !== $streamId->identifier()
+                || (int) $record['stream_version'] !== $expectedVersion + $offset + 1
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Returns the current version of one stream
      */
     private function streamVersion(StreamId $streamId): int
@@ -253,7 +257,9 @@ final readonly class DbalEventStore implements EventStore
     /**
      * Reports whether any requested message identity exists after rollback
      *
-     * @param list<EventMessage> $messages
+     * @param array $messages
+     *
+     * @phpstan-param list<EventMessage> $messages
      */
     private function hasExistingMessageId(array $messages): bool
     {
@@ -264,7 +270,7 @@ final readonly class DbalEventStore implements EventStore
     }
 
     /**
-     * Hydrates one database record into a stored event
+     * Reconstitutes one database record as a stored event
      *
      * @param array<string, mixed> $record
      */

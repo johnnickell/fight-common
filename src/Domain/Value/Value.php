@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value;
 
-use JsonSerializable;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Equatable;
+use JsonSerializable;
 use Stringable;
 
 /**

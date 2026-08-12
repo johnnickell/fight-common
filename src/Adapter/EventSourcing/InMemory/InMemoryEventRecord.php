@@ -10,10 +10,14 @@ use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\MessageId;
 
 /**
+ * Class InMemoryEventRecord
+ *
  * In-memory snapshot of one mapped event
  */
 final readonly class InMemoryEventRecord
 {
+    private DateTimeImmutable $timestamp;
+
     /**
      * Constructs InMemoryEventRecord
      *
@@ -40,8 +44,6 @@ final readonly class InMemoryEventRecord
     ) {
         $this->timestamp = $timestamp->setTimezone(new DateTimeZone('UTC'));
     }
-
-    private DateTimeImmutable $timestamp;
 
     /**
      * Returns the event stream identity
@@ -84,6 +86,8 @@ final readonly class InMemoryEventRecord
     }
 
     /**
+     * Returns the mapped event payload data
+     *
      * @return array<string, mixed>
      */
     public function data(): array
@@ -108,6 +112,8 @@ final readonly class InMemoryEventRecord
     }
 
     /**
+     * Returns the mapped event metadata
+     *
      * @return array<string, mixed>
      */
     public function meta(): array

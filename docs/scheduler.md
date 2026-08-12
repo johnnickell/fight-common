@@ -38,17 +38,22 @@ Domain\Value\DateTime
 
 ```php
 use Fight\Common\Application\Scheduler\Scheduler;
+use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Common\Domain\Value\DateTime\Timezone;
 
 $scheduler = new Scheduler(
     timezone:       new Timezone('America/New_York'),
     tempDirectory:  '/var/run/scheduler',
+    processRunner:  $processRunner,    // ProcessRunner (required)
     logger:         $logger,           // ?LoggerInterface (default null)
     mailService:    $mailService,      // ?MailService (default null)
-    fromEmail:      'cron@example.com',
-    processFactory: null               // ?Closure (default null — uses symfony/process)
+    fromEmail:      'cron@example.com'
 );
 ```
+
+Command jobs are described with `ProcessBuilder::shellCommand()` and executed through the
+Application-owned `ProcessRunner` port. The runner is a required Scheduler dependency, including when a
+Scheduler currently registers only callable jobs, so every Scheduler is ready to execute either job type.
 
 ### Registering Jobs
 
@@ -67,7 +72,7 @@ $scheduler->addJob(
 );
 ```
 
-**Shell command job** — runs a command string via `symfony/process`:
+**Shell command job** — runs an accepted command string through the configured `ProcessRunner`:
 
 ```php
 $scheduler->addCommand(
@@ -217,9 +222,15 @@ services:
         arguments:
             - '@Fight\Common\Domain\Value\DateTime\Timezone'
             - '%kernel.cache_dir%/scheduler'
+            - '@Fight\Common\Application\Process\ProcessRunner'
             - '@logger'
             - '@Fight\Common\Application\Mail\MailService'
             - '%env(SCHEDULER_FROM_EMAIL)%'
+
+    Fight\Common\Adapter\Process\Symfony\SymfonyProcessRunner: ~
+
+    Fight\Common\Application\Process\ProcessRunner:
+        alias: Fight\Common\Adapter\Process\Symfony\SymfonyProcessRunner
 ```
 
 Then add the entry point to the project (e.g. `bin/scheduler.php`):
