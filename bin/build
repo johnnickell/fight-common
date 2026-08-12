@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+COMPOSER_COMMAND='composer install --no-interaction --no-progress --prefer-dist'
+
+if (( $# == 1 )) && [[ "${1}" == '--latest' ]]; then
+    COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
+elif (( $# > 0 )); then
+    echo 'Usage: ./bin/build [--latest]' >&2
+    exit 2
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
+ID_BIN="${ID_BIN:-id}"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+GIT_METADATA_MOUNT=()
+
+if [[ -f "${ROOT_DIR}/.git" ]]; then
+    GIT_COMMON_DIR="$(
+        "${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir
+    )"
+    GIT_METADATA_MOUNT=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro")
+fi
+
+# shellcheck source=bin/.disposable-database-runtime
+source "${ROOT_DIR}/bin/.disposable-database-runtime"
+
+fight_common_install_disposable_database_cleanup
+
+cd "${ROOT_DIR}"
+
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+
+fight_common_start_disposable_databases
+
+"${DOCKER_BIN}" container run \
+    --rm \
+    --network "${FIGHT_COMMON_DATABASE_NETWORK}" \
+    -v "${ROOT_DIR}:/app:delegated" \
+    ${GIT_METADATA_MOUNT[@]+"${GIT_METADATA_MOUNT[@]}"} \
+    -w /app \
+    --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+    --env HOME=/tmp \
+    --env COMPOSER_HOME=/tmp/fight-common-composer \
+    --env "FIGHT_COMMON_MYSQL_DSN=${FIGHT_COMMON_MYSQL_DSN}" \
+    --env "FIGHT_COMMON_POSTGRESQL_DSN=${FIGHT_COMMON_POSTGRESQL_DSN}" \
+    "${PHP_IMAGE}" \
+    bash -c "${COMPOSER_COMMAND} && ./bin/quality"

@@ -1,5 +1,7 @@
 FROM php:8.5-cli
 
+COPY --from=composer:2.8.12 /usr/bin/composer /usr/local/bin/composer
+
 # Set working directory
 WORKDIR /var/www
 
@@ -10,6 +12,7 @@ RUN apt-get update \
         wget \
         curl \
         git \
+        python3 \
         unzip \
         locales \
         libxml2-dev \
