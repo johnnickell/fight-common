@@ -43,6 +43,10 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: !relative $config_dir
+      restrict_base_path: true
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
   - admonition
@@ -56,6 +60,7 @@ nav:
   - Home: README.md
   - Quick Start: quickstart.md
   - Components:
+    - Event Sourcing: event-sourcing.md
     - Values: values.md
     - Collections: collections.md
     - Specifications: specifications.md
