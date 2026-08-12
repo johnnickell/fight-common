@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-11
+Last updated: 2026-08-12
 
 ## “What’s Next?” Contract
 
@@ -26,8 +26,8 @@ ticket materially cheaper.
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
-| 18 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Wrap the completed shared quality gate in the canonical non-interactive disposable local build. |
 | 19 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Invoke the completed shared quality gate directly after ephemeral latest-compatible dependency resolution. |
+| 20 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Attach opt-in pre-commit enforcement to the completed canonical local build without duplicating its gate. |
 
 ## Waiting
 
@@ -35,7 +35,6 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 20 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | T-00029 |
 | 21 | [T-00040 — Prove Resumable Release Runs and Phase Handoffs](00040-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | T-00032 |
 | 23 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00040 |
 | 24 | [T-00034 — Compose Certification Evidence and Compatibility Lanes](00034-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00033 |
@@ -73,9 +72,10 @@ validation-service coverage is exact without inline exclusions or test-order dep
 template-buffering, StatsD, process, FTP, and Scheduler failure boundaries are now deterministic without
 public-contract or production filesystem-semantic changes. The permanent coverage gate now rejects every
 production exclusion directive and fails closed unless the provided Clover project metrics prove exact statement
-equality. T-00028 now composes those contracts into the shared host-neutral gate. Local build and CI delivery
-continue independently through T-00029 and T-00030, while T-00031 attaches pre-commit enforcement to the
-completed local build.
+equality. T-00028 now composes those contracts into the shared host-neutral gate, and T-00029 wraps it in the
+canonical non-interactive disposable local build with locked and latest-compatible dependency modes. CI delivery
+continues independently through T-00030, while T-00031 can now attach pre-commit enforcement to the completed
+local build.
 
 The release path starts at T-00032 and T-00040, then proves packaging and certification through T-00033 and
 T-00034. GitHub publication continues through T-00035 and downstream verification through T-00041, while
@@ -87,6 +87,7 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added one non-interactive local build that composes tracked or latest-compatible dependency resolution, invoking-user ownership, disposable databases, linked-worktree support, and the shared quality gate in one PHP container. |
 | [T-00028 — Establish the Shared Executable Quality Gate](00028-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added one visibly ordered, fail-fast host-neutral gate with deterministic process coverage and current-invocation-only exact Clover enforcement for agent and CI-prepared environments. |
 | [T-00016 — Document Event Sourcing Integration and Operations](00016-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Published the complete navigable lifecycle and operations guide with framework-free composition first, shipped Symfony mapping integration, migration and recovery contracts, and single-source executable aggregate, projection, and publication examples. |
 | [T-00015 — Add Symfony Event-Mapping Autoconfiguration](00015-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Added container-tested provider auto-tagging and reference composition through the portable Event Mapper registration and validation path while preserving framework-free construction and exact coverage. |
