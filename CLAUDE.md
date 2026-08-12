@@ -70,36 +70,14 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 
 ### Submit Gate
 
-**Always run the full submit gate before committing or pushing any feature work.** Run these in order and fix all findings before committing:
+**Always run the full submit gate before committing or pushing any feature work.**
 
-```bash
-# 1. Apply Rector modernisations (apply first, then re-check)
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/rector process src/ --dry-run
+`./bin/quality` is the single host-neutral ordered gate for agents and CI-prepared environments. It emits each
+step name, fails fast, and owns the mandatory submit sequence. Focused wrappers remain useful for iteration, but
+their results are not submit evidence.
 
-# 2. Static analysis
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpstan analyse
-
-# 3. Code style
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpcs
-
-# 4. Architecture dependency enforcement
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/deptrac debug:unassigned --no-cache
-
-# 5. Full test suite with coverage
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpunit
-
-# 6. Validate planning metadata and dependency edges
-./bin/planning-check
-```
-
-Both architecture commands, and all six submit-gate steps, must be clean before a commit lands on any branch.
+T-00029 will provide the canonical local `./bin/build` entry point, which will provision the disposable runtime
+and delegate the quality checks to `./bin/quality`.
 
 ### Git Flow
 
