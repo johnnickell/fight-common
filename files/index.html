@@ -1,0 +1,2799 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives.">
+      
+      
+      
+        <link rel="canonical" href="https://johnnickell.github.io/fight-common/files/">
+      
+      
+        <link rel="prev" href="../cache/">
+      
+      
+        <link rel="next" href="../templating/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Files - fight-common</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Source Sans 3";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#files" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="fight-common" class="md-header__button md-logo" aria-label="fight-common" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fight-common
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Files
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/johnnickell/fight-common" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    johnnickell/fight-common
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quickstart/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../event-sourcing/" class="md-tabs__link">
+          
+  
+  
+  Components
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="fight-common" class="md-nav__button md-logo" aria-label="fight-common" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    fight-common
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/johnnickell/fight-common" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    johnnickell/fight-common
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-sourcing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Sourcing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../messaging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Messaging (CQRS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../repositories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repositories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../http-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mail
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cache
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filestorage-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage (Interface)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storageservice-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StorageService (Registry)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flysystemstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FlysystemStorage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filestorage-exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filesystem-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem (Interface)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filesystem (Interface)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-modify-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create / Modify / Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symfonyfilesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SymfonyFilesystem
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SymfonyFilesystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key behaviors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filesystem-exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-flysystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage (Flysystem)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-symfony" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem (Symfony)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symfony-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symfony Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Symfony Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-upload-to-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — Upload to S3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-cross-storage-copy-via-storageservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — Cross-storage Copy via StorageService
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-list-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — List Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-read-and-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem — Read and Write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-directory-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem — Directory Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-in-memory-flysystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with In-Memory Flysystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sockets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sockets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serialization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Enforcement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing & Branching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filestorage-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage (Interface)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storageservice-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StorageService (Registry)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flysystemstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FlysystemStorage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filestorage-exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filesystem-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem (Interface)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Filesystem (Interface)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-modify-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create / Modify / Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symfonyfilesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SymfonyFilesystem
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SymfonyFilesystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key behaviors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filesystem-exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem Exceptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-flysystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage (Flysystem)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-symfony" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem (Symfony)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#symfony-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symfony Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Symfony Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-upload-to-s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — Upload to S3
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-cross-storage-copy-via-storageservice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — Cross-storage Copy via StorageService
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filestorage-list-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FileStorage — List Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-read-and-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem — Read and Write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filesystem-directory-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filesystem — Directory Operations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-in-memory-flysystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with In-Memory Flysystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="files">Files<a class="headerlink" href="#files" title="Permanent link">&para;</a></h1>
+<p>Two complementary file-abstraction components. <strong>FileStorage</strong> provides an abstract interface
+for writing, reading, and listing files on any storage backend (local disk, S3, FTP, etc.)
+via Flysystem adapters. <strong>Filesystem</strong> operates on the local OS filesystem — creating
+directories, changing permissions, reading metadata, and requiring PHP scripts.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Application\FileStorage
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── FileStorage (interface)          — 13 methods (putFile, getFileContents, listFiles, …)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── StorageService                   — Registry of named FileStorage instances
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>└── Exception\
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    ├── FileStorageException
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ├── StorageNotFoundException     — static fromKey(string $key)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    └── DuplicateStorageException    — static fromKey(string $key)
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Application\Filesystem
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── Filesystem (interface)           — 31 methods (mkdir, copy, chmod, mimeType, …)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└── Exception\
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── FilesystemException          — getPath(): ?string
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    └── FileNotFoundException        — static fromPath(string $path)
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>Adapter\FileStorage
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>└── FlysystemStorage                — FileStorage → League\Flysystem\FilesystemOperator
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>Adapter\Filesystem
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>└── SymfonyFilesystem               — Filesystem → Symfony\Component\Filesystem\Filesystem
+</code></pre></div>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#filestorage-interface">FileStorage (Interface)</a></li>
+<li><a href="#storageservice-registry">StorageService (Registry)</a></li>
+<li><a href="#flysystemstorage">FlysystemStorage</a></li>
+<li><a href="#filestorage-exceptions">FileStorage Exceptions</a></li>
+<li><a href="#filesystem-interface">Filesystem (Interface)</a></li>
+<li><a href="#symfonyfilesystem">SymfonyFilesystem</a></li>
+<li><a href="#filesystem-exceptions">Filesystem Exceptions</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#symfony-configuration">Symfony Configuration</a></li>
+<li><a href="#usage-examples">Usage Examples</a></li>
+</ol>
+<hr />
+<h2 id="filestorage-interface">FileStorage (Interface)<a class="headerlink" href="#filestorage-interface" title="Permanent link">&para;</a></h2>
+<p><code>Fight\Common\Application\FileStorage\FileStorage</code></p>
+<p>A generic file-store abstraction. Every method throws <code>FileStorageException</code> on failure.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>putFile(string $path, mixed $contents)</code></td>
+<td><code>void</code></td>
+<td>Write string or stream resource to a path</td>
+</tr>
+<tr>
+<td><code>getFileContents(string $path)</code></td>
+<td><code>string</code></td>
+<td>Read file contents as a string</td>
+</tr>
+<tr>
+<td><code>getFileResource(string $path)</code></td>
+<td><code>resource</code></td>
+<td>Read file contents as a stream resource</td>
+</tr>
+<tr>
+<td><code>hasFile(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check whether a file exists</td>
+</tr>
+<tr>
+<td><code>removeFile(string $path)</code></td>
+<td><code>void</code></td>
+<td>Delete a file</td>
+</tr>
+<tr>
+<td><code>copyFile(string $source, string $destination)</code></td>
+<td><code>void</code></td>
+<td>Copy a file within storage</td>
+</tr>
+<tr>
+<td><code>moveFile(string $source, string $destination)</code></td>
+<td><code>void</code></td>
+<td>Move (rename) a file within storage</td>
+</tr>
+<tr>
+<td><code>size(string $path)</code></td>
+<td><code>int</code></td>
+<td>File size in bytes</td>
+</tr>
+<tr>
+<td><code>lastModified(string $path)</code></td>
+<td><code>DateTimeImmutable</code></td>
+<td>Last modification timestamp</td>
+</tr>
+<tr>
+<td><code>listFiles(?string $path)</code></td>
+<td><code>array</code></td>
+<td>List files in a directory (non-recursive)</td>
+</tr>
+<tr>
+<td><code>listFilesRecursively(?string $path)</code></td>
+<td><code>array</code></td>
+<td>List all files in a directory tree</td>
+</tr>
+<tr>
+<td><code>listDirectories(?string $path)</code></td>
+<td><code>array</code></td>
+<td>List subdirectories (non-recursive)</td>
+</tr>
+<tr>
+<td><code>listDirectoriesRecursively(?string $path)</code></td>
+<td><code>array</code></td>
+<td>List all subdirectories recursively</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="x">interface FileStorage</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="x">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="x">    public function putFile(string $path, mixed $contents): void;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="x">    public function getFileContents(string $path): string;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="x">    public function getFileResource(string $path): mixed;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="x">    public function hasFile(string $path): bool;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="x">    public function removeFile(string $path): void;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="x">    public function copyFile(string $source, string $destination): void;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="x">    public function moveFile(string $source, string $destination): void;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="x">    public function size(string $path): int;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="x">    public function lastModified(string $path): DateTimeImmutable;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="x">    public function listFiles(?string $path = null): array;</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="x">    public function listFilesRecursively(?string $path = null): array;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="x">    public function listDirectories(?string $path = null): array;</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="x">    public function listDirectoriesRecursively(?string $path = null): array;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="storageservice-registry">StorageService (Registry)<a class="headerlink" href="#storageservice-registry" title="Permanent link">&para;</a></h2>
+<p><code>Fight\Common\Application\FileStorage\StorageService</code></p>
+<p>A <code>final readonly</code> registry of named <code>FileStorage</code> instances, backed by a
+<code>HashTable&lt;string, FileStorage&gt;</code>. Enables cross-storage file operations.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>addStorage(string $key, FileStorage $storage)</code></td>
+<td><code>void</code></td>
+<td>Register a storage under a name</td>
+</tr>
+<tr>
+<td><code>getStorage(string $key)</code></td>
+<td><code>FileStorage</code></td>
+<td>Retrieve a named storage</td>
+</tr>
+<tr>
+<td><code>copyStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath)</code></td>
+<td><code>void</code></td>
+<td>Copy a file from one storage to another</td>
+</tr>
+<tr>
+<td><code>moveStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath)</code></td>
+<td><code>void</code></td>
+<td>Move a file from one storage to another (copy + remove source)</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">final readonly class StorageService</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="x">{</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="x">    public function __construct() {}</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="x">    public function addStorage(string $key, FileStorage $storage): void;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="x">    public function getStorage(string $key): FileStorage;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="x">    public function copyStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath): void;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="x">    public function moveStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath): void;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="x">}</span>
+</code></pre></div>
+<p><code>addStorage()</code> throws <code>DuplicateStorageException</code> if the key already exists.
+<code>getStorage()</code> throws <code>StorageNotFoundException</code> if the key is not registered.
+<code>copyStorageToStorage()</code> and <code>moveStorageToStorage()</code> throw <code>FileStorageException</code>
+on transport failure.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">$service = new StorageService();</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="x">$service-&gt;addStorage(&#39;local&#39;, $localStorage);</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="x">$service-&gt;addStorage(&#39;s3&#39;, $s3Storage);</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="x">// Copy a file from local disk to S3</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="x">$service-&gt;copyStorageToStorage(&#39;local&#39;, &#39;/tmp/photo.jpg&#39;, &#39;s3&#39;, &#39;photos/photo.jpg&#39;);</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="x">// Move (copy + delete source)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="x">$service-&gt;moveStorageToStorage(&#39;local&#39;, &#39;/tmp/invoice.pdf&#39;, &#39;s3&#39;, &#39;invoices/invoice.pdf&#39;);</span>
+</code></pre></div>
+<hr />
+<h2 id="flysystemstorage">FlysystemStorage<a class="headerlink" href="#flysystemstorage" title="Permanent link">&para;</a></h2>
+<p><code>Fight\Common\Adapter\FileStorage\FlysystemStorage</code></p>
+<p>Wraps a <code>League\Flysystem\FilesystemOperator</code>. This is the sole adapter implementation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="x">final readonly class FlysystemStorage implements FileStorage</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="x">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="x">    public function __construct(private FilesystemOperator $filesystem) {}</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="x">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Delegation</th>
+<th>Notable behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>putFile()</code></td>
+<td><code>write()</code> / <code>writeStream()</code></td>
+<td>Accepts string or resource; auto-creates parent directory</td>
+</tr>
+<tr>
+<td><code>getFileContents()</code></td>
+<td><code>read()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>getFileResource()</code></td>
+<td><code>readStream()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>hasFile()</code></td>
+<td><code>fileExists()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>removeFile()</code></td>
+<td><code>delete()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>copyFile()</code></td>
+<td><code>createDirectory()</code> + <code>copy()</code></td>
+<td>Ensures destination parent exists</td>
+</tr>
+<tr>
+<td><code>moveFile()</code></td>
+<td><code>createDirectory()</code> + <code>move()</code></td>
+<td>Ensures destination parent exists</td>
+</tr>
+<tr>
+<td><code>size()</code></td>
+<td><code>fileSize()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lastModified()</code></td>
+<td><code>lastModified()</code> → <code>DateTimeImmutable</code></td>
+<td>Converts Unix timestamp</td>
+</tr>
+<tr>
+<td><code>listFiles()</code></td>
+<td><code>listContents()</code></td>
+<td>Filters <code>FileAttributes</code>, returns path list</td>
+</tr>
+<tr>
+<td><code>listFilesRecursively()</code></td>
+<td><code>listContents(deep: true)</code></td>
+<td>Filters <code>FileAttributes</code></td>
+</tr>
+<tr>
+<td><code>listDirectories()</code></td>
+<td><code>listContents()</code></td>
+<td>Filters <code>DirectoryAttributes</code></td>
+</tr>
+<tr>
+<td><code>listDirectoriesRecursively()</code></td>
+<td><code>listContents(deep: true)</code></td>
+<td>Filters <code>DirectoryAttributes</code></td>
+</tr>
+</tbody>
+</table>
+<p>All methods catch <code>League\Flysystem\FilesystemException</code> and wrap it in <code>FileStorageException</code>.</p>
+<hr />
+<h2 id="filestorage-exceptions">FileStorage Exceptions<a class="headerlink" href="#filestorage-exceptions" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>SystemException
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>└── FileStorageException
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    ├── StorageNotFoundException
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    └── DuplicateStorageException
+</code></pre></div>
+<p><code>Fight\Common\Application\FileStorage\Exception\FileStorageException</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="x">class FileStorageException extends SystemException {}</span>
+</code></pre></div>
+<hr />
+<p><code>Fight\Common\Application\FileStorage\Exception\StorageNotFoundException</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="x">class StorageNotFoundException extends FileStorageException</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="x">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="x">    public function __construct(string $message, ?string $key = null, ?Throwable $previous = null);</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="x">    public static function fromKey(string $key, ?Throwable $previous = null): static;</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="x">    public function getKey(): ?string;</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<p><code>Fight\Common\Application\FileStorage\Exception\DuplicateStorageException</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="x">class DuplicateStorageException extends FileStorageException</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="x">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="x">    public function __construct(string $message, ?string $key = null, ?Throwable $previous = null);</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="x">    public static function fromKey(string $key, ?Throwable $previous = null): static;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="x">    public function getKey(): ?string;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="filesystem-interface">Filesystem (Interface)<a class="headerlink" href="#filesystem-interface" title="Permanent link">&para;</a></h2>
+<p><code>Fight\Common\Application\Filesystem\Filesystem</code></p>
+<p>A comprehensive interface for local OS filesystem operations. Methods that access file
+contents or metadata throw <code>FilesystemException</code> (or <code>FileNotFoundException</code>) on failure.</p>
+<h3 id="create-modify-delete">Create / Modify / Delete<a class="headerlink" href="#create-modify-delete" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mkdir</code></td>
+<td><code>(string\|iterable $dirs, int $mode = 0775)</code></td>
+<td>Create directories recursively</td>
+</tr>
+<tr>
+<td><code>touch</code></td>
+<td><code>(string\|iterable $files, ?int $time, ?int $atime)</code></td>
+<td>Set access and modification times</td>
+</tr>
+<tr>
+<td><code>rename</code></td>
+<td><code>(string $origin, string $target, bool $override = false)</code></td>
+<td>Rename a file or directory</td>
+</tr>
+<tr>
+<td><code>symlink</code></td>
+<td><code>(string $origin, string $target, bool $copyOnWindows = false)</code></td>
+<td>Create a symbolic link</td>
+</tr>
+<tr>
+<td><code>copy</code></td>
+<td><code>(string $originFile, string $targetFile, bool $override = false)</code></td>
+<td>Copy a file</td>
+</tr>
+<tr>
+<td><code>mirror</code></td>
+<td><code>(string $originDir, string $targetDir, bool $override = false, bool $delete = false, bool $copyOnWindows = false)</code></td>
+<td>Mirror a directory tree</td>
+</tr>
+<tr>
+<td><code>remove</code></td>
+<td><code>(string\|iterable $paths)</code></td>
+<td>Delete files or directories</td>
+</tr>
+<tr>
+<td><code>put</code></td>
+<td><code>(string $path, string $content)</code></td>
+<td>Write file contents</td>
+</tr>
+</tbody>
+</table>
+<h3 id="read">Read<a class="headerlink" href="#read" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>get</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>Read file contents</td>
+</tr>
+<tr>
+<td><code>getReturn</code></td>
+<td><code>(string $path)</code></td>
+<td><code>mixed</code></td>
+<td><code>require</code> a PHP script, return its value</td>
+</tr>
+<tr>
+<td><code>requireOnce</code></td>
+<td><code>(string $path)</code></td>
+<td><code>void</code></td>
+<td><code>require_once</code> a PHP script</td>
+</tr>
+<tr>
+<td><code>fileType</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>File type (file, dir, link, etc.)</td>
+</tr>
+<tr>
+<td><code>mimeType</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>MIME type via <code>finfo</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="queries">Queries<a class="headerlink" href="#queries" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>exists</code></td>
+<td><code>(string\|iterable $paths)</code></td>
+<td><code>bool</code></td>
+<td>Check if paths exist</td>
+</tr>
+<tr>
+<td><code>isFile</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is a regular file</td>
+</tr>
+<tr>
+<td><code>isDir</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is a directory</td>
+</tr>
+<tr>
+<td><code>isLink</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is a symbolic link</td>
+</tr>
+<tr>
+<td><code>isReadable</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is readable</td>
+</tr>
+<tr>
+<td><code>isWritable</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is writable</td>
+</tr>
+<tr>
+<td><code>isExecutable</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is executable</td>
+</tr>
+<tr>
+<td><code>isAbsolute</code></td>
+<td><code>(string $path)</code></td>
+<td><code>bool</code></td>
+<td>Check if path is absolute</td>
+</tr>
+</tbody>
+</table>
+<h3 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lastModified</code></td>
+<td><code>(string $path)</code></td>
+<td><code>int</code></td>
+<td>Last modified Unix timestamp</td>
+</tr>
+<tr>
+<td><code>lastAccessed</code></td>
+<td><code>(string $path)</code></td>
+<td><code>int</code></td>
+<td>Last accessed Unix timestamp</td>
+</tr>
+<tr>
+<td><code>fileSize</code></td>
+<td><code>(string $path)</code></td>
+<td><code>int</code></td>
+<td>File size in bytes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="path-info">Path Info<a class="headerlink" href="#path-info" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fileName</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>File name with extension</td>
+</tr>
+<tr>
+<td><code>fileExt</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>File extension only</td>
+</tr>
+<tr>
+<td><code>dirName</code></td>
+<td><code>(string $path)</code></td>
+<td><code>string</code></td>
+<td>Parent directory path</td>
+</tr>
+<tr>
+<td><code>baseName</code></td>
+<td><code>(string $path, ?string $suffix)</code></td>
+<td><code>string</code></td>
+<td>Base name, optionally stripping suffix</td>
+</tr>
+</tbody>
+</table>
+<h3 id="permissions">Permissions<a class="headerlink" href="#permissions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>chmod</code></td>
+<td><code>(string\|iterable $paths, int $mode, int $umask = 0000, bool $recursive = false)</code></td>
+<td>Change mode</td>
+</tr>
+<tr>
+<td><code>chown</code></td>
+<td><code>(string\|iterable $paths, string $user, bool $recursive = false)</code></td>
+<td>Change owner</td>
+</tr>
+<tr>
+<td><code>chgrp</code></td>
+<td><code>(string\|iterable $paths, string $group, bool $recursive = false)</code></td>
+<td>Change group</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="x">interface Filesystem</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="x">{</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="x">    public function mkdir(string|iterable $dirs, int $mode = 0775): void;</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="x">    public function touch(string|iterable $files, ?int $time = null, ?int $atime = null): void;</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="x">    public function rename(string $origin, string $target, bool $override = false): void;</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="x">    public function symlink(string $origin, string $target, bool $copyOnWindows = false): void;</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="x">    public function copy(string $originFile, string $targetFile, bool $override = false): void;</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="x">    public function mirror(string $originDir, string $targetDir, bool $override = false, bool $delete = false, bool $copyOnWindows = false): void;</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="x">    public function exists(string|iterable $paths): bool;</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="x">    public function remove(string|iterable $paths): void;</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="x">    public function get(string $path): string;</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="x">    public function put(string $path, string $content): void;</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="x">    public function isFile(string $path): bool;</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="x">    public function isDir(string $path): bool;</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="x">    public function isLink(string $path): bool;</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="x">    public function isReadable(string $path): bool;</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="x">    public function isWritable(string $path): bool;</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="x">    public function isExecutable(string $path): bool;</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="x">    public function isAbsolute(string $path): bool;</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="x">    public function lastModified(string $path): int;</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="x">    public function lastAccessed(string $path): int;</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="x">    public function fileSize(string $path): int;</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="x">    public function fileName(string $path): string;</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="x">    public function fileExt(string $path): string;</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="x">    public function dirName(string $path): string;</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="x">    public function baseName(string $path, ?string $suffix = null): string;</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="x">    public function fileType(string $path): string;</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="x">    public function mimeType(string $path): string;</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="x">    public function getReturn(string $path): mixed;</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="x">    public function requireOnce(string $path): void;</span>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="x">    public function chmod(string|iterable $paths, int $mode, int $umask = 0000, bool $recursive = false): void;</span>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="x">    public function chown(string|iterable $paths, string $user, bool $recursive = false): void;</span>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="x">    public function chgrp(string|iterable $paths, string $group, bool $recursive = false): void;</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="symfonyfilesystem">SymfonyFilesystem<a class="headerlink" href="#symfonyfilesystem" title="Permanent link">&para;</a></h2>
+<p><code>Fight\Common\Adapter\Filesystem\SymfonyFilesystem</code></p>
+<p>Wraps <code>Symfony\Component\Filesystem\Filesystem</code>. This is the sole adapter implementation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="x">final readonly class SymfonyFilesystem implements Filesystem</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="x">{</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="x">    public function __construct(?Filesystem $filesystem = null)</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="x">    {</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="x">        $this-&gt;filesystem = $filesystem ?: new Filesystem();</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="x">    }</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="key-behaviors">Key behaviors<a class="headerlink" href="#key-behaviors" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Delegation</th>
+<th>Notable behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>copy()</code></td>
+<td><code>$this-&gt;filesystem-&gt;copy()</code></td>
+<td>Checks <code>stream_is_local()</code> + <code>is_file()</code> first, throws <code>FileNotFoundException</code> if missing</td>
+</tr>
+<tr>
+<td><code>get()</code></td>
+<td><code>file_get_contents()</code></td>
+<td>Checks <code>stream_is_local()</code> + <code>is_file()</code> first, throws <code>FileNotFoundException</code> if missing</td>
+</tr>
+<tr>
+<td><code>lastModified()</code></td>
+<td><code>filemtime()</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+<tr>
+<td><code>lastAccessed()</code></td>
+<td><code>fileatime()</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+<tr>
+<td><code>fileSize()</code></td>
+<td><code>filesize()</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+<tr>
+<td><code>fileName()</code> / <code>fileExt()</code> / <code>dirName()</code> / <code>baseName()</code></td>
+<td><code>pathinfo()</code> / <code>dirname()</code> / <code>basename()</code></td>
+<td>Throw <code>FileNotFoundException</code> if path does not exist (checked via <code>file_exists()</code>)</td>
+</tr>
+<tr>
+<td><code>mimeType()</code></td>
+<td><code>finfo_file(FILEINFO_MIME_TYPE)</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+<tr>
+<td><code>getReturn()</code></td>
+<td><code>require</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+<tr>
+<td><code>requireOnce()</code></td>
+<td><code>require_once</code></td>
+<td>Throws <code>FileNotFoundException</code> if not a file</td>
+</tr>
+</tbody>
+</table>
+<p>All delegating methods catch <code>Symfony\Component\Filesystem\Exception\IOException</code> and wrap it
+in <code>FilesystemException</code> (preserving the path). Non-IO exceptions are caught as <code>Throwable</code>
+and wrapped with a null path.</p>
+<p>Boolean query methods (<code>exists</code>, <code>isFile</code>, <code>isDir</code>, <code>isLink</code>, <code>isReadable</code>, <code>isWritable</code>,
+<code>isExecutable</code>) call the PHP native function directly without try/catch and do not throw.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="x">$fs = new SymfonyFilesystem();</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="x">$fs-&gt;mkdir(&#39;/tmp/build/logs&#39;, 0755);</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="x">$fs-&gt;copy(&#39;/tmp/source.txt&#39;, &#39;/tmp/build/source.txt&#39;, true);</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="x">$contents = $fs-&gt;get(&#39;/tmp/build/source.txt&#39;);</span>
+</code></pre></div>
+<hr />
+<h2 id="filesystem-exceptions">Filesystem Exceptions<a class="headerlink" href="#filesystem-exceptions" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>SystemException
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>└── FilesystemException (has getPath(): ?string)
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    └── FileNotFoundException (static fromPath(string $path): static)
+</code></pre></div>
+<p><code>Fight\Common\Application\Filesystem\Exception\FilesystemException</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="x">class FilesystemException extends SystemException</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="x">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="x">    public function __construct(string $message = &#39;&#39;, ?string $path = null, ?Throwable $previous = null);</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="x">    public function getPath(): ?string;</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<p><code>Fight\Common\Application\Filesystem\Exception\FileNotFoundException</code></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="x">class FileNotFoundException extends FilesystemException</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="x">{</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="x">    public static function fromPath(string $path, ?Throwable $previous = null): static;</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="filestorage-flysystem">FileStorage (Flysystem)<a class="headerlink" href="#filestorage-flysystem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>composer<span class="w"> </span>require<span class="w"> </span>league/flysystem
+</code></pre></div>
+<p>The specific adapter package (e.g. <code>league/flysystem-local</code>, <code>league/flysystem-aws-s3-v3</code>)
+must also be installed depending on the storage backend.</p>
+<h3 id="filesystem-symfony">Filesystem (Symfony)<a class="headerlink" href="#filesystem-symfony" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>composer<span class="w"> </span>require<span class="w"> </span>symfony/filesystem
+</code></pre></div>
+<p><code>symfony/filesystem</code> is a standalone component with no additional dependencies.</p>
+<hr />
+<h2 id="symfony-configuration">Symfony Configuration<a class="headerlink" href="#symfony-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="filestorage">FileStorage<a class="headerlink" href="#filestorage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># config/packages/common_filestorage.yaml</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">_defaults</span><span class="p">:</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">        </span><span class="nt">autowire</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">        </span><span class="nt">autoconfigure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="c1"># --- Flysystem adapters ---</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">League\Flysystem\FilesystemOperator $localStorage</span><span class="p">:</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">        </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">League\Flysystem\Filesystem</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@League\Flysystem\Local\LocalFilesystemAdapter&#39;</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">override_visibility</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">    </span><span class="nt">League\Flysystem\FilesystemOperator $s3Storage</span><span class="p">:</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="w">        </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">League\Flysystem\Filesystem</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@League\Flysystem\AwsS3V3\AwsS3V3Adapter&#39;</span>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="w">    </span><span class="c1"># --- FlysystemStorage adapters ---</span>
+<a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\FileStorage\FlysystemStorage $localFileStorage</span><span class="p">:</span>
+<a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@League\Flysystem\FilesystemOperator</span><span class="nv"> </span><span class="s">$localStorage&#39;</span>
+<a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a>
+<a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\FileStorage\FlysystemStorage $s3FileStorage</span><span class="p">:</span>
+<a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@League\Flysystem\FilesystemOperator</span><span class="nv"> </span><span class="s">$s3Storage&#39;</span>
+<a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a>
+<a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a><span class="w">    </span><span class="c1"># --- StorageService (registry) ---</span>
+<a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a><span class="w">    </span><span class="nt">Fight\Common\Application\FileStorage\StorageService</span><span class="p">:</span>
+<a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="w">        </span><span class="nt">calls</span><span class="p">:</span>
+<a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">addStorage</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;local&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\FileStorage\FlysystemStorage</span><span class="nv"> </span><span class="s">$localFileStorage&#39;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">addStorage</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;s3&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\FileStorage\FlysystemStorage</span><span class="nv"> </span><span class="s">$s3FileStorage&#39;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a>
+<a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a><span class="w">    </span><span class="c1"># --- Interface alias ---</span>
+<a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a><span class="w">    </span><span class="nt">Fight\Common\Application\FileStorage\FileStorage</span><span class="p">:</span>
+<a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="w">        </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\FileStorage\FlysystemStorage $localFileStorage</span>
+</code></pre></div>
+<h3 id="filesystem">Filesystem<a class="headerlink" href="#filesystem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># config/packages/common_filesystem.yaml</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="nt">_defaults</span><span class="p">:</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">        </span><span class="nt">autowire</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">        </span><span class="nt">autoconfigure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Filesystem\SymfonyFilesystem</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nt">Fight\Common\Application\Filesystem\Filesystem</span><span class="p">:</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">        </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\Filesystem\SymfonyFilesystem</span>
+</code></pre></div>
+<hr />
+<h2 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="filestorage-upload-to-s3">FileStorage — Upload to S3<a class="headerlink" href="#filestorage-upload-to-s3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="x">use Fight\Common\Application\FileStorage\FileStorage;</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="x">class AvatarService</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="x">{</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="x">    public function __construct(private FileStorage $storage) {}</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="x">    public function upload(string $userId, string $tmpPath): void</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="x">    {</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="x">        $resource = fopen($tmpPath, &#39;rb&#39;);</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="x">        $this-&gt;storage-&gt;putFile(&quot;avatars/{$userId}.jpg&quot;, $resource);</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="x">        fclose($resource);</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="x">    }</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="x">    public function getAvatar(string $userId): string</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="x">    {</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="x">        return $this-&gt;storage-&gt;getFileContents(&quot;avatars/{$userId}.jpg&quot;);</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="x">    }</span>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="filestorage-cross-storage-copy-via-storageservice">FileStorage — Cross-storage Copy via StorageService<a class="headerlink" href="#filestorage-cross-storage-copy-via-storageservice" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="x">use Fight\Common\Application\FileStorage\StorageService;</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="x">class MediaManager</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="x">{</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="x">    public function __construct(private StorageService $storages) {}</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="x">    public function publish(int $mediaId): void</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="x">    {</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="x">        // Move from staging (local) to CDN (S3)</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="x">        $this-&gt;storages-&gt;moveStorageToStorage(</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="x">            &#39;staging&#39;,</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="x">            &quot;media/{$mediaId}/original.jpg&quot;,</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="x">            &#39;cdn&#39;,</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="x">            &quot;media/{$mediaId}/original.jpg&quot;</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="x">        );</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="x">    }</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="filestorage-list-files">FileStorage — List Files<a class="headerlink" href="#filestorage-list-files" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="x">$files = $this-&gt;storage-&gt;listFiles(&#39;photos/2024&#39;);</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="x">// [&#39;photos/2024/img001.jpg&#39;, &#39;photos/2024/img002.jpg&#39;]</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="x">$allFiles = $this-&gt;storage-&gt;listFilesRecursively(&#39;photos&#39;);</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="x">// [&#39;photos/2024/img001.jpg&#39;, &#39;photos/2024/12/img003.jpg&#39;, …]</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="x">$dirs = $this-&gt;storage-&gt;listDirectories(&#39;photos&#39;);</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="x">// [&#39;photos/2024&#39;, &#39;photos/2023&#39;]</span>
+</code></pre></div>
+<h3 id="filesystem-read-and-write">Filesystem — Read and Write<a class="headerlink" href="#filesystem-read-and-write" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="x">use Fight\Common\Application\Filesystem\Filesystem;</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="x">class ConfigService</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="x">{</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="x">    public function __construct(private Filesystem $fs) {}</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="x">    public function dump(array $config): void</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="x">    {</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="x">        $path = sprintf(&#39;%s/config.php&#39;, $this-&gt;fs-&gt;dirName(__FILE__));</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="x">        $this-&gt;fs-&gt;put($path, &#39;</span><span class="cp">&lt;?php</span> <span class="k">return</span> <span class="s1">&#39; . var_export($config, true) . &#39;</span><span class="p">;</span><span class="s1">&#39;);</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="s1">    }</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="s1">    public function load(): array</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="s1">    {</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="s1">        $path = sprintf(&#39;</span><span class="o">%</span><span class="nx">s</span><span class="o">/</span><span class="nx">config</span><span class="o">.</span><span class="nx">php</span><span class="err">&#39;</span><span class="p">,</span> <span class="nb">dirname</span><span class="p">(</span><span class="no">__DIR__</span><span class="p">));</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">fs</span><span class="o">-&gt;</span><span class="na">isFile</span><span class="p">(</span><span class="nv">$path</span><span class="p">))</span> <span class="p">{</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>            <span class="k">return</span> <span class="p">[];</span>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>        <span class="p">}</span>
+<a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a>        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">fs</span><span class="o">-&gt;</span><span class="na">getReturn</span><span class="p">(</span><span class="nv">$path</span><span class="p">)</span> <span class="o">?:</span> <span class="p">[];</span>
+<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>    <span class="p">}</span>
+<a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="filesystem-directory-operations">Filesystem — Directory Operations<a class="headerlink" href="#filesystem-directory-operations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="x">class BuildService</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="x">{</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="x">    public function __construct(private Filesystem $fs) {}</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="x">    public function deploy(string $releaseDir, string $sourceDir): void</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="x">    {</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="x">        // Create release directory</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="x">        $this-&gt;fs-&gt;mkdir($releaseDir, 0755);</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="x">        // Mirror source to release</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="x">        $this-&gt;fs-&gt;mirror($sourceDir, $releaseDir, true, true);</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="x">        // Remove old cache files</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="x">        $this-&gt;fs-&gt;remove(&quot;{$releaseDir}/var/cache/*&quot;);</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="x">        // Set permissions</span>
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a><span class="x">        $this-&gt;fs-&gt;chmod(&quot;{$releaseDir}/var&quot;, 0775, 0002, true);</span>
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="x">    }</span>
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="testing-with-in-memory-flysystem">Testing with In-Memory Flysystem<a class="headerlink" href="#testing-with-in-memory-flysystem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="x">use League\Flysystem\Filesystem;</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="x">use League\Flysystem\InMemory\InMemoryFilesystemAdapter;</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="x">use Fight\Common\Adapter\FileStorage\FlysystemStorage;</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="x">$adapter = new InMemoryFilesystemAdapter();</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="x">$flysystem = new Filesystem($adapter);</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="x">$storage = new FlysystemStorage($flysystem);</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="x">$storage-&gt;putFile(&#39;test.txt&#39;, &#39;hello&#39;);</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="x">echo $storage-&gt;getFileContents(&#39;test.txt&#39;); // &#39;hello&#39;</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="x">echo $storage-&gt;hasFile(&#39;test.txt&#39;);         // true</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 John Nickell
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

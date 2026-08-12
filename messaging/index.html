@@ -1,0 +1,3195 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives.">
+      
+      
+      
+        <link rel="canonical" href="https://johnnickell.github.io/fight-common/messaging/">
+      
+      
+        <link rel="prev" href="../specifications/">
+      
+      
+        <link rel="next" href="../validation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Messaging (CQRS) - fight-common</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+3:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Source Sans 3";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#messaging-cqrs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="fight-common" class="md-header__button md-logo" aria-label="fight-common" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            fight-common
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Messaging (CQRS)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="cyan"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/johnnickell/fight-common" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    johnnickell/fight-common
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quickstart/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../event-sourcing/" class="md-tabs__link">
+          
+  
+  
+  Components
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="fight-common" class="md-nav__button md-logo" aria-label="fight-common" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    fight-common
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/johnnickell/fight-common" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    johnnickell/fight-common
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-sourcing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Sourcing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../values/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Values
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../collections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Collections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Messaging (CQRS)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Messaging (CQRS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message Primitives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Message Primitives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#message-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BaseMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messageid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageId
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagetype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-registerusercommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: RegisterUserCommand
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-getuserquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: GetUserQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-adapters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-adapter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-userregisteredevent-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: UserRegisteredEvent + Subscriber
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Filters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline Filters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wiring-a-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wiring a Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-with-symfony-messenger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async with Symfony Messenger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Async with Symfony Messenger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sender-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sender Side
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#receiver-side-consuming-from-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receiver Side (Consuming from Transport)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compiler-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiler Passes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compiler Passes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wiring-in-the-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wiring in the Kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-symfony-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Symfony Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Symfony Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Controller Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-controller-async-http-202" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Controller (Async — HTTP 202)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-controller-sync-http-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Controller (Sync — HTTP 200)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-dispatch-in-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event Dispatch in a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../repositories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repositories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../http-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mail/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mail
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cache/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cache
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templating/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templating
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Routing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sockets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sockets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Serialization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dependency-injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependency Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Enforcement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing & Branching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#message-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message Primitives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Message Primitives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#message-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#basemessage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BaseMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messageid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageId
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#messagetype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MessageType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-registerusercommand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: RegisterUserCommand
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-getuserquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: GetUserQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Events">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain-layer_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-contracts_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sync-adapters_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sync Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#async-adapter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-userregisteredevent-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: UserRegisteredEvent + Subscriber
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Filters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline Filters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a Filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wiring-a-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wiring a Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-with-symfony-messenger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Async with Symfony Messenger
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Async with Symfony Messenger">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sender-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sender Side
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#receiver-side-consuming-from-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Receiver Side (Consuming from Transport)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compiler-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiler Passes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compiler Passes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wiring-in-the-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wiring in the Kernel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-symfony-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Symfony Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Full Symfony Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#data-flow-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Controller Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command-controller-async-http-202" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Controller (Async — HTTP 202)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-controller-sync-http-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query Controller (Sync — HTTP 200)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-dispatch-in-a-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event Dispatch in a Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="messaging-cqrs">Messaging (CQRS)<a class="headerlink" href="#messaging-cqrs" title="Permanent link">&para;</a></h1>
+<p>A full CQRS architecture with commands, queries, and events. Message primitives live in
+<code>Domain\Messaging</code>, service contracts in <code>Application\Messaging</code>, and adapters (sync + async)
+in <code>Adapter\Messaging</code>. The Symfony Messenger bridge provides async transport, and compiler
+passes auto-wire handlers and filters from the DI container.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Domain\Messaging
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Message (interface)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── BaseMessage (abstract)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── MessageId / MessageType (enum) / Payload / Meta
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── Command\Command / CommandMessage
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── Query\Query / QueryMessage
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>└── Event\Event / EventMessage / AllEvents / CommandFailedEvent
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>Application\Messaging
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── Command\CommandBus / SynchronousCommandBus / AsynchronousCommandBus
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│            CommandHandler / CommandFilter
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── Query\QueryBus / QueryHandler / QueryFilter
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└── Event\EventDispatcher / SynchronousEventDispatcher / AsynchronousEventDispatcher
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>                EventSubscriber
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>Adapter\Messaging
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>├── Command\Sync\RoutingCommandBus + CommandPipeline
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│            Sync\Routing\{CommandRouter, InMemory*, ServiceAware*}
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   Async\MessengerCommandBus
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>├── Query\RoutingQueryBus + QueryPipeline
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│       Query\Routing\{QueryRouter, InMemory*, ServiceAware*}
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>└── Event\Sync\{SimpleEventDispatcher, ServiceAwareEventDispatcher}
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    Event\Async\MessengerEventDispatcher
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    Handler\{SymfonyCommandMessageHandler, SymfonyEventMessageHandler}
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    Serializer\SymfonyMessageSerializer
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>Adapter\DependencyInjection
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>├── CommandHandlerCompilerPass
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>├── CommandFilterCompilerPass
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>├── QueryHandlerCompilerPass
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>├── QueryFilterCompilerPass
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>└── EventSubscriberCompilerPass
+</code></pre></div>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#message-primitives">Message Primitives</a></li>
+<li><a href="#commands">Commands</a></li>
+<li><a href="#queries">Queries</a></li>
+<li><a href="#events">Events</a></li>
+<li><a href="#pipeline-filters">Pipeline Filters</a></li>
+<li><a href="#async-with-symfony-messenger">Async with Symfony Messenger</a></li>
+<li><a href="#compiler-passes">Compiler Passes</a></li>
+<li><a href="#full-symfony-configuration">Full Symfony Configuration</a></li>
+<li><a href="#controller-examples">Controller Examples</a></li>
+</ol>
+<hr />
+<h2 id="message-primitives">Message Primitives<a class="headerlink" href="#message-primitives" title="Permanent link">&para;</a></h2>
+<h3 id="message-interface">Message Interface<a class="headerlink" href="#message-interface" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\Message</code></p>
+<p>The root interface for all message envelopes. Extends <code>Arrayable</code>, <code>Comparable</code>, <code>Equatable</code>,
+<code>JsonSerializable</code>, and <code>Serializable</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="x">interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Serializable</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="x">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="x">    public function id(): MessageId;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="x">    public function type(): MessageType;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="x">    public function timestamp(): DateTimeImmutable;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="x">    public function payload(): Payload;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="x">    public function payloadType(): Type;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="x">    public function meta(): Meta;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="x">    public function withMeta(Meta $data): static;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="x">    public function mergeMeta(Meta $data): static;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="x">    public function toString(): string;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="x">}</span>
+</code></pre></div>
+<p>Equality and comparison are based on the <code>MessageId</code> — two messages with the same ID are
+considered equal regardless of other fields.</p>
+<h3 id="basemessage">BaseMessage<a class="headerlink" href="#basemessage" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\BaseMessage</code></p>
+<p>Abstract base implementing <code>Message</code>. Stores <code>id</code>, <code>type</code>, <code>timestamp</code>, <code>payload</code>, and <code>meta</code>.
+Serialization produces a uniform envelope:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">[</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="x">    &#39;id&#39;           =&gt; &#39;018abc...&#39;,     // MessageId as string</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="x">    &#39;type&#39;         =&gt; &#39;command&#39;,       // MessageType value</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="x">    &#39;timestamp&#39;    =&gt; &#39;1712345678&#39;,    // Unix timestamp</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="x">    &#39;payload_type&#39; =&gt; &#39;RegisterUserCommand&#39;,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="x">    &#39;payload&#39;      =&gt; [&#39;email&#39; =&gt; &#39;...&#39;, &#39;name&#39; =&gt; &#39;...&#39;],</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="x">    &#39;meta&#39;         =&gt; [&#39;trace_id&#39; =&gt; &#39;abc123&#39;],</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="x">]</span>
+</code></pre></div>
+<h3 id="messageid">MessageId<a class="headerlink" href="#messageid" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\MessageId</code></p>
+<p>Extends <code>UniqueId</code> — auto-generated UUID identifier for every message envelope.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">$id = MessageId::generate();</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="x">$id = MessageId::fromString(&#39;018abc...&#39;);</span>
+</code></pre></div>
+<h3 id="messagetype">MessageType<a class="headerlink" href="#messagetype" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\MessageType</code></p>
+<p>A string-backed PHP enum:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="x">enum MessageType: string</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="x">{</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="x">    case COMMAND = &#39;command&#39;;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="x">    case QUERY   = &#39;query&#39;;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="x">    case EVENT   = &#39;event&#39;;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="payload">Payload<a class="headerlink" href="#payload" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\Payload</code></p>
+<p>Marker interface extended by <code>Command</code>, <code>Query</code>, and <code>Event</code>. Requires <code>fromArray()</code> /
+<code>toArray()</code> — the actual business data.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="x">interface Payload extends Arrayable</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="x">{</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="x">    public static function fromArray(array $data): static;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="x">    public function toArray(): array;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="meta">Meta<a class="headerlink" href="#meta" title="Permanent link">&para;</a></h3>
+<p><code>Fight\Common\Domain\Messaging\Meta</code></p>
+<p>Key-value metadata container attached to every message envelope. Accepts only scalars and
+arrays of scalars — guards against complex types on <code>set()</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="x">$meta = Meta::create([&#39;trace_id&#39; =&gt; &#39;abc&#39;, &#39;user_id&#39; =&gt; 42]);</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="x">$meta-&gt;has(&#39;trace_id&#39;);     // true</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="x">$meta-&gt;get(&#39;trace_id&#39;);     // &#39;abc&#39;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="x">$meta-&gt;set(&#39;source&#39;, &#39;cli&#39;);</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="x">$meta-&gt;remove(&#39;user_id&#39;);</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="x">$meta-&gt;merge($otherMeta);</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="x">$meta-&gt;toArray();           // [&#39;trace_id&#39; =&gt; &#39;abc&#39;, &#39;source&#39; =&gt; &#39;cli&#39;]</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="x">$meta-&gt;count();             // 2</span>
+</code></pre></div>
+<p>Implements <code>Countable</code>, <code>IteratorAggregate</code>, <code>JsonSerializable</code>, <code>Stringable</code>.</p>
+<hr />
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
+<h3 id="domain-layer">Domain Layer<a class="headerlink" href="#domain-layer" title="Permanent link">&para;</a></h3>
+<p><strong><code>Command</code></strong> — marker interface extending <code>Payload</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="x">namespace Fight\Common\Domain\Messaging\Command;</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="x">interface Command extends Payload {}</span>
+</code></pre></div>
+<p><strong><code>CommandMessage</code></strong> — envelope wrapping a <code>Command</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="x">final class CommandMessage extends BaseMessage</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="x">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="x">    // Wrap a command in a message with auto-generated ID + timestamp</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="x">    public static function create(Command $command): static;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="x">    // Deserialize from the envelope array (validates type === &#39;command&#39;)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="x">    public static function arrayDeserialize(array $data): static;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="x">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="x">$command  = new RegisterUserCommand(&#39;user@example.com&#39;, &#39;Alice&#39;);</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="x">$envelope = CommandMessage::create($command);</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="x">$envelope-&gt;id();              // MessageId</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="x">$envelope-&gt;type();            // MessageType::COMMAND</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="x">$envelope-&gt;payload();         // RegisterUserCommand</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="x">$envelope-&gt;meta();            // Meta (empty by default)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="x">$envelope-&gt;withMeta($meta);   // clone with replacement meta</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="x">$envelope-&gt;mergeMeta($meta);  // clone with merged meta</span>
+</code></pre></div>
+<h3 id="application-contracts">Application Contracts<a class="headerlink" href="#application-contracts" title="Permanent link">&para;</a></h3>
+<p><strong><code>CommandBus</code></strong> — the bus interface. Two dispatch styles:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="x">interface CommandBus</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="x">{</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="x">    // Wrap + dispatch (convenience)</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="x">    public function execute(Command $command): void;</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="x">    // Dispatch a pre-built message</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="x">    public function dispatch(CommandMessage $commandMessage): void;</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>SynchronousCommandBus</code></strong> / <strong><code>AsynchronousCommandBus</code></strong> — marker subinterfaces used by
+adapter consumers to declare intent.</p>
+<p><strong><code>CommandHandler</code></strong> — each handler declares which command it handles via a static method:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="x">interface CommandHandler</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="x">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="x">    public static function commandRegistration(): string;</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="x">    public function handle(CommandMessage $commandMessage): void;</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="x">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="x">class RegisterUserHandler implements CommandHandler</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="x">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="x">    public static function commandRegistration(): string</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="x">    {</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="x">        return RegisterUserCommand::class;</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="x">    }</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="x">    public function handle(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="x">    {</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="x">        /** @var RegisterUserCommand $command */</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="x">        $command = $commandMessage-&gt;payload();</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="x">        // ... business logic</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="x">    }</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>CommandFilter</code></strong> — middleware-style pipeline filter:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="x">interface CommandFilter</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="x">{</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="x">    // $next signature: function (CommandMessage): void</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="x">    public function process(CommandMessage $commandMessage, callable $next): void;</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="sync-adapters">Sync Adapters<a class="headerlink" href="#sync-adapters" title="Permanent link">&para;</a></h3>
+<p><strong><code>CommandRouter</code></strong> — locates a handler for a command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="x">interface CommandRouter</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="x">{</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="x">    /** @throws LookupException when not found */</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="x">    public function match(Command $command): CommandHandler;</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="x">}</span>
+</code></pre></div>
+<p>Two implementations:</p>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>Storage</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InMemoryCommandRouter</code></td>
+<td>Direct handler instances</td>
+<td><code>registerHandler(CommandClass::class, $handlerInstance)</code></td>
+</tr>
+<tr>
+<td><code>ServiceAwareCommandRouter</code></td>
+<td>Service IDs in container</td>
+<td><code>registerHandler(CommandClass::class, 'service_id')</code> — lazy-loaded on <code>match()</code></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="x">// InMemory — useful in tests</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="x">$router = new InMemoryCommandRouter();</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="x">$router-&gt;registerHandler(RegisterUserCommand::class, $handler);</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="x">// ServiceAware — production with DI</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="x">$router = new ServiceAwareCommandRouter($container);</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="x">$router-&gt;registerHandler(RegisterUserCommand::class, &#39;app.handler.register_user&#39;);</span>
+</code></pre></div>
+<p><strong><code>RoutingCommandBus</code></strong> — sync bus that delegates to the router:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="x">final readonly class RoutingCommandBus implements SynchronousCommandBus</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="x">{</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="x">    public function execute(Command $command): void</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="x">    {</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="x">        $this-&gt;dispatch(CommandMessage::create($command));</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="x">    }</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="x">    public function dispatch(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="x">    {</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="x">        $command = $commandMessage-&gt;payload();</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="x">        $this-&gt;commandRouter-&gt;match($command)-&gt;handle($commandMessage);</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="x">    }</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>CommandPipeline</code></strong> — decorates a <code>SynchronousCommandBus</code> with a stack of <code>CommandFilter</code>s:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="x">$pipeline = new CommandPipeline($routingCommandBus);</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="x">$pipeline-&gt;addFilter(new LoggingCommandFilter());</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="x">$pipeline-&gt;addFilter(new ValidationCommandFilter());</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="x">$pipeline-&gt;execute($command);  // goes through each filter, then the bus</span>
+</code></pre></div>
+<p>Internally uses a <code>LinkedStack</code> of filters. Each filter calls <code>$next</code> to pass control to the
+next filter in the stack, ending at the inner bus.</p>
+<h3 id="async-adapter">Async Adapter<a class="headerlink" href="#async-adapter" title="Permanent link">&para;</a></h3>
+<p><strong><code>MessengerCommandBus</code></strong> — sends commands to a Symfony Messenger transport:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="x">final readonly class MessengerCommandBus implements AsynchronousCommandBus</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="x">{</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="x">    public function execute(Command $command): void</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="x">    {</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="x">        $this-&gt;dispatch(CommandMessage::create($command));</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="x">    }</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="x">    public function dispatch(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="x">    {</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="x">        $this-&gt;sender-&gt;send(new Envelope($commandMessage));</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="x">    }</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="x">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="x">// In a controller you use the async bus for commands</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="x">class RegisterController</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="x">{</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="x">    public function __construct(private AsynchronousCommandBus $commandBus) {}</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="x">    public function __invoke(Request $request): Response</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="x">    {</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="x">        $command = new RegisterUserCommand(</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="x">            $request-&gt;get(&#39;email&#39;),</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="x">            $request-&gt;get(&#39;name&#39;)</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="x">        );</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="x">        $this-&gt;commandBus-&gt;execute($command);</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="x">        return new Response(&#39;Processing&#39;, 202);</span>
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="x">    }</span>
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="example-registerusercommand">Example: RegisterUserCommand<a class="headerlink" href="#example-registerusercommand" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="x">use Fight\Common\Domain\Messaging\Command\Command;</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="x">final readonly class RegisterUserCommand implements Command</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="x">{</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="x">    public function __construct(</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="x">        private string $email,</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="x">        private string $name,</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="x">    ) {}</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="x">    public static function fromArray(array $data): static</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="x">    {</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="x">        return new static($data[&#39;email&#39;], $data[&#39;name&#39;]);</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="x">    }</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="x">    public function toArray(): array</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="x">    {</span>
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="x">        return [&#39;email&#39; =&gt; $this-&gt;email, &#39;name&#39; =&gt; $this-&gt;name];</span>
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a><span class="x">    }</span>
+<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>
+<a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a><span class="x">    public function email(): string { return $this-&gt;email; }</span>
+<a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a><span class="x">    public function name(): string  { return $this-&gt;name; }</span>
+<a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a><span class="x">}</span>
+<a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a>
+<a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a><span class="x">class RegisterUserHandler implements CommandHandler</span>
+<a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a><span class="x">{</span>
+<a id="__codelineno-20-26" name="__codelineno-20-26" href="#__codelineno-20-26"></a><span class="x">    public function __construct(</span>
+<a id="__codelineno-20-27" name="__codelineno-20-27" href="#__codelineno-20-27"></a><span class="x">        private UserRepository $users,</span>
+<a id="__codelineno-20-28" name="__codelineno-20-28" href="#__codelineno-20-28"></a><span class="x">        private SynchronousEventDispatcher $events,</span>
+<a id="__codelineno-20-29" name="__codelineno-20-29" href="#__codelineno-20-29"></a><span class="x">    ) {}</span>
+<a id="__codelineno-20-30" name="__codelineno-20-30" href="#__codelineno-20-30"></a>
+<a id="__codelineno-20-31" name="__codelineno-20-31" href="#__codelineno-20-31"></a><span class="x">    public static function commandRegistration(): string</span>
+<a id="__codelineno-20-32" name="__codelineno-20-32" href="#__codelineno-20-32"></a><span class="x">    {</span>
+<a id="__codelineno-20-33" name="__codelineno-20-33" href="#__codelineno-20-33"></a><span class="x">        return RegisterUserCommand::class;</span>
+<a id="__codelineno-20-34" name="__codelineno-20-34" href="#__codelineno-20-34"></a><span class="x">    }</span>
+<a id="__codelineno-20-35" name="__codelineno-20-35" href="#__codelineno-20-35"></a>
+<a id="__codelineno-20-36" name="__codelineno-20-36" href="#__codelineno-20-36"></a><span class="x">    public function handle(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-20-37" name="__codelineno-20-37" href="#__codelineno-20-37"></a><span class="x">    {</span>
+<a id="__codelineno-20-38" name="__codelineno-20-38" href="#__codelineno-20-38"></a><span class="x">        $command = $commandMessage-&gt;payload();</span>
+<a id="__codelineno-20-39" name="__codelineno-20-39" href="#__codelineno-20-39"></a><span class="x">        $user = User::register($command-&gt;email(), $command-&gt;name());</span>
+<a id="__codelineno-20-40" name="__codelineno-20-40" href="#__codelineno-20-40"></a><span class="x">        $this-&gt;users-&gt;save($user);</span>
+<a id="__codelineno-20-41" name="__codelineno-20-41" href="#__codelineno-20-41"></a>
+<a id="__codelineno-20-42" name="__codelineno-20-42" href="#__codelineno-20-42"></a><span class="x">        $this-&gt;events-&gt;trigger(new UserRegisteredEvent($user-&gt;id()));</span>
+<a id="__codelineno-20-43" name="__codelineno-20-43" href="#__codelineno-20-43"></a><span class="x">    }</span>
+<a id="__codelineno-20-44" name="__codelineno-20-44" href="#__codelineno-20-44"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="queries">Queries<a class="headerlink" href="#queries" title="Permanent link">&para;</a></h2>
+<p>Queries are always synchronous — there is no async query bus. The pattern mirrors commands.</p>
+<h3 id="domain-layer_1">Domain Layer<a class="headerlink" href="#domain-layer_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="x">namespace Fight\Common\Domain\Messaging\Query;</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="x">interface Query extends Payload {}</span>
+</code></pre></div>
+<p><strong><code>QueryMessage</code></strong> — envelope wrapping a <code>Query</code>. Same structure as <code>CommandMessage</code> with
+<code>type === 'query'</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="x">$query    = new GetUserQuery(&#39;018abc...&#39;);</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="x">$envelope = QueryMessage::create($query);</span>
+</code></pre></div>
+<h3 id="application-contracts_1">Application Contracts<a class="headerlink" href="#application-contracts_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="x">interface QueryBus</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="x">{</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="x">    public function fetch(Query $query): mixed;</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="x">    public function dispatch(QueryMessage $queryMessage): mixed;</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="x">}</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="x">interface QueryHandler</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a><span class="x">{</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="x">    public static function queryRegistration(): string;</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="x">    public function handle(QueryMessage $queryMessage): mixed;</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a><span class="x">}</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="x">interface QueryFilter</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a><span class="x">{</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="x">    public function process(QueryMessage $queryMessage, callable $next): void;</span>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="adapters">Adapters<a class="headerlink" href="#adapters" title="Permanent link">&para;</a></h3>
+<p><strong><code>QueryRouter</code></strong> (with <code>InMemoryQueryRouter</code> / <code>ServiceAwareQueryRouter</code>) — same pattern as commands.</p>
+<p><strong><code>RoutingQueryBus</code></strong> — sync-only bus:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="x">final readonly class RoutingQueryBus implements QueryBus</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="x">{</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="x">    public function fetch(Query $query): mixed</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="x">    {</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="x">        return $this-&gt;dispatch(QueryMessage::create($query));</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="x">    }</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="x">    public function dispatch(QueryMessage $queryMessage): mixed</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="x">    {</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="x">        $query = $queryMessage-&gt;payload();</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="x">        return $this-&gt;queryRouter-&gt;match($query)-&gt;handle($queryMessage);</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="x">    }</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>QueryPipeline</code></strong> — decorates <code>QueryBus</code> with filter stack (same pipeline pattern as commands).</p>
+<h3 id="example-getuserquery">Example: GetUserQuery<a class="headerlink" href="#example-getuserquery" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="x">final readonly class GetUserQuery implements Query</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="x">{</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="x">    public function __construct(private string $userId) {}</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="x">    public static function fromArray(array $data): static</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="x">    {</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="x">        return new static($data[&#39;user_id&#39;]);</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="x">    }</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="x">    public function toArray(): array</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="x">    {</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="x">        return [&#39;user_id&#39; =&gt; $this-&gt;userId];</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="x">    }</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a>
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a><span class="x">    public function userId(): string { return $this-&gt;userId; }</span>
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="x">}</span>
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a>
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a><span class="x">class GetUserHandler implements QueryHandler</span>
+<a id="__codelineno-25-19" name="__codelineno-25-19" href="#__codelineno-25-19"></a><span class="x">{</span>
+<a id="__codelineno-25-20" name="__codelineno-25-20" href="#__codelineno-25-20"></a><span class="x">    public function __construct(private UserRepository $users) {}</span>
+<a id="__codelineno-25-21" name="__codelineno-25-21" href="#__codelineno-25-21"></a>
+<a id="__codelineno-25-22" name="__codelineno-25-22" href="#__codelineno-25-22"></a><span class="x">    public static function queryRegistration(): string</span>
+<a id="__codelineno-25-23" name="__codelineno-25-23" href="#__codelineno-25-23"></a><span class="x">    {</span>
+<a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a><span class="x">        return GetUserQuery::class;</span>
+<a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a><span class="x">    }</span>
+<a id="__codelineno-25-26" name="__codelineno-25-26" href="#__codelineno-25-26"></a>
+<a id="__codelineno-25-27" name="__codelineno-25-27" href="#__codelineno-25-27"></a><span class="x">    public function handle(QueryMessage $queryMessage): mixed</span>
+<a id="__codelineno-25-28" name="__codelineno-25-28" href="#__codelineno-25-28"></a><span class="x">    {</span>
+<a id="__codelineno-25-29" name="__codelineno-25-29" href="#__codelineno-25-29"></a><span class="x">        $query = $queryMessage-&gt;payload();</span>
+<a id="__codelineno-25-30" name="__codelineno-25-30" href="#__codelineno-25-30"></a><span class="x">        return $this-&gt;users-&gt;find($query-&gt;userId());</span>
+<a id="__codelineno-25-31" name="__codelineno-25-31" href="#__codelineno-25-31"></a><span class="x">    }</span>
+<a id="__codelineno-25-32" name="__codelineno-25-32" href="#__codelineno-25-32"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
+<h3 id="domain-layer_2">Domain Layer<a class="headerlink" href="#domain-layer_2" title="Permanent link">&para;</a></h3>
+<p><strong><code>Event</code></strong> — marker interface extending <code>Payload</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="x">namespace Fight\Common\Domain\Messaging\Event;</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="x">interface Event extends Payload {}</span>
+</code></pre></div>
+<p><strong><code>EventMessage</code></strong> — envelope wrapping an <code>Event</code>. Same structure as <code>CommandMessage</code>/<code>QueryMessage</code>
+with <code>type === 'event'</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="x">$event    = new UserRegisteredEvent($userId);</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="x">$envelope = EventMessage::create($event);</span>
+</code></pre></div>
+<p><strong><code>AllEvents</code></strong> — marker class. Event subscribers can use this instead of a specific event
+class to register for every event.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="x">final class AllEvents</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="x">{</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="x">    // No methods — marker only</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>CommandFailedEvent</code></strong> — a built-in event payload emitted when a command fails. Contains
+the original <code>Command</code> and error message:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="x">final readonly class CommandFailedEvent implements Event</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="x">{</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="x">    public function __construct(</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="x">        private readonly Command $command,</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="x">        private readonly string $errorMessage,</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="x">    ) {}</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="x">    public function getCommand(): Command;</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="x">    public function getErrorMessage(): string;</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="application-contracts_2">Application Contracts<a class="headerlink" href="#application-contracts_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="x">interface EventDispatcher</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="x">{</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="x">    // Wrap + dispatch</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="x">    public function trigger(Event $event): void;</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="x">    // Dispatch a pre-built message</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="x">    public function dispatch(EventMessage $eventMessage): void;</span>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="x">    // Subscriber management</span>
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="x">    public function register(EventSubscriber $subscriber): void;</span>
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="x">    public function unregister(EventSubscriber $subscriber): void;</span>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="x">    // Fine-grained handler control</span>
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="x">    public function addHandler(string $eventType, callable $handler, int $priority = 0): void;</span>
+<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="x">    public function getHandlers(?string $eventType = null): array;</span>
+<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="x">    public function hasHandlers(?string $eventType = null): bool;</span>
+<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="x">    public function removeHandler(string $eventType, callable $handler): void;</span>
+<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="x">}</span>
+</code></pre></div>
+<p><code>SynchronousEventDispatcher</code> and <code>AsynchronousEventDispatcher</code> are marker subinterfaces.</p>
+<p><strong><code>EventSubscriber</code></strong> — declarative registration. The static method returns a map of event
+class → handler method, with optional priority:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="x">interface EventSubscriber</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="x">{</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="x">    // Returns: [EventClass::class =&gt; &#39;methodName&#39;]</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="x">    // Or:     [EventClass::class =&gt; [&#39;methodName&#39;, priority]]</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="x">    // Or:     [EventClass::class =&gt; [[&#39;methodOne&#39;, 10], [&#39;methodTwo&#39;]]]</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="x">    // Use AllEvents::class to subscribe to everything</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="x">    public static function eventRegistration(): array;</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="sync-adapters_1">Sync Adapters<a class="headerlink" href="#sync-adapters_1" title="Permanent link">&para;</a></h3>
+<p><strong><code>SimpleEventDispatcher</code></strong> — the base implementation. Handlers are stored in-memory by event
+type, sorted by priority (highest first). <code>dispatch()</code> calls handlers for the specific event
+type, then handlers registered for <code>AllEvents</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="x">$dispatcher = new SimpleEventDispatcher();</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="x">$dispatcher-&gt;register($subscriber);</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="x">$dispatcher-&gt;addHandler(UserRegisteredEvent::class, $callable, 10);</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="x">$dispatcher-&gt;trigger(new UserRegisteredEvent($userId));</span>
+</code></pre></div>
+<p><strong><code>ServiceAwareEventDispatcher</code></strong> — extends <code>SimpleEventDispatcher</code>. Accepts service IDs
+instead of concrete instances. Lazy-loads handlers from the container on first dispatch:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="x">$dispatcher = new ServiceAwareEventDispatcher($container);</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="x">$dispatcher-&gt;registerService(UserRegisteredEvent::class, &#39;app.subscriber.send_welcome_email&#39;);</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="x">// On dispatch, loads &#39;app.subscriber.send_welcome_email&#39; from container</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="x">$dispatcher-&gt;trigger(new UserRegisteredEvent($userId));</span>
+</code></pre></div>
+<h3 id="async-adapter_1">Async Adapter<a class="headerlink" href="#async-adapter_1" title="Permanent link">&para;</a></h3>
+<p><strong><code>MessengerEventDispatcher</code></strong> — sends event messages to a Messenger transport. All
+<code>register()</code> / <code>addHandler()</code> / etc. are no-ops — the dispatcher only serializes and sends.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="x">final readonly class MessengerEventDispatcher implements AsynchronousEventDispatcher</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="x">{</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a><span class="x">    public function trigger(Event $event): void</span>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="x">    {</span>
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="x">        $this-&gt;sender-&gt;send(new Envelope(EventMessage::create($event)));</span>
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="x">    }</span>
+<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="example-userregisteredevent-subscriber">Example: UserRegisteredEvent + Subscriber<a class="headerlink" href="#example-userregisteredevent-subscriber" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="x">final readonly class UserRegisteredEvent implements Event</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="x">{</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="x">    public function __construct(private string $userId) {}</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="x">    public static function fromArray(array $data): static</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="x">    {</span>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="x">        return new static($data[&#39;user_id&#39;]);</span>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a><span class="x">    }</span>
+<a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>
+<a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a><span class="x">    public function toArray(): array</span>
+<a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a><span class="x">    {</span>
+<a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a><span class="x">        return [&#39;user_id&#39; =&gt; $this-&gt;userId];</span>
+<a id="__codelineno-35-13" name="__codelineno-35-13" href="#__codelineno-35-13"></a><span class="x">    }</span>
+<a id="__codelineno-35-14" name="__codelineno-35-14" href="#__codelineno-35-14"></a>
+<a id="__codelineno-35-15" name="__codelineno-35-15" href="#__codelineno-35-15"></a><span class="x">    public function userId(): string { return $this-&gt;userId; }</span>
+<a id="__codelineno-35-16" name="__codelineno-35-16" href="#__codelineno-35-16"></a><span class="x">}</span>
+<a id="__codelineno-35-17" name="__codelineno-35-17" href="#__codelineno-35-17"></a>
+<a id="__codelineno-35-18" name="__codelineno-35-18" href="#__codelineno-35-18"></a><span class="x">class SendWelcomeEmailSubscriber implements EventSubscriber</span>
+<a id="__codelineno-35-19" name="__codelineno-35-19" href="#__codelineno-35-19"></a><span class="x">{</span>
+<a id="__codelineno-35-20" name="__codelineno-35-20" href="#__codelineno-35-20"></a><span class="x">    public function __construct(private Mailer $mailer) {}</span>
+<a id="__codelineno-35-21" name="__codelineno-35-21" href="#__codelineno-35-21"></a>
+<a id="__codelineno-35-22" name="__codelineno-35-22" href="#__codelineno-35-22"></a><span class="x">    public static function eventRegistration(): array</span>
+<a id="__codelineno-35-23" name="__codelineno-35-23" href="#__codelineno-35-23"></a><span class="x">    {</span>
+<a id="__codelineno-35-24" name="__codelineno-35-24" href="#__codelineno-35-24"></a><span class="x">        return [UserRegisteredEvent::class =&gt; &#39;onUserRegistered&#39;];</span>
+<a id="__codelineno-35-25" name="__codelineno-35-25" href="#__codelineno-35-25"></a><span class="x">    }</span>
+<a id="__codelineno-35-26" name="__codelineno-35-26" href="#__codelineno-35-26"></a>
+<a id="__codelineno-35-27" name="__codelineno-35-27" href="#__codelineno-35-27"></a><span class="x">    public function onUserRegistered(EventMessage $message): void</span>
+<a id="__codelineno-35-28" name="__codelineno-35-28" href="#__codelineno-35-28"></a><span class="x">    {</span>
+<a id="__codelineno-35-29" name="__codelineno-35-29" href="#__codelineno-35-29"></a><span class="x">        /** @var UserRegisteredEvent $event */</span>
+<a id="__codelineno-35-30" name="__codelineno-35-30" href="#__codelineno-35-30"></a><span class="x">        $event = $message-&gt;payload();</span>
+<a id="__codelineno-35-31" name="__codelineno-35-31" href="#__codelineno-35-31"></a><span class="x">        $this-&gt;mailer-&gt;sendWelcome($event-&gt;userId());</span>
+<a id="__codelineno-35-32" name="__codelineno-35-32" href="#__codelineno-35-32"></a><span class="x">    }</span>
+<a id="__codelineno-35-33" name="__codelineno-35-33" href="#__codelineno-35-33"></a><span class="x">}</span>
+</code></pre></div>
+<hr />
+<h2 id="pipeline-filters">Pipeline Filters<a class="headerlink" href="#pipeline-filters" title="Permanent link">&para;</a></h2>
+<p>Both commands and queries support a pipeline/filter stack. Filters implement the same
+interface and are stacked via <code>LinkedStack</code>.</p>
+<h3 id="creating-a-filter">Creating a Filter<a class="headerlink" href="#creating-a-filter" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="x">use Fight\Common\Application\Messaging\Command\CommandFilter;</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="x">use Fight\Common\Domain\Messaging\Command\CommandMessage;</span>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="x">class LoggingCommandFilter implements CommandFilter</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="x">{</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="x">    public function __construct(private LoggerInterface $logger) {}</span>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a>
+<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a><span class="x">    public function process(CommandMessage $commandMessage, callable $next): void</span>
+<a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a><span class="x">    {</span>
+<a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a><span class="x">        $command = $commandMessage-&gt;payload();</span>
+<a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a><span class="x">        $this-&gt;logger-&gt;info(&#39;Before: &#39; . $command::class);</span>
+<a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a>
+<a id="__codelineno-36-13" name="__codelineno-36-13" href="#__codelineno-36-13"></a><span class="x">        $next($commandMessage);</span>
+<a id="__codelineno-36-14" name="__codelineno-36-14" href="#__codelineno-36-14"></a>
+<a id="__codelineno-36-15" name="__codelineno-36-15" href="#__codelineno-36-15"></a><span class="x">        $this-&gt;logger-&gt;info(&#39;After: &#39; . $command::class);</span>
+<a id="__codelineno-36-16" name="__codelineno-36-16" href="#__codelineno-36-16"></a><span class="x">    }</span>
+<a id="__codelineno-36-17" name="__codelineno-36-17" href="#__codelineno-36-17"></a><span class="x">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="x">use Fight\Common\Application\Messaging\Query\QueryFilter;</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="x">use Fight\Common\Domain\Messaging\Query\QueryMessage;</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="x">class LoggingQueryFilter implements QueryFilter</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a><span class="x">{</span>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="x">    // same pattern as above, but for queries</span>
+<a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="wiring-a-pipeline">Wiring a Pipeline<a class="headerlink" href="#wiring-a-pipeline" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="x">use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="x">use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="x">$bus     = new RoutingCommandBus($router);</span>
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a><span class="x">$pipeline = new CommandPipeline($bus);</span>
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>
+<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="x">$pipeline-&gt;addFilter(new LoggingCommandFilter());</span>
+<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a><span class="x">$pipeline-&gt;addFilter(new ValidationCommandFilter());</span>
+<a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a>
+<a id="__codelineno-38-10" name="__codelineno-38-10" href="#__codelineno-38-10"></a><span class="x">$pipeline-&gt;execute($command);</span>
+</code></pre></div>
+<p>With Symfony DI, filters are auto-wired via the <code>CommandFilterCompilerPass</code> / <code>QueryFilterCompilerPass</code>
+— just tag the service.</p>
+<hr />
+<h2 id="async-with-symfony-messenger">Async with Symfony Messenger<a class="headerlink" href="#async-with-symfony-messenger" title="Permanent link">&para;</a></h2>
+<p>The async path sends <code>CommandMessage</code> / <code>EventMessage</code> envelopes through Symfony Messenger
+transports. On the consuming side, message handlers receive the envelope and forward it to
+the sync bus/dispatcher.</p>
+<h3 id="sender-side">Sender Side<a class="headerlink" href="#sender-side" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Bus</th>
+<th>Sends</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MessengerCommandBus</code></td>
+<td><code>CommandMessage</code> → transport via <code>SenderInterface</code></td>
+</tr>
+<tr>
+<td><code>MessengerEventDispatcher</code></td>
+<td><code>EventMessage</code> → transport via <code>SenderInterface</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="receiver-side-consuming-from-transport">Receiver Side (Consuming from Transport)<a class="headerlink" href="#receiver-side-consuming-from-transport" title="Permanent link">&para;</a></h3>
+<p><strong><code>SymfonyCommandMessageHandler</code></strong> — an invocable Messenger handler that receives
+<code>CommandMessage</code> from the transport and forwards it to the sync <code>SynchronousCommandBus</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="x">final readonly class SymfonyCommandMessageHandler</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="x">{</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="x">    public function __construct(private SynchronousCommandBus $commandBus) {}</span>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="x">    public function __invoke(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="x">    {</span>
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="x">        $this-&gt;commandBus-&gt;dispatch($commandMessage);</span>
+<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="x">    }</span>
+<a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a><span class="x">}</span>
+</code></pre></div>
+<p><strong><code>SymfonyEventMessageHandler</code></strong> — receives <code>EventMessage</code> from transport and forwards
+to the sync <code>SynchronousEventDispatcher</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="x">final readonly class SymfonyEventMessageHandler</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="x">{</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="x">    public function __construct(private SynchronousEventDispatcher $eventDispatcher) {}</span>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="x">    public function __invoke(EventMessage $eventMessage): void</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="x">    {</span>
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="x">        $this-&gt;eventDispatcher-&gt;dispatch($eventMessage);</span>
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="x">    }</span>
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="x">}</span>
+</code></pre></div>
+<p>The message handlers <strong>must</strong> be tagged <code>messenger.message_handler</code> in Symfony config.</p>
+<h3 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h3>
+<p><strong><code>SymfonyMessageSerializer</code></strong> — implements Messenger's <code>SerializerInterface</code>. Uses the
+domain <code>JsonSerializer</code> (or <code>PhpSerializer</code>) to serialize/deserialize messages, and encodes
+Messenger stamps in <code>X-Message-Stamp-*</code> headers.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="x">final readonly class SymfonyMessageSerializer implements SerializerInterface</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="x">{</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="x">    public function __construct(private DomainSerializer $serializer) {}</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="x">    public function decode(array $encodedEnvelope): Envelope;</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="x">    public function encode(Envelope $envelope): array;</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="x">}</span>
+</code></pre></div>
+<p>The transport routing in <code>framework:messenger</code> must route <code>CommandMessage</code> and
+<code>EventMessage</code> to their respective transports:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nt">framework</span><span class="p">:</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="w">    </span><span class="nt">messenger</span><span class="p">:</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="w">        </span><span class="nt">transports</span><span class="p">:</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="w">            </span><span class="nt">commands</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;%env(MESSENGER_TRANSPORT_DSN)%&#39;</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">            </span><span class="nt">events</span><span class="p">:</span><span class="w">   </span><span class="s">&#39;%env(MESSENGER_TRANSPORT_DSN)%&#39;</span>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="w">        </span><span class="nt">routing</span><span class="p">:</span>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">            </span><span class="s">&#39;Fight\Common\Domain\Messaging\Command\CommandMessage&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">commands</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="w">            </span><span class="s">&#39;Fight\Common\Domain\Messaging\Event\EventMessage&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">events</span>
+</code></pre></div>
+<hr />
+<h2 id="compiler-passes">Compiler Passes<a class="headerlink" href="#compiler-passes" title="Permanent link">&para;</a></h2>
+<p>Five compiler passes automate wiring through Symfony DI tags. All tagged services <strong>must be
+public</strong> because handlers are lazy-loaded on first match/dispatch.</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Pass</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>common.command_handler</code></td>
+<td><code>CommandHandlerCompilerPass</code></td>
+<td>Calls <code>ServiceAwareCommandRouter::registerHandler($commandClass, $serviceId)</code></td>
+</tr>
+<tr>
+<td><code>common.command_filter</code></td>
+<td><code>CommandFilterCompilerPass</code></td>
+<td>Calls <code>CommandPipeline::addFilter(Reference)</code></td>
+</tr>
+<tr>
+<td><code>common.query_handler</code></td>
+<td><code>QueryHandlerCompilerPass</code></td>
+<td>Calls <code>ServiceAwareQueryRouter::registerHandler($queryClass, $serviceId)</code></td>
+</tr>
+<tr>
+<td><code>common.query_filter</code></td>
+<td><code>QueryFilterCompilerPass</code></td>
+<td>Calls <code>QueryPipeline::addFilter(Reference)</code></td>
+</tr>
+<tr>
+<td><code>common.event_subscriber</code></td>
+<td><code>EventSubscriberCompilerPass</code></td>
+<td>Calls <code>ServiceAwareEventDispatcher::registerService($className, $serviceId)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each pass validates that the tagged service implements the expected interface and throws an
+<code>Exception</code> if the router/pipeline/dispatcher service is missing or the interface check fails.</p>
+<h3 id="wiring-in-the-kernel">Wiring in the Kernel<a class="headerlink" href="#wiring-in-the-kernel" title="Permanent link">&para;</a></h3>
+<p>The cleanest approach is to use <code>registerForAutoconfiguration</code> in your <code>Kernel::build()</code> so
+that any service implementing the handler/filter/subscriber interface is automatically tagged:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\CommandFilterCompilerPass;</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\CommandHandlerCompilerPass;</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\EventSubscriberCompilerPass;</span>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\QueryFilterCompilerPass;</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\QueryHandlerCompilerPass;</span>
+<a id="__codelineno-43-6" name="__codelineno-43-6" href="#__codelineno-43-6"></a><span class="x">use Fight\Common\Adapter\DependencyInjection\TemplateHelperCompilerPass;</span>
+<a id="__codelineno-43-7" name="__codelineno-43-7" href="#__codelineno-43-7"></a><span class="x">use Fight\Common\Application\Messaging\Command\CommandFilter;</span>
+<a id="__codelineno-43-8" name="__codelineno-43-8" href="#__codelineno-43-8"></a><span class="x">use Fight\Common\Application\Messaging\Command\CommandHandler;</span>
+<a id="__codelineno-43-9" name="__codelineno-43-9" href="#__codelineno-43-9"></a><span class="x">use Fight\Common\Application\Messaging\Event\EventSubscriber;</span>
+<a id="__codelineno-43-10" name="__codelineno-43-10" href="#__codelineno-43-10"></a><span class="x">use Fight\Common\Application\Messaging\Query\QueryFilter;</span>
+<a id="__codelineno-43-11" name="__codelineno-43-11" href="#__codelineno-43-11"></a><span class="x">use Fight\Common\Application\Messaging\Query\QueryHandler;</span>
+<a id="__codelineno-43-12" name="__codelineno-43-12" href="#__codelineno-43-12"></a><span class="x">use Fight\Common\Application\Templating\TemplateHelper;</span>
+<a id="__codelineno-43-13" name="__codelineno-43-13" href="#__codelineno-43-13"></a><span class="x">use Symfony\Component\DependencyInjection\ContainerBuilder;</span>
+<a id="__codelineno-43-14" name="__codelineno-43-14" href="#__codelineno-43-14"></a>
+<a id="__codelineno-43-15" name="__codelineno-43-15" href="#__codelineno-43-15"></a><span class="x">class Kernel extends BaseKernel</span>
+<a id="__codelineno-43-16" name="__codelineno-43-16" href="#__codelineno-43-16"></a><span class="x">{</span>
+<a id="__codelineno-43-17" name="__codelineno-43-17" href="#__codelineno-43-17"></a><span class="x">    use MicroKernelTrait;</span>
+<a id="__codelineno-43-18" name="__codelineno-43-18" href="#__codelineno-43-18"></a>
+<a id="__codelineno-43-19" name="__codelineno-43-19" href="#__codelineno-43-19"></a><span class="x">    #[Override]</span>
+<a id="__codelineno-43-20" name="__codelineno-43-20" href="#__codelineno-43-20"></a><span class="x">    protected function build(ContainerBuilder $container): void</span>
+<a id="__codelineno-43-21" name="__codelineno-43-21" href="#__codelineno-43-21"></a><span class="x">    {</span>
+<a id="__codelineno-43-22" name="__codelineno-43-22" href="#__codelineno-43-22"></a><span class="x">        $container-&gt;registerForAutoconfiguration(CommandHandler::class)-&gt;addTag(&#39;common.command_handler&#39;);</span>
+<a id="__codelineno-43-23" name="__codelineno-43-23" href="#__codelineno-43-23"></a><span class="x">        $container-&gt;registerForAutoconfiguration(CommandFilter::class)-&gt;addTag(&#39;common.command_filter&#39;);</span>
+<a id="__codelineno-43-24" name="__codelineno-43-24" href="#__codelineno-43-24"></a><span class="x">        $container-&gt;registerForAutoconfiguration(EventSubscriber::class)-&gt;addTag(&#39;common.event_subscriber&#39;);</span>
+<a id="__codelineno-43-25" name="__codelineno-43-25" href="#__codelineno-43-25"></a><span class="x">        $container-&gt;registerForAutoconfiguration(QueryHandler::class)-&gt;addTag(&#39;common.query_handler&#39;);</span>
+<a id="__codelineno-43-26" name="__codelineno-43-26" href="#__codelineno-43-26"></a><span class="x">        $container-&gt;registerForAutoconfiguration(QueryFilter::class)-&gt;addTag(&#39;common.query_filter&#39;);</span>
+<a id="__codelineno-43-27" name="__codelineno-43-27" href="#__codelineno-43-27"></a><span class="x">        $container-&gt;registerForAutoconfiguration(TemplateHelper::class)-&gt;addTag(&#39;common.template_helper&#39;);</span>
+<a id="__codelineno-43-28" name="__codelineno-43-28" href="#__codelineno-43-28"></a>
+<a id="__codelineno-43-29" name="__codelineno-43-29" href="#__codelineno-43-29"></a><span class="x">        $container-&gt;addCompilerPass(new CommandHandlerCompilerPass());</span>
+<a id="__codelineno-43-30" name="__codelineno-43-30" href="#__codelineno-43-30"></a><span class="x">        $container-&gt;addCompilerPass(new CommandFilterCompilerPass());</span>
+<a id="__codelineno-43-31" name="__codelineno-43-31" href="#__codelineno-43-31"></a><span class="x">        $container-&gt;addCompilerPass(new EventSubscriberCompilerPass());</span>
+<a id="__codelineno-43-32" name="__codelineno-43-32" href="#__codelineno-43-32"></a><span class="x">        $container-&gt;addCompilerPass(new QueryHandlerCompilerPass());</span>
+<a id="__codelineno-43-33" name="__codelineno-43-33" href="#__codelineno-43-33"></a><span class="x">        $container-&gt;addCompilerPass(new QueryFilterCompilerPass());</span>
+<a id="__codelineno-43-34" name="__codelineno-43-34" href="#__codelineno-43-34"></a><span class="x">        $container-&gt;addCompilerPass(new TemplateHelperCompilerPass());</span>
+<a id="__codelineno-43-35" name="__codelineno-43-35" href="#__codelineno-43-35"></a><span class="x">    }</span>
+<a id="__codelineno-43-36" name="__codelineno-43-36" href="#__codelineno-43-36"></a><span class="x">}</span>
+</code></pre></div>
+<p>With this approach, any service that implements, say, <code>CommandHandler</code> automatically receives
+the <code>common.command_handler</code> tag, and the compiler pass wires it into the router. No manual
+tagging is needed in <code>services.yaml</code>.</p>
+<hr />
+<h2 id="full-symfony-configuration">Full Symfony Configuration<a class="headerlink" href="#full-symfony-configuration" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># config/packages/common_messaging.yaml</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="w">    </span><span class="nt">_defaults</span><span class="p">:</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="w">        </span><span class="nt">autowire</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a><span class="w">        </span><span class="nt">autoconfigure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a>
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a><span class="w">    </span><span class="c1"># --- Command bus stack ---</span>
+<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a>
+<a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a><span class="w">    </span><span class="c1"># Sync routing bus</span>
+<a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Command\Sync\Routing\RoutingCommandBus</span><span class="p">:</span>
+<a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a><span class="w">        </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus</span>
+<a id="__codelineno-44-13" name="__codelineno-44-13" href="#__codelineno-44-13"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-14" name="__codelineno-44-14" href="#__codelineno-44-14"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\Messaging\Command\Sync\Routing\ServiceAwareCommandRouter&#39;</span>
+<a id="__codelineno-44-15" name="__codelineno-44-15" href="#__codelineno-44-15"></a>
+<a id="__codelineno-44-16" name="__codelineno-44-16" href="#__codelineno-44-16"></a><span class="w">    </span><span class="c1"># Sync pipeline (decorates routing bus with filters)</span>
+<a id="__codelineno-44-17" name="__codelineno-44-17" href="#__codelineno-44-17"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline</span><span class="p">:</span>
+<a id="__codelineno-44-18" name="__codelineno-44-18" href="#__codelineno-44-18"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-19" name="__codelineno-44-19" href="#__codelineno-44-19"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\Messaging\Command\Sync\Routing\RoutingCommandBus&#39;</span>
+<a id="__codelineno-44-20" name="__codelineno-44-20" href="#__codelineno-44-20"></a>
+<a id="__codelineno-44-21" name="__codelineno-44-21" href="#__codelineno-44-21"></a><span class="w">    </span><span class="c1"># Async command bus (sends to Messenger transport)</span>
+<a id="__codelineno-44-22" name="__codelineno-44-22" href="#__codelineno-44-22"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus</span><span class="p">:</span>
+<a id="__codelineno-44-23" name="__codelineno-44-23" href="#__codelineno-44-23"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-24" name="__codelineno-44-24" href="#__codelineno-44-24"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@messenger.transport.commands&#39;</span>
+<a id="__codelineno-44-25" name="__codelineno-44-25" href="#__codelineno-44-25"></a>
+<a id="__codelineno-44-26" name="__codelineno-44-26" href="#__codelineno-44-26"></a><span class="w">    </span><span class="c1"># --- Query bus (sync only) ---</span>
+<a id="__codelineno-44-27" name="__codelineno-44-27" href="#__codelineno-44-27"></a>
+<a id="__codelineno-44-28" name="__codelineno-44-28" href="#__codelineno-44-28"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Query\RoutingQueryBus</span><span class="p">:</span>
+<a id="__codelineno-44-29" name="__codelineno-44-29" href="#__codelineno-44-29"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-30" name="__codelineno-44-30" href="#__codelineno-44-30"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\Messaging\Query\Routing\ServiceAwareQueryRouter&#39;</span>
+<a id="__codelineno-44-31" name="__codelineno-44-31" href="#__codelineno-44-31"></a>
+<a id="__codelineno-44-32" name="__codelineno-44-32" href="#__codelineno-44-32"></a><span class="w">    </span><span class="c1"># --- Event dispatchers ---</span>
+<a id="__codelineno-44-33" name="__codelineno-44-33" href="#__codelineno-44-33"></a>
+<a id="__codelineno-44-34" name="__codelineno-44-34" href="#__codelineno-44-34"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher</span><span class="p">:</span>
+<a id="__codelineno-44-35" name="__codelineno-44-35" href="#__codelineno-44-35"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-36" name="__codelineno-44-36" href="#__codelineno-44-36"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@service_container&#39;</span>
+<a id="__codelineno-44-37" name="__codelineno-44-37" href="#__codelineno-44-37"></a>
+<a id="__codelineno-44-38" name="__codelineno-44-38" href="#__codelineno-44-38"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher</span><span class="p">:</span>
+<a id="__codelineno-44-39" name="__codelineno-44-39" href="#__codelineno-44-39"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-40" name="__codelineno-44-40" href="#__codelineno-44-40"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@messenger.transport.events&#39;</span>
+<a id="__codelineno-44-41" name="__codelineno-44-41" href="#__codelineno-44-41"></a>
+<a id="__codelineno-44-42" name="__codelineno-44-42" href="#__codelineno-44-42"></a><span class="w">    </span><span class="c1"># --- Bridges: transport → sync ---</span>
+<a id="__codelineno-44-43" name="__codelineno-44-43" href="#__codelineno-44-43"></a>
+<a id="__codelineno-44-44" name="__codelineno-44-44" href="#__codelineno-44-44"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler</span><span class="p">:</span>
+<a id="__codelineno-44-45" name="__codelineno-44-45" href="#__codelineno-44-45"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-46" name="__codelineno-44-46" href="#__codelineno-44-46"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline&#39;</span>
+<a id="__codelineno-44-47" name="__codelineno-44-47" href="#__codelineno-44-47"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-48" name="__codelineno-44-48" href="#__codelineno-44-48"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">messenger.message_handler</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-49" name="__codelineno-44-49" href="#__codelineno-44-49"></a>
+<a id="__codelineno-44-50" name="__codelineno-44-50" href="#__codelineno-44-50"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler</span><span class="p">:</span>
+<a id="__codelineno-44-51" name="__codelineno-44-51" href="#__codelineno-44-51"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-52" name="__codelineno-44-52" href="#__codelineno-44-52"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher&#39;</span>
+<a id="__codelineno-44-53" name="__codelineno-44-53" href="#__codelineno-44-53"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-54" name="__codelineno-44-54" href="#__codelineno-44-54"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">messenger.message_handler</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-55" name="__codelineno-44-55" href="#__codelineno-44-55"></a>
+<a id="__codelineno-44-56" name="__codelineno-44-56" href="#__codelineno-44-56"></a><span class="w">    </span><span class="c1"># --- Message serializer ---</span>
+<a id="__codelineno-44-57" name="__codelineno-44-57" href="#__codelineno-44-57"></a>
+<a id="__codelineno-44-58" name="__codelineno-44-58" href="#__codelineno-44-58"></a><span class="w">    </span><span class="nt">Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer</span><span class="p">:</span>
+<a id="__codelineno-44-59" name="__codelineno-44-59" href="#__codelineno-44-59"></a><span class="w">        </span><span class="nt">arguments</span><span class="p">:</span>
+<a id="__codelineno-44-60" name="__codelineno-44-60" href="#__codelineno-44-60"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;@Fight\Common\Domain\Serialization\JsonSerializer&#39;</span>
+<a id="__codelineno-44-61" name="__codelineno-44-61" href="#__codelineno-44-61"></a>
+<a id="__codelineno-44-62" name="__codelineno-44-62" href="#__codelineno-44-62"></a><span class="w">    </span><span class="c1"># --- Event subscriber (sync, auto-registered) ---</span>
+<a id="__codelineno-44-63" name="__codelineno-44-63" href="#__codelineno-44-63"></a>
+<a id="__codelineno-44-64" name="__codelineno-44-64" href="#__codelineno-44-64"></a><span class="w">    </span><span class="nt">App\Messaging\SendWelcomeEmailSubscriber</span><span class="p">:</span>
+<a id="__codelineno-44-65" name="__codelineno-44-65" href="#__codelineno-44-65"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-66" name="__codelineno-44-66" href="#__codelineno-44-66"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">common.event_subscriber</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-67" name="__codelineno-44-67" href="#__codelineno-44-67"></a>
+<a id="__codelineno-44-68" name="__codelineno-44-68" href="#__codelineno-44-68"></a><span class="w">    </span><span class="c1"># --- Command handler (auto-registered) ---</span>
+<a id="__codelineno-44-69" name="__codelineno-44-69" href="#__codelineno-44-69"></a>
+<a id="__codelineno-44-70" name="__codelineno-44-70" href="#__codelineno-44-70"></a><span class="w">    </span><span class="nt">App\Messaging\RegisterUserHandler</span><span class="p">:</span>
+<a id="__codelineno-44-71" name="__codelineno-44-71" href="#__codelineno-44-71"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-72" name="__codelineno-44-72" href="#__codelineno-44-72"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">common.command_handler</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-73" name="__codelineno-44-73" href="#__codelineno-44-73"></a>
+<a id="__codelineno-44-74" name="__codelineno-44-74" href="#__codelineno-44-74"></a><span class="w">    </span><span class="c1"># --- Query handler (auto-registered) ---</span>
+<a id="__codelineno-44-75" name="__codelineno-44-75" href="#__codelineno-44-75"></a>
+<a id="__codelineno-44-76" name="__codelineno-44-76" href="#__codelineno-44-76"></a><span class="w">    </span><span class="nt">App\Messaging\GetUserHandler</span><span class="p">:</span>
+<a id="__codelineno-44-77" name="__codelineno-44-77" href="#__codelineno-44-77"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-78" name="__codelineno-44-78" href="#__codelineno-44-78"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">common.query_handler</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-79" name="__codelineno-44-79" href="#__codelineno-44-79"></a>
+<a id="__codelineno-44-80" name="__codelineno-44-80" href="#__codelineno-44-80"></a><span class="w">    </span><span class="c1"># --- Filters (auto-registered into pipeline) ---</span>
+<a id="__codelineno-44-81" name="__codelineno-44-81" href="#__codelineno-44-81"></a>
+<a id="__codelineno-44-82" name="__codelineno-44-82" href="#__codelineno-44-82"></a><span class="w">    </span><span class="nt">App\Messaging\LoggingCommandFilter</span><span class="p">:</span>
+<a id="__codelineno-44-83" name="__codelineno-44-83" href="#__codelineno-44-83"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-84" name="__codelineno-44-84" href="#__codelineno-44-84"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">common.command_filter</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-85" name="__codelineno-44-85" href="#__codelineno-44-85"></a>
+<a id="__codelineno-44-86" name="__codelineno-44-86" href="#__codelineno-44-86"></a><span class="w">    </span><span class="nt">App\Messaging\LoggingQueryFilter</span><span class="p">:</span>
+<a id="__codelineno-44-87" name="__codelineno-44-87" href="#__codelineno-44-87"></a><span class="w">        </span><span class="nt">tags</span><span class="p">:</span>
+<a id="__codelineno-44-88" name="__codelineno-44-88" href="#__codelineno-44-88"></a><span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">common.query_filter</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-89" name="__codelineno-44-89" href="#__codelineno-44-89"></a>
+<a id="__codelineno-44-90" name="__codelineno-44-90" href="#__codelineno-44-90"></a><span class="c1"># --- Messenger transport routing ---</span>
+<a id="__codelineno-44-91" name="__codelineno-44-91" href="#__codelineno-44-91"></a>
+<a id="__codelineno-44-92" name="__codelineno-44-92" href="#__codelineno-44-92"></a><span class="nt">framework</span><span class="p">:</span>
+<a id="__codelineno-44-93" name="__codelineno-44-93" href="#__codelineno-44-93"></a><span class="w">    </span><span class="nt">messenger</span><span class="p">:</span>
+<a id="__codelineno-44-94" name="__codelineno-44-94" href="#__codelineno-44-94"></a><span class="w">        </span><span class="nt">transports</span><span class="p">:</span>
+<a id="__codelineno-44-95" name="__codelineno-44-95" href="#__codelineno-44-95"></a><span class="w">            </span><span class="nt">commands</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;%env(MESSENGER_TRANSPORT_DSN)%&#39;</span>
+<a id="__codelineno-44-96" name="__codelineno-44-96" href="#__codelineno-44-96"></a><span class="w">            </span><span class="nt">events</span><span class="p">:</span><span class="w">   </span><span class="s">&#39;%env(MESSENGER_TRANSPORT_DSN)%&#39;</span>
+<a id="__codelineno-44-97" name="__codelineno-44-97" href="#__codelineno-44-97"></a><span class="w">        </span><span class="nt">routing</span><span class="p">:</span>
+<a id="__codelineno-44-98" name="__codelineno-44-98" href="#__codelineno-44-98"></a><span class="w">            </span><span class="s">&#39;Fight\Common\Domain\Messaging\Command\CommandMessage&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">commands</span>
+<a id="__codelineno-44-99" name="__codelineno-44-99" href="#__codelineno-44-99"></a><span class="w">            </span><span class="s">&#39;Fight\Common\Domain\Messaging\Event\EventMessage&#39;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">events</span>
+</code></pre></div>
+<p>You should alias the bus/dispatcher interfaces to the appropriate implementations so
+controllers can type-hide against the interface:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="w">    </span><span class="nt">Fight\Common\Application\Messaging\Command\AsynchronousCommandBus</span><span class="p">:</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="w">        </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus</span>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="w">    </span><span class="nt">Fight\Common\Application\Messaging\Query\QueryBus</span><span class="p">:</span>
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="w">        </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\Messaging\Query\RoutingQueryBus</span>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="w">    </span><span class="nt">Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher</span><span class="p">:</span>
+<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="w">        </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher</span>
+</code></pre></div>
+<h3 id="data-flow-summary">Data Flow Summary<a class="headerlink" href="#data-flow-summary" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>Controller (async command bus)
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>  └── MessengerCommandBus::execute($command)
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>        └── SenderInterface::send(Envelope(CommandMessage))
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>              │
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>              ▼  (transport delivers to consumer)
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>        SymfonyCommandMessageHandler::__invoke($commandMessage)
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>              └── CommandPipeline::dispatch($commandMessage)
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>                    └── filters...
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>                          └── RoutingCommandBus::dispatch($commandMessage)
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a>                                └── CommandRouter::match($command)
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>                                      └── CommandHandler::handle($commandMessage)
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>
+<a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a>Controller (query bus)
+<a id="__codelineno-46-14" name="__codelineno-46-14" href="#__codelineno-46-14"></a>  └── RoutingQueryBus::fetch($query)
+<a id="__codelineno-46-15" name="__codelineno-46-15" href="#__codelineno-46-15"></a>        └── QueryRouter::match($query)
+<a id="__codelineno-46-16" name="__codelineno-46-16" href="#__codelineno-46-16"></a>              └── QueryHandler::handle($queryMessage)
+<a id="__codelineno-46-17" name="__codelineno-46-17" href="#__codelineno-46-17"></a>
+<a id="__codelineno-46-18" name="__codelineno-46-18" href="#__codelineno-46-18"></a>Controller (event dispatcher)
+<a id="__codelineno-46-19" name="__codelineno-46-19" href="#__codelineno-46-19"></a>  └── ServiceAwareEventDispatcher::trigger($event)
+<a id="__codelineno-46-20" name="__codelineno-46-20" href="#__codelineno-46-20"></a>        └── EventMessage::create($event)
+<a id="__codelineno-46-21" name="__codelineno-46-21" href="#__codelineno-46-21"></a>              └── handlers for event type (lazy-loaded from container)
+<a id="__codelineno-46-22" name="__codelineno-46-22" href="#__codelineno-46-22"></a>                    └── event subscribers + added handlers
+</code></pre></div>
+<hr />
+<h2 id="controller-examples">Controller Examples<a class="headerlink" href="#controller-examples" title="Permanent link">&para;</a></h2>
+<h3 id="command-controller-async-http-202">Command Controller (Async — HTTP 202)<a class="headerlink" href="#command-controller-async-http-202" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="x">use Fight\Common\Application\Messaging\Command\AsynchronousCommandBus;</span>
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="x">use Symfony\Component\HttpFoundation\JsonResponse;</span>
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="x">use Symfony\Component\HttpFoundation\Request;</span>
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a><span class="x">use Symfony\Component\HttpFoundation\Response;</span>
+<a id="__codelineno-47-5" name="__codelineno-47-5" href="#__codelineno-47-5"></a>
+<a id="__codelineno-47-6" name="__codelineno-47-6" href="#__codelineno-47-6"></a><span class="x">class RegisterUserController</span>
+<a id="__codelineno-47-7" name="__codelineno-47-7" href="#__codelineno-47-7"></a><span class="x">{</span>
+<a id="__codelineno-47-8" name="__codelineno-47-8" href="#__codelineno-47-8"></a><span class="x">    public function __construct(</span>
+<a id="__codelineno-47-9" name="__codelineno-47-9" href="#__codelineno-47-9"></a><span class="x">        private AsynchronousCommandBus $commandBus,</span>
+<a id="__codelineno-47-10" name="__codelineno-47-10" href="#__codelineno-47-10"></a><span class="x">    ) {}</span>
+<a id="__codelineno-47-11" name="__codelineno-47-11" href="#__codelineno-47-11"></a>
+<a id="__codelineno-47-12" name="__codelineno-47-12" href="#__codelineno-47-12"></a><span class="x">    public function __invoke(Request $request): Response</span>
+<a id="__codelineno-47-13" name="__codelineno-47-13" href="#__codelineno-47-13"></a><span class="x">    {</span>
+<a id="__codelineno-47-14" name="__codelineno-47-14" href="#__codelineno-47-14"></a><span class="x">        $command = new RegisterUserCommand(</span>
+<a id="__codelineno-47-15" name="__codelineno-47-15" href="#__codelineno-47-15"></a><span class="x">            $request-&gt;get(&#39;email&#39;),</span>
+<a id="__codelineno-47-16" name="__codelineno-47-16" href="#__codelineno-47-16"></a><span class="x">            $request-&gt;get(&#39;name&#39;),</span>
+<a id="__codelineno-47-17" name="__codelineno-47-17" href="#__codelineno-47-17"></a><span class="x">        );</span>
+<a id="__codelineno-47-18" name="__codelineno-47-18" href="#__codelineno-47-18"></a>
+<a id="__codelineno-47-19" name="__codelineno-47-19" href="#__codelineno-47-19"></a><span class="x">        $this-&gt;commandBus-&gt;execute($command);</span>
+<a id="__codelineno-47-20" name="__codelineno-47-20" href="#__codelineno-47-20"></a>
+<a id="__codelineno-47-21" name="__codelineno-47-21" href="#__codelineno-47-21"></a><span class="x">        return new JsonResponse([&#39;status&#39; =&gt; &#39;accepted&#39;], Response::HTTP_ACCEPTED);</span>
+<a id="__codelineno-47-22" name="__codelineno-47-22" href="#__codelineno-47-22"></a><span class="x">    }</span>
+<a id="__codelineno-47-23" name="__codelineno-47-23" href="#__codelineno-47-23"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="query-controller-sync-http-200">Query Controller (Sync — HTTP 200)<a class="headerlink" href="#query-controller-sync-http-200" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="x">use Fight\Common\Application\Messaging\Query\QueryBus;</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="x">use Symfony\Component\HttpFoundation\JsonResponse;</span>
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="x">use Symfony\Component\HttpFoundation\Request;</span>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="x">use Symfony\Component\HttpFoundation\Response;</span>
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a>
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="x">class GetUserController</span>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a><span class="x">{</span>
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a><span class="x">    public function __construct(private QueryBus $queryBus) {}</span>
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a>
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a><span class="x">    public function __invoke(Request $request): Response</span>
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a><span class="x">    {</span>
+<a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a><span class="x">        $query  = new GetUserQuery($request-&gt;get(&#39;id&#39;));</span>
+<a id="__codelineno-48-13" name="__codelineno-48-13" href="#__codelineno-48-13"></a><span class="x">        $result = $this-&gt;queryBus-&gt;fetch($query);</span>
+<a id="__codelineno-48-14" name="__codelineno-48-14" href="#__codelineno-48-14"></a>
+<a id="__codelineno-48-15" name="__codelineno-48-15" href="#__codelineno-48-15"></a><span class="x">        if ($result === null) {</span>
+<a id="__codelineno-48-16" name="__codelineno-48-16" href="#__codelineno-48-16"></a><span class="x">            return new JsonResponse([&#39;error&#39; =&gt; &#39;Not found&#39;], Response::HTTP_NOT_FOUND);</span>
+<a id="__codelineno-48-17" name="__codelineno-48-17" href="#__codelineno-48-17"></a><span class="x">        }</span>
+<a id="__codelineno-48-18" name="__codelineno-48-18" href="#__codelineno-48-18"></a>
+<a id="__codelineno-48-19" name="__codelineno-48-19" href="#__codelineno-48-19"></a><span class="x">        return new JsonResponse($result-&gt;toArray());</span>
+<a id="__codelineno-48-20" name="__codelineno-48-20" href="#__codelineno-48-20"></a><span class="x">    }</span>
+<a id="__codelineno-48-21" name="__codelineno-48-21" href="#__codelineno-48-21"></a><span class="x">}</span>
+</code></pre></div>
+<h3 id="event-dispatch-in-a-service">Event Dispatch in a Service<a class="headerlink" href="#event-dispatch-in-a-service" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="x">use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a><span class="x">class RegisterUserHandler implements CommandHandler</span>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="x">{</span>
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a><span class="x">    public function __construct(</span>
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a><span class="x">        private UserRepository $users,</span>
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a><span class="x">        private SynchronousEventDispatcher $events,</span>
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a><span class="x">    ) {}</span>
+<a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a>
+<a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a><span class="x">    public function handle(CommandMessage $commandMessage): void</span>
+<a id="__codelineno-49-11" name="__codelineno-49-11" href="#__codelineno-49-11"></a><span class="x">    {</span>
+<a id="__codelineno-49-12" name="__codelineno-49-12" href="#__codelineno-49-12"></a><span class="x">        $command = $commandMessage-&gt;payload();</span>
+<a id="__codelineno-49-13" name="__codelineno-49-13" href="#__codelineno-49-13"></a><span class="x">        $user    = User::register($command-&gt;email(), $command-&gt;name());</span>
+<a id="__codelineno-49-14" name="__codelineno-49-14" href="#__codelineno-49-14"></a><span class="x">        $this-&gt;users-&gt;save($user);</span>
+<a id="__codelineno-49-15" name="__codelineno-49-15" href="#__codelineno-49-15"></a>
+<a id="__codelineno-49-16" name="__codelineno-49-16" href="#__codelineno-49-16"></a><span class="x">        // In async setups, use AsynchronousEventDispatcher here instead</span>
+<a id="__codelineno-49-17" name="__codelineno-49-17" href="#__codelineno-49-17"></a><span class="x">        $this-&gt;events-&gt;trigger(new UserRegisteredEvent($user-&gt;id()));</span>
+<a id="__codelineno-49-18" name="__codelineno-49-18" href="#__codelineno-49-18"></a><span class="x">    }</span>
+<a id="__codelineno-49-19" name="__codelineno-49-19" href="#__codelineno-49-19"></a><span class="x">}</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 John Nickell
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
