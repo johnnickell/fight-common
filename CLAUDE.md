@@ -19,7 +19,10 @@ For coordinated builds, use `.runs/<YYYY-MM-DD>-<slug>/` for local plans, spokes
 
 ## Commands
 
-All tooling runs inside a PHP 8.5 Docker container (`fight-common`). The `./bin/` scripts are convenience wrappers for interactive terminal use — they all pass `-it` (TTY required) and rebuild the image on every call, so **do not use them from Claude Code**.
+All tooling runs inside a PHP 8.5 Docker container (`fight-common`). Focused wrappers such as `./bin/phpunit`
+are interactive terminal conveniences that pass `-it` and rebuild the image, so **do not use those wrappers
+from Claude Code**. Use `./bin/build` for the complete non-interactive submit gate; use direct non-interactive
+Docker commands for focused agent iteration.
 
 ### For the user (interactive terminal)
 
@@ -76,8 +79,9 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 step name, fails fast, and owns the mandatory submit sequence. Focused wrappers remain useful for iteration, but
 their results are not submit evidence.
 
-T-00029 will provide the canonical local `./bin/build` entry point, which will provision the disposable runtime
-and delegate the quality checks to `./bin/quality`.
+`./bin/build` is the canonical non-interactive local submit entry point. Its default mode installs the tracked
+Composer resolution, provisions disposable MySQL and PostgreSQL services, and delegates the quality checks to
+`./bin/quality` in one disposable PHP container while mapping the invoking user's UID and GID.
 
 ### Git Flow
 
