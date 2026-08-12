@@ -46,8 +46,6 @@ final class EventMessage extends BaseMessage
     }
 
     /**
-     * @param array<string, mixed> $data
-     *
      * @inheritDoc
      */
     public static function arrayDeserialize(array $data): static

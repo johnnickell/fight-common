@@ -140,14 +140,21 @@ git push origin <major>.<minor>
 
 ## Local Development
 
-All tooling runs inside the `fight-common` Docker container. The `./bin/` scripts are wrappers for interactive use:
+All tooling runs inside the `fight-common` Docker container through the standard `./bin/` entrypoints:
 
 ```bash
-./bin/phpunit                              # full test suite with coverage
-./bin/phpunit --filter MyTest              # single test
+./bin/phpunit                              # complete suite with disposable MySQL/PostgreSQL
+./bin/phpunit --fast                       # fast suite; excludes server-database tests
+./bin/phpunit --filter MyTest              # filter the complete suite
 ./bin/composer require vendor/package      # add a dependency
 ./bin/rector process src/                  # apply code modernization
 ./bin/exec php vendor/bin/phpstan analyse  # static analysis (level 6)
 ```
+
+Complete mode provisions disposable MySQL 8.4.11 and PostgreSQL 17 services,
+waits for health, injects both `FIGHT_COMMON_*_DSN` values, and cleans up its
+containers and network on every exit. Unavailable complete-suite infrastructure
+fails the run; it is never silently skipped. `--fast` is an optional local
+feedback workflow and is not submit or release evidence.
 
 See the [CLAUDE.md](../CLAUDE.md) for non-interactive (CI-style) Docker commands.

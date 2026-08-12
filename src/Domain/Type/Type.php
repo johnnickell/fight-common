@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Type;
 
-use JsonSerializable;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
+use JsonSerializable;
 use Stringable;
 
 /**
@@ -48,37 +48,11 @@ final class Type implements Equatable, JsonSerializable, Stringable
     }
 
     /**
-     * Handles casting to a string
-     */
-    public function __toString(): string
-    {
-        return $this->name;
-    }
-
-    /**
      * Retrieves a value for JSON encoding
      */
     public function jsonSerialize(): string
     {
         return $this->name;
-    }
-
-    /**
-     * Retrieves a representation to serialize
-     */
-    public function __serialize(): array
-    {
-        return ['name' => $this->name];
-    }
-
-    /**
-     * Handles construction from serialized data
-     *
-     * @param array<string, mixed> $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->name = $data['name'];
     }
 
     /**
@@ -103,5 +77,31 @@ final class Type implements Equatable, JsonSerializable, Stringable
     public function hashValue(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Handles casting to a string
+     */
+    public function __toString(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Retrieves a representation to serialize
+     */
+    public function __serialize(): array
+    {
+        return ['name' => $this->name];
+    }
+
+    /**
+     * Handles construction from serialized data
+     *
+     * @param array<string, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->name = $data['name'];
     }
 }

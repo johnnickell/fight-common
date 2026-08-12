@@ -24,7 +24,6 @@ final class HashSet implements Set
 
     /** @var array<T> */
     private array $buckets = [];
-
     private int $count = 0;
 
     /**
@@ -115,8 +114,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @param Set<T> $other
-     *
      * @inheritDoc
      */
     public function difference(Set $other): static
@@ -134,8 +131,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @param Set<T> $other
-     *
      * @inheritDoc
      */
     public function intersection(Set $other): static
@@ -148,8 +143,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @param Set<T> $other
-     *
      * @inheritDoc
      */
     public function complement(Set $other): static
@@ -166,8 +159,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @param Set<T> $other
-     *
      * @inheritDoc
      */
     public function union(Set $other): static
@@ -389,7 +380,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -426,7 +416,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -449,7 +438,6 @@ final class HashSet implements Set
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array

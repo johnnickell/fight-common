@@ -13,7 +13,6 @@ use Fight\Common\Domain\Messaging\Event\Event;
 abstract class AggregateRoot implements EventSourcedAggregate
 {
     private int $version = 0;
-
     /** @var list<Event> */
     private array $pendingEvents = [];
 
@@ -62,7 +61,7 @@ abstract class AggregateRoot implements EventSourcedAggregate
     }
 
     /**
-     * Replays an event without recording it as pending
+     * Applies an event without recording it as pending
      */
     final protected function replay(Event $event): void
     {

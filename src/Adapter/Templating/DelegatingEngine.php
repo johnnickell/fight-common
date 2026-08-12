@@ -16,7 +16,6 @@ final class DelegatingEngine implements TemplateEngine
 {
     /** @var TemplateEngine[] */
     private array $engines = [];
-
     /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
@@ -33,9 +32,6 @@ final class DelegatingEngine implements TemplateEngine
     }
 
     /**
-     * @param string $template
-     * @param array<string, mixed> $data
-     *
      * @inheritDoc
      */
     public function render(string $template, array $data = []): string

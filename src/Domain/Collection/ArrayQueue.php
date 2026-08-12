@@ -23,13 +23,9 @@ final class ArrayQueue implements Queue
 
     /** @var array<T> */
     private array $items = [];
-
     private int $count = 0;
-
     private int $front = 0;
-
     private int $end = 0;
-
     private int $cap = 10;
 
     /**
@@ -337,7 +333,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array{0: static, 1: static}
      * @inheritDoc
      */
     public function partition(callable $predicate): array
@@ -365,7 +360,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function toArray(): array
@@ -388,7 +382,6 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @return array<T>
      * @inheritDoc
      */
     public function jsonSerialize(): array
@@ -405,15 +398,7 @@ final class ArrayQueue implements Queue
     }
 
     /**
-     * @inheritDoc
-     */
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * Re-indexes the underlying array
+     * Reindexes the underlying array
      *
      * This is needed to keep wrapping under control. Using direct indices
      * allows operations in constant amortized time instead of O(n).
@@ -432,5 +417,13 @@ final class ArrayQueue implements Queue
         $this->cap = $capacity;
         $this->front = 0;
         $this->end = $this->count;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

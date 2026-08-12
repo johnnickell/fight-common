@@ -1,7 +1,7 @@
 # Fight Common Release Coordination
 
 **Label:** `wayfinder:map`
-**Status:** Open
+**Status:** Closed
 
 ## Destination
 
@@ -48,10 +48,36 @@ release decision.
   fixed the single command surface, content-addressed plans, durable run state, postcondition-driven
   resume, machine results, evidence-manifest authority, explicit stop states, publication authorization,
   and test seams. Exact implementation and hosted-operation details remain deferred to dependent tickets.
+- [Define the plan, package, certify, and publish skill contracts](tickets/WF-004-release-skill-contracts.md)
+  fixed one-phase skill ownership, `.runs`-only planning bookkeeping, immutable source/candidate/
+  baseline/support-policy bindings, bounded local and per-effect external approvals, composed
+  certification, durable stop handoffs, single-source routing, and closed capability boundaries.
+- [Define patch and maintenance-line workflows](tickets/WF-005-patch-and-maintenance-workflows.md)
+  fixed the reviewed-fix boundary, supported-line and oldest-first selection, per-line compatibility
+  and certification, ordered forward ports, safe current-line integration, maintenance lifecycle,
+  EOL preservation, and guided urgent handling without a safety bypass.
+- [Define GitHub and Packagist publication and provenance](tickets/WF-006-publication-and-provenance.md)
+  fixed the OpenPGP signer and custody boundary, signed-tag and commit authority, release topology,
+  immutable GitHub publication gate, deterministic assets, Packagist observation and recovery,
+  clean-install proof, single-operator approval, and postcondition-driven resumption.
+- [Define the release-operations runbook](tickets/WF-007-release-operations-runbook.md)
+  fixed the single dispatcher and journey-card information architecture, routing precedence,
+  operator loop, stop and cancellation handling, bounded troubleshooting, Git-flow examples,
+  oldest-supported-line routing, and independent publication recovery.
+- [Synthesize the release implementation epic, PRD, and tickets](tickets/WF-008-release-implementation-handoff.md)
+  fixed the four-PRD decomposition, first normal-release vertical slice, deterministic boundary fakes,
+  ticket-sized branch and completion rules, implementation order, one-home planning migration,
+  composed acceptance gate, and an initial eight executable implementation slices. After the full PRDs were
+  approved, the oversized foundation, publication, patch, and integration slices were refined into twelve.
+  The result is EPIC-00003, PRD-00010 through PRD-00013, and T-00032 through T-00043.
 
 ## Frontier
 
-- [Define the plan, package, certify, and publish skill contracts](tickets/WF-004-release-skill-contracts.md)
+None. The implementation handoff is complete; implementation requires its normal ticket and branch approvals.
+
+## Waiting
+
+None.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
@@ -60,12 +86,8 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 - Exact release-evidence manifest fields, storage locking, event-chain integrity, and detailed-log
   retention.
-- Signing implementation, signer identity, key custody, and verification mechanism for future
-  annotated tags.
-- Exact archive normalization and committed exclusion policy.
-- Exact Packagist observation and manually approved recovery mechanism when automatic propagation fails.
-- Exact branch-protection and GitHub-environment changes required before workflows may mutate remote
-  state.
+- Actual signer fingerprint, operator identity, and hosted environment provisioning remain
+  implementation and configuration work for the release handoff.
 
 ## Out of scope
 

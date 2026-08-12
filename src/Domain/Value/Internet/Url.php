@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value\Internet;
 
-use Override;
 use Fight\Common\Domain\Exception\DomainException;
+use Override;
 
 /**
  * Class Url

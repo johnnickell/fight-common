@@ -27,7 +27,6 @@ final class JwtDecoder implements TokenDecoder
         'HS384' => Sha384::class,
         'HS512' => Sha512::class
     ];
-
     private readonly Configuration $configuration;
 
     /**
@@ -50,8 +49,6 @@ final class JwtDecoder implements TokenDecoder
     }
 
     /**
-     * @return array<string, mixed>
-     *
      * @inheritDoc
      */
     public function decode(string $token): array

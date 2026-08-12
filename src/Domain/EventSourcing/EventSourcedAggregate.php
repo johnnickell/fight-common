@@ -13,6 +13,15 @@ use Fight\Common\Domain\Messaging\Event\Event;
 interface EventSourcedAggregate
 {
     /**
+     * Reconstitutes an aggregate from ordered event history
+     *
+     * @param iterable $events
+     *
+     * @phpstan-param iterable<Event> $events
+     */
+    public static function reconstitute(iterable $events): static;
+
+    /**
      * Retrieves the aggregate identifier
      */
     public function id(): Identifier;
@@ -28,11 +37,4 @@ interface EventSourcedAggregate
      * @return list<Event>
      */
     public function releaseEvents(): array;
-
-    /**
-     * Reconstitutes an aggregate from ordered event history
-     *
-     * @param iterable<Event> $events
-     */
-    public static function reconstitute(iterable $events): static;
 }

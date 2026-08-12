@@ -8,8 +8,8 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Fight\Common\Adapter\Repository\DoctrineRepository;
-use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
+use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\NonceRepository;
 
 /**
@@ -39,7 +39,7 @@ class DoctrineNonceRepository extends DoctrineRepository implements NonceReposit
         try {
             $this->entityManager->getConnection()->insert($this->table, [
                 'nonce'      => $nonce->value(),
-                'expires_at' => $nonce->expiresAt()->format('Y-m-d H:i:s'),
+                'expires_at' => $nonce->expiresAt()->format('Y-m-d H:i:s')
             ]);
         } catch (UniqueConstraintViolationException) {
             throw new NonceAlreadyConsumedException('Nonce already consumed');

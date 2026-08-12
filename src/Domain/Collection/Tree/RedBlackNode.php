@@ -10,11 +10,9 @@ namespace Fight\Common\Domain\Collection\Tree;
 final class RedBlackNode
 {
     public const bool RED = true;
-
     public const bool BLACK = false;
 
     private ?RedBlackNode $left = null;
-
     private ?RedBlackNode $right = null;
 
     /**

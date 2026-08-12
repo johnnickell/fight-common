@@ -14,8 +14,6 @@ use Fight\Common\Application\FileTransfer\Transport\FileTransport;
  * Class FtpFileTransport
  *
  * Requires the PHP FTP extension and libssl for SSL connections.
- *
- * @codeCoverageIgnore Requires FTP connection to test
  */
 final class FtpFileTransport implements FileTransport
 {
@@ -33,14 +31,6 @@ final class FtpFileTransport implements FileTransport
         private readonly int $timeout = 90,
         private readonly bool $passive = false
     ) {
-    }
-
-    /**
-     * Handles FtpFileTransport destruct
-     */
-    public function __destruct()
-    {
-        $this->disconnect();
     }
 
     /**
@@ -229,7 +219,7 @@ final class FtpFileTransport implements FileTransport
     }
 
     /**
-     * Closes the FTP connection
+     * Ends the FTP connection
      */
     private function disconnect(): void
     {
@@ -254,10 +244,12 @@ final class FtpFileTransport implements FileTransport
 
         if (@ftp_chdir($this->connection, $path)) {
             ftp_chdir($this->connection, $pwd);
+
             return true;
         }
 
         ftp_chdir($this->connection, $pwd);
+
         return false;
     }
 
@@ -294,5 +286,13 @@ final class FtpFileTransport implements FileTransport
         }
 
         ftp_chdir($this->connection, $pwd);
+    }
+
+    /**
+     * Handles FtpFileTransport destruct
+     */
+    public function __destruct()
+    {
+        $this->disconnect();
     }
 }

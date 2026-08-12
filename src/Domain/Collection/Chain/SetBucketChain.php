@@ -13,13 +13,9 @@ use Fight\Common\Domain\Utility\Validate;
 final class SetBucketChain implements Countable
 {
     private TerminalBucket $head;
-
     private TerminalBucket $tail;
-
     private Bucket $current;
-
     private int $count = 0;
-
     private int $offset = -1;
 
     /**
@@ -126,7 +122,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the next bucket
+     * Advances the pointer to the next bucket
      */
     public function next(): void
     {
@@ -139,7 +135,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Moves the pointer to the previous bucket
+     * Sets the pointer to the previous bucket
      */
     public function prev(): void
     {
@@ -183,32 +179,7 @@ final class SetBucketChain implements Countable
     }
 
     /**
-     * Handles deep cloning
-     */
-    public function __clone(): void
-    {
-        $items = [];
-        for ($this->rewind(); $this->valid(); $this->next()) {
-            $items[] = $this->current();
-        }
-
-        $this->head = new TerminalBucket();
-        $this->tail = new TerminalBucket();
-        $this->head->setNext($this->tail);
-        $this->tail->setPrev($this->head);
-        $this->current = $this->head;
-        $this->count = 0;
-        $this->offset = -1;
-        $prev = $this->head;
-        $next = $this->tail;
-        foreach ($items as $item) {
-            $this->insertBetween($item, $prev, $next);
-            $prev = $this->current;
-        }
-    }
-
-    /**
-     * Locates a bucket by item
+     * Finds a bucket by item
      *
      * Returns null if the item is not found.
      */
@@ -254,5 +225,30 @@ final class SetBucketChain implements Countable
 
         $this->current = $bucket;
         $this->count++;
+    }
+
+    /**
+     * Handles deep cloning
+     */
+    public function __clone(): void
+    {
+        $items = [];
+        for ($this->rewind(); $this->valid(); $this->next()) {
+            $items[] = $this->current();
+        }
+
+        $this->head = new TerminalBucket();
+        $this->tail = new TerminalBucket();
+        $this->head->setNext($this->tail);
+        $this->tail->setPrev($this->head);
+        $this->current = $this->head;
+        $this->count = 0;
+        $this->offset = -1;
+        $prev = $this->head;
+        $next = $this->tail;
+        foreach ($items as $item) {
+            $this->insertBetween($item, $prev, $next);
+            $prev = $this->current;
+        }
     }
 }

@@ -6,14 +6,16 @@ namespace Fight\Common\Adapter\EventSourcing\InMemory;
 
 use DateTimeZone;
 use Fight\Common\Domain\EventSourcing\EventMapper;
-use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\EventStore;
+use Fight\Common\Domain\EventSourcing\Exception\OptimisticConcurrencyException;
 use Fight\Common\Domain\EventSourcing\StoredEvent;
 use Fight\Common\Domain\EventSourcing\StreamId;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 
 /**
+ * Class InMemoryEventStore
+ *
  * In-memory reference adapter for mapped event storage
  */
 final class InMemoryEventStore implements EventStore
@@ -24,8 +26,10 @@ final class InMemoryEventStore implements EventStore
     /**
      * Constructs InMemoryEventStore
      *
-     * @param EventMapper                   $eventMapper
-     * @param iterable<InMemoryEventRecord> $records
+     * @param EventMapper $eventMapper
+     * @param iterable    $records
+     *
+     * @phpstan-param iterable<InMemoryEventRecord> $records
      */
     public function __construct(private readonly EventMapper $eventMapper, iterable $records = [])
     {
@@ -130,6 +134,8 @@ final class InMemoryEventStore implements EventStore
     }
 
     /**
+     * Reads records belonging to one event stream
+     *
      * @return iterable<InMemoryEventRecord>
      */
     private function recordsForStream(StreamId $streamId): iterable
@@ -165,7 +171,7 @@ final class InMemoryEventStore implements EventStore
     }
 
     /**
-     * Hydrates one persisted record into a stored event
+     * Reconstitutes one persisted record as a stored event
      */
     private function hydrate(InMemoryEventRecord $record): StoredEvent
     {

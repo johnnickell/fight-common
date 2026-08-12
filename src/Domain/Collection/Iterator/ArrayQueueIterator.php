@@ -14,15 +14,12 @@ use Iterator;
 final class ArrayQueueIterator implements Iterator
 {
     private int $index = 0;
-
     private readonly int $count;
 
     /**
      * Constructs ArrayQueueIterator
      *
      * @param array<mixed> $items
-     *
-     * @codeCoverageIgnore coverage bug
      */
     public function __construct(
         private array $items,
@@ -33,7 +30,7 @@ final class ArrayQueueIterator implements Iterator
     }
 
     /**
-     * Rewinds the iterator
+     * Initializes the iterator at the first item
      */
     public function rewind(): void
     {
@@ -78,7 +75,7 @@ final class ArrayQueueIterator implements Iterator
     }
 
     /**
-     * Moves the iterator to the next item
+     * Advances the iterator to the next item
      */
     public function next(): void
     {

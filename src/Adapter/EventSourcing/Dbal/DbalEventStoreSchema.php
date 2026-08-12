@@ -8,17 +8,17 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 
 /**
+ * Class DbalEventStoreSchema
+ *
  * Portable Doctrine DBAL schema for durable event storage
  */
 final readonly class DbalEventStoreSchema
 {
     private const string EVENTS_TABLE = 'event_store_events';
-
     private const string GLOBAL_POSITION_TABLE = 'event_store_global_position';
-
     private const array TABLES = [
         self::EVENTS_TABLE,
-        self::GLOBAL_POSITION_TABLE,
+        self::GLOBAL_POSITION_TABLE
     ];
 
     /**
@@ -54,7 +54,7 @@ final readonly class DbalEventStoreSchema
     }
 
     /**
-     * Installs the event-store schema and initial global-position state
+     * Creates the event-store schema and initial global-position state
      */
     public function install(Connection $connection): void
     {
@@ -75,7 +75,7 @@ final readonly class DbalEventStoreSchema
         ) {
             $connection->insert(self::GLOBAL_POSITION_TABLE, [
                 'singleton' => 1,
-                'position' => 0,
+                'position'  => 0
             ]);
         }
     }

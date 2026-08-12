@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Messaging\Event\Sync;
 
+use Closure;
+use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
+use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 use Fight\Common\Domain\Messaging\Event\AllEvents;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
+use Throwable;
 
 /**
  * Class SimpleEventDispatcher
@@ -18,7 +22,6 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
 {
     /** @var array<string, array<int, array<int, callable>>> */
     protected array $handlers = [];
-
     /** @var array<string, array<int, callable>> */
     protected array $sorted = [];
 
@@ -37,13 +40,13 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
     {
         $eventType = ClassName::underscore($eventMessage->payload());
         $allEvents = ClassName::underscore(AllEvents::class);
+        $failures = [];
 
-        foreach ($this->getHandlers($eventType) as $handler) {
-            call_user_func($handler, $eventMessage);
-        }
+        $this->invokeHandlerPhase($this->getHandlers($eventType), $eventMessage, $failures);
+        $this->invokeHandlerPhase($this->getHandlers($allEvents), $eventMessage, $failures);
 
-        foreach ($this->getHandlers($allEvents) as $handler) {
-            call_user_func($handler, $eventMessage);
+        if ([] !== $failures) {
+            throw new EventDispatchFailed($failures);
         }
     }
 
@@ -104,9 +107,9 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
     }
 
     /**
-     * @return callable[]|array<string, callable[]>
+     * Retrieves handlers for an event or all events
      *
-     * @inheritDoc
+     * @return callable[]|array<string, callable[]>
      */
     public function getHandlers(?string $eventType = null): array
     {
@@ -177,5 +180,46 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
                 $this->handlers[$eventType]
             );
         }
+    }
+
+    /**
+     * Invokes one resolved handler phase and appends its failures
+     *
+     * @param callable[]            $handlers
+     * @param EventMessage          $eventMessage
+     * @param EventHandlerFailure[] $failures
+     */
+    private function invokeHandlerPhase(array $handlers, EventMessage $eventMessage, array &$failures): void
+    {
+        foreach ($handlers as $handler) {
+            try {
+                call_user_func($handler, $eventMessage);
+            } catch (Throwable $throwable) {
+                $failures[] = new EventHandlerFailure($this->describeCallable($handler), $throwable);
+            }
+        }
+    }
+
+    /**
+     * Returns an operational description of a handler callable
+     */
+    private function describeCallable(callable $handler): string
+    {
+        if ($handler instanceof Closure) {
+            return 'Closure (non-replayable)';
+        }
+
+        if (is_string($handler)) {
+            return $handler;
+        }
+
+        if (is_array($handler)) {
+            $callableTarget = $handler[0];
+            $target = is_object($callableTarget) ? $callableTarget::class : $callableTarget;
+
+            return $target.'::'.$handler[1];
+        }
+
+        return get_debug_type($handler).'::__invoke';
     }
 }

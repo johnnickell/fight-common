@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value\Identifier;
 
-use Override;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Comparable;
 use Fight\Common\Domain\Utility\Validate;
 use Fight\Common\Domain\Value\ValueObject;
+use Override;
 
 /**
  * Class Uuid
@@ -18,38 +18,23 @@ use Fight\Common\Domain\Value\ValueObject;
 final readonly class Uuid extends ValueObject implements Comparable
 {
     public const int VARIANT_RESERVED_NCS = 0;
-
     public const int VARIANT_RFC_4122 = 2;
-
     public const int VARIANT_RESERVED_MICROSOFT = 6;
-
     public const int VARIANT_RESERVED_FUTURE = 7;
-
     public const int VERSION_TIME = 1;
-
     public const int VERSION_DCE = 2;
-
     public const int VERSION_MD5 = 3;
-
     public const int VERSION_RANDOM = 4;
-
     public const int VERSION_SHA1 = 5;
-
     public const int VERSION_UNKNOWN = 0;
-
     public const string NAMESPACE_DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-
     public const string NAMESPACE_URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-
     public const string NAMESPACE_OID = '6ba7b812-9dad-11d1-80b4-00c04fd430c8';
-
     public const string NAMESPACE_X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8';
-
     public const string NIL = '00000000-0000-0000-0000-000000000000';
 
     // phpcs:ignore Generic.Files.LineLength
     private const string UUID = '/\A([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{2})([a-f0-9]{2})-([a-f0-9]{12})\z/';
-
     // phpcs:ignore Generic.Files.LineLength
     private const string UUID_HEX = '/\A([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{12})\z/';
 

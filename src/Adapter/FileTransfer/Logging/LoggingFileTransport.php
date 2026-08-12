@@ -29,7 +29,7 @@ final readonly class LoggingFileTransport implements FileTransport
     public function sendFile(string $path, mixed $contents): void
     {
         $this->logger->log($this->logLevel, '[FileTransfer]: Sending file', [
-            'path' => $path,
+            'path' => $path
         ]);
 
         $this->transport->sendFile($path, $contents);
@@ -41,7 +41,7 @@ final readonly class LoggingFileTransport implements FileTransport
     public function retrieveFileContents(string $path): string
     {
         $this->logger->log($this->logLevel, '[FileTransfer]: Retrieving file contents', [
-            'path' => $path,
+            'path' => $path
         ]);
 
         return $this->transport->retrieveFileContents($path);
@@ -53,7 +53,7 @@ final readonly class LoggingFileTransport implements FileTransport
     public function retrieveFileResource(string $path): mixed
     {
         $this->logger->log($this->logLevel, '[FileTransfer]: Retrieving file resource', [
-            'path' => $path,
+            'path' => $path
         ]);
 
         return $this->transport->retrieveFileResource($path);
@@ -65,7 +65,7 @@ final readonly class LoggingFileTransport implements FileTransport
     public function readDirectory(string $directory): iterable
     {
         $this->logger->log($this->logLevel, '[FileTransfer]: Reading directory', [
-            'path' => $directory,
+            'path' => $directory
         ]);
 
         return $this->transport->readDirectory($directory);

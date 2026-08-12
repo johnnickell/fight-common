@@ -25,10 +25,12 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     /**
      * Constructs ResultSet
      *
-     * @param integer $page
-     * @param integer $perPage
-     * @param integer $totalRecords
-     * @param ArrayList<object> $records
+     * @param integer   $page
+     * @param integer   $perPage
+     * @param integer   $totalRecords
+     * @param ArrayList $records
+     *
+     * @phpstan-param ArrayList<object> $records
      */
     public function __construct(
         private int $page,
@@ -111,8 +113,6 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
     public function toArray(): array
     {

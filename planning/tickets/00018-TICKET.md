@@ -2,7 +2,7 @@
 id: T-00018
 prd: PRD-00007
 title: Package the reusable FightCommon coding standard
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -20,26 +20,41 @@ None — can start immediately.
 
 ## Acceptance Criteria
 
-- [ ] One `FightCommon` ruleset reproduces the Omphalos production PHP conventions without selecting consumer
+- [x] One `FightCommon` ruleset reproduces the Omphalos production PHP conventions without selecting consumer
   paths.
-- [ ] PHPCS tooling lives in the orthogonal Standards layer and depends only on PHP and the development-tool
+- [x] PHPCS tooling lives in the orthogonal Standards layer and depends only on PHP and the development-tool
   contracts it extends.
-- [ ] The Omphalos custom sniffs and supporting helpers are ported into the optional Standards surface with
+- [x] The Omphalos custom sniffs and supporting helpers are ported into the optional Standards surface with
   focused fixtures and complete coverage.
-- [ ] Parity fixtures prove the initial port against Omphalos behavior; after acceptance, Fight Common is the
+- [x] Parity fixtures prove the initial port against Omphalos behavior; after acceptance, Fight Common is the
   canonical implementation and the Omphalos copy is explicitly temporary.
-- [ ] PHP_CodeSniffer and Slevomat are development dependencies used to verify the package and Composer
+- [x] PHP_CodeSniffer and Slevomat are development dependencies used to verify the package and Composer
   suggestions explain consumer opt-in requirements.
-- [ ] Fight Common remains a normal library package and does not require a Composer installer plugin for PHPCS
+- [x] Fight Common remains a normal library package and does not require a Composer installer plugin for PHPCS
   discovery.
-- [ ] Consumer documentation provides a copy-ready PHPCS ruleset that loads the installed `FightCommon`
+- [x] Consumer documentation provides a copy-ready PHPCS ruleset that loads the installed `FightCommon`
   standard, declares consumer-owned scan paths and exclusions, includes or excludes individual sniffs, and
   demonstrates explicit configurable-sniff overrides.
-- [ ] Omphalos adoption is handed off to separately planned work in its repository and does not block Fight
+- [x] Omphalos adoption is handed off to separately planned work in its repository and does not block Fight
   Common 1.2 acceptance.
-- [ ] The ruleset, sniff identifiers, and configurable properties have stable public names with compatibility
+- [x] The ruleset, sniff identifiers, and configurable properties have stable public names with compatibility
   coverage that supports ADR 0004's release policy.
-- [ ] Fight Common's existing source scan remains green before the staged migration tickets begin.
+- [x] Fight Common's existing source scan remains green before the staged migration tickets begin.
+
+## Outcome
+
+Fight Common now owns the optional, path-free `FightCommon` PHP_CodeSniffer standard, including the accepted
+Omphalos built-in rules, ten public custom sniffs, one supporting helper, stable diagnostics and configurable
+properties, explicit dist-like consumer discovery, and copy-ready integration documentation. Omphalos parity
+was proven across mechanical, member-layout, and documentation fixtures; its local copy is temporary pending
+separately planned consumer adoption.
+
+## Verification
+
+- Rector, PHPStan, PHPCS, strict Composer validation, and planning validation pass.
+- Full database-backed PHPUnit passes with 2,987 tests and 5,206 assertions.
+- Clover reports exact coverage: 8,692/8,692 statements and 1,835/1,835 methods.
+- Independent Standards and Spec reviews report no blocking findings.
 
 ## Parent
 

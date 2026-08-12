@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\HttpClient\Guzzle;
 
-use GuzzleHttp\Exception as GuzzleExceptions;
-use GuzzleHttp\Promise\PromiseInterface;
 use Fight\Common\Application\HttpClient\Exception as FightExceptions;
 use Fight\Common\Application\HttpClient\Message\Promise;
 use Fight\Common\Domain\Exception\MethodCallException;
 use Fight\Common\Domain\Exception\RuntimeException;
+use GuzzleHttp\Exception as GuzzleExceptions;
+use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -20,12 +20,9 @@ use Throwable;
 final class GuzzlePromise implements Promise
 {
     private readonly PromiseInterface $promise;
-
     private string $state;
-
     /** @phpstan-ignore property.unusedType */
     private ?ResponseInterface $response;
-
     /** @phpstan-ignore property.unusedType */
     private ?Throwable $exception;
 

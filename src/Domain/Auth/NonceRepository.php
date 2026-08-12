@@ -12,7 +12,7 @@ use Fight\Common\Domain\Auth\Exception\NonceAlreadyConsumedException;
 interface NonceRepository
 {
     /**
-     * Consumes a nonce, preventing replay attacks
+     * Marks a nonce as consumed to prevent replay attacks
      *
      * @throws NonceAlreadyConsumedException When the nonce has already been consumed
      */

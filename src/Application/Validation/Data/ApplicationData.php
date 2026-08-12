@@ -94,6 +94,8 @@ final readonly class ApplicationData implements Arrayable, Collection
     }
 
     /**
+     * Returns validated application data as an array
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array

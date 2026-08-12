@@ -19,6 +19,16 @@ use Symfony\Component\Process\Process as SymfonyProcess;
 #[CoversClass(SymfonyProcessRunner::class)]
 class SymfonyProcessRunnerTest extends UnitTestCase
 {
+    public function test_that_runner_source_has_no_coverage_exclusions(): void
+    {
+        $source = file_get_contents(
+            dirname(__DIR__, 4).'/src/Adapter/Process/Symfony/SymfonyProcessRunner.php'
+        );
+
+        self::assertIsString($source);
+        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
+    }
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -67,6 +77,51 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $runner->run();
 
         $mock->shouldHaveReceived('start')->once();
+    }
+
+    public function test_that_default_factory_executes_process_and_routes_output(): void
+    {
+        $stdout = '';
+        $stderr = '';
+        $runner = new SymfonyProcessRunner(delay: 1);
+
+        $runner->attach(new Process(
+            command: "printf 'standard output'; printf 'error output' >&2",
+            stdout: static function (string $data) use (&$stdout): void {
+                $stdout .= $data;
+            },
+            stderr: static function (string $data) use (&$stderr): void {
+                $stderr .= $data;
+            }
+        ));
+        $runner->run();
+
+        self::assertSame('standard output', $stdout);
+        self::assertSame('error output', $stderr);
+    }
+
+    public function test_that_default_factory_reports_process_failure(): void
+    {
+        $runner = new SymfonyProcessRunner(delay: 1);
+        $runner->attach(new Process("php -r 'exit(7);'"));
+
+        self::expectException(ProcessException::class);
+        self::expectExceptionMessage('failed with exit code 7');
+
+        $runner->run();
+    }
+
+    public function test_that_default_factory_runs_with_output_disabled(): void
+    {
+        $runner = new SymfonyProcessRunner(delay: 1);
+        $runner->attach(new Process(
+            command: "php -r 'exit(0);'",
+            outputDisabled: true
+        ));
+
+        $runner->run();
+
+        self::assertTrue(true);
     }
 
     public function test_that_run_defaults_to_exception_behavior(): void
@@ -188,6 +243,45 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         self::expectExceptionMessage('timed out');
 
         $runner->run(ProcessErrorBehavior::EXCEPTION);
+    }
+
+    public function test_that_destructor_stops_an_attached_running_process_after_startup_failure(): void
+    {
+        $logger = new class extends \Psr\Log\AbstractLogger {
+            public function log(
+                mixed $level,
+                string|\Stringable $message,
+                array $context = []
+            ): void {
+                throw new RuntimeException('logging failed');
+            }
+        };
+
+        $process = $this->mock(SymfonyProcess::class);
+        $process->shouldReceive('start')->once()->withNoArgs();
+        $process->shouldReceive('getPid')->once()->andReturn(1234);
+        $process->shouldReceive('getCommandLine')->once()->andReturn('long-running-command');
+        $process->shouldReceive('getWorkingDirectory')->once()->andReturn('/tmp');
+        $process->shouldReceive('stop')->once()->with(0)->andReturn(null);
+
+        $runner = new SymfonyProcessRunner(
+            logger: $logger,
+            delay: 1,
+            processFactory: static fn(Process $descriptor): SymfonyProcess => $process
+        );
+        $runner->attach(new Process('long-running-command', outputDisabled: true));
+
+        try {
+            $runner->run();
+            self::fail('Expected ProcessException');
+        } catch (ProcessException $exception) {
+            self::assertSame('logging failed', $exception->getMessage());
+        }
+
+        unset($exception);
+        unset($runner);
+
+        $process->shouldHaveReceived('stop')->once()->with(0);
     }
 
     // -------------------------------------------------------------------------

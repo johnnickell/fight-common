@@ -28,25 +28,10 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
         private string $prefix = '',
         ?Closure $sender = null
     ) {
-        $host = $this->host;
-        $port = $this->port;
-
-        $this->sender = $sender ?? static function (string $metric) use ($host, $port): void {
-            $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-
-            if ($socket === false) {
-                return; // @codeCoverageIgnore
-            }
-
-            @socket_sendto($socket, $metric, strlen($metric), 0, $host, $port);
-            socket_close($socket);
-        };
+        $this->sender = $sender ?? new UdpMetricSender($this->host, $this->port)->send(...);
     }
 
     /**
-     * @param string $metric
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function increment(string $metric, array $tags = []): void
@@ -55,10 +40,6 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
     }
 
     /**
-     * @param string $metric
-     * @param float $value
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function gauge(string $metric, float $value, array $tags = []): void
@@ -67,10 +48,6 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
     }
 
     /**
-     * @param string $metric
-     * @param float $value
-     * @param array<string, string> $tags
-     *
      * @inheritDoc
      */
     public function histogram(string $metric, float $value, array $tags = []): void
