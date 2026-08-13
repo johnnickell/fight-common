@@ -26,6 +26,7 @@ ticket materially cheaper.
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
+| 9 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
 
 ## Waiting
 
@@ -44,15 +45,33 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 30 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
 | 31 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 | 32 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
+| 34 | [T-00048 — Restore Scheduler 1.x Construction Compatibility](00048-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 35 | [T-00049 — Deliver Typed JSend Through the Symfony Response Boundary](00049-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 36 | [T-00050 — Publish Canonical Symfony HTTP, Filesystem, and Routing Paths](00050-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00049 |
+| 37 | [T-00051 — Publish Canonical Symfony Messaging Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 38 | [T-00052 — Publish Canonical Symfony Event Sourcing and Templating Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 39 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 40 | [T-00054 — Prove Root Dependency Modes and Production Package Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 42 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00055 |
+
+## Needs Info
+
+This ticket is intentionally not agent-grabbable until its named decision authority produces an executable
+handoff. Its implementation blockers remain recorded in the ticket, but the unresolved Wayfinder decision is
+not disguised as a ticket edge.
+
+| Ticket | Parent PRD | Decision Needed |
+|--------|------------|-----------------|
+| [T-00055 — Resolve the Five Isolated and Combined Framework Fixtures](00055-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | WF-015 must select exact maintained package lines and default capability compositions, plus any required prototype dependencies. |
 
 ## Final Priority
 
-This ticket is executable but intentionally deferred until every higher-priority 1.2 work item above is complete.
-Its ticket dependency remains unchanged because the deferral is release sequencing, not a technical blocking edge.
+This ticket is the final `1.2` acceptance boundary and remains waiting until its explicit compatibility
+certification blocker and every higher-priority release item are complete.
 
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
-| 33 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Prove repository-wide additive compatibility and close the 1.2 acceptance boundary only after the remaining quality-gate and release-coordination work is complete. |
+| 43 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Prove repository-wide additive compatibility and close the 1.2 acceptance boundary only after T-00056 certifies the complete contract and framework evidence. |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -60,8 +79,9 @@ in-memory event publication, durable named publication cursors, transactional fa
 logging are complete across the same database matrix. T-00016 now documents the complete integration and
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
-Mapper contract. T-00017 remains executable but is intentionally the board's final priority so 1.2 compatibility
-and release acceptance are not declared before the remaining quality-gate and release-coordination work. The
+Mapper contract. T-00017 remains the board's final priority and now explicitly waits on T-00056 so `1.2`
+compatibility and release acceptance cannot be declared before the complete contract, framework, quality-gate,
+and release-coordination evidence exists. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
@@ -80,6 +100,11 @@ T-00034. GitHub publication continues through T-00035 and downstream verificatio
 maintenance lifecycle work may proceed independently at T-00036 after certification. Those paths join for
 the oldest affected-line patch at T-00037 and ordered forward ports at T-00042. Operator skills, dispatcher
 and runbook, and final CI traceability then close the epic through T-00038, T-00043, and T-00039.
+
+The Fight Common compatibility path starts at T-00047. Scheduler, JSend, namespace, and package lanes then
+proceed through T-00048 to T-00054. T-00055 waits for WF-015's exact framework handoff; after that slice and
+the release certification engine complete, T-00056 composes the complete black-box `1.2.0` compatibility
+evidence required before T-00017 can close release acceptance.
 
 ## Recently Done
 

@@ -84,6 +84,7 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Filesystem** | Operations on the local operating-system filesystem, exposed through `Filesystem`. |
 | **File transfer** | Sending, retrieving, and listing remote resources through a named `FileTransport`. A **resource** describes a remote file-system entry. |
 | **Transport services** | HTTP clients, mail transports, SMS transports, and socket publishers are outbound ports with concrete adapters. A **null adapter** intentionally performs no external delivery; a **logging adapter** records and delegates or substitutes an operation as documented. |
+| **JSend envelope** | A framework-neutral semantic representation of one JSend `success`, `fail`, or `error` result. It owns JSend data, message, code, and serialization but not HTTP status, headers, or a framework-native response. A controller chooses the HTTP outcome and a native response adapter converts the envelope. |
 | **Registry service** | A service such as `StorageService` or `FileTransferService` that selects a named port implementation. It is not itself the storage or transport backend. |
 
 ## Engineering quality language

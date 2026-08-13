@@ -18,3 +18,6 @@
 | [0014](0014-deterministic-release-commands-and-evidence.md) | Deterministic release commands, run state, and evidence authority | accepted |
 | [0015](0015-patch-and-maintenance-line-workflows.md) | Patch and maintenance-line workflows with guided urgent handling | accepted |
 | [0016](0016-github-packagist-publication-and-provenance.md) | GitHub and Packagist publication and provenance | accepted |
+| [0017](0017-scheduler-1x-construction-compatibility.md) | Preserve Scheduler 1.x construction while adding portable ProcessRunner composition | accepted |
+| [0018](0018-neutral-jsend-envelope-and-native-response-boundary.md) | Neutral typed JSend envelope with native HTTP response adapters | accepted |
+| [0019](0019-capability-first-adapter-namespaces-and-1x-compatibility.md) | Capability-first adapter namespaces with behavioral 1.x compatibility | accepted |
