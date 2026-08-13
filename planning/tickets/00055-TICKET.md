@@ -1,9 +1,9 @@
 ---
 id: T-00055
-prd: PRD-00014
+prd: PRD-00015
 title: Resolve the Five Isolated and Combined Framework Fixtures
-status: needs-info
-blocked_by: T-00049,T-00050,T-00051,T-00052,T-00053,T-00054
+status: ready-for-agent
+blocked_by: T-00049,T-00050,T-00051,T-00052,T-00053,T-00054,T-00057
 ---
 
 # Resolve the Five Isolated and Combined Framework Fixtures
@@ -15,12 +15,13 @@ in-repository Composer fixture for Symfony, Laravel, Yii 3, CodeIgniter 4, and S
 Each fixture proves the selected native or portable public journey without relying on unrelated framework
 packages or creating another repository.
 
-## Decision Prerequisite
+## Decision Handoff
 
-WF-015 must close with exact maintained package names, constraints, native facilities, and composition choices.
-When that handoff exists, replace this decision prerequisite with the canonical implementation-ticket edge,
-add any prototype ticket that genuinely gates a selected shared adapter, and move this ticket to
-`ready-for-agent`.
+PRD-00015 (Framework Supported Lines and Default Capability Compositions) supplies the exact supported
+package lines, default compositions, and integration responsibilities; T-00057 pins Fight Common's own
+Symfony components to the `^8.1` floor before this ticket's combined lane resolves. This ticket is
+`ready-for-agent` when its blocking edges are terminal; the WF-017 prototypes are the downstream seam for
+composition behavior, not a gate on resolving the fixture lanes.
 
 ## Acceptance Criteria
 
@@ -48,4 +49,4 @@ resolution and adapter probes, package-surface validation, and deterministic fai
 
 ## Parent
 
-PRD-00014 — Fight Common Contract Repair and Compatibility Certification.
+PRD-00015 — Framework Supported Lines and Default Capability Compositions.

@@ -126,6 +126,22 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Forward port** | A separately reviewed and certified application of an older affected-line fix to a newer affected supported line, ordered oldest to newest and carrying predecessor and source provenance. |
 | **Urgent release mode** | Guided metadata and operator ergonomics for a time-sensitive patch. It collects the ordinary evidence and approvals into one action packet; it does not bypass review, compatibility, certification, or authorization. |
 
+## Framework support language
+
+| Term | Meaning in Fight Common |
+| --- | --- |
+| **Supported framework line** | A stable major line of a consumer framework for which Fight Common promises a tested, documented composition. The range is expressed as an exact Composer constraint and is deliberate Fight Common policy, not the framework's own support policy. |
+| **Current-only support window** | The default Fight Common posture: only the current stable major line of each framework is supported. The window never widens beyond current plus the immediately-preceding major. |
+| **Widen trigger** | The event that moves a supported range from current-only to current + previous: a framework shipping its next major version. The widened form is the union `^new || ^current`. |
+| **Tighten trigger** | The event that drops the oldest line from a widened window: the framework stopping maintenance of that line. A line is never silently carried past the framework's own maintenance boundary. |
+| **Default composition** | The one opinionated, documented, Composer-installable set of native, portable, and third-party facilities Fight Common recommends for a capability in a starter. Replaceable alternatives are composition-root choices, not obligations to test every combination. |
+| **Recommended composition** | A default composition that fills a capability with no first-party native facility in its framework. There is no unsupported capability: every public contract has a recommended, documented solution. |
+| **Starter-owned wiring** | Integration code that lives in the starter's composition root rather than in a shared Fight Common package. Examples include a Laravel ServiceProvider, a Yii configuration provider, a CodeIgniter `Config\Services`, a Slim explicit container, and Symfony project-owned service loading. |
+| **Capability worksheet** | The per-framework record, for every public Fight Common contract, of the native facility, existing reusable binding, starter-owned wiring, new-shared-adapter decision, functional journey, and remaining unknown. |
+| **Isolated fixture** | A minimal Composer verification root requiring the Fight Common candidate plus exactly one framework's constraint set, resolved at lowest and latest as evidence. It is a dependency manifest and compatibility probe, not a starter application. |
+| **Combined resolution lane** | The root dependency set in which all supported frameworks and optional adapter packages must resolve together. Each widened previous line is proven in its own isolated fixture before the combined lane is re-resolved. |
+| **Forward-compatible seam** | A stable Fight Common port or boundary chosen so a future native facility (for example a released `yiisoft/queue`) can replace the current composition without breaking the public contract. |
+
 ## Proposed Event Sourcing language for 1.2
 
 These terms describe the planned optional extension. They do not describe existing production APIs until their tickets are implemented.
