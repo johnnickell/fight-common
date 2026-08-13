@@ -72,15 +72,22 @@ audited every public Application contract, and produced repository-owned impleme
   evidence, and the downstream capability worksheet. These decisions are now synthesized in
   [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../specs/00014-PRD.md)
   under [EPIC-00004 — Framework Portability and Starter Projects](../epics/00004-EPIC.md) and split into
-  T-00047 through T-00056. The framework-fixture slice remains `needs-info` until WF-015 supplies its exact
+  T-00047 through T-00056. The framework-fixture slice (T-00055) is unblocked by WF-015, which supplies the exact
   dependency and composition handoff.
+- [Select supported framework lines and default capability compositions](tickets/WF-015-framework-lines-and-default-capability-compositions.md)
+  fixed the current-only supported-line window with widen and tighten triggers, the exact Composer
+  constraints per framework, the five isolated fixture lanes plus combined root lane, the no-new-shared-adapter
+  worksheet policy, the no-bundle starter-owned integration responsibilities, the one opinionated Slim stack,
+  per-framework async and SPA-templating defaults, and a recommended Composer-installable composition for
+  every capability (nothing is unsupported). These decisions are recorded in
+  [ADR 0020](../adr/0020-supported-framework-lines-and-support-window.md) and
+  [ADR 0021](../adr/0021-framework-default-capability-compositions.md) and synthesized in
+  [PRD-00015 — Framework Supported Lines and Default Capability Compositions](../specs/00015-PRD.md),
+  split into the prefactor slices T-00057 and T-00058 with T-00055 as the framework-fixture ticket.
 
 ## Frontier
 
-1. [Select supported framework lines and default capability compositions](tickets/WF-015-framework-lines-and-default-capability-compositions.md)
-   — select exact maintained dependency ranges, resolve isolated and combined Composer sets, and
-   choose the native, portable, or package-backed composition for every capability in all five frameworks.
-2. [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
+1. [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
    — define the shared Domain and Application extraction, modern session and optional JWT behavior,
    and the framework-neutral security boundaries required by every starter.
 
@@ -96,9 +103,6 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 ## Not yet specified
 
-- Exact current-and-previous maintained version constraints that resolve together in Fight Common.
-- Exact native or third-party default for every capability in every framework, especially queues,
-  scheduling, templating, and persistence in the smaller stacks.
 - Exact AccessControl extraction changes needed to remove Symfony security dependencies and contain
   Doctrine Collections.
 - Session-grant schema, refresh-token family and replay rules, CSRF policy, and frontend refresh

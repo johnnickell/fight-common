@@ -27,6 +27,8 @@ ticket materially cheaper.
 |------|--------|------------|----------|
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
 | 9 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
+| 10 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window and unblocks the combined fixture lane. |
+| 11 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
 
 ## Waiting
 
@@ -53,16 +55,11 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 39 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 40 | [T-00054 — Prove Root Dependency Modes and Production Package Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 42 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00055 |
+| 44 | [T-00055 — Resolve the Five Isolated and Combined Framework Fixtures](00055-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00049 through T-00054, T-00057 |
 
 ## Needs Info
 
-This ticket is intentionally not agent-grabbable until its named decision authority produces an executable
-handoff. Its implementation blockers remain recorded in the ticket, but the unresolved Wayfinder decision is
-not disguised as a ticket edge.
-
-| Ticket | Parent PRD | Decision Needed |
-|--------|------------|-----------------|
-| [T-00055 — Resolve the Five Isolated and Combined Framework Fixtures](00055-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | WF-015 must select exact maintained package lines and default capability compositions, plus any required prototype dependencies. |
+No tickets currently require a decision authority.
 
 ## Final Priority
 
