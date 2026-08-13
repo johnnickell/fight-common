@@ -21,3 +21,5 @@
 | [0017](0017-scheduler-1x-construction-compatibility.md) | Preserve Scheduler 1.x construction while adding portable ProcessRunner composition | accepted |
 | [0018](0018-neutral-jsend-envelope-and-native-response-boundary.md) | Neutral typed JSend envelope with native HTTP response adapters | accepted |
 | [0019](0019-capability-first-adapter-namespaces-and-1x-compatibility.md) | Capability-first adapter namespaces with behavioral 1.x compatibility | accepted |
+| [0020](0020-supported-framework-lines-and-support-window.md) | Supported framework lines with a current-only window and widen/tighten triggers | accepted |
+| [0021](0021-framework-default-capability-compositions.md) | Framework default capability compositions with starter-owned integration | accepted |
