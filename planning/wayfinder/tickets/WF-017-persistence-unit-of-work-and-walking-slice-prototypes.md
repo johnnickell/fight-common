@@ -750,6 +750,35 @@ pre-commit consumption but leaves a crash gap between database commit and queue 
 outbox. The prototype therefore closes portable subscriber invocation and serialization only, not durable
 handoff or complete runtime worker composition. No production source changes.
 
+## Bounded prototype evidence: post-commit crash-gap policy
+
+The self-contained logic prototype at
+`planning/wayfinder/prototypes/wf-017-post-commit-crash-gap/index.html` answers the durability question exposed
+by asynchronous post-commit invocation: must a safe page or current-user invalidation survive the database-
+commit-to-queue-enqueue crash gap? It opens directly in a browser, exposes the complete authoritative,
+post-commit, queue, and client state after every action, and provides guided normal-delivery, lost-invalidation,
+and session-revocation walkthroughs plus free-play controls.
+
+The state model passes without an atomic outbox for this bounded message class. When a committed users-page
+invalidation is lost before enqueue, the connected client can temporarily retain a stale snapshot, but the
+planned 45-second credential rotation closes the transport, reauthorizes, resubscribes, and refetches the
+authoritative users API. The prototype records convergence to the committed server revision with a maximum
+45-second stale interval. Reconnect uses the same `authorize -> subscribe -> refetch` sequence and therefore
+does not require event replay.
+
+Select best-effort delivery for page and current-user invalidations only. A realtime message is a refetch hint,
+never an authorization fact or source of record. When session revocation commits and its invalidation is lost,
+the next protected request still returns HTTP 401 from authoritative session state immediately; the next
+planned rotation clears the stale authenticated client shell. This policy does not justify weakening native
+queue retries for jobs that were successfully enqueued.
+
+Keep durable business obligations on a different lane. Pending security-email delivery and any outcome whose
+eventual execution is part of command success must persist a recoverable record atomically with the mutation;
+they cannot inherit the lossy invalidation policy. The prototype does not prove native browser transports,
+running Mercure or Reverb delivery, reconnect jitter, process supervision, multi-worker behavior, or durable
+email recovery. It narrows the post-commit crash gap rather than selecting a general outbox. No production
+source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
