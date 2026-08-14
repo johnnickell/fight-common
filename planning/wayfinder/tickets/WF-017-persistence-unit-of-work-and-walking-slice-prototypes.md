@@ -254,11 +254,11 @@ AccessControl Domain and Application walking slice in every framework without un
 - Each starter owns migrations in its native migration system. PostgreSQL and MySQL or MariaDB schema
   receipts prove equivalent identities, uniqueness constraints, and behavior; portable source text is
   not required.
-- Select Yii DB versus Active Record and CodeIgniter Model versus Query Builder from executable comparison.
-  Prefer the framework's documented recommendation and a strong established developer-community convention
-  when either exists, provided the choice passes the shared behavioral contract and keeps framework records
-  outside portable Application code. Optimize for an idiomatic, maintainable starter rather than mechanical
-  parity or the fewest local lines.
+- Select Yii Active Record over raw Yii DB commands and CodeIgniter Model over a Query Builder-only repository.
+  Keep both frameworks' record and Model classes in Adapter code and map them explicitly to unchanged portable
+  aggregates. Yii uses explicit join records for exact relationship replacement. CodeIgniter Models remain
+  table-focused and may use their available Query Builder internally while the repository owns aggregate and
+  relationship composition. The lower-level alternatives remain valid escape hatches, not starter defaults.
 - Let each framework own the flavor of command, query, and event handler registration while proving one
   complete, inspectable resolved map with build failures for missing, duplicate, or ambiguous handlers. Slim
   uses explicit PHP-DI definitions and performs no per-request classpath scanning. Laravel and Symfony may
@@ -392,6 +392,31 @@ through 1.x. Existing
 narrower port. Remove `commit()` with the legacy contract in 2.0. Framework container alias compatibility is
 an implementation concern still requiring focused production tests; the prototype changes no production
 source.
+
+## Bounded prototype evidence: record-to-aggregate mapping
+
+The retained `prototype/wf-017-record-mapping` branch answers the next persistence question: can all five
+starter compositions round-trip one unchanged aggregate and exact Role membership without leaking framework
+records, and which native record styles should Yii and CodeIgniter select? Its common aggregate/repository
+probe, seven candidate lanes, pinned dependency lock, and machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-record-mapping/` on that branch.
+
+All seven lanes pass create, rehydrate, update, identity preservation, and exact relationship replacement.
+Symfony and Slim use adapter-owned Doctrine XML records; Laravel uses adapter-owned Eloquent records and
+`belongsToMany()->sync()`. The Yii comparison proves both Yii Active Record 1.1 and Yii DB 2 can preserve the
+boundary, but selects Active Record because its stable native record package supplies identity and row-state
+mechanics without making the aggregate an Active Record. The join remains an explicit Adapter record.
+
+The CodeIgniter comparison proves both Model and Query Builder repositories. Select CodeIgniter Model as the
+starter default because CodeIgniter documents it as the ordinary table gateway and exposes Query Builder
+through it. Models return arrays rather than domain objects; the repository maps those rows and owns the
+multi-table aggregate composition. The Model lane requires the normal minimal application bootstrap that a
+starter already has, while the lower-level Query Builder candidate remains available for exceptional queries.
+
+This evidence selects persistence record styles only. It uses SQLite and does not close PostgreSQL/MySQL or
+MariaDB migration parity, concurrent canonical-email uniqueness, HTTP, principal integration, handler
+registration, realtime, or client behavior. It does not re-prove the preceding transaction evidence. No
+production source changes.
 
 ## Resolution boundary
 

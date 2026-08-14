@@ -1,0 +1,10 @@
+{
+    "name": "fight/prototype-wf017-yii-active-record",
+    "description": "PROTOTYPE - disposable WF-017 Yii Active Record mapping evidence",
+    "require": {
+        "php": ">=8.5",
+        "symfony/cache": "^8.0",
+        "yiisoft/active-record": "^1.1",
+        "yiisoft/db-sqlite": "^2.0"
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "prototype": "WF-017 record-to-aggregate mapping",
+    "lane": "CodeIgniter Query Builder",
+    "versions": {
+        "codeigniter4/framework": "v4.7.4"
+    },
+    "strategy": "explicit Query Builder rows mapped to the portable aggregate",
+    "relationship_mechanism": "manual join-table replacement",
+    "fitness": "valid lower-level option, but duplicates table gateway behavior already provided by CodeIgniter Model",
+    "observations": {
+        "portable_aggregate_unchanged": true,
+        "framework_record_not_returned": true,
+        "identity_preserved": true,
+        "initial_relationship_round_trip": true,
+        "exact_relationship_replacement": true,
+        "record_types": []
+    },
+    "final_state": {
+        "id": "user-1",
+        "email": "after@example.test",
+        "role_ids": [
+            "role-auditor",
+            "role-editor"
+        ]
+    },
+    "storage_counts": {
+        "users": 1,
+        "roles": 3,
+        "assignments": 2
+    }
+}

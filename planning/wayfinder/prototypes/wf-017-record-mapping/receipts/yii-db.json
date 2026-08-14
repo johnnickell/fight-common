@@ -1,0 +1,31 @@
+{
+    "prototype": "WF-017 record-to-aggregate mapping",
+    "lane": "Yii DB commands",
+    "versions": {
+        "yiisoft/db": "2.0.1"
+    },
+    "strategy": "explicit row arrays and SQL commands mapped to the portable aggregate",
+    "relationship_mechanism": "manual join-table replacement",
+    "fitness": "valid fallback, but repeats identity, row-state, and relationship mechanics supplied by Yii Active Record",
+    "observations": {
+        "portable_aggregate_unchanged": true,
+        "framework_record_not_returned": true,
+        "identity_preserved": true,
+        "initial_relationship_round_trip": true,
+        "exact_relationship_replacement": true,
+        "record_types": []
+    },
+    "final_state": {
+        "id": "user-1",
+        "email": "after@example.test",
+        "role_ids": [
+            "role-auditor",
+            "role-editor"
+        ]
+    },
+    "storage_counts": {
+        "users": 1,
+        "roles": 3,
+        "assignments": 2
+    }
+}
