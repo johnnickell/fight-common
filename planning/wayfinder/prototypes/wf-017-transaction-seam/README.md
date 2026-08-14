@@ -27,9 +27,11 @@ Doctrine comparison receipt under `receipts/`.
 - Symfony and Slim intentionally share one Doctrine ORM 3.6/XML-mapping dependency lane because the
   transaction and persistence mechanism under test is identical. They emit separate receipts.
 - The guarded Doctrine comparison is disposable evidence that DBAL's transaction nesting level can enforce
-  the accepted no-nesting policy without mutable adapter state or a `UnitOfWork` signature change. It does
-  not change the production `DoctrineUnitOfWork`.
+  the accepted no-nesting policy without mutable adapter state or a transaction callback signature change.
+  It does not change the production `DoctrineUnitOfWork`.
 - The prototype proves only the transaction center. It does not prove aggregate hydration, concurrency,
   HTTP, principal integration, realtime, the React client, or the complete AccessControl behavior.
 - The record-framework adapters are disposable. They expose why `commit()` is not portable; they do not
-  authorize production adapters in Fight Common or Fight AccessControl.
+  authorize production adapters in Fight Common or Fight AccessControl. Their evidence supports an additive
+  1.x `TransactionalUnitOfWork` port while legacy `UnitOfWork::commit()` is deprecated through 1.x and
+  reserved for removal in 2.0.
