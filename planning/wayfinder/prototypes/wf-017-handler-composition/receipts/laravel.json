@@ -1,0 +1,39 @@
+{
+    "framework": "Laravel",
+    "versions": {
+        "illuminate\/container": "v13.25.0"
+    },
+    "composition": {
+        "style": "service-provider bindings plus native container tags",
+        "scan": "none"
+    },
+    "resolved_map": {
+        "commands": {
+            "Prototype\\HandlerComposition\\LoginCommand": "Prototype\\HandlerComposition\\LoginCommandHandler"
+        },
+        "queries": {
+            "Prototype\\HandlerComposition\\CurrentSessionQuery": "Prototype\\HandlerComposition\\CurrentSessionQueryHandler"
+        },
+        "events": {
+            "Prototype\\HandlerComposition\\UserRegistered": [
+                "Prototype\\HandlerComposition\\UserRegisteredSubscriber"
+            ]
+        }
+    },
+    "dispatch": {
+        "command": "login-command-handled",
+        "query": "current-session-query-handled",
+        "event": "received:Prototype\\HandlerComposition\\UserRegistered"
+    },
+    "boot_failures": {
+        "missing": "Missing command registration for \"Prototype\\HandlerComposition\\LoginCommand\".",
+        "ambiguous": "Ambiguous command handler for \"Prototype\\HandlerComposition\\LoginCommand\": \"Prototype\\HandlerComposition\\LoginCommandHandler\" and \"Prototype\\HandlerComposition\\DuplicateLoginCommandHandler\".",
+        "duplicate-subscriber": "Duplicate event subscriber registration \"Prototype\\HandlerComposition\\UserRegisteredSubscriber\"."
+    },
+    "portable_application_classes": [
+        "Prototype\\HandlerComposition\\LoginCommandHandler",
+        "Prototype\\HandlerComposition\\CurrentSessionQueryHandler",
+        "Prototype\\HandlerComposition\\UserRegisteredSubscriber"
+    ],
+    "pass": true
+}

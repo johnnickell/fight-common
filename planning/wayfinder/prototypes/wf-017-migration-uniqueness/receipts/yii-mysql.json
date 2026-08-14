@@ -1,0 +1,41 @@
+{
+    "prototype": "WF-017 migration uniqueness",
+    "framework": "Yii",
+    "database": "MySQL",
+    "server_version": "8.4.11",
+    "migration_api": "Yii DB DDL command migration",
+    "versions": {
+        "yiisoft\/db": "2.0.1",
+        "yiisoft\/db-mysql": "2.0.0"
+    },
+    "schema": {
+        "identity": "users.id",
+        "canonical_email_unique_index": "uniq_users_canonical_email",
+        "unique_index_columns": [
+            "canonical_email"
+        ],
+        "documented_tenant_evolution": [
+            "tenant_id",
+            "canonical_email"
+        ],
+        "relationship_identity": [
+            "user_roles.user_id",
+            "user_roles.role_id"
+        ]
+    },
+    "checks": {
+        "pending_claim_committed": true,
+        "concurrent_deleted_claim_rejected": true,
+        "database_unique_sqlstate": "23000",
+        "different_email_across_state_allowed": true,
+        "relationship_keyed_by_user_id": true,
+        "unique_constraint_discovered": true,
+        "foreign_key_discovered": true
+    },
+    "storage": {
+        "users": 2,
+        "roles": 1,
+        "assignments": 1
+    },
+    "verdict": "pass"
+}

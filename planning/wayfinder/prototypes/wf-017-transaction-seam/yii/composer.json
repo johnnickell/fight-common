@@ -1,0 +1,14 @@
+{
+    "name": "fight/prototype-wf017-yii",
+    "description": "PROTOTYPE - disposable WF-017 Yii transaction evidence",
+    "require": {
+        "php": ">=8.5",
+        "symfony/cache": "^8.0",
+        "yiisoft/db-sqlite": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fight\\Common\\": "../../../../../src/"
+        }
+    }
+}

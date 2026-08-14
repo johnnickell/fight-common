@@ -1,0 +1,31 @@
+{
+    "prototype": "WF-017 transaction seam",
+    "lane": "Yii DB native transaction",
+    "versions": {
+        "yiisoft/db": "2.0.1"
+    },
+    "state": {
+        "initial": {
+            "sessions": 0,
+            "audits": 0
+        },
+        "after_commit": {
+            "sessions": 1,
+            "audits": 1
+        },
+        "after_forced_rollback": {
+            "sessions": 1,
+            "audits": 1
+        }
+    },
+    "observations": {
+        "callback_return_preserved": true,
+        "atomic_session_and_audit_commit": true,
+        "atomic_session_and_audit_rollback": true,
+        "rollback_exception_propagated": true,
+        "closed_after_rollback": false,
+        "nested_transaction_rejected": true,
+        "nested_transaction_exception": "LogicException",
+        "commit_semantics": "not natural: record writes execute immediately"
+    }
+}
