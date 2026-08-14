@@ -445,8 +445,47 @@ This closes pinned PostgreSQL/MySQL DDL and concurrency behavior, not complete m
 The prototype invokes each selected schema API directly and does not prove migration discovery, history-table
 management, rollback, or deployment ordering through full framework applications. It uses the minimum User,
 Role, and assignment schema rather than the full AccessControl model, and it does not select application
-retry, idempotency, or HTTP conflict mapping. HTTP, principal integration, handler registration, realtime,
-client behavior, and the complete walking slice remain open. No production source changes.
+retry, idempotency, or HTTP conflict mapping. On that branch, handler registration remained open; the following
+bounded evidence closes its composition question. HTTP, principal integration, realtime, client behavior, and
+the complete walking slice remain open. No production source changes.
+
+## Bounded prototype evidence: handler composition
+
+The retained `prototype/wf-017-handler-composition` branch answers the next composition question: can all five
+starter compositions build one complete, inspectable command/query/event map for unchanged portable
+Application handlers and reject missing, ambiguous, or duplicate registrations during boot? Its shared
+prototype handlers, five native container compositions, failure probes, one-command runner, pinned dependency
+lock, and machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-handler-composition/` on that branch.
+
+All five lanes pass with Symfony DependencyInjection 8.1.4, Illuminate Container 13.25.0, Yii DI 1.4.1,
+CodeIgniter 4.7.4 Services, and PHP-DI 7.1.1 for Slim. Every valid composition resolves the same one-command,
+one-query, and one-event-subscription map and dispatches through the resolved services. Every lane also fails
+before serving work when the required command handler is absent, two command handlers claim the same message,
+or the same event-subscriber class is registered twice. Multiple distinct subscribers for one event remain
+valid fan-out rather than ambiguity.
+
+Select the following starter compositions:
+
+- Symfony uses compile-time interface autoconfiguration and native service tags. The starter's container
+  build compiles those tags into the inspectable Fight handler map; there is no request-time scan.
+- Laravel registers handlers in a project service provider and groups them with native container tags.
+- Yii declares tagged services in the normal `config/common/di` configuration.
+- CodeIgniter exposes one explicit project-owned `Config\\Services` handler-catalog factory. Do not depend on
+  Services auto-discovery ordering for uniqueness because CodeIgniter documents that the first duplicate
+  service method found wins.
+- Slim uses explicit PHP-DI definitions and handler-ID lists with autowiring disabled for this map. It performs
+  no classpath scanning.
+
+Each project owns its native service collection, then applies the same boot-time conformance rule: exactly one
+handler for every required command and query, no unregistered required message, and no duplicate subscriber
+class registration. The resulting map remains inspectable in tests and diagnostics. This is a project
+composition contract and conformance-test concern; the evidence does not justify a new shared runtime
+container or framework branch inside portable Application handlers.
+
+This closes the bounded handler-registration composition question, not full framework-kernel cache wiring or
+the complete AccessControl map. HTTP, principal/provider integration, realtime authorization, client behavior,
+and the complete walking slice remain open. No production source changes.
 
 ## Resolution boundary
 
