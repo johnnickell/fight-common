@@ -25,6 +25,7 @@
         "rollback_exception_propagated": true,
         "closed_after_rollback": false,
         "nested_transaction_rejected": true,
+        "nested_transaction_exception": "LogicException",
         "commit_semantics": "not natural: record writes execute immediately"
     }
 }

@@ -353,6 +353,14 @@ The experiment also records two narrower findings:
   Resolve that behavior through the smallest Fight Common implementation ticket before advancing to the next
   shared walking slice; no public interface change is required by this evidence.
 
+A follow-up comparison receipt proves the smallest Doctrine correction shape: a readonly adapter can inspect
+DBAL's active transaction nesting level before delegating to `EntityManagerInterface::wrapInTransaction()`.
+The disposable guarded adapter preserves callback results, atomic commit, rollback, exception propagation,
+and Doctrine close-on-rollback behavior while rejecting the nested call with `LogicException`. The production
+adapter remains unchanged on this prototype branch; carry this adapter-local guard and its focused regression
+test into the Fight Common implementation ticket. No mutable guard state, wrapper abstraction, or shared-port
+change is justified.
+
 The receipts use SQLite for fast deterministic proof. PostgreSQL and MySQL/MariaDB parity, aggregate and
 relationship hydration, concurrency, HTTP, principal integration, realtime authorization, the React client,
 and the remaining AccessControl behaviors are still open WF-017 prototype lanes.

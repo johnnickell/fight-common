@@ -10,6 +10,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
 use Fight\Common\Application\Repository\UnitOfWork;
 use Prototype\AuditRecord;
+use Prototype\GuardedDoctrineUnitOfWork;
 use Prototype\SessionRecord;
 
 require __DIR__ . '/vendor/autoload.php';
@@ -21,7 +22,11 @@ $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' =
 $entityManager = new EntityManager($connection, $config);
 (new SchemaTool($entityManager))->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
 
-$factory = static fn (): UnitOfWork => new DoctrineUnitOfWork(new EntityManager($connection, $config));
+$guarded = getenv('PROTOTYPE_DOCTRINE_GUARD') === '1';
+$makeUnitOfWork = static fn (EntityManager $manager): UnitOfWork => $guarded
+    ? new GuardedDoctrineUnitOfWork($manager)
+    : new DoctrineUnitOfWork($manager);
+$factory = static fn (): UnitOfWork => $makeUnitOfWork(new EntityManager($connection, $config));
 $write = static function (string $sessionId, string $auditId) use ($entityManager): void {
     $entityManager->persist(new SessionRecord($sessionId));
     $entityManager->persist(new AuditRecord($auditId));
@@ -33,12 +38,16 @@ $counts = static fn (): array => [
 ];
 
 printReceipt(runTransactionProbe(
-    sprintf('%s Doctrine XML transaction', getenv('PROTOTYPE_FRAMEWORK') ?: 'Symfony/Slim'),
+    sprintf(
+        '%s Doctrine XML transaction%s',
+        getenv('PROTOTYPE_FRAMEWORK') ?: 'Symfony/Slim',
+        $guarded ? ' with adapter-local nesting guard' : '',
+    ),
     [
         'doctrine/orm' => Composer\InstalledVersions::getPrettyVersion('doctrine/orm'),
         'doctrine/dbal' => Composer\InstalledVersions::getPrettyVersion('doctrine/dbal'),
     ],
-    new DoctrineUnitOfWork($entityManager),
+    $makeUnitOfWork($entityManager),
     $write,
     $counts,
     $factory,

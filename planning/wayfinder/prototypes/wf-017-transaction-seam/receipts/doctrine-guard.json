@@ -1,6 +1,6 @@
 {
     "prototype": "WF-017 transaction seam",
-    "lane": "Symfony Doctrine XML transaction",
+    "lane": "Fight Common guard comparison Doctrine XML transaction with adapter-local nesting guard",
     "versions": {
         "doctrine/orm": "3.6.8",
         "doctrine/dbal": "4.4.4"
@@ -25,8 +25,8 @@
         "atomic_session_and_audit_rollback": true,
         "rollback_exception_propagated": true,
         "closed_after_rollback": true,
-        "nested_transaction_rejected": false,
-        "nested_transaction_exception": null,
+        "nested_transaction_rejected": true,
+        "nested_transaction_exception": "LogicException",
         "commit_semantics": "natural: EntityManager flushes pending changes"
     }
 }

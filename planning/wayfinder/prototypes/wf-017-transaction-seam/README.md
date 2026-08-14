@@ -17,8 +17,8 @@ php planning/wayfinder/prototypes/wf-017-transaction-seam/run.php
 ```
 
 The command installs each isolated dependency lock, runs one forced-commit and one forced-rollback scenario,
-tests callback return values and nested-call behavior, and writes five machine-readable receipts under
-`receipts/`.
+tests callback return values and nested-call behavior, and writes five framework receipts plus one guarded
+Doctrine comparison receipt under `receipts/`.
 
 ## Deliberate limits
 
@@ -26,6 +26,9 @@ tests callback return values and nested-call behavior, and writes five machine-r
   required before WF-017 closes.
 - Symfony and Slim intentionally share one Doctrine ORM 3.6/XML-mapping dependency lane because the
   transaction and persistence mechanism under test is identical. They emit separate receipts.
+- The guarded Doctrine comparison is disposable evidence that DBAL's transaction nesting level can enforce
+  the accepted no-nesting policy without mutable adapter state or a `UnitOfWork` signature change. It does
+  not change the production `DoctrineUnitOfWork`.
 - The prototype proves only the transaction center. It does not prove aggregate hydration, concurrency,
   HTTP, principal integration, realtime, the React client, or the complete AccessControl behavior.
 - The record-framework adapters are disposable. They expose why `commit()` is not portable; they do not
