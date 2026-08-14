@@ -17,3 +17,4 @@
 | [00013](00013-PRD.md) | Operator Surfaces and Release Integration | ready-for-agent |
 | [00014](00014-PRD.md) | Fight Common Contract Repair and Compatibility Certification | ready-for-agent |
 | [00015](00015-PRD.md) | Framework Supported Lines and Default Capability Compositions | ready-for-agent |
+| [00016](00016-PRD.md) | Fight Package and Starter Repository Ownership | ready-for-agent |

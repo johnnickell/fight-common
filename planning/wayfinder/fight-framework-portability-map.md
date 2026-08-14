@@ -55,7 +55,9 @@ audited every public Application contract, and produced repository-owned impleme
 - [Define the package and repository ownership model](tickets/WF-010-package-and-repository-ownership.md)
   fixed the public Fight AccessControl package, five public starter repositories, portable shared
   layers, project-owned composition roots, and the transition from umbrella to repository-local
-  planning authority.
+  planning authority. These decisions are synthesized in
+  [PRD-00016 — Fight Package and Starter Repository Ownership](../specs/00016-PRD.md); WF-018 owns the
+  repository-local implementation handoffs.
 - [Define the versioned HTTP, JSend, and presentation contracts](tickets/WF-011-versioned-http-jsend-and-presentation-contracts.md)
   fixed `/api/v1/{capability}`, adapter-only HTTP versioning, typed JSend payloads, `ResultSet`
   collection data, pure named presentation constructors, and framework-specific response adapters.
@@ -113,7 +115,7 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 - Prototype evidence for Eloquent, Yii, and CodeIgniter aggregate hydration and native transactions.
 - Prototype evidence for the approved shared-session, refresh-race, security-email, audit, Managed
   Role/Permission reconciliation, private realtime, and client bootstrap behavior in every framework.
-- Final repository names, licenses, Packagist metadata, branch protections, and release automation.
+- Final repository hosting, licenses, Packagist metadata, branch protections, and release automation.
 - Remaining PRDs and executable ticket slices for framework composition, Fight AccessControl, persistence
   prototypes, and each starter.
 

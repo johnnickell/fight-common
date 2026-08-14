@@ -4,6 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
+**Specification:** [PRD-00016 — Fight Package and Starter Repository Ownership](../../specs/00016-PRD.md)
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md)
 
 ## Question
@@ -53,3 +54,10 @@ Each repository may begin privately during initial framework and security testin
 its owner judges the project ready for external inspection. A coordinated announcement of the fully supported
 suite waits until all five starters meet their gates, while useful public `0.x.y` releases may be published
 earlier. Moving a stable state to `main` does not itself require a version tag.
+
+## Resolution boundary
+
+These ownership and authority-transfer decisions are synthesized in
+[PRD-00016 — Fight Package and Starter Repository Ownership](../../specs/00016-PRD.md). WF-018 owns
+repository creation handoffs, local implementation plans, and release gates; this ticket does not create
+repositories, implementation tickets, packages, releases, or public publication.
