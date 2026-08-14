@@ -23,3 +23,4 @@
 | [0019](0019-capability-first-adapter-namespaces-and-1x-compatibility.md) | Capability-first adapter namespaces with behavioral 1.x compatibility | accepted |
 | [0020](0020-supported-framework-lines-and-support-window.md) | Supported framework lines with a current-only window and widen/tighten triggers | accepted |
 | [0021](0021-framework-default-capability-compositions.md) | Framework default capability compositions with starter-owned integration | accepted |
+| [0022](0022-invited-registration-and-multi-session-jwt-authentication.md) | Invited activation with shared multi-session JWT authentication | accepted |

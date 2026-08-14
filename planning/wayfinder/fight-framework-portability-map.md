@@ -20,6 +20,8 @@ The destination includes:
   `project-slim` Composer create-project and GitHub template repositories;
 - identical `/api/v1/access` journeys and JSend representations implemented through native HTTP,
   security, persistence, routing, templating, queue, and container facilities where appropriate;
+- authenticated private realtime journeys implemented through Laravel Reverb where native and a secured
+  Mercure Hub composition elsewhere, behind a portable publication and subscription-authorization seam;
 - one opinionated, replaceable default stack per starter, a complete editable `/client` React
   application, robust agent guidance, exact quality gates, and self-contained documentation.
 
@@ -33,8 +35,8 @@ audited every public Application contract, and produced repository-owned impleme
   repositories, or publish releases while resolving this map.
 - Fight Common is the temporary umbrella planning authority. Once another repository exists, it
   becomes canonical for its own implementation plan, releases, and documentation.
-- Existing `project`, Fight CMS, Omphalos, and the authentication boundary in StageOne Portal are
-  evidence. Proprietary StageOne business and NFT behavior is excluded.
+- Existing `project`, Fight CMS, and Omphalos are implementation evidence. Authentication decisions also
+  use the approved product requirements and primary security sources.
 - Full support means one documented and tested solution for every important contract, not one
   redundant framework-branded class per contract.
 - Framework-native integration is preferred when it is natural. Portable Fight Common adapters are
@@ -63,7 +65,7 @@ audited every public Application contract, and produced repository-owned impleme
   read models, and pragmatic transaction equivalence.
 - [Define starter product, governance, and documentation standards](tickets/WF-013-starter-product-governance-and-documentation.md)
   fixed the editable `/client`, HTTP-only authentication UI, native SPA host templates, one
-  database-portable migration history, safe administrator bootstrap, catalog reconciliation,
+  database-portable migration history, safe administrator bootstrap, Managed Role/Permission reconciliation,
   complete documentation, and strict agent-ready quality gates.
 - [Audit Fight Common contracts and the 1.2 compatibility envelope](tickets/WF-014-fight-common-contract-and-compatibility-audit.md)
   fixed the authoritative 404-declaration audit, exact Scheduler `1.x` repair, neutral typed JSend
@@ -84,17 +86,22 @@ audited every public Application contract, and produced repository-owned impleme
   [ADR 0021](../adr/0021-framework-default-capability-compositions.md) and synthesized in
   [PRD-00015 — Framework Supported Lines and Default Capability Compositions](../specs/00015-PRD.md),
   split into the prefactor slices T-00057 and T-00058 with T-00055 as the framework-fixture ticket.
+- [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
+  fixed the Domain/Application-only package boundary, invitation and account-state model, Managed
+  Role/Permission reconciliation, multi-device shared sessions, hardened access-JWT/refresh behavior,
+  invocation-neutral delivery handlers, required security-audit durability, private realtime authorization,
+  and the complete starter/client security profile. The decisions are recorded in
+  [ADR 0022](../adr/0022-invited-registration-and-multi-session-jwt-authentication.md) and supported by the
+  linked research note; WF-017 owns prototype proof rather than revisiting the approved model.
 
 ## Frontier
 
-1. [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
-   — define the shared Domain and Application extraction, modern session and optional JWT behavior,
-   and the framework-neutral security boundaries required by every starter.
+1. [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
+   — prove the approved AccessControl, persistence, transaction, realtime, and starter/client behavior
+   across the five selected framework compositions.
 
 ## Waiting
 
-- [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
-  waits on the framework compositions and AccessControl specification.
 - [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
   waits on the walking-slice prototypes and closes the map with repository-owned plans.
 
@@ -103,11 +110,9 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 ## Not yet specified
 
-- Exact AccessControl extraction changes needed to remove Symfony security dependencies and contain
-  Doctrine Collections.
-- Session-grant schema, refresh-token family and replay rules, CSRF policy, and frontend refresh
-  concurrency behavior for the optional stateless profile.
 - Prototype evidence for Eloquent, Yii, and CodeIgniter aggregate hydration and native transactions.
+- Prototype evidence for the approved shared-session, refresh-race, security-email, audit, Managed
+  Role/Permission reconciliation, private realtime, and client bootstrap behavior in every framework.
 - Final repository names, licenses, Packagist metadata, branch protections, and release automation.
 - Remaining PRDs and executable ticket slices for framework composition, Fight AccessControl, persistence
   prototypes, and each starter.
@@ -115,8 +120,8 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 ## Out of scope
 
 - Implementing adapters, moving source, or creating repositories during Wayfinding.
-- Opening Fight CMS, Omphalos, StageOne, or any other existing proprietary project.
-- Copying or publishing proprietary StageOne NFT or business-domain behavior.
+- Opening Fight CMS, Omphalos, or unrelated proprietary projects during implementation.
+- Copying or publishing external proprietary business-domain behavior.
 - Forcing all frameworks to use Doctrine, Twig, Symfony Messenger, Symfony Security, or one shared
   container when a native facility provides the simpler composition.
 - Bundling a Symfony Fight Common bundle; Symfony projects own service loading, autoconfiguration,
