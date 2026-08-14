@@ -1,0 +1,59 @@
+{
+    "prototype": "WF-017 login transaction slice",
+    "framework": "Yii",
+    "versions": {
+        "yiisoft/db": "2.0.1",
+        "nyholm/psr7": "1.8.2"
+    },
+    "portable_handler": "Prototype\\LoginTransactionSlice\\LoginHandler",
+    "native_transaction_adapter": "Yii DB transaction",
+    "scenarios": {
+        "successful_login": {
+            "class": "Nyholm\\Psr7\\Response",
+            "status": 200,
+            "headers": {
+                "content-type": "application/json",
+                "set-cookie": "refresh=prototype-opaque-refresh-token; Path=/api/v1/access/session; Secure; HttpOnly; SameSite=Strict"
+            },
+            "body": {
+                "status": "success",
+                "data": {
+                    "access_token": "prototype.access.jwt",
+                    "expires_in": 900
+                }
+            }
+        },
+        "invalid_credentials": {
+            "class": "Nyholm\\Psr7\\Response",
+            "status": 401,
+            "headers": {
+                "content-type": "application/json",
+                "set-cookie": ""
+            },
+            "body": {
+                "status": "fail",
+                "data": {
+                    "code": "invalid_credentials"
+                }
+            }
+        },
+        "forced_audit_failure": {
+            "exception": "forced audit failure",
+            "state_after_rollback": {
+                "sessions": 1,
+                "audits": 1
+            }
+        },
+        "nested_transaction_rejected": true
+    },
+    "observations": {
+        "canonical_email_lookup": true,
+        "password_verified_before_transaction": true,
+        "session_and_audit_atomic": true,
+        "refresh_cookie_http_only": true,
+        "refresh_cookie_secure": true,
+        "refresh_cookie_same_site_strict": true,
+        "generic_invalid_credentials": true
+    },
+    "pass": true
+}

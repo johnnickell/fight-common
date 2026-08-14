@@ -844,6 +844,31 @@ disconnect, database locking, or the five framework HTTP/browser walking slices.
 consumer-project evidence. No Fight Common or Fight AccessControl contract change is justified, and no
 production source changes.
 
+## Bounded prototype evidence: login transaction slice composition
+
+The executable integration prototype under
+`planning/wayfinder/prototypes/wf-017-login-transaction-slice/` answers the next cross-seam question: can the
+selected persistence, transaction, and native response boundaries compose around one unchanged
+email/password login handler in Symfony, Laravel, Yii, CodeIgniter, and Slim while session creation and its
+required successful-login audit remain atomic? Its one-command runner installs the retained locked dependency
+lanes and writes one machine-readable receipt per framework.
+
+All five lanes pass canonical-email lookup, password verification, atomic refresh-session plus audit writes,
+generic invalid-credential failure, native JSend response mapping, a 15-minute access-token response, and an
+opaque refresh cookie marked `Secure`, `HttpOnly`, and `SameSite=Strict`. A forced audit failure occurs after
+the session insert and rolls that insert back. Nested transaction entry fails explicitly. Symfony and Slim
+compose through Doctrine DBAL, Laravel through its database transaction API, Yii through Yii DB, and
+CodeIgniter through explicit begin/status/commit/rollback checks. No framework branch enters the portable
+handler or outcome.
+
+This closes the bounded login transaction and native response composition question, not the required complete
+login walking slices. The prototype invokes native components without booting five full application kernels;
+it does not prove route discovery, middleware/filter ordering, production cache behavior, PostgreSQL/MySQL
+execution of the complete slice, real JWT signing and rotation, trusted-proxy throttling identity, CSRF,
+React form submission, redirect, authenticated home state, browser automation, fake local credentials, or
+human UAT. Those remain executable consumer-project evidence, so WF-017 remains open. No production source
+changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
