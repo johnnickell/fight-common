@@ -333,33 +333,37 @@ grant/delivery and issues an unrelated fresh credential.
 The retained `prototype/wf-017-transaction-seam` branch answers one question only: can the unchanged
 `UnitOfWork::commitTransactional()` callback contain a session mutation and its required audit write across
 all five selected framework compositions? The runnable source, isolated dependency locks, one-command runner,
-and five machine-readable receipts live under
+five framework receipts, and one guarded Doctrine comparison receipt live under
 `planning/wayfinder/prototypes/wf-017-transaction-seam/` on that branch.
 
 The SQLite evidence passes callback-result preservation, atomic commit, forced rollback, and exception
 propagation for Symfony and Slim through Doctrine ORM 3.6/XML mapping, Laravel through its native database
 transaction, Yii through Yii DB, and CodeIgniter through a manual native transaction with explicit status
 checks. This is sufficient evidence that the callback method is the portable transaction center; it does not
-authorize a `UnitOfWork` signature change.
+require a change to the transaction callback signature.
 
 The experiment also records two narrower findings:
 
 - record-oriented Laravel, Yii, and CodeIgniter adapters have no natural pending-change meaning for
   `commit()` because their repository writes execute immediately; implementing the documented semantics
-  would require buffering or an invented identity map. This is executable evidence for the already bounded
-  deprecation decision, not permission to remove the 1.x method;
+  would require buffering or an invented identity map. This triggers the accepted 1.x deprecation boundary
+  and justifies one additive `TransactionalUnitOfWork` port declaring `commitTransactional()` and
+  `isClosed()`. The legacy `UnitOfWork` extends that narrower port and retains deprecated `commit()` plus
+  Doctrine's current behavior through 1.x; record-oriented adapters implement only the narrower port. Remove
+  `commit()` in 2.0 rather than forcing a no-op or unsupported method into those adapters;
 - the current `DoctrineUnitOfWork` permits a nested `commitTransactional()` call, while the three disposable
   native adapters reject nesting explicitly. The Doctrine lane therefore fails the accepted nesting policy.
   Resolve that behavior through the smallest Fight Common implementation ticket before advancing to the next
-  shared walking slice; no public interface change is required by this evidence.
+  shared walking slice; the nesting correction requires no transaction-port signature change.
 
 A follow-up comparison receipt proves the smallest Doctrine correction shape: a readonly adapter can inspect
 DBAL's active transaction nesting level before delegating to `EntityManagerInterface::wrapInTransaction()`.
 The disposable guarded adapter preserves callback results, atomic commit, rollback, exception propagation,
 and Doctrine close-on-rollback behavior while rejecting the nested call with `LogicException`. The production
 adapter remains unchanged on this prototype branch; carry this adapter-local guard and its focused regression
-test into the Fight Common implementation ticket. No mutable guard state, wrapper abstraction, or shared-port
-change is justified.
+test into the Fight Common implementation ticket. No mutable guard state, wrapper abstraction, or change to
+the `TransactionalUnitOfWork` operation signatures is justified. The separate additive port split above is
+required by `commit()` portability, not by Doctrine's nesting behavior.
 
 The receipts use SQLite for fast deterministic proof. PostgreSQL and MySQL/MariaDB parity, aggregate and
 relationship hydration, concurrency, HTTP, principal integration, realtime authorization, the React client,
