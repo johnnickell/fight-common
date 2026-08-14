@@ -299,6 +299,11 @@ AccessControl Domain and Application walking slice in every framework without un
   request guard, Yii authentication middleware's request identity, CodeIgniter's authentication-implementation
   user-ID convention behind a filter/service adapter, and a PSR-15 request attribute in Slim. Missing,
   disabled, stale-version, revoked-session, and wrong-session-owner identities all fail closed.
+- Keep authorization outcomes framework-neutral and let each starter map them through its native HTTP response
+  type. The users-list action returns the same JSend `success`/`fail` body and HTTP 200/401/403 semantics in all
+  five projects; this does not require a shared HTTP-response contract.
+- Retain Fight Common's existing Symfony-backed `JSendResponse` as an optional Symfony convenience. Do not make
+  it an Application result or require Laravel, Yii, CodeIgniter, or Slim to translate through a Symfony type.
 
 The authentication prototype must also prove two simultaneous sessions for one user, self-service listing
 and remote revocation, super-admin revocation through `MANAGE_USER_SESSIONS`, immediate access-token denial
@@ -518,6 +523,33 @@ This selects starter-owned provider adapters and requires no Fight Common adapte
 The in-memory lookup is bounded seam evidence, not a complete authentication flow: JWT validation, credential
 login, refresh/cookie behavior, CSRF/CORS, native kernel/filter ordering, authorization policy, HTTP responses,
 realtime credentials, and browser behavior remain open. No production source changes.
+
+## Bounded prototype evidence: native HTTP action
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-http-action/` answers the next delivery
+question: can one unchanged authorized users-list query produce consistent JSend semantics through every
+selected framework's native action and response type without turning Fight Common's Symfony-backed
+`JSendResponse` into a cross-framework contract? Its locked isolated dependencies, shared handler/outcome,
+five native response candidates, one-command runner, and machine-readable receipts are committed with this
+ticket.
+
+All five lanes pass the same three scenarios. A principal with `LIST_USERS` receives HTTP 200 and JSend
+`success` with the users view. An anonymous request receives HTTP 401 and JSend `fail` with
+`authentication_required`. An authenticated principal without the permission receives HTTP 403 and JSend
+`fail` with `forbidden`. Every response declares JSON and no native request or response type enters the
+portable handler or outcome.
+
+Symfony maps to `JsonResponse`; Laravel maps to its native `JsonResponse`; Yii returns the application's
+selected PSR-7 response; CodeIgniter maps through its native `Response` message API; Slim writes and returns a
+PSR-7 response. Each starter owns that thin delivery mapping. Fight Common's current `JSendResponse` remains
+useful to Symfony consumers but does not become the portable result or a dependency of the other projects.
+This evidence therefore requires no Fight Common adapter or contract change.
+
+This is action/response seam evidence, not five complete application kernels. Native route declarations are
+recorded, but route discovery, middleware/filter ordering, container compilation, pagination input,
+validation/not-found/conflict mapping, OpenAPI generation, CORS/CSRF, cookies, login, and exception-subscriber
+behavior remain outside this bounded question. Private realtime authorization, client behavior, and the
+complete end-to-end walking slice remain open. No production source changes.
 
 ## Resolution boundary
 
