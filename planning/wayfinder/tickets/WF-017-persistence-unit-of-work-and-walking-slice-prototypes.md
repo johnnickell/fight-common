@@ -282,10 +282,13 @@ AccessControl Domain and Application walking slice in every framework without un
 - The required AccessControl walking slice uses conventional aggregate repositories. Event Sourcing remains
   an optional consumer architecture and is not part of the five-project framework-portability proof. Any later
   AccessControl Event Store prototype is an independent effort.
-- For Symfony, Yii, CodeIgniter, and Slim, target one pinned current Mercure 1.0 authorization composition.
-  Do not implement the legacy topic-selector JWT protocol without a real supported consumer requirement.
-  The exact hub and PHP integration versions remain prototype findings. Laravel retains its accepted native
-  Reverb private-channel composition.
+- For Symfony, Yii, CodeIgniter, and Slim, target Mercure 1.0 authorization with compatibility mode disabled.
+  Pin the official `dunglas/mercure:v1.0.0-alpha.3` public preview only in disposable WF-017 prototypes; it
+  proves the OAuth 2 `authorization_details` flow but is explicitly not production-ready. Do not implement the
+  legacy `mercure` JWT claim or enable compatibility mode without a real supported consumer requirement.
+  Replace the alpha with a stable 1.0 hub and rerun the receipt before publishing a supported starter. The
+  compatible PHP integration version remains a prototype finding. Laravel retains its accepted native Reverb
+  private-channel composition.
 - Default project composition to `SynchronousCommandBus` for commands and `AsynchronousEventDispatcher` for
   domain events. A controller that deliberately accepts work for later processing may request
   `AsynchronousCommandBus` and return HTTP 202; a use case that deliberately needs immediate event fan-out
@@ -548,8 +551,34 @@ This evidence therefore requires no Fight Common adapter or contract change.
 This is action/response seam evidence, not five complete application kernels. Native route declarations are
 recorded, but route discovery, middleware/filter ordering, container compilation, pagination input,
 validation/not-found/conflict mapping, OpenAPI generation, CORS/CSRF, cookies, login, and exception-subscriber
-behavior remain outside this bounded question. Private realtime authorization, client behavior, and the
-complete end-to-end walking slice remain open. No production source changes.
+behavior remain outside this bounded question. Framework-native realtime integration, client behavior, and
+the complete end-to-end walking slice remain open. No production source changes.
+
+## Bounded prototype evidence: Mercure protocol version
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-mercure-version/` answers the version
+question that precedes four framework integrations: can the accepted Mercure 1.0 OAuth 2 private
+publish/subscription flow run with compatibility mode disabled, and what boundary follows from the current
+stable and preview images? Its one-command runner starts each official image on an ephemeral loopback port,
+uses short-lived exact-topic credentials, writes machine-readable receipts, and removes the containers.
+
+Both lanes pass their expected fail-closed comparison. Stable `dunglas/mercure:v0.24.2` accepts the legacy
+`mercure.publish` / `mercure.subscribe` claim and `topic` subscription parameter, while rejecting the 1.0
+OAuth 2 access token and withholding the private update from its `match` subscription. The official
+`dunglas/mercure:v1.0.0-alpha.3` public preview does the inverse with compatibility mode disabled: its
+`authorization_details` token publishes and receives the private update through `match`, while the legacy
+credential and query shape fail closed.
+
+Select `v1.0.0-alpha.3` only as disposable evidence for the next WF-017 Mercure prototypes. Upstream labels it
+a testing prerelease that must not run in production and may change before final 1.0.0. Do not enable
+compatibility mode or fall back to the rejected legacy protocol to make current PHP integrations pass. Before
+a starter can be presented as supported, pin a stable 1.0 hub and rerun this receipt. This finding does not
+change Fight Common's `Publisher`, does not modify `MercureHubPublisher`, and does not affect Laravel's Reverb
+selection.
+
+This closes the hub protocol/version question, not framework-native publishing adapters, subscriber-token
+cookie responses, trusted origin and cookie attributes, CORS, reconnect/recovery, two-browser invalidation,
+public envelope schemas, Laravel Reverb, or client refetch behavior. No production source changes.
 
 ## Resolution boundary
 

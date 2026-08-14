@@ -1,0 +1,34 @@
+{
+    "prototype": "WF-017 Mercure protocol version",
+    "observed_on": "2026-08-14",
+    "hub": {
+        "version": "v1.0.0-alpha.3",
+        "image": "dunglas/mercure@sha256:16485a0b9856d85c88b0ad135658827e476627fcaf04635b7350017ef75ec5e4",
+        "release": "https://github.com/dunglas/mercure/releases/tag/v1.0.0-alpha.3",
+        "stability": "testing-only prerelease",
+        "compatibility_mode": false
+    },
+    "upgrade_guide": "https://mercure.rocks/docs/UPGRADE",
+    "topic": "https://starter.example.test/topics/access/users",
+    "legacy_0x": {
+        "credential": "mercure.publish / mercure.subscribe",
+        "subscription_parameter": "topic",
+        "private_publish_status": 401,
+        "private_publish_body": "Unauthorized\n",
+        "private_subscription_received": false
+    },
+    "modern_1_0": {
+        "credential": "OAuth 2 authorization_details",
+        "subscription_parameter": "match",
+        "private_publish_status": 200,
+        "private_publish_body": "urn:uuid:<generated>",
+        "private_subscription_received": true
+    },
+    "checks": {
+        "modern_private_publish_accepted": true,
+        "modern_private_subscription_received": true,
+        "legacy_private_publish_rejected": true,
+        "legacy_private_subscription_not_received": true
+    },
+    "verdict": "PASS: v1.0.0-alpha.3 accepts only the expected modern protocol shape"
+}
