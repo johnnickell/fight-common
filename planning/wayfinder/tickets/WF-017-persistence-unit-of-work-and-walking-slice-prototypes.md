@@ -813,6 +813,37 @@ failure-store representation, process supervision, and real mail-adapter behavio
 runtime prototype lanes; the values in this state model are illustrative rather than support guarantees. No
 production source changes.
 
+## Bounded prototype evidence: authentication session lifecycle
+
+The self-contained logic prototype at
+`planning/wayfinder/prototypes/wf-017-authentication-session-state/index.html` answers the shared client and
+server state question that precedes the five login walking slices: can atomic login, cold-load restoration,
+proactive refresh, concurrent request recovery, current-session logout, and multi-device revocation use one
+unchanged authentication model without trusting an access JWT as authoritative state? It opens directly in a
+browser, exposes the complete user, server-session, browser, refresh, request, and audit state after every
+action, and provides guided bootstrap, single-flight, remote-revocation, and refresh-reuse walkthroughs plus
+free-play controls.
+
+The candidate state model passes. Login commits one device refresh session and its required audit atomically,
+then returns a 15-minute access JWT held only in browser memory. A full SPA load withholds authenticated UI
+until the HttpOnly refresh credential has restored an authoritative principal and rotated the credential.
+At ten minutes, concurrent callers await one shared refresh promise, producing one server rotation rather
+than competing rotations. After refresh, only a request explicitly classified as replayable retries, and it
+does so at most once; an unsafe mutation is not repeated implicitly.
+
+Select one authoritative refresh-session family per device. Every protected request revalidates current user
+state, authentication version, session ownership, and revocation, so a still-unexpired access JWT cannot
+delay logout or remote revocation. Current-session logout revokes only that device. Remote revocation commits
+its audit while leaving the actor's session active. A simultaneous losing refresh inside the configured
+conflict window waits for the winning browser context; reuse of a rotated predecessor outside that window
+revokes only the affected device family and requires fresh login there.
+
+This state prototype does not prove framework cookie/CSRF middleware, trusted-proxy handling, JWT signing or
+key rotation, actual multi-tab coordination, native browser request cancellation, server-side realtime
+disconnect, database locking, or the five framework HTTP/browser walking slices. Those remain executable
+consumer-project evidence. No Fight Common or Fight AccessControl contract change is justified, and no
+production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
