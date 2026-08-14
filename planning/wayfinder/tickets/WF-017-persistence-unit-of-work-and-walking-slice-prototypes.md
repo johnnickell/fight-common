@@ -718,6 +718,38 @@ This state prototype does not start Mercure or Reverb, prove native browser SDK 
 jitter or load, establish server-side disconnect, or prove asynchronous post-commit publication. Those
 runtime and worker lanes remain open WF-017 evidence. No production source changes.
 
+## Bounded prototype evidence: asynchronous post-commit invocation
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-async-post-commit/` answers the invocation
+question left by private realtime publication: can the same Application subscriber run directly in focused
+synchronous tests and later from each starter's serialized queue boundary without an invocation-mode branch,
+without enqueueing rolled-back work, and without losing failed work before a bounded retry? Its isolated
+dependency lock, shared producer/subscriber/worker probe, five transport candidates, one-command runner, and
+machine-readable receipts are committed with this ticket.
+
+All five lanes pass the bounded comparison. Symfony and Slim use Symfony Messenger 8.1.4's serialized
+in-memory transport. Laravel uses Illuminate Queue 13.25.0's native database transport against disposable
+SQLite. CodeIgniter uses the now-stable `codeigniter4/queue` 1.0.1 payload contract with project-owned worker
+storage. Yii retains a project-owned JSON transport seam because `yiisoft/queue` still has no stable release.
+Each lane serializes one committed `UserDeleted` job, delays the unchanged subscriber until worker execution,
+keeps one failed publication available for retry, acknowledges the successful retry, and produces the same
+minimal public envelope as direct synchronous invocation. A rolled-back mutation enqueues nothing.
+
+Select one project-owned queue job adapter around the portable event/subscriber boundary; do not add
+framework detection or invocation-mode branching to AccessControl Application code. Keep the framework
+queue payload internal and keep the browser contract at the already-selected transformed public envelope.
+CodeIgniter's stable v1 queue package replaces the earlier version uncertainty for its candidate payload
+boundary. Yii's replaceable project seam remains necessary until a stable queue release and broker adapter
+can be pinned and proven.
+
+This prototype deliberately does not claim complete worker support. Symfony Messenger's in-memory transport
+and the CodeIgniter/Yii candidate stores are not production-durable brokers; the CodeIgniter database worker,
+a real Yii broker adapter, framework worker commands, failure stores, backoff, dead-letter policy, process
+supervision, and multi-worker races remain open. Dispatching only after the transaction returns prevents
+pre-commit consumption but leaves a crash gap between database commit and queue enqueue; it is not an atomic
+outbox. The prototype therefore closes portable subscriber invocation and serialization only, not durable
+handoff or complete runtime worker composition. No production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam

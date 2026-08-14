@@ -1,0 +1,29 @@
+{
+    "prototype": "WF-017 asynchronous post-commit publication",
+    "framework": "yii",
+    "packages": {
+        "yiisoft/queue": "no stable release; intentionally not installed"
+    },
+    "transport": "yii: project JSON transport behind a replaceable queue seam",
+    "rollback_enqueued": false,
+    "queued_after_commit": true,
+    "subscriber_class": "Prototype\\AsyncPostCommit\\UserDeletedRealtimeSubscriber",
+    "same_sync_async_outcome": true,
+    "worker_attempts": 2,
+    "successful_publications": 1,
+    "failed_work_retried": true,
+    "public_envelope": {
+        "message_id": "018f4f5a-2266-7d1f-b965-a783bbd5c102",
+        "event_name": "access.user.deleted",
+        "schema_version": 1,
+        "occurred_at": "2026-08-14T12:45:00.123456Z",
+        "topic": "access.users.page",
+        "payload": {
+            "invalidate": "access.users.page"
+        },
+        "metadata": {
+            "correlation_id": "corr-017"
+        }
+    },
+    "result": "passed"
+}
