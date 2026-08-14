@@ -184,6 +184,12 @@ permission name as immutable event data rather than requiring the live record to
 Permission cannot be deleted while assigned or referenced; deletion never cascades, and the super
 administrator must explicitly detach or reassign every dependency first.
 
+Permission creation and removal remain explicit Application commands usable by reconciliation, project
+seeders, tests, and developer CLI tooling. The starter does not expose generic Permission mutation through
+its React administration UI: a database Permission without a corresponding authorization check grants no
+useful capability. Custom Role administration remains available so projects can compose domain-specific
+Roles from existing Permissions.
+
 Managed Role/Permission reconciliation completes all collision and reference preflight before mutation,
 then applies one UnitOfWork. Duplicate IDs or names, a name owned by a different ID, unknown Permission
 references, or code/definition parity failures reject the complete operation. Stable ID plus a changed name
@@ -258,6 +264,15 @@ Application-session revocation immediately prevents renewal. Provider adapters t
 connection sooner when supported, but the portable contract states the five-minute maximum residual
 connection window honestly. Realtime payloads carry minimal invalidation or notification data; sensitive
 state is refetched through the API boundary, where revocation is immediate.
+
+Each domain event selected for browser publication has one dedicated Application transformer rather than a
+central event-type switch. The transformer maps that event to a versioned public realtime envelope with a
+stable public name, message identity, occurrence time, authorized topic, allowlisted payload, and allowlisted
+metadata. Internal `Message` serialization, PHP payload FQCNs, arbitrary metadata, and non-public event fields
+are not browser contracts. Framework composition collects transformer services using its native deterministic
+registration style; Slim registers them explicitly. OpenAPI generates HTTP view types for the editable React
+client, while versioned realtime JSON Schemas generate its discriminated event-envelope union. Build checks
+reject generated TypeScript drift.
 
 State commits precede event publication. A publication failure after a successful commit is an
 infrastructure failure after durable success, not a rollback or an implied atomic-delivery guarantee.

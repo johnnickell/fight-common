@@ -31,6 +31,267 @@ AccessControl Domain and Application walking slice in every framework without un
   `POST /api/v1/access/session`, `GET /api/v1/access/session`, `GET /api/v1/access/users`, JSend,
   `ResultSet`, authorization, one authenticated private realtime update, SPA shell, and functional tests.
 
+## Accepted prototype decisions
+
+**Shared understanding confirmed:** 2026-08-13
+
+- Prove the walking slice through five independently reproducible framework projects: Symfony, Laravel,
+  Yii, CodeIgniter, and Slim. Each project runs the same framework-neutral behavioral contract and emits
+  machine-readable receipts. WF-017 remains the parent decision ticket until all five projects can be
+  compared; it is not one monolithic prototype implementation.
+- Give each framework project its own repository. A repository may remain private during initial testing
+  and become public when it is ready. Feature branches merge into `develop`, which is the integration and
+  normal pull-request target; `main` is the more stable branch between releases. Merging to `main` does not
+  require a version tag. Versions remain absent or non-authoritative until the project is ready to tag an
+  intentional pre-1.0 release such as `0.1.0` or `0.2.0`.
+- Begin each framework project with one bounded horizontal bootstrap ticket: render a tested Hello World
+  page, then establish project configuration and service composition without CQRS or database interaction.
+  After that bootstrap is green, build one user-valued vertical slice per use-case ticket. Each slice crosses
+  its required UI or HTTP, Application, persistence, and response boundaries and remains green as later
+  slices are added. Do not wait for the complete authentication capability set before recording a discovered
+  seam failure.
+- Treat every individual user-valued use case as one vertical slice and normally one canonical use-case
+  ticket. Horizontal bootstrap and cross-cutting technical hardening remain explicitly named enabling
+  tickets; do not disguise them as user stories. Apply this rule to the accepted AccessControl command and
+  query surface without reopening the decomposition case by case; grill only a genuinely ambiguous boundary
+  or architectural trade-off.
+- Make `/` an intentionally designed public introduction to the starter rather than a generic framework
+  splash screen. Anonymous and authenticated visitors share the same documentation-oriented shell; an
+  authenticated visitor additionally sees signed-in state and links to available application journeys, and
+  login redirects back to `/`.
+- Give every starter a polished public `/docs` experience implemented with its framework's presentation
+  facilities rather than MkDocs. It explains what the starter is, current implementation status, local setup,
+  architecture, package and framework-documentation links, routes and capabilities, quality commands, and
+  repository documentation. As slices become available, it links to their working journeys. Fake credentials
+  may appear only in the local development environment.
+- Design the documentation as an approachable bridge between the selected framework's established way of
+  working and Fight's CQRS and Hexagonal Architecture conventions. The result should feel like one coherent,
+  opinionated full-stack development experience while remaining honest about which behavior belongs to the
+  framework and which belongs to Fight packages and starter composition.
+- Isolate public documentation templates and their thin controller and route wiring so a new project can
+  remove the public documentation surface without disturbing application behavior. Include a tested "Remove
+  the public documentation and start your application" guide that names the deletable paths and any small
+  route-registration edit.
+- Keep durable reference prose in repository-owned Markdown or structured content under `/docs` and render
+  it through polished framework-native templates. Removing the public controller, routes, and templates does
+  not delete that reference material. The runtime documentation renderer accepts trusted repository content,
+  not user-authored Markdown.
+- Keep documentation executable: commands, routes, configuration, and examples refer to real project
+  contracts and tested example code. Generate displayed facts from authoritative project metadata where
+  practical instead of maintaining independent prose copies.
+- Verify the documented public-docs removal recipe in a disposable project copy. Apply the named deletions
+  and route edit, boot the application, and rerun its required tests so removability is demonstrated rather
+  than inferred.
+- Use a shared Fight starter identity, information architecture, accessibility baseline, and design quality
+  across all five projects while allowing framework-specific typography, accents, examples, and terminology.
+  The projects are visibly related without being mechanical visual clones.
+- Keep the complete editable React administration and user-management application in `/client`. Mount its
+  built SPA at a configurable route whose starter default is `/admin`; a developer can change that route to
+  `/app`, `/portal`, or another path without changing Application behavior. The framework-native controller
+  serves only the SPA shell and client-side route fallback; it performs no use case, authorization decision,
+  or JSON response work. JSON HTTP actions remain the backend boundary, and `/` plus `/docs` remain the
+  public documentation experience. The exact per-framework source of truth—project configuration,
+  environment input, generated client build configuration, or another native mechanism—remains a prototype
+  question. Each project must prove its chosen mechanism with an alternate-mount executable test rather than
+  assuming all five routing and asset systems compose identically.
+- Treat a richer Fight Common documentation experience as a separate follow-up opportunity. WF-017 records
+  the observation but does not expand its framework-portability prototypes into a Fight Common documentation
+  redesign.
+- Use the same ordered use-case tickets, shared Application implementation, user stories, and acceptance
+  behavior in all five framework projects. Framework projects may differ only in adapters, migrations,
+  composition, and UI plumbing needed to expose the same behavior; framework conveniences do not redefine
+  a use case.
+- Make login the first vertical slice after bootstrap: an active user enters an email address and password,
+  submits the login form through `POST /api/v1/access/session`, and reaches the home page with a visible
+  authenticated state. The slice includes command handling, user persistence, password verification,
+  session creation, SPA interaction, redirect, and focused acceptance tests. `EmailAddress` remains the
+  login identity; the prototypes do not introduce a separate username concept.
+- Follow login with a cold-load session-restoration slice. Refreshing or reopening the SPA uses the HttpOnly
+  refresh credential to restore authenticated state while the access JWT remains only in client memory.
+- Implement current-session logout as its own slice. It revokes only the current server-side refresh session,
+  clears browser credentials, and returns the UI to unauthenticated state without revoking other sessions.
+- Implement active-session management next. With two simultaneous sessions for one user, list both using
+  coarse device information, remotely revoke the other session, deny its next request immediately, and keep
+  the current session active. Super-admin revocation remains a later independently audited slice.
+- Follow session management with an authorized user-listing slice. An administrator with the required
+  permission uses `GET /api/v1/access/users` to view a paginated user list through query dispatch,
+  repository pagination, `ResultSet`, JSend, and a functional administrative screen; unauthorized users are
+  denied.
+- Add super-admin session revocation as the next slice. From the user journey, `ROLE_SUPER_ADMIN` with
+  `MANAGE_USER_SESSIONS` inspects another user's sessions and revokes one with non-secret reason or context.
+  Revocation and its required audit record commit atomically, the revoked session is denied immediately,
+  and an ordinary administrator remains unauthorized.
+- Complete the pre-email sequence with one session-continuity hardening slice. It proves proactive refresh,
+  single-flight refresh concurrency, and one bounded replayable retry as one user outcome: authenticated work
+  continues safely while the short-lived access token rotates. Each behavior retains focused race and failure
+  tests inside that slice.
+- Begin email-backed journeys with an authorized invitation slice. Atomically commit the new
+  `PENDING_ACTIVATION` user, activation grant, encrypted pending-email delivery, and required audit record,
+  then deliver the message to a Mailtrap test inbox for integration evidence and UAT. Mailtrap credentials
+  are environment-owned secrets and never enter repository fixtures, logs, receipts, or public docs. A mail
+  delivery failure does not erase the pending user or claim delivery succeeded.
+- Implement account activation as a separate slice. The invited person follows the one-time link, chooses
+  an accepted initial password, transitions to `ACTIVE`, and receives their first authenticated session.
+  The consumed grant cannot be reused, and successful delivery destroys its retained ciphertext.
+- Implement email-delivery recovery as the next slice rather than overloading either happy path. Prove that
+  pending work remains discoverable after post-commit dispatch failure, retries safely, destroys expired
+  ciphertext, and requires activation resend to revoke the predecessor and create an unrelated replacement
+  grant and delivery.
+- Keep the required automated suite independent of Mailtrap by using a deterministic in-memory or fake mail
+  adapter. Add an opt-in Mailtrap integration check and use Mailtrap for human UAT so the real project mail
+  composition is proven without making ordinary builds depend on an external service.
+- Implement password-reset request as its own slice. The public endpoint always returns the same generic
+  response. An eligible user receives a one-time reset link through the encrypted pending-delivery system;
+  missing, deleted, or otherwise ineligible identities reveal no account state and receive no unauthorized
+  delivery. An eligible disabled user may receive the reset journey governed by the completion behavior below.
+- Implement password-reset completion as a separate slice. Consuming the one-time grant sets the new
+  password, revokes every existing refresh session, advances authentication version, clears browser
+  credentials, and requires a fresh login. A disabled user may reset the password but remains disabled and
+  receives no session.
+- Implement authenticated password change as its own slice. An active user proves the current password and
+  chooses a new one; success revokes every refresh session including the current one, advances authentication
+  version, clears browser credentials, and returns the user to login without issuing a reset grant.
+- Implement email-address change request separately from confirmation. An active user proves the current
+  password, requests an unclaimed canonical address, reserves that address, and receives a one-time
+  confirmation message there while the old mailbox receives a security notice. The old address remains
+  authoritative and existing sessions remain active until confirmation.
+- Implement email-address confirmation as its own slice. Atomically replace the authoritative email address,
+  consume the grant, release the reservation, advance authentication version, revoke every session, and
+  require login with the new address. The old canonical address becomes available only after commit.
+- Implement cancellation and expiry as one pending-email-change lifecycle slice. Either outcome consumes the
+  pending grant and releases the reserved address without changing the authoritative email or active sessions.
+  Enforce and test at most one pending grant and one reservation per user.
+- Implement super-admin email-change assistance separately. A super administrator may initiate or cancel the
+  same confirmation journey with a required non-secret reason and atomic audit record, but cannot bypass
+  confirmation by the new mailbox. Ordinary administrators remain unauthorized.
+- Implement account disablement as its own audited slice. An authorized administrator disables the user,
+  revokes every session, advances authentication version, cancels any pending email-address change, releases
+  its reservation, and immediately prevents access and login.
+- Implement account enablement separately. An authorized administrator enables a disabled, non-deleted user
+  without restoring an old session or creating a new one; the user authenticates normally afterward. Deleted
+  users remain reachable only through the distinct audited restoration journey.
+- Implement soft deletion and audited restoration as one account-lifecycle slice. Deletion revokes sessions
+  and blocks authentication while preserving `UserId` and canonical-email ownership, so reinvitation cannot
+  create a duplicate. Authorized restoration returns that same identity to its appropriate non-deleted state
+  and records actor and reason.
+- Implement pending-invitation correction as its own slice. Atomically replace the pending address, revoke the
+  predecessor activation grant and pending delivery, and issue an unrelated fresh grant and delivery without
+  mutating or reusing the old credential.
+- Give Role inspection and Permission inspection separate read-only vertical slices. Administrators may view
+  paginated Managed and custom records. Role views expose exact Permission membership and mark Managed Roles
+  as version-controlled and runtime-immutable. Permission views expose administrative tier and explain
+  `ADMIN_SAFE` versus `SUPER_ADMIN_ONLY` without implying Role hierarchy or magic `ROLE_` semantics.
+- Keep explicit Permission creation and removal Application commands for reconciliation, seeding, testing,
+  and project-owned CLI workflows, but expose no generic Permission mutation UI in the React starter. A
+  developer CLI may help add and exercise a new Permission; managed definitions and authorization-check
+  parity remain version-controlled, and removal fails while code or assignments still reference it.
+- Keep custom Role administration in the React starter. Projects may create domain-specific Roles and compose
+  them from existing Permissions, while Managed Roles remain version-controlled and runtime-read-only.
+- Prove private realtime through two authenticated administrator browsers on the paginated user screen. A
+  project-owned subscriber translates selected committed domain events, such as the eventual event for user
+  deletion or removal, into an authorized socket-topic invalidation. The second client does not mutate its
+  cached list from the event payload; it refetches the current page through the authoritative users API.
+- Maintain an explicit event-to-page/topic subscription matrix. Include page-level invalidation and
+  current-user topics in the starter; retain an extensible pattern for job-owner topics without inventing a
+  Job model in this skeleton. Documentation may use long-running uploads as an example of later lifecycle
+  notifications, including a safe link to inspect correctable failures. Socket updates remain minimal and do
+  not expose raw domain-event payloads by default.
+- Map each explicitly publishable domain event through its own Application transformer, such as a future
+  `UserRegisteredTransformer` colocated with the AccessControl User socket concerns. Each transformer owns
+  one stable public event name, schema version, allowlisted payload, allowed topic families, and allowlisted
+  metadata; no central transformer contains a switch over all domain events. Framework composition collects
+  the transformers using its accepted native registration style, with explicit definitions in Slim.
+- Publish a versioned public realtime envelope rather than `Message::toArray()`. The envelope carries message
+  identity, stable public event name, schema version, occurrence time, authorized topic, safe public payload,
+  and allowlisted metadata such as correlation identity. PHP FQCNs, arbitrary metadata, and non-public domain
+  fields never become browser contracts implicitly.
+- Generate TypeScript HTTP view types such as `UserView` from OpenAPI and generate discriminated realtime
+  envelope unions from versioned JSON Schemas. The build rejects drift between authoritative public schemas
+  and committed generated client types.
+- Define reusable authorized topic families for page or resource invalidation, current-user lifecycle, and
+  owner-scoped long-running operations. The skeleton implements the first two and documents the operation or
+  job pattern without inventing a Job aggregate.
+- Prove invocation-mode portability with pending security-email delivery: the same Application handler and
+  subscriber work under focused synchronous tests and the project's asynchronous event worker without
+  Application branching.
+- Keep Managed Role/Permission reconciliation as a documented framework-native console operation with
+  deterministic dry-run/apply parity, complete preflight, and one atomic apply. It has no React screen.
+- Supply the first login slice with an explicit development/test seed fixture containing an active user.
+  The fixture is bootstrap data only and is not a production account-creation path. Later invitation and
+  activation slices prove the real user lifecycle without depending on fixture creation at runtime.
+- Use the relational database as the authoritative refresh-session store in all five framework projects.
+  Login therefore commits its session and required audit record in one database transaction. Redis may be
+  evaluated later as an optional fail-closed read projection or cache, but it is not required by the
+  framework-portability proof and does not become authoritative session storage in these prototypes.
+- Prove the login slice with both an HTTP functional test and a browser-level test. The HTTP test covers the
+  JSend response, refresh cookie, and failure behavior; the browser test covers form submission, redirect,
+  and the authenticated home-page indication. After automation is green, provide fake local test credentials
+  and a bounded review card so John can accept the journey in his local browser. Never commit or display a
+  production credential.
+- Adopt user acceptance testing as a required pre-completion gate for each user-facing vertical slice in
+  these starter projects. After automated checks pass, provide fake fixtures, the exact local URL, expected
+  results, and any cleanup step for John's bounded local-browser review. Backend-only work does not require
+  browser UAT. This is a starter-project workflow decision, not a universal rule imposed on every consumer.
+- Atomically record successful login and session creation. Failed login attempts remain subject to
+  throttling and security monitoring, but individual durable failure-audit writes are capped both per source
+  IP address and globally within configurable time windows so a local or distributed attack cannot amplify
+  the audit table without bound. Reaching an audit-write cap does not disable authentication throttling,
+  generic responses, counters, or operational alerts.
+- After an individual failed-login audit cap is reached, retain bounded time-bucket counters for total
+  attempts, suppressed individual records, and distinct sources where practical. Those aggregates preserve
+  distributed-attack evidence without accepting an attacker-controlled number of durable rows.
+- Derive the per-IP cap from the direct connection address unless the request arrived through an explicitly
+  trusted proxy. Only trusted-proxy configuration authorizes interpretation of the selected forwarded-address
+  header; public clients cannot choose their own audit or throttling identity through `X-Forwarded-For`.
+- Carry each vertical slice through all five framework projects before beginning the next shared use case.
+  No framework project becomes the accidental design authority by racing ahead through the capability set.
+- Keep one canonical use-case contract with the shared AccessControl work. Each framework repository owns
+  an implementation ticket that links to that contract and adds only its framework-specific acceptance and
+  composition details; it does not copy and independently redefine the use case.
+- When one framework cannot implement a shared slice naturally, keep the passing projects green, record the
+  failing executable case, and pause advancement to the next shared slice while the common seam is resolved.
+  Do not add speculative framework branches to portable Application code or discard passing evidence.
+- Each starter owns migrations in its native migration system. PostgreSQL and MySQL or MariaDB schema
+  receipts prove equivalent identities, uniqueness constraints, and behavior; portable source text is
+  not required.
+- Select Yii DB versus Active Record and CodeIgniter Model versus Query Builder from executable comparison.
+  Prefer the framework's documented recommendation and a strong established developer-community convention
+  when either exists, provided the choice passes the shared behavioral contract and keeps framework records
+  outside portable Application code. Optimize for an idiomatic, maintainable starter rather than mechanical
+  parity or the fewest local lines.
+- Let each framework own the flavor of command, query, and event handler registration while proving one
+  complete, inspectable resolved map with build failures for missing, duplicate, or ambiguous handlers. Slim
+  uses explicit PHP-DI definitions and performs no per-request classpath scanning. Laravel and Symfony may
+  use native discovery or autoconfiguration when their prototypes prove the resulting routes remain visible
+  and deterministic; Yii and CodeIgniter likewise use the smallest idiomatic project-owned composition.
+- Treat `UnitOfWork::commitTransactional()` as the portable center. The callback contains the complete
+  mutation and its required audit write. New portable Application code does not depend on `commit()`.
+- Preserve `UnitOfWork::isClosed()` with one portable meaning: it reports that the unit of work is
+  terminally unable to accept another operation. Transaction rollback alone does not imply closure.
+- Do not support nested `commitTransactional()` calls. A nested call fails explicitly rather than
+  depending on framework-specific savepoint or nesting behavior.
+- Deprecate `commit()` only if executable evidence shows that at least one supported native adapter cannot
+  implement its documented pending-change semantics without buffering writes or inventing an identity
+  map. Preserve Doctrine behavior through 1.x and reserve removal for 2.0.
+- In every starter prototype, the business mutation and required audit record use the same relational
+  database and one transaction. Both commit or both roll back. Split-store audit handoff and outbox design
+  are outside WF-017 and require a real consumer need before they are designed.
+- Event-sourced persistence is a separate case: committed events are authoritative history, while
+  projections and post-commit event publication consume that history later using their own checkpoints or
+  cursors. A projected audit view does not replace the required authoritative audit evidence.
+- The required AccessControl walking slice uses conventional aggregate repositories. Event Sourcing remains
+  an optional consumer architecture and is not part of the five-project framework-portability proof. Any later
+  AccessControl Event Store prototype is an independent effort.
+- For Symfony, Yii, CodeIgniter, and Slim, target one pinned current Mercure 1.0 authorization composition.
+  Do not implement the legacy topic-selector JWT protocol without a real supported consumer requirement.
+  The exact hub and PHP integration versions remain prototype findings. Laravel retains its accepted native
+  Reverb private-channel composition.
+- Default project composition to `SynchronousCommandBus` for commands and `AsynchronousEventDispatcher` for
+  domain events. A controller that deliberately accepts work for later processing may request
+  `AsynchronousCommandBus` and return HTTP 202; a use case that deliberately needs immediate event fan-out
+  may request `SynchronousEventDispatcher`. These are explicit composition choices, not invocation-mode
+  branches inside AccessControl Application handlers.
+
 The authentication prototype must also prove two simultaneous sessions for one user, self-service listing
 and remote revocation, super-admin revocation through `MANAGE_USER_SESSIONS`, immediate access-token denial
 after revocation, audit evidence for the administrative action, cold-load refresh bootstrap, proactive
