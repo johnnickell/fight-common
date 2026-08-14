@@ -1,0 +1,33 @@
+{
+    "prototype": "WF-017 private realtime publication",
+    "framework": "slim",
+    "packages": {
+        "symfony/mercure": "v0.7.2"
+    },
+    "transport": "Mercure private Update",
+    "topic": "https://starter.example.test/topics/access/users",
+    "existing_publisher_private": false,
+    "candidate_private_publisher": true,
+    "post_commit_probe": true,
+    "envelope": {
+        "message_id": "018f4f5a-2266-7d1f-b965-a783bbd5c102",
+        "event_name": "access.user.deleted",
+        "schema_version": 1,
+        "occurred_at": "2026-08-14T08:15:30.123456Z",
+        "topic": "https://starter.example.test/topics/access/users",
+        "payload": {
+            "invalidate": "access.users.page"
+        },
+        "metadata": {
+            "correlation_id": "corr-017"
+        }
+    },
+    "leak_checks": {
+        "php_fqcn": false,
+        "domain_user_id": false,
+        "internal_reason": false,
+        "arbitrary_metadata": false
+    },
+    "unapproved_topic_family_published": false,
+    "result": "passed"
+}
