@@ -254,19 +254,19 @@ AccessControl Domain and Application walking slice in every framework without un
 - Each starter owns migrations in its native migration system. PostgreSQL and MySQL or MariaDB schema
   receipts prove equivalent identities, uniqueness constraints, and behavior; portable source text is
   not required.
-- Select Yii DB versus Active Record and CodeIgniter Model versus Query Builder from executable comparison.
-  Prefer the framework's documented recommendation and a strong established developer-community convention
-  when either exists, provided the choice passes the shared behavioral contract and keeps framework records
-  outside portable Application code. Optimize for an idiomatic, maintainable starter rather than mechanical
-  parity or the fewest local lines.
+- Select Yii Active Record over raw Yii DB commands and CodeIgniter Model over a Query Builder-only repository.
+  Keep both frameworks' record and Model classes in Adapter code and map them explicitly to unchanged portable
+  aggregates. Yii uses explicit join records for exact relationship replacement. CodeIgniter Models remain
+  table-focused and may use their available Query Builder internally while the repository owns aggregate and
+  relationship composition. The lower-level alternatives remain valid escape hatches, not starter defaults.
 - Let each framework own the flavor of command, query, and event handler registration while proving one
   complete, inspectable resolved map with build failures for missing, duplicate, or ambiguous handlers. Slim
   uses explicit PHP-DI definitions and performs no per-request classpath scanning. Laravel and Symfony may
   use native discovery or autoconfiguration when their prototypes prove the resulting routes remain visible
   and deterministic; Yii and CodeIgniter likewise use the smallest idiomatic project-owned composition.
-- Treat `UnitOfWork::commitTransactional()` as the portable center. The callback contains the complete
+- Treat `TransactionalUnitOfWork::commitTransactional()` as the portable center. The callback contains the complete
   mutation and its required audit write. New portable Application code does not depend on `commit()`.
-- Preserve `UnitOfWork::isClosed()` with one portable meaning: it reports that the unit of work is
+- Preserve `TransactionalUnitOfWork::isClosed()` with one portable meaning: it reports that the unit of work is
   terminally unable to accept another operation. Transaction rollback alone does not imply closure.
 - Do not support nested `commitTransactional()` calls. A nested call fails explicitly rather than
   depending on framework-specific savepoint or nesting behavior.
@@ -327,6 +327,165 @@ email-change defaults and apply the common behavior suite to any optional native
 Account-state tests prove disabled-user reset without enablement or session creation, active-only email
 change with disablement cancellation, and atomic pending-invitation correction that revokes the predecessor
 grant/delivery and issues an unrelated fresh credential.
+
+## Bounded prototype evidence: transaction center
+
+The retained `prototype/wf-017-transaction-seam` branch answers one question only: can the unchanged
+`UnitOfWork::commitTransactional()` callback contain a session mutation and its required audit write across
+all five selected framework compositions? The runnable source, isolated dependency locks, one-command runner,
+five framework receipts, and one guarded Doctrine comparison receipt live under
+`planning/wayfinder/prototypes/wf-017-transaction-seam/` on that branch.
+
+The SQLite evidence passes callback-result preservation, atomic commit, forced rollback, and exception
+propagation for Symfony and Slim through Doctrine ORM 3.6/XML mapping, Laravel through its native database
+transaction, Yii through Yii DB, and CodeIgniter through a manual native transaction with explicit status
+checks. This is sufficient evidence that the callback method is the portable transaction center; it does not
+require a change to the transaction callback signature.
+
+The experiment also records two narrower findings:
+
+- record-oriented Laravel, Yii, and CodeIgniter adapters have no natural pending-change meaning for
+  `commit()` because their repository writes execute immediately; implementing the documented semantics
+  would require buffering or an invented identity map. This triggers the accepted 1.x deprecation boundary
+  and justifies one additive `TransactionalUnitOfWork` port declaring `commitTransactional()` and
+  `isClosed()`. The legacy `UnitOfWork` extends that narrower port and retains deprecated `commit()` plus
+  Doctrine's current behavior through 1.x; record-oriented adapters implement only the narrower port. Remove
+  `commit()` in 2.0 rather than forcing a no-op or unsupported method into those adapters;
+- the current `DoctrineUnitOfWork` permits a nested `commitTransactional()` call, while the three disposable
+  native adapters reject nesting explicitly. The Doctrine lane therefore fails the accepted nesting policy.
+  Resolve that behavior through the smallest Fight Common implementation ticket before advancing to the next
+  shared walking slice; the nesting correction requires no transaction-port signature change.
+
+A follow-up comparison receipt proves the smallest Doctrine correction shape: a readonly adapter can inspect
+DBAL's active transaction nesting level before delegating to `EntityManagerInterface::wrapInTransaction()`.
+The disposable guarded adapter preserves callback results, atomic commit, rollback, exception propagation,
+and Doctrine close-on-rollback behavior while rejecting the nested call with `LogicException`. The production
+adapter remains unchanged on this prototype branch; carry this adapter-local guard and its focused regression
+test into the Fight Common implementation ticket. No mutable guard state, wrapper abstraction, or change to
+the `TransactionalUnitOfWork` operation signatures is justified. The separate additive port split above is
+required by `commit()` portability, not by Doctrine's nesting behavior.
+
+The receipts use SQLite for fast deterministic proof. PostgreSQL and MySQL/MariaDB parity, aggregate and
+relationship hydration, concurrency, HTTP, principal integration, realtime authorization, the React client,
+and the remaining AccessControl behaviors are still open WF-017 prototype lanes.
+
+## Bounded prototype evidence: additive transaction contract split
+
+The retained `prototype/wf-017-transactional-uow-split` branch answers the follow-up compatibility question:
+can the additive 1.x `TransactionalUnitOfWork` split preserve legacy Doctrine consumers while allowing native
+record adapters to omit `commit()` entirely? Its one-command runner, candidate contracts, real framework
+adapters, and five machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-transactional-uow-split/` on that branch.
+
+The comparison passes in all five starter compositions. One portable Application function type-hints only
+`TransactionalUnitOfWork`, preserves the callback result, and atomically commits the session mutation and
+audit write through Doctrine ORM 3.6, Illuminate Database 13, Yii DB 2, and CodeIgniter Database 4. Doctrine's
+candidate adapter also implements legacy `UnitOfWork`; an unchanged legacy consumer successfully calls
+`commit()` to flush pending state. The Laravel, Yii, and CodeIgniter candidates implement only
+`TransactionalUnitOfWork`, are not instances of legacy `UnitOfWork`, and expose no `commit()` method.
+
+This confirms a source-compatible additive 1.x contract change, not an unchanged contract: add
+`TransactionalUnitOfWork` with `commitTransactional()` and `isClosed()`, then make legacy
+`UnitOfWork extends TransactionalUnitOfWork` while retaining deprecated `commit()` and Doctrine behavior
+through 1.x. Existing
+`UnitOfWork` consumers keep their method surface; new portable consumers and record adapters depend on the
+narrower port. Remove `commit()` with the legacy contract in 2.0. Framework container alias compatibility is
+an implementation concern still requiring focused production tests; the prototype changes no production
+source.
+
+## Bounded prototype evidence: record-to-aggregate mapping
+
+The retained `prototype/wf-017-record-mapping` branch answers the next persistence question: can all five
+starter compositions round-trip one unchanged aggregate and exact Role membership without leaking framework
+records, and which native record styles should Yii and CodeIgniter select? Its common aggregate/repository
+probe, seven candidate lanes, pinned dependency lock, and machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-record-mapping/` on that branch.
+
+All seven lanes pass create, rehydrate, update, identity preservation, and exact relationship replacement.
+Symfony and Slim use adapter-owned Doctrine XML records; Laravel uses adapter-owned Eloquent records and
+`belongsToMany()->sync()`. The Yii comparison proves both Yii Active Record 1.1 and Yii DB 2 can preserve the
+boundary, but selects Active Record because its stable native record package supplies identity and row-state
+mechanics without making the aggregate an Active Record. The join remains an explicit Adapter record.
+
+The CodeIgniter comparison proves both Model and Query Builder repositories. Select CodeIgniter Model as the
+starter default because CodeIgniter documents it as the ordinary table gateway and exposes Query Builder
+through it. Models return arrays rather than domain objects; the repository maps those rows and owns the
+multi-table aggregate composition. The Model lane requires the normal minimal application bootstrap that a
+starter already has, while the lower-level Query Builder candidate remains available for exceptional queries.
+
+This evidence selects persistence record styles only. On that branch, PostgreSQL/MySQL or MariaDB migration
+parity and concurrent canonical-email uniqueness remained open; the following bounded evidence closes the
+schema-behavior part of that question. HTTP, principal integration, handler registration, realtime, and client
+behavior remain open. The record-mapping prototype does not re-prove the preceding transaction evidence. No
+production source changes.
+
+## Bounded prototype evidence: migration and canonical-email uniqueness
+
+The retained `prototype/wf-017-migration-uniqueness` branch answers the next schema question: can all five
+starter compositions create equivalent PostgreSQL and MySQL schema behavior that rejects concurrent claims
+for one canonical email across account states while every relationship remains keyed by `UserId`? Its native
+schema candidates, disposable database runner, two-connection race, and ten machine-readable receipts live
+under `planning/wayfinder/prototypes/wf-017-migration-uniqueness/` on that branch.
+
+All ten framework/database lanes pass against MySQL 8.4.11 and PostgreSQL 17.10. Symfony and Slim use
+Doctrine DBAL schema operations intended for their Doctrine Migrations compositions; Laravel uses Schema
+Builder; Yii uses Yii DB's driver-specific DDL commands; CodeIgniter uses Forge. The CodeIgniter lane also
+proves its starter runtime must load the native `mysqli` and `pgsql` extensions in addition to Fight Common's
+PDO-only development image.
+
+In every lane, one `PENDING_ACTIVATION` transaction writes `same@example.test` and pauses before commit while
+a second connection attempts a `DELETED` user with the same canonical email. After the first transaction
+commits, the second loses to the database unique constraint with SQLSTATE `23000` on MySQL and `23505` on
+PostgreSQL. A different canonical email succeeds in another state. The discoverable named index is isolated
+as `uniq_users_canonical_email (canonical_email)`, so its documented tenant evolution is replacement by
+`(tenant_id, canonical_email)` without changing `UserId`. The `user_roles` foreign keys and receipt data prove
+relationships continue to use `user_id` and `role_id`.
+
+This closes pinned PostgreSQL/MySQL DDL and concurrency behavior, not complete migration lifecycle wiring.
+The prototype invokes each selected schema API directly and does not prove migration discovery, history-table
+management, rollback, or deployment ordering through full framework applications. It uses the minimum User,
+Role, and assignment schema rather than the full AccessControl model, and it does not select application
+retry, idempotency, or HTTP conflict mapping. On that branch, handler registration remained open; the following
+bounded evidence closes its composition question. HTTP, principal integration, realtime, client behavior, and
+the complete walking slice remain open. No production source changes.
+
+## Bounded prototype evidence: handler composition
+
+The retained `prototype/wf-017-handler-composition` branch answers the next composition question: can all five
+starter compositions build one complete, inspectable command/query/event map for unchanged portable
+Application handlers and reject missing, ambiguous, or duplicate registrations during boot? Its shared
+prototype handlers, five native container compositions, failure probes, one-command runner, pinned dependency
+lock, and machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-handler-composition/` on that branch.
+
+All five lanes pass with Symfony DependencyInjection 8.1.4, Illuminate Container 13.25.0, Yii DI 1.4.1,
+CodeIgniter 4.7.4 Services, and PHP-DI 7.1.1 for Slim. Every valid composition resolves the same one-command,
+one-query, and one-event-subscription map and dispatches through the resolved services. Every lane also fails
+before serving work when the required command handler is absent, two command handlers claim the same message,
+or the same event-subscriber class is registered twice. Multiple distinct subscribers for one event remain
+valid fan-out rather than ambiguity.
+
+Select the following starter compositions:
+
+- Symfony uses compile-time interface autoconfiguration and native service tags. The starter's container
+  build compiles those tags into the inspectable Fight handler map; there is no request-time scan.
+- Laravel registers handlers in a project service provider and groups them with native container tags.
+- Yii declares tagged services in the normal `config/common/di` configuration.
+- CodeIgniter exposes one explicit project-owned `Config\\Services` handler-catalog factory. Do not depend on
+  Services auto-discovery ordering for uniqueness because CodeIgniter documents that the first duplicate
+  service method found wins.
+- Slim uses explicit PHP-DI definitions and handler-ID lists with autowiring disabled for this map. It performs
+  no classpath scanning.
+
+Each project owns its native service collection, then applies the same boot-time conformance rule: exactly one
+handler for every required command and query, no unregistered required message, and no duplicate subscriber
+class registration. The resulting map remains inspectable in tests and diagnostics. This is a project
+composition contract and conformance-test concern; the evidence does not justify a new shared runtime
+container or framework branch inside portable Application handlers.
+
+This closes the bounded handler-registration composition question, not full framework-kernel cache wiring or
+the complete AccessControl map. HTTP, principal/provider integration, realtime authorization, client behavior,
+and the complete walking slice remain open. No production source changes.
 
 ## Resolution boundary
 
