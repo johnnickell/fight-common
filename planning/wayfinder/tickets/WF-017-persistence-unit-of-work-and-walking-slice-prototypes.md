@@ -413,10 +413,40 @@ through it. Models return arrays rather than domain objects; the repository maps
 multi-table aggregate composition. The Model lane requires the normal minimal application bootstrap that a
 starter already has, while the lower-level Query Builder candidate remains available for exceptional queries.
 
-This evidence selects persistence record styles only. It uses SQLite and does not close PostgreSQL/MySQL or
-MariaDB migration parity, concurrent canonical-email uniqueness, HTTP, principal integration, handler
-registration, realtime, or client behavior. It does not re-prove the preceding transaction evidence. No
+This evidence selects persistence record styles only. On that branch, PostgreSQL/MySQL or MariaDB migration
+parity and concurrent canonical-email uniqueness remained open; the following bounded evidence closes the
+schema-behavior part of that question. HTTP, principal integration, handler registration, realtime, and client
+behavior remain open. The record-mapping prototype does not re-prove the preceding transaction evidence. No
 production source changes.
+
+## Bounded prototype evidence: migration and canonical-email uniqueness
+
+The retained `prototype/wf-017-migration-uniqueness` branch answers the next schema question: can all five
+starter compositions create equivalent PostgreSQL and MySQL schema behavior that rejects concurrent claims
+for one canonical email across account states while every relationship remains keyed by `UserId`? Its native
+schema candidates, disposable database runner, two-connection race, and ten machine-readable receipts live
+under `planning/wayfinder/prototypes/wf-017-migration-uniqueness/` on that branch.
+
+All ten framework/database lanes pass against MySQL 8.4.11 and PostgreSQL 17.10. Symfony and Slim use
+Doctrine DBAL schema operations intended for their Doctrine Migrations compositions; Laravel uses Schema
+Builder; Yii uses Yii DB's driver-specific DDL commands; CodeIgniter uses Forge. The CodeIgniter lane also
+proves its starter runtime must load the native `mysqli` and `pgsql` extensions in addition to Fight Common's
+PDO-only development image.
+
+In every lane, one `PENDING_ACTIVATION` transaction writes `same@example.test` and pauses before commit while
+a second connection attempts a `DELETED` user with the same canonical email. After the first transaction
+commits, the second loses to the database unique constraint with SQLSTATE `23000` on MySQL and `23505` on
+PostgreSQL. A different canonical email succeeds in another state. The discoverable named index is isolated
+as `uniq_users_canonical_email (canonical_email)`, so its documented tenant evolution is replacement by
+`(tenant_id, canonical_email)` without changing `UserId`. The `user_roles` foreign keys and receipt data prove
+relationships continue to use `user_id` and `role_id`.
+
+This closes pinned PostgreSQL/MySQL DDL and concurrency behavior, not complete migration lifecycle wiring.
+The prototype invokes each selected schema API directly and does not prove migration discovery, history-table
+management, rollback, or deployment ordering through full framework applications. It uses the minimum User,
+Role, and assignment schema rather than the full AccessControl model, and it does not select application
+retry, idempotency, or HTTP conflict mapping. HTTP, principal integration, handler registration, realtime,
+client behavior, and the complete walking slice remain open. No production source changes.
 
 ## Resolution boundary
 
