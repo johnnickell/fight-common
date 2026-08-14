@@ -1,0 +1,103 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://starter.example.test/schemas/realtime/v1/envelope.json",
+    "title": "RealtimeEnvelope",
+    "description": "PROTOTYPE union of explicitly public AccessControl realtime envelopes.",
+    "oneOf": [
+        {
+            "$ref": "#/$defs/UsersPageInvalidatedV1"
+        },
+        {
+            "$ref": "#/$defs/CurrentUserLifecycleChangedV1"
+        }
+    ],
+    "$defs": {
+        "EnvelopeMetadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["correlation_id"],
+            "properties": {
+                "correlation_id": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "UsersPageInvalidatedV1": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message_id", "event_name", "schema_version", "occurred_at", "topic", "payload", "metadata"],
+            "properties": {
+                "message_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "event_name": {
+                    "const": "access.user.deleted"
+                },
+                "schema_version": {
+                    "const": 1
+                },
+                "occurred_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "topic": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["invalidate"],
+                    "properties": {
+                        "invalidate": {
+                            "const": "access.users.page"
+                        }
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/$defs/EnvelopeMetadata"
+                }
+            }
+        },
+        "CurrentUserLifecycleChangedV1": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message_id", "event_name", "schema_version", "occurred_at", "topic", "payload", "metadata"],
+            "properties": {
+                "message_id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "event_name": {
+                    "const": "access.current-user.lifecycle-changed"
+                },
+                "schema_version": {
+                    "const": 1
+                },
+                "occurred_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "topic": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["refresh"],
+                    "properties": {
+                        "refresh": {
+                            "const": "current-session"
+                        }
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/$defs/EnvelopeMetadata"
+                }
+            }
+        }
+    }
+}
