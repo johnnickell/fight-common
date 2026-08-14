@@ -61,7 +61,8 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 | **Repository** | A domain-oriented collection boundary for retrieving and persisting domain records without exposing infrastructure details. |
 | **Pagination** | A request for page, page size, offset, limit, and normalized field ordering. |
 | **Result set** | A typed page of records plus page and total-count metadata. |
-| **Unit of work** | The application transaction boundary used to commit work, run a callable transactionally, and report whether the underlying persistence context is closed. |
+| **Unit of work** | The application transaction boundary used to commit work and run a callable transactionally. A closed unit of work is terminally unable to accept another operation; a rolled-back transaction does not by itself mean the unit of work is closed. |
+| **Required audit record** | Secret-free durable evidence required for a classified sensitive command to succeed. The protected mutation and its required audit record commit atomically; a later projection of that evidence is derived state rather than the authoritative audit record. |
 | **Input data** | Untrusted field data entering validation. |
 | **Validation rule** | A reusable predicate such as length, range, format, type, or required-field behavior. |
 | **Validator** | A component that applies a specification to a validation context and may add field errors. |
@@ -129,6 +130,8 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Authentication abuse control** | Configurable throttling and observation applied by both normalized account identity and source signal, with generic public outcomes and no attacker-triggerable permanent account lockout. CAPTCHA and external risk scoring are replaceable consumer integrations. |
 | **Realtime topic authorization** | The server-side decision that maps an authenticated principal and requested realtime topics or channels to the exact private subscriptions that principal may receive. Client display state and possession of a topic name are not authority. |
 | **Private realtime update** | A published update deliverable only to a subscriber whose short-lived subscription credential authorizes its exact topic or channel. Publication and subscription credentials are separate from ordinary API access tokens. |
+| **Public realtime envelope** | The versioned browser-facing representation of one explicitly publishable domain event. It carries a stable public name, message identity, occurrence time, authorized topic, an allowlisted payload, and allowlisted technical metadata without exposing the internal PHP message serialization. |
+| **Realtime event transformer** | One Application component dedicated to one publishable domain event that maps it to a public realtime envelope. Transformers contain no provider transport logic and are composed as a registry without a central event-type switch. |
 | **Public realtime update** | An explicitly designated update whose underlying information is already available without authentication. Topic identifiers are discoverable rather than secret, so public delivery is never appropriate for user, account, job, administration, or personalized data. |
 | **Realtime revocation window** | The bounded period during which an already-open provider connection may remain after its backing application session is revoked. Revocation prevents credential renewal immediately; provider-specific disconnection may shorten the portable maximum. |
 
@@ -148,6 +151,7 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Compatibility manifest** | The committed `compatibility/manifest.json` authority that classifies public declarations and consumer operations, links behavioral contract IDs to normative documentation and fixtures, records package-surface promises, and identifies its authoritative baseline. Generated inventories validate completeness but do not replace intentional classification. |
 | **Compatibility finding** | A stable, machine-reported difference between a release baseline and candidate. An indeterminate finding blocks certification until evidence classifies it or an exact compatibility exception authorizes it. |
 | **Quality gate** | A mandatory automated check that must pass before work is accepted. A report without an enforced pass/fail condition is not a gate. |
+| **User acceptance testing (UAT)** | A bounded human review of a user-facing journey after its automated checks pass. A project may adopt UAT as a required pre-completion gate; doing so supplements automated evidence and does not replace it. |
 | **Architecture gate** | The quality gate that verifies inward dependency direction between Domain, Application, and Adapter. |
 | **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
 | **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |

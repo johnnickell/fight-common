@@ -49,5 +49,7 @@ must establish an `AGENTS.md`, architecture rules, planning workflow, and qualit
 repository. Detailed implementation and release ownership then moves to that repository; the umbrella
 map retains dependency links but does not become a competing source of truth.
 
-The repositories are developed publicly. A coordinated announcement of the fully supported suite
-waits until all five starters meet their gates, while useful `0.x.y` releases may be published earlier.
+Each repository may begin privately during initial framework and security testing, then becomes public when
+its owner judges the project ready for external inspection. A coordinated announcement of the fully supported
+suite waits until all five starters meet their gates, while useful public `0.x.y` releases may be published
+earlier. Moving a stable state to `main` does not itself require a version tag.
