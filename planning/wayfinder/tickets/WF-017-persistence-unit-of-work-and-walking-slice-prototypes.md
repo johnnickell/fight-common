@@ -689,6 +689,35 @@ slice. Runtime request/response validation, complete AccessControl schemas, API-
 running Mercure/Reverb delivery, browser reconnect, two-browser invalidation/refetch, and asynchronous
 post-commit delivery remain open WF-017 lanes.
 
+## Bounded prototype evidence: browser reconnect and authoritative refetch
+
+The self-contained logic prototype at
+`planning/wayfinder/prototypes/wf-017-browser-reconnect-state/index.html` answers the client-state question
+that follows generated contracts: how should two authenticated administrator browsers recover from safe
+page invalidations, missed events, short-lived credential renewal, and authoritative session revocation
+without treating the realtime transport as a source of record? It opens directly in a browser, exposes the
+complete server and client state after every action, provides free-play controls, and includes guided
+two-browser invalidation, offline-gap, and revocation walkthroughs.
+
+The candidate state model passes. Initial connection and every reconnect follow `authorize -> subscribe ->
+refetch`, so a client establishes the invalidation stream before taking its authoritative users-page
+snapshot. A users-page event marks cached data stale and schedules one coalesced API refetch; it never patches
+the cached list from the realtime payload. A browser that misses events while offline still converges because
+the post-subscription refetch does not depend on replay. Current-user lifecycle invalidations use the same
+authoritative revalidation path and clear client state when authorization is denied.
+
+Select a planned client credential rotation at 45 seconds against the prototype's 60-second Mercure
+credential lifetime, and apply the same bounded reauthorization policy to the Laravel Reverb composition.
+Renewal closes the existing transport first, revalidates the authoritative session, resubscribes, and
+refetches. The refetch closes the deliberate rotation gap. A denied renewal closes the transport and clears
+authenticated client state. This bounds the residual window for a compliant starter client; it does not
+retroactively revoke a malicious, suspended, or otherwise non-compliant open socket. A hard security cutoff
+still requires server-side disconnect or transport-owned revocation evidence.
+
+This state prototype does not start Mercure or Reverb, prove native browser SDK behavior, measure reconnect
+jitter or load, establish server-side disconnect, or prove asynchronous post-commit publication. Those
+runtime and worker lanes remain open WF-017 evidence. No production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
