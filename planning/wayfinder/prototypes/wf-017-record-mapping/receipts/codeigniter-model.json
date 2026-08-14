@@ -1,0 +1,35 @@
+{
+    "prototype": "WF-017 record-to-aggregate mapping",
+    "lane": "CodeIgniter Model gateways",
+    "versions": {
+        "codeigniter4/framework": "v4.7.4"
+    },
+    "strategy": "table-focused CodeIgniter Models return row arrays that the repository maps to the aggregate",
+    "relationship_mechanism": "separate Model for the join table; relationship composition remains repository-owned",
+    "fitness": "selected: CodeIgniter documents Model as its ordinary table gateway and it keeps Query Builder available for joins",
+    "observations": {
+        "portable_aggregate_unchanged": true,
+        "framework_record_not_returned": true,
+        "identity_preserved": true,
+        "initial_relationship_round_trip": true,
+        "exact_relationship_replacement": true,
+        "record_types": [
+            "CiUserModel",
+            "CiRoleModel",
+            "CiUserRoleModel"
+        ]
+    },
+    "final_state": {
+        "id": "user-1",
+        "email": "after@example.test",
+        "role_ids": [
+            "role-auditor",
+            "role-editor"
+        ]
+    },
+    "storage_counts": {
+        "users": 1,
+        "roles": 3,
+        "assignments": 2
+    }
+}

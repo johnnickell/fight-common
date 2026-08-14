@@ -1,0 +1,35 @@
+{
+    "prototype": "WF-017 record-to-aggregate mapping",
+    "lane": "Slim Doctrine XML records",
+    "versions": {
+        "doctrine/orm": "3.6.8",
+        "doctrine/dbal": "4.4.4"
+    },
+    "strategy": "adapter-owned Doctrine records mapped explicitly to the portable aggregate",
+    "relationship_mechanism": "Doctrine many-to-many collection and join table",
+    "fitness": "baseline: natural for the established Symfony and Slim composition",
+    "observations": {
+        "portable_aggregate_unchanged": true,
+        "framework_record_not_returned": true,
+        "identity_preserved": true,
+        "initial_relationship_round_trip": true,
+        "exact_relationship_replacement": true,
+        "record_types": [
+            "PrototypeRecordMapping\\Doctrine\\UserRecord",
+            "PrototypeRecordMapping\\Doctrine\\RoleRecord"
+        ]
+    },
+    "final_state": {
+        "id": "user-1",
+        "email": "after@example.test",
+        "role_ids": [
+            "role-auditor",
+            "role-editor"
+        ]
+    },
+    "storage_counts": {
+        "users": 1,
+        "roles": 3,
+        "assignments": 2
+    }
+}
