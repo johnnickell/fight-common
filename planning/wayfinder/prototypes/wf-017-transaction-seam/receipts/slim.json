@@ -26,6 +26,7 @@
         "rollback_exception_propagated": true,
         "closed_after_rollback": true,
         "nested_transaction_rejected": false,
+        "nested_transaction_exception": null,
         "commit_semantics": "natural: EntityManager flushes pending changes"
     }
 }

@@ -51,14 +51,14 @@ function runTransactionProbe(
     prototypeAssert($rollbackException === RuntimeException::class, 'transaction must propagate the application failure');
     prototypeAssert($afterRollback === $afterCommit, 'rollback must leave neither session nor audit residue');
 
-    $nestedRejected = false;
+    $nestedException = null;
     $fresh = $freshUnitOfWork();
     try {
         $fresh->commitTransactional(
             static fn (): mixed => $fresh->commitTransactional(static fn (): string => 'nested'),
         );
-    } catch (Throwable) {
-        $nestedRejected = true;
+    } catch (Throwable $throwable) {
+        $nestedException = $throwable::class;
     }
 
     return [
@@ -76,7 +76,8 @@ function runTransactionProbe(
             'atomic_session_and_audit_rollback' => true,
             'rollback_exception_propagated' => true,
             'closed_after_rollback' => $unitOfWork->isClosed(),
-            'nested_transaction_rejected' => $nestedRejected,
+            'nested_transaction_rejected' => $nestedException !== null,
+            'nested_transaction_exception' => $nestedException,
             'commit_semantics' => $commitSemantics,
         ],
     ];

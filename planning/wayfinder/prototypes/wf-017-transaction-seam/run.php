@@ -16,6 +16,12 @@ $lanes = [
     ['directory' => 'yii', 'receipt' => 'yii.json', 'framework' => null],
     ['directory' => 'codeigniter', 'receipt' => 'codeigniter.json', 'framework' => null],
     ['directory' => 'doctrine', 'receipt' => 'slim.json', 'framework' => 'Slim'],
+    [
+        'directory' => 'doctrine',
+        'receipt' => 'doctrine-guard.json',
+        'framework' => 'Fight Common guard comparison',
+        'guarded' => true,
+    ],
 ];
 
 foreach (array_unique(array_column($lanes, 'directory')) as $directory) {
@@ -35,6 +41,9 @@ foreach ($lanes as $lane) {
     );
     if ($lane['framework'] !== null) {
         $environment .= ' -e PROTOTYPE_FRAMEWORK=' . escapeshellarg($lane['framework']);
+    }
+    if (($lane['guarded'] ?? false) === true) {
+        $environment .= ' -e PROTOTYPE_DOCTRINE_GUARD=1';
     }
 
     run(sprintf(
