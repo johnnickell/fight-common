@@ -291,6 +291,14 @@ AccessControl Domain and Application walking slice in every framework without un
   `AsynchronousCommandBus` and return HTTP 202; a use case that deliberately needs immediate event fan-out
   may request `SynchronousEventDispatcher`. These are explicit composition choices, not invocation-mode
   branches inside AccessControl Application handlers.
+- Keep each framework's authenticated identity as a thin request-scoped credential reference. A starter-owned
+  `CurrentPrincipalProvider` revalidates current account state, authentication version, and session ownership
+  or revocation against authoritative storage once per request, then returns the immutable portable
+  `AuthenticatedPrincipal` snapshot. Shared aggregates implement no framework security interface.
+- Select native principal entry points without adding a shared adapter: Symfony token storage, Laravel's
+  request guard, Yii authentication middleware's request identity, CodeIgniter's authentication-implementation
+  user-ID convention behind a filter/service adapter, and a PSR-15 request attribute in Slim. Missing,
+  disabled, stale-version, revoked-session, and wrong-session-owner identities all fail closed.
 
 The authentication prototype must also prove two simultaneous sessions for one user, self-service listing
 and remote revocation, super-admin revocation through `MANAGE_USER_SESSIONS`, immediate access-token denial
@@ -484,8 +492,32 @@ composition contract and conformance-test concern; the evidence does not justify
 container or framework branch inside portable Application handlers.
 
 This closes the bounded handler-registration composition question, not full framework-kernel cache wiring or
-the complete AccessControl map. HTTP, principal/provider integration, realtime authorization, client behavior,
-and the complete walking slice remain open. No production source changes.
+the complete AccessControl map. HTTP, realtime authorization, client behavior, and the complete walking slice
+remain open. No production source changes.
+
+## Bounded prototype evidence: principal integration
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-principal-integration/` answers the next
+security-boundary question: can all five starter compositions translate their native authenticated request
+identity into the same portable principal while authoritative account and session state remain the source of
+truth? Its locked isolated dependencies, native-boundary candidates, fail-closed scenario matrix, runner, and
+five machine-readable receipts are committed with this ticket.
+
+All five lanes pass. Symfony uses Security Core token storage and a starter-owned `UserInterface` wrapper;
+Laravel uses an Illuminate `RequestGuard`; Yii reads the `IdentityInterface` request attribute established by
+its authentication middleware; CodeIgniter uses its documented authentication-implementation/user-ID
+convention behind a project filter/service; Slim uses a PSR-7 request attribute populated by project PSR-15
+middleware. None makes the shared User aggregate implement a framework interface.
+
+In every lane, the native identity carries only the request credential reference: `UserId`, session identity,
+and authentication-version claim. The unchanged provider reloads authoritative state and returns an immutable
+`AuthenticatedPrincipal` only for the active, current, owned, non-revoked session. Anonymous, missing-user,
+disabled-user, stale-version, revoked-session, and wrong-session-owner scenarios all return no principal.
+
+This selects starter-owned provider adapters and requires no Fight Common adapter or shared-contract change.
+The in-memory lookup is bounded seam evidence, not a complete authentication flow: JWT validation, credential
+login, refresh/cookie behavior, CSRF/CORS, native kernel/filter ordering, authorization policy, HTTP responses,
+realtime credentials, and browser behavior remain open. No production source changes.
 
 ## Resolution boundary
 

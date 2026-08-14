@@ -1,0 +1,32 @@
+{
+    "prototype": "WF-017 principal integration",
+    "framework": "codeigniter",
+    "versions": {
+        "codeigniter4\/framework": "v4.7.4"
+    },
+    "composition": {
+        "native_boundary": "CodeIgniter authentication implementation user_id() convention",
+        "adapter": "starter-owned filter\/service principal provider"
+    },
+    "outcomes": {
+        "valid": {
+            "user_id": "user-1",
+            "authentication_version": 7,
+            "roles": [
+                "ROLE_ADMIN"
+            ],
+            "permissions": [
+                "LIST_USERS"
+            ]
+        },
+        "anonymous": "denied",
+        "missing-user": "denied",
+        "disabled-user": "denied",
+        "stale-authentication-version": "denied",
+        "revoked-session": "denied",
+        "wrong-session-owner": "denied"
+    },
+    "portable_contract": "Prototype\\PrincipalIntegration\\CurrentPrincipalProvider",
+    "portable_value": "Prototype\\PrincipalIntegration\\AuthenticatedPrincipal",
+    "pass": true
+}

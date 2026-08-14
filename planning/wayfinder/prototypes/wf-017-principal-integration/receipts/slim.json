@@ -1,0 +1,33 @@
+{
+    "prototype": "WF-017 principal integration",
+    "framework": "slim",
+    "versions": {
+        "psr\/http-message": "2.0",
+        "nyholm\/psr7": "1.8.2"
+    },
+    "composition": {
+        "native_boundary": "PSR-7 authenticated request attribute",
+        "adapter": "starter-owned PSR-15 middleware principal provider"
+    },
+    "outcomes": {
+        "valid": {
+            "user_id": "user-1",
+            "authentication_version": 7,
+            "roles": [
+                "ROLE_ADMIN"
+            ],
+            "permissions": [
+                "LIST_USERS"
+            ]
+        },
+        "anonymous": "denied",
+        "missing-user": "denied",
+        "disabled-user": "denied",
+        "stale-authentication-version": "denied",
+        "revoked-session": "denied",
+        "wrong-session-owner": "denied"
+    },
+    "portable_contract": "Prototype\\PrincipalIntegration\\CurrentPrincipalProvider",
+    "portable_value": "Prototype\\PrincipalIntegration\\AuthenticatedPrincipal",
+    "pass": true
+}
