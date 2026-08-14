@@ -661,6 +661,34 @@ hub or Reverb server, browser delivery, reconnect policy, two-browser invalidati
 generated TypeScript unions, or schema-drift rejection. Those remain separate WF-017 lanes. No production
 source changes.
 
+## Bounded prototype evidence: client contract generation
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-client-contract-generation/` answers the
+schema-boundary question that follows public realtime publication: can one authoritative OpenAPI document
+generate the HTTP view types consumed by every starter while versioned JSON Schemas generate a discriminated
+realtime-envelope union, and can the client build reject stale committed output? Its pinned Node image,
+locked generation and validation tools, strict TypeScript consumer, drift probe, one-command runner, and five
+machine-readable receipts are committed with this ticket.
+
+The candidate passes. OpenAPI 3.1 generates named `UserView`, pagination, JSend, and users-list route types.
+JSON Schema 2020-12 generates a `RealtimeEnvelope` union discriminated by stable public `event_name` and
+`schema_version` literals. AJV accepts the representative users-page invalidation and current-user lifecycle
+envelopes while rejecting an undeclared domain User identity. A strict TypeScript consumer narrows both
+variants and compiles without a handwritten contract mirror.
+
+Select repository-owned OpenAPI as the authoritative HTTP schema and one versioned JSON Schema union as the
+authoritative public realtime schema. Commit the generated TypeScript for review, regenerate it in the client
+build, and fail on any byte-level difference. The executable drift probe adds a required `display_name` to
+the source `UserView`, observes changed TypeScript, and proves the stale-output check fails. All five receipts
+record identical generated-file SHA-256 digests, so framework-native actions and transports do not own
+independent client types. This requires no Fight Common runtime abstraction or production source change.
+
+This evidence covers only the already-prototyped users-list view and candidate users-page/current-user topic
+families. The current-user public event name and payload remain candidate inputs until their implementation
+slice. Runtime request/response validation, complete AccessControl schemas, API-client generation, React,
+running Mercure/Reverb delivery, browser reconnect, two-browser invalidation/refetch, and asynchronous
+post-commit delivery remain open WF-017 lanes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam

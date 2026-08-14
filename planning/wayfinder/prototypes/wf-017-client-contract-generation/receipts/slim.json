@@ -1,0 +1,30 @@
+{
+    "prototype": "WF-017 client contract generation",
+    "framework": "slim",
+    "authoritative_sources": [
+        "OpenAPI 3.1",
+        "JSON Schema 2020-12"
+    ],
+    "packages": {
+        "ajv": "8.20.0",
+        "ajv-formats": "3.0.1",
+        "json-schema-to-typescript": "14.0.0",
+        "openapi-typescript": "7.12.0",
+        "typescript": "5.9.3"
+    },
+    "generated": {
+        "http": "generated/http.ts",
+        "http_sha256": "ba0351036a6491d362d4a402fae2f035c3192a259a7b5ff5eff2284d0ffad81d",
+        "realtime": "generated/realtime.ts",
+        "realtime_sha256": "c8e413ac8b27a2a11aba5d1938dd721327d9b155301aa53c271d70ca68465d6b"
+    },
+    "scenarios": {
+        "named_user_view_generated": true,
+        "realtime_discriminated_union_generated": true,
+        "valid_public_envelopes_accepted": true,
+        "leaked_domain_field_rejected": true,
+        "source_schema_drift_rejected": true,
+        "generated_types_compile": true
+    },
+    "result": "passed"
+}
