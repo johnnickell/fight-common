@@ -1,0 +1,60 @@
+{
+    "prototype": "WF-017 native HTTP action",
+    "framework": "Yii",
+    "versions": {
+        "yiisoft\/http": "1.3.0",
+        "nyholm\/psr7": "1.8.2"
+    },
+    "composition": {
+        "route": "Yiisoft Router GET route action",
+        "response": "Psr\\Http\\Message\\ResponseInterface backed by Nyholm PSR-7",
+        "jsend": "starter-owned response mapper"
+    },
+    "portable_handler": "Prototype\\HttpAction\\ListUsersQueryHandler",
+    "portable_outcome": "Prototype\\HttpAction\\ListUsersOutcome",
+    "responses": {
+        "authorized": {
+            "class": "Nyholm\\Psr7\\Response",
+            "status": 200,
+            "content_type": "application\/json",
+            "body": {
+                "status": "success",
+                "data": {
+                    "users": [
+                        {
+                            "id": "user-1",
+                            "display_name": "Ada"
+                        },
+                        {
+                            "id": "user-2",
+                            "display_name": "Grace"
+                        }
+                    ]
+                }
+            }
+        },
+        "unauthenticated": {
+            "class": "Nyholm\\Psr7\\Response",
+            "status": 401,
+            "content_type": "application\/json",
+            "body": {
+                "status": "fail",
+                "data": {
+                    "code": "authentication_required"
+                }
+            }
+        },
+        "forbidden": {
+            "class": "Nyholm\\Psr7\\Response",
+            "status": 403,
+            "content_type": "application\/json",
+            "body": {
+                "status": "fail",
+                "data": {
+                    "code": "forbidden"
+                }
+            }
+        }
+    },
+    "pass": true
+}
