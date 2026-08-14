@@ -1,0 +1,10 @@
+{
+    "name": "fight/prototype-wf017-yii-migrations",
+    "description": "PROTOTYPE - disposable WF-017 Yii migration evidence",
+    "require": {
+        "php": ">=8.5",
+        "symfony/cache": "^8.0",
+        "yiisoft/db-mysql": "^2.0",
+        "yiisoft/db-pgsql": "^2.0"
+    }
+}
