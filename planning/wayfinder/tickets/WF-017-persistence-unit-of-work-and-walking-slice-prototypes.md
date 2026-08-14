@@ -779,6 +779,40 @@ running Mercure or Reverb delivery, reconnect jitter, process supervision, multi
 email recovery. It narrows the post-commit crash gap rather than selecting a general outbox. No production
 source changes.
 
+## Bounded prototype evidence: durable security-email recovery
+
+The self-contained logic prototype at
+`planning/wayfinder/prototypes/wf-017-durable-email-recovery/index.html` answers the durability question left
+by the post-commit crash-gap policy: how can an invitation or other required security email remain
+discoverable, retry safely, expire terminally, and be replaced without relying on a successfully dispatched
+queue event? It opens directly in a browser, exposes the complete grant, delivery, queue, worker, provider,
+and audit state after every action, and provides guided lost-dispatch, bounded-retry, terminal-expiry, and
+safe-resend walkthroughs plus free-play controls.
+
+The state model passes with the pending delivery obligation committed atomically beside the purpose-bound
+grant digest, business mutation, and required audit record. The delivery stores the raw credential only as
+authenticated ciphertext under an external key. A post-commit event or recovery scan enqueues only the opaque
+delivery identity, so the queue message is a wake-up hint rather than the durable source of work. Losing that
+hint cannot lose the committed obligation: a recovery scan finds due records, and a compare-and-set bounded
+lease prevents duplicate wake-ups from producing concurrent sends.
+
+Select at-least-once delivery semantics rather than claiming exactly-once email. Success acknowledges the
+delivery and destroys its ciphertext. Transient failure retains a discoverable retryable record; bounded
+automatic attempts may enter an operator-visible dead-letter state without silently re-entering automatic
+retry. Terminal grant expiry marks the delivery expired and destroys its ciphertext. A provider may accept a
+message immediately before the worker crashes, so a later attempt can send an equivalent duplicate containing
+the same one-time credential. The stable delivery identity may serve as a provider idempotency key where
+supported, but correctness depends on purpose binding and atomic grant consumption rather than provider
+deduplication.
+
+Activation resend is one atomic replacement operation. It revokes the predecessor grant and delivery,
+destroys the predecessor ciphertext, and creates an unrelated grant, credential, and delivery without
+duplicating the pending user or claiming the earlier send succeeded. A delayed predecessor job loads terminal
+state and no-ops. The exact lease interval, retry schedule, attempt bound, framework queue, worker command,
+failure-store representation, process supervision, and real mail-adapter behavior remain consumer-owned
+runtime prototype lanes; the values in this state model are illustrative rather than support guarantees. No
+production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
