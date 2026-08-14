@@ -264,9 +264,9 @@ AccessControl Domain and Application walking slice in every framework without un
   uses explicit PHP-DI definitions and performs no per-request classpath scanning. Laravel and Symfony may
   use native discovery or autoconfiguration when their prototypes prove the resulting routes remain visible
   and deterministic; Yii and CodeIgniter likewise use the smallest idiomatic project-owned composition.
-- Treat `UnitOfWork::commitTransactional()` as the portable center. The callback contains the complete
+- Treat `TransactionalUnitOfWork::commitTransactional()` as the portable center. The callback contains the complete
   mutation and its required audit write. New portable Application code does not depend on `commit()`.
-- Preserve `UnitOfWork::isClosed()` with one portable meaning: it reports that the unit of work is
+- Preserve `TransactionalUnitOfWork::isClosed()` with one portable meaning: it reports that the unit of work is
   terminally unable to accept another operation. Transaction rollback alone does not imply closure.
 - Do not support nested `commitTransactional()` calls. A nested call fails explicitly rather than
   depending on framework-specific savepoint or nesting behavior.
@@ -368,6 +368,30 @@ required by `commit()` portability, not by Doctrine's nesting behavior.
 The receipts use SQLite for fast deterministic proof. PostgreSQL and MySQL/MariaDB parity, aggregate and
 relationship hydration, concurrency, HTTP, principal integration, realtime authorization, the React client,
 and the remaining AccessControl behaviors are still open WF-017 prototype lanes.
+
+## Bounded prototype evidence: additive transaction contract split
+
+The retained `prototype/wf-017-transactional-uow-split` branch answers the follow-up compatibility question:
+can the additive 1.x `TransactionalUnitOfWork` split preserve legacy Doctrine consumers while allowing native
+record adapters to omit `commit()` entirely? Its one-command runner, candidate contracts, real framework
+adapters, and five machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-transactional-uow-split/` on that branch.
+
+The comparison passes in all five starter compositions. One portable Application function type-hints only
+`TransactionalUnitOfWork`, preserves the callback result, and atomically commits the session mutation and
+audit write through Doctrine ORM 3.6, Illuminate Database 13, Yii DB 2, and CodeIgniter Database 4. Doctrine's
+candidate adapter also implements legacy `UnitOfWork`; an unchanged legacy consumer successfully calls
+`commit()` to flush pending state. The Laravel, Yii, and CodeIgniter candidates implement only
+`TransactionalUnitOfWork`, are not instances of legacy `UnitOfWork`, and expose no `commit()` method.
+
+This confirms a source-compatible additive 1.x contract change, not an unchanged contract: add
+`TransactionalUnitOfWork` with `commitTransactional()` and `isClosed()`, then make legacy
+`UnitOfWork extends TransactionalUnitOfWork` while retaining deprecated `commit()` and Doctrine behavior
+through 1.x. Existing
+`UnitOfWork` consumers keep their method surface; new portable consumers and record adapters depend on the
+narrower port. Remove `commit()` with the legacy contract in 2.0. Framework container alias compatibility is
+an implementation concern still requiring focused production tests; the prototype changes no production
+source.
 
 ## Resolution boundary
 
