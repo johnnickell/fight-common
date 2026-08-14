@@ -1,0 +1,25 @@
+{
+    "name": "fight/prototype-wf017-realtime-authorization",
+    "description": "PROTOTYPE - disposable WF-017 realtime authorization evidence",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.5",
+        "codeigniter4/framework": "^4.7",
+        "illuminate/broadcasting": "^13.0",
+        "illuminate/http": "^13.0",
+        "nyholm/psr7": "^1.8",
+        "pusher/pusher-php-server": "^7.2",
+        "symfony/http-foundation": "^8.0"
+    },
+    "autoload": {
+        "files": ["shared.php"]
+    },
+    "config": {
+        "allow-plugins": false,
+        "platform": {
+            "php": "8.5.0"
+        },
+        "sort-packages": true
+    }
+}

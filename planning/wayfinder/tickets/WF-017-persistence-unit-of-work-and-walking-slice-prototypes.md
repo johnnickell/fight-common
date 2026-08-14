@@ -289,6 +289,15 @@ AccessControl Domain and Application walking slice in every framework without un
   Replace the alpha with a stable 1.0 hub and rerun the receipt before publishing a supported starter. The
   compatible PHP integration version remains a prototype finding. Laravel retains its accepted native Reverb
   private-channel composition.
+- For Symfony, Yii, CodeIgniter, and Slim, reverse-proxy the Mercure hub under the application origin and mint
+  a short-lived exact-topic subscription credential only after revalidating the authoritative principal. The
+  starter action sets the Mercure 1.0 `__Secure-mercure_access_token` cookie as `Secure`, `HttpOnly`,
+  `SameSite=Strict`, and scoped to `/.well-known/mercure`; no cross-origin cookie or CORS composition is needed
+  for the default. Use 60 seconds as the prototype credential lifetime pending browser reconnect evidence.
+- Keep Laravel on its native `/broadcasting/auth` Reverb/Pusher private-channel response. Both realtime
+  compositions deny the next authorization or renewal immediately after authoritative session revocation.
+  Neither endpoint retroactively terminates an already accepted credential or open socket, so server-side
+  disconnect or a bounded reconnect policy remains an explicit later prototype question.
 - Default project composition to `SynchronousCommandBus` for commands and `AsynchronousEventDispatcher` for
   domain events. A controller that deliberately accepts work for later processing may request
   `AsynchronousCommandBus` and return HTTP 202; a use case that deliberately needs immediate event fan-out
@@ -579,6 +588,35 @@ selection.
 This closes the hub protocol/version question, not framework-native publishing adapters, subscriber-token
 cookie responses, trusted origin and cookie attributes, CORS, reconnect/recovery, two-browser invalidation,
 public envelope schemas, Laravel Reverb, or client refetch behavior. No production source changes.
+
+## Bounded prototype evidence: realtime subscription authorization
+
+The retained `prototype/wf-017-realtime-authorization` branch answers the credential-boundary question that
+follows the Mercure version probe: can all five starter compositions authorize the same `LIST_USERS` page
+subscription from a freshly revalidated principal, deliver the credential through their selected native
+boundary, reject unapproved topics, and deny the next authorization immediately after authoritative session
+revocation? Its framework-neutral decision, native response candidates, locked dependencies, one-command
+runner, and five machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-realtime-authorization/` on that branch.
+
+All five lanes pass. Symfony, Yii, CodeIgniter, and Slim mint a Mercure 1.0 OAuth 2 access token containing one
+exact `subscribe` match and return it through their selected native response type as the secure hub cookie.
+The default same-origin reverse proxy keeps that credential out of response bodies and avoids a cross-origin
+cookie/CORS dependency. Laravel uses Illuminate's native `PusherBroadcaster` authorization path for the
+selected Reverb private channel; the receipt independently verifies the returned Pusher-protocol signature.
+Framework request and response types remain outside the shared authorization decision.
+
+Anonymous requests and unapproved topics receive no credential. After the session is revoked in authoritative
+storage, every lane denies the next renewal or private-channel authorization. The already-issued Mercure token
+still verifies for the remainder of its bounded 60-second lifetime, and a Reverb socket already authorized is
+not disconnected by a later HTTP denial. This selects credential delivery but deliberately leaves open the
+browser reconnect/recovery and server-side disconnect policy needed to characterize or shorten the residual
+open-connection window.
+
+This evidence does not start Reverb, publish an event, prove post-commit delivery, define the public realtime
+envelope, generate client types, or exercise two-browser invalidation and authoritative refetch. Those remain
+separate WF-017 lanes. No Fight Common or Fight AccessControl contract change is justified, and no production
+source changes.
 
 ## Resolution boundary
 
