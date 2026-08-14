@@ -1,0 +1,59 @@
+{
+    "prototype": "WF-017 login transaction slice",
+    "framework": "Laravel",
+    "versions": {
+        "illuminate/database": "v13.25.0",
+        "illuminate/http": "v13.25.0"
+    },
+    "portable_handler": "Prototype\\LoginTransactionSlice\\LoginHandler",
+    "native_transaction_adapter": "Laravel database transaction",
+    "scenarios": {
+        "successful_login": {
+            "class": "Illuminate\\Http\\JsonResponse",
+            "status": 200,
+            "headers": {
+                "content-type": "application/json",
+                "set-cookie": "refresh=prototype-opaque-refresh-token; path=/api/v1/access/session; secure; httponly; samesite=strict"
+            },
+            "body": {
+                "status": "success",
+                "data": {
+                    "access_token": "prototype.access.jwt",
+                    "expires_in": 900
+                }
+            }
+        },
+        "invalid_credentials": {
+            "class": "Illuminate\\Http\\JsonResponse",
+            "status": 401,
+            "headers": {
+                "content-type": "application/json",
+                "set-cookie": ""
+            },
+            "body": {
+                "status": "fail",
+                "data": {
+                    "code": "invalid_credentials"
+                }
+            }
+        },
+        "forced_audit_failure": {
+            "exception": "forced audit failure",
+            "state_after_rollback": {
+                "sessions": 1,
+                "audits": 1
+            }
+        },
+        "nested_transaction_rejected": true
+    },
+    "observations": {
+        "canonical_email_lookup": true,
+        "password_verified_before_transaction": true,
+        "session_and_audit_atomic": true,
+        "refresh_cookie_http_only": true,
+        "refresh_cookie_secure": true,
+        "refresh_cookie_same_site_strict": true,
+        "generic_invalid_credentials": true
+    },
+    "pass": true
+}
