@@ -1,0 +1,40 @@
+{
+    "framework": "Slim",
+    "versions": {
+        "php-di\/php-di": "7.1.1"
+    },
+    "composition": {
+        "style": "explicit PHP-DI definitions",
+        "scan": "none",
+        "autowiring": false
+    },
+    "resolved_map": {
+        "commands": {
+            "Prototype\\HandlerComposition\\LoginCommand": "Prototype\\HandlerComposition\\LoginCommandHandler"
+        },
+        "queries": {
+            "Prototype\\HandlerComposition\\CurrentSessionQuery": "Prototype\\HandlerComposition\\CurrentSessionQueryHandler"
+        },
+        "events": {
+            "Prototype\\HandlerComposition\\UserRegistered": [
+                "Prototype\\HandlerComposition\\UserRegisteredSubscriber"
+            ]
+        }
+    },
+    "dispatch": {
+        "command": "login-command-handled",
+        "query": "current-session-query-handled",
+        "event": "received:Prototype\\HandlerComposition\\UserRegistered"
+    },
+    "boot_failures": {
+        "missing": "Missing command registration for \"Prototype\\HandlerComposition\\LoginCommand\".",
+        "ambiguous": "Ambiguous command handler for \"Prototype\\HandlerComposition\\LoginCommand\": \"Prototype\\HandlerComposition\\LoginCommandHandler\" and \"Prototype\\HandlerComposition\\DuplicateLoginCommandHandler\".",
+        "duplicate-subscriber": "Duplicate event subscriber registration \"Prototype\\HandlerComposition\\UserRegisteredSubscriber\"."
+    },
+    "portable_application_classes": [
+        "Prototype\\HandlerComposition\\LoginCommandHandler",
+        "Prototype\\HandlerComposition\\CurrentSessionQueryHandler",
+        "Prototype\\HandlerComposition\\UserRegisteredSubscriber"
+    ],
+    "pass": true
+}
