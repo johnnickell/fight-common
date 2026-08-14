@@ -328,6 +328,35 @@ Account-state tests prove disabled-user reset without enablement or session crea
 change with disablement cancellation, and atomic pending-invitation correction that revokes the predecessor
 grant/delivery and issues an unrelated fresh credential.
 
+## Bounded prototype evidence: transaction center
+
+The retained `prototype/wf-017-transaction-seam` branch answers one question only: can the unchanged
+`UnitOfWork::commitTransactional()` callback contain a session mutation and its required audit write across
+all five selected framework compositions? The runnable source, isolated dependency locks, one-command runner,
+and five machine-readable receipts live under
+`planning/wayfinder/prototypes/wf-017-transaction-seam/` on that branch.
+
+The SQLite evidence passes callback-result preservation, atomic commit, forced rollback, and exception
+propagation for Symfony and Slim through Doctrine ORM 3.6/XML mapping, Laravel through its native database
+transaction, Yii through Yii DB, and CodeIgniter through a manual native transaction with explicit status
+checks. This is sufficient evidence that the callback method is the portable transaction center; it does not
+authorize a `UnitOfWork` signature change.
+
+The experiment also records two narrower findings:
+
+- record-oriented Laravel, Yii, and CodeIgniter adapters have no natural pending-change meaning for
+  `commit()` because their repository writes execute immediately; implementing the documented semantics
+  would require buffering or an invented identity map. This is executable evidence for the already bounded
+  deprecation decision, not permission to remove the 1.x method;
+- the current `DoctrineUnitOfWork` permits a nested `commitTransactional()` call, while the three disposable
+  native adapters reject nesting explicitly. The Doctrine lane therefore fails the accepted nesting policy.
+  Resolve that behavior through the smallest Fight Common implementation ticket before advancing to the next
+  shared walking slice; no public interface change is required by this evidence.
+
+The receipts use SQLite for fast deterministic proof. PostgreSQL and MySQL/MariaDB parity, aggregate and
+relationship hydration, concurrency, HTTP, principal integration, realtime authorization, the React client,
+and the remaining AccessControl behaviors are still open WF-017 prototype lanes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam

@@ -1,0 +1,15 @@
+{
+    "name": "fight/prototype-wf017-doctrine",
+    "description": "PROTOTYPE - disposable WF-017 Doctrine transaction evidence",
+    "require": {
+        "php": ">=8.5",
+        "doctrine/orm": "^3.6",
+        "symfony/cache": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fight\\Common\\": "../../../../../src/",
+            "Prototype\\": "src/"
+        }
+    }
+}

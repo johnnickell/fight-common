@@ -1,0 +1,13 @@
+{
+    "name": "fight/prototype-wf017-laravel",
+    "description": "PROTOTYPE - disposable WF-017 Laravel transaction evidence",
+    "require": {
+        "php": ">=8.5",
+        "illuminate/database": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fight\\Common\\": "../../../../../src/"
+        }
+    }
+}
