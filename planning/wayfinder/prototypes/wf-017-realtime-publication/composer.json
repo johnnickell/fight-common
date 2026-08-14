@@ -1,0 +1,24 @@
+{
+    "name": "fight/prototype-wf017-realtime-publication",
+    "description": "PROTOTYPE - disposable WF-017 private realtime publication evidence",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.5",
+        "codeigniter4/framework": "^4.7",
+        "guzzlehttp/guzzle": "^7.10",
+        "illuminate/broadcasting": "^13.0",
+        "pusher/pusher-php-server": "^7.2",
+        "symfony/mercure": "^0.7"
+    },
+    "autoload": {
+        "files": ["shared.php"]
+    },
+    "config": {
+        "allow-plugins": false,
+        "platform": {
+            "php": "8.5.0"
+        },
+        "sort-packages": true
+    }
+}

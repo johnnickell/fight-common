@@ -1,0 +1,33 @@
+{
+    "prototype": "WF-017 private realtime publication",
+    "framework": "laravel",
+    "packages": {
+        "illuminate/broadcasting": "v13.25.0",
+        "pusher/pusher-php-server": "7.3.0"
+    },
+    "transport": "Laravel native Pusher broadcaster for Reverb",
+    "channel": "private-users.page",
+    "event": "access.users.invalidated",
+    "native_request_composed": true,
+    "post_commit_probe": true,
+    "envelope": {
+        "message_id": "018f4f5a-2266-7d1f-b965-a783bbd5c102",
+        "event_name": "access.user.deleted",
+        "schema_version": 1,
+        "occurred_at": "2026-08-14T08:15:30.123456Z",
+        "topic": "private-users.page",
+        "payload": {
+            "invalidate": "access.users.page"
+        },
+        "metadata": {
+            "correlation_id": "corr-017"
+        }
+    },
+    "leak_checks": {
+        "php_fqcn": false,
+        "domain_user_id": false,
+        "internal_reason": false,
+        "arbitrary_metadata": false
+    },
+    "result": "passed"
+}

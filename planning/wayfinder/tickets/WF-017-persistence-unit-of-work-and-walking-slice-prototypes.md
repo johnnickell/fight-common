@@ -298,6 +298,16 @@ AccessControl Domain and Application walking slice in every framework without un
   compositions deny the next authorization or renewal immediately after authoritative session revocation.
   Neither endpoint retroactively terminates an already accepted credential or open socket, so server-side
   disconnect or a bounded reconnect policy remains an explicit later prototype question.
+- Preserve Fight Common's existing two-argument `Publisher` contract for public updates and add a separate
+  framework-neutral `PrivatePublisher::pushPrivate(topic, message)` port for authorized realtime publication.
+  The current `MercureHubPublisher` always constructs a public update, and adding a privacy argument to its
+  existing interface would break third-party implementors. A Mercure private adapter sets the native private
+  flag; Laravel owns a project adapter over its native Pusher/Reverb broadcaster.
+- Keep public realtime transformation in the consuming AccessControl Application layer. One transformer per
+  explicitly publishable domain event owns its stable public event name and schema, accepts only its declared
+  topic family, and emits the versioned public envelope. Framework composition supplies the authorized
+  transport address. A users-page invalidation carries no User identity or domain-event fields and allowlists
+  only correlation identity from message metadata.
 - Default project composition to `SynchronousCommandBus` for commands and `AsynchronousEventDispatcher` for
   domain events. A controller that deliberately accepts work for later processing may request
   `AsynchronousCommandBus` and return HTTP 202; a use case that deliberately needs immediate event fan-out
@@ -616,6 +626,39 @@ open-connection window.
 This evidence does not start Reverb, publish an event, prove post-commit delivery, define the public realtime
 envelope, generate client types, or exercise two-browser invalidation and authoritative refetch. Those remain
 separate WF-017 lanes. No Fight Common or Fight AccessControl contract change is justified, and no production
+source changes.
+
+## Bounded prototype evidence: private realtime publication
+
+The retained evidence under `planning/wayfinder/prototypes/wf-017-realtime-publication/` answers the next
+publication question: can one committed `UserDeleted` event become the same minimal, versioned users-page
+invalidation in all five starter compositions and publish privately through Mercure or Laravel Reverb without
+serializing PHP classes, arbitrary metadata, or domain state? Its isolated dependency lock, shared transformer
+and subscriber, native transport candidates, one-command runner, and five machine-readable receipts are
+committed with this ticket.
+
+All five lanes pass. Symfony, Yii, CodeIgniter, and Slim use Symfony Mercure 0.7.2 against an in-process native
+hub double. The runner first exercises Fight Common's live `MercureHubPublisher` and proves that its existing
+`push(topic, message)` path creates a public update. The additive candidate then publishes the same envelope
+to the exact authorized topic with Mercure's private flag set. Laravel 13.25.0 delegates through its native
+`PusherBroadcaster`; the receipt records and independently inspects the signed Pusher/Reverb event request,
+private channel, stable event name, and envelope body.
+
+The shared `UserDeletedTransformer` owns public event name `access.user.deleted`, schema version one, and the
+`access.users.page` topic family. Its envelope preserves message identity and occurrence time, carries only an
+authoritative-refetch invalidation, and allowlists `correlation_id`. The executable leak checks prove that the
+domain User identity, private administrative reason, PHP event FQCN, causation identity, and trace metadata do
+not reach either transport. An unapproved topic family fails before publication.
+
+This evidence rejects a change to the existing `Publisher` signature and selects the smallest additive port:
+`PrivatePublisher::pushPrivate(string $topic, string $message): void`. Existing public publishers and consumers
+remain source-compatible. A future Fight Common implementation ticket may add the port and Mercure adapter;
+the Laravel implementation remains starter-owned because Reverb is the selected native composition.
+
+The runner invokes the subscriber only after a deterministic commit probe and shows that a later transport
+failure cannot undo committed state. It does not prove an asynchronous worker, durable retry, outbox, running
+hub or Reverb server, browser delivery, reconnect policy, two-browser invalidation/refetch, JSON Schema,
+generated TypeScript unions, or schema-drift rejection. Those remain separate WF-017 lanes. No production
 source changes.
 
 ## Resolution boundary
