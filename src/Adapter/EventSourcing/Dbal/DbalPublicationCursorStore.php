@@ -30,7 +30,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
     {
         $cursor = $this->connection->fetchOne(
             'SELECT global_position FROM publication_cursors WHERE publication_name = ?',
-            [$publicationName],
+            [$publicationName]
         );
 
         return false === $cursor ? 0 : (int) $cursor;
@@ -48,7 +48,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
                 'Publication cursor %s cannot move backward from %d to %d.',
                 $publicationName,
                 $cursor,
-                $globalPosition,
+                $globalPosition
             ));
         }
 
@@ -74,7 +74,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
                 'Publication cursor %s cannot move backward from %d to %d.',
                 $publicationName,
                 $cursor,
-                $globalPosition,
+                $globalPosition
             ));
         }
     }
@@ -92,7 +92,7 @@ final readonly class DbalPublicationCursorStore implements PublicationCursorStor
                 SET global_position = ?
                 WHERE publication_name = ? AND global_position <= ?
                 SQL,
-            [$globalPosition, $publicationName, $globalPosition],
+            [$globalPosition, $publicationName, $globalPosition]
         );
     }
 }

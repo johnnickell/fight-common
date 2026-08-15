@@ -29,7 +29,7 @@ final readonly class EventMapping
         private string $localName,
         private string $eventClass,
         private int $currentSchemaVersion,
-        iterable $upcasters = [],
+        iterable $upcasters = []
     ) {
         $this->upcasters = [...$upcasters];
     }

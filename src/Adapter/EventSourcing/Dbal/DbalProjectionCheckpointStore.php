@@ -30,7 +30,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     {
         $checkpoint = $this->connection->fetchOne(
             'SELECT global_position FROM projection_checkpoints WHERE projector_name = ?',
-            [$projectorName],
+            [$projectorName]
         );
 
         return false === $checkpoint ? 0 : (int) $checkpoint;
@@ -48,7 +48,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
                 'Projection checkpoint %s cannot move backward from %d to %d.',
                 $projectorName,
                 $checkpoint,
-                $globalPosition,
+                $globalPosition
             ));
         }
 
@@ -74,7 +74,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
                 'Projection checkpoint %s cannot move backward from %d to %d.',
                 $projectorName,
                 $checkpoint,
-                $globalPosition,
+                $globalPosition
             ));
         }
     }
@@ -88,7 +88,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
             0 === $this->connection->update(
                 'projection_checkpoints',
                 ['global_position' => 0],
-                ['projector_name' => $projectorName],
+                ['projector_name' => $projectorName]
             )
         ) {
             try {
@@ -100,7 +100,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
                 $this->connection->update(
                     'projection_checkpoints',
                     ['global_position' => 0],
-                    ['projector_name' => $projectorName],
+                    ['projector_name' => $projectorName]
                 );
             }
         }
@@ -119,7 +119,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
                 SET global_position = ?
                 WHERE projector_name = ? AND global_position <= ?
                 SQL,
-            [$globalPosition, $projectorName, $globalPosition],
+            [$globalPosition, $projectorName, $globalPosition]
         );
     }
 }

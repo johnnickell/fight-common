@@ -97,7 +97,7 @@ final class InMemoryEventStore implements EventStore
                 $mappedEvent->data(),
                 $message->id(),
                 $message->timestamp()->setTimezone(new DateTimeZone('UTC')),
-                $message->meta()->toArray(),
+                $message->meta()->toArray()
             );
         }
     }
@@ -181,7 +181,7 @@ final class InMemoryEventStore implements EventStore
             $record->data(),
             $record->messageId(),
             $record->timestamp(),
-            Meta::create($record->meta()),
+            Meta::create($record->meta())
         );
 
         return new StoredEvent(
@@ -190,7 +190,7 @@ final class InMemoryEventStore implements EventStore
             $record->schemaVersion(),
             $record->streamVersion(),
             $record->globalPosition(),
-            $message,
+            $message
         );
     }
 }

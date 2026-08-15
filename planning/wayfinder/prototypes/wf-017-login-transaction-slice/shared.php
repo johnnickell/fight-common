@@ -40,8 +40,8 @@ final class NativeTransactionalUnitOfWork
 
 enum LoginDecision: string
 {
-    case Authenticated = 'authenticated';
-    case InvalidCredentials = 'invalid_credentials';
+    case AUTHENTICATED = 'authenticated';
+    case INVALID_CREDENTIALS = 'invalid_credentials';
 }
 
 final readonly class LoginOutcome
@@ -73,7 +73,7 @@ final readonly class LoginHandler
     {
         $user = ($this->findUser)(canonicalEmail($email));
         if ($user === null || $user['state'] !== 'ACTIVE' || !password_verify($password, $user['password_hash'])) {
-            return new LoginOutcome(LoginDecision::InvalidCredentials);
+            return new LoginOutcome(LoginDecision::INVALID_CREDENTIALS);
         }
 
         return $this->unitOfWork->commitTransactional(function () use ($user): LoginOutcome {
@@ -81,7 +81,7 @@ final readonly class LoginHandler
             ($this->insertAudit)($this->auditId, $user['id']);
 
             return new LoginOutcome(
-                LoginDecision::Authenticated,
+                LoginDecision::AUTHENTICATED,
                 'prototype.access.jwt',
                 'prototype-opaque-refresh-token',
             );
@@ -198,7 +198,7 @@ function prototypeAssert(bool $condition, string $message): void
 /** @return array{status: int, body: array<string, mixed>, cookie: ?string} */
 function responseParts(LoginOutcome $outcome): array
 {
-    if ($outcome->decision === LoginDecision::InvalidCredentials) {
+    if ($outcome->decision === LoginDecision::INVALID_CREDENTIALS) {
         return [
             'status' => 401,
             'body' => ['status' => 'fail', 'data' => ['code' => 'invalid_credentials']],

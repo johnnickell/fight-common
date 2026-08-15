@@ -40,7 +40,7 @@ final readonly class InMemoryEventRecord
         private array $data,
         private MessageId $messageId,
         DateTimeImmutable $timestamp,
-        private array $meta,
+        private array $meta
     ) {
         $this->timestamp = $timestamp->setTimezone(new DateTimeZone('UTC'));
     }

@@ -42,7 +42,7 @@ final readonly class EventPublicationFailure
         private int $globalPosition,
         private MessageId $messageId,
         private DateTimeImmutable $dispatchStartedAt,
-        private array $handlerFailures,
+        private array $handlerFailures
     ) {
     }
 
@@ -53,13 +53,13 @@ final readonly class EventPublicationFailure
         string $publicationName,
         StoredEvent $storedEvent,
         DateTimeImmutable $dispatchStartedAt,
-        EventDispatchFailed $dispatchFailure,
+        EventDispatchFailed $dispatchFailure
     ): self {
         return new self(
             $publicationName,
             new StreamId(
                 $storedEvent->streamId()->aggregateName(),
-                $storedEvent->streamId()->identifier(),
+                $storedEvent->streamId()->identifier()
             ),
             $storedEvent->eventName(),
             $storedEvent->schemaVersion(),
@@ -69,8 +69,8 @@ final readonly class EventPublicationFailure
             $dispatchStartedAt->setTimezone(new DateTimeZone('UTC')),
             array_map(
                 EventPublicationHandlerFailure::fromHandlerFailure(...),
-                $dispatchFailure->failures(),
-            ),
+                $dispatchFailure->failures()
+            )
         );
     }
 
