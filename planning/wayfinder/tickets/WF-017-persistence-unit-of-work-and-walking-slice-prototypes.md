@@ -924,6 +924,34 @@ framework branch; each starter composes it before native authorization. Deployme
 framework middleware ordering, refresh-cookie CSRF/Origin handling, five booted kernels, browser automation,
 and human UAT remain separate WF-017 lanes.
 
+## Bounded prototype evidence: refresh-cookie request security
+
+The executable runtime prototype under
+`planning/wayfinder/prototypes/wf-017-refresh-cookie-request-security/` answers the next browser-credential
+question: can refresh and logout enforce one fail-closed request policy through the five native request
+boundaries without trusting forwarded host input, permissive credentialed CORS, or sibling subdomains? Its
+locked isolated dependencies, shared decision, native request adapters, runner, and five machine-readable
+receipts are committed with this ticket.
+
+All five lanes pass. A refresh or logout request must use `POST` with JSON, carry the opaque refresh cookie,
+and present an `Origin` that exactly matches the explicitly configured application origin. When
+`Sec-Fetch-Site` is present it must also be `same-origin`; exact origin remains required when Fetch Metadata
+is absent. Same-site sibling, cross-site, missing-origin, null-origin, forwarded-host spoof, form-content, and
+safe-method attempts fail closed before credential rotation. A valid same-origin request without the cookie
+is then unauthenticated.
+
+Select a host-only `__Host-fight_refresh` cookie with `Path=/`, `Secure`, `HttpOnly`, `SameSite=Strict`, and no
+`Domain`; preserve those attributes when clearing it. Refresh and logout remain same-origin browser endpoints
+with no credentialed cross-origin CORS. Resolve the trusted application origin from explicit project
+configuration, never from `Host` or `X-Forwarded-Host`. Laravel 13's native origin-only request-forgery mode
+supplies its first layer, while a small starter guard preserves the stricter exact-origin rule shared with the
+other native middleware/filter pipelines. No Fight Common runtime abstraction is justified.
+
+This is native request-object seam evidence, not five booted kernels. Native middleware ordering, browser
+cookie behavior, TLS termination, trusted-proxy framework configuration, response CORS headers, real refresh
+rotation, database locking, local-development HTTPS, browser automation, fake credentials, and human UAT
+remain executable consumer-project lanes. No production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam

@@ -1,0 +1,24 @@
+{
+    "name": "fight/prototype-wf017-refresh-cookie-request-security",
+    "description": "PROTOTYPE - disposable WF-017 refresh-cookie request-security evidence",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.5",
+        "codeigniter4/framework": "^4.7",
+        "illuminate/http": "^13.0",
+        "nyholm/psr7": "^1.8",
+        "symfony/http-foundation": "^8.0"
+    },
+    "autoload": {
+        "files": ["shared.php"]
+    },
+    "config": {
+        "allow-plugins": false,
+        "platform": {
+            "php": "8.5.0"
+        },
+        "sort-packages": true
+    }
+}
+
