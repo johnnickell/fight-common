@@ -94,30 +94,31 @@ audited every public Application contract, and produced repository-owned impleme
   invocation-neutral delivery handlers, required security-audit durability, private realtime authorization,
   and the complete starter/client security profile. The decisions are recorded in
   [ADR 0022](../adr/0022-invited-registration-and-multi-session-jwt-authentication.md) and supported by the
-  linked research note; WF-017 owns prototype proof rather than revisiting the approved model.
+  linked research note.
+- [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
+  proved the risky persistence, transaction, composition, principal, HTTP, JWT, refresh, realtime, queue,
+  and client-contract seams through bounded disposable evidence. Its decision record and Git evidence ledger
+  are retained; nested prototype projects were removed after closure. Booted framework applications and
+  browser/runtime acceptance now belong to the real initially private repositories through WF-018.
 
 ## Frontier
 
-1. [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
-   — prove the approved AccessControl, persistence, transaction, realtime, and starter/client behavior
-   across the five selected framework compositions.
+1. [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
+   — create the repository-owned plan and dependency graph for Fight AccessControl plus the five initially
+   private starter repositories, their walking slices, compatibility incubation, and public-readiness gates.
 
 ## Waiting
 
-- [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-  waits on the walking-slice prototypes and closes the map with repository-owned plans.
+None.
 
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
 
 ## Not yet specified
 
-- Prototype evidence for Eloquent, Yii, and CodeIgniter aggregate hydration and native transactions.
-- Prototype evidence for the approved shared-session, refresh-race, security-email, audit, Managed
-  Role/Permission reconciliation, private realtime, and client bootstrap behavior in every framework.
 - Final repository hosting, licenses, Packagist metadata, branch protections, and release automation.
-- Remaining PRDs and executable ticket slices for framework composition, Fight AccessControl, persistence
-  prototypes, and each starter.
+- Repository-local PRDs and executable vertical tickets for Fight AccessControl and each starter.
+- Exact private-incubation exit and independently approved public-transition gates.
 
 ## Out of scope
 
