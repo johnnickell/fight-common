@@ -952,6 +952,35 @@ cookie behavior, TLS termination, trusted-proxy framework configuration, respons
 rotation, database locking, local-development HTTPS, browser automation, fake credentials, and human UAT
 remain executable consumer-project lanes. No production source changes.
 
+## Bounded prototype evidence: concurrent refresh-session rotation
+
+The executable database prototype under
+`planning/wayfinder/prototypes/wf-017-refresh-rotation-concurrency/` answers the locking question left by the
+authentication session model: can two uses of one refresh credential race through the five selected native
+transaction APIs while producing one successor, one bounded loser, atomic audit evidence, and device-family
+revocation on later predecessor reuse? Its one-command runner starts disposable MySQL 8.4 and PostgreSQL 17
+services, forces separate PHP processes to contend on one session row, and writes ten machine-readable
+framework/database receipts.
+
+All ten lanes pass. The winning transaction locks the predecessor, inserts exactly one successor, marks the
+predecessor rotated, and writes the rotation audit atomically. The concurrent loser waits for the committed
+row state and returns a bounded conflict without receiving the successor credential, creating another
+successor, or revoking the family. Reuse outside the illustrative five-second conflict window revokes the
+active successor in that device family and writes a reuse-detection audit. A forced audit failure rolls back
+the predecessor update and successor insert completely.
+
+Select a row lock around refresh-session rotation and keep the entire state transition inside one native
+transaction. Symfony and Slim compose Doctrine DBAL, Laravel uses Illuminate Database, Yii uses Yii DB, and
+CodeIgniter uses its explicit transaction API. Yii's one-based positional binding remains adapter-local; the
+portable rotation operation contains no framework branch. A bounded conflict returns no credential and is
+recoverable only through the already-selected client single-flight coordination in the winning browser
+context. The conflict-window duration remains a consumer policy input rather than a Fight Common constant.
+
+This prototype proves one-host PostgreSQL/MySQL locking, not full framework middleware or production runtime
+behavior. It does not boot five kernels, establish production isolation levels, test replication or failover,
+issue JWTs, exercise cookie/CSRF handling, coordinate real browser tabs, or supply the five complete login
+walking slices and human UAT cards. No Fight Common or Fight AccessControl production change is justified.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
