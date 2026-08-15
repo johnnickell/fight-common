@@ -869,6 +869,32 @@ React form submission, redirect, authenticated home state, browser automation, f
 human UAT. Those remain executable consumer-project evidence, so WF-017 remains open. No production source
 changes.
 
+## Bounded prototype evidence: failed-login audit pressure
+
+The self-contained logic prototype at
+`planning/wayfinder/prototypes/wf-017-failed-login-audit-pressure/index.html` answers the evidence-pressure
+question left by login composition: can generic failed-login handling preserve useful audit evidence under one
+noisy source and a distributed attack without trusting a public client's forwarding header or accepting an
+attacker-controlled number of durable rows? It opens directly in a browser, exposes the complete configuration,
+source buckets, durable rows, aggregate counters, authentication-throttle counters, alerts, and last decision
+after every action, and provides guided spoof-resistance, per-source-cap, global-cap, and next-window
+walkthroughs plus free-play controls.
+
+The candidate state model passes. The direct peer remains the source unless it is an explicitly trusted proxy;
+only then may the configured forwarded-address input select the client bucket. Individual failed-login audit
+rows stop independently at configurable per-source and global limits within one bounded time window. Every
+attempt still increments the authentication-throttle counter and bounded aggregate evidence for total attempts,
+suppressed rows, and distinct sources, and cap pressure raises an operational alert. Advancing the window resets
+the caps and aggregate bucket without deleting the previously retained individual rows.
+
+Keep the generic authentication response, throttling decision, individual durable audit row, aggregate attack
+evidence, and operational alert as separate outcomes. Reaching an audit-row cap never disables authentication
+throttling or changes the public failure response. This prototype selects the state transition and trust
+boundary, not production values: each starter still owns its trusted-proxy middleware, atomic counter/storage
+mechanism, retention, alert transport, clock behavior, concurrency proof, and privacy review. It does not boot
+five kernels, send parallel requests, or prove PostgreSQL/MySQL locking, so those remain executable
+consumer-project evidence. No production source changes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
