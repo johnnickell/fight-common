@@ -65,9 +65,9 @@ runLane('Symfony', ['symfony/http-foundation' => $versions['symfony/http-foundat
     'jsend' => 'starter-owned response mapper; Fight Common JSendResponse remains optional Symfony convenience',
 ], static function (ListUsersOutcome $outcome): array {
     [$status, $body] = match ($outcome->decision) {
-        ListUsersDecision::Authorized => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
-        ListUsersDecision::Unauthenticated => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
-        ListUsersDecision::Forbidden => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
+        ListUsersDecision::AUTHORIZED => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
+        ListUsersDecision::UNAUTHENTICATED => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
+        ListUsersDecision::FORBIDDEN => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
     };
 
     return inspectSymfonyResponse(new SymfonyJsonResponse($body, $status));
@@ -79,9 +79,9 @@ runLane('Laravel', ['illuminate/http' => $versions['illuminate/http']], [
     'jsend' => 'starter-owned response mapper',
 ], static function (ListUsersOutcome $outcome): array {
     [$status, $body] = match ($outcome->decision) {
-        ListUsersDecision::Authorized => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
-        ListUsersDecision::Unauthenticated => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
-        ListUsersDecision::Forbidden => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
+        ListUsersDecision::AUTHORIZED => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
+        ListUsersDecision::UNAUTHENTICATED => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
+        ListUsersDecision::FORBIDDEN => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
     };
 
     return inspectSymfonyResponse(new LaravelJsonResponse($body, $status));
@@ -93,9 +93,9 @@ runLane('Yii', ['yiisoft/http' => $versions['yiisoft/http'], 'nyholm/psr7' => $v
     'jsend' => 'starter-owned response mapper',
 ], static function (ListUsersOutcome $outcome): array {
     [$status, $body] = match ($outcome->decision) {
-        ListUsersDecision::Authorized => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
-        ListUsersDecision::Unauthenticated => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
-        ListUsersDecision::Forbidden => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
+        ListUsersDecision::AUTHORIZED => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
+        ListUsersDecision::UNAUTHENTICATED => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
+        ListUsersDecision::FORBIDDEN => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
     };
 
     return inspectPsr7Response(new Psr7Response(
@@ -111,9 +111,9 @@ runLane('CodeIgniter', ['codeigniter4/framework' => $versions['codeigniter4/fram
     'jsend' => 'starter-owned response mapper using native response message API',
 ], static function (ListUsersOutcome $outcome): array {
     [$status, $body] = match ($outcome->decision) {
-        ListUsersDecision::Authorized => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
-        ListUsersDecision::Unauthenticated => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
-        ListUsersDecision::Forbidden => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
+        ListUsersDecision::AUTHORIZED => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
+        ListUsersDecision::UNAUTHENTICATED => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
+        ListUsersDecision::FORBIDDEN => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
     };
     $response = (new PrototypeCodeIgniterResponse())
         ->setStatusCode($status)
@@ -129,9 +129,9 @@ runLane('Slim', ['nyholm/psr7' => $versions['nyholm/psr7']], [
     'jsend' => 'starter-owned PSR-7 response mapper',
 ], static function (ListUsersOutcome $outcome): array {
     [$status, $body] = match ($outcome->decision) {
-        ListUsersDecision::Authorized => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
-        ListUsersDecision::Unauthenticated => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
-        ListUsersDecision::Forbidden => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
+        ListUsersDecision::AUTHORIZED => [200, ['status' => 'success', 'data' => ['users' => $outcome->users]]],
+        ListUsersDecision::UNAUTHENTICATED => [401, ['status' => 'fail', 'data' => ['code' => 'authentication_required']]],
+        ListUsersDecision::FORBIDDEN => [403, ['status' => 'fail', 'data' => ['code' => 'forbidden']]],
     };
     $response = new Psr7Response();
     $response->getBody()->write(json_encode($body, JSON_THROW_ON_ERROR));

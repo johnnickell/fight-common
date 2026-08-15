@@ -25,10 +25,10 @@ final readonly class RequestView
 
 enum RequestDecision: string
 {
-    case Allowed = 'allowed';
-    case Forbidden = 'forbidden';
-    case MethodNotAllowed = 'method_not_allowed';
-    case Unauthenticated = 'unauthenticated';
+    case ALLOWED = 'allowed';
+    case FORBIDDEN = 'forbidden';
+    case METHOD_NOT_ALLOWED = 'method_not_allowed';
+    case UNAUTHENTICATED = 'unauthenticated';
 }
 
 final readonly class RequestSecurityResult
@@ -46,28 +46,28 @@ final readonly class RefreshCookieRequestGuard
     public function evaluate(RequestView $request): RequestSecurityResult
     {
         if ($request->method !== 'POST') {
-            return new RequestSecurityResult(RequestDecision::MethodNotAllowed, 'unsafe_endpoint_requires_post');
+            return new RequestSecurityResult(RequestDecision::METHOD_NOT_ALLOWED, 'unsafe_endpoint_requires_post');
         }
 
         $contentType = strtolower(trim(explode(';', $request->header('content-type'), 2)[0]));
         if ($contentType !== 'application/json') {
-            return new RequestSecurityResult(RequestDecision::Forbidden, 'json_content_type_required');
+            return new RequestSecurityResult(RequestDecision::FORBIDDEN, 'json_content_type_required');
         }
 
         $fetchSite = strtolower(trim($request->header('sec-fetch-site')));
         if ($fetchSite !== '' && $fetchSite !== 'same-origin') {
-            return new RequestSecurityResult(RequestDecision::Forbidden, 'same_origin_fetch_required');
+            return new RequestSecurityResult(RequestDecision::FORBIDDEN, 'same_origin_fetch_required');
         }
 
         if (!hash_equals($this->applicationOrigin, trim($request->header('origin')))) {
-            return new RequestSecurityResult(RequestDecision::Forbidden, 'exact_origin_required');
+            return new RequestSecurityResult(RequestDecision::FORBIDDEN, 'exact_origin_required');
         }
 
         if (!array_key_exists(REFRESH_COOKIE, parseCookies($request->header('cookie')))) {
-            return new RequestSecurityResult(RequestDecision::Unauthenticated, 'refresh_cookie_required');
+            return new RequestSecurityResult(RequestDecision::UNAUTHENTICATED, 'refresh_cookie_required');
         }
 
-        return new RequestSecurityResult(RequestDecision::Allowed, 'same_origin_cookie_request');
+        return new RequestSecurityResult(RequestDecision::ALLOWED, 'same_origin_cookie_request');
     }
 }
 

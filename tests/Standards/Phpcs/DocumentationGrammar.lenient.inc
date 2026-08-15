@@ -16,7 +16,7 @@ trait UndocumentedTrait
 
 enum UndocumentedEnum
 {
-    case Example;
+    case EXAMPLE;
 }
 
 /**

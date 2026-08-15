@@ -79,9 +79,9 @@ final readonly class CurrentPrincipalProvider
 
 enum AuthorizationDecision: string
 {
-    case Authorized = 'authorized';
-    case Unauthenticated = 'unauthenticated';
-    case Forbidden = 'forbidden';
+    case AUTHORIZED = 'authorized';
+    case UNAUTHENTICATED = 'unauthenticated';
+    case FORBIDDEN = 'forbidden';
 }
 
 final readonly class AuthorizationResult
@@ -98,14 +98,14 @@ final readonly class RealtimeSubscriptionAuthorizer
     {
         $principal = $provider->current();
         if ($principal === null) {
-            return new AuthorizationResult(AuthorizationDecision::Unauthenticated);
+            return new AuthorizationResult(AuthorizationDecision::UNAUTHENTICATED);
         }
 
         if ($topic !== USERS_TOPIC || !$principal->may('LIST_USERS')) {
-            return new AuthorizationResult(AuthorizationDecision::Forbidden, $principal);
+            return new AuthorizationResult(AuthorizationDecision::FORBIDDEN, $principal);
         }
 
-        return new AuthorizationResult(AuthorizationDecision::Authorized, $principal);
+        return new AuthorizationResult(AuthorizationDecision::AUTHORIZED, $principal);
     }
 }
 
@@ -127,12 +127,12 @@ final readonly class MercureSubscriptionAction
     public function handle(CurrentPrincipalProvider $provider, string $topic): MercureCredential
     {
         $result = $this->authorizer->authorize($provider, $topic);
-        if ($result->decision !== AuthorizationDecision::Authorized || $result->principal === null) {
+        if ($result->decision !== AuthorizationDecision::AUTHORIZED || $result->principal === null) {
             return new MercureCredential($result->decision);
         }
 
         return new MercureCredential(
-            AuthorizationDecision::Authorized,
+            AuthorizationDecision::AUTHORIZED,
             $this->issuer->issueForExactTopic($result->principal, $topic),
         );
     }

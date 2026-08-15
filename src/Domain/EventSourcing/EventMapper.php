@@ -90,7 +90,7 @@ final class EventMapper
         return new MappedEvent(
             $eventName,
             $mapping->currentSchemaVersion(),
-            $event->toArray(),
+            $event->toArray()
         );
     }
 
@@ -110,7 +110,7 @@ final class EventMapper
         array $data,
         MessageId $id,
         DateTimeImmutable $timestamp,
-        Meta $meta,
+        Meta $meta
     ): EventMessage {
         if (!isset($this->mappingsByName[$eventName])) {
             throw new EventMappingException(sprintf('Unknown event alias: %s.', $eventName));
@@ -122,7 +122,7 @@ final class EventMapper
             throw new EventMappingException(sprintf(
                 'Unsupported schema version %d for event %s.',
                 $schemaVersion,
-                $eventName,
+                $eventName
             ));
         }
 
@@ -193,7 +193,7 @@ final class EventMapper
                 || isset($stepsBySource[$source])
             ) {
                 throw new EventMappingException(
-                    'Event mapping requires one sequential upcaster step per schema version.',
+                    'Event mapping requires one sequential upcaster step per schema version.'
                 );
             }
 
@@ -203,7 +203,7 @@ final class EventMapper
         for ($source = 1; $source < $mapping->currentSchemaVersion(); ++$source) {
             if (!isset($stepsBySource[$source])) {
                 throw new EventMappingException(
-                    'Event mapping requires one sequential upcaster step per schema version.',
+                    'Event mapping requires one sequential upcaster step per schema version.'
                 );
             }
         }

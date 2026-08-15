@@ -72,9 +72,9 @@ function inspectCodeIgniter(CodeIgniterResponse $response): array
 function mapMercureCredential(MercureCredential $credential, string $framework): array
 {
     $status = match ($credential->decision) {
-        AuthorizationDecision::Authorized => 204,
-        AuthorizationDecision::Unauthenticated => 401,
-        AuthorizationDecision::Forbidden => 403,
+        AuthorizationDecision::AUTHORIZED => 204,
+        AuthorizationDecision::UNAUTHENTICATED => 401,
+        AuthorizationDecision::FORBIDDEN => 403,
     };
     $cookie = $credential->accessToken === null ? '' : mercureCookie($credential->accessToken);
     $body = $status === 204 ? '' : json_encode([
@@ -182,8 +182,8 @@ function runLaravelLane(array $packages): void
 
     $authorize = static function () use ($authorizer, $provider, $broadcaster): array {
         $result = $authorizer->authorize($provider, USERS_TOPIC);
-        if ($result->decision !== AuthorizationDecision::Authorized || $result->principal === null) {
-            return ['status' => $result->decision === AuthorizationDecision::Unauthenticated ? 401 : 403, 'body' => []];
+        if ($result->decision !== AuthorizationDecision::AUTHORIZED || $result->principal === null) {
+            return ['status' => $result->decision === AuthorizationDecision::UNAUTHENTICATED ? 401 : 403, 'body' => []];
         }
 
         $request = LaravelRequest::create('/broadcasting/auth', 'POST', [
@@ -204,13 +204,13 @@ function runLaravelLane(array $packages): void
     expect($success === ['status' => 200, 'body' => ['auth' => 'prototype-key:' . $expectedSignature]], 'Laravel native Reverb authorization mismatch');
 
     $wrongTopic = $authorizer->authorize($provider, USERS_TOPIC . '/secret');
-    expect($wrongTopic->decision === AuthorizationDecision::Forbidden, 'Laravel must deny an unapproved topic');
+    expect($wrongTopic->decision === AuthorizationDecision::FORBIDDEN, 'Laravel must deny an unapproved topic');
 
     $anonymous = $authorizer->authorize(
         new CurrentPrincipalProvider(static fn (): null => null, new AuthoritativePrincipalStore()),
         USERS_TOPIC,
     );
-    expect($anonymous->decision === AuthorizationDecision::Unauthenticated, 'Laravel must deny anonymous authorization');
+    expect($anonymous->decision === AuthorizationDecision::UNAUTHENTICATED, 'Laravel must deny anonymous authorization');
 
     $store->revokeSession();
     $renewal = $authorize();

@@ -37,7 +37,7 @@ final class InMemoryProjectionCheckpointStore implements ProjectionCheckpointSto
                 'Projection checkpoint %s cannot move backward from %d to %d.',
                 $projectorName,
                 $checkpoint,
-                $globalPosition,
+                $globalPosition
             ));
         }
 

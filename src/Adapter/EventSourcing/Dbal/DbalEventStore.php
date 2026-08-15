@@ -34,7 +34,7 @@ final readonly class DbalEventStore implements EventStore
      */
     public function __construct(
         private Connection $connection,
-        private EventMapper $eventMapper,
+        private EventMapper $eventMapper
     ) {
         $platform = $this->connection->getDatabasePlatform();
 
@@ -45,7 +45,7 @@ final readonly class DbalEventStore implements EventStore
         ) {
             throw new InvalidArgumentException(sprintf(
                 'DbalEventStore supports SQLite, MySQL-compatible, and PostgreSQL only; received %s.',
-                $platform::class,
+                $platform::class
             ));
         }
     }
@@ -73,16 +73,16 @@ final readonly class DbalEventStore implements EventStore
                 if ($platform instanceof SQLitePlatform) {
                     $this->connection->executeStatement(
                         'UPDATE event_store_global_position SET position = position WHERE singleton = ?',
-                        [1],
+                        [1]
                     );
                 }
 
                 $globalPosition = (int) $this->connection->fetchOne(
                     sprintf(
                         'SELECT position FROM event_store_global_position WHERE singleton = ?%s',
-                        $platform instanceof SQLitePlatform ? '' : ' FOR UPDATE',
+                        $platform instanceof SQLitePlatform ? '' : ' FOR UPDATE'
                     ),
-                    [1],
+                    [1]
                 );
 
                 $actualVersion = $this->streamVersion($streamId);
@@ -96,9 +96,9 @@ final readonly class DbalEventStore implements EventStore
                     $record = $this->connection->fetchAssociative(
                         sprintf(
                             'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                            'FROM event_store_events WHERE message_id = ?',
+                            'FROM event_store_events WHERE message_id = ?'
                         ),
-                        [$messageId],
+                        [$messageId]
                     );
 
                     if (isset($messageIds[$messageId])) {
@@ -151,7 +151,7 @@ final readonly class DbalEventStore implements EventStore
                 $this->connection->update(
                     'event_store_global_position',
                     ['position' => $globalPosition],
-                    ['singleton' => 1],
+                    ['singleton' => 1]
                 );
             });
         } catch (UniqueConstraintViolationException $uniqueConstraintViolationException) {
@@ -168,7 +168,7 @@ final readonly class DbalEventStore implements EventStore
                 throw new OptimisticConcurrencyException(
                     $streamId,
                     $expectedVersion,
-                    $actualVersion,
+                    $actualVersion
                 );
             }
 
@@ -184,9 +184,9 @@ final readonly class DbalEventStore implements EventStore
         $records = $this->connection->fetchAllAssociative(
             sprintf(
                 'SELECT * FROM event_store_events %s',
-                'WHERE aggregate_name = ? AND aggregate_identifier = ? ORDER BY stream_version ASC',
+                'WHERE aggregate_name = ? AND aggregate_identifier = ? ORDER BY stream_version ASC'
             ),
-            [$streamId->aggregateName(), $streamId->identifier()],
+            [$streamId->aggregateName(), $streamId->identifier()]
         );
 
         foreach ($records as $record) {
@@ -202,7 +202,7 @@ final readonly class DbalEventStore implements EventStore
         $records = $this->connection->fetchAllAssociative(
             'SELECT * FROM event_store_events WHERE global_position > ? ORDER BY global_position ASC LIMIT ?',
             [$globalPosition, $limit],
-            [ParameterType::INTEGER, ParameterType::INTEGER],
+            [ParameterType::INTEGER, ParameterType::INTEGER]
         );
 
         foreach ($records as $record) {
@@ -225,9 +225,9 @@ final readonly class DbalEventStore implements EventStore
             $record = $this->connection->fetchAssociative(
                 sprintf(
                     'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                    'FROM event_store_events WHERE message_id = ?',
+                    'FROM event_store_events WHERE message_id = ?'
                 ),
-                [(string) $message->id()],
+                [(string) $message->id()]
             );
 
             if (
@@ -250,7 +250,7 @@ final readonly class DbalEventStore implements EventStore
     {
         return (int) $this->connection->fetchOne(
             'SELECT COUNT(*) FROM event_store_events WHERE aggregate_name = ? AND aggregate_identifier = ?',
-            [$streamId->aggregateName(), $streamId->identifier()],
+            [$streamId->aggregateName(), $streamId->identifier()]
         );
     }
 
@@ -265,7 +265,7 @@ final readonly class DbalEventStore implements EventStore
     {
         return array_any($messages, fn($message): bool => false !== $this->connection->fetchOne(
             'SELECT message_id FROM event_store_events WHERE message_id = ?',
-            [(string) $message->id()],
+            [(string) $message->id()]
         ));
     }
 
@@ -285,19 +285,19 @@ final readonly class DbalEventStore implements EventStore
             MessageId::fromString((string) $record['message_id']),
             new DateTimeImmutable((string) $record['message_timestamp'])
                 ->setTimezone(new DateTimeZone('UTC')),
-            Meta::create(json_decode((string) $record['message_meta'], true, flags: JSON_THROW_ON_ERROR)),
+            Meta::create(json_decode((string) $record['message_meta'], true, flags: JSON_THROW_ON_ERROR))
         );
 
         return new StoredEvent(
             new StreamId(
                 (string) $record['aggregate_name'],
-                (string) $record['aggregate_identifier'],
+                (string) $record['aggregate_identifier']
             ),
             $eventName,
             $schemaVersion,
             (int) $record['stream_version'],
             (int) $record['global_position'],
-            $message,
+            $message
         );
     }
 }

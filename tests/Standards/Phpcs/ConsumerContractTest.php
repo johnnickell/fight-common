@@ -248,6 +248,9 @@ final class ConsumerContractTest extends UnitTestCase
                 'Phpcs.Files.RequireStrictTypes',
                 'Phpcs.Formatting.RequireBlankLineBeforeReturn',
                 'Phpcs.Formatting.RequireVisibilityGroupSpacing',
+                'Phpcs.NamingConventions.RequireUppercaseUnderscoredEnumCase',
+                'SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall',
+                'SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration',
             ];
             $builtinDocumentationSniffs = [
                 'Generic.Commenting.DocComment',
@@ -302,6 +305,7 @@ final class ConsumerContractTest extends UnitTestCase
                 'IncorrectSummary',
                 'Missing',
                 'MissingBlankLineBetweenVisibilityGroups',
+                'NotUppercaseUnderscored',
                 'UnexpectedBlankLineWithinVisibilityGroup',
             ] as $diagnosticCode) {
                 self::assertStringContainsString($diagnosticCode, $documentation);

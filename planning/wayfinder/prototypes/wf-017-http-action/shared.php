@@ -17,9 +17,9 @@ final readonly class AuthenticatedPrincipal
 
 enum ListUsersDecision: string
 {
-    case Authorized = 'authorized';
-    case Unauthenticated = 'unauthenticated';
-    case Forbidden = 'forbidden';
+    case AUTHORIZED = 'authorized';
+    case UNAUTHENTICATED = 'unauthenticated';
+    case FORBIDDEN = 'forbidden';
 }
 
 final readonly class ListUsersOutcome
@@ -39,13 +39,13 @@ final readonly class ListUsersQueryHandler
     public function handle(?AuthenticatedPrincipal $principal): ListUsersOutcome
     {
         if ($principal === null) {
-            return new ListUsersOutcome(ListUsersDecision::Unauthenticated);
+            return new ListUsersOutcome(ListUsersDecision::UNAUTHENTICATED);
         }
         if (!in_array('LIST_USERS', $principal->permissions, true)) {
-            return new ListUsersOutcome(ListUsersDecision::Forbidden);
+            return new ListUsersOutcome(ListUsersDecision::FORBIDDEN);
         }
 
-        return new ListUsersOutcome(ListUsersDecision::Authorized, $this->users);
+        return new ListUsersOutcome(ListUsersDecision::AUTHORIZED, $this->users);
     }
 }
 

@@ -72,8 +72,8 @@ vendor/bin/phpcs --standard=phpcs.xml \
 
 ## Public compatibility reference
 
-The standard name is `FightCommon`. These ten PHPCS sniff identifiers are public, stable names. The
-eleventh custom production unit, `DocumentationComment`, is a supporting helper and is not a PHPCS sniff.
+The standard name is `FightCommon`. These thirteen PHPCS sniff identifiers are public, stable names. The
+twelfth custom production unit, `DocumentationComment`, is a supporting helper and is not a PHPCS sniff.
 
 | Public sniff identifier | Diagnostic codes |
 | --- | --- |
@@ -87,6 +87,9 @@ eleventh custom production unit, `DocumentationComment`, is a supporting helper 
 | `Phpcs.Files.RequireStrictTypes` | `Missing` |
 | `Phpcs.Formatting.RequireBlankLineBeforeReturn` | `Missing` |
 | `Phpcs.Formatting.RequireVisibilityGroupSpacing` | `MissingBlankLineBetweenVisibilityGroups`, `UnexpectedBlankLineWithinVisibilityGroup` |
+| `Phpcs.NamingConventions.RequireUppercaseUnderscoredEnumCase` | `NotUppercaseUnderscored` |
+| `SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall` | `DisallowedTrailingComma` |
+| `SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration` | `DisallowedTrailingComma` |
 
 PHPCS reports a complete source such as
 `Phpcs.Commenting.RequireTypeDocComment.MissingDocComment` by joining the identifier prefix, category, sniff,
@@ -111,8 +114,8 @@ the coding-standard compatibility policy in ADR 0004.
 The initial package port was compared against the accepted Omphalos behavior at the PHPCS CLI seam. The
 durable package-owned fixtures preserve that evidence without requiring an Omphalos checkout:
 
-- `MechanicalConventions.*.inc` covers strict types, array commas and arrow alignment, and blank lines before
-  return statements.
+- `MechanicalConventions.*.inc` covers strict types, trailing commas, array arrow alignment, and blank lines
+  before return statements; `CustomSniffTest` covers enum-case naming.
 - `MemberLayout.*.inc` covers declaration order, member and method spacing, visibility groups, exclusions,
   fixes, and idempotence.
 - `DocumentationGrammar.*.inc` covers strict and lenient type documentation, method grammar, inherited

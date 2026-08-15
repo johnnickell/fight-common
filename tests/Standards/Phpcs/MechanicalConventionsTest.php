@@ -15,7 +15,7 @@ final class MechanicalConventionsTest extends TestCase
     {
         $result = $this->runPhpcs('MechanicalConventions.noncompliant.inc');
 
-        self::assertSame(1, $result->getExitCode(), $result->getErrorOutput());
+        self::assertNotSame(0, $result->getExitCode(), $result->getErrorOutput());
 
         $report = json_decode($result->getOutput(), true, flags: JSON_THROW_ON_ERROR);
         $messages = array_values($report['files'])[0]['messages'];
@@ -24,6 +24,14 @@ final class MechanicalConventionsTest extends TestCase
         self::assertContains('Phpcs.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma', $sources);
         self::assertContains('Phpcs.Arrays.RequireAlignedArrayArrow.ArrowNotAligned', $sources);
         self::assertContains('Phpcs.Formatting.RequireBlankLineBeforeReturn.Missing', $sources);
+        self::assertContains(
+            'SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall.DisallowedTrailingComma',
+            $sources
+        );
+        self::assertContains(
+            'SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration.DisallowedTrailingComma',
+            $sources
+        );
         self::assertContains('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses.IncorrectlyOrderedUses', $sources);
 
         $compliant = $this->runPhpcs('MechanicalConventions.compliant.inc');

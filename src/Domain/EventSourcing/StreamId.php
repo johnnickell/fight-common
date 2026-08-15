@@ -18,7 +18,7 @@ final readonly class StreamId
      */
     public function __construct(
         private string $aggregateName,
-        private string $identifier,
+        private string $identifier
     ) {
         if ('' === $aggregateName) {
             throw new DomainException('Aggregate name cannot be empty.');

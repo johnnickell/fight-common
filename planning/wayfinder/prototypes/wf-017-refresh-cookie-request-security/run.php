@@ -131,15 +131,15 @@ $lanes = [
     'slim' => 'psrView',
 ];
 $expectations = [
-    'same_origin' => [RequestDecision::Allowed, 'same_origin_cookie_request'],
-    'origin_fallback' => [RequestDecision::Allowed, 'same_origin_cookie_request'],
-    'same_site_subdomain' => [RequestDecision::Forbidden, 'same_origin_fetch_required'],
-    'cross_site' => [RequestDecision::Forbidden, 'same_origin_fetch_required'],
-    'missing_origin' => [RequestDecision::Forbidden, 'exact_origin_required'],
-    'null_origin' => [RequestDecision::Forbidden, 'exact_origin_required'],
-    'spoofed_forwarded_host' => [RequestDecision::Forbidden, 'exact_origin_required'],
-    'form_content_type' => [RequestDecision::Forbidden, 'json_content_type_required'],
-    'missing_cookie' => [RequestDecision::Unauthenticated, 'refresh_cookie_required'],
+    'same_origin' => [RequestDecision::ALLOWED, 'same_origin_cookie_request'],
+    'origin_fallback' => [RequestDecision::ALLOWED, 'same_origin_cookie_request'],
+    'same_site_subdomain' => [RequestDecision::FORBIDDEN, 'same_origin_fetch_required'],
+    'cross_site' => [RequestDecision::FORBIDDEN, 'same_origin_fetch_required'],
+    'missing_origin' => [RequestDecision::FORBIDDEN, 'exact_origin_required'],
+    'null_origin' => [RequestDecision::FORBIDDEN, 'exact_origin_required'],
+    'spoofed_forwarded_host' => [RequestDecision::FORBIDDEN, 'exact_origin_required'],
+    'form_content_type' => [RequestDecision::FORBIDDEN, 'json_content_type_required'],
+    'missing_cookie' => [RequestDecision::UNAUTHENTICATED, 'refresh_cookie_required'],
 ];
 
 foreach ($lanes as $framework => $factory) {
@@ -153,7 +153,7 @@ foreach ($lanes as $framework => $factory) {
     }
 
     $get = $guard->evaluate($factory('GET', scenarioHeaders('same_origin')));
-    expect($get->decision === RequestDecision::MethodNotAllowed, "$framework must reject GET refresh/logout");
+    expect($get->decision === RequestDecision::METHOD_NOT_ALLOWED, "$framework must reject GET refresh/logout");
     $scenarios['get'] = ['decision' => $get->decision->value, 'reason' => $get->reason];
 
     $issuedCookie = strtolower(refreshCookie('opaque-prototype-credential'));

@@ -270,7 +270,7 @@ final class ProcessBuilder
             timeout:        $this->timeout,
             stdout:         $this->stdout,
             stderr:         $this->stderr,
-            outputDisabled: $this->outputDisabled,
+            outputDisabled: $this->outputDisabled
         );
     }
 }

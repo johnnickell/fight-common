@@ -24,7 +24,7 @@ final readonly class AggregateDefinition
      */
     public function __construct(
         private string $name,
-        private string $aggregateClass,
+        private string $aggregateClass
     ) {
         if ('' === $name) {
             throw new DomainException('Aggregate name cannot be empty.');

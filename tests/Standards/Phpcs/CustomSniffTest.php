@@ -8,6 +8,7 @@ use Fight\Common\Standards\Phpcs\Sniffs\Arrays\DisallowTrailingArrayCommaSniff;
 use Fight\Common\Standards\Phpcs\Sniffs\Arrays\RequireAlignedArrayArrowSniff;
 use Fight\Common\Standards\Phpcs\Sniffs\Files\RequireStrictTypesSniff;
 use Fight\Common\Standards\Phpcs\Sniffs\Formatting\RequireBlankLineBeforeReturnSniff;
+use Fight\Common\Standards\Phpcs\Sniffs\NamingConventions\RequireUppercaseUnderscoredEnumCaseSniff;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Files\File;
@@ -27,6 +28,7 @@ class_exists(Tokens::class);
 #[CoversClass(RequireAlignedArrayArrowSniff::class)]
 #[CoversClass(RequireBlankLineBeforeReturnSniff::class)]
 #[CoversClass(RequireStrictTypesSniff::class)]
+#[CoversClass(RequireUppercaseUnderscoredEnumCaseSniff::class)]
 final class CustomSniffTest extends UnitTestCase
 {
     public function test_that_trailing_comma_ignores_incomplete_token_contexts(): void
@@ -216,6 +218,31 @@ final class CustomSniffTest extends UnitTestCase
         self::assertSame([], $this->errorSources($this->processSource($source)));
     }
 
+    public function test_that_enum_cases_require_uppercase_underscored_names(): void
+    {
+        $source = "<?php\n\ndeclare(strict_types=1);\n\n/**\n * Enum State\n */\nenum State\n"
+            ."{\n    case Ready;\n    case HTTP_OK;\n}\n";
+        $file = $this->processSource($source);
+
+        self::assertSame(
+            ['Phpcs.NamingConventions.RequireUppercaseUnderscoredEnumCase.NotUppercaseUnderscored'],
+            $this->errorSources($file)
+        );
+        self::assertSame(0, $file->getFixableCount());
+    }
+
+    public function test_that_enum_case_naming_ignores_incomplete_token_context(): void
+    {
+        $sniff = new RequireUppercaseUnderscoredEnumCaseSniff();
+        $file = $this->mock(File::class);
+        $file->shouldReceive('getTokens')->once()->andReturn([]);
+        $file->shouldReceive('findNext')->once()->with(T_STRING, 2)->andReturnFalse();
+
+        $sniff->process($file, 1);
+
+        self::assertSame([T_ENUM_CASE], $sniff->register());
+    }
+
     private function processFixture(string $name): LocalFile
     {
         return $this->processPath(__DIR__.'/'.$name);
@@ -244,6 +271,7 @@ final class CustomSniffTest extends UnitTestCase
                 'Phpcs.Arrays.RequireAlignedArrayArrow',
                 'Phpcs.Files.RequireStrictTypes',
                 'Phpcs.Formatting.RequireBlankLineBeforeReturn',
+                'Phpcs.NamingConventions.RequireUppercaseUnderscoredEnumCase',
             ]),
         ]);
         $config->cache = false;
