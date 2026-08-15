@@ -16,7 +16,7 @@ gates without creating one oversized cross-repository build?
 
 - Fight Common PRDs and vertical tickets for compatibility repair, typed JSend, namespace shims,
   framework adapters, Composer metadata, documentation, and dependency matrices;
-- bootstrap contract for creating Fight AccessControl and each public starter with canonical planning,
+- bootstrap contract for creating Fight AccessControl and each initially private starter with canonical planning,
   `AGENTS.md`, architecture checks, `./bin/build`, CI, licensing, security policy, and contribution docs;
 - first `project-symfony` extraction slice and independent Laravel, Yii, CodeIgniter, and Slim walking
   slices;
@@ -38,6 +38,21 @@ gates without creating one oversized cross-repository build?
   policy, and the coordinated full-suite announcement gate; and
 - one-home traceability so the umbrella map links repository-local plans without duplicating their
   acceptance criteria or status.
+
+## Accepted handoff direction
+
+- Create Fight AccessControl and the five starter repositories as the real implementation homes; do not
+  build nested project copies in Fight Common.
+- Keep every new repository private during its bounded compatibility incubation. Private status permits
+  implementation and cross-repository testing; it does not authorize publication, Packagist registration,
+  template visibility, or an announcement.
+- Carry one user-valued vertical slice through all five starter repositories before beginning the next
+  shared use case. A failure pauses that shared frontier while passing repositories remain green.
+- Use the repository's own clean-clone build, framework-native functional tests, browser automation, fake
+  credentials, exact local URL, expected result, cleanup, and human UAT as its implementation evidence.
+- Make public visibility a separately approved transition after the repository's compatibility, security,
+  documentation, and clean-clone gates pass. Repositories may become public independently; coordinated
+  full-suite communication remains a later all-repository gate.
 
 ## Resolution boundary
 

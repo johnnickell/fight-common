@@ -2,7 +2,7 @@
 
 **Labels:** `wayfinder:research`, `wayfinder:domain-modeling`
 **Mode:** HITL
-**Status:** Open
+**Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
 **Depends on:** [Select supported framework lines and default capability compositions](WF-015-framework-lines-and-default-capability-compositions.md), [Specify the Fight AccessControl extraction and authentication model](WF-016-access-control-extraction-and-authentication-model.md)
 
@@ -362,6 +362,44 @@ email-change defaults and apply the common behavior suite to any optional native
 Account-state tests prove disabled-user reset without enablement or session creation, active-only email
 change with disablement cancellation, and atomic pending-invitation correction that revokes the predecessor
 grant/delivery and issues an unrelated fresh credential.
+
+## Evidence retention
+
+The bounded prototype narratives below are the durable decision record. Runnable prototype projects,
+nested dependency manifests and locks, generated clients, and receipts were removed from the current tree
+after closure so Fight Common does not become an integration monorepo or carry disposable dependency graphs.
+Git preserves the exact runnable source and receipts at the introducing commits:
+
+| Prototype evidence | Commit |
+| --- | --- |
+| Transaction center | `086c115` |
+| Additive transaction contract split | `1c25dfb` |
+| Record-to-aggregate mapping | `4657b20` |
+| Migration and canonical-email uniqueness | `b23d84a` |
+| Handler composition | `5339909` |
+| Principal integration | `8073dd0` |
+| Native HTTP action | `a64bb5d` |
+| Mercure protocol version | `e862380` |
+| Realtime subscription authorization | `5dd453b` |
+| Private realtime publication | `e03995d` |
+| Client contract generation | `bdce20a` |
+| Browser reconnect and authoritative refetch | `561b015` |
+| Asynchronous post-commit invocation | `96421ec` |
+| Post-commit crash-gap policy | `b35415a` |
+| Durable security-email recovery | `b45b7d3` |
+| Authentication session lifecycle | `143226b` |
+| Login transaction composition | `bc5f3fd` |
+| Failed-login audit pressure | `cb1db65` |
+| Access-token verification and key rotation | `62d5665` |
+| Refresh-cookie request security | `04fe029` |
+| Concurrent refresh-session rotation | `8f8d859` |
+
+These commits are historical evidence, not dependencies or implementation templates. Repository owners may
+inspect them when a real implementation exposes a seam question, but must implement and verify the behavior
+through their current framework and dependency lines.
+
+Every prototype path named in the sections below refers to that path inside its ledgered historical commit;
+none remains in the current Fight Common tree.
 
 ## Bounded prototype evidence: transaction center
 
@@ -983,6 +1021,12 @@ walking slices and human UAT cards. No Fight Common or Fight AccessControl produ
 
 ## Resolution boundary
 
-Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
-fails, prefer the simplest framework implementation and revise the smallest shared abstraction. Do
-not force mechanical parity with Doctrine or promote experimental prototypes as supported releases.
+The bounded evidence is sufficient to begin repository-owned implementation planning. Five booted kernels,
+browser journeys, live transport integration, UAT, later AccessControl use cases, and production hardening
+are implementation evidence rather than additional Fight Common prototypes. WF-018 owns their transfer into
+Fight AccessControl and the five starter repository plans.
+
+If implementation exposes a failed seam, keep passing repositories green, resolve the smallest shared
+contract necessary, and resume the affected repository. Do not pre-build disposable copies of the six real
+repositories inside Fight Common, force mechanical parity with Doctrine, or promote historical prototype
+code as a supported implementation.
