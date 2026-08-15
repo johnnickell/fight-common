@@ -895,6 +895,35 @@ mechanism, retention, alert transport, clock behavior, concurrency proof, and pr
 five kernels, send parallel requests, or prove PostgreSQL/MySQL locking, so those remain executable
 consumer-project evidence. No production source changes.
 
+## Bounded prototype evidence: access-token verification and bounded key rotation
+
+The executable runtime prototype under
+`planning/wayfinder/prototypes/wf-017-access-token-verification/` answers the next login-security question:
+can Fight Common's existing generic JWT encoder and decoder safely satisfy the accepted AccessControl access-
+token profile, including exact purpose, issuer, audience, algorithm, time, subject, token-ID, and key-ID checks
+plus bounded overlapping-key rotation and immediate authoritative revocation? Its one-command runner generates
+disposable RSA keys only in memory and writes secret-free machine-readable receipts for all five framework
+composition lanes.
+
+The current generic adapter is not sufficient. `JwtDecoder` configures only `SignedWith`, so an expired token
+and a token from the wrong issuer both decode successfully despite the stronger statement in `docs/auth.md`.
+`JwtEncoder` supports only HMAC algorithms and emits no `kid` header, so the pair cannot express the selected
+purpose-specific asymmetric key ring or bounded verification overlap. This is executable evidence about the
+current contract; the prototype does not change production source or documentation.
+
+The candidate purpose-specific verifier passes. It accepts the active RS256 signing key and a previous key
+only inside that key's declared overlap. It rejects expired and not-yet-valid tokens, wrong type/issuer/
+audience/algorithm/purpose, unknown or retired key IDs, missing identity claims, revoked sessions, and
+authentication-version mismatches. Cryptographic acceptance is followed by the authoritative user/session
+lookup, so a still-unexpired access token never delays revocation.
+
+Select a consumer-owned AccessControl access-token issuer/verifier port with explicit policy inputs and a
+replaceable asymmetric key ring. Do not widen Fight Common's generic `TokenEncoder`/`TokenDecoder` contracts
+or treat their current optional adapter as the certified starter profile. The shared verifier needs no
+framework branch; each starter composes it before native authorization. Deployment key custody and rotation,
+framework middleware ordering, refresh-cookie CSRF/Origin handling, five booted kernels, browser automation,
+and human UAT remain separate WF-017 lanes.
+
 ## Resolution boundary
 
 Produce bounded prototype evidence and decisions, not polished starter implementations. If a seam
