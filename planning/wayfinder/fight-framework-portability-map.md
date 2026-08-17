@@ -107,7 +107,7 @@ repositories through T-00061 through T-00067.
   proved the risky persistence, transaction, composition, principal, HTTP, JWT, refresh, realtime, queue,
   and client-contract seams through bounded disposable evidence. Its decision record and Git evidence ledger
   are retained; nested prototype projects were removed after closure. Booted framework applications and
-  browser/runtime acceptance now belong to the real initially private repositories through WF-018. Its shared
+  browser/runtime acceptance now belong to the real destination repositories through WF-018. Its shared
   Fight Common consequences are permanent in [PRD-00014](../specs/00014-PRD.md), AccessControl consequences in
   [PRD-00017](../specs/00017-PRD.md), and starter acceptance in [PRD-00018](../specs/00018-PRD.md).
 - [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)

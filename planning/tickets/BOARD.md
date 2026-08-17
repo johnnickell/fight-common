@@ -16,9 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-Review and merge Fight Common PR #82 and Fight AccessControl PR #1. Restore the GitHub Actions billing or
-spending limit and rerun Fight AccessControl's hosted build before accepting T-00061; then create local
-Fight AccessControl tickets from PRD-00001 and begin T-00062 through T-00066.
+Review and merge Fight Common PR #82 and Fight AccessControl PR #1. Fight AccessControl is public under MIT;
+its hosted build and immutable public clean-clone build are green at `60e67ad`. After merge, record the merged
+SHA, accept T-00061, create local Fight AccessControl tickets from PRD-00001, and begin T-00062 through T-00066.
 
 ## Ready Frontier
 
@@ -36,7 +36,7 @@ ticket materially cheaper.
 
 | Ticket | Parent PRD | Remaining Gate |
 |--------|------------|----------------|
-| [T-00061 — Bootstrap the Private Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Merge the Fight Common and Fight AccessControl planning branches, obtain a green hosted Fight AccessControl build, and accept the immutable handoff before opening T-00062 through T-00066. |
+| [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Hosted and public clean-clone builds are green at `60e67ad`; merge both planning branches, record the merged immutable handoff, and accept T-00061 before opening T-00062 through T-00066. |
 
 ## Waiting
 
