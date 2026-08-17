@@ -52,15 +52,16 @@ gates without creating one oversized cross-repository build?
 - Keep only shared prerequisite coordination tickets and one bootstrap/handoff ticket per new repository
   in Fight Common. After bootstrap, author and track detailed implementation tickets in the repository
   that owns the work; the umbrella map links those plans without copying their acceptance criteria or status.
-- Keep every new repository private during its bounded compatibility incubation. Private status permits
-  implementation and cross-repository testing; it does not authorize publication, Packagist registration,
-  or template visibility.
+- Choose source visibility explicitly in each owning repository. Fight AccessControl completed its public-
+  surface, licensing, security, documentation, clean-clone, and hosted-build gates during T-00061 and opened
+  under MIT. Each starter makes its own visibility decision during or after T-00062 through T-00066. Public
+  source does not authorize a version tag, Packagist registration, template enablement, or release.
 - Permit starter login implementation once its required Fight Common and Fight AccessControl contracts,
   reusable behavioral conformance tests, and human UAT contract are merged and green at immutable private
   commit references. Do not wait for public tags or the coordinated `1.2.0` release to gather real framework
   integration evidence; tagged versions remain a later compatibility and public-readiness gate.
 - When a starter exposes a shared-contract defect, pause the shared slice frontier, ticket and fix the defect
-  in the repository that owns the contract, issue a new immutable private commit reference, and rerun the
+  in the repository that owns the contract, issue a new immutable commit reference, and rerun the
   relevant conformance evidence across all five starters. Keep framework-specific defects and fixes local;
   do not churn the other repositories or introduce starter-private shared-contract workarounds.
 - Carry one user-valued vertical slice through all five starter repositories before beginning the next
@@ -103,14 +104,15 @@ gates without creating one oversized cross-repository build?
   separate stability decision.
 - Use the repository's own clean-clone build, framework-native functional tests, browser automation, fake
   credentials, exact local URL, expected result, cleanup, and human UAT as its implementation evidence.
-- Make public visibility a separately approved transition after the repository's compatibility, security,
-  documentation, and clean-clone gates pass. Repositories may become public independently. Making source
-  visible does not authorize a release tag, Packagist publication, template enablement, or create-project
-  distribution; those installable-release effects require separate approval and verification.
+- Make public visibility a separately approved transition after the repository's public-surface, security,
+  documentation, and clean-clone gates pass. Repositories may become public independently; Fight AccessControl
+  selected public MIT incubation during T-00061. Making source visible does not authorize a release tag,
+  Packagist publication, template enablement, or create-project distribution; those installable-release effects
+  require separate approval and verification.
 
 ## Implementation graph
 
-- [T-00061 — Bootstrap the Private Fight AccessControl Repository and Transfer Authority](../../tickets/00061-TICKET.md)
+- [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](../../tickets/00061-TICKET.md)
   starts immediately and establishes the shared package's local PRD-00001 authority, preserving Fight Common
   PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
 - [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
