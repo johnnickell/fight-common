@@ -18,7 +18,7 @@ final readonly class ProjectionRunner
      */
     public function __construct(
         private EventStore $eventStore,
-        private ProjectionCheckpointStore $checkpointStore,
+        private ProjectionCheckpointStore $checkpointStore
     ) {
     }
 

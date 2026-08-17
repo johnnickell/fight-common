@@ -21,7 +21,7 @@ final readonly class EventSourcedRepository
      */
     public function __construct(
         private EventStore $eventStore,
-        private AggregateDefinition $definition,
+        private AggregateDefinition $definition
     ) {
     }
 

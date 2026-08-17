@@ -56,11 +56,14 @@
     </rule>
 
     <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses" />
+    <rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall" />
+    <rule ref="SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration" />
 
     <rule ref="./Sniffs/Arrays/DisallowTrailingArrayCommaSniff.php" />
     <rule ref="./Sniffs/Arrays/RequireAlignedArrayArrowSniff.php" />
     <rule ref="./Sniffs/Files/RequireStrictTypesSniff.php" />
     <rule ref="./Sniffs/Formatting/RequireBlankLineBeforeReturnSniff.php" />
+    <rule ref="./Sniffs/NamingConventions/RequireUppercaseUnderscoredEnumCaseSniff.php" />
 
     <rule ref="./Sniffs/Classes/NamedClassStructureSniff.php">
         <properties>

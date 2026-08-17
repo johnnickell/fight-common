@@ -22,7 +22,7 @@ final readonly class EventPublicationHandlerFailure
         private string $callableDescription,
         private string $exceptionClass,
         private int $exceptionCode,
-        private string $diagnosticMessage,
+        private string $diagnosticMessage
     ) {
     }
 
@@ -37,7 +37,7 @@ final readonly class EventPublicationHandlerFailure
             $failure->callableDescription(),
             $throwable::class,
             $throwable->getCode(),
-            self::normalizeDiagnosticMessage($throwable->getMessage()),
+            self::normalizeDiagnosticMessage($throwable->getMessage())
         );
     }
 
@@ -82,7 +82,7 @@ final readonly class EventPublicationHandlerFailure
         $controlSafe = (string) preg_replace(
             '/[\x{0000}-\x{0008}\x{000B}\x{000C}\x{000E}-\x{001F}\x{007F}-\x{009F}]/u',
             '',
-            $validUtf8,
+            $validUtf8
         );
 
         return mb_strcut($controlSafe, 0, self::MAX_DIAGNOSTIC_BYTES, 'UTF-8');

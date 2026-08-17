@@ -24,7 +24,7 @@ final readonly class EventPublicationRunner
         private EventStore $eventStore,
         private SynchronousEventDispatcher $eventDispatcher,
         private PublicationCursorStore $cursorStore,
-        private PublicationFailureRecorder $failureRecorder,
+        private PublicationFailureRecorder $failureRecorder
     ) {
     }
 
@@ -45,7 +45,7 @@ final readonly class EventPublicationRunner
                     $this->publicationName,
                     $event,
                     $dispatchStartedAt,
-                    $dispatchFailure,
+                    $dispatchFailure
                 ));
             }
 
