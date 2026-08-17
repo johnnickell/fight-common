@@ -3,6 +3,7 @@
 **Labels:** `wayfinder:grilling`, `wayfinder:domain-modeling`
 **Mode:** HITL
 **Status:** Open
+**Planning synthesis:** Complete
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
 **Specifications:** [PRD-00016 — Fight Package and Starter Repository Ownership](../../specs/00016-PRD.md), [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../specs/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
 **Depends on:** [Prove persistence, UnitOfWork, and walking-slice portability](WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
@@ -110,8 +111,8 @@ gates without creating one oversized cross-repository build?
 ## Implementation graph
 
 - [T-00061 — Bootstrap the Private Fight AccessControl Repository and Transfer Authority](../../tickets/00061-TICKET.md)
-  starts immediately and establishes the shared package's local PRD-00017 authority and immutable bootstrap
-  receipt.
+  starts immediately and establishes the shared package's local PRD-00001 authority, preserving Fight Common
+  PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
 - [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
   [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](../../tickets/00063-TICKET.md),
   [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md),
@@ -122,6 +123,14 @@ gates without creating one oversized cross-repository build?
   six bootstraps and owns the final umbrella link, receipt, dependency, and authority-transfer audit.
 - Repository creation, visibility changes, tags, publication, and distribution remain execution-time actions
   requiring their own authorization; approval of this planning graph performs none of them.
+
+## Planning synthesis state
+
+The Fight Common planning layer is complete as of 2026-08-17. PRD-00014 through PRD-00016 produced the
+Fight Common implementation and handoff graph through T-00067. Running `/to-tickets` for PRD-00017 or
+PRD-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
+and the five starter repositories after their respective authority transfers. WF-018 remains open only until
+T-00061 through T-00067 complete those repository handoffs and the final umbrella verification.
 
 ## Resolution boundary
 
