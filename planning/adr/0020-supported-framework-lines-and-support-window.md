@@ -27,33 +27,33 @@ Symfony floor and the Slim stack's `^7.4 || ^8.0` floors both resolve to Symfony
 lower Symfony floor is needed while the window is current-only. All ranges are PHP-8.5-current with a
 PHP 8.6 re-resolution horizon (Guzzle `<8.6`, Slim `~8.5.0`, Symfony `polyfill-php86`).
 
-Composer verification uses five isolated fixture roots (one per framework), each requiring the Fight
-Common candidate plus exactly one framework's constraint set and resolved at lowest and latest, plus the
-root `require-dev` as the combined resolution lane. When a widen trigger fires, each new previous line
-gets its own isolated fixture proof and the combined lane is re-resolved before the widened range is
-published. A line that contradicts the current lane (Laravel 12 caps Symfony at `^7.2`; Slim 3 caps at
-PSR-7 v1) may not enter the combined lane while Fight Common pins Symfony `^8.1`.
+Composer verification uses the five real starter repositories, each requiring the Fight Common candidate
+plus its own framework constraint set and resolving lowest and latest. Fight Common's root `require-dev`
+proves only Fight Common's own adapter dependency graph; it is not a combined starter project. When a widen
+trigger fires, the owning starter repository proves the newly previous line before the widened range is
+published. A contradictory line (Laravel 12 caps Symfony at `^7.2`; Slim 3 caps at PSR-7 v1) remains outside
+the supported window while Fight Common pins Symfony `^8.1`.
 
 ## Consequences
 
-The certification and fixture burden stays small while the `1.2` lanes land, because only one line per
+The certification burden stays small while the initial repository lanes land, because only one line per
 framework is proven initially. The ranges are time-sensitive: maintenance status drives the widen and
 tighten triggers, and both dates are tracked as explicit policy inputs rather than inferred from tag
 ordering. Dropping a line is a deliberate, documented event, not a silent constraint change.
 
 The ranges are PHP-8.5-current with a PHP 8.6 horizon. Arrival of PHP 8.6, Slim 5, CodeIgniter 4.8, or
-Laravel 14 requires re-running the isolated and combined resolutions before publication.
+Laravel 14 requires rerunning the affected repository-owned resolutions before publication.
 
 ## Rejected Alternatives
 
 Certifying the frameworks' own maintained lines (Symfony 7.4 LTS, Laravel 12, CodeIgniter 4.6, Slim 3)
-was rejected because the previous lines force a lower Symfony or PSR-7 floor onto the combined lane and,
+was rejected because the previous lines contradict Fight Common's current Symfony or PSR-7 floor and,
 in the case of CodeIgniter 4.6, an EOL line without PHP 8.5 support.
 
 Adopting the widened `^new || ^current` union immediately was rejected because the current-only window
-simplifies the combined resolution lane and the union is a drop-in only when the framework's next major
+simplifies the initial repository-owned support lanes and the union is a drop-in only when the framework's next major
 ships.
 
 Widening the window beyond two majors or never tightening was rejected because Fight Common certifies
-every supported line with fixtures and tests; an unbounded window multiplies that burden without matching
+every supported line with repository-owned tests; an unbounded window multiplies that burden without matching
 consumer need.

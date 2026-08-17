@@ -3,7 +3,7 @@ id: T-00056
 prd: PRD-00014
 title: Certify the Fight Common 1.2 Compatibility Envelope
 status: ready-for-agent
-blocked_by: T-00034,T-00048,T-00049,T-00050,T-00051,T-00052,T-00053,T-00054,T-00055
+blocked_by: T-00034,T-00048,T-00049,T-00050,T-00051,T-00052,T-00053,T-00054,T-00059,T-00060
 ---
 
 # Certify the Fight Common 1.2 Compatibility Envelope
@@ -25,23 +25,28 @@ evidence and exactly one resumable next action.
       designated registration and identity behavior.
 - [ ] Legacy raw-array and typed JSend semantics, encoding, HTTP status, headers, native response, single data,
       and paginated data behavior are present and passing.
+- [ ] The additive transactional UnitOfWork contract, unchanged legacy commit path, Doctrine behavior, native
+      adapter conformance, and explicit nested-call rejection are present and passing.
+- [ ] The unchanged public Publisher path, independent PrivatePublisher contract, optional Mercure adapter, and
+      supported private-publication protocol evidence are present and passing.
 - [ ] The repository-locked full gate, exact complete statement coverage, and supported MySQL and PostgreSQL
       evidence are present and passing without skips.
-- [ ] Root lowest and latest, all five isolated lowest and latest, combined framework, archive, and production
-      `--no-dev` lanes are present and passing with exact version and lock receipts.
+- [ ] Root lowest and latest, exported-package consumer, archive, and production `--no-dev` lanes are present
+      and passing with exact version and lock receipts.
 - [ ] The immutable certification manifest binds candidate and baseline identities, resolved versions, lock
       digests, API and behavioral findings, package metadata, archive evidence, approvals, and exceptions.
 - [ ] Unavailable, queued, running, skipped, cancelled, missing, failed, stale, or indeterminate evidence cannot
       produce a certified result or be replaced by a hosted check or raw log.
 - [ ] Every stopped result names the failed or missing lane, preserves its evidence, and exposes exactly one
       resumable next action without granting a waiver.
-- [ ] Traceability links EPIC-00004, PRD-00014, WF-014, ADRs 0017 through 0019, T-00047 through T-00056, the
-      release certification engine, and all designated receipts without unresolved or contradictory edges.
+- [ ] Traceability links EPIC-00004, PRD-00014, WF-014, ADRs 0017 through 0019, T-00047 through T-00056,
+      T-00059, T-00060, the release certification engine, and all designated receipts without unresolved or
+      contradictory edges.
 
 ## Verification
 
-Full submit gate, `./bin/planning-check`, the complete black-box consumer certification harness, all dependency
-and package modes, deterministic pass/fail/indeterminate fixtures, manifest identity tests, and traceability
+Full submit gate, `./bin/planning-check`, the complete black-box consumer certification harness, root dependency
+and package modes, deterministic pass/fail/indeterminate probes, manifest identity tests, and traceability
 validation. No live release publication is required.
 
 ## Parent

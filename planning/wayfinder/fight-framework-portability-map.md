@@ -60,52 +60,62 @@ audited every public Application contract, and produced repository-owned impleme
   repository-local implementation handoffs.
 - [Define the versioned HTTP, JSend, and presentation contracts](tickets/WF-011-versioned-http-jsend-and-presentation-contracts.md)
   fixed `/api/v1/{capability}`, adapter-only HTTP versioning, typed JSend payloads, `ResultSet`
-  collection data, pure named presentation constructors, and framework-specific response adapters.
+  collection data, pure named presentation constructors, and framework-specific response adapters. Fight
+  Common response compatibility is permanent in [PRD-00014](../specs/00014-PRD.md); starter HTTP and client
+  delivery are permanent in [PRD-00018](../specs/00018-PRD.md).
 - [Define the portable AccessControl and persistence boundaries](tickets/WF-012-access-control-and-persistence-boundaries.md)
   fixed framework-neutral principals, aggregate-oriented repository contracts, native record
   adapters for Active Record frameworks, Doctrine XML mapping for Symfony and Slim, portable query
-  read models, and pragmatic transaction equivalence.
+  read models, and pragmatic transaction equivalence. Shared behavior is permanent in
+  [PRD-00017](../specs/00017-PRD.md); framework-owned persistence acceptance is permanent in
+  [PRD-00018](../specs/00018-PRD.md).
 - [Define starter product, governance, and documentation standards](tickets/WF-013-starter-product-governance-and-documentation.md)
   fixed the editable `/client`, HTTP-only authentication UI, native SPA host templates, one
   database-portable migration history, safe administrator bootstrap, Managed Role/Permission reconciliation,
-  complete documentation, and strict agent-ready quality gates.
+  complete documentation, and strict agent-ready quality gates. These decisions are permanent in
+  [PRD-00018](../specs/00018-PRD.md).
 - [Audit Fight Common contracts and the 1.2 compatibility envelope](tickets/WF-014-fight-common-contract-and-compatibility-audit.md)
   fixed the authoritative 404-declaration audit, exact Scheduler `1.x` repair, neutral typed JSend
   envelope, honest `Arrayable` and `ResultSet` shapes, capability-first adapter namespaces, 32
-  additive namespace migrations, in-repository framework fixtures, blocking `1.2.0` certification
+  additive namespace migrations, exported-package consumer probes, blocking `1.2.0` certification
   evidence, and the downstream capability worksheet. These decisions are now synthesized in
   [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../specs/00014-PRD.md)
   under [EPIC-00004 — Framework Portability and Starter Projects](../epics/00004-EPIC.md) and split into
-  T-00047 through T-00056. The framework-fixture slice (T-00055) is unblocked by WF-015, which supplies the exact
-  dependency and composition handoff.
+  T-00047 through T-00056 plus T-00059 and T-00060. T-00055 is closed `wontfix`; framework testing stays in
+  the real starter repositories rather than nested Fight Common fixtures.
 - [Select supported framework lines and default capability compositions](tickets/WF-015-framework-lines-and-default-capability-compositions.md)
   fixed the current-only supported-line window with widen and tighten triggers, the exact Composer
-  constraints per framework, the five isolated fixture lanes plus combined root lane, the no-new-shared-adapter
+  constraints per framework, five independent repository-owned compatibility lanes, the no-new-shared-adapter
   worksheet policy, the no-bundle starter-owned integration responsibilities, the one opinionated Slim stack,
   per-framework async and SPA-templating defaults, and a recommended Composer-installable composition for
   every capability (nothing is unsupported). These decisions are recorded in
   [ADR 0020](../adr/0020-supported-framework-lines-and-support-window.md) and
   [ADR 0021](../adr/0021-framework-default-capability-compositions.md) and synthesized in
   [PRD-00015 — Framework Supported Lines and Default Capability Compositions](../specs/00015-PRD.md),
-  split into the prefactor slices T-00057 and T-00058 with T-00055 as the framework-fixture ticket.
+  implemented in Fight Common through T-00057 and T-00058. T-00055 records the rejected nested-fixture plan.
 - [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
   fixed the Domain/Application-only package boundary, invitation and account-state model, Managed
   Role/Permission reconciliation, multi-device shared sessions, hardened access-JWT/refresh behavior,
   invocation-neutral delivery handlers, required security-audit durability, private realtime authorization,
   and the complete starter/client security profile. The decisions are recorded in
   [ADR 0022](../adr/0022-invited-registration-and-multi-session-jwt-authentication.md) and supported by the
-  linked research note.
+  linked research note. Shared AccessControl behavior is permanent in
+  [PRD-00017](../specs/00017-PRD.md), while framework delivery is permanent in
+  [PRD-00018](../specs/00018-PRD.md).
 - [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
   proved the risky persistence, transaction, composition, principal, HTTP, JWT, refresh, realtime, queue,
   and client-contract seams through bounded disposable evidence. Its decision record and Git evidence ledger
   are retained; nested prototype projects were removed after closure. Booted framework applications and
-  browser/runtime acceptance now belong to the real initially private repositories through WF-018.
+  browser/runtime acceptance now belong to the real initially private repositories through WF-018. Its shared
+  Fight Common consequences are permanent in [PRD-00014](../specs/00014-PRD.md), AccessControl consequences in
+  [PRD-00017](../specs/00017-PRD.md), and starter acceptance in [PRD-00018](../specs/00018-PRD.md).
 
 ## Frontier
 
 1. [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-   — create the repository-owned plan and dependency graph for Fight AccessControl plus the five initially
-   private starter repositories, their walking slices, compatibility incubation, and public-readiness gates.
+   — execute T-00061 through T-00067 to bootstrap Fight AccessControl first, bootstrap the five initially private
+   starters as one parallel-ready wave, and verify all six repository-owned plans and immutable receipts. The
+   permanent specification and Fight Common ticket layers are complete; repository authority transfer remains.
 
 ## Waiting
 
@@ -118,7 +128,6 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 
 - Final repository hosting, licenses, Packagist metadata, branch protections, and release automation.
 - Repository-local PRDs and executable vertical tickets for Fight AccessControl and each starter.
-- Exact private-incubation exit and independently approved public-transition gates.
 
 ## Out of scope
 
