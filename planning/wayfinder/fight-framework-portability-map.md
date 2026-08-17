@@ -25,9 +25,10 @@ The destination includes:
 - one opinionated, replaceable default stack per starter, a complete editable `/client` React
   application, robust agent guidance, exact quality gates, and self-contained documentation.
 
-The way is clear when the remaining tickets have selected the exact supported dependency ranges,
-proved the persistence and transaction seams, specified the modern session and optional JWT flows,
-audited every public Application contract, and produced repository-owned implementation handoffs.
+The planning route is complete: the exact supported dependency ranges, persistence and transaction seams,
+modern session and JWT flows, public Application contract audit, permanent specifications, and Fight Common
+umbrella ticket graph are resolved. Execution now transfers implementation authority into the six destination
+repositories through T-00061 through T-00067.
 
 ## Notes
 
@@ -109,13 +110,20 @@ audited every public Application contract, and produced repository-owned impleme
   browser/runtime acceptance now belong to the real initially private repositories through WF-018. Its shared
   Fight Common consequences are permanent in [PRD-00014](../specs/00014-PRD.md), AccessControl consequences in
   [PRD-00017](../specs/00017-PRD.md), and starter acceptance in [PRD-00018](../specs/00018-PRD.md).
+- [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
+  completed the Fight Common specification and umbrella-ticket layer. PRD-00014 through PRD-00016 own the
+  Fight Common work and T-00047 through T-00067 graph. PRD-00017 and PRD-00018 intentionally produce no
+  detailed Fight Common tickets: Fight AccessControl adopts the former as repository-local PRD-00001, and each
+  starter adopts the relevant latter contract through T-00062 through T-00066 before creating local tickets.
+  WF-018 remains open only for execution and verification of those six authority transfers.
 
 ## Frontier
 
-1. [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-   — execute T-00061 through T-00067 to bootstrap Fight AccessControl first, bootstrap the five initially private
-   starters as one parallel-ready wave, and verify all six repository-owned plans and immutable receipts. The
-   permanent specification and Fight Common ticket layers are complete; repository authority transfer remains.
+1. [Execute the full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
+   — complete T-00061, create Fight AccessControl's local PRD-00001 capability tickets, then execute T-00062
+   through T-00066 as one parallel-ready starter-foundation wave. T-00067 verifies all six repository-owned
+   plans and immutable receipts. The permanent specification and Fight Common ticket layers are complete;
+   repository authority transfer remains.
 
 ## Waiting
 
@@ -124,10 +132,12 @@ None.
 Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
 `Depends on` field is closed and it is not claimed by another session.
 
-## Not yet specified
+## Transferred to repository-local planning
 
-- Final repository hosting, licenses, Packagist metadata, branch protections, and release automation.
-- Repository-local PRDs and executable vertical tickets for Fight AccessControl and each starter.
+- Fight AccessControl owns capability-ticket creation from its local PRD-00001 after T-00061 is accepted.
+- Each starter owns its adopted PRD-00018 product plan, executable vertical tickets, hosting, licensing,
+  Packagist metadata, branch protections, release automation, visibility, and release state after its T-00062
+  through T-00066 bootstrap handoff.
 
 ## Out of scope
 

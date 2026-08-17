@@ -2,7 +2,7 @@
 id: T-00061
 prd: PRD-00016
 title: Bootstrap the Private Fight AccessControl Repository and Transfer Authority
-status: ready-for-agent
+status: in-progress
 blocked_by:
 ---
 

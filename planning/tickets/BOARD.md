@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 ## “What’s Next?” Contract
 
@@ -16,7 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is currently active.
+Review and merge Fight Common PR #82 and Fight AccessControl PR #1. Restore the GitHub Actions billing or
+spending limit and rerun Fight AccessControl's hosted build before accepting T-00061; then create local
+Fight AccessControl tickets from PRD-00001 and begin T-00062 through T-00066.
 
 ## Ready Frontier
 
@@ -29,11 +31,16 @@ ticket materially cheaper.
 | 9 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
 | 10 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
 | 11 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
-| 12 | [T-00061 — Bootstrap the Private Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the first repository-local authority and opens the parallel starter-foundation wave without waiting for a public tag. |
+
+## In Progress
+
+| Ticket | Parent PRD | Remaining Gate |
+|--------|------------|----------------|
+| [T-00061 — Bootstrap the Private Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Merge the Fight Common and Fight AccessControl planning branches, obtain a green hosted Fight AccessControl build, and accept the immutable handoff before opening T-00062 through T-00066. |
 
 ## Waiting
 
-All tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
+Waiting tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
@@ -112,10 +119,12 @@ those slices and the release certification engine complete, T-00056 composes the
 `1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
 evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
 
-The repository handoff path starts independently at T-00061. Once Fight AccessControl owns its canonical local
-plan and bootstrap receipt, T-00062 through T-00066 may establish the five starter foundations in parallel.
-T-00067 then verifies the six authority transfers and closes WF-018 without centralizing their builds, local
-acceptance criteria, visibility decisions, or release state in Fight Common.
+The repository handoff path is active at T-00061. Fight Common's specification and umbrella-ticket layer is
+complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Once Fight
+AccessControl's local PRD-00001 plan and bootstrap receipt are accepted, its capability tickets are created
+locally and T-00062 through T-00066 may establish the five starter foundations in parallel. T-00067 then
+verifies the six authority transfers and closes WF-018 without centralizing their builds, local acceptance
+criteria, visibility decisions, or release state in Fight Common.
 
 ## Recently Closed
 
