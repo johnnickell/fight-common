@@ -16,9 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-Review and merge Fight Common PR #82 and Fight AccessControl PR #1. Fight AccessControl is public under MIT;
-its hosted build and immutable public clean-clone build are green at `60e67ad`. After merge, record the merged
-SHA, accept T-00061, create local Fight AccessControl tickets from PRD-00001, and begin T-00062 through T-00066.
+Create Fight AccessControl's local capability tickets from PRD-00001, then execute T-00062 through T-00066 as
+the parallel-ready starter-foundation wave. T-00061 is accepted at public package commit `60e67ad`, AccessControl
+merge `2dc82081`, and Fight Common handoff merge `41ae487c`.
 
 ## Ready Frontier
 
@@ -27,16 +27,15 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
-| 9 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
-| 10 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
-| 11 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
-
-## In Progress
-
-| Ticket | Parent PRD | Remaining Gate |
-|--------|------------|----------------|
-| [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Hosted and public clean-clone builds are green at `60e67ad`; merge both planning branches, record the merged immutable handoff, and accept T-00061 before opening T-00062 through T-00066. |
+| 8 | [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](00062-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Starts the first framework-native repository while preserving the accepted repository-owned handoff boundary. |
+| 9 | [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Laravel starter's independent planning, build, and compatibility authority. |
+| 10 | [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Yii starter's independent planning, build, and compatibility authority. |
+| 11 | [T-00065 — Bootstrap the Private CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the CodeIgniter starter's independent planning, build, and compatibility authority. |
+| 12 | [T-00066 — Bootstrap the Private Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Slim starter's independent planning, build, and compatibility authority. |
+| 13 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
+| 14 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
+| 15 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
+| 16 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
 
 ## Waiting
 
@@ -65,12 +64,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 41 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 42 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 43 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00054, T-00059, T-00060 |
-| 44 | [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](00062-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
-| 45 | [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
-| 46 | [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
-| 47 | [T-00065 — Bootstrap the Private CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
-| 48 | [T-00066 — Bootstrap the Private Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
-| 49 | [T-00067 — Verify All Six Repository Handoffs and Close WF-018](00067-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 through T-00066 |
+| 49 | [T-00067 — Verify All Six Repository Handoffs and Close WF-018](00067-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00062 through T-00066 |
 
 ## Needs Info
 
@@ -119,10 +113,10 @@ those slices and the release certification engine complete, T-00056 composes the
 `1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
 evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
 
-The repository handoff path is active at T-00061. Fight Common's specification and umbrella-ticket layer is
-complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Once Fight
-AccessControl's local PRD-00001 plan and bootstrap receipt are accepted, its capability tickets are created
-locally and T-00062 through T-00066 may establish the five starter foundations in parallel. T-00067 then
+The repository handoff path has completed T-00061. Fight Common's specification and umbrella-ticket layer is
+complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Fight AccessControl
+now creates its capability tickets locally from PRD-00001, while T-00062 through T-00066 may establish the five
+starter foundations in parallel. T-00067 then
 verifies the six authority transfers and closes WF-018 without centralizing their builds, local acceptance
 criteria, visibility decisions, or release state in Fight Common.
 
@@ -136,6 +130,7 @@ criteria, visibility decisions, or release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public MIT Fight AccessControl package, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added opt-in tracked pre-commit enforcement with repository-root resolution, disconnected stdin, exact default-build delegation, unchanged status propagation, documented activation and bypass, and no pre-push duplicate. |
 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaced duplicated hosted quality commands with ephemeral latest-compatible resolution followed by direct shared-gate execution, preserving supported PR targets, database services, and explicit failure propagation. |
 | [T-00029 — Deliver the Disposable Local Build and Dependency Modes](00029-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added one non-interactive local build that composes tracked or latest-compatible dependency resolution, invoking-user ownership, disposable databases, linked-worktree support, and the shared quality gate in one PHP container. |
