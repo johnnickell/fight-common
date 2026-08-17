@@ -113,14 +113,14 @@ gates without creating one oversized cross-repository build?
 ## Implementation graph
 
 - [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](../../tickets/00061-TICKET.md)
-  starts immediately and establishes the shared package's local PRD-00001 authority, preserving Fight Common
+  is complete and established the shared package's local PRD-00001 authority, preserving Fight Common
   PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
 - [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
   [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](../../tickets/00063-TICKET.md),
   [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md),
   [T-00065 — Bootstrap the Private CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md),
   and [T-00066 — Bootstrap the Private Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) form
-  one parallel-ready wave blocked only by T-00061.
+  one parallel-ready wave now that T-00061 is complete.
 - [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../tickets/00067-TICKET.md) is blocked by all
   six bootstraps and owns the final umbrella link, receipt, dependency, and authority-transfer audit.
 - Repository creation, visibility changes, tags, publication, and distribution remain execution-time actions
