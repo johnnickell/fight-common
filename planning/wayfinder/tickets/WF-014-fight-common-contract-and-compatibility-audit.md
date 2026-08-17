@@ -5,7 +5,8 @@
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
 **Specification:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../specs/00014-PRD.md)
-**Implementation tickets:** T-00047 through T-00056 in the canonical Fight Common ticket tracker
+**Implementation tickets:** T-00047 through T-00056 plus T-00059 and T-00060 in the canonical Fight Common
+ticket tracker
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md), [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md), [Define the portable AccessControl and persistence boundaries](WF-012-access-control-and-persistence-boundaries.md), [Define starter product, governance, and documentation standards](WF-013-starter-product-governance-and-documentation.md)
 
 ## Question
@@ -180,19 +181,15 @@ See [ADR 0019](../../adr/0019-capability-first-adapter-namespaces-and-1x-compati
 ### Composer verification layout
 
 Keep Symfony, Laravel, Yii, CodeIgniter, Slim, and their optional adapter packages out of production
-`require`. The existing root project uses `require-dev` as the mutually resolvable combined framework and
-adapter test set. Root `suggest` names each exact optional package that activates an adapter, while supported
-version ranges remain normative in documentation because Composer suggestion text is not a constraint.
+`require`. Fight Common's root `require-dev` proves its own adapter dependency graph at lowest and latest.
+Root `suggest` names each exact optional package that activates an adapter, while supported version ranges
+remain normative in documentation because Composer suggestion text is not a constraint.
 
-Add five minimal Composer fixture directories inside this repository, one per framework. These are dependency
-manifests and compatibility probes, not starter applications or separate repositories. Each fixture requires
-the Fight Common candidate plus exactly one framework and its selected native dependencies, then resolves
-both the lowest and latest supported versions. The existing root supplies the combined resolution lane,
-including lowest resolution where the final constraints make it meaningful.
-
-Fixture locks are disposable lane inputs; each run records the exact resolved versions and lock digest as
-evidence. Production verification installs the candidate with `--no-dev` and proves no optional framework
-package is required or eagerly loaded. WF-015 owns the exact package names and supported ranges.
+Use one exported-package black-box consumer outside the repository root to prove public installation and
+representative behavior without repository-only files. Do not add five nested framework fixture directories
+or a combined starter project. The five real starter repositories own their framework dependency graphs,
+native composition probes, lowest/latest solves, and immutable clean-clone receipts under PRD-00016 and
+PRD-00018.
 
 ### Blocking 1.2.0 certification evidence
 
@@ -208,10 +205,8 @@ Fight Common `1.2.0` is not certifiable until every required lane passes:
 5. the repository-locked full quality gate with exact complete production statement coverage and both
    supported databases;
 6. lowest-permitted and latest-permitted root dependency resolutions;
-7. lowest and latest resolutions plus compatibility probes for each of the five isolated framework fixtures;
-8. the combined five-framework root resolution and adapter suite;
-9. exported-package and `--no-dev` clean-install proof showing no optional framework dependency; and
-10. exact resolved-version, lock-digest, public API, behavior, package, and archive receipts composed into the
+7. exported-package and `--no-dev` clean-install proof showing no optional framework dependency; and
+8. exact resolved-version, lock-digest, public API, behavior, package, and archive receipts composed into the
     release certification manifest.
 
 An unavailable, skipped, failed, or indeterminate lane does not certify `1.2.0` and cannot be replaced by a
@@ -223,8 +218,8 @@ resumable next action. WF-014 defines this evidence contract but does not implem
 The contract-to-capability worksheet in the WF-014 research note is the required handoff contract for WF-015
 through WF-017. For every capability and framework, downstream work records the selected maintained
 versions, exact Composer constraint, framework-native facility, existing Fight Common adapter or direct
-binding, starter-owned composition, proposed new shared adapter with its evidence, lowest and latest lock
-receipts, functional consumer journey, and remaining unknowns.
+binding, starter-owned composition, proposed new shared adapter with its evidence, repository-owned lowest and
+latest lock receipts, functional consumer journey, and remaining unknowns.
 
 A new Fight Common adapter is authorized only when prototype evidence demonstrates reusable translation or
 framework-extension behavior that cannot be expressed cleanly in the starter's composition root. Equal class

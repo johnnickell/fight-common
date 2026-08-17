@@ -268,7 +268,7 @@ try {
     VarPrinter::toString($e);                 // 'RuntimeException({"message":"Oops","code":0,"file":"...","line":...})'
 }
 
-enum Status: string { case Active = 'active'; }
+enum Status: string { case ACTIVE = 'active'; }
 VarPrinter::toString(Status::Active);         // "Enum(Status::Active)"
 ```
 

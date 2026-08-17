@@ -4,6 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
+**Specifications:** [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../specs/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
 **Depends on:** [Audit Fight Common contracts and the 1.2 compatibility envelope](WF-014-fight-common-contract-and-compatibility-audit.md), [Define the portable AccessControl and persistence boundaries](WF-012-access-control-and-persistence-boundaries.md)
 **Research:** [WF-016 research note](../research/WF-016-access-control-extraction-and-authentication-model-research.md)
 **Decisions:** [ADR 0022 — Invited Registration and Multi-Session JWT Authentication](../../adr/0022-invited-registration-and-multi-session-jwt-authentication.md)

@@ -48,7 +48,7 @@ final class RequireTypeDocCommentSniff implements Sniff
             $phpcsFile->addError(
                 sprintf('Missing doc comment for %s %s', $type, $name),
                 $stackPtr,
-                'Missing',
+                'Missing'
             );
 
             return;
@@ -61,13 +61,13 @@ final class RequireTypeDocCommentSniff implements Sniff
                 $phpcsFile->addFixableError(
                     sprintf('Missing canonical doc comment for %s', $name),
                     $stackPtr,
-                    'MissingDocComment',
+                    'MissingDocComment'
                 )
             ) {
                 DocumentationComment::insert(
                     $phpcsFile,
                     DocumentationComment::declarationStart($phpcsFile, $stackPtr, $modifiers),
-                    [$expected],
+                    [$expected]
                 );
             }
 
@@ -82,7 +82,7 @@ final class RequireTypeDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 sprintf('Expected "%s" as the type summary', $expected),
                 $stackPtr,
-                'IncorrectSummary',
+                'IncorrectSummary'
             );
             $lines = [$expected];
         } else {
@@ -95,14 +95,14 @@ final class RequireTypeDocCommentSniff implements Sniff
                 $fix = $phpcsFile->addFixableError(
                     sprintf('Type summary must not end in punctuation: "%s"', $summary),
                     $stackPtr,
-                    'TerminalPunctuation',
+                    'TerminalPunctuation'
                 );
                 $lines[0] = $expected;
             } else {
                 $fix = $phpcsFile->addFixableError(
                     sprintf('Expected "%s" as the type summary; found "%s"', $expected, $summary),
                     $stackPtr,
-                    'IncorrectSummary',
+                    'IncorrectSummary'
                 );
                 $lines = array_merge([$expected, ''], $lines);
             }
@@ -114,7 +114,7 @@ final class RequireTypeDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 'Expected exactly one blank docblock line after the type summary',
                 $stackPtr,
-                'MissingBlankLine',
+                'MissingBlankLine'
             ) || $fix;
             $lines = $separated['lines'];
         }

@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-12
+Last updated: 2026-08-17
 
 ## “What’s Next?” Contract
 
@@ -16,7 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is currently active.
+Review and merge Fight Common PR #82 and Fight AccessControl PR #1. Fight AccessControl is public under MIT;
+its hosted build and immutable public clean-clone build are green at `60e67ad`. After merge, record the merged
+SHA, accept T-00061, create local Fight AccessControl tickets from PRD-00001, and begin T-00062 through T-00066.
 
 ## Ready Frontier
 
@@ -27,12 +29,18 @@ ticket materially cheaper.
 |------|--------|------------|----------|
 | 8 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
 | 9 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
-| 10 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window and unblocks the combined fixture lane. |
+| 10 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
 | 11 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
+
+## In Progress
+
+| Ticket | Parent PRD | Remaining Gate |
+|--------|------------|----------------|
+| [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Hosted and public clean-clone builds are green at `60e67ad`; merge both planning branches, record the merged immutable handoff, and accept T-00061 before opening T-00062 through T-00066. |
 
 ## Waiting
 
-All tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
+Waiting tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
@@ -54,8 +62,15 @@ All tickets retain `ready-for-agent`; their position here is derived from unfini
 | 38 | [T-00052 — Publish Canonical Symfony Event Sourcing and Templating Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 39 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 40 | [T-00054 — Prove Root Dependency Modes and Production Package Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 42 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00055 |
-| 44 | [T-00055 — Resolve the Five Isolated and Combined Framework Fixtures](00055-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00049 through T-00054, T-00057 |
+| 41 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 42 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
+| 43 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00054, T-00059, T-00060 |
+| 44 | [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](00062-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
+| 45 | [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
+| 46 | [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
+| 47 | [T-00065 — Bootstrap the Private CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
+| 48 | [T-00066 — Bootstrap the Private Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 |
+| 49 | [T-00067 — Verify All Six Repository Handoffs and Close WF-018](00067-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | T-00061 through T-00066 |
 
 ## Needs Info
 
@@ -68,7 +83,7 @@ certification blocker and every higher-priority release item are complete.
 
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
-| 43 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Prove repository-wide additive compatibility and close the 1.2 acceptance boundary only after T-00056 certifies the complete contract and framework evidence. |
+| 50 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Prove repository-wide additive compatibility and close the 1.2 acceptance boundary only after T-00056 certifies the complete Fight Common contract evidence. |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -77,7 +92,7 @@ logging are complete across the same database matrix. T-00016 now documents the 
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
 Mapper contract. T-00017 remains the board's final priority and now explicitly waits on T-00056 so `1.2`
-compatibility and release acceptance cannot be declared before the complete contract, framework, quality-gate,
+compatibility and release acceptance cannot be declared before the complete contract, package, quality-gate,
 and release-coordination evidence exists. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
@@ -98,10 +113,24 @@ maintenance lifecycle work may proceed independently at T-00036 after certificat
 the oldest affected-line patch at T-00037 and ordered forward ports at T-00042. Operator skills, dispatcher
 and runbook, and final CI traceability then close the epic through T-00038, T-00043, and T-00039.
 
-The Fight Common compatibility path starts at T-00047. Scheduler, JSend, namespace, and package lanes then
-proceed through T-00048 to T-00054. T-00055 waits for WF-015's exact framework handoff; after that slice and
-the release certification engine complete, T-00056 composes the complete black-box `1.2.0` compatibility
-evidence required before T-00017 can close release acceptance.
+The Fight Common compatibility path starts at T-00047. Scheduler, JSend, namespace, package, transactional
+UnitOfWork, and private Mercure lanes then proceed through T-00048 to T-00054, T-00059, and T-00060. After
+those slices and the release certification engine complete, T-00056 composes the Fight Common black-box
+`1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
+evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
+
+The repository handoff path is active at T-00061. Fight Common's specification and umbrella-ticket layer is
+complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Once Fight
+AccessControl's local PRD-00001 plan and bootstrap receipt are accepted, its capability tickets are created
+locally and T-00062 through T-00066 may establish the five starter foundations in parallel. T-00067 then
+verifies the six authority transfers and closes WF-018 without centralizing their builds, local acceptance
+criteria, visibility decisions, or release state in Fight Common.
+
+## Recently Closed
+
+| Ticket | Parent PRD | Outcome |
+|--------|------------|---------|
+| [T-00055 — Retire the In-Repository Framework Fixture Plan](00055-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Closed `wontfix`; the five real starter repositories own framework dependency and compatibility evidence, so Fight Common will not regain nested Composer projects or a combined framework application. |
 
 ## Recently Done
 

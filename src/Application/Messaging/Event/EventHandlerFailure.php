@@ -18,7 +18,7 @@ final readonly class EventHandlerFailure
      */
     public function __construct(
         private string $callableDescription,
-        private Throwable $throwable,
+        private Throwable $throwable
     ) {
     }
 

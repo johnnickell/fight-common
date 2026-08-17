@@ -70,7 +70,7 @@ final class DisallowTrailingArrayCommaSniff implements Sniff
         $fix = $phpcsFile->addFixableError(
             'Trailing comma found in array declaration',
             $stackPtr,
-            'DisallowTrailingArrayComma',
+            'DisallowTrailingArrayComma'
         );
 
         if ($fix) {

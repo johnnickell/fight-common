@@ -95,10 +95,10 @@ final class RequireAlignedArrayArrowSniff implements Sniff
                 sprintf(
                     'Array => arrow must be aligned to column %d; found at column %d',
                     $targetColumn,
-                    $arrowColumn,
+                    $arrowColumn
                 ),
                 $arrow['arrowPtr'],
-                'ArrowNotAligned',
+                'ArrowNotAligned'
             );
 
             if ($fix) {
@@ -157,7 +157,7 @@ final class RequireAlignedArrayArrowSniff implements Sniff
 
         $phpcsFile->fixer->replaceToken(
             $arrow['arrowPtr'],
-            $padding.$tokens[$arrow['arrowPtr']]['content'],
+            $padding.$tokens[$arrow['arrowPtr']]['content']
         );
     }
 }

@@ -16,8 +16,8 @@ use Stringable;
 
 enum VarPrinterTestEnum
 {
-    case Alpha;
-    case Beta;
+    case ALPHA;
+    case BETA;
 }
 
 #[CoversClass(VarPrinter::class)]
@@ -40,16 +40,16 @@ class VarPrinterTest extends UnitTestCase
 
     public function test_that_to_string_returns_enum_representation(): void
     {
-        $result = VarPrinter::toString(VarPrinterTestEnum::Alpha);
+        $result = VarPrinter::toString(VarPrinterTestEnum::ALPHA);
 
-        self::assertSame('Enum(VarPrinterTestEnum::Alpha)', $result);
+        self::assertSame('Enum(VarPrinterTestEnum::ALPHA)', $result);
     }
 
     public function test_that_to_string_returns_enum_representation_for_different_case(): void
     {
-        $result = VarPrinter::toString(VarPrinterTestEnum::Beta);
+        $result = VarPrinter::toString(VarPrinterTestEnum::BETA);
 
-        self::assertSame('Enum(VarPrinterTestEnum::Beta)', $result);
+        self::assertSame('Enum(VarPrinterTestEnum::BETA)', $result);
     }
 
     public function test_that_to_string_returns_function_string_for_closure(): void

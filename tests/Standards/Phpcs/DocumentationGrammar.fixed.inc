@@ -31,7 +31,7 @@ trait UsefulTrait
  */
 enum Mode
 {
-    case Active;
+    case ACTIVE;
 }
 
 /**

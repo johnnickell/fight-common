@@ -23,7 +23,7 @@ final readonly class LoggingPublicationFailureRecorder implements PublicationFai
     public function __construct(
         private PublicationFailureRecorder $recorder,
         private LoggerInterface $logger,
-        private string $logLevel = LogLevel::ERROR,
+        private string $logLevel = LogLevel::ERROR
     ) {
     }
 

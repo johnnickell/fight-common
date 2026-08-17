@@ -91,7 +91,7 @@ final class RequireMethodDocCommentSniff implements Sniff
                     DocumentationComment::insert(
                         $phpcsFile,
                         DocumentationComment::declarationStart($phpcsFile, $stackPtr, $modifiers),
-                        [$expected],
+                        [$expected]
                     );
                 }
             } else {
@@ -118,7 +118,7 @@ final class RequireMethodDocCommentSniff implements Sniff
                 $phpcsFile->addError(
                     'Bare @inheritDoc must be the complete doc comment',
                     $stackPtr,
-                    'InheritDocWithContent',
+                    'InheritDocWithContent'
                 );
             }
 
@@ -132,7 +132,7 @@ final class RequireMethodDocCommentSniff implements Sniff
                 $phpcsFile->addError(
                     'Annotation-first methods require a human-written summary',
                     $stackPtr,
-                    'AmbiguousSummary',
+                    'AmbiguousSummary'
                 );
 
                 return;
@@ -141,7 +141,7 @@ final class RequireMethodDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 sprintf('Expected "%s" before constructor annotations', $expected),
                 $stackPtr,
-                'InvalidConstructorSummary',
+                'InvalidConstructorSummary'
             );
             $lines = array_merge([$expected, ''], $lines);
         } elseif ($isConstructor) {
@@ -151,14 +151,14 @@ final class RequireMethodDocCommentSniff implements Sniff
                 $fix = $phpcsFile->addFixableError(
                     'Constructor summary must not end in punctuation',
                     $stackPtr,
-                    'TerminalPunctuation',
+                    'TerminalPunctuation'
                 );
                 $lines[0] = $expected;
             } else {
                 $fix = $phpcsFile->addFixableError(
                     sprintf('Expected "%s" as the constructor summary', $expected),
                     $stackPtr,
-                    'InvalidConstructorSummary',
+                    'InvalidConstructorSummary'
                 );
                 $lines = array_merge([$expected, ''], $lines);
             }
@@ -178,7 +178,7 @@ final class RequireMethodDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 'Expected exactly one blank docblock line after the method summary',
                 $stackPtr,
-                'MissingBlankLine',
+                'MissingBlankLine'
             ) || $fix;
             $lines = $separated['lines'];
         }
@@ -216,7 +216,7 @@ final class RequireMethodDocCommentSniff implements Sniff
                 $phpcsFile->addError(
                     sprintf('Method summary must begin with an approved action verb; found "%s"', $verb),
                     $stackPtr,
-                    'AmbiguousSummary',
+                    'AmbiguousSummary'
                 );
 
                 return null;
@@ -225,7 +225,7 @@ final class RequireMethodDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 sprintf('Use "%s" instead of imperative "%s"', self::IMPERATIVE_MAP[$verb], $verb),
                 $stackPtr,
-                'UnapprovedVerb',
+                'UnapprovedVerb'
             );
             $lines[0] = self::IMPERATIVE_MAP[$verb].substr((string) $summary, strlen($verb));
         }
@@ -234,7 +234,7 @@ final class RequireMethodDocCommentSniff implements Sniff
             $fix = $phpcsFile->addFixableError(
                 'Method summary must not end in punctuation',
                 $stackPtr,
-                'TerminalPunctuation',
+                'TerminalPunctuation'
             ) || $fix;
             $lines[0] = substr((string) $lines[0], 0, -1);
         }

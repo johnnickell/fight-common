@@ -21,7 +21,7 @@ final readonly class MappedEvent
     public function __construct(
         private string $eventName,
         private int $schemaVersion,
-        private array $data,
+        private array $data
     ) {
     }
 

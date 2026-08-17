@@ -50,7 +50,7 @@ final class RequireBlankLineBeforeReturnSniff implements Sniff
         $fix = $phpcsFile->addFixableError(
             'Expected a blank line before the return statement',
             $stackPtr,
-            'Missing',
+            'Missing'
         );
 
         if ($fix) {

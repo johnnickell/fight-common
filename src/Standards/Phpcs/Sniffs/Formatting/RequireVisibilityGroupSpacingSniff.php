@@ -82,7 +82,7 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
                 $phpcsFile,
                 [T_USE, T_ENUM_CASE, T_CONST, T_VARIABLE, T_FUNCTION],
                 $cursor + 1,
-                $tokens[$stackPtr]['scope_closer'],
+                $tokens[$stackPtr]['scope_closer']
             );
 
             if ($cursor === null) {
@@ -135,7 +135,7 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
             $cursor = TokenHelper::findPrevious(
                 $phpcsFile,
                 [T_OPEN_CURLY_BRACKET, T_CLOSE_CURLY_BRACKET, T_SEMICOLON, T_PUBLIC, T_PROTECTED, T_PRIVATE],
-                $cursor - 1,
+                $cursor - 1
             );
 
             if (in_array($tokens[$cursor]['code'], [T_OPEN_CURLY_BRACKET, T_CLOSE_CURLY_BRACKET, T_SEMICOLON], true)) {
@@ -174,7 +174,7 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
                 'Expected no blank line within the %s %s group; found %d',
                 $current['visibility'],
                 $current['kind'],
-                $actual,
+                $actual
             );
             $code = 'UnexpectedBlankLineWithinVisibilityGroup';
         } else {
@@ -183,7 +183,7 @@ final class RequireVisibilityGroupSpacingSniff implements Sniff
                 $previous['visibility'],
                 $current['visibility'],
                 $current['kind'],
-                $actual,
+                $actual
             );
             $code = 'MissingBlankLineBetweenVisibilityGroups';
         }

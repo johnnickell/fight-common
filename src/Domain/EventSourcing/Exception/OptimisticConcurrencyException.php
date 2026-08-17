@@ -18,14 +18,14 @@ final class OptimisticConcurrencyException extends DomainException
     public function __construct(
         private readonly StreamId $streamId,
         private readonly int $expectedVersion,
-        private readonly int $actualVersion,
+        private readonly int $actualVersion
     ) {
         parent::__construct(sprintf(
             'Optimistic concurrency conflict for stream "%s"/"%s": expected version %d, actual version %d',
             $streamId->aggregateName(),
             $streamId->identifier(),
             $expectedVersion,
-            $actualVersion,
+            $actualVersion
         ));
     }
 
