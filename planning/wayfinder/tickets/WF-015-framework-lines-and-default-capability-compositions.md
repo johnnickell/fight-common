@@ -17,7 +17,7 @@ default composition for each public Fight Common contract in each starter?
 
 - current and previous maintained Laravel, Yii 3, CodeIgniter 4, Slim, and Symfony lines that satisfy
   Fight Common's PHP and Composer constraints;
-- isolated locks and a combined root-resolution strategy that detects framework upgrade conflicts;
+- independent repository-owned lowest/latest resolution that detects framework upgrade conflicts;
 - native container and service registration, explicit handler maps, and optional build-time discovery;
 - synchronous and asynchronous command and event dispatch, queue transports, retries, failure stores,
   worker commands, and operational monitoring;
@@ -58,12 +58,11 @@ PHP 8.6 horizon (Guzzle `<8.6`, Slim `~8.5.0`).
 
 ### Composer verification lanes
 
-Five isolated fixture roots (one per framework) each require the Fight Common candidate plus exactly one
-framework's constraint set and resolve lowest and latest, per the WF-014 Composer verification layout.
-The root `require-dev` remains the combined resolution lane. The known upgrade conflicts are the widened
-window, not the current lane: Laravel 12 caps Symfony at `^7.2` and Slim 3 caps at PSR-7 v1, so neither
-can enter a lane where Fight Common pins Symfony `^8.1`. When a widen trigger fires, each new previous
-line gets its own isolated fixture proof and the combined lane is re-resolved.
+The five real starter repositories each require the Fight Common candidate plus their own framework constraint
+set and resolve lowest and latest. Fight Common retains no nested framework roots and no combined starter
+project. The known upgrade conflicts are outside the current window: Laravel 12 caps Symfony at `^7.2` and
+Slim 3 caps at PSR-7 v1, so neither is supported while Fight Common pins Symfony `^8.1`. When a widen trigger
+fires, the owning starter repository proves the newly previous line before the range widens.
 
 ### Default composition worksheet
 
@@ -121,5 +120,5 @@ This ticket is closed. It produces the decision record ([ADR 0020](../../adr/002
 [ADR 0021](../../adr/0021-framework-default-capability-compositions.md)), the supported-composition
 worksheet with primary-source evidence, and the permanent specification
 ([PRD-00015](../../specs/00015-PRD.md)). It did not install framework packages, create starter repositories,
-or implement adapters. Implementation proceeds through the PRD-00015 prefactor slices (T-00057, T-00058) and
-the framework-fixture ticket (T-00055).
+or implement adapters. Fight Common implementation proceeds through T-00057 and T-00058. T-00055 is closed
+`wontfix`; PRD-00016 and PRD-00018 transfer framework compatibility work to the owning starter repositories.

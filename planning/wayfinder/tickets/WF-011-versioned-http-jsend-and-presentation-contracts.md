@@ -4,6 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
+**Specifications:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../specs/00014-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md)
 
 ## Question

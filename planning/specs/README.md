@@ -18,3 +18,5 @@
 | [00014](00014-PRD.md) | Fight Common Contract Repair and Compatibility Certification | ready-for-agent |
 | [00015](00015-PRD.md) | Framework Supported Lines and Default Capability Compositions | ready-for-agent |
 | [00016](00016-PRD.md) | Fight Package and Starter Repository Ownership | ready-for-agent |
+| [00017](00017-PRD.md) | Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent |
+| [00018](00018-PRD.md) | Framework Starter Product and Walking-Slice Acceptance | ready-for-agent |

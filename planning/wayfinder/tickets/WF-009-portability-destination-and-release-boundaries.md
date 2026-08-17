@@ -4,6 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
+**Specifications:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../specs/00014-PRD.md), [PRD-00015 — Framework Supported Lines and Default Capability Compositions](../../specs/00015-PRD.md), [PRD-00016 — Fight Package and Starter Repository Ownership](../../specs/00016-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
 **Depends on:** None
 
 ## Question
@@ -20,15 +21,15 @@ caching, process execution, scheduling, and observability. Native framework faci
 where useful; portable Fight Common adapters remain portable; selected Composer packages fill real
 gaps.
 
-All Fight Common adapters remain in `johnnickell/fight-common`. Framework dependencies stay in root
-`require-dev` for development and verification and in `suggest` for consumers. The project accepts
-the resulting dependency-resolution responsibility rather than splitting adapters into separate
-framework packages.
+All Fight Common adapters remain in `johnnickell/fight-common`. Dependencies required to test those adapters
+stay in root `require-dev`, and optional activation packages are named in `suggest` for consumers. Each starter
+owns its framework dependency graph and verification. The project accepts responsibility for its shipped
+adapters rather than splitting them into separate framework packages.
 
 Supported framework versions use explicit Composer ranges. The intended policy is the current and
-previous maintained line where those versions are secure and mutually resolvable. Verification must
-include isolated framework locks, lowest and latest compatible lanes, and a combined root-resolution
-check. New framework majors are adopted deliberately rather than accidentally widening constraints.
+previous maintained line where those versions are secure and mutually resolvable. Verification uses lowest
+and latest compatible lanes in each owning starter repository; Fight Common does not build a combined starter
+project. New framework majors are adopted deliberately rather than accidentally widening constraints.
 
 Fight Common `1.2.0` is the preferred target only while changes remain additive:
 

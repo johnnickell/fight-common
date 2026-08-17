@@ -4,6 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
+**Specifications:** [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../specs/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
 **Depends on:** [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md)
 
 ## Question
