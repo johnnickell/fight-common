@@ -120,8 +120,9 @@ repositories through T-00061 through T-00067.
 ## Frontier
 
 1. [Execute the full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-   — T-00061 is complete. Create Fight AccessControl's local PRD-00001 capability tickets and execute T-00062
-   through T-00066 as one parallel-ready starter-foundation wave. T-00067 verifies all six repository-owned
+   — T-00061 and T-00062 are complete. Create Fight AccessControl's local PRD-00001 capability tickets and
+   execute T-00063 through T-00066 as the remaining parallel-ready public-source starter-foundation wave.
+   T-00067 verifies all six repository-owned
    plans and immutable receipts. The permanent specification and Fight Common ticket layers are complete;
    repository authority transfer remains.
 
@@ -137,8 +138,8 @@ Choose only one frontier ticket per Wayfinder session. A ticket is takeable when
 - Fight AccessControl owns capability-ticket creation from its local PRD-00001; T-00061 was accepted on
   2026-08-17.
 - Each starter owns its adopted PRD-00018 product plan, executable vertical tickets, hosting, licensing,
-  Packagist metadata, branch protections, release automation, visibility, and release state after its T-00062
-  through T-00066 bootstrap handoff.
+  Packagist metadata, branch protections, release automation, and release state after its T-00062 through
+  T-00066 public-source bootstrap handoff.
 
 ## Out of scope
 

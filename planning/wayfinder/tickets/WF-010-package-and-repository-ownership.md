@@ -50,9 +50,8 @@ must establish an `AGENTS.md`, architecture rules, planning workflow, and qualit
 repository. Detailed implementation and release ownership then moves to that repository; the umbrella
 map retains dependency links but does not become a competing source of truth.
 
-Each repository may begin privately during initial framework and security testing, then becomes public when
-its owner judges the project ready for external inspection. Useful public `0.x.y` releases may be published
-independently after repository-owned gates and separate release approval. Making source public and moving a
+Every `project-*` framework starter is public source from bootstrap. Useful public `0.x.y` releases may be
+published independently after repository-owned gates and separate release approval. Public source and moving a
 stable state to `main` do not themselves authorize or require a version tag.
 
 ## Resolution boundary

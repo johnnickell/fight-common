@@ -40,11 +40,10 @@ AccessControl Domain and Application walking slice in every framework without un
   Yii, CodeIgniter, and Slim. Each project runs the same framework-neutral behavioral contract and emits
   machine-readable receipts. WF-017 remains the parent decision ticket until all five projects can be
   compared; it is not one monolithic prototype implementation.
-- Give each framework project its own repository. A repository may remain private during initial testing
-  and become public when it is ready. Feature branches merge into `develop`, which is the integration and
-  normal pull-request target; `main` is the more stable branch between releases. Merging to `main` does not
-  require a version tag. Versions remain absent or non-authoritative until the project is ready to tag an
-  intentional pre-1.0 release such as `0.1.0` or `0.2.0`.
+- Give each framework project its own public-source repository from bootstrap. Feature branches merge into
+  `develop`, which is the integration and normal pull-request target; `main` is the more stable branch between
+  releases. Merging to `main` does not require a version tag. Versions remain absent or non-authoritative until
+  the project is ready to tag an intentional pre-1.0 release such as `0.1.0` or `0.2.0`.
 - Begin each framework project with one bounded horizontal bootstrap ticket: render a tested Hello World
   page, then establish project configuration and service composition without CQRS or database interaction.
   After that bootstrap is green, build one user-valued vertical slice per use-case ticket. Each slice crosses
