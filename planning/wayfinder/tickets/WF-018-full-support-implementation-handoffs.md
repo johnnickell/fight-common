@@ -2,7 +2,7 @@
 
 **Labels:** `wayfinder:grilling`, `wayfinder:domain-modeling`
 **Mode:** HITL
-**Status:** Open
+**Status:** Closed
 **Planning synthesis:** Complete
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
 **Specifications:** [PRD-00016 — Fight Package and Starter Repository Ownership](../../specs/00016-PRD.md), [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../specs/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../specs/00018-PRD.md)
@@ -117,10 +117,11 @@ gates without creating one oversized cross-repository build?
   [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md), and
   [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md)
   are complete and each transferred its public-source foundation and repository-local planning authority.
-  [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) is the
-  remaining handoff.
-- [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../tickets/00067-TICKET.md) is blocked by all
-  six bootstraps and owns the final umbrella link, receipt, dependency, and authority-transfer audit.
+  [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) completed
+  the final Slim handoff.
+- [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../tickets/00067-TICKET.md) verified the six
+  terminal bootstraps, canonical local-plan links, immutable receipts, and dependency order, then closed this
+  Wayfinder without centralizing local work.
 - Repository creation, tags, publication, and distribution remain execution-time actions requiring their own
   authorization; approval of this planning graph performs none of them.
 
@@ -129,11 +130,10 @@ gates without creating one oversized cross-repository build?
 The Fight Common planning layer is complete as of 2026-08-17. PRD-00014 through PRD-00016 produced the
 Fight Common implementation and handoff graph through T-00067. Running `/to-tickets` for PRD-00017 or
 PRD-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
-and the five starter repositories after their respective authority transfers. WF-018 remains open until
-T-00066 and T-00067 complete the remaining repository handoff and final umbrella verification.
+and the five starter repositories after their respective authority transfers. WF-018 is closed: T-00066 completed
+the remaining repository handoff and T-00067 completed the final umbrella verification.
 
 ## Resolution boundary
 
-Close the Wayfinder only after every repository has an approved, implementation-ready local handoff
-and the cross-repository dependency order is explicit. Do not create production code, publish packages,
-or tag releases while resolving this ticket.
+Every repository now has an approved, implementation-ready local handoff and explicit cross-repository dependency
+order. No production code, package publication, or release tag was created while resolving this ticket.
