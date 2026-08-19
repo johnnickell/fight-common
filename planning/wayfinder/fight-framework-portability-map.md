@@ -120,8 +120,9 @@ repositories through T-00061 through T-00067.
 ## Frontier
 
 1. [Execute the full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-   — T-00061 and T-00062 are complete. Create Fight AccessControl's local PRD-00001 capability tickets and
-   execute T-00063 through T-00066 as the remaining parallel-ready public-source starter-foundation wave.
+   — T-00061 through T-00064 are complete. Fight AccessControl and the Symfony, Laravel, and Yii starters own
+   their local capability tickets; execute T-00065 and T-00066 as the remaining parallel-ready public-source
+   starter-foundation wave.
    T-00067 verifies all six repository-owned
    plans and immutable receipts. The permanent specification and Fight Common ticket layers are complete;
    repository authority transfer remains.
