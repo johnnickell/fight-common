@@ -16,9 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is pending. T-00061 through T-00064 are accepted: Fight AccessControl and the Symfony,
-Laravel, and Yii starters now own their local planning and implementation authority. CodeIgniter T-00065 and Slim
-T-00066 remain ready; T-00067 still waits for all six handoffs.
+No human decision is pending. T-00061 through T-00065 are accepted: Fight AccessControl and the Symfony,
+Laravel, Yii, and CodeIgniter starters now own their local planning and implementation authority. Slim T-00066
+remains ready; T-00067 still waits for all six handoffs.
 
 ## Ready Frontier
 
@@ -27,12 +27,11 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 11 | [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the CodeIgniter starter's independent planning, build, and compatibility authority. |
-| 12 | [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Slim starter's independent planning, build, and compatibility authority. |
-| 13 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
-| 14 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
-| 15 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
-| 16 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
+| 11 | [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Slim starter's independent planning, build, and compatibility authority. |
+| 12 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
+| 13 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
+| 14 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
+| 15 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
 
 ## Waiting
 
@@ -110,10 +109,10 @@ those slices and the release certification engine complete, T-00056 composes the
 `1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
 evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
 
-The repository handoff path has completed T-00061 through T-00064. Fight Common's specification and umbrella-ticket
+The repository handoff path has completed T-00061 through T-00065. Fight Common's specification and umbrella-ticket
 layer is complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Fight
-AccessControl and the Symfony, Laravel, and Yii starters now create their capability tickets locally; T-00065 and
-T-00066 may establish the remaining public-source starter foundations in parallel. T-00067 then
+AccessControl and the Symfony, Laravel, Yii, and CodeIgniter starters now create their capability tickets locally;
+T-00066 remains the last public-source starter foundation. T-00067 then
 verifies the six authority transfers and closes WF-018 without centralizing their builds, local acceptance
 criteria, visibility decisions, or release state in Fight Common.
 
@@ -127,6 +126,7 @@ criteria, visibility decisions, or release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source CodeIgniter foundation, repository-local PRD-00018 authority, canonical local and hosted builds, an immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](00062-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Symfony foundation, repository-local PRD-00018 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Laravel foundation, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Yii foundation, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
