@@ -18,7 +18,7 @@ gates without creating one oversized cross-repository build?
 
 - Fight Common PRDs and vertical tickets for compatibility repair, typed JSend, namespace shims,
   framework adapters, Composer metadata, documentation, and dependency matrices;
-- bootstrap contract for creating Fight AccessControl and each initially private starter with canonical planning,
+- bootstrap contract for creating Fight AccessControl and each public-source starter with canonical planning,
   `AGENTS.md`, architecture checks, `./bin/build`, CI, licensing, security policy, and contribution docs;
 - first `project-symfony` extraction slice and independent Laravel, Yii, CodeIgniter, and Slim walking
   slices;
@@ -37,7 +37,7 @@ gates without creating one oversized cross-repository build?
 - PostgreSQL and MySQL or MariaDB verification, exact coverage, static analysis, PHPCS, architecture,
   frontend, documentation, and security review gates;
 - `0.x.y` release milestones, Composer create-project proof, GitHub template readiness, supported-line
-  policy, and separate public-visibility and installable-release gates; and
+  policy, and separate installable-release gates; and
 - one-home traceability so the umbrella map links repository-local plans without duplicating their
   acceptance criteria or status.
 
@@ -45,19 +45,18 @@ gates without creating one oversized cross-repository build?
 
 - Create Fight AccessControl and the five starter repositories as the real implementation homes; do not
   build nested project copies in Fight Common.
-- Bootstrap Fight AccessControl first, then create all five private starter repositories as one
+- Bootstrap Fight AccessControl first, then create all five public-source starter repositories as one
   parallel-ready foundation wave. Their planning, build, CI, licensing, security, and contribution
   foundations may proceed concurrently, but login implementation waits for its required Fight Common
   and Fight AccessControl contracts.
 - Keep only shared prerequisite coordination tickets and one bootstrap/handoff ticket per new repository
   in Fight Common. After bootstrap, author and track detailed implementation tickets in the repository
   that owns the work; the umbrella map links those plans without copying their acceptance criteria or status.
-- Choose source visibility explicitly in each owning repository. Fight AccessControl completed its public-
-  surface, licensing, security, documentation, clean-clone, and hosted-build gates during T-00061 and opened
-  under MIT. Each starter makes its own visibility decision during or after T-00062 through T-00066. Public
-  source does not authorize a version tag, Packagist registration, template enablement, or release.
+- Fight AccessControl and every `project-*` starter are public source. Fight AccessControl completed its public-
+  surface, licensing, security, documentation, clean-clone, and hosted-build gates during T-00061 under MIT.
+  Public source does not authorize a version tag, Packagist registration, template enablement, or release.
 - Permit starter login implementation once its required Fight Common and Fight AccessControl contracts,
-  reusable behavioral conformance tests, and human UAT contract are merged and green at immutable private
+  reusable behavioral conformance tests, and human UAT contract are merged and green at immutable public
   commit references. Do not wait for public tags or the coordinated `1.2.0` release to gather real framework
   integration evidence; tagged versions remain a later compatibility and public-readiness gate.
 - When a starter exposes a shared-contract defect, pause the shared slice frontier, ticket and fix the defect
@@ -93,10 +92,10 @@ gates without creating one oversized cross-repository build?
   revocation or disconnect behavior, and secret or key rotation as separate repository-local hardening
   tickets that must pass before public readiness.
 - Limit each bootstrap ticket to durable foundation documentation. Every capability ticket updates and
-  verifies its own API, configuration, operations, UAT, and troubleshooting guidance, followed by one
-  repository-local documentation audit before public visibility. Fight Common does not duplicate those
+  verifies its own API, configuration, operations, UAT, and troubleshooting guidance, followed by ongoing
+  repository-local documentation and security audits. Fight Common does not duplicate those
   repository-owned instructions.
-- Make `0.1.0` the first private release milestone only after invitation and activation, delivery recovery,
+- Make `0.1.0` the first release milestone only after invitation and activation, delivery recovery,
   login, cold-load restoration, logout, user session management, refresh continuity, password reset, and
   authenticated password change are green across all five starters. Make `0.2.0` complete the remaining
   account lifecycle through email change, disable and enable, deletion and restoration, and pending-invitation
@@ -104,9 +103,7 @@ gates without creating one oversized cross-repository build?
   separate stability decision.
 - Use the repository's own clean-clone build, framework-native functional tests, browser automation, fake
   credentials, exact local URL, expected result, cleanup, and human UAT as its implementation evidence.
-- Make public visibility a separately approved transition after the repository's public-surface, security,
-  documentation, and clean-clone gates pass. Repositories may become public independently; Fight AccessControl
-  selected public MIT incubation during T-00061. Making source visible does not authorize a release tag,
+- Every `project-*` repository is public source from bootstrap. Public source does not authorize a release tag,
   Packagist publication, template enablement, or create-project distribution; those installable-release effects
   require separate approval and verification.
 
@@ -115,24 +112,24 @@ gates without creating one oversized cross-repository build?
 - [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](../../tickets/00061-TICKET.md)
   is complete and established the shared package's local PRD-00001 authority, preserving Fight Common
   PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
-- [T-00062 — Bootstrap the Private Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
-  [T-00063 — Bootstrap the Private Laravel Starter and Transfer Authority](../../tickets/00063-TICKET.md),
-  [T-00064 — Bootstrap the Private Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md),
-  [T-00065 — Bootstrap the Private CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md),
-  and [T-00066 — Bootstrap the Private Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) form
+- [T-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
+  [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](../../tickets/00063-TICKET.md),
+  [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md),
+  [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md),
+  and [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) form
   one parallel-ready wave now that T-00061 is complete.
 - [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../tickets/00067-TICKET.md) is blocked by all
   six bootstraps and owns the final umbrella link, receipt, dependency, and authority-transfer audit.
-- Repository creation, visibility changes, tags, publication, and distribution remain execution-time actions
-  requiring their own authorization; approval of this planning graph performs none of them.
+- Repository creation, tags, publication, and distribution remain execution-time actions requiring their own
+  authorization; approval of this planning graph performs none of them.
 
 ## Planning synthesis state
 
 The Fight Common planning layer is complete as of 2026-08-17. PRD-00014 through PRD-00016 produced the
 Fight Common implementation and handoff graph through T-00067. Running `/to-tickets` for PRD-00017 or
 PRD-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
-and the five starter repositories after their respective authority transfers. WF-018 remains open only until
-T-00061 through T-00067 complete those repository handoffs and the final umbrella verification.
+and the five starter repositories after their respective authority transfers. WF-018 remains open until
+T-00063 through T-00067 complete the remaining repository handoffs and final umbrella verification.
 
 ## Resolution boundary
 
