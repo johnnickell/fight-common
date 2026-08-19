@@ -2,7 +2,7 @@
 id: T-00064
 prd: PRD-00016
 title: Bootstrap the Public Yii Starter and Transfer Authority
-status: ready-for-agent
+status: in-progress
 blocked_by: T-00061
 ---
 
