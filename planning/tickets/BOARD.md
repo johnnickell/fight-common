@@ -16,10 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-Laravel remains in progress in `johnnickell/project-laravel` local T-00001; its hosted build and clean-clone
-receipt are still pending, so T-00063 is not accepted. Yii T-00064 is in review in
-`johnnickell/project-yii`: its local build is green and its first hosted build plus immutable clean-clone receipt
-remain pending. T-00061 and T-00062 are accepted; CodeIgniter T-00065 and Slim T-00066 remain ready.
+No human decision is pending. T-00061 through T-00064 are accepted: Fight AccessControl and the Symfony,
+Laravel, and Yii starters now own their local planning and implementation authority. CodeIgniter T-00065 and Slim
+T-00066 remain ready; T-00067 still waits for all six handoffs.
 
 ## Ready Frontier
 
@@ -28,7 +27,6 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 9 | [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Laravel starter's independent planning, build, and compatibility authority. |
 | 11 | [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the CodeIgniter starter's independent planning, build, and compatibility authority. |
 | 12 | [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Slim starter's independent planning, build, and compatibility authority. |
 | 13 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
@@ -112,10 +110,10 @@ those slices and the release certification engine complete, T-00056 composes the
 `1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
 evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
 
-The repository handoff path has completed T-00061 and T-00062. Fight Common's specification and umbrella-ticket
+The repository handoff path has completed T-00061 through T-00064. Fight Common's specification and umbrella-ticket
 layer is complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Fight
-AccessControl now creates its capability tickets locally from PRD-00001, while T-00063 through T-00066 may
-establish the remaining public-source starter foundations in parallel. T-00067 then
+AccessControl and the Symfony, Laravel, and Yii starters now create their capability tickets locally; T-00065 and
+T-00066 may establish the remaining public-source starter foundations in parallel. T-00067 then
 verifies the six authority transfers and closes WF-018 without centralizing their builds, local acceptance
 criteria, visibility decisions, or release state in Fight Common.
 
@@ -130,6 +128,8 @@ criteria, visibility decisions, or release state in Fight Common.
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
 | [T-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](00062-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Symfony foundation, repository-local PRD-00018 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
+| [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Laravel foundation, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
+| [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Yii foundation, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](00061-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public MIT Fight AccessControl package, repository-local PRD-00001 authority, canonical local and hosted builds, immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
 | [T-00031 — Add the Tracked Pre-Commit Build Gate](00031-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Added opt-in tracked pre-commit enforcement with repository-root resolution, disconnected stdin, exact default-build delegation, unchanged status propagation, documented activation and bypass, and no pre-push duplicate. |
 | [T-00030 — Run Latest-Compatible Verification in CI](00030-TICKET.md) | [PRD-00009](../specs/00009-PRD.md) | Replaced duplicated hosted quality commands with ephemeral latest-compatible resolution followed by direct shared-gate execution, preserving supported PR targets, database services, and explicit failure propagation. |
