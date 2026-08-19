@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-17
+Last updated: 2026-08-19
 
 ## “What’s Next?” Contract
 
@@ -16,10 +16,10 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-Create Fight AccessControl's local capability tickets from PRD-00001, then execute T-00063 through T-00066 as
-the remaining public-source starter-foundation wave. T-00061 is accepted at public package commit `60e67ad`,
-AccessControl merge `2dc82081`, and Fight Common handoff merge `41ae487c`; T-00062 is accepted at Symfony
-merge `438ff560` with hosted Build run `32214076293` green.
+Laravel remains in progress in `johnnickell/project-laravel` local T-00001; its hosted build and clean-clone
+receipt are still pending, so T-00063 is not accepted. Yii T-00064 is in review in
+`johnnickell/project-yii`: its local build is green and its first hosted build plus immutable clean-clone receipt
+remain pending. T-00061 and T-00062 are accepted; CodeIgniter T-00065 and Slim T-00066 remain ready.
 
 ## Ready Frontier
 
@@ -29,7 +29,6 @@ ticket materially cheaper.
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
 | 9 | [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](00063-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Laravel starter's independent planning, build, and compatibility authority. |
-| 10 | [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](00064-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Yii starter's independent planning, build, and compatibility authority. |
 | 11 | [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the CodeIgniter starter's independent planning, build, and compatibility authority. |
 | 12 | [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Establishes the Slim starter's independent planning, build, and compatibility authority. |
 | 13 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
