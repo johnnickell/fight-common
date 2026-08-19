@@ -27,8 +27,9 @@ slice or claiming release readiness during bootstrap.
       tickets remaining repository-local after bootstrap.
 - [ ] One noninteractive build verifies the native framework skeleton, declared Fight package dependencies,
       architecture, tests, documentation, production installation, and absence of copied shared layers.
-- [ ] Hosted CI delegates to the same canonical build, and licensing, security policy, contribution guidance,
-      and private-incubation expectations are explicit.
+- [ ] During private incubation, the repository-local canonical build and clean-clone receipt are the complete
+      bootstrap verification contract; hosted CI is not required. Licensing, security policy, contribution
+      guidance, and private-incubation expectations are explicit.
 - [ ] A clean-clone receipt binds the successful build to an immutable private commit reference.
 - [ ] The bootstrap does not require login, a browser journey, public visibility, a tag, Packagist publication,
       template enablement, or create-project distribution.
@@ -37,7 +38,7 @@ slice or claiming release readiness during bootstrap.
 
 ## Verification
 
-Repository-local full build and hosted-gate receipt, clean-clone Composer installation, native Yii composition
+Repository-local full build and clean-clone Composer installation, native Yii composition
 and architecture checks, immutable private commit verification, and Fight Common `./bin/planning-check`.
 
 ## Parent
