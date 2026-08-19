@@ -114,10 +114,11 @@ gates without creating one oversized cross-repository build?
   PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
 - [T-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](../../tickets/00062-TICKET.md),
   [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](../../tickets/00063-TICKET.md),
-  [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md),
-  [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md),
-  and [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) form
-  one parallel-ready wave now that T-00061 is complete.
+  [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../tickets/00064-TICKET.md), and
+  [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../tickets/00065-TICKET.md)
+  are complete and each transferred its public-source foundation and repository-local planning authority.
+  [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../tickets/00066-TICKET.md) is the
+  remaining handoff.
 - [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../tickets/00067-TICKET.md) is blocked by all
   six bootstraps and owns the final umbrella link, receipt, dependency, and authority-transfer audit.
 - Repository creation, tags, publication, and distribution remain execution-time actions requiring their own
@@ -129,7 +130,7 @@ The Fight Common planning layer is complete as of 2026-08-17. PRD-00014 through 
 Fight Common implementation and handoff graph through T-00067. Running `/to-tickets` for PRD-00017 or
 PRD-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
 and the five starter repositories after their respective authority transfers. WF-018 remains open until
-T-00063 through T-00067 complete the remaining repository handoffs and final umbrella verification.
+T-00066 and T-00067 complete the remaining repository handoff and final umbrella verification.
 
 ## Resolution boundary
 
