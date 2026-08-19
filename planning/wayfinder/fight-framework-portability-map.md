@@ -1,7 +1,7 @@
 # Fight Framework Portability and Starter Projects
 
 **Label:** `wayfinder:map`
-**Status:** Open
+**Status:** Closed
 
 ## Destination
 
@@ -115,17 +115,12 @@ repositories through T-00061 through T-00067.
   Fight Common work and T-00047 through T-00067 graph. PRD-00017 and PRD-00018 intentionally produce no
   detailed Fight Common tickets: Fight AccessControl adopts the former as repository-local PRD-00001, and each
   starter adopts the relevant latter contract through T-00062 through T-00066 before creating local tickets.
-  WF-018 remains open only for execution and verification of those six authority transfers.
+  WF-018 is closed after execution and verification of those six authority transfers.
 
 ## Frontier
 
-1. [Execute the full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md)
-   — T-00061 through T-00064 are complete. Fight AccessControl and the Symfony, Laravel, and Yii starters own
-   their local capability tickets; execute T-00065 and T-00066 as the remaining parallel-ready public-source
-   starter-foundation wave.
-   T-00067 verifies all six repository-owned
-   plans and immutable receipts. The permanent specification and Fight Common ticket layers are complete;
-   repository authority transfer remains.
+No active Fight Common frontier remains. [WF-018](tickets/WF-018-full-support-implementation-handoffs.md) closed
+after T-00061 through T-00067 established and verified the six repository-local authority transfers.
 
 ## Waiting
 

@@ -40,6 +40,16 @@ slice or claiming release readiness during bootstrap.
 Repository-local full build and hosted-gate receipt, clean-clone Composer installation, native Yii composition
 and architecture checks, immutable commit verification, and Fight Common `./bin/planning-check`.
 
+## Bootstrap receipt
+
+`johnnickell/project-yii` is public source. Foundation commit
+`fb8874d478b1ad1001cb9e3564e1cb28daf4f45b` supplied its canonical local planning, native Yii composition,
+and production-install verification. Hosted [Build run 32229471630](https://github.com/johnnickell/project-yii/actions/runs/32229471630)
+passed the canonical `./bin/build`; [project-yii PR #1](https://github.com/johnnickell/project-yii/pull/1)
+merged that foundation to `develop` as `90aa598315d4a1cf8fb8626ae06ef2679269ebd4`. T-00064 is accepted.
+The Yii repository owns its PRD-00018 capability tickets and release decisions; this bootstrap does not authorize
+a release tag, Packagist publication, template enablement, or create-project distribution.
+
 ## Parent
 
 PRD-00016 — Fight Package and Starter Repository Ownership.
