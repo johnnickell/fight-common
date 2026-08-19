@@ -11,7 +11,7 @@ blocked_by: T-00061,T-00062,T-00063,T-00064,T-00065,T-00066
 ## What to Build
 
 Verify that Fight AccessControl and all five framework starters have accepted canonical local implementation
-authority at immutable private commits, and close the umbrella Wayfinder without turning Fight Common into a
+authority at immutable public commits, and close the umbrella Wayfinder without turning Fight Common into a
 cross-repository build or duplicate tracker. Leave implementation, visibility, and release readiness with each
 owning repository.
 
@@ -30,10 +30,10 @@ owning repository.
       implementation status, framework build output, or release state.
 - [ ] The portability map, EPIC-00004, PRD-00016, and WF-018 agree on ownership, dependency order, and the completed
       authority transfer.
-- [ ] WF-018 closes without waiting for production capability implementation, public visibility, stable-branch
-      promotion, version tags, Packagist publication, template enablement, or create-project distribution.
-- [ ] Public visibility and every installable-release effect remain explicit repository-owned approvals rather
-      than consequences of this umbrella verification.
+- [ ] WF-018 closes without waiting for production capability implementation, stable-branch promotion, version
+      tags, Packagist publication, template enablement, or create-project distribution.
+- [ ] Public-source status is recorded as bootstrap evidence, while every installable-release effect remains an
+      explicit repository-owned approval rather than a consequence of this umbrella verification.
 
 ## Verification
 
