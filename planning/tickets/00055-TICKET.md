@@ -12,7 +12,7 @@ blocked_by:
 
 Do not add five nested Composer projects or a combined framework project to Fight Common. The approved
 repository boundary assigns framework dependency resolution, native composition, functional behavior, and
-clean-clone evidence to the five initially private starter repositories that own those implementations.
+clean-clone evidence to the five public-source starter repositories that own those implementations.
 
 ## Decision Handoff
 
