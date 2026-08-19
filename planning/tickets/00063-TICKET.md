@@ -41,6 +41,16 @@ Repository-local full build and hosted-gate receipt, clean-clone Composer instal
 composition and architecture checks, immutable commit verification, and Fight Common
 `./bin/planning-check`.
 
+## Bootstrap receipt
+
+`johnnickell/project-laravel` is public source. Foundation commit
+`76411ee5a3409209759db47bbbdbbc8d24d21ad6` supplied its canonical local planning, native Laravel
+composition, and production-install verification. Hosted [Build run 32220554010](https://github.com/johnnickell/project-laravel/actions/runs/32220554010)
+passed the canonical `./bin/build`; [project-laravel PR #1](https://github.com/johnnickell/project-laravel/pull/1)
+merged that foundation to `develop` as `b3987b162787f803a1d40077bae13b5b4194810f`. T-00063 is accepted.
+The Laravel repository owns its PRD-00018 capability tickets and release decisions; this bootstrap does not
+authorize a release tag, Packagist publication, template enablement, or create-project distribution.
+
 ## Parent
 
 PRD-00016 — Fight Package and Starter Repository Ownership.
