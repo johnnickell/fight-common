@@ -13,6 +13,9 @@ printf '[quality] PHP syntax\n'
     php -l "${php_file#./}"
 done
 
+printf '[quality] Python syntax\n'
+PYTHONPYCACHEPREFIX=var/cache/python python3 -m py_compile scripts/release_artifact_store.py
+
 printf '[quality] Planning integrity\n'
 ./bin/planning-check
 

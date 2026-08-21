@@ -91,7 +91,16 @@ def main() -> int:
             visit(record_id)
 
     ignored = subprocess.run(
-        ["git", "check-ignore", "-q", ".runs/planning-check"], cwd=ROOT, check=False
+        [
+            "git",
+            "-c",
+            f"safe.directory={ROOT.resolve()}",
+            "check-ignore",
+            "-q",
+            ".runs/planning-check",
+        ],
+        cwd=ROOT,
+        check=False,
     )
     if ignored.returncode != 0:
         errors.append(".runs/ must be gitignored")
