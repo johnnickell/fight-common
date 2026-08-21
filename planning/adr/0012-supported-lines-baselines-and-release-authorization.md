@@ -54,6 +54,25 @@ exact version, candidate and baseline OIDs, overridden finding IDs, consumer imp
 tests, recovery posture, and repository release authority approval. It cannot use wildcards or
 authorize another candidate.
 
+The plan carries the exception as one complete `patch_exception_authorities` record referenced by
+the matching `patch-exception:<exception-id>:exact-version:<X.Y.Z>` compatibility exception. The
+record binds the exception ID, exact version, candidate commit OID, baseline tag-object and peeled
+commit OIDs, one closed emergency class (`security`, `imminent-data-loss`, or
+`critical-interoperability`), a positive no-compatible-repair attestation with non-empty evidence,
+the complete canonical compatibility assessment, non-empty overridden finding and test-evidence ID
+sets, consumer impact, mitigation, recovery posture, evidence-manifest SHA-256 digest, and repository
+release-authority approval ID. The overridden set is exactly every non-patch finding in that bound
+assessment, and that assessment's derived minimum increment exactly equals the plan's inspected minimum
+release class. A lower-patch authorization contains exactly one patch-exception reference and exactly one
+authority record, both for the approved exact version; unrelated, stale, missing, duplicate, wildcard, or
+indeterminate findings or surplus records fail closed.
+Plans approving the inspected minimum or a higher version contain no patch-exception references or authority
+records, and their release approval binds an empty patch-exception authority digest set.
+The record carries a verified canonical SHA-256 content identity, and the release approval binds the
+complete canonical set of those authority identities. That approval ID must also be present in the
+plan's required approvals. Missing, incomplete, ambiguous, unreferenced, or mismatched records fail
+before plan hashing or persistence. Finding, evidence, and authority identity sets are canonical.
+
 Tooling continues to recommend a major version unless the exact exception is present and valid.
 
 ### SemVer recommendation and authorization
@@ -62,8 +81,13 @@ Deterministic tooling calculates the minimum SemVer increment from every compati
 human may authorize that version or a higher one. A lower version requires the exact patch
 exception above.
 
-Authorization binds the version, candidate OID, baseline OIDs, evidence-manifest digest, and
-exception IDs. Any bound value changing invalidates approval and requires recertification.
+Authorization is one complete typed `release_approval_authority` record, not an
+`exact-version:<version>` string. It binds its lowercase approval ID, exact version, candidate OID,
+canonical baseline tag, baseline tag-object and peeled OIDs, evidence-manifest SHA-256 digest, the
+canonical complete compatibility-exception ID and patch-exception authority identity sets, the
+inspected minimum release class, and the actual baseline-relative authorized release class. Its
+approval ID is also present in
+`required_approvals`. Any bound value changing invalidates approval and requires recertification.
 
 ### Adopted maintenance precedent
 

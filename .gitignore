@@ -9,6 +9,8 @@ phpunit.xml
 /.idea
 /.runs/
 graphify-out/
+__pycache__/
+*.py[cod]
 /nbproject
 /*.sublime-project
 /*.sublime-workspace

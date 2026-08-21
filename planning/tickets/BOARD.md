@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-19
+Last updated: 2026-08-20
 
 ## “What’s Next?” Contract
 
@@ -26,7 +26,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 12 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Opens the read-only inspection and immutable planning journey after the Wayfinder handoff. |
+| 12 | [T-00040 — Prove Resumable Release Runs and Phase Handoffs](00040-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Extends the completed inspection and immutable-plan foundation with resumable release-run state and phase handoffs. |
 | 13 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
 | 14 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
 | 15 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
@@ -37,7 +37,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 21 | [T-00040 — Prove Resumable Release Runs and Phase Handoffs](00040-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | T-00032 |
 | 23 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00040 |
 | 24 | [T-00034 — Compose Certification Evidence and Compatibility Lanes](00034-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00033 |
 | 25 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
@@ -122,6 +121,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Delivered complete category-derived inspection, typed immutable release approval and plan identity, credential-free deterministic boundary fakes, capability firewalls, and confined content-addressed planning artifacts without external release effects. |
 | [T-00067 — Verify All Six Repository Handoffs and Close WF-018](00067-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Verified the six canonical repository plans and immutable bootstrap receipts, retained only portfolio links and dependency order, and closed WF-018 without authorizing implementation or release effects. |
 | [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](00066-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source Slim foundation, repository-local PRD-00018 authority, canonical local and hosted builds, immutable clean-checkout receipt, and accepted handoff without authorizing a release. |
 | [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](00065-TICKET.md) | [PRD-00016](../specs/00016-PRD.md) | Established the public-source CodeIgniter foundation, repository-local PRD-00018 authority, canonical local and hosted builds, an immutable clean-clone receipt, and accepted cross-repository handoff without authorizing a release. |
