@@ -1,0 +1,265 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+CANONICAL_PHP='/usr/local/bin/php'
+CANONICAL_ROOT='/app'
+RUNTIME_MARKER='/usr/local/share/fight-common/release-runtime-v1'
+RUNTIME_ID='fight-common-release-php-8.5-v1'
+CONFIGURED_CRASH_STATUS=86
+RELEASE_ENV=(
+    'HOME=/tmp/fight-common-release/home'
+    'COMPOSER_HOME=/tmp/fight-common-release/composer'
+    'GNUPGHOME=/tmp/fight-common-release/gnupg'
+    'GH_CONFIG_DIR=/tmp/fight-common-release/gh'
+    'GIT_CONFIG_GLOBAL=/dev/null'
+    'GIT_CONFIG_NOSYSTEM=1'
+    'LANG=C.UTF-8'
+    'LC_ALL=C.UTF-8'
+    'PATH=/usr/local/bin:/usr/bin:/bin'
+)
+RUNTIME_RUN_DIR=''
+RUNTIME_STDOUT=''
+RUNTIME_CID=''
+RUNTIME_CRASH_MARKER=''
+RUNTIME_RESULT_EVIDENCE=''
+RUNTIME_RESULT_OUTPUT=''
+RUNTIME_CRASH_NONCE=''
+RUNTIME_RESULT_NONCE=''
+
+runtime_bootstrap_failure() {
+    local release_command='unknown'
+    local release_capability='unsupported_command'
+
+    case "${1:-}" in
+        inspect)
+            release_command='inspect'
+            release_capability='release_inspection'
+            ;;
+        plan)
+            release_command='plan'
+            release_capability='release_planning'
+            ;;
+    esac
+
+    printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_unavailable\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.bootstrap_unavailable\",\"message\":\"The canonical release runtime could not be started.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"restore_release_runtime_and_retry\"},\"exit_code\":70}"
+}
+
+runtime_termination_failure() {
+    local release_command='unknown'
+    local release_capability='unsupported_command'
+
+    case "${1:-}" in
+        inspect)
+            release_command='inspect'
+            release_capability='release_inspection'
+            ;;
+        plan)
+            release_command='plan'
+            release_capability='release_planning'
+            ;;
+    esac
+
+    printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_terminated\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.result_unavailable\",\"message\":\"The started runtime returned no valid authenticated result.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"inspect_release_runtime_termination\"},\"exit_code\":71}"
+}
+
+create_runtime_run() {
+    local entropy=''
+    local runtime_run_dir=''
+
+    umask 077
+    if ! runtime_run_dir="$(mktemp -d /tmp/fight-common-release-run.XXXXXX)"; then
+        return 1
+    fi
+    if [[ ! "${runtime_run_dir}" =~ ^/tmp/fight-common-release-run\.[A-Za-z0-9]+$ ]] \
+        || [[ ! -d "${runtime_run_dir}" ]] \
+        || [[ -L "${runtime_run_dir}" ]]; then
+        return 1
+    fi
+
+    RUNTIME_RUN_DIR="${runtime_run_dir}"
+    RUNTIME_STDOUT="${RUNTIME_RUN_DIR}/stdout"
+    RUNTIME_CID="${RUNTIME_RUN_DIR}/cid"
+    RUNTIME_CRASH_MARKER="${RUNTIME_RUN_DIR}/configured-crash"
+    RUNTIME_RESULT_EVIDENCE="${RUNTIME_RUN_DIR}/result-evidence"
+    RUNTIME_RESULT_OUTPUT="${RUNTIME_RUN_DIR}/result-output"
+
+    if ! entropy="$(od -An -N32 -tx1 /dev/urandom)"; then
+        return 1
+    fi
+    RUNTIME_CRASH_NONCE="${entropy//[[:space:]]/}"
+    if [[ ! "${RUNTIME_CRASH_NONCE}" =~ ^[0-9a-f]{64}$ ]]; then
+        return 1
+    fi
+
+    if ! entropy="$(od -An -N32 -tx1 /dev/urandom)"; then
+        return 1
+    fi
+    RUNTIME_RESULT_NONCE="${entropy//[[:space:]]/}"
+    if [[ ! "${RUNTIME_RESULT_NONCE}" =~ ^[0-9a-f]{64}$ ]]; then
+        return 1
+    fi
+
+    RELEASE_ENV+=(
+        "FIGHT_COMMON_RELEASE_CRASH_MARKER=${RUNTIME_CRASH_MARKER}"
+        "FIGHT_COMMON_RELEASE_CRASH_NONCE=${RUNTIME_CRASH_NONCE}"
+        "FIGHT_COMMON_RELEASE_RESULT_EVIDENCE=${RUNTIME_RESULT_EVIDENCE}"
+        "FIGHT_COMMON_RELEASE_RESULT_OUTPUT=${RUNTIME_RESULT_OUTPUT}"
+        "FIGHT_COMMON_RELEASE_RESULT_NONCE=${RUNTIME_RESULT_NONCE}"
+    )
+}
+
+cleanup_runtime_run() {
+    local intended_status=$?
+
+    trap - EXIT
+    set +e
+
+    if [[ -n "${RUNTIME_RUN_DIR}" ]]; then
+        if ! rm -f "${RUNTIME_STDOUT}" "${RUNTIME_CID}" "${RUNTIME_CRASH_MARKER}" \
+            "${RUNTIME_RESULT_EVIDENCE}" "${RUNTIME_RESULT_OUTPUT}"; then
+            printf '%s\n' 'bin/release: cleanup could not remove runtime files.' >&2
+        fi
+
+        if ! rmdir "${RUNTIME_RUN_DIR}"; then
+            printf '%s\n' 'bin/release: cleanup could not remove runtime directory.' >&2
+        fi
+    fi
+
+    exit "${intended_status}"
+}
+
+is_authenticated_machine_result() {
+    local runtime_status="$1"
+    local evidence_nonce=''
+    local evidence_status=''
+    local evidence_digest=''
+    local evidence_extra=''
+    local actual_digest=''
+
+    [[ -s "${RUNTIME_STDOUT}" ]] || return 1
+    [[ "$(wc -l < "${RUNTIME_STDOUT}")" -eq 1 ]] || return 1
+    [[ -f "${RUNTIME_RESULT_OUTPUT}" && ! -L "${RUNTIME_RESULT_OUTPUT}" ]] || return 1
+    [[ -f "${RUNTIME_RESULT_EVIDENCE}" && ! -L "${RUNTIME_RESULT_EVIDENCE}" ]] || return 1
+    cmp -s "${RUNTIME_STDOUT}" "${RUNTIME_RESULT_OUTPUT}" || return 1
+
+    {
+        IFS= read -r evidence_nonce
+        IFS= read -r evidence_status
+        IFS= read -r evidence_digest
+        IFS= read -r evidence_extra || true
+    } < "${RUNTIME_RESULT_EVIDENCE}"
+
+    [[ "${evidence_nonce}" == "${RUNTIME_RESULT_NONCE}" ]] || return 1
+    [[ "${evidence_status}" == "${runtime_status}" ]] || return 1
+    [[ "${evidence_digest}" =~ ^[0-9a-f]{64}$ ]] || return 1
+    [[ -z "${evidence_extra}" ]] || return 1
+
+    if [[ -x /usr/bin/sha256sum ]]; then
+        actual_digest="$(/usr/bin/sha256sum "${RUNTIME_STDOUT}")"
+    elif [[ -x /bin/sha256sum ]]; then
+        actual_digest="$(/bin/sha256sum "${RUNTIME_STDOUT}")"
+    elif [[ -x /usr/bin/shasum ]]; then
+        actual_digest="$(/usr/bin/shasum -a 256 "${RUNTIME_STDOUT}")"
+    else
+        return 1
+    fi
+
+    [[ "${evidence_digest}" == "${actual_digest%% *}" ]]
+}
+
+finish_runtime_run() {
+    local runtime_status="$1"
+    local runtime_started="$2"
+
+    if [[ "${runtime_started}" -eq 1 ]] \
+        && [[ "${runtime_status}" -eq "${CONFIGURED_CRASH_STATUS}" ]] \
+        && [[ ! -s "${RUNTIME_STDOUT}" ]] \
+        && [[ -f "${RUNTIME_CRASH_MARKER}" ]] \
+        && [[ ! -L "${RUNTIME_CRASH_MARKER}" ]] \
+        && [[ "$(< "${RUNTIME_CRASH_MARKER}")" == "${RUNTIME_CRASH_NONCE}" ]]; then
+        exit "${CONFIGURED_CRASH_STATUS}"
+    fi
+
+    if [[ "${runtime_started}" -eq 1 ]] && is_authenticated_machine_result "${runtime_status}"; then
+        cat "${RUNTIME_STDOUT}"
+        exit "${runtime_status}"
+    fi
+
+    if [[ -s "${RUNTIME_STDOUT}" ]]; then
+        cat "${RUNTIME_STDOUT}" >&2
+    fi
+
+    if [[ "${runtime_started}" -eq 1 ]]; then
+        runtime_termination_failure "${3:-}"
+        exit 71
+    fi
+
+    runtime_bootstrap_failure "${3:-}"
+    exit 70
+}
+
+trap cleanup_runtime_run EXIT
+
+if [[ "${ROOT_DIR}" == "${CANONICAL_ROOT}" ]] \
+    && [[ -f "${RUNTIME_MARKER}" ]] \
+    && [[ "$(< "${RUNTIME_MARKER}")" == "${RUNTIME_ID}" ]]; then
+    if ! "${CANONICAL_PHP}" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
+        printf '%s\n' 'bin/release: canonical runtime requires PHP 8.5 or newer.' >&2
+        runtime_bootstrap_failure "${1:-}"
+        exit 70
+    fi
+
+    if ! create_runtime_run; then
+        runtime_bootstrap_failure "${1:-}"
+        exit 70
+    fi
+
+    set +e
+    /usr/bin/env -i "${RELEASE_ENV[@]}" \
+        "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/scripts/release.php" "$@" \
+        > "${RUNTIME_STDOUT}"
+    runtime_status=$?
+    set -e
+
+    finish_runtime_run "${runtime_status}" 1 "${1:-}"
+fi
+
+if ! "${DOCKER_BIN}" build -t "${PHP_IMAGE}" "${ROOT_DIR}/etc/docker/" >&2; then
+    runtime_bootstrap_failure "${1:-}"
+    exit 70
+fi
+
+if ! create_runtime_run; then
+    runtime_bootstrap_failure "${1:-}"
+    exit 70
+fi
+
+set +e
+"${DOCKER_BIN}" container run \
+    --cidfile "${RUNTIME_CID}" \
+    --rm \
+    -v "${ROOT_DIR}:${ROOT_DIR}:delegated" \
+    -v "${RUNTIME_RUN_DIR}:${RUNTIME_RUN_DIR}" \
+    -w "${ROOT_DIR}" \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    /usr/bin/env -i "${RELEASE_ENV[@]}" \
+    "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/scripts/release.php" "$@" \
+    > "${RUNTIME_STDOUT}"
+runtime_status=$?
+set -e
+
+runtime_started=0
+runtime_cid=''
+if [[ -f "${RUNTIME_CID}" && ! -L "${RUNTIME_CID}" ]]; then
+    runtime_cid="$(< "${RUNTIME_CID}")"
+fi
+if [[ "${runtime_cid}" =~ ^[0-9a-f]{64}$ ]]; then
+    runtime_started=1
+fi
+
+finish_runtime_run "${runtime_status}" "${runtime_started}" "${1:-}"

@@ -44,3 +44,10 @@ RUN apt-get -y autoremove && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./local.ini /usr/local/etc/php/conf.d/local.ini
+
+# Root-owned proof that release commands are executing in the canonical image.
+RUN install -d -o root -g root -m 0755 /usr/local/share/fight-common \
+    && printf '%s\n' 'fight-common-release-php-8.5-v1' \
+        > /usr/local/share/fight-common/release-runtime-v1 \
+    && chown root:root /usr/local/share/fight-common/release-runtime-v1 \
+    && chmod 0444 /usr/local/share/fight-common/release-runtime-v1
