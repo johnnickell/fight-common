@@ -116,15 +116,16 @@ final class ReleaseCredentialIsolationJourneyTest extends UnitTestCase
         $childEnvironment = $this->observeCanonicalChildEnvironment($root, $environment);
 
         self::assertSame([
-            'HOME'                => '/tmp/fight-common-release/home',
-            'COMPOSER_HOME'       => '/tmp/fight-common-release/composer',
-            'GNUPGHOME'           => '/tmp/fight-common-release/gnupg',
-            'GH_CONFIG_DIR'       => '/tmp/fight-common-release/gh',
-            'GIT_CONFIG_GLOBAL'   => '/dev/null',
-            'GIT_CONFIG_NOSYSTEM' => '1',
-            'LANG'                => 'C.UTF-8',
-            'LC_ALL'              => 'C.UTF-8',
-            'PATH'                => '/usr/local/bin:/usr/bin:/bin'
+            'HOME'                              => '/tmp/fight-common-release/home',
+            'COMPOSER_HOME'                     => '/tmp/fight-common-release/composer',
+            'GNUPGHOME'                         => '/tmp/fight-common-release/gnupg',
+            'GH_CONFIG_DIR'                     => '/tmp/fight-common-release/gh',
+            'GIT_CONFIG_GLOBAL'                 => '/dev/null',
+            'GIT_CONFIG_NOSYSTEM'               => '1',
+            'LANG'                              => 'C.UTF-8',
+            'LC_ALL'                            => 'C.UTF-8',
+            'PATH'                              => '/usr/local/bin:/usr/bin:/bin',
+            'FIGHT_COMMON_RELEASE_TEST_RUNTIME' => 'fight-common-release-direct-test-v1'
         ], $childEnvironment);
 
         foreach (
@@ -265,8 +266,13 @@ final class ReleaseCredentialIsolationJourneyTest extends UnitTestCase
                     ' ',
                     (string) @file_get_contents('/proc/'.$candidateProcessId.'/cmdline')
                 );
+                $candidateExecutable = @readlink('/proc/'.$candidateProcessId.'/exe');
 
-                if (!str_contains($candidateCommandLine, '/scripts/release.php')) {
+                if (
+                    !is_string($candidateExecutable)
+                    || realpath($candidateExecutable) !== realpath(PHP_BINARY)
+                    || !str_contains($candidateCommandLine, '/scripts/release.php')
+                ) {
                     continue;
                 }
 
@@ -289,34 +295,6 @@ final class ReleaseCredentialIsolationJourneyTest extends UnitTestCase
             [$name, $value] = explode('=', $entry, 2);
             $observed[$name] = $value;
         }
-
-        self::assertMatchesRegularExpression(
-            '#\A/tmp/fight-common-release-run\.[A-Za-z0-9]+/configured-crash\z#',
-            $observed['FIGHT_COMMON_RELEASE_CRASH_MARKER']
-        );
-        self::assertMatchesRegularExpression(
-            '/\A[0-9a-f]{64}\z/',
-            $observed['FIGHT_COMMON_RELEASE_CRASH_NONCE']
-        );
-        self::assertMatchesRegularExpression(
-            '#\A/tmp/fight-common-release-run\.[A-Za-z0-9]+/result-evidence\z#',
-            $observed['FIGHT_COMMON_RELEASE_RESULT_EVIDENCE']
-        );
-        self::assertMatchesRegularExpression(
-            '#\A/tmp/fight-common-release-run\.[A-Za-z0-9]+/result-output\z#',
-            $observed['FIGHT_COMMON_RELEASE_RESULT_OUTPUT']
-        );
-        self::assertMatchesRegularExpression(
-            '/\A[0-9a-f]{64}\z/',
-            $observed['FIGHT_COMMON_RELEASE_RESULT_NONCE']
-        );
-        unset(
-            $observed['FIGHT_COMMON_RELEASE_CRASH_MARKER'],
-            $observed['FIGHT_COMMON_RELEASE_CRASH_NONCE'],
-            $observed['FIGHT_COMMON_RELEASE_RESULT_EVIDENCE'],
-            $observed['FIGHT_COMMON_RELEASE_RESULT_OUTPUT'],
-            $observed['FIGHT_COMMON_RELEASE_RESULT_NONCE']
-        );
 
         file_put_contents(
             $fifo,

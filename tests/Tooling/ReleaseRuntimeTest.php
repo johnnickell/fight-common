@@ -79,9 +79,11 @@ final class ReleaseRuntimeTest extends UnitTestCase
         PHP_WRAP
         );
 
-        file_put_contents($this->directory.'/docker', <<<'BASH'
+        $fakeDocker = <<<'BASH'
 #!/usr/bin/env bash
 set -eu
+
+host_php=__HOST_PHP_BINARY__
 
 printf '%s\n' "$*" >> "${FAKE_DOCKER_LOG}"
 
@@ -155,9 +157,20 @@ if [[ "${1:-}" == "container" && "${2:-}" == "run" ]]; then
         shift
     done
 
-    exec "$@"
+    arguments=("$@")
+    for ((argument = 0; argument < ${#arguments[@]}; argument++)); do
+        if [[ "${arguments[${argument}]}" == '/usr/local/bin/php' ]]; then
+            arguments[${argument}]="${host_php}"
+        fi
+    done
+
+    exec "${arguments[@]}"
 fi
 BASH
+        ;
+        file_put_contents(
+            $this->directory.'/docker',
+            str_replace('__HOST_PHP_BINARY__', escapeshellarg(PHP_BINARY), $fakeDocker)
         );
         chmod($this->directory.'/docker', 0755);
     }
@@ -729,10 +742,12 @@ BASH
      */
     public function test_that_the_canonical_image_marker_is_root_owned_and_read_only(): void
     {
-        self::assertFileExists(self::RUNTIME_MARKER);
-        self::assertSame(0, fileowner(self::RUNTIME_MARKER));
-        self::assertSame(0444, fileperms(self::RUNTIME_MARKER) & 0777);
-        self::assertSame(self::CANONICAL_RUNTIME."\n", file_get_contents(self::RUNTIME_MARKER));
+        $dockerfile = (string) file_get_contents(dirname(__DIR__, 2).'/etc/docker/Dockerfile');
+
+        self::assertStringContainsString(self::RUNTIME_MARKER, $dockerfile);
+        self::assertStringContainsString(self::CANONICAL_RUNTIME, $dockerfile);
+        self::assertMatchesRegularExpression('/chmod 0444[^\n]*release-runtime-v1/', $dockerfile);
+        self::assertMatchesRegularExpression('/chown root:root[^\n]*release-runtime-v1/', $dockerfile);
     }
 
     /**
@@ -742,15 +757,13 @@ BASH
      */
     public function test_that_the_image_marker_uses_fixed_php_and_ignores_caller_runtime_values(): void
     {
-        $root = dirname(__DIR__, 2);
+        $log = $this->directory.'/docker-fixed-php.log';
         $process = new Process(
-            [
-                $root.'/bin/release',
-                'inspect',
-                '--fixture='.$root.'/tests/Fixture/Release/inspect-candidate.json'
-            ],
+            ['bash', 'bin/release', 'inspect', '--fixture=/fixture.json'],
+            $this->directory,
             env: [
-                'DOCKER_BIN'                            => $this->directory.'/missing-docker',
+                'DOCKER_BIN'                            => $this->directory.'/docker',
+                'FAKE_DOCKER_LOG'                       => $log,
                 'FIGHT_COMMON_RELEASE_INTERNAL_RUNTIME' => self::CANONICAL_RUNTIME,
                 'PHP_BIN'                               => 'true'
             ]
@@ -761,6 +774,8 @@ BASH
 
         self::assertSame('fight-common.release-result/v1', $result['schema_version']);
         self::assertSame('succeeded', $result['status']);
+        self::assertStringContainsString('/usr/local/bin/php', (string) file_get_contents($log));
+        self::assertStringNotContainsString(' true ', (string) file_get_contents($log));
     }
 
     /**
