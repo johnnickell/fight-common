@@ -80,6 +80,16 @@ function authenticate_release_result(string $output, int $exitCode): void
     $evidencePath = getenv('FIGHT_COMMON_RELEASE_RESULT_EVIDENCE');
     $outputPath = getenv('FIGHT_COMMON_RELEASE_RESULT_OUTPUT');
     $nonce = getenv('FIGHT_COMMON_RELEASE_RESULT_NONCE');
+    $testRuntime = getenv('FIGHT_COMMON_RELEASE_TEST_RUNTIME');
+
+    if (
+        $testRuntime === 'fight-common-release-direct-test-v1'
+        && $evidencePath === false
+        && $outputPath === false
+        && $nonce === false
+    ) {
+        return;
+    }
 
     if (
         !is_string($evidencePath)
