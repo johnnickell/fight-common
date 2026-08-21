@@ -20,15 +20,18 @@ final class QualityGateTest extends UnitTestCase
 
         $this->directory = sys_get_temp_dir().'/fight-common-quality-gate-'.bin2hex(random_bytes(8));
         mkdir($this->directory.'/bin', 0777, true);
+        mkdir($this->directory.'/scripts', 0777, true);
         mkdir($this->directory.'/src', 0777, true);
         mkdir($this->directory.'/tests', 0777, true);
 
         foreach (['deptrac.php', 'rector.php', 'src/Example.php', 'tests/ExampleTest.php'] as $phpFile) {
             file_put_contents($this->directory.'/'.$phpFile, "<?php\n");
         }
+        file_put_contents($this->directory.'/scripts/release_artifact_store.py', "raise SystemExit(0)\n");
 
         $this->writeCommand('composer');
         $this->writeCommand('php');
+        $this->writeCommand('python3');
         $this->writeCommand('planning-check');
         $this->writeCommand('coverage');
 
@@ -65,6 +68,7 @@ final class QualityGateTest extends UnitTestCase
             <<<'OUTPUT'
 [quality] Composer validation
 [quality] PHP syntax
+[quality] Python syntax
 [quality] Planning integrity
 [quality] PHPCS
 [quality] PHPStan
@@ -83,6 +87,7 @@ php -l deptrac.php
 php -l rector.php
 php -l src/Example.php
 php -l tests/ExampleTest.php
+python3 -m py_compile scripts/release_artifact_store.py
 planning-check
 php vendor/bin/phpcs
 php vendor/bin/phpstan analyse
@@ -159,6 +164,7 @@ COMMANDS,
     public static function failing_command_provider(): iterable
     {
         yield 'early Composer failure' => ['composer validate --strict --no-interaction', 11];
+        yield 'Python syntax failure' => ['python3 -m py_compile scripts/release_artifact_store.py', 19];
         yield 'middle PHPStan failure' => ['php vendor/bin/phpstan analyse', 22];
         yield 'first Deptrac failure' => [
             'php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped',
@@ -188,6 +194,7 @@ CLOVER,
             <<<'OUTPUT'
 [quality] Composer validation
 [quality] PHP syntax
+[quality] Python syntax
 [quality] Planning integrity
 [quality] PHPCS
 [quality] PHPStan

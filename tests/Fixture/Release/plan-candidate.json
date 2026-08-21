@@ -1,0 +1,37 @@
+{
+  "schema_version": "fight-common.release-plan/v1",
+  "approved_version": "1.3.0",
+  "release_class": "minor",
+  "source_commit_oid": "d34db33fd34db33fd34db33fd34db33fd34db33f",
+  "baseline": {
+    "version": "1.2.3",
+    "tag_name": "v1.2.3",
+    "tag_object_oid": "a11ce0a1a11ce0a1a11ce0a1a11ce0a1a11ce0a1",
+    "peeled_commit_oid": "b45e1b45b45e1b45b45e1b45b45e1b45b45e1b45"
+  },
+  "support_policy_identity": "support-policy-2026-08",
+  "expected_effect_classes": [],
+  "evidence_requirements": [
+    "full-submit-gate",
+    "planning-check"
+  ],
+  "evidence_manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "compatibility_exceptions": [],
+  "patch_exception_authorities": [],
+  "required_approvals": [
+    "release-approval-001"
+  ],
+  "release_approval_authority": {
+    "approval_id": "release-approval-001",
+    "approved_version": "1.3.0",
+    "candidate_commit_oid": "d34db33fd34db33fd34db33fd34db33fd34db33f",
+    "baseline_tag_name": "v1.2.3",
+    "baseline_tag_object_oid": "a11ce0a1a11ce0a1a11ce0a1a11ce0a1a11ce0a1",
+    "baseline_peeled_commit_oid": "b45e1b45b45e1b45b45e1b45b45e1b45b45e1b45",
+    "evidence_manifest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "compatibility_exception_ids": [],
+    "patch_exception_authority_digests": [],
+    "minimum_release_class": "minor",
+    "authorized_release_class": "minor"
+  }
+}

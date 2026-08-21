@@ -19,6 +19,11 @@ Fight Common applies Semantic Versioning by consumer-visible effect:
 A human may always authorize a higher release class. A lower class requires the exact compatibility
 exception defined by ADR 0012.
 
+The inspected maximum remains the `minimum_release_class`; it does not describe a higher exact
+version that a human authorizes. The authoritative plan separately derives `release_class` from the
+approved version relative to the bound baseline, so a patch minimum with an approved next major is
+recorded as minimum `patch` and actual `major`. Both classes are bound by the typed release approval.
+
 ### Compatibility manifest
 
 The committed `compatibility/manifest.json` is the intentional compatibility authority. It contains
@@ -40,9 +45,24 @@ No single third-party checker is authoritative. A repository-owned command compo
 - lowest-permitted, repository-locked, and latest-permitted dependency lanes; and
 - current-tree static analysis and deprecation discipline.
 
+Inspection accepts one category record for each independently composed policy surface: `structural-api`,
+`compatibility-manifest`, `composer-constraints`, `package-surface`, `archive-contents`,
+`behavioral-fixtures`, `serialization-fixtures`, `persistence-fixtures`, `adapter-fixtures`,
+`dependency-lowest`, `dependency-locked`, `dependency-latest`, `static-analysis`, and
+`deprecation-discipline`. Each record contains exactly `category`, category-scoped stable `finding_id` and
+`evidence_id` values, and a `classification` of `patch`, `minor`, `major`, or `indeterminate`. The complete set
+must be unique and is canonicalized into that order. The minimum recommendation is the maximum of the
+independent `patch < minor < major` classifications; an indeterminate, missing, duplicate, unknown, malformed,
+or caller-declared aggregate blocks recommendation before Git inspection. A legacy `change_class` is not
+release evidence and is rejected.
+
 Roave Backward Compatibility Check, `composer/semver`, PHPStan, and PHPUnit may produce evidence;
 repository policy classifies the release. Tool findings use stable IDs so exact exceptions and
 human authorization can bind to them.
+
+A lower-patch exception binds the complete canonical category assessment and must override exactly
+its non-patch category finding IDs. Authority-shaped identifiers that do not resolve to that bound
+assessment, or a stale assessment/content identity, cannot authorize the lower release class.
 
 An indeterminate finding blocks certification. It must be resolved through clarified normative
 documentation, a fixture, manifest classification, or an exact approved compatibility exception.
