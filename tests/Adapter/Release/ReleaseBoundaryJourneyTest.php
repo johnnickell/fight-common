@@ -96,7 +96,7 @@ class ReleaseBoundaryJourneyTest extends UnitTestCase
                 null,
                 []
             ],
-            ['prepare', $root.'/tests/Fixture/Release/boundary-success.json', null, []],
+            ['publish', $root.'/tests/Fixture/Release/boundary-success.json', null, []],
             [
                 'inspect',
                 $root.'/tests/Fixture/Release/boundary-success.json',
@@ -137,12 +137,12 @@ class ReleaseBoundaryJourneyTest extends UnitTestCase
                 self::assertSame('release.capability.effect_forbidden', $result['findings'][0]['id']);
             }
 
-            if ($command === 'prepare') {
+            if ($command === 'publish') {
                 self::assertSame(
-                    'Only the inspect and plan commands are available.',
+                    'Only the inspect, plan, and prepare commands are available.',
                     $result['findings'][0]['message']
                 );
-                self::assertSame(['action' => 'run_release_inspect_or_plan'], $result['next_action']);
+                self::assertSame(['action' => 'run_supported_release_command'], $result['next_action']);
             }
 
             if ($ledger !== null) {

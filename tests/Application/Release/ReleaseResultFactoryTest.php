@@ -6,9 +6,11 @@ namespace Fight\Test\Common\Application\Release;
 
 use Fight\Common\Adapter\Release\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOutcome;
+use Fight\Common\Application\Release\MachineResult;
 use Fight\Common\Application\Release\ReleasePlanValidationFailure;
 use Fight\Common\Application\Release\ReleaseResultFactory;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -33,6 +35,7 @@ class ReleaseResultFactoryTest extends UnitTestCase
             [
             'inspect' => ['inspect', 'release_inspection'],
             'plan'    => ['plan', 'release_planning'],
+            'prepare' => ['prepare', 'release_preparation'],
             'publish' => ['unknown', 'unsupported_command']
             ] as $requested => [$command, $capability]
         ) {
@@ -70,6 +73,7 @@ class ReleaseResultFactoryTest extends UnitTestCase
             [
             'inspect' => ['inspect', 'release_inspection'],
             'plan'    => ['plan', 'release_planning'],
+            'prepare' => ['prepare', 'release_preparation'],
             'publish' => ['unknown', 'unsupported_command']
             ] as $requested => [$command, $capability]
         ) {
@@ -136,6 +140,20 @@ class ReleaseResultFactoryTest extends UnitTestCase
         self::assertSame(
             'release_planning',
             $factory->failure('plan', 'plan.invalid', 'Invalid plan.', 'repair_plan')->payload['capability']
+        );
+        self::assertSame(
+            'release_preparation',
+            $factory->failure(
+                'prepare',
+                'release.prepare.plan_forbidden',
+                'Preparation requires one immutable plan below the repository .runs directory.',
+                'select_immutable_release_plan',
+                [[
+                    'capability'   => 'filesystem',
+                    'effect_class' => 'filesystem.inspect_runs_directory',
+                    'outcome'      => 'refusal'
+                ]]
+            )->payload['capability']
         );
         $unsupported = $factory->failure('publish', 'command.unsupported', 'Unsupported command.', 'select_command');
 
@@ -258,6 +276,222 @@ class ReleaseResultFactoryTest extends UnitTestCase
         self::assertSame([
             ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'failure']
         ], $result->payload['performed_effects']);
+    }
+
+    /**
+     * Covers successful preparation, idempotent resume, and every governed resume stop.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_preparation_results_preserve_exact_state_artifact_and_stop_contracts(): void
+    {
+        $factory = new ReleaseResultFactory();
+        $planId = str_repeat('a', 64);
+        $runId = str_repeat('b', 64);
+        $state = [
+            'history_path'    => '/repo/.runs/runs/'.$runId.'/history.jsonl',
+            'projection_path' => '/repo/.runs/runs/'.$runId.'/projection.json'
+        ];
+        $artifacts = [
+            'evidence_manifest' => [
+                'manifest_id' => str_repeat('c', 64),
+                'path'        => '/repo/.runs/'.str_repeat('c', 64).'.evidence-manifest.json'
+            ],
+            'phase_handoff'     => [
+                'handoff_id' => str_repeat('d', 64),
+                'path'       => '/repo/.runs/'.str_repeat('d', 64).'.phase-handoff.json'
+            ]
+        ];
+        $revalidated = [
+            [
+                'capability'   => 'filesystem',
+                'effect_class' => 'filesystem.inspect_runs_directory',
+                'outcome'      => 'success'
+            ],
+            ['capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'success'],
+            ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'success']
+        ];
+        $artifactEffects = [
+            ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'success'],
+            ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'success'],
+            ['capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'success'],
+            ['capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'success']
+        ];
+        $liveAuthority = [
+            ['capability' => 'git', 'effect_class' => 'git.resolve_ref', 'outcome' => 'success'],
+            ['capability' => 'authorization', 'effect_class' => 'authorization.check', 'outcome' => 'success']
+        ];
+
+        $prepared = $factory->prepared(
+            $planId,
+            $runId,
+            $state,
+            $artifacts,
+            [...$revalidated, ...$artifactEffects, ...$liveAuthority]
+        );
+        self::assertSame('release.prepare.completed', $prepared->payload['findings'][0]['id']);
+        self::assertSame($state, $prepared->payload['run_state']);
+
+        $resumed = $factory->resumedPrepared($planId, $runId, $state, $artifacts, [
+            ...$revalidated,
+            ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'success'],
+            ['capability' => 'hashing', 'effect_class' => 'hashing.sha256', 'outcome' => 'success'],
+            ['capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'success'],
+            ['capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'success'],
+            ...$liveAuthority
+        ]);
+        self::assertSame('release.prepare.already_satisfied', $resumed->payload['findings'][0]['id']);
+        self::assertSame('prepared_postconditions_reverified', $resumed->payload['verified_postconditions'][3]);
+
+        $resumedCompleted = $factory->resumedPreparationCompleted(
+            $planId,
+            $runId,
+            $state,
+            $artifacts,
+            [
+                ...$revalidated,
+                ['capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'success'],
+                ['capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'success'],
+                ...$artifactEffects,
+                ...$liveAuthority
+            ]
+        );
+        self::assertSame('release.prepare.resumed_completed', $resumedCompleted->payload['findings'][0]['id']);
+        self::assertSame(
+            'prepared_postconditions_verified',
+            $resumedCompleted->payload['verified_postconditions'][3]
+        );
+
+        $expected = [
+            'missing'                       => [5, 'evidence_indeterminate', 'release.prepare.resume_state_missing'],
+            'conflict'                      => [23, 'conflict', 'release.prepare.resume_contention'],
+            'stale'                         => [6, 'stale_plan', 'release.prepare.resume_plan_drift'],
+            'indeterminate'                 => [
+                5, 'evidence_indeterminate', 'release.prepare.resume_state_indeterminate'
+            ],
+            'failed'                        => [4, 'policy_blocked', 'release.prepare.state_persistence_failed'],
+            'create_conflict'               => [23, 'conflict', 'release.prepare.run_identity_conflict'],
+            'state_indeterminate'           => [
+                5, 'evidence_indeterminate', 'release.prepare.state_persistence_indeterminate'
+            ],
+            'artifact_indeterminate'        => [5, 'evidence_indeterminate', 'release.prepare.artifacts_indeterminate'],
+            'baseline_missing'              => [4, 'policy_blocked', 'release.prepare.baseline_tag_missing'],
+            'baseline_ambiguous'            => [4, 'policy_blocked', 'release.prepare.baseline_tag_ambiguous'],
+            'baseline_duplicate_normalized' => [
+                4, 'policy_blocked', 'release.prepare.baseline_tag_duplicate_normalized'
+            ],
+            'baseline_non_ancestor'         => [4, 'policy_blocked', 'release.prepare.baseline_tag_non_ancestor'],
+            'baseline_drift'                => [6, 'stale_plan', 'release.prepare.baseline_resolution_drift']
+        ];
+
+        foreach ($expected as $stop => [$exitCode, $status, $finding]) {
+            $causal = match ($stop) {
+                'missing', 'stale', 'indeterminate' => [
+                    'capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'uncertainty'
+                ],
+                'conflict' => [
+                    'capability' => 'filesystem', 'effect_class' => 'filesystem.read', 'outcome' => 'refusal'
+                ],
+                'failed', 'artifact_indeterminate' => [
+                    'capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'failure'
+                ],
+                'create_conflict' => [
+                    'capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'refusal'
+                ],
+                'state_indeterminate' => [
+                    'capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'uncertainty'
+                ],
+                'baseline_drift' => [
+                    'capability' => 'git', 'effect_class' => 'git.resolve_ref', 'outcome' => 'drift'
+                ],
+                'baseline_missing', 'baseline_ambiguous', 'baseline_duplicate_normalized',
+                'baseline_non_ancestor' => [
+                    'capability' => 'git', 'effect_class' => 'git.resolve_ref', 'outcome' => 'success'
+                ]
+            };
+
+            $effects = [...$revalidated, $causal];
+
+            $effects = [...$effects, ...$artifactEffects];
+
+            $result = $factory->prepareResumeStop($stop, $planId, $runId, $artifacts, $effects);
+            self::assertSame($exitCode, $result->exitCode);
+            self::assertSame($status, $result->payload['status']);
+            self::assertSame($finding, $result->payload['findings'][0]['id']);
+            self::assertSame($artifacts, $result->payload['artifacts']);
+        }
+
+        $persistenceFailure = $factory->prepareEvidencePersistenceFailure(
+            $planId,
+            $runId,
+            [
+                ...$revalidated,
+                ['capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'failure']
+            ]
+        );
+        self::assertSame(5, $persistenceFailure->exitCode);
+        self::assertSame('prepare', $persistenceFailure->payload['command']);
+        self::assertSame('evidence_indeterminate', $persistenceFailure->payload['status']);
+        self::assertSame(
+            'release.prepare.evidence_persistence_failed',
+            $persistenceFailure->payload['findings'][0]['id']
+        );
+        self::assertSame(['action' => 'repair_release_evidence_storage'], $persistenceFailure->payload['next_action']);
+        self::assertArrayNotHasKey('artifacts', $persistenceFailure->payload);
+        self::assertSame(
+            [
+                ...$revalidated,
+                ['capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'failure']
+            ],
+            $persistenceFailure->payload['performed_effects']
+        );
+        $refusedPersistence = $factory->prepareEvidencePersistenceFailure(
+            $planId,
+            $runId,
+            [
+                ...$revalidated,
+                ['capability' => 'filesystem', 'effect_class' => 'filesystem.write', 'outcome' => 'refusal']
+            ]
+        );
+        self::assertSame(5, $refusedPersistence->exitCode);
+        self::assertArrayNotHasKey('artifacts', $refusedPersistence->payload);
+
+        $resumedPersistenceFailure = $factory->resumedPrepareEvidencePersistenceFailure(
+            $planId,
+            $runId,
+            $state,
+            $revalidated
+        );
+        self::assertSame(5, $resumedPersistenceFailure->exitCode);
+        self::assertSame($state, $resumedPersistenceFailure->payload['run_state']);
+        self::assertSame([
+            'run_event_chain_revalidated',
+            'stopped_run_projection_revalidated'
+        ], $resumedPersistenceFailure->payload['verified_postconditions']);
+        self::assertSame(
+            ['action' => 'repair_release_evidence_storage'],
+            $resumedPersistenceFailure->payload['next_action']
+        );
+
+        foreach (
+            [
+                'finding'   => ['findings' => [['id' => 'release.prepare.other', 'message' => 'Other.']]],
+                'action'    => ['next_action' => ['action' => 'reconcile_named_release_run']],
+                'artifacts' => ['artifacts' => $artifacts]
+            ] as $replacementName => $replacement
+        ) {
+            self::assertFalse(MachineResult::isValidPayload(
+                array_replace($persistenceFailure->payload, $replacement),
+                5
+            ), $replacementName);
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $factory->prepareResumeStop('indeterminate', $planId, $runId, null, [[
+            'capability'   => 'filesystem',
+            'effect_class' => 'filesystem.read',
+            'outcome'      => 'success'
+        ]]);
     }
 }
 

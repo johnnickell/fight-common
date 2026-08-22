@@ -18,6 +18,8 @@ use Fight\Common\Application\Release\Boundary\PlanArtifactWriteResult;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOperationResult;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOutcome;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryPredicateResult;
+use Fight\Common\Application\Release\Boundary\ReleaseEffect;
+use Fight\Common\Application\Release\Boundary\ReleaseRuntimeTermination;
 use Fight\Common\Application\Release\Boundary\RunsDirectoryResolutionResult;
 use Fight\Common\Application\Release\Boundary\SigningPort;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -80,6 +82,8 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
         self::assertSame('2026-08-19T12:00:00.000000Z', $success->now()->value);
         self::assertSame('signature-verified', $success->verify()->value);
         self::assertSame('authorized', $success->check()->value);
+        $success->recordObservedEffect(ReleaseEffect::GIT_RESOLVE_REF, ReleaseBoundaryOutcome::SUCCESS);
+        self::assertSame('success', $success->effects()[array_key_last($success->effects())]['outcome']);
 
         $capabilities = [
             'git', 'clock', 'signing', 'authorization', 'github', 'packagist'
@@ -461,6 +465,15 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
         $fake = new DeterministicReleaseBoundaryFake();
 
         try {
+            $configuration = new DeterministicReleaseBoundaryFake();
+            self::assertFalse($configuration->configurePlanAuthorityStatus('invalid'));
+            self::assertTrue($configuration->configurePlanAuthorityStatus('approval_drift'));
+            self::assertSame(
+                'approval_drift',
+                $configuration->revalidatePlanAuthority([])->value
+            );
+            $configuration->interruptRunProjectionOnce();
+
             $result = $fake->readArtifact(
                 new CanonicalRunsDirectory($directory, $directory),
                 $filename
@@ -981,7 +994,7 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
     public function test_that_ports_expose_only_typed_operations_and_unknown_or_cross_capability_effects_fail_closed(): void
     {
         $contracts = [
-            FilesystemPort::class => [
+            FilesystemPort::class    => [
                 'exists(string):'.ReleaseBoundaryPredicateResult::class,
                 'isDirectory(string):'.ReleaseBoundaryPredicateResult::class,
                 'resolveRunsDirectory(string,string):'.RunsDirectoryResolutionResult::class,
@@ -993,16 +1006,16 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
                 'resolveRunsDirectory(string,string):'.RunsDirectoryResolutionResult::class,
                 'writeArtifact('.CanonicalRunsDirectory::class.',string,string):'.PlanArtifactWriteResult::class
             ],
-            GitPort::class => [
+            GitPort::class           => [
                 'inspectRepository():'.ReleaseBoundaryOperationResult::class,
                 'resolveBaselineTag(string,string):'.\Fight\Common\Application\Release\Boundary\BaselineTagResolutionResult::class
             ],
-            HashingPort::class => ['sha256(string):'.ReleaseBoundaryOperationResult::class],
-            ClockPort::class => ['now():'.ReleaseBoundaryOperationResult::class],
-            SigningPort::class => ['verify():'.ReleaseBoundaryOperationResult::class],
+            HashingPort::class       => ['sha256(string):'.ReleaseBoundaryOperationResult::class],
+            ClockPort::class         => ['now():'.ReleaseBoundaryOperationResult::class],
+            SigningPort::class       => ['verify():'.ReleaseBoundaryOperationResult::class],
             AuthorizationPort::class => ['check():'.ReleaseBoundaryOperationResult::class],
-            GitHubPort::class => ['release():'.ReleaseBoundaryOperationResult::class],
-            PackagistPort::class => ['publish():'.ReleaseBoundaryOperationResult::class]
+            GitHubPort::class        => ['release():'.ReleaseBoundaryOperationResult::class],
+            PackagistPort::class     => ['publish():'.ReleaseBoundaryOperationResult::class]
         ];
 
         foreach ($contracts as $port => $signatures) {
@@ -1042,6 +1055,995 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
         self::assertSame([], $fake->effects());
     }
 
+    /**
+     * Covers every observable run-state resume classification and fail-closed creation precondition.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_run_state_creation_and_resume_fail_closed_without_mutating_bound_evidence(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-release-run-fake-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $directory = new CanonicalRunsDirectory($root.'/attempt', $root);
+        mkdir($directory->path);
+        $planId = str_repeat('a', 64);
+        $otherPlanId = str_repeat('c', 64);
+        $runId = str_repeat('b', 64);
+        $fake = new DeterministicReleaseBoundaryFake();
+
+        try {
+            self::assertSame(['status' => 'missing'], $fake->resumePreparedRun($directory, $planId, $runId));
+            self::assertSame([
+                'capability'   => 'filesystem',
+                'effect_class' => 'filesystem.read',
+                'outcome'      => 'uncertainty'
+            ], $fake->effects()[array_key_last($fake->effects())]);
+
+            $state = $fake->createPreparedRun($directory, $planId, $runId);
+            self::assertIsArray($state);
+            self::assertSame('evidence_pending', $fake->resumePreparedRun($directory, $planId, $runId)['status']);
+            self::assertSame('filesystem.read', $fake->effects()[array_key_last($fake->effects())]['effect_class']);
+            self::assertSame('stale', $fake->resumePreparedRun($directory, $otherPlanId, $runId)['status']);
+
+            file_put_contents($state['projection_path'], "corrupt\n");
+            self::assertSame('indeterminate', $fake->resumePreparedRun($directory, $planId, $runId)['status']);
+            unlink($state['history_path']);
+            self::assertSame('indeterminate', $fake->resumePreparedRun($directory, $planId, $runId)['status']);
+
+            $lock = fopen($directory->path.'/runs/'.$runId.'/.writer.lock', 'c');
+            self::assertIsResource($lock);
+            self::assertTrue(flock($lock, LOCK_EX | LOCK_NB));
+
+            try {
+                self::assertSame('conflict', $fake->resumePreparedRun($directory, $planId, $runId)['status']);
+            } finally {
+                flock($lock, LOCK_UN);
+                fclose($lock);
+            }
+
+            $blockedDirectory = new CanonicalRunsDirectory($root.'/blocked', $root);
+            mkdir($blockedDirectory->path);
+            file_put_contents($blockedDirectory->path.'/runs', 'not-a-directory');
+            self::assertSame(
+                ['status' => 'failed'],
+                $fake->createPreparedRun($blockedDirectory, $planId, str_repeat('d', 64))
+            );
+
+            $blockedRunDirectory = new CanonicalRunsDirectory($root.'/blocked-run', $root);
+            mkdir($blockedRunDirectory->path);
+            mkdir($blockedRunDirectory->path.'/runs');
+            file_put_contents($blockedRunDirectory->path.'/runs/'.str_repeat('e', 64), 'not-a-directory');
+            self::assertSame(
+                ['status' => 'failed'],
+                $fake->createPreparedRun($blockedRunDirectory, $planId, str_repeat('e', 64))
+            );
+
+            $blockedHistoryDirectory = new CanonicalRunsDirectory($root.'/blocked-history', $root);
+            mkdir($blockedHistoryDirectory->path);
+            mkdir($blockedHistoryDirectory->path.'/runs');
+            $blockedRun = $blockedHistoryDirectory->path.'/runs/'.str_repeat('f', 64);
+            mkdir($blockedRun);
+            file_put_contents($blockedRun.'/history.jsonl', 'preexisting');
+            self::assertSame(
+                ['status' => 'conflict'],
+                $fake->createPreparedRun($blockedHistoryDirectory, $planId, str_repeat('f', 64))
+            );
+
+            foreach (
+                [
+                    'open'                => 'indeterminate',
+                    'write'               => 'indeterminate',
+                    'append_lock'         => 'indeterminate',
+                    'projection_stage'    => 'indeterminate',
+                    'projection_publish'  => 'indeterminate',
+                    'prepared_projection' => 'indeterminate',
+                    'runs_directory'      => 'failed',
+                    'writer_open'         => 'indeterminate',
+                    'writer_lock'         => 'conflict'
+                ] as $failurePoint => $status
+            ) {
+                $failureDirectory = new CanonicalRunsDirectory(
+                    $root.'/failure-'.$failurePoint,
+                    $root
+                );
+                mkdir($failureDirectory->path);
+                $failing = new DeterministicReleaseBoundaryFake(runStateFailureOnce: $failurePoint);
+
+                self::assertSame(
+                    ['status' => $status],
+                    $failing->createPreparedRun(
+                        $failureDirectory,
+                        $planId,
+                        hash('sha256', $failurePoint)
+                    ),
+                    $failurePoint
+                );
+            }
+
+            $interruptedDirectory = new CanonicalRunsDirectory($root.'/interrupted-resume', $root);
+            mkdir($interruptedDirectory->path);
+            $interrupted = new DeterministicReleaseBoundaryFake(interruptRunProjectionOnce: true);
+
+            try {
+                $interrupted->createPreparedRun($interruptedDirectory, $planId, str_repeat('9', 64));
+                self::fail('The configured run-state interruption was not raised.');
+            } catch (\Fight\Common\Application\Release\Boundary\ReleaseBoundaryCrash $crash) {
+                self::assertSame('filesystem.write', $crash->effectClass);
+            }
+
+            $projectionFailure = new DeterministicReleaseBoundaryFake(
+                runStateFailureOnce: 'prepared_projection'
+            );
+            self::assertSame(
+                ['status' => 'indeterminate'],
+                $projectionFailure->resumePreparedRun($interruptedDirectory, $planId, str_repeat('9', 64))
+            );
+            self::assertSame('uncertainty', $projectionFailure->effects()[0]['outcome']);
+
+            $repairedProjection = new DeterministicReleaseBoundaryFake();
+            $repaired = $repairedProjection->resumePreparedRun(
+                $interruptedDirectory,
+                $planId,
+                str_repeat('9', 64)
+            );
+            self::assertTrue($repaired['projection_repaired']);
+            self::assertSame(
+                ['filesystem.read', 'filesystem.write'],
+                array_column($repairedProjection->effects(), 'effect_class')
+            );
+
+            $finalizeDirectory = new CanonicalRunsDirectory($root.'/finalize', $root);
+            mkdir($finalizeDirectory->path);
+            $finalizeRunId = str_repeat('7', 64);
+            $finalize = new DeterministicReleaseBoundaryFake();
+            self::assertSame(
+                'created',
+                $finalize->createPreparedRun($finalizeDirectory, $planId, $finalizeRunId)['status']
+            );
+            $finalizeLock = fopen($finalizeDirectory->path.'/runs/'.$finalizeRunId.'/.writer.lock', 'c');
+            self::assertIsResource($finalizeLock);
+            self::assertTrue(flock($finalizeLock, LOCK_EX | LOCK_NB));
+
+            try {
+                self::assertSame(
+                    ['status' => 'conflict'],
+                    $finalize->finalizePreparedRun(
+                        $finalizeDirectory,
+                        $planId,
+                        $finalizeRunId,
+                        str_repeat('1', 64),
+                        str_repeat('2', 64),
+                        2,
+                        'prepared'
+                    )
+                );
+            } finally {
+                flock($finalizeLock, LOCK_UN);
+                fclose($finalizeLock);
+            }
+
+            self::assertSame(
+                ['status' => 'stale'],
+                $finalize->finalizePreparedRun(
+                    $finalizeDirectory,
+                    str_repeat('3', 64),
+                    $finalizeRunId,
+                    str_repeat('1', 64),
+                    str_repeat('2', 64),
+                    2,
+                    'prepared'
+                )
+            );
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers rejection of constructor-bypassed run-state authority before helper invocation.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_forged_run_state_directory_authority_is_rejected_before_helper_invocation(): void
+    {
+        $reflection = new \ReflectionClass(CanonicalRunsDirectory::class);
+        $directory = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('path')->setValue($directory, '/repository/.runs/../outside');
+        $reflection->getProperty('runsRoot')->setValue($directory, '/repository/.runs');
+
+        self::assertSame(
+            ['status' => 'failed'],
+            new DeterministicReleaseBoundaryFake()->createPlannedRun(
+                $directory,
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            )
+        );
+    }
+
+    /**
+     * Covers failure to start the descriptor-relative run-state helper process.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_run_state_helper_process_start_failure_is_closed(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-start-'.bin2hex(random_bytes(8));
+        mkdir($root);
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            new DeterministicReleaseBoundaryFake(
+                artifactProcessWorkingDirectory: $root.'/missing'
+            )->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers a syntactically valid but non-object run-state helper response.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_malformed_run_state_helper_response_is_closed(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-response-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stdout.write("[]")');
+        $reflection = new \ReflectionClass(DeterministicReleaseBoundaryFake::class);
+        $fake = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('runStateStoreHelper')->setValue($fake, $helper);
+        $reflection->getProperty('artifactProcessWorkingDirectory')->setValue($fake, null);
+        $reflection->getProperty('runStateFailureOnce')->setValue($fake, null);
+        $reflection->getProperty('runStateReplacementTarget')->setValue($fake, null);
+        $reflection->getProperty('runStateHelperTimeoutSeconds')->setValue($fake, 30);
+        $reflection->getProperty('runStateRead')->setValue($fake, null);
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            $fake->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers a failed run-state helper process after successful process creation.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_failed_run_state_helper_execution_is_closed(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-failure-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stderr.write("failure"); sys.exit(1)');
+        $reflection = new \ReflectionClass(DeterministicReleaseBoundaryFake::class);
+        $fake = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('runStateStoreHelper')->setValue($fake, $helper);
+        $reflection->getProperty('artifactProcessWorkingDirectory')->setValue($fake, null);
+        $reflection->getProperty('runStateFailureOnce')->setValue($fake, null);
+        $reflection->getProperty('runStateReplacementTarget')->setValue($fake, null);
+        $reflection->getProperty('runStateHelperTimeoutSeconds')->setValue($fake, 30);
+        $reflection->getProperty('runStateRead')->setValue($fake, null);
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            $fake->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers invalid closed receipts and configured protocol termination
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_invalid_closed_run_state_receipts_terminate_the_runtime(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-invalid-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stdout.write("{\\"status\\":\\"planned\\"}")');
+        $reflection = new \ReflectionClass(DeterministicReleaseBoundaryFake::class);
+        $fake = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('runStateStoreHelper')->setValue($fake, $helper);
+        $reflection->getProperty('artifactProcessWorkingDirectory')->setValue($fake, null);
+        $reflection->getProperty('runStateFailureOnce')->setValue($fake, null);
+        $reflection->getProperty('runStateReplacementTarget')->setValue($fake, null);
+        $reflection->getProperty('runStateHelperTimeoutSeconds')->setValue($fake, 30);
+        $reflection->getProperty('runStateRead')->setValue($fake, null);
+        $reflection->getProperty('terminateRunStateHelperOnce')->setValue($fake, false);
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            $fake->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers wrong scalar types in otherwise known helper receipt schemas.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_known_run_state_receipts_with_wrong_field_types_terminate(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-types-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $planId = str_repeat('a', 64);
+        $runId = str_repeat('b', 64);
+        $runPath = $root.'/runs/'.$runId;
+        $receipts = [
+            '{"status":1}',
+            '{"status":"planned","history_path":"h","projection_path":"p","sequence":"1",'.'"state":"planned","prepared_history_sha256":"h","prepared_projection_sha256":"p"}',
+            '{"status":"planned","history_path":1,"projection_path":"p","sequence":1,'.'"state":"planned","prepared_history_sha256":"h","prepared_projection_sha256":"p"}'
+        ];
+
+        try {
+            foreach ($receipts as $index => $receipt) {
+                $helper = $root.'/helper-'.$index.'.py';
+                file_put_contents($helper, 'import sys; sys.stdout.write('.var_export($receipt, true).')');
+                try {
+                    new DeterministicReleaseBoundaryFake(runStateStoreHelper: $helper)->createPlannedRun(
+                        new CanonicalRunsDirectory($root, $root),
+                        str_repeat('a', 64),
+                        hash('sha256', (string) $index)
+                    );
+                    self::fail('The malformed known receipt was accepted.');
+                } catch (ReleaseRuntimeTermination) {
+                    self::assertTrue(true);
+                }
+            }
+
+            $finalizeReceipt = [
+                'status'                            => 'created',
+                'history_path'                      => $runPath.'/history.jsonl',
+                'projection_path'                   => $runPath.'/projection.json',
+                'sequence'                          => 3,
+                'state'                             => 'prepared',
+                'history_sha256'                    => str_repeat('1', 64),
+                'projection_sha256'                 => str_repeat('2', 64),
+                'prepared_history_sha256'           => str_repeat('3', 64),
+                'prepared_projection_sha256'        => str_repeat('4', 64),
+                'prerequisite_evidence_manifest_id' => str_repeat('z', 64),
+                'prerequisite_phase_handoff_id'     => str_repeat('d', 64)
+            ];
+            $helper = $root.'/helper-finalize.py';
+            file_put_contents(
+                $helper,
+                'import sys; sys.stdout.write('.var_export(json_encode($finalizeReceipt, JSON_THROW_ON_ERROR), true).')'
+            );
+            try {
+                new DeterministicReleaseBoundaryFake(runStateStoreHelper: $helper)->finalizePreparedRun(
+                    new CanonicalRunsDirectory($root, $root),
+                    $planId,
+                    $runId,
+                    str_repeat('c', 64),
+                    str_repeat('d', 64),
+                    2,
+                    'prepared'
+                );
+                self::fail('The malformed prerequisite identity was accepted.');
+            } catch (ReleaseRuntimeTermination) {
+                self::assertTrue(true);
+            }
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers schema-shaped positive receipts that contradict the requested operation.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_schema_shaped_false_success_run_state_receipts_terminate(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-semantics-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $planId = str_repeat('a', 64);
+        $runId = str_repeat('b', 64);
+        $runPath = $root.'/runs/'.$runId;
+        $base = [
+            'status'                     => 'planned',
+            'history_path'               => $runPath.'/history.jsonl',
+            'projection_path'            => $runPath.'/projection.json',
+            'sequence'                   => 1,
+            'state'                      => 'planned',
+            'prepared_history_sha256'    => str_repeat('c', 64),
+            'prepared_projection_sha256' => str_repeat('d', 64)
+        ];
+        $receipts = [
+            [...$base, 'sequence' => 0],
+            [...$base, 'state' => 'prepared'],
+            [...$base, 'history_path' => '/wrong/history.jsonl'],
+            [...$base, 'prepared_history_sha256' => str_repeat('z', 64)]
+        ];
+
+        try {
+            foreach ($receipts as $index => $receipt) {
+                $helper = $root.'/helper-'.$index.'.py';
+                file_put_contents(
+                    $helper,
+                    'import sys; sys.stdout.write('.var_export(json_encode($receipt, JSON_THROW_ON_ERROR), true).')'
+                );
+                try {
+                    new DeterministicReleaseBoundaryFake(runStateStoreHelper: $helper)->createPlannedRun(
+                        new CanonicalRunsDirectory($root, $root),
+                        $planId,
+                        $runId
+                    );
+                    self::fail('The semantically false helper success was accepted.');
+                } catch (ReleaseRuntimeTermination) {
+                    self::assertTrue(true);
+                }
+            }
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers fail-closed dispatch for an impossible internal helper operation.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_an_unknown_internal_run_state_operation_terminates(): void
+    {
+        $method = new \ReflectionMethod(DeterministicReleaseBoundaryFake::class, 'validRunStateReceipt');
+
+        $this->expectException(ReleaseRuntimeTermination::class);
+        $method->invoke(
+            new DeterministicReleaseBoundaryFake(),
+            'unknown',
+            ['status' => 'failed'],
+            new CanonicalRunsDirectory('/tmp', '/tmp'),
+            str_repeat('a', 64),
+            str_repeat('b', 64),
+            [],
+            ''
+        );
+    }
+
+    /**
+     * Covers rejection of an unsolicited helper crash outside an exact configured fault
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_an_unsolicited_run_state_helper_crash_terminates(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-unsolicited-crash-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stdout.write("{\\"crash\\":true}")');
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            new DeterministicReleaseBoundaryFake(runStateStoreHelper: $helper)->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers exact causal binding of positive stopped receipts
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_positive_stopped_receipts_must_match_the_exact_closed_contract(): void
+    {
+        $method = new \ReflectionMethod(DeterministicReleaseBoundaryFake::class, 'validRunStateReceipt');
+        $runId = str_repeat('b', 64);
+        $directory = new CanonicalRunsDirectory('/tmp', '/tmp');
+        $path = '/tmp/runs/'.$runId;
+        $stop = [
+            'status'          => 'verified',
+            'history_path'    => $path.'/history.jsonl',
+            'projection_path' => $path.'/projection.json',
+            'stop_code'       => 'baseline_missing',
+            'stop_state'      => 'policy_blocked',
+            'finding_id'      => 'release.prepare.baseline_tag_missing',
+            'next_action'     => 'repair_baseline_authority',
+            'sequence'        => 2,
+            'state'           => 'policy_blocked'
+        ];
+        $stopArguments = [
+            'baseline_missing',
+            'policy_blocked',
+            'release.prepare.baseline_tag_missing',
+            'repair_baseline_authority',
+            '',
+            '',
+            '1',
+            'planned'
+        ];
+
+        self::assertTrue($method->invoke(
+            new DeterministicReleaseBoundaryFake(),
+            'stop',
+            $stop,
+            $directory,
+            str_repeat('a', 64),
+            $runId,
+            $stopArguments,
+            ''
+        ));
+        self::assertFalse($method->invoke(
+            new DeterministicReleaseBoundaryFake(),
+            'stop',
+            [...$stop, 'finding_id' => 'release.prepare.plan_authority_failed'],
+            $directory,
+            str_repeat('a', 64),
+            $runId,
+            $stopArguments,
+            ''
+        ));
+
+        $resumed = [
+            'status'              => 'stopped',
+            'history_path'        => $path.'/history.jsonl',
+            'projection_path'     => $path.'/projection.json',
+            'stop_code'           => 'not_governed',
+            'stop_state'          => 'policy_blocked',
+            'finding_id'          => 'release.prepare.baseline_tag_missing',
+            'next_action'         => 'repair_baseline_authority',
+            'sequence'            => 2,
+            'state'               => 'policy_blocked',
+            'projection_repaired' => false,
+            'resume_state'        => 'planned',
+            'resume_sequence'     => 1,
+            'resume_next_action'  => 'prepare_release_run'
+        ];
+        self::assertFalse($method->invoke(
+            new DeterministicReleaseBoundaryFake(),
+            'resume',
+            $resumed,
+            $directory,
+            str_repeat('a', 64),
+            $runId,
+            [],
+            ''
+        ));
+    }
+
+    /**
+     * Covers every closed resumed-stop contract and remaining semantic receipt rejection
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_every_positive_resumed_stop_contract_is_closed_and_exact(): void
+    {
+        $contracts = [
+            'missing' => [
+                'evidence_indeterminate', 'release.prepare.resume_state_missing',
+                'restore_named_release_run_evidence'
+            ],
+            'conflict' => [
+                'conflict', 'release.prepare.resume_contention',
+                'retry_named_resume_after_writer_completes'
+            ],
+            'failed' => [
+                'policy_blocked', 'release.prepare.state_persistence_failed', 'repair_release_run_storage'
+            ],
+            'create_conflict' => [
+                'conflict', 'release.prepare.run_identity_conflict', 'retry_release_preparation_with_new_run'
+            ],
+            'state_indeterminate' => [
+                'evidence_indeterminate', 'release.prepare.state_persistence_indeterminate',
+                'reconcile_named_release_run'
+            ],
+            'baseline_refusal' => [
+                'authority_required', 'release.prepare.baseline_resolution_refused',
+                'obtain_current_baseline_authority'
+            ],
+            'baseline_failure' => [
+                'policy_blocked', 'release.prepare.baseline_resolution_failed',
+                'repair_baseline_resolution_provider'
+            ],
+            'baseline_uncertainty' => [
+                'evidence_indeterminate', 'release.prepare.baseline_resolution_uncertain',
+                'reconcile_baseline_resolution'
+            ],
+            'baseline_drift' => [
+                'stale_plan', 'release.prepare.baseline_resolution_drift', 'create_current_release_plan'
+            ],
+            'baseline_missing' => [
+                'policy_blocked', 'release.prepare.baseline_tag_missing', 'repair_baseline_authority'
+            ],
+            'baseline_ambiguous' => [
+                'policy_blocked', 'release.prepare.baseline_tag_ambiguous', 'repair_baseline_authority'
+            ],
+            'baseline_duplicate_normalized' => [
+                'policy_blocked', 'release.prepare.baseline_tag_duplicate_normalized',
+                'repair_baseline_authority'
+            ],
+            'baseline_non_ancestor' => [
+                'policy_blocked', 'release.prepare.baseline_tag_non_ancestor', 'repair_baseline_authority'
+            ],
+            'support_policy_drift' => [
+                'stale_plan', 'release.prepare.support_policy_drift', 'create_current_release_plan'
+            ],
+            'approval_drift' => [
+                'authority_required', 'release.prepare.approval_authority_drift',
+                'obtain_current_release_approval'
+            ],
+            'evidence_drift' => [
+                'stale_plan', 'release.prepare.evidence_authority_drift', 'create_current_release_plan'
+            ],
+            'compatibility_drift' => [
+                'stale_plan', 'release.prepare.compatibility_authority_drift', 'create_current_release_plan'
+            ],
+            'authority_refused' => [
+                'authority_required', 'release.prepare.plan_authority_refused',
+                'obtain_current_release_authority'
+            ],
+            'authority_failed' => [
+                'policy_blocked', 'release.prepare.plan_authority_failed',
+                'repair_release_authority_provider'
+            ],
+            'authority_uncertain' => [
+                'evidence_indeterminate', 'release.prepare.plan_authority_uncertain',
+                'reconcile_release_plan_authority'
+            ],
+            'stale' => [
+                'stale_plan', 'release.prepare.resume_plan_drift', 'create_current_release_plan'
+            ]
+        ];
+        $contractMethod = new \ReflectionMethod(
+            DeterministicReleaseBoundaryFake::class,
+            'validStoppedReceiptContract'
+        );
+        $fake = new DeterministicReleaseBoundaryFake();
+
+        foreach ($contracts as $stopCode => [$stopState, $findingId, $nextAction]) {
+            self::assertTrue($contractMethod->invoke($fake, [
+                'stop_code'   => $stopCode,
+                'stop_state'  => $stopState,
+                'finding_id'  => $findingId,
+                'next_action' => $nextAction
+            ]), $stopCode);
+        }
+
+        $receiptMethod = new \ReflectionMethod(DeterministicReleaseBoundaryFake::class, 'validRunStateReceipt');
+        $runId = str_repeat('b', 64);
+        $runPath = '/tmp/runs/'.$runId;
+        self::assertFalse($receiptMethod->invoke(
+            $fake,
+            'resume',
+            [
+                'status'                       => 'planned',
+                'history_path'                 => $runPath.'/history.jsonl',
+                'projection_path'              => $runPath.'/projection.json',
+                'sequence'                     => 1,
+                'state'                        => 'planned',
+                'projection_repaired'          => 'false',
+                'prepared_history_sha256'      => str_repeat('c', 64),
+                'prepared_projection_sha256'   => str_repeat('d', 64)
+            ],
+            new CanonicalRunsDirectory('/tmp', '/tmp'),
+            str_repeat('a', 64),
+            $runId,
+            [],
+            ''
+        ));
+
+        $bindingMethod = new \ReflectionMethod(
+            DeterministicReleaseBoundaryFake::class,
+            'receiptMatchesStopArguments'
+        );
+        self::assertFalse($bindingMethod->invoke(
+            $fake,
+            [
+                'stop_code'   => 'baseline_missing',
+                'stop_state'  => 'policy_blocked',
+                'finding_id'  => 'release.prepare.baseline_tag_missing',
+                'next_action' => 'repair_baseline_authority'
+            ],
+            [
+                'baseline_missing', 'policy_blocked', 'release.prepare.baseline_tag_missing',
+                'repair_baseline_authority', str_repeat('e', 64), ''
+            ]
+        ));
+    }
+
+    /**
+     * Covers truthful failure ledgering for a governed terminal resume receipt
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_a_failed_resume_receipt_records_one_failed_read(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-resume-failed-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stdout.write("{\\"status\\":\\"failed\\"}")');
+        $fake = new DeterministicReleaseBoundaryFake(runStateStoreHelper: $helper);
+
+        try {
+            self::assertSame(
+                ['status' => 'failed'],
+                $fake->resumePreparedRun(
+                    new CanonicalRunsDirectory($root, $root),
+                    str_repeat('a', 64),
+                    str_repeat('b', 64)
+                )
+            );
+            self::assertSame([[
+                'capability'   => 'filesystem',
+                'effect_class' => 'filesystem.read',
+                'outcome'      => 'failure'
+            ]], $fake->effects());
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers the one-shot configured helper protocol termination
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_configured_run_state_helper_protocol_termination_is_consumed(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-configured-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $fake = new DeterministicReleaseBoundaryFake();
+        $fake->terminateRunStateHelperOnce();
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            $fake->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            (new Filesystem())->remove($root);
+        }
+    }
+
+    /**
+     * Covers simultaneous bounded draining of noisy helper channels
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_noisy_run_state_helper_channels_terminate_without_deadlock(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-noisy-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import os; os.write(1,b"x"*70000); os.write(2,b"y"*70000)');
+        $reflection = new \ReflectionClass(DeterministicReleaseBoundaryFake::class);
+        $fake = $reflection->newInstanceWithoutConstructor();
+        $reflection->getProperty('runStateStoreHelper')->setValue($fake, $helper);
+        $reflection->getProperty('artifactProcessWorkingDirectory')->setValue($fake, null);
+        $reflection->getProperty('runStateFailureOnce')->setValue($fake, null);
+        $reflection->getProperty('runStateReplacementTarget')->setValue($fake, null);
+        $reflection->getProperty('runStateHelperTimeoutSeconds')->setValue($fake, 30);
+        $reflection->getProperty('runStateRead')->setValue($fake, null);
+        $reflection->getProperty('terminateRunStateHelperOnce')->setValue($fake, false);
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            $fake->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers deterministic helper timeout termination
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_wedged_run_state_helper_reaches_runtime_termination(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-wedged-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import time; time.sleep(5)');
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            new DeterministicReleaseBoundaryFake(
+                runStateHelperTimeoutSeconds: 0,
+                artifactProcessWorkingDirectory: $root,
+                runStateStoreHelper: $helper
+            )->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers the total deadline and KILL fallback for continuously noisy and TERM-resistant children.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_run_state_helper_total_deadline_and_kill_fallback_are_bounded(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-total-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helpers = [
+            'noisy.py'    => 'import os,time
+for i in range(50): os.write(1,b"x"); time.sleep(.1)',
+            'stubborn.py' => 'import os,signal,time
+signal.signal(signal.SIGTERM, signal.SIG_IGN)
+os.write(1,b"x")
+time.sleep(5)'
+        ];
+
+        try {
+            foreach ($helpers as $filename => $source) {
+                $helper = $root.'/'.$filename;
+                file_put_contents($helper, $source);
+                try {
+                    new DeterministicReleaseBoundaryFake(
+                        runStateHelperTimeoutSeconds: 1,
+                        runStateStoreHelper: $helper
+                    )->createPlannedRun(
+                        new CanonicalRunsDirectory($root, $root),
+                        str_repeat('a', 64),
+                        hash('sha256', $filename)
+                    );
+                    self::fail('The unbounded helper was accepted.');
+                } catch (ReleaseRuntimeTermination) {
+                    self::assertTrue(true);
+                }
+            }
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers bounded fallback when process exit cannot be observed even after KILL.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_unobserved_run_state_helper_exit_never_reaches_blocking_close(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-unobserved-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'import sys; sys.stdout.write("{}")');
+        $started = microtime(true);
+
+        try {
+            new DeterministicReleaseBoundaryFake(
+                runStateHelperTimeoutSeconds: 1,
+                runStateStoreHelper: $helper,
+                runStateStatus: static fn (): array => ['running' => true, 'exitcode' => -1]
+            )->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+            self::fail('The unobserved helper exit was accepted.');
+        } catch (ReleaseRuntimeTermination) {
+            self::assertLessThan(2.0, microtime(true) - $started);
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers simultaneous bounded input/output handling for an abnormal artifact helper.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_noisy_and_wedged_artifact_helpers_fail_without_deadlock(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-artifact-helper-bounds-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $noisy = $root.'/noisy.py';
+        $wedged = $root.'/wedged.py';
+        file_put_contents($noisy, 'import os; os.write(2,b"x"*70000); os.read(0,1)');
+        file_put_contents($wedged, 'import time; time.sleep(5)');
+        $directory = new CanonicalRunsDirectory($root, $root);
+
+        try {
+            $write = new DeterministicReleaseBoundaryFake(
+                artifactStoreHelper: $noisy,
+                runStateHelperTimeoutSeconds: 1
+            );
+            self::assertSame(
+                ReleaseBoundaryOutcome::FAILURE,
+                $write->writeArtifact($directory, 'bounded.json', str_repeat('x', 1024 * 1024))->outcome
+            );
+
+            $read = new DeterministicReleaseBoundaryFake(
+                artifactStoreHelper: $wedged,
+                runStateHelperTimeoutSeconds: 0
+            );
+            self::assertSame(
+                ReleaseBoundaryOutcome::FAILURE,
+                $read->readArtifact($directory, 'bounded.json')->outcome
+            );
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
+    /**
+     * Covers helper channel read failure termination
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_failed_run_state_helper_channel_read_terminates(): void
+    {
+        $root = sys_get_temp_dir().'/fight-common-run-helper-read-failed-'.bin2hex(random_bytes(8));
+        mkdir($root);
+        $helper = $root.'/helper.py';
+        file_put_contents($helper, 'print("{}")');
+
+        try {
+            $this->expectException(ReleaseRuntimeTermination::class);
+            new DeterministicReleaseBoundaryFake(
+                runStateStoreHelper: $helper,
+                runStateRead: static fn (): bool => false
+            )->createPlannedRun(
+                new CanonicalRunsDirectory($root, $root),
+                str_repeat('a', 64),
+                str_repeat('b', 64)
+            );
+        } finally {
+            new Filesystem()->remove($root);
+        }
+    }
+
     /** Reads one fixture through the descriptor-relative artifact seam. */
     private function readArtifact(
         DeterministicReleaseBoundaryFake $fake,
@@ -1056,7 +2058,11 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
     }
 }
 
-/** Forces the native stream consumer down its exceptional unreadable path. */
+/**
+ * Class FailingReleaseReadStream
+ *
+ * Forces the native stream consumer down its exceptional unreadable path.
+ */
 final class FailingReleaseReadStream
 {
     /** @var resource|null */

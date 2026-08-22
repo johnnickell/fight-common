@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Release\Fake;
 
+use Closure;
 use Fight\Common\Application\Release\Boundary\AuthorizationPort;
 use Fight\Common\Application\Release\Boundary\BaselineTagResolutionResult;
 use Fight\Common\Application\Release\Boundary\BaselineTagResolutionStatus;
@@ -22,8 +23,12 @@ use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOperationResult;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOutcome;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryPredicateResult;
 use Fight\Common\Application\Release\Boundary\ReleaseEffect;
-use Fight\Common\Application\Release\Boundary\ReleaseEffectLedger;
+use Fight\Common\Application\Release\Boundary\ReleasePlanAuthorityPort;
+use Fight\Common\Application\Release\Boundary\ReleasePlanAuthorityStatus;
+use Fight\Common\Application\Release\Boundary\ReleaseRuntimeTermination;
 use Fight\Common\Application\Release\Boundary\RunsDirectoryResolutionResult;
+use Fight\Common\Application\Release\Boundary\RunStateStore;
+use Fight\Common\Application\Release\Boundary\ScopedReleaseEffectLedger;
 use Fight\Common\Application\Release\Boundary\SigningPort;
 use InvalidArgumentException;
 use Throwable;
@@ -43,7 +48,9 @@ final class DeterministicReleaseBoundaryFake implements
     GitHubPort,
     PackagistPort,
     PlanArtifactStore,
-    ReleaseEffectLedger
+    ReleasePlanAuthorityPort,
+    RunStateStore,
+    ScopedReleaseEffectLedger
 {
     private const int MAX_ARTIFACT_BYTES = 16 * 1024 * 1024;
     /** @var array<string, true> */
@@ -55,6 +62,7 @@ final class DeterministicReleaseBoundaryFake implements
 
     /** @var list<array{capability: string, effect_class: string, outcome: string}> */
     private array $effects = [];
+    private int $effectOffset = 0;
     /** @var array<string, ReleaseBoundaryOutcome> */
     private array $outcomes = [];
     /** @var array<string, true> */
@@ -66,8 +74,11 @@ final class DeterministicReleaseBoundaryFake implements
     private ?int $partialArtifactWriteBytesOnce;
     private ?bool $exclusiveCreateCollisionIdenticalOnce;
     private readonly string $artifactStoreHelper;
+    private readonly string $runStateStoreHelper;
     /** @var array<string, bool> */
     private array $predicateValues;
+    private ReleasePlanAuthorityStatus $planAuthorityStatus = ReleasePlanAuthorityStatus::VERIFIED;
+    private bool $terminateRunStateHelperOnce = false;
 
     /**
      * Constructs DeterministicReleaseBoundaryFake
@@ -80,6 +91,14 @@ final class DeterministicReleaseBoundaryFake implements
      * @param string|null $artifactProcessWorkingDirectory Controlled helper working directory.
      * @param string|null $postPublishFailureOnce Test-only one-shot post-publication failure injection.
      * @param string|null $postPublishFinalOnce Test-only one-shot post-publication final-state injection.
+     * @param boolean $interruptRunProjectionOnce Test-only one-shot interruption after transition append.
+     * @param boolean $interruptFinalizedRunProjectionOnce Test-only finalization interruption after append.
+     * @param string|null $runStateFailureOnce Test-only one-shot native run-state writer failure point.
+     * @param string|null $runStateReplacementTarget Test-only syscall-window replacement destination.
+     * @param integer $runStateHelperTimeoutSeconds Test-only helper protocol timeout.
+     * @param string|null $runStateStoreHelper Test-only run-state helper path.
+     * @param Closure|null $runStateRead Test-only helper channel read seam.
+     * @param Closure|null $runStateStatus Test-only helper process-status seam.
      */
     public function __construct(
         array $outcomes = [],
@@ -89,7 +108,15 @@ final class DeterministicReleaseBoundaryFake implements
         ?string $artifactStoreHelper = null,
         private readonly ?string $artifactProcessWorkingDirectory = null,
         private ?string $postPublishFailureOnce = null,
-        private ?string $postPublishFinalOnce = null
+        private ?string $postPublishFinalOnce = null,
+        private bool $interruptRunProjectionOnce = false,
+        private bool $interruptFinalizedRunProjectionOnce = false,
+        private ?string $runStateFailureOnce = null,
+        private readonly ?string $runStateReplacementTarget = null,
+        private readonly int $runStateHelperTimeoutSeconds = 30,
+        ?string $runStateStoreHelper = null,
+        private readonly ?Closure $runStateRead = null,
+        private readonly ?Closure $runStateStatus = null
     ) {
         if ($partialArtifactWriteBytesOnce !== null && $partialArtifactWriteBytesOnce < 0) {
             throw new InvalidArgumentException('A partial artifact write byte limit cannot be negative.');
@@ -99,6 +126,7 @@ final class DeterministicReleaseBoundaryFake implements
         $this->exclusiveCreateCollisionIdenticalOnce = $exclusiveCreateCollisionIdenticalOnce;
         $defaultArtifactStoreHelper = dirname(__DIR__, 4).'/scripts/release_artifact_store.py';
         $this->artifactStoreHelper = $artifactStoreHelper ?? $defaultArtifactStoreHelper;
+        $this->runStateStoreHelper = $runStateStoreHelper ?? dirname(__DIR__, 4).'/scripts/release_run_state_store.py';
 
         $validatedPredicateValues = [];
 
@@ -117,6 +145,14 @@ final class DeterministicReleaseBoundaryFake implements
                 throw new InvalidArgumentException('Unsupported deterministic release boundary configuration.');
             }
         }
+    }
+
+    /**
+     * Configures one deterministic helper-protocol termination
+     */
+    public function terminateRunStateHelperOnce(): void
+    {
+        $this->terminateRunStateHelperOnce = true;
     }
 
     /**
@@ -154,6 +190,46 @@ final class DeterministicReleaseBoundaryFake implements
         unset($this->crashPoints[$effectClass]);
 
         return true;
+    }
+
+    /**
+     * Configures current non-Git plan-authority truth returned by the fake
+     */
+    public function configurePlanAuthorityStatus(string $status): bool
+    {
+        $closedStatus = ReleasePlanAuthorityStatus::tryFrom($status);
+
+        if ($closedStatus === null) {
+            return false;
+        }
+
+        $this->planAuthorityStatus = $closedStatus;
+
+        return true;
+    }
+
+    /**
+     * Configures one test-only interruption after the prepared transition is durable
+     */
+    public function interruptRunProjectionOnce(): void
+    {
+        $this->interruptRunProjectionOnce = true;
+    }
+
+    /**
+     * Configures one test-only interruption after run-directory durability and before immutable binding
+     */
+    public function interruptBeforeRunBindingOnce(): void
+    {
+        $this->runStateFailureOnce = 'interrupt_before_binding';
+    }
+
+    /**
+     * Configures one test-only interruption after the finalized transition is durable
+     */
+    public function interruptFinalizedRunProjectionOnce(): void
+    {
+        $this->interruptFinalizedRunProjectionOnce = true;
     }
 
     /**
@@ -267,6 +343,199 @@ final class DeterministicReleaseBoundaryFake implements
         $this->recordEffect('filesystem.write', ReleaseBoundaryOutcome::FAILURE);
 
         return PlanArtifactWriteResult::stopped(ReleaseBoundaryOutcome::FAILURE);
+    }
+
+    /**
+     * Creates one run with append-ordered planned and prepared transitions
+     *
+     * @return array{
+     *     status: string,
+     *     history_path?: string,
+     *     projection_path?: string,
+     *     history_sha256?: string,
+     *     projection_sha256?: string,
+     *     prepared_history_sha256?: string,
+     *     prepared_projection_sha256?: string,
+     *     prerequisite_evidence_manifest_id?: string,
+     *     prerequisite_phase_handoff_id?: string
+     * }
+     */
+    public function createPlannedRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId
+    ): array {
+        /** @var array{status: string, history_path?: string, projection_path?: string, prepared_history_sha256?: string, prepared_projection_sha256?: string} $result */
+        $result = $this->runStateOperation('create', $directory, $planId, $runId);
+
+        return $result;
+    }
+
+    /**
+     * Appends and publishes prepared state through retained directory authority
+     */
+    public function publishPreparedRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        int $expectedSequence,
+        string $expectedState
+    ): array {
+        $interrupt = $this->interruptRunProjectionOnce;
+        $this->interruptRunProjectionOnce = false;
+
+        /** @var array{status: string, history_path?: string, projection_path?: string, history_sha256?: string, projection_sha256?: string, prepared_history_sha256?: string, prepared_projection_sha256?: string, prerequisite_evidence_manifest_id?: string, prerequisite_phase_handoff_id?: string} $result */
+        $result = $this->runStateOperation(
+            'publish',
+            $directory,
+            $planId,
+            $runId,
+            [(string) $expectedSequence, $expectedState],
+            $interrupt ? 'interrupt_run_projection' : null
+        );
+
+        return $result;
+    }
+
+    /**
+     * Creates package-ready state after binding its prerequisite artifacts
+     */
+    public function finalizePreparedRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        string $manifestId,
+        string $handoffId,
+        int $expectedSequence,
+        string $expectedState
+    ): array {
+        $interrupt = $this->interruptFinalizedRunProjectionOnce;
+        $this->interruptFinalizedRunProjectionOnce = false;
+
+        /** @var array{status: string, history_path?: string, projection_path?: string, history_sha256?: string, projection_sha256?: string, prepared_history_sha256?: string, prepared_projection_sha256?: string, prerequisite_evidence_manifest_id?: string, prerequisite_phase_handoff_id?: string} $result */
+        $result = $this->runStateOperation(
+            'finalize',
+            $directory,
+            $planId,
+            $runId,
+            [$manifestId, $handoffId, (string) $expectedSequence, $expectedState],
+            $interrupt ? 'interrupt_finalized_projection' : null
+        );
+
+        return $result;
+    }
+
+    /**
+     * Validates and repairs one named prepared run without pathname authority
+     */
+    public function resumePreparedRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId
+    ): array {
+        /** @var array{status: string, history_path?: string, projection_path?: string, projection_repaired?: bool, history_sha256?: string, projection_sha256?: string, prepared_history_sha256?: string, prepared_projection_sha256?: string, prerequisite_evidence_manifest_id?: string, prerequisite_phase_handoff_id?: string} $result */
+        $result = $this->runStateOperation('resume', $directory, $planId, $runId);
+
+        return $result;
+    }
+
+    /**
+     * Appends one exact stop-recovery transition through retained directory authority
+     */
+    public function recoverPreparationStop(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        int $stopSequence,
+        string $stopCode,
+        string $stopState,
+        string $findingId,
+        string $nextAction,
+        ?string $repairManifestId,
+        ?string $repairHandoffId
+    ): array {
+        /** @var array{status: string, history_path?: string, projection_path?: string, sequence?: int, state?: string, next_action?: string} $result */
+        $result = $this->runStateOperation(
+            'recover',
+            $directory,
+            $planId,
+            $runId,
+            [
+                (string) $stopSequence,
+                $stopCode,
+                $stopState,
+                $findingId,
+                $nextAction,
+                $repairManifestId ?? '',
+                $repairHandoffId ?? ''
+            ]
+        );
+
+        return $result;
+    }
+
+    /**
+     * Appends and publishes one classified preparation stop
+     */
+    public function publishPreparationStop(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        string $stopCode,
+        string $stopState,
+        string $findingId,
+        string $nextAction,
+        ?string $manifestId,
+        ?string $handoffId,
+        ?int $expectedSequence,
+        ?string $expectedState
+    ): array {
+        /** @var array{status: string, history_path?: string, projection_path?: string} $result */
+        $result = $this->runStateOperation(
+            'stop',
+            $directory,
+            $planId,
+            $runId,
+            [
+                $stopCode,
+                $stopState,
+                $findingId,
+                $nextAction,
+                $manifestId ?? '',
+                $handoffId ?? '',
+                $expectedSequence === null ? '' : (string) $expectedSequence,
+                $expectedState ?? ''
+            ]
+        );
+
+        return $result;
+    }
+
+    /**
+     * Creates one run with append-ordered planned and prepared transitions
+     */
+    public function createPreparedRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId
+    ): array {
+        $planned = $this->createPlannedRun($directory, $planId, $runId);
+
+        if ($planned['status'] !== 'planned') {
+            return $planned;
+        }
+
+        return $this->publishPreparedRun($directory, $planId, $runId, 1, 'planned');
+    }
+
+    /**
+     * Resolves current non-Git policy and approval authority again
+     */
+    public function revalidatePlanAuthority(array $plan): ReleasePlanAuthorityStatus
+    {
+        $this->record('authorization.check');
+
+        return $this->planAuthorityStatus;
     }
 
     /**
@@ -466,7 +735,704 @@ final class DeterministicReleaseBoundaryFake implements
      */
     public function effects(): array
     {
-        return $this->effects;
+        return array_slice($this->effects, $this->effectOffset);
+    }
+
+    /**
+     * Starts one invocation-local effect view while retaining configured outcomes
+     */
+    public function beginEffectScope(): void
+    {
+        $this->effectOffset = count($this->effects);
+    }
+
+    /**
+     * Records one outcome established by a runtime adapter sharing this ordered ledger
+     */
+    public function recordObservedEffect(ReleaseEffect $effect, ReleaseBoundaryOutcome $outcome): void
+    {
+        $this->recordEffect($effect->value, $outcome);
+    }
+
+    /**
+     * Invokes one descriptor-held release-run operation without a shell or inherited environment
+     *
+     * @param string                 $operation          Closed run-state operation.
+     * @param CanonicalRunsDirectory $directory          Descriptor-authorized output and root.
+     * @param string                 $planId             Immutable plan identity.
+     * @param string                 $runId              Named run identity.
+     * @param array                  $operationArguments Operation-specific literal values.
+     * @param string|null            $forcedFault        One exact interruption override.
+     *
+     * @return array<string, mixed>
+     *
+     * @phpstan-param list<string> $operationArguments
+     */
+    private function runStateOperation(
+        string $operation,
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        array $operationArguments = [],
+        ?string $forcedFault = null
+    ): array {
+        if ($this->terminateRunStateHelperOnce) {
+            $this->terminateRunStateHelperOnce = false;
+
+            throw new ReleaseRuntimeTermination('The release run-state helper returned a malformed receipt.');
+        }
+
+        if (
+            preg_match('/\A[0-9a-f]{64}\z/D', $planId) !== 1
+            || preg_match('/\A[0-9a-f]{64}\z/D', $runId) !== 1
+        ) {
+            return ['status' => $operation === 'create' ? 'failed' : 'indeterminate'];
+        }
+
+        $relativeOutput = $this->relativeRunsParent($directory->path, $directory->runsRoot);
+
+        if ($relativeOutput === null) {
+            return ['status' => $operation === 'create' ? 'failed' : 'indeterminate'];
+        }
+
+        $fault = $forcedFault ?? $this->runStateFaultFor($operation);
+        $command = [
+            '/usr/bin/python3',
+            $this->runStateStoreHelper,
+            $operation,
+            $directory->runsRoot,
+            $relativeOutput,
+            $planId,
+            $runId,
+            ...$operationArguments,
+            $fault,
+            $this->runStateReplacementTarget ?? ''
+        ];
+        $pipes = [];
+        $process = @proc_open(
+            $command,
+            [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w']
+            ],
+            $pipes,
+            $this->artifactProcessWorkingDirectory,
+            [
+                'LANG'                    => 'C',
+                'LC_ALL'                  => 'C',
+                'PATH'                    => '/usr/bin:/bin',
+                'PYTHONDONTWRITEBYTECODE' => '1'
+            ],
+            ['bypass_shell' => true]
+        );
+
+        if (!is_resource($process)) {
+            throw new ReleaseRuntimeTermination('The release run-state helper could not be started.');
+        }
+
+        [$status, $output, $error, $complete] = $this->exchangeHelper(
+            $process,
+            $pipes,
+            '',
+            65536
+        );
+
+        if ($fault !== '') {
+            $this->runStateFailureOnce = null;
+        }
+
+        if (!$complete || $status !== 0 || strlen($output) > 65536 || $error !== '') {
+            throw new ReleaseRuntimeTermination('The release run-state helper terminated without a governed receipt.');
+        }
+
+        $result = json_decode($output, true);
+        if (
+            !is_array($result)
+            || array_is_list($result)
+            || !$this->validRunStateReceipt(
+                $operation,
+                $result,
+                $directory,
+                $planId,
+                $runId,
+                $operationArguments,
+                $fault
+            )
+        ) {
+            throw new ReleaseRuntimeTermination('The release run-state helper returned an invalid closed receipt.');
+        }
+
+        if (($result['crash'] ?? false) === true) {
+            $this->effects[] = [
+                'capability'   => 'filesystem',
+                'effect_class' => 'filesystem.write',
+                'outcome'      => 'crash'
+            ];
+
+            throw new ReleaseBoundaryCrash('filesystem.write');
+        }
+
+        if ($operation === 'resume') {
+            $outcome = match ($result['status'] ?? null) {
+                'planned', 'evidence_pending', 'stopped', 'verified' => ReleaseBoundaryOutcome::SUCCESS,
+                'conflict' => ReleaseBoundaryOutcome::REFUSAL,
+                'indeterminate', 'missing', 'stale' => ReleaseBoundaryOutcome::UNCERTAINTY,
+                default => ReleaseBoundaryOutcome::FAILURE
+            };
+            $this->recordEffect('filesystem.read', $outcome);
+
+            if (($result['projection_repaired'] ?? false) === true) {
+                $this->recordEffect('filesystem.write', ReleaseBoundaryOutcome::SUCCESS);
+            }
+        } else {
+            $outcome = match ($result['status'] ?? null) {
+                'planned', 'created', 'verified' => ReleaseBoundaryOutcome::SUCCESS,
+                'conflict' => ReleaseBoundaryOutcome::REFUSAL,
+                'advanced', 'indeterminate', 'missing', 'stale' => ReleaseBoundaryOutcome::UNCERTAINTY,
+                default => ReleaseBoundaryOutcome::FAILURE
+            };
+            $this->recordEffect('filesystem.write', $outcome);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Validates the exact closed receipt schema for one helper operation
+     *
+     * @param string                  $operation Helper operation name.
+     * @param array<array-key, mixed> $result Decoded helper receipt.
+     * @param CanonicalRunsDirectory $directory Descriptor-authorized output and root.
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     * @param array $arguments Operation-specific literal arguments.
+     * @param string $fault Exact configured one-shot helper fault.
+     *
+     * @phpstan-param list<string> $arguments
+     */
+    private function validRunStateReceipt(
+        string $operation,
+        array $result,
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        array $arguments,
+        string $fault
+    ): bool {
+        if ($result === ['crash' => true]) {
+            return $fault === match ($operation) {
+                'create' => 'interrupt_before_binding',
+                'publish' => 'interrupt_run_projection',
+                'finalize' => 'interrupt_finalized_projection',
+                default => null
+            };
+        }
+
+        $status = $result['status'] ?? null;
+
+        if (!is_string($status)) {
+            return false;
+        }
+
+        $terminal = match ($operation) {
+            'create' => ['conflict', 'failed', 'indeterminate'],
+            'publish', 'finalize', 'recover' => ['advanced', 'conflict', 'indeterminate', 'missing', 'stale'],
+            'resume' => ['conflict', 'failed', 'indeterminate', 'missing', 'stale'],
+            'stop' => ['advanced', 'conflict', 'failed', 'indeterminate', 'missing', 'stale'],
+            default => throw new ReleaseRuntimeTermination(
+                'The release run-state helper operation was not recognized.'
+            )
+        };
+
+        if (in_array($status, $terminal, true)) {
+            return array_keys($result) === ['status'];
+        }
+
+        $schemas = [
+            'create:planned'          => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state',
+                'prepared_history_sha256', 'prepared_projection_sha256'
+            ],
+            'publish:created'         => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state',
+                'history_sha256', 'projection_sha256'
+            ],
+            'finalize:created'        => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state',
+                'history_sha256', 'projection_sha256', 'prepared_history_sha256',
+                'prepared_projection_sha256', 'prerequisite_evidence_manifest_id',
+                'prerequisite_phase_handoff_id'
+            ],
+            'recover:created'         => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state', 'next_action'
+            ],
+            'stop:created'            => [
+                'status', 'history_path', 'projection_path', 'stop_code', 'stop_state',
+                'finding_id', 'next_action', 'sequence', 'state'
+            ],
+            'stop:verified'           => [
+                'status', 'history_path', 'projection_path', 'stop_code', 'stop_state',
+                'finding_id', 'next_action', 'sequence', 'state'
+            ],
+            'resume:planned'          => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state', 'projection_repaired',
+                'prepared_history_sha256', 'prepared_projection_sha256'
+            ],
+            'resume:evidence_pending' => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state', 'projection_repaired',
+                'history_sha256', 'projection_sha256'
+            ],
+            'resume:verified'         => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state', 'projection_repaired',
+                'history_sha256', 'projection_sha256', 'prepared_history_sha256',
+                'prepared_projection_sha256', 'prerequisite_evidence_manifest_id',
+                'prerequisite_phase_handoff_id'
+            ]
+        ];
+        $expected = $schemas[$operation.':'.$status] ?? null;
+
+        if ($operation === 'resume' && $status === 'stopped') {
+            $expected = [
+                'status', 'history_path', 'projection_path', 'stop_code', 'stop_state',
+                'finding_id', 'next_action', 'sequence', 'state', 'projection_repaired'
+            ];
+            $resumeFields = ['resume_state', 'resume_sequence', 'resume_next_action'];
+            $bindingFields = ['prerequisite_evidence_manifest_id', 'prerequisite_phase_handoff_id'];
+            if (array_intersect($resumeFields, array_keys($result)) !== []) {
+                $expected = [...$expected, ...$resumeFields];
+            }
+
+            if (array_intersect($bindingFields, array_keys($result)) !== []) {
+                $expected = [...$expected, ...$bindingFields];
+            }
+        }
+
+        if (
+            $operation === 'stop'
+            && in_array($status, ['created', 'verified'], true)
+            && ($arguments[4] ?? '') !== ''
+        ) {
+            $expected = [
+                ...$expected,
+                'prerequisite_evidence_manifest_id',
+                'prerequisite_phase_handoff_id'
+            ];
+        }
+
+        if (!is_array($expected) || array_keys($result) !== $expected) {
+            return false;
+        }
+
+        foreach ($expected as $field) {
+            if ($field === 'sequence' || $field === 'resume_sequence') {
+                if (!is_int($result[$field]) || $result[$field] < 1) {
+                    return false;
+                }
+            } elseif ($field === 'projection_repaired') {
+                if (!is_bool($result[$field])) {
+                    return false;
+                }
+            } elseif (!is_string($result[$field])) {
+                return false;
+            }
+        }
+
+        $runPath = $directory->path.'/runs/'.$runId;
+        if (
+            isset($result['history_path'])
+            && (
+                $result['history_path'] !== $runPath.'/history.jsonl'
+                || $result['projection_path'] !== $runPath.'/projection.json'
+            )
+        ) {
+            return false;
+        }
+
+        foreach (array_keys($result) as $field) {
+            if (str_ends_with($field, '_sha256') && preg_match('/\A[0-9a-f]{64}\z/D', $result[$field]) !== 1) {
+                return false;
+            }
+
+            if (
+                str_starts_with($field, 'prerequisite_')
+                && str_ends_with($field, '_id')
+                && preg_match('/\A[0-9a-f]{64}\z/D', $result[$field]) !== 1
+            ) {
+                return false;
+            }
+        }
+
+        return match ($operation.':'.$status) {
+            'create:planned' => $result['sequence'] === 1 && $result['state'] === 'planned',
+            'publish:created' => $this->receiptAdvances($result, $arguments[0] ?? null, 'prepared'),
+            'finalize:created' => $this->receiptAdvances($result, $arguments[2] ?? null, 'prepared')
+                && $result['prerequisite_evidence_manifest_id'] === ($arguments[0] ?? null)
+                && $result['prerequisite_phase_handoff_id'] === ($arguments[1] ?? null),
+            'recover:created' => $this->receiptAdvances($result, $arguments[0] ?? null),
+            'stop:created', 'stop:verified' => $this->receiptAdvances(
+                $result,
+                ($arguments[6] ?? '') === '' ? '0' : $arguments[6],
+                $arguments[1] ?? null
+            ) && $this->receiptMatchesStopArguments($result, $arguments),
+            'resume:planned' => $result['state'] === 'planned',
+            'resume:evidence_pending', 'resume:verified' => $result['state'] === 'prepared',
+            'resume:stopped' => $result['state'] === $result['stop_state']
+                && $this->validStoppedReceiptContract($result)
+                && $this->validResumeStopToken($result),
+            default => false
+        };
+    }
+
+    /**
+     * Reports whether one positive stop receipt echoes its exact requested tuple and bindings
+     *
+     * @param array<array-key, mixed> $result Positive stop receipt.
+     * @param array $arguments Requested stop arguments.
+     *
+     * @phpstan-param list<string> $arguments
+     */
+    private function receiptMatchesStopArguments(array $result, array $arguments): bool
+    {
+        if (
+            $result['stop_code'] !== ($arguments[0] ?? null)
+            || $result['stop_state'] !== ($arguments[1] ?? null)
+            || $result['finding_id'] !== ($arguments[2] ?? null)
+            || $result['next_action'] !== ($arguments[3] ?? null)
+        ) {
+            return false;
+        }
+
+        $hasRequestedBindings = ($arguments[4] ?? '') !== '' && ($arguments[5] ?? '') !== '';
+
+        if ((($arguments[4] ?? '') !== '') !== (($arguments[5] ?? '') !== '')) {
+            return false;
+        }
+
+        if (!$hasRequestedBindings) {
+            return !isset(
+                $result['prerequisite_evidence_manifest_id'],
+                $result['prerequisite_phase_handoff_id']
+            );
+        }
+
+        return $result['prerequisite_evidence_manifest_id'] === $arguments[4]
+            && $result['prerequisite_phase_handoff_id'] === $arguments[5];
+    }
+
+    /**
+     * Reports whether one resumed stop has exactly the token required by its sequence
+     *
+     * @param array<array-key, mixed> $result Positive stopped receipt.
+     */
+    private function validResumeStopToken(array $result): bool
+    {
+        if ($result['sequence'] === 1) {
+            return !isset(
+                $result['resume_state'],
+                $result['resume_sequence'],
+                $result['resume_next_action']
+            );
+        }
+
+        return isset($result['resume_state'], $result['resume_sequence'], $result['resume_next_action'])
+            && $result['resume_state'] !== ''
+            && $result['resume_next_action'] !== ''
+            && $result['resume_sequence'] < $result['sequence'];
+    }
+
+    /**
+     * Reports whether one resumed stop carries a closed causal stop contract
+     *
+     * @param array<array-key, mixed> $result Positive stopped receipt.
+     */
+    private function validStoppedReceiptContract(array $result): bool
+    {
+        $contract = match ($result['stop_code']) {
+            'missing' => [
+                'evidence_indeterminate', 'release.prepare.resume_state_missing',
+                'restore_named_release_run_evidence'
+            ],
+            'conflict' => [
+                'conflict', 'release.prepare.resume_contention',
+                'retry_named_resume_after_writer_completes'
+            ],
+            'failed' => [
+                'policy_blocked', 'release.prepare.state_persistence_failed', 'repair_release_run_storage'
+            ],
+            'create_conflict' => [
+                'conflict', 'release.prepare.run_identity_conflict', 'retry_release_preparation_with_new_run'
+            ],
+            'state_indeterminate' => [
+                'evidence_indeterminate', 'release.prepare.state_persistence_indeterminate',
+                'reconcile_named_release_run'
+            ],
+            'baseline_refusal' => [
+                'authority_required', 'release.prepare.baseline_resolution_refused',
+                'obtain_current_baseline_authority'
+            ],
+            'baseline_failure' => [
+                'policy_blocked', 'release.prepare.baseline_resolution_failed',
+                'repair_baseline_resolution_provider'
+            ],
+            'baseline_uncertainty' => [
+                'evidence_indeterminate', 'release.prepare.baseline_resolution_uncertain',
+                'reconcile_baseline_resolution'
+            ],
+            'baseline_drift' => [
+                'stale_plan', 'release.prepare.baseline_resolution_drift', 'create_current_release_plan'
+            ],
+            'baseline_missing' => [
+                'policy_blocked', 'release.prepare.baseline_tag_missing', 'repair_baseline_authority'
+            ],
+            'baseline_ambiguous' => [
+                'policy_blocked', 'release.prepare.baseline_tag_ambiguous', 'repair_baseline_authority'
+            ],
+            'baseline_duplicate_normalized' => [
+                'policy_blocked', 'release.prepare.baseline_tag_duplicate_normalized',
+                'repair_baseline_authority'
+            ],
+            'baseline_non_ancestor' => [
+                'policy_blocked', 'release.prepare.baseline_tag_non_ancestor', 'repair_baseline_authority'
+            ],
+            'support_policy_drift' => [
+                'stale_plan', 'release.prepare.support_policy_drift', 'create_current_release_plan'
+            ],
+            'approval_drift' => [
+                'authority_required', 'release.prepare.approval_authority_drift',
+                'obtain_current_release_approval'
+            ],
+            'evidence_drift' => [
+                'stale_plan', 'release.prepare.evidence_authority_drift', 'create_current_release_plan'
+            ],
+            'compatibility_drift' => [
+                'stale_plan', 'release.prepare.compatibility_authority_drift', 'create_current_release_plan'
+            ],
+            'authority_refused' => [
+                'authority_required', 'release.prepare.plan_authority_refused',
+                'obtain_current_release_authority'
+            ],
+            'authority_failed' => [
+                'policy_blocked', 'release.prepare.plan_authority_failed',
+                'repair_release_authority_provider'
+            ],
+            'authority_uncertain' => [
+                'evidence_indeterminate', 'release.prepare.plan_authority_uncertain',
+                'reconcile_release_plan_authority'
+            ],
+            'stale' => [
+                'stale_plan', 'release.prepare.resume_plan_drift', 'create_current_release_plan'
+            ],
+            'artifact_indeterminate' => null,
+            default => false
+        };
+
+        if ($contract === false) {
+            return false;
+        }
+
+        if ($contract === null) {
+            return in_array([
+                $result['stop_state'],
+                $result['finding_id'],
+                $result['next_action']
+            ], [
+                ['evidence_indeterminate', 'release.prepare.artifacts_indeterminate', 'reconcile_named_release_run'],
+                [
+                    'evidence_indeterminate',
+                    'release.prepare.evidence_persistence_failed',
+                    'repair_release_evidence_storage'
+                ]
+            ], true);
+        }
+
+        return [$result['stop_state'], $result['finding_id'], $result['next_action']] === $contract;
+    }
+
+    /**
+     * Reports whether one positive receipt advances the requested predecessor
+     *
+     * @param array<array-key, mixed> $result Positive helper receipt.
+     */
+    private function receiptAdvances(array $result, mixed $rawSequence, ?string $state = null): bool
+    {
+        return is_string($rawSequence)
+            && ctype_digit($rawSequence)
+            && $result['sequence'] === ((int) $rawSequence) + 1
+            && ($state === null || $result['state'] === $state);
+    }
+
+    /**
+     * Reads both helper channels concurrently within one fixed protocol bound
+     *
+     * @param resource             $process Running helper process.
+     * @param array<int, resource> $pipes Helper standard streams.
+     * @param string               $input Exact standard-input payload.
+     * @param integer              $outputLimit Maximum accepted standard output.
+     *
+     * @return array{int, string, string, bool}
+     */
+    private function exchangeHelper($process, array $pipes, string $input, int $outputLimit): array
+    {
+        [$standardInput, $standardOutput, $standardError] = $pipes;
+        stream_set_blocking($standardInput, false);
+        stream_set_blocking($standardOutput, false);
+        stream_set_blocking($standardError, false);
+        $output = '';
+        $error = '';
+        $open = [$standardOutput, $standardError];
+        $complete = true;
+        $inputOffset = 0;
+        $started = microtime(true);
+        $activity = $started;
+        $totalDeadline = $started + max(1, $this->runStateHelperTimeoutSeconds * 2);
+
+        while ($open !== [] || is_resource($standardInput)) {
+            $now = microtime(true);
+            $remaining = min(
+                $totalDeadline - $now,
+                ($activity + $this->runStateHelperTimeoutSeconds) - $now
+            );
+            if ($remaining <= 0) {
+                $complete = false;
+                break;
+            }
+
+            $read = $open;
+            $write = is_resource($standardInput) ? [$standardInput] : [];
+            $except = null;
+            $seconds = (int) floor($remaining);
+            $microseconds = (int) (($remaining - $seconds) * 1000000);
+            $selected = @stream_select($read, $write, $except, $seconds, $microseconds);
+            if (
+                !is_int($selected)
+                || $selected < 1
+                || microtime(true) - $activity > $this->runStateHelperTimeoutSeconds
+            ) {
+                $complete = false;
+                break;
+            }
+
+            foreach ($write as $stream) {
+                $written = @fwrite($stream, substr($input, $inputOffset, 8192));
+                if (!is_int($written)) {
+                    $complete = false;
+                    break 2;
+                }
+
+                if ($written > 0) {
+                    $inputOffset += $written;
+                    $activity = microtime(true);
+                }
+
+                if ($inputOffset === strlen($input)) {
+                    fclose($standardInput);
+                }
+            }
+
+            foreach ($read as $stream) {
+                $chunk = fread($stream, 8192);
+                if ($this->runStateRead instanceof Closure) {
+                    $chunk = ($this->runStateRead)($stream, 8192);
+                }
+
+                if (!is_string($chunk)) {
+                    $complete = false;
+                    break 2;
+                }
+
+                if ($stream === $standardOutput) {
+                    $output .= substr($chunk, 0, max(0, $outputLimit + 1 - strlen($output)));
+                    $complete = $complete && strlen($output) <= $outputLimit;
+                } else {
+                    $error .= substr($chunk, 0, max(0, 65537 - strlen($error)));
+                    $complete = $complete && strlen($error) <= 65536;
+                }
+
+                if ($chunk !== '') {
+                    $activity = microtime(true);
+                }
+
+                if (feof($stream)) {
+                    $open = array_values(array_filter($open, static fn ($candidate): bool => $candidate !== $stream));
+                }
+            }
+
+            if (!$complete) {
+                break;
+            }
+        }
+
+        foreach ($pipes as $pipe) {
+            if (is_resource($pipe)) {
+                fclose($pipe);
+            }
+        }
+
+        $status = $this->waitForHelperExit($process, microtime(true) + 0.05);
+        if ($status === null) {
+            $complete = false;
+            @proc_terminate($process);
+            $status = $this->waitForHelperExit($process, microtime(true) + 0.25);
+        }
+
+        if ($status === null) {
+            @proc_terminate($process, 9);
+            $status = $this->waitForHelperExit($process, microtime(true) + 0.25);
+        }
+
+        if ($status === null) {
+            return [1, $output, $error, false];
+        }
+
+        $closed = proc_close($process);
+        $status = $closed >= 0 ? $closed : $status;
+
+        return [$status, $output, $error, $complete && $inputOffset === strlen($input)];
+    }
+
+    /**
+     * Returns one helper exit observed within the supplied deadline
+     *
+     * @param resource $process Helper process.
+     */
+    private function waitForHelperExit($process, float $deadline): ?int
+    {
+        do {
+            /** @var array{running: bool, exitcode: int} $status */
+            $status = isset($this->runStateStatus) ? ($this->runStateStatus)($process) : proc_get_status($process);
+            if (!$status['running']) {
+                return $status['exitcode'] >= 0 ? $status['exitcode'] : 1;
+            }
+
+            usleep(1000);
+        } while (microtime(true) < $deadline);
+
+        return null;
+    }
+
+    /**
+     * Returns a one-shot fault only for the operation where it belongs
+     */
+    private function runStateFaultFor(string $operation): string
+    {
+        $fault = $this->runStateFailureOnce ?? '';
+
+        if (
+            $operation === 'create'
+            && in_array($fault, [
+                'append_lock',
+                'append_short',
+                'prepared_projection',
+                'prepared_projection_directory_sync',
+                'replace_run_before_state_stage',
+                'replace_run_after_link_before_state_publish'
+            ], true)
+        ) {
+            return '';
+        }
+
+        return $fault;
     }
 
     /**
@@ -541,42 +1507,19 @@ final class DeterministicReleaseBoundaryFake implements
             return 20;
         }
 
-        $remaining = $contents;
-
-        while ($remaining !== '') {
-            $written = @fwrite($pipes[0], $remaining);
-
-            if ($written === false || $written === 0) {
-                break;
-            }
-
-            $remaining = substr($remaining, $written);
-        }
-
-        fclose($pipes[0]);
-        $standardOutput = stream_get_contents($pipes[1], 65537);
-
-        if (!is_string($standardOutput) || strlen($standardOutput) > 65536) {
-            fclose($pipes[1]);
-            @proc_terminate($process);
-            $standardError = stream_get_contents($pipes[2], 65537);
-            fclose($pipes[2]);
-            proc_close($process);
-
-            return 20;
-        }
-
-        $standardError = stream_get_contents($pipes[2], 65537);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $status = proc_close($process);
+        [$status, $standardOutput, $standardError, $complete] = $this->exchangeHelper(
+            $process,
+            $pipes,
+            $contents,
+            65536
+        );
 
         if ($status === 30) {
             return 30;
         }
 
         if (
-            $remaining !== ''
+            !$complete
             || $standardOutput !== ''
             || $standardError !== ''
         ) {
@@ -627,26 +1570,15 @@ final class DeterministicReleaseBoundaryFake implements
             return [20, ''];
         }
 
-        fclose($pipes[0]);
-        $standardOutput = stream_get_contents($pipes[1], self::MAX_ARTIFACT_BYTES + 1);
-
-        if (!is_string($standardOutput) || strlen($standardOutput) > self::MAX_ARTIFACT_BYTES) {
-            fclose($pipes[1]);
-            @proc_terminate($process);
-            $standardError = stream_get_contents($pipes[2], 65537);
-            fclose($pipes[2]);
-            proc_close($process);
-
-            return [20, ''];
-        }
-
-        $standardError = stream_get_contents($pipes[2], 65537);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $status = proc_close($process);
+        [$status, $standardOutput, $standardError, $complete] = $this->exchangeHelper(
+            $process,
+            $pipes,
+            '',
+            self::MAX_ARTIFACT_BYTES
+        );
 
         if (
-            $standardError !== ''
+            !$complete || $standardError !== ''
         ) {
             return [20, ''];
         }
@@ -688,14 +1620,14 @@ final class DeterministicReleaseBoundaryFake implements
             return 20;
         }
 
-        fclose($pipes[0]);
-        $standardOutput = stream_get_contents($pipes[1]);
-        $standardError = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $status = proc_close($process);
+        [$status, $standardOutput, $standardError, $complete] = $this->exchangeHelper(
+            $process,
+            $pipes,
+            '',
+            65536
+        );
 
-        if ($standardOutput !== '' || $standardError !== '') {
+        if (!$complete || $standardOutput !== '' || $standardError !== '') {
             return 20;
         }
 

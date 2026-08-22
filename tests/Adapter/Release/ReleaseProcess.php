@@ -31,10 +31,12 @@ final class ReleaseProcess
      * Creates a release process already executing in the canonical test runtime
      *
      * @param array $command Command arguments.
+     * @param array $environment Additional isolated test environment.
      *
      * @phpstan-param list<string> $command
+     * @phpstan-param array<string, string> $environment
      */
-    public static function create(array $command): Process
+    public static function create(array $command, array $environment = []): Process
     {
         $release = $command[0] ?? '';
 
@@ -45,6 +47,11 @@ final class ReleaseProcess
                 '/usr/bin/env',
                 '-i',
                 ...self::RELEASE_ENVIRONMENT,
+                ...array_map(
+                    static fn (string $name, string $value): string => $name.'='.$value,
+                    array_keys($environment),
+                    array_values($environment)
+                ),
                 PHP_BINARY,
                 '-d',
                 'display_errors=stderr',
