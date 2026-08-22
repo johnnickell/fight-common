@@ -8,13 +8,15 @@ composer validate --strict --no-interaction
 printf '[quality] PHP syntax\n'
 {
     find . -maxdepth 1 -type f -name '*.php' -print
-    find src tests -type f -name '*.php' -print
+    find src tests release -type f -name '*.php' -print
 } | LC_ALL=C sort | while IFS= read -r php_file; do
     php -l "${php_file#./}"
 done
 
 printf '[quality] Python syntax\n'
-PYTHONPYCACHEPREFIX=var/cache/python python3 -m py_compile scripts/release_artifact_store.py
+PYTHONPYCACHEPREFIX=var/cache/python python3 -m py_compile \
+    release/scripts/release_artifact_store.py \
+    release/scripts/release_run_state_store.py
 
 printf '[quality] Planning integrity\n'
 ./bin/planning-check
@@ -30,7 +32,7 @@ php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
 php vendor/bin/deptrac debug:unassigned --no-cache
 
 printf '[quality] Rector dry-run\n'
-php vendor/bin/rector process src/ --dry-run
+php vendor/bin/rector process src/ release/src/ --dry-run
 
 printf '[quality] PHPUnit\n'
 rm -f var/reports/coverage/clover.xml
