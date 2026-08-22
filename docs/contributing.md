@@ -74,6 +74,10 @@ This library follows [semver](https://semver.org/):
 
 ## Release Process
 
+Maintainer release tooling is isolated from the consumer library. See the
+[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for its layout,
+extension rules, and verification contract.
+
 ### Patch release (1.0.x)
 
 ```bash
@@ -174,5 +178,3 @@ waits for health, injects both `FIGHT_COMMON_*_DSN` values, and cleans up its
 containers and network on every exit. Unavailable complete-suite infrastructure
 fails the run; it is never silently skipped. `--fast` is an optional local
 feedback workflow and is not submit or release evidence.
-
-See the [CLAUDE.md](../CLAUDE.md) for non-interactive (CI-style) Docker commands.

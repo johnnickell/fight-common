@@ -228,7 +228,7 @@ if [[ "${ROOT_DIR}" == "${CANONICAL_ROOT}" ]] \
 
     set +e
     /usr/bin/env -i "${RELEASE_ENV[@]}" \
-        "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/scripts/release.php" "$@" \
+        "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/release/scripts/release.php" "$@" \
         > "${RUNTIME_STDOUT}"
     runtime_status=$?
     set -e
@@ -256,7 +256,7 @@ set +e
     --user "$(id -u):$(id -g)" \
     "${PHP_IMAGE}" \
     /usr/bin/env -i "${RELEASE_ENV[@]}" \
-    "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/scripts/release.php" "$@" \
+    "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/release/scripts/release.php" "$@" \
     > "${RUNTIME_STDOUT}"
 runtime_status=$?
 set -e

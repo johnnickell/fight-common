@@ -20,3 +20,4 @@
 | [00016](00016-PRD.md) | Fight Package and Starter Repository Ownership | ready-for-agent |
 | [00017](00017-PRD.md) | Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent |
 | [00018](00018-PRD.md) | Framework Starter Product and Walking-Slice Acceptance | ready-for-agent |
+| [00019](00019-PRD.md) | Isolate Release Tooling from the Consumer Runtime Surface | done |

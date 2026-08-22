@@ -5,11 +5,13 @@ repo_url: https://github.com/johnnickell/fight-common
 repo_name: johnnickell/fight-common
 edit_uri: edit/main/docs/
 docs_dir: docs
+exclude_docs: |
+  /overrides/
 copyright: Copyright &copy; 2026 John Nickell
 
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides
   palette:
     - scheme: default
       primary: blue grey

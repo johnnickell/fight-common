@@ -17,6 +17,7 @@ final class CoverageGateTest extends UnitTestCase
     {
         $this->directory = sys_get_temp_dir().'/fight-common-coverage-gate-'.bin2hex(random_bytes(8));
         mkdir($this->directory.'/src', 0777, true);
+        mkdir($this->directory.'/release/src', 0777, true);
     }
 
     protected function tearDown(): void
@@ -39,6 +40,18 @@ final class CoverageGateTest extends UnitTestCase
         }
 
         file_put_contents($this->directory.'/src/Example.php', "<?php\n");
+
+        file_put_contents($this->directory.'/release/src/Example.php', "<?php\n\n// @codeCoverageIgnore\n");
+
+        $result = $this->runCoverageGate();
+
+        self::assertSame(1, $result->getExitCode());
+        self::assertSame(
+            "Coverage-ignore directive found in production PHP: release/src/Example.php\n",
+            $result->getErrorOutput(),
+        );
+
+        file_put_contents($this->directory.'/release/src/Example.php', "<?php\n");
 
         $result = $this->runCoverageGate();
 
@@ -132,7 +145,7 @@ final class CoverageGateTest extends UnitTestCase
         $result = $this->runCoverageGate();
 
         self::assertSame(1, $result->getExitCode());
-        self::assertSame("Unable to scan production PHP: src\n", $result->getErrorOutput());
+        self::assertSame("Unable to scan production PHP: src release/src\n", $result->getErrorOutput());
     }
 
     private function runCoverageGate(): Process

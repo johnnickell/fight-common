@@ -5,6 +5,7 @@ parameters:
     level: 6
     paths:
         - src
+        - release/src
     bootstrapFiles:
         - vendor/squizlabs/php_codesniffer/autoload.php
         - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
