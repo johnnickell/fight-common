@@ -23,11 +23,25 @@ final class QualityGateTest extends UnitTestCase
         mkdir($this->directory.'/scripts', 0777, true);
         mkdir($this->directory.'/src', 0777, true);
         mkdir($this->directory.'/tests', 0777, true);
+        mkdir($this->directory.'/release/scripts', 0777, true);
+        mkdir($this->directory.'/release/src', 0777, true);
+        mkdir($this->directory.'/release/tests', 0777, true);
 
-        foreach (['deptrac.php', 'rector.php', 'src/Example.php', 'tests/ExampleTest.php'] as $phpFile) {
+        foreach (
+            [
+                'deptrac.php',
+                'rector.php',
+                'release/scripts/release.php',
+                'release/src/Example.php',
+                'release/tests/ExampleTest.php',
+                'src/Example.php',
+                'tests/ExampleTest.php',
+            ] as $phpFile
+        ) {
             file_put_contents($this->directory.'/'.$phpFile, "<?php\n");
         }
-        file_put_contents($this->directory.'/scripts/release_artifact_store.py', "raise SystemExit(0)\n");
+        file_put_contents($this->directory.'/release/scripts/release_artifact_store.py', "raise SystemExit(0)\n");
+        file_put_contents($this->directory.'/release/scripts/release_run_state_store.py', "raise SystemExit(0)\n");
 
         $this->writeCommand('composer');
         $this->writeCommand('php');
@@ -47,6 +61,20 @@ final class QualityGateTest extends UnitTestCase
         $this->removeDirectory($this->directory);
 
         parent::tearDown();
+    }
+
+    public function test_that_quality_gate_explicitly_inspects_the_release_module_and_both_python_helpers(): void
+    {
+        $qualityGate = file_get_contents(dirname(__DIR__, 2).'/bin/quality');
+
+        self::assertIsString($qualityGate);
+        self::assertStringContainsString('find src tests release -type f -name', $qualityGate);
+        self::assertStringContainsString('release/scripts/release_artifact_store.py', $qualityGate);
+        self::assertStringContainsString('release/scripts/release_run_state_store.py', $qualityGate);
+        self::assertStringContainsString(
+            'php vendor/bin/rector process src/ release/src/ --dry-run',
+            $qualityGate,
+        );
     }
 
     public function test_that_quality_gate_announces_and_executes_every_step_once_in_the_accepted_order(): void
@@ -85,15 +113,18 @@ OUTPUT,
 composer validate --strict --no-interaction
 php -l deptrac.php
 php -l rector.php
+php -l release/scripts/release.php
+php -l release/src/Example.php
+php -l release/tests/ExampleTest.php
 php -l src/Example.php
 php -l tests/ExampleTest.php
-python3 -m py_compile scripts/release_artifact_store.py
+python3 -m py_compile release/scripts/release_artifact_store.py release/scripts/release_run_state_store.py
 planning-check
 php vendor/bin/phpcs
 php vendor/bin/phpstan analyse
 php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
 php vendor/bin/deptrac debug:unassigned --no-cache
-php vendor/bin/rector process src/ --dry-run
+php vendor/bin/rector process src/ release/src/ --dry-run
 php vendor/bin/phpunit --fail-on-skipped
 coverage
 
@@ -164,7 +195,10 @@ COMMANDS,
     public static function failing_command_provider(): iterable
     {
         yield 'early Composer failure' => ['composer validate --strict --no-interaction', 11];
-        yield 'Python syntax failure' => ['python3 -m py_compile scripts/release_artifact_store.py', 19];
+        yield 'Python syntax failure' => [
+            'python3 -m py_compile release/scripts/release_artifact_store.py release/scripts/release_run_state_store.py',
+            19,
+        ];
         yield 'middle PHPStan failure' => ['php vendor/bin/phpstan analyse', 22];
         yield 'first Deptrac failure' => [
             'php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped',

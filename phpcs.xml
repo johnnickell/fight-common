@@ -2,6 +2,7 @@
 <ruleset name="FightCommon">
     <description>Fight Common Coding Standard</description>
     <file>src</file>
+    <file>release/src</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
     </rule>
 </ruleset>
