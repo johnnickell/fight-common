@@ -3,13 +3,13 @@
 set -euo pipefail
 
 directive_file=''
-if directive_files="$(LC_ALL=C grep -rIl --include='*.php' -- '@codeCoverageIgnore' src 2>/dev/null)"; then
+if directive_files="$(LC_ALL=C grep -rIl --include='*.php' -- '@codeCoverageIgnore' src release/src 2>/dev/null)"; then
     directive_files="$(LC_ALL=C sort <<< "${directive_files}")"
     directive_file="${directive_files%%$'\n'*}"
 else
     scan_status=$?
     if (( scan_status != 1 )); then
-        echo "Unable to scan production PHP: src" >&2
+        echo "Unable to scan production PHP: src release/src" >&2
         exit 1
     fi
 fi

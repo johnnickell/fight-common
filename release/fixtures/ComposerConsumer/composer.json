@@ -1,0 +1,31 @@
+{
+    "name": "fight/release-consumer-isolation-fixture",
+    "description": "Offline no-development consumer used to verify release namespace isolation",
+    "type": "project",
+    "require": {
+        "php": ">=8.5",
+        "johnnickell/fight-common": "*"
+    },
+    "replace": {
+        "psr/cache": "*",
+        "psr/container": "*",
+        "psr/http-client": "*",
+        "psr/http-factory": "*",
+        "psr/http-message": "*",
+        "psr/log": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "configured-by-release-module-test",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "packagist.org": false
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
