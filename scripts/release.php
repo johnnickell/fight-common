@@ -5,15 +5,22 @@ declare(strict_types=1);
 // phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
 require __DIR__.'/../vendor/autoload.php';
 
+use Fight\Common\Adapter\Release\ArtifactReleasePlanAuthority;
+use Fight\Common\Adapter\Release\CryptographicRunIdGenerator;
 use Fight\Common\Adapter\Release\Fake\DeterministicReleaseBoundaryFake;
+use Fight\Common\Adapter\Release\LocalGitPort;
 use Fight\Common\Adapter\Release\ReleaseFixtureLoader;
 use Fight\Common\Application\Release\Boundary\ReleaseBoundaryCrash;
+use Fight\Common\Application\Release\Boundary\ReleaseBoundaryOutcome;
+use Fight\Common\Application\Release\Boundary\ReleaseEffect;
+use Fight\Common\Application\Release\Boundary\ReleaseRuntimeTermination;
 use Fight\Common\Application\Release\CanonicalJson;
 use Fight\Common\Application\Release\MachineResult;
 use Fight\Common\Application\Release\ReleaseInspectionService;
 use Fight\Common\Application\Release\ReleasePlanCapabilityFirewall;
 use Fight\Common\Application\Release\ReleasePlanFactory;
 use Fight\Common\Application\Release\ReleasePlanService;
+use Fight\Common\Application\Release\ReleasePreparationService;
 use Fight\Common\Application\Release\ReleaseResultFactory;
 use Fight\Common\Application\Release\Utf8Validator;
 
@@ -191,6 +198,95 @@ function configure_release_git(
 }
 
 /**
+ * Applies credential-free preparation controls that never become release authority.
+ *
+ * @param DeterministicReleaseBoundaryFake $ports         Credential-free release boundaries.
+ * @param array<string, mixed> $configuration Controlled preparation fixture.
+ */
+function configure_release_preparation(
+    DeterministicReleaseBoundaryFake $ports,
+    array $configuration
+): bool {
+    if (
+        array_diff(
+            array_keys($configuration),
+            [
+                'plan_authority_status',
+                'git_resolution_outcome',
+                'interrupt_before_run_binding_once',
+                'interrupt_run_projection_once',
+                'interrupt_finalized_run_projection_once',
+                'run_state_helper_protocol_termination_once',
+                'artifact_write_outcome'
+            ]
+        ) !== []
+    ) {
+        return false;
+    }
+
+    if (isset($configuration['artifact_write_outcome'])) {
+        if (
+            !is_string($configuration['artifact_write_outcome'])
+            || !$ports->configureOutcome('filesystem.write', $configuration['artifact_write_outcome'])
+        ) {
+            return false;
+        }
+    }
+
+    if (isset($configuration['plan_authority_status'])) {
+        if (
+            !is_string($configuration['plan_authority_status'])
+            || !$ports->configurePlanAuthorityStatus($configuration['plan_authority_status'])
+        ) {
+            return false;
+        }
+    }
+
+    if (isset($configuration['git_resolution_outcome'])) {
+        if (
+            !is_string($configuration['git_resolution_outcome'])
+            || !$ports->configureOutcome('git.resolve_ref', $configuration['git_resolution_outcome'])
+        ) {
+            return false;
+        }
+    }
+
+    if (isset($configuration['interrupt_run_projection_once'])) {
+        if ($configuration['interrupt_run_projection_once'] !== true) {
+            return false;
+        }
+
+        $ports->interruptRunProjectionOnce();
+    }
+
+    if (isset($configuration['interrupt_before_run_binding_once'])) {
+        if ($configuration['interrupt_before_run_binding_once'] !== true) {
+            return false;
+        }
+
+        $ports->interruptBeforeRunBindingOnce();
+    }
+
+    if (isset($configuration['interrupt_finalized_run_projection_once'])) {
+        if ($configuration['interrupt_finalized_run_projection_once'] !== true) {
+            return false;
+        }
+
+        $ports->interruptFinalizedRunProjectionOnce();
+    }
+
+    if (isset($configuration['run_state_helper_protocol_termination_once'])) {
+        if ($configuration['run_state_helper_protocol_termination_once'] !== true) {
+            return false;
+        }
+
+        $ports->terminateRunStateHelperOnce();
+    }
+
+    return true;
+}
+
+/**
  * Authenticates a deliberately configured crash to the repository wrapper.
  */
 function mark_configured_release_crash(ReleaseBoundaryCrash $crash): void
@@ -225,6 +321,16 @@ try {
     $results = new ReleaseResultFactory($ports);
     $utf8 = new Utf8Validator();
     $fixtures = new ReleaseFixtureLoader($utf8);
+    $repositoryRoot = dirname(__DIR__);
+    $testRepositoryRoot = getenv('FIGHT_COMMON_RELEASE_TEST_REPOSITORY');
+
+    if (
+        getenv('FIGHT_COMMON_RELEASE_TEST_RUNTIME') === 'fight-common-release-direct-test-v1'
+        && is_string($testRepositoryRoot)
+        && $testRepositoryRoot !== ''
+    ) {
+        $repositoryRoot = $testRepositoryRoot;
+    }
 
     if (!$utf8->isValid($command)) {
         dispatch_release_result($results->failure(
@@ -246,12 +352,12 @@ try {
         ));
     }
 
-    if (!in_array($command, ['inspect', 'plan'], true)) {
+    if (!in_array($command, ['inspect', 'plan', 'prepare'], true)) {
         dispatch_release_result($results->failure(
             $command,
             'release.command.unsupported',
-            'Only the inspect and plan commands are available.',
-            'run_release_inspect_or_plan'
+            'Only the inspect, plan, and prepare commands are available.',
+            'run_supported_release_command'
         ));
     }
 
@@ -344,7 +450,93 @@ try {
             new ReleasePlanFactory(),
             $results
         );
-        dispatch_release_result($service->plan($candidate, $options['output'], dirname(__DIR__).'/.runs'));
+        dispatch_release_result($service->plan($candidate, $options['output'], $repositoryRoot.'/.runs'));
+    }
+
+    if ($command === 'prepare') {
+        $options = release_options($arguments, ['authority', 'fixture', 'plan', 'resume']);
+
+        if ($options === null || !isset($options['plan'])) {
+            dispatch_release_result($results->failure(
+                'prepare',
+                'release.prepare.inputs_required',
+                'Preparation requires exactly one immutable plan option.',
+                'provide_prepare_plan'
+            ));
+        }
+
+        $testFixture = isset($options['fixture']);
+
+        if (
+            $testFixture
+            && getenv('FIGHT_COMMON_RELEASE_TEST_RUNTIME') !== 'fight-common-release-direct-test-v1'
+        ) {
+            dispatch_release_result($results->failure(
+                'prepare',
+                'release.prepare.fixture_forbidden',
+                'Preparation fixtures are available only in the explicit direct-test runtime.',
+                'remove_prepare_fixture'
+            ));
+        }
+
+        if ($testFixture) {
+            $fixture = $fixtures->load($options['fixture']);
+
+            if (
+                $fixture->status !== 'valid'
+                || !is_array($fixture->candidate)
+                || !configure_release_preparation($ports, $fixture->candidate)
+            ) {
+                dispatch_release_result($results->failure(
+                    'prepare',
+                    'release.prepare.fixture_invalid',
+                    'The controlled preparation fixture is invalid.',
+                    'provide_valid_prepare_fixture',
+                    []
+                ));
+            }
+        }
+
+        if (!$testFixture && !isset($options['authority'])) {
+            dispatch_release_result($results->failure(
+                'prepare',
+                'release.prepare.authority_required',
+                'Normal preparation requires one current release-plan authority artifact.',
+                'provide_current_release_plan_authority'
+            ));
+        }
+
+        $record = static function (
+            ReleaseEffect $effect,
+            ReleaseBoundaryOutcome $outcome
+        ) use ($ports): void {
+            $ports->recordObservedEffect($effect, $outcome);
+        };
+        $git = $testFixture ? $ports : new LocalGitPort($repositoryRoot, $record);
+        $authority = $testFixture ? $ports : new ArtifactReleasePlanAuthority(
+            $ports,
+            $options['authority'],
+            $repositoryRoot.'/.runs',
+            $record
+        );
+
+        $service = new ReleasePreparationService(
+            $ports,
+            $ports,
+            $authority,
+            new CryptographicRunIdGenerator(),
+            $git,
+            $ports,
+            $ports,
+            new CanonicalJson(),
+            new ReleasePlanFactory(),
+            $results
+        );
+        dispatch_release_result($service->prepare(
+            $options['plan'],
+            $repositoryRoot.'/.runs',
+            $options['resume'] ?? null
+        ));
     }
 
     $options = release_options($arguments, ['fixture']);
@@ -422,4 +614,6 @@ try {
 } catch (ReleaseBoundaryCrash $releaseBoundaryCrash) {
     mark_configured_release_crash($releaseBoundaryCrash);
     exit(86);
+} catch (ReleaseRuntimeTermination) {
+    dispatch_release_result($results->runtimeTermination($command));
 }

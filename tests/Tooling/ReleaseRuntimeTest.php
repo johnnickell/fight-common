@@ -295,6 +295,59 @@ BASH
     }
 
     /**
+     * Covers the closed bootstrap command vocabulary for a preparation request.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_prepare_bootstrap_failure_retains_its_supported_command_identity(): void
+    {
+        $process = new Process(
+            ['bash', 'bin/release', 'prepare', '--plan=/plan.json'],
+            $this->directory,
+            [
+                'DOCKER_BIN'        => $this->directory.'/docker',
+                'FAKE_BUILD_STATUS' => '17',
+                'FAKE_DOCKER_LOG'   => $this->directory.'/docker-prepare-build-failure.log'
+            ],
+            null,
+            20
+        );
+        $process->run();
+
+        $this->assertRuntimeBootstrapFailure($process, 'prepare');
+        $payload = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame('prepare', $payload['command']);
+        self::assertSame('release_preparation', $payload['capability']);
+    }
+
+    /**
+     * Covers the closed post-start command vocabulary for a preparation request.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_prepare_runtime_termination_retains_its_supported_command_identity(): void
+    {
+        $process = new Process(
+            ['bash', 'bin/release', 'prepare', '--plan=/plan.json'],
+            $this->directory,
+            [
+                'DOCKER_BIN'                => $this->directory.'/docker',
+                'FAKE_CONTAINER_STATUS'     => '125',
+                'FAKE_DOCKER_LOG'           => $this->directory.'/docker-prepare-termination.log',
+                'FAKE_WRITE_CID_ON_FAILURE' => '1'
+            ],
+            null,
+            20
+        );
+        $process->run();
+
+        $this->assertRuntimeTermination($process, 'prepare');
+        $payload = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame('prepare', $payload['command']);
+        self::assertSame('release_preparation', $payload['capability']);
+    }
+
+    /**
      * Covers fail-closed bootstrap reporting when private run allocation fails
      *
      * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -420,6 +473,7 @@ BASH
                 } else {
                     $this->assertRuntimeBootstrapFailure($process);
                 }
+
                 self::assertStringContainsString(
                     'synthetic Docker container run failure',
                     $process->getErrorOutput()

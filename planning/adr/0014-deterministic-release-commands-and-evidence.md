@@ -53,15 +53,17 @@ exit codes. A deliberately configured deterministic boundary crash is an abnorma
 the attempted effect and throws before normal JSON, later effects, artifacts, or persisted postconditions.
 Canonical-runtime bootstrap failure is the only exit `70` result. It reports status `infrastructure_unavailable`,
 exit class `failed`, finding `release.runtime.bootstrap_unavailable`, empty postcondition and effect collections,
-no inspection or plan success fields, and the single next action `restore_release_runtime_and_retry`; its command
-and capability are normalized to the `inspect`, `plan`, or `unknown` command family.
+no command success fields, and the single next action `restore_release_runtime_and_retry`; its command is normalized
+to `inspect`, `plan`, supported `prepare`, or `unknown`, with capability `release_inspection`, `release_planning`,
+`release_preparation`, or `unsupported_command`, respectively.
 After the canonical PHP process or release container has started, a generic fatal error, resource termination,
 signal, helper termination, non-governed exit, or missing, malformed, or unauthenticated normal-result sideband is
 instead exit `71`: status `infrastructure_terminated`, exit class `failed`, finding
-`release.runtime.result_unavailable`, empty postcondition and effect collections, no inspection or plan success
-fields, and the single next action `inspect_release_runtime_termination`. Exit `70` is never used for a runtime
-that started. An authenticated governed normal result retains its declared exit, and an authenticated configured
-crash retains exit `86` without normal JSON.
+`release.runtime.result_unavailable`, empty postcondition and effect collections, no command success fields, and the
+single next action `inspect_release_runtime_termination`. Its command and capability retain the same
+supported-command normalization as exit `70`. Exit `70` is never used for a runtime that started. An authenticated
+governed normal result retains its declared exit, and an authenticated configured crash retains exit `86` without
+normal JSON.
 Human-readable output is only a rendering of a normally completed result. Mutating commands support dry-run
 validation that emits the exact intended effects without performing them. A verified already-satisfied
 postcondition is idempotent success; dry-run output is not evidence that an effect occurred.
