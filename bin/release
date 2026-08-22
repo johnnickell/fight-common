@@ -43,6 +43,10 @@ runtime_bootstrap_failure() {
             release_command='plan'
             release_capability='release_planning'
             ;;
+        prepare)
+            release_command='prepare'
+            release_capability='release_preparation'
+            ;;
     esac
 
     printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_unavailable\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.bootstrap_unavailable\",\"message\":\"The canonical release runtime could not be started.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"restore_release_runtime_and_retry\"},\"exit_code\":70}"
@@ -60,6 +64,10 @@ runtime_termination_failure() {
         plan)
             release_command='plan'
             release_capability='release_planning'
+            ;;
+        prepare)
+            release_command='prepare'
+            release_capability='release_preparation'
             ;;
     esac
 
