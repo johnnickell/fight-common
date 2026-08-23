@@ -666,6 +666,14 @@ final class DeterministicReleaseBoundaryFake implements
     }
 
     /**
+     * Resolves one exact annotated tag through the fake Git boundary
+     */
+    public function resolveExactAnnotatedTag(string $tagName): BaselineTagResolutionResult
+    {
+        return $this->resolveBaselineTag($tagName, $this->baselinePeeledCommitOid);
+    }
+
+    /**
      * Configures the read-only deterministic Git resolution returned by the fake
      */
     public function configureBaselineTagResolution(

@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
 CANONICAL_PHP='/usr/local/bin/php'
 CANONICAL_ROOT='/app'
 RUNTIME_MARKER='/usr/local/share/fight-common/release-runtime-v1'
@@ -29,47 +30,49 @@ RUNTIME_RESULT_EVIDENCE=''
 RUNTIME_RESULT_OUTPUT=''
 RUNTIME_CRASH_NONCE=''
 RUNTIME_RESULT_NONCE=''
+GIT_METADATA_MOUNT=()
 
-runtime_bootstrap_failure() {
-    local release_command='unknown'
-    local release_capability='unsupported_command'
+if [[ -f "${ROOT_DIR}/.git" ]]; then
+    GIT_COMMON_DIR="$(
+        "${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir
+    )"
+    GIT_METADATA_MOUNT=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro")
+fi
 
+release_command_metadata() {
     case "${1:-}" in
         inspect)
-            release_command='inspect'
-            release_capability='release_inspection'
+            printf '%s\n' 'inspect release_inspection'
             ;;
         plan)
-            release_command='plan'
-            release_capability='release_planning'
+            printf '%s\n' 'plan release_planning'
             ;;
         prepare)
-            release_command='prepare'
-            release_capability='release_preparation'
+            printf '%s\n' 'prepare release_preparation'
+            ;;
+        compatibility)
+            printf '%s\n' 'compatibility compatibility_assessment'
+            ;;
+        *)
+            printf '%s\n' 'unknown unsupported_command'
             ;;
     esac
+}
+
+runtime_bootstrap_failure() {
+    local release_command=''
+    local release_capability=''
+
+    read -r release_command release_capability <<< "$(release_command_metadata "${1:-}")"
 
     printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_unavailable\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.bootstrap_unavailable\",\"message\":\"The canonical release runtime could not be started.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"restore_release_runtime_and_retry\"},\"exit_code\":70}"
 }
 
 runtime_termination_failure() {
-    local release_command='unknown'
-    local release_capability='unsupported_command'
+    local release_command=''
+    local release_capability=''
 
-    case "${1:-}" in
-        inspect)
-            release_command='inspect'
-            release_capability='release_inspection'
-            ;;
-        plan)
-            release_command='plan'
-            release_capability='release_planning'
-            ;;
-        prepare)
-            release_command='prepare'
-            release_capability='release_preparation'
-            ;;
-    esac
+    read -r release_command release_capability <<< "$(release_command_metadata "${1:-}")"
 
     printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_terminated\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.result_unavailable\",\"message\":\"The started runtime returned no valid authenticated result.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"inspect_release_runtime_termination\"},\"exit_code\":71}"
 }
@@ -251,6 +254,7 @@ set +e
     --cidfile "${RUNTIME_CID}" \
     --rm \
     -v "${ROOT_DIR}:${ROOT_DIR}:delegated" \
+    ${GIT_METADATA_MOUNT[@]+"${GIT_METADATA_MOUNT[@]}"} \
     -v "${RUNTIME_RUN_DIR}:${RUNTIME_RUN_DIR}" \
     -w "${ROOT_DIR}" \
     --user "$(id -u):$(id -g)" \

@@ -18,4 +18,9 @@ interface GitPort
      * Resolves one immutable Git reference
      */
     public function resolveBaselineTag(string $tagName, string $candidateOid): BaselineTagResolutionResult;
+
+    /**
+     * Resolves one exact annotated tag without normalized-version or candidate-order inference
+     */
+    public function resolveExactAnnotatedTag(string $tagName): BaselineTagResolutionResult;
 }

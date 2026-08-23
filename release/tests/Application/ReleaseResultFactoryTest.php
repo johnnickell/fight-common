@@ -7,6 +7,7 @@ namespace Fight\Test\Release\Application;
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\MachineResult;
+use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleasePlanValidationFailure;
 use Fight\Release\Application\ReleaseResultFactory;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 #[CoversClass(ReleaseResultFactory::class)]
+#[CoversClass(ReleaseCommand::class)]
 /**
  * Class ReleaseResultFactoryTest
  *
@@ -33,10 +35,11 @@ class ReleaseResultFactoryTest extends UnitTestCase
 
         foreach (
             [
-            'inspect' => ['inspect', 'release_inspection'],
-            'plan'    => ['plan', 'release_planning'],
-            'prepare' => ['prepare', 'release_preparation'],
-            'publish' => ['unknown', 'unsupported_command']
+            'inspect'       => ['inspect', 'release_inspection'],
+            'plan'          => ['plan', 'release_planning'],
+            'prepare'       => ['prepare', 'release_preparation'],
+            'compatibility' => ['compatibility', 'compatibility_assessment'],
+            'publish'       => ['unknown', 'unsupported_command']
             ] as $requested => [$command, $capability]
         ) {
             $result = $factory->runtimeFailure($requested);
@@ -71,10 +74,11 @@ class ReleaseResultFactoryTest extends UnitTestCase
 
         foreach (
             [
-            'inspect' => ['inspect', 'release_inspection'],
-            'plan'    => ['plan', 'release_planning'],
-            'prepare' => ['prepare', 'release_preparation'],
-            'publish' => ['unknown', 'unsupported_command']
+            'inspect'       => ['inspect', 'release_inspection'],
+            'plan'          => ['plan', 'release_planning'],
+            'prepare'       => ['prepare', 'release_preparation'],
+            'compatibility' => ['compatibility', 'compatibility_assessment'],
+            'publish'       => ['unknown', 'unsupported_command']
             ] as $requested => [$command, $capability]
         ) {
             $result = $factory->runtimeTermination($requested);
@@ -153,6 +157,15 @@ class ReleaseResultFactoryTest extends UnitTestCase
                     'effect_class' => 'filesystem.inspect_runs_directory',
                     'outcome'      => 'refusal'
                 ]]
+            )->payload['capability']
+        );
+        self::assertSame(
+            'compatibility_assessment',
+            $factory->failure(
+                'compatibility',
+                'release.compatibility.arguments_invalid',
+                'Compatibility accepts no caller-supplied policy, fixture, or success evidence.',
+                'run_repository_compatibility_authority'
             )->payload['capability']
         );
         $unsupported = $factory->failure('publish', 'command.unsupported', 'Unsupported command.', 'select_command');
