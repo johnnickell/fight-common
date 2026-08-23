@@ -7,7 +7,6 @@ use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -20,7 +19,6 @@ return RectorConfig::configure()
     ->withSkip([
         NewlineBetweenClassLikeStmtsRector::class,
         RemoveParentCallWithoutParentRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
         // Compatibility policy stores names as data; loading runtime classes would reverse the release boundary.
         StringClassNameToClassConstantRector::class => [
             __DIR__.'/release/src/Application/PublicApiManifestAuthority.php'
