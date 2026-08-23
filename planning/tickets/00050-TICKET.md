@@ -10,31 +10,38 @@ blocked_by: T-00049
 
 ## What to Build
 
-Publish capability-first Symfony paths for the remaining HTTP integration, local filesystem adapter, and URL
-generator while preserving every old public FQCN. A Symfony consumer can register and invoke either path through
-`1.x` without changed behavior, identity surprises, or runtime deprecation noise.
+Publish the accepted capability-first Symfony paths for HTTP subscribers, middleware, controllers, local
+filesystem, and URL generation while preserving every superseded public FQCN throughout `1.x`. A Symfony
+consumer can register either identity and receive the same native lifecycle, response, filesystem, and routing
+behavior without runtime deprecation noise.
 
 ## Acceptance Criteria
 
-- [ ] The exception and validation subscribers are available under canonical Http/Symfony/EventSubscriber paths.
-- [ ] The error controller and JSON request middleware are available under canonical Http/Symfony paths.
-- [ ] The Symfony filesystem and URL generator are available under canonical Filesystem/Symfony and
-      Routing/Symfony paths.
-- [ ] Every legacy FQCN remains independently loadable, functional, and documented as deprecated through `1.x`.
-- [ ] Compatibility mechanisms are selected per declaration from behavioral evidence rather than applying
-      aliases indiscriminately.
-- [ ] Subscriber and controller probes cover attributes, registration, service identity, construction,
-      invocation, and promised extension behavior where applicable.
-- [ ] Filesystem and routing probes cover construction, `instanceof`, behavior, exception translation,
-      serialization where relevant, and both old and new names.
-- [ ] No runtime deprecation warning is emitted and no legacy declaration is scheduled for removal before
-      `2.0.0`.
+- [ ] Exception and validation subscribers are published under the canonical Symfony HTTP namespace.
+- [ ] JSON request middleware is published under `Adapter\Middleware\Symfony`, and the error controller is
+      published under `Adapter\Http\Symfony\Controller`.
+- [ ] The Symfony filesystem and URL generator are published under their capability-first provider namespaces.
+- [ ] Every superseded public FQCN remains independently loadable, functional, and documented as deprecated
+      throughout `1.x` without emitting a runtime notice.
+- [ ] Compatibility mechanisms are selected per declaration from construction, extension, reflection, attribute,
+      serialization, and registration evidence rather than applying aliases indiscriminately.
+- [ ] Real Symfony registration probes cover subscriber attributes and tags, controller resolution, middleware
+      invocation, service identity, and old/new interoperability.
+- [ ] HTTP probes preserve validation and exception translation, native response status, headers, encoded body,
+      and the typed JSend boundary delivered by T-00049.
+- [ ] Filesystem and URL-generation probes preserve success, failure translation, named-route parameters,
+      absolute and relative output, and both public identities.
+- [ ] No legacy declaration is removed before `2.0.0`, and no framework dependency enters an inward layer.
 
 ## Verification
 
-Full submit gate, `./bin/planning-check`, Symfony container and event-dispatcher integration tests, filesystem
-and routing behavior tests, and installed-package old/new FQCN probes.
+Full submit gate, `./bin/planning-check`, Symfony container and HTTP-kernel integration tests, shared filesystem
+and URL-generation conformance, and installed-package old/new FQCN probes.
 
 ## Parent
 
 PRD-00014 — Fight Common Contract Repair and Compatibility Certification.
+
+## Decision Sources
+
+WF-019, WF-023, WF-024, ADR 0023, and ADR 0024.

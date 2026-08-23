@@ -36,4 +36,4 @@ declared constraints and lock receipts match the ADR 0020 supported-line table.
 
 ## Parent
 
-PRD-00015 — Framework Supported Lines and Default Capability Compositions.
+PRD-00015 — Framework Adapter Support and Capability Composition.

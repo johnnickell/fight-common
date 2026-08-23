@@ -1,6 +1,6 @@
 # ADR 0019: Capability-First Adapter Namespaces and 1.x Compatibility
 
-- Status: accepted
+- Status: superseded by ADR 0023
 - Date: 2026-08-12
 
 ## Decision

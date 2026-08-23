@@ -1,6 +1,6 @@
 # ADR 0021: Framework Default Capability Compositions and Starter-Owned Integration
 
-- Status: accepted
+- Status: accepted; superseded in part by ADRs 0023 and 0024
 - Date: 2026-08-12
 
 ## Decision

@@ -1,7 +1,7 @@
 # Fight Framework Portability and Starter Projects
 
 **Label:** `wayfinder:map`
-**Status:** Closed
+**Status:** Active
 
 ## Destination
 
@@ -25,10 +25,9 @@ The destination includes:
 - one opinionated, replaceable default stack per starter, a complete editable `/client` React
   application, robust agent guidance, exact quality gates, and self-contained documentation.
 
-The planning route is complete: the exact supported dependency ranges, persistence and transaction seams,
-modern session and JWT flows, public Application contract audit, permanent specifications, and Fight Common
-umbrella ticket graph are resolved. Execution now transfers implementation authority into the six destination
-repositories through T-00061 through T-00067.
+The starter-repository handoff route is complete. The Fight Common adapter route is reopened because the
+previous no-new-shared-adapter policy omitted reusable Laravel, Yii, and CodeIgniter integration and grouped
+equivalent framework service-container extension points by the runtime capability they happened to wire.
 
 ## Notes
 
@@ -46,6 +45,8 @@ repositories through T-00061 through T-00067.
 - Every starter owns one intentional default stack. Replaceable alternatives are composition-root
   choices, not an obligation to test every package combination.
 - Refer to tickets by linked names rather than bare identifiers.
+- Framework service-container extension points live together under `Adapter\ServiceContainer`, while the
+  runtime implementations they register remain capability-first.
 
 ## Decisions so far
 
@@ -82,18 +83,19 @@ repositories through T-00061 through T-00067.
   evidence, and the downstream capability worksheet. These decisions are now synthesized in
   [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../specs/00014-PRD.md)
   under [EPIC-00004 — Framework Portability and Starter Projects](../epics/00004-EPIC.md) and split into
-  T-00047 through T-00056 plus T-00059 and T-00060. T-00055 is closed `wontfix`; framework testing stays in
-  the real starter repositories rather than nested Fight Common fixtures.
+  T-00047 through T-00056, T-00059, T-00060, and T-00069. T-00055 is closed `wontfix`; framework testing stays
+  in the real starter repositories rather than nested Fight Common fixtures.
 - [Select supported framework lines and default capability compositions](tickets/WF-015-framework-lines-and-default-capability-compositions.md)
   fixed the current-only supported-line window with widen and tighten triggers, the exact Composer
   constraints per framework, five independent repository-owned compatibility lanes, the no-new-shared-adapter
   worksheet policy, the no-bundle starter-owned integration responsibilities, the one opinionated Slim stack,
   per-framework async and SPA-templating defaults, and a recommended Composer-installable composition for
   every capability (nothing is unsupported). These decisions are recorded in
-  [ADR 0020](../adr/0020-supported-framework-lines-and-support-window.md) and
-  [ADR 0021](../adr/0021-framework-default-capability-compositions.md) and synthesized in
-  [PRD-00015 — Framework Supported Lines and Default Capability Compositions](../specs/00015-PRD.md),
-  implemented in Fight Common through T-00057 and T-00058. T-00055 records the rejected nested-fixture plan.
+  [ADR 0020](../adr/0020-supported-framework-lines-and-support-window.md) and the portions of
+  [ADR 0021](../adr/0021-framework-default-capability-compositions.md) not superseded by ADRs 0023 and 0024.
+  [PRD-00015 — Framework Adapter Support and Capability Composition](../specs/00015-PRD.md) is implemented in
+  Fight Common through T-00057, T-00058, and T-00070 through T-00075. T-00055 records the rejected nested-fixture
+  plan.
 - [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md)
   fixed the Domain/Application-only package boundary, invitation and account-state model, Managed
   Role/Permission reconciliation, multi-device shared sessions, hardened access-JWT/refresh behavior,
@@ -116,11 +118,45 @@ repositories through T-00061 through T-00067.
   detailed Fight Common tickets: Fight AccessControl adopts the former as repository-local PRD-00001, and each
   starter adopts the relevant latter contract through T-00062 through T-00066 before creating local tickets.
   WF-018 is closed after execution and verification of those six authority transfers.
+- [Define the service-container and framework-adapter namespace model](tickets/WF-019-service-container-and-adapter-namespace-model.md)
+  reopened the Fight Common adapter route, grouped equivalent framework wiring under `Adapter\ServiceContainer`,
+  retained capability-first runtime adapters, selected neutral `Application\Http` and
+  `Application\ServiceContainer` paths, and preserved additive `1.2.0` compatibility with `2.0.0` cleanup.
+  [ADR 0023](../adr/0023-service-container-and-framework-adapter-namespaces.md) records the decision and
+  supersedes the conflicting portions of ADRs 0019 and 0021.
+- [Research Symfony, Slim, and standalone adapter seams](tickets/WF-023-symfony-slim-and-standalone-adapter-seams.md)
+  separated Symfony-native runtime adapters, service-container compiler passes, neutral message consumers,
+  PSR-based Slim integrations, and reusable provider adapters. It also rejected Bernard from the supported
+  queue matrix and retained Monolog through PSR-3 rather than a Fight-branded logger wrapper.
+- [Research Laravel-native adapter seams](tickets/WF-020-laravel-native-adapter-seams.md)
+  selected queued command Jobs and queued event listeners that delegate to neutral Fight message consumers,
+  a narrow transactional UnitOfWork, capability-specific opt-in service providers, targeted Illuminate
+  translation adapters, and provider-neutral reuse where Laravel adds no distinct contract.
+- [Research CodeIgniter-native adapter seams](tickets/WF-022-codeigniter-native-adapter-seams.md)
+  selected a native transactional UnitOfWork and stable official Queue integration as the first shared
+  adapters, explicit starter `Config\Services` delegation, targeted HTTP/routing/mail prototypes, and reuse of
+  neutral providers for the remaining capability surface.
+- [Research Yii-native adapter seams](tickets/WF-021-yii-native-adapter-seams.md)
+  selected capability-scoped providers, Yii DB transactions, Yii routing, conditional mail/view adapters,
+  a shared PSR HTTP lane, and provider-neutral reuse. Yii Queue remains an experimental adapter candidate
+  until its core and a production broker adapter publish stable compatible releases.
+- [Research PSR interoperability and adapter seams](tickets/WF-025-psr-interoperability-and-adapter-seams.md)
+  established the standards-first lane: direct use for honest inward interfaces, shared PSR-15 middleware and
+  PSR-17 JSend response creation, canonical PSR-6 and PSR-16 cache adapters, and a synchronous outward PSR-18
+  client view. PSR-14 remains separate from Fight messaging, PSR-18 does not satisfy Fight's async client
+  contract in the reverse direction, and standards without an existing capability do not receive speculative
+  adapters.
+- [Select the framework-adapter support matrix](tickets/WF-024-framework-adapter-support-matrix.md)
+  accepted the complete shared, Symfony, Laravel, Yii, CodeIgniter, and Slim adapter catalog; native-first
+  conformance policy; async delivery and Yii Queue release boundaries; capability-scoped framework and Fight
+  container registration; optional development/suggest dependencies; dual Fight/PSR-18 HTTP-client wiring;
+  two-key support evidence; and additive 1.2 with a possible 1.3 before 2.0 cleanup. [ADR 0024](../adr/0024-framework-adapter-support-and-delivery-boundaries.md)
+  records the decision. PRD-00014 and PRD-00015 now hold the permanent specification, and T-00050 through
+  T-00054, T-00058, and T-00069 through T-00075 hold the reconciled implementation graph.
 
 ## Frontier
 
-No active Fight Common frontier remains. [WF-018](tickets/WF-018-full-support-implementation-handoffs.md) closed
-after T-00061 through T-00067 established and verified the six repository-local authority transfers.
+None. The map's decision frontier and specification/ticket handoff are closed; the next flow is `/ask-matt`.
 
 ## Waiting
 

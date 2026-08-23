@@ -1,41 +1,56 @@
 ---
 id: T-00058
 prd: PRD-00015
-title: Publish the Normative Supported-Line Window and Activation Suggestions
+title: Publish the Framework Support Matrix and Activation Guide
 status: ready-for-agent
-blocked_by:
+blocked_by: T-00054
 ---
 
-# Publish the Normative Supported-Line Window and Activation Suggestions
+# Publish the Framework Support Matrix and Activation Guide
 
 ## What to Build
 
-Record the supported-line window as normative documentation and name the exact optional activation packages
-in Composer suggestions. A consumer can read, for each of the five frameworks, the current-only supported
-range, the widen trigger, the tighten trigger, the PHP 8.6 horizon, and exactly which packages a
-composition activates without any framework dependency entering production requirements.
+Publish one normative capability-by-framework guide derived from proven adapters and fallbacks. A Symfony,
+Laravel, Yii, CodeIgniter, Slim, or standalone consumer can identify its supported line, select only the needed
+capability integrations, install the exact optional packages, and understand which behavior is shipped, being
+prototyped, wired through a standard/provider, or deliberately starter-owned.
 
 ## Acceptance Criteria
 
-- [ ] Documentation records the current-only window per framework with the exact supported constraints
-      (Symfony `^8.1`, Laravel `^13.0`, CodeIgniter `^4.7`, Slim `^4.15` plus the opinionated stack, and the
-      current Yii 3 `yiisoft/*` set).
-- [ ] Each framework documents its widen trigger (Symfony 8.2 ≈Nov 2026, Laravel 14 ≈Q1 2027, Slim 5
-      stable, CodeIgniter 4.8) and the tighten trigger (dropping the previous line when the framework stops
-      maintaining it).
-- [ ] The PHP 8.6 horizon and its re-resolution requirement are documented for every range.
-- [ ] Composer `suggest` entries name the exact optional activation packages for each default composition,
-      including the formerly-gap fills (CodeIgniter queue/tasks, Yii portable fills, Laravel event-store and
-      metrics, Symfony metrics and Messenger-composed event store, Slim stack fills).
-- [ ] Suggestion text stays descriptive and never becomes a version constraint or a production dependency.
-- [ ] The documented window, suggest entries, and ADR 0020/0021 tables agree without unresolved or
-      contradictory edges.
+- [ ] Documentation records the current-only supported constraints for Symfony `^8.1`, Laravel `^13.0`,
+      CodeIgniter `^4.7`, Slim `^4.15`, and the accepted current Yii 3 package set.
+- [ ] Each framework documents its widen trigger, tighten trigger, PHP 8.6 re-resolution horizon, and the rule
+      that the support window never exceeds two maintained majors.
+- [ ] Every audited capability is labeled `ship`, `prototype`, or `wire` for all five frameworks, with the exact
+      adapter, standard, provider, or starter-owned policy named.
+- [ ] Capability-scoped Symfony compiler passes, Laravel providers, Yii providers/configuration groups,
+      CodeIgniter service delegates, and Fight-container registrars are activated explicitly; no aggregate
+      provider is documented.
+- [ ] Queue documentation covers complete Fight envelopes, neutral synchronous delegation, at-least-once
+      delivery, post-commit submission where native, and starter-owned broker, retry, failure, worker, topology,
+      and outbox policy.
+- [ ] Yii Queue is identified as unavailable for stable `1.2` support rather than skipped, with the stable
+      upstream and production-broker evidence required for a possible additive `1.3` adapter.
+- [ ] Authentication documentation limits Fight Common to exact password, HMAC, JWT, and boolean authenticator
+      seams and assigns guards, sessions, principals, and authorization to downstream project integration.
+- [ ] PSR documentation distinguishes direct interface use, lossless adapters, explicit mismatches, and standards
+      with no Fight capability; PSR-6 cache is not confused with unrelated PSR contracts.
+- [ ] Composer suggestion entries and guide installation instructions agree with T-00054 receipts and do not add
+      framework packages to production requirements.
+- [ ] Failed prototypes document the exact missing operation or value and the tested fallback; no capability is
+      silently omitted from a support claim.
+- [ ] Additive adapters remain eligible for `1.3`, while legacy-name removal and incompatible inward changes are
+      reserved for `2.0`.
 
 ## Verification
 
-`./bin/planning-check`, a documentation review against ADR 0020 and ADR 0021, and a composer-meta audit
-proving production requirements are unchanged and all named suggestions resolve.
+Full submit gate, `./bin/planning-check`, documentation review against ADRs 0020, 0023, and 0024, Composer
+metadata audit, link validation, and a matrix-to-conformance traceability check.
 
 ## Parent
 
-PRD-00015 — Framework Supported Lines and Default Capability Compositions.
+PRD-00015 — Framework Adapter Support and Capability Composition.
+
+## Decision Sources
+
+WF-020 through WF-025 and ADR 0024.
