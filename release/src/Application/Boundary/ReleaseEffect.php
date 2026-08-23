@@ -17,6 +17,8 @@ enum ReleaseEffect: string
     case FILESYSTEM_INSPECT_WRITABLE = 'filesystem.inspect_writable';
     case FILESYSTEM_INSPECT_EXISTS = 'filesystem.inspect_exists';
     case FILESYSTEM_INSPECT_RUNS_DIRECTORY = 'filesystem.inspect_runs_directory';
+    case ARCHIVE_CREATE = 'archive.create';
+    case ARCHIVE_VERIFY = 'archive.verify';
     case GIT_INSPECT_REPOSITORY = 'git.inspect_repository';
     case GIT_RESOLVE_REF = 'git.resolve_ref';
     case HASHING_SHA256 = 'hashing.sha256';
@@ -51,6 +53,8 @@ enum ReleaseEffect: string
             self::FILESYSTEM_INSPECT_WRITABLE,
             self::FILESYSTEM_INSPECT_EXISTS,
             self::FILESYSTEM_INSPECT_RUNS_DIRECTORY => 'filesystem',
+            self::ARCHIVE_CREATE,
+            self::ARCHIVE_VERIFY => 'archive',
             self::GIT_INSPECT_REPOSITORY,
             self::GIT_RESOLVE_REF => 'git',
             self::HASHING_SHA256 => 'hashing',
@@ -69,6 +73,7 @@ enum ReleaseEffect: string
     {
         return match ($this) {
             self::FILESYSTEM_WRITE,
+            self::ARCHIVE_CREATE,
             self::GITHUB_RELEASE,
             self::PACKAGIST_PUBLISH => true,
             default => false,
@@ -81,6 +86,7 @@ enum ReleaseEffect: string
     public function configuredAlreadySatisfiedEvidence(): ?string
     {
         return match ($this) {
+            self::ARCHIVE_CREATE => 'archive_already_exists',
             self::GITHUB_RELEASE => 'github_release_exists',
             self::PACKAGIST_PUBLISH => 'packagist_version_exists',
             default => null,

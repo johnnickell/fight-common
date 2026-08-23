@@ -6,6 +6,7 @@ namespace Fight\Test\Release\Adapter\Fake;
 
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Release\Application\Boundary\AuthorizationPort;
+use Fight\Release\Application\Boundary\ArchiveCreateResult;
 use Fight\Release\Application\Boundary\CanonicalRunsDirectory;
 use Fight\Release\Application\Boundary\ClockPort;
 use Fight\Release\Application\Boundary\FilesystemPort;
@@ -35,6 +36,7 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(ReleaseBoundaryPredicateResult::class)]
 #[CoversClass(CanonicalRunsDirectory::class)]
 #[CoversClass(RunsDirectoryResolutionResult::class)]
+#[CoversClass(ArchiveCreateResult::class)]
 class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
 {
     /**
@@ -1815,6 +1817,90 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
         } finally {
             (new Filesystem())->remove($root);
         }
+    }
+
+    /**
+     * Covers the one-shot configured helper protocol termination
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_archive_creation_derives_and_builds_a_deterministic_archive_with_exclusions(): void
+    {
+        $fake = new DeterministicReleaseBoundaryFake();
+        $fake->configureArchiveFileList([
+            'composer.json'    => '{"name":"fight/common"}',
+            'src/Event.php'    => '<?php class Event {}',
+            'nested/One.php'   => '<?php class One {}',
+            'nested/Two.php'   => '<?php class Two {}',
+            'excluded/skip.php' => '<?php class Skip {}'
+        ]);
+
+        $effectSet = $fake->deriveEffectSet(
+            'd34db33fd34db33fd34db33fd34db33fd34db33f',
+            '1.3.0',
+            '/repo'
+        );
+
+        self::assertSame('fight-common-v1.3.0.zip', $effectSet->archiveName);
+        self::assertSame([
+            'composer.json',
+            'excluded/skip.php',
+            'nested/One.php',
+            'nested/Two.php',
+            'src/Event.php'
+        ], $effectSet->includedPaths);
+
+        $result = $fake->createArchive(
+            'd34db33fd34db33fd34db33fd34db33fd34db33f',
+            '1.3.0',
+            '/repo',
+            ['excluded/skip.php']
+        );
+
+        self::assertTrue($result->hasArchive());
+        self::assertSame('/repo/.runs/fight-common-v1.3.0.zip', $result->archivePath);
+        self::assertMatchesRegularExpression('/\A[0-9a-f]{64}\z/D', $result->sha256Digest);
+        self::assertSame([
+            ['capability' => 'archive', 'effect_class' => 'archive.create', 'outcome' => 'success'],
+            ['capability' => 'archive', 'effect_class' => 'archive.verify', 'outcome' => 'success']
+        ], $fake->effects());
+    }
+
+    /**
+     * Covers the one-shot deterministic archive bytes override and already-satisfied stop.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function test_that_archive_bytes_override_and_already_satisfied_stop_are_consumed(): void
+    {
+        $bytesFake = new DeterministicReleaseBoundaryFake();
+        $bytesFake->configureArchiveBytesOnce('deterministic-bytes');
+
+        $result = $bytesFake->createArchive(
+            'a11ce0a1a11ce0a1a11ce0a1a11ce0a1a11ce0a1',
+            '1.3.0',
+            '/repo',
+            []
+        );
+
+        self::assertTrue($result->hasArchive());
+        self::assertSame(hash('sha256', 'deterministic-bytes'), $result->sha256Digest);
+
+        $satisfiedFake = new DeterministicReleaseBoundaryFake();
+        $satisfiedFake->configureOutcome('archive.create', 'already_satisfied');
+
+        $satisfied = $satisfiedFake->createArchive(
+            'a11ce0a1a11ce0a1a11ce0a1a11ce0a1a11ce0a1',
+            '1.3.0',
+            '/repo',
+            []
+        );
+
+        self::assertFalse($satisfied->hasArchive());
+        self::assertNull($satisfied->archivePath);
+        self::assertSame(ReleaseBoundaryOutcome::ALREADY_SATISFIED, $satisfied->outcome);
     }
 
     /**

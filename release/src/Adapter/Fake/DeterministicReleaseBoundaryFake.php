@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Release\Adapter\Fake;
 
 use Closure;
+use Fight\Release\Application\Boundary\ArchiveCreateResult;
+use Fight\Release\Application\Boundary\ArchivePort;
 use Fight\Release\Application\Boundary\AuthorizationPort;
 use Fight\Release\Application\Boundary\BaselineTagResolutionResult;
 use Fight\Release\Application\Boundary\BaselineTagResolutionStatus;
@@ -23,6 +25,7 @@ use Fight\Release\Application\Boundary\ReleaseBoundaryOperationResult;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseBoundaryPredicateResult;
 use Fight\Release\Application\Boundary\ReleaseEffect;
+use Fight\Release\Application\Boundary\ReleasePackageEffectSet;
 use Fight\Release\Application\Boundary\ReleasePlanAuthorityPort;
 use Fight\Release\Application\Boundary\ReleasePlanAuthorityStatus;
 use Fight\Release\Application\Boundary\ReleaseRuntimeTermination;
@@ -30,8 +33,10 @@ use Fight\Release\Application\Boundary\RunsDirectoryResolutionResult;
 use Fight\Release\Application\Boundary\RunStateStore;
 use Fight\Release\Application\Boundary\ScopedReleaseEffectLedger;
 use Fight\Release\Application\Boundary\SigningPort;
+use FilesystemIterator;
 use InvalidArgumentException;
 use Throwable;
+use ZipArchive;
 
 /**
  * Class DeterministicReleaseBoundaryFake
@@ -39,6 +44,7 @@ use Throwable;
  * Credential-free deterministic provider for every release capability.
  */
 final class DeterministicReleaseBoundaryFake implements
+    ArchivePort,
     FilesystemPort,
     GitPort,
     HashingPort,
@@ -79,6 +85,9 @@ final class DeterministicReleaseBoundaryFake implements
     private array $predicateValues;
     private ReleasePlanAuthorityStatus $planAuthorityStatus = ReleasePlanAuthorityStatus::VERIFIED;
     private bool $terminateRunStateHelperOnce = false;
+    /** @var array<string, string> */
+    private array $archiveFileList = [];
+    private ?string $archiveBytesOnce = null;
 
     /**
      * Constructs DeterministicReleaseBoundaryFake
@@ -230,6 +239,87 @@ final class DeterministicReleaseBoundaryFake implements
     public function interruptFinalizedRunProjectionOnce(): void
     {
         $this->interruptFinalizedRunProjectionOnce = true;
+    }
+
+    /**
+     * Configures the deterministic archive file listing
+     *
+     * @param array<string, string> $files Map of archive-relative paths to their content.
+     */
+    public function configureArchiveFileList(array $files): void
+    {
+        $this->archiveFileList = $files;
+    }
+
+    /**
+     * Configures exact deterministic archive bytes for one invocation
+     */
+    public function configureArchiveBytesOnce(string $bytes): void
+    {
+        $this->archiveBytesOnce = $bytes;
+    }
+
+    /**
+     * Creates one deterministic archive through the fake archive boundary
+     *
+     * @phpstan-param list<string> $exclusions
+     */
+    public function createArchive(
+        string $candidateOid,
+        string $version,
+        string $sourceRepositoryPath,
+        array $exclusions
+    ): ArchiveCreateResult {
+        $configuredOutcome = $this->configuredOutcome('archive.create');
+
+        if ($configuredOutcome !== ReleaseBoundaryOutcome::SUCCESS) {
+            $this->recordConfiguredOutcome('archive.create', $configuredOutcome);
+
+            if ($configuredOutcome === ReleaseBoundaryOutcome::ALREADY_SATISFIED) {
+                $digest = hash('sha256', 'deterministic-archive-'.$candidateOid.'-'.$version);
+
+                return ArchiveCreateResult::alreadySatisfied($digest);
+            }
+
+            return ArchiveCreateResult::stopped($configuredOutcome);
+        }
+
+        $archiveName = 'fight-common-v'.$version.'.zip';
+
+        if ($this->archiveBytesOnce !== null) {
+            $bytes = $this->archiveBytesOnce;
+            $this->archiveBytesOnce = null;
+        } else {
+            $bytes = $this->buildDeterministicArchiveBytes($exclusions);
+        }
+
+        $digest = hash('sha256', $bytes);
+        $this->recordEffect('archive.create', ReleaseBoundaryOutcome::SUCCESS);
+        $this->recordEffect('archive.verify', ReleaseBoundaryOutcome::SUCCESS);
+
+        return ArchiveCreateResult::created($sourceRepositoryPath.'/.runs/'.$archiveName, $digest);
+    }
+
+    /**
+     * Derives one bounded archive effect set through the fake archive boundary
+     */
+    public function deriveEffectSet(
+        string $candidateOid,
+        string $version,
+        string $sourceRepositoryPath
+    ): ReleasePackageEffectSet {
+        $archiveName = 'fight-common-v'.$version.'.zip';
+        $includedPaths = array_keys($this->archiveFileList);
+        sort($includedPaths, SORT_STRING);
+        $excludedPaths = [];
+
+        return new ReleasePackageEffectSet(
+            $candidateOid,
+            $version,
+            $archiveName,
+            $includedPaths,
+            $excludedPaths
+        );
     }
 
     /**
@@ -760,6 +850,77 @@ final class DeterministicReleaseBoundaryFake implements
     public function recordObservedEffect(ReleaseEffect $effect, ReleaseBoundaryOutcome $outcome): void
     {
         $this->recordEffect($effect->value, $outcome);
+    }
+
+    /**
+     * Builds deterministic archive bytes for testing
+     *
+     * @phpstan-param list<string> $exclusions
+     */
+    private function buildDeterministicArchiveBytes(array $exclusions): string
+    {
+        $tempDir = sys_get_temp_dir().'/fight-zip-'.bin2hex(random_bytes(8));
+        mkdir($tempDir, 0777, true);
+
+        try {
+            foreach ($this->archiveFileList as $relativePath => $content) {
+                if (in_array($relativePath, $exclusions, true)) {
+                    continue;
+                }
+
+                $targetPath = $tempDir.'/'.$relativePath;
+                $targetDir = dirname($targetPath);
+
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0777, true);
+                }
+
+                file_put_contents($targetPath, $content);
+                touch($targetPath, 315532800);
+            }
+
+            $zipPath = $tempDir.'/archive.zip';
+            $zip = new ZipArchive();
+            $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+            $sortedFiles = array_keys($this->archiveFileList);
+            sort($sortedFiles, SORT_STRING);
+
+            foreach ($sortedFiles as $relativePath) {
+                if (in_array($relativePath, $exclusions, true)) {
+                    continue;
+                }
+
+                $zip->addFile($tempDir.'/'.$relativePath, $relativePath);
+            }
+
+            $zip->close();
+
+            $bytes = file_get_contents($zipPath);
+            assert(is_string($bytes));
+
+            return $bytes;
+        } finally {
+            $this->removeDirectory($tempDir);
+        }
+    }
+
+    /**
+     * Removes one temporary directory tree without emitting native warnings
+     */
+    private function removeDirectory(string $path): void
+    {
+        $iterator = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
+
+        foreach ($iterator as $entry) {
+            if ($entry->isDir()) {
+                $this->removeDirectory($entry->getPathname());
+            } else {
+                unlink($entry->getPathname());
+            }
+        }
+
+        rmdir($path);
     }
 
     /**

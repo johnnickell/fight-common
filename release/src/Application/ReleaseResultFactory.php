@@ -6,6 +6,7 @@ namespace Fight\Release\Application;
 
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffectLedger;
+use Fight\Release\Application\Boundary\ReleasePackageEffectSet;
 use InvalidArgumentException;
 
 /**
@@ -639,5 +640,197 @@ final readonly class ReleaseResultFactory
             'proposed_effects'        => [],
             'next_action'             => ['action' => $classification['next_action']]
         ], $classification['exit_code']);
+    }
+
+    /**
+     * Builds one canonical packaged release result
+     *
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     * @param string $candidateOid Exact candidate commit OID.
+     * @param string $archiveDigest SHA-256 digest of the deterministic archive.
+     *
+     * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function packaged(
+        string $planId,
+        string $runId,
+        string $candidateOid,
+        string $archiveDigest,
+        ReleasePackageEffectSet $effectSet,
+        array $performedEffects
+    ): MachineResult {
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'package',
+            'capability'              => 'release_packaging',
+            'status'                  => 'packaged',
+            'exit_class'              => 'success',
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'candidate_oid'           => $candidateOid,
+            'archive_digest'          => $archiveDigest,
+            'effect_set'              => $effectSet->toArray(),
+            'findings'                => [[
+                'id'      => 'release.package.completed',
+                'message' => 'The deterministic release archive was created and its identity was bound.'
+            ]],
+            'verified_postconditions' => [
+                'phase_handoff_revalidated',
+                'archive_created_and_verified'
+            ],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'certify_release_package']
+        ], 0);
+    }
+
+    /**
+     * Builds one effect-set refusal stop for a package whose effects were not approved
+     *
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     *
+     * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function packageRefusal(
+        string $planId,
+        string $runId,
+        array $performedEffects
+    ): MachineResult {
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'package',
+            'capability'              => 'release_packaging',
+            'status'                  => 'authority_required',
+            'exit_class'              => 'refused',
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'findings'                => [[
+                'id'      => 'release.package.effect_set_refused',
+                'message' => 'The packaging effect set was not approved for the exact bounded local effects.'
+            ]],
+            'verified_postconditions' => [],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'approve_exact_packaging_effects']
+        ], 3);
+    }
+
+    /**
+     * Builds one already-satisfied result when a matching archived already exists
+     *
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     * @param string $candidateOid Exact candidate commit OID.
+     * @param string $archiveDigest SHA-256 digest of the existing archive.
+     *
+     * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function packageAlreadySatisfied(
+        string $planId,
+        string $runId,
+        string $candidateOid,
+        string $archiveDigest,
+        ReleasePackageEffectSet $effectSet,
+        array $performedEffects
+    ): MachineResult {
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'package',
+            'capability'              => 'release_packaging',
+            'status'                  => 'packaged',
+            'exit_class'              => 'success',
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'candidate_oid'           => $candidateOid,
+            'archive_digest'          => $archiveDigest,
+            'effect_set'              => $effectSet->toArray(),
+            'findings'                => [[
+                'id'      => 'release.package.already_satisfied',
+                'message' => 'The deterministic release archive already existed and was verified.'
+            ]],
+            'verified_postconditions' => [
+                'phase_handoff_revalidated',
+                'archive_already_persisted'
+            ],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'certify_release_package']
+        ], 0);
+    }
+
+    /**
+     * Builds one classified archive-creation stop
+     *
+     * @param string $stop Classified archive stop.
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     *
+     * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function packageArchiveStop(
+        string $stop,
+        string $planId,
+        string $runId,
+        array $performedEffects
+    ): MachineResult {
+        [$status, $exitClass, $exitCode, $finding, $message, $action] = match ($stop) {
+            'archive_refused' => [
+                'authority_required',
+                'refused',
+                3,
+                'release.package.archive_creation_refused',
+                'The deterministic archive creation was refused by the archive provider.',
+                'obtain_archive_creation_authority'
+            ],
+            'archive_failed' => [
+                'policy_blocked',
+                'failed',
+                4,
+                'release.package.archive_creation_failed',
+                'The deterministic archive could not be created.',
+                'repair_archive_creation_provider'
+            ],
+            'archive_uncertain' => [
+                'evidence_indeterminate',
+                'uncertain',
+                5,
+                'release.package.archive_creation_uncertain',
+                'The archive creation outcome could not be determined.',
+                'reconcile_archive_creation'
+            ],
+            'archive_drift' => [
+                'stale_plan',
+                'drifted',
+                6,
+                'release.package.archive_creation_drift',
+                'The candidate commit identity drifted during archive creation.',
+                'create_current_release_plan'
+            ],
+            default => [
+                'evidence_indeterminate',
+                'uncertain',
+                5,
+                'release.package.archive_creation_indeterminate',
+                'The archive creation state is indeterminate.',
+                'reconcile_archive_creation'
+            ]
+        };
+
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'package',
+            'capability'              => 'release_packaging',
+            'status'                  => $status,
+            'exit_class'              => $exitClass,
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'findings'                => [['id' => $finding, 'message' => $message]],
+            'verified_postconditions' => [],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => $action]
+        ], $exitCode);
     }
 }
