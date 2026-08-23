@@ -27,12 +27,7 @@ final readonly class ReleaseResultFactory
      */
     public function runtimeFailure(string $requestedCommand): MachineResult
     {
-        [$command, $capability] = match ($requestedCommand) {
-            'inspect' => ['inspect', 'release_inspection'],
-            'plan' => ['plan', 'release_planning'],
-            'prepare' => ['prepare', 'release_preparation'],
-            default => ['unknown', 'unsupported_command'],
-        };
+        [$command, $capability] = ReleaseCommand::runtimeMetadata($requestedCommand);
 
         return new MachineResult([
             'schema_version'          => 'fight-common.release-result/v1',
@@ -56,12 +51,7 @@ final readonly class ReleaseResultFactory
      */
     public function runtimeTermination(string $requestedCommand): MachineResult
     {
-        [$command, $capability] = match ($requestedCommand) {
-            'inspect' => ['inspect', 'release_inspection'],
-            'plan' => ['plan', 'release_planning'],
-            'prepare' => ['prepare', 'release_preparation'],
-            default => ['unknown', 'unsupported_command'],
-        };
+        [$command, $capability] = ReleaseCommand::runtimeMetadata($requestedCommand);
 
         return new MachineResult([
             'schema_version'          => 'fight-common.release-result/v1',
@@ -92,12 +82,7 @@ final readonly class ReleaseResultFactory
         string $nextAction,
         ?array $performedEffects = null
     ): MachineResult {
-        $capability = match ($command) {
-            'inspect' => 'release_inspection',
-            'plan' => 'release_planning',
-            'prepare' => 'release_preparation',
-            default => 'unsupported_command',
-        };
+        $capability = ReleaseCommand::capabilityFor($command);
 
         $payload = [
             'schema_version'          => 'fight-common.release-result/v1',

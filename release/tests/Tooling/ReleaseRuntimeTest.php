@@ -295,56 +295,54 @@ BASH
     }
 
     /**
-     * Covers the closed bootstrap command vocabulary for a preparation request.
+     * Covers the closed bootstrap command vocabulary through the shell fallback resolver.
      *
      * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
      */
-    public function test_that_prepare_bootstrap_failure_retains_its_supported_command_identity(): void
+    public function test_that_bootstrap_failure_retains_supported_command_identity_and_normalizes_unknowns(): void
     {
-        $process = new Process(
-            ['bash', 'bin/release', 'prepare', '--plan=/plan.json'],
-            $this->directory,
-            [
-                'DOCKER_BIN'        => $this->directory.'/docker',
-                'FAKE_BUILD_STATUS' => '17',
-                'FAKE_DOCKER_LOG'   => $this->directory.'/docker-prepare-build-failure.log'
-            ],
-            null,
-            20
-        );
-        $process->run();
+        foreach (['inspect', 'plan', 'prepare', 'compatibility', 'publish'] as $requestedCommand) {
+            $process = new Process(
+                ['bash', 'bin/release', $requestedCommand],
+                $this->directory,
+                [
+                    'DOCKER_BIN'        => $this->directory.'/docker',
+                    'FAKE_BUILD_STATUS' => '17',
+                    'FAKE_DOCKER_LOG'   => $this->directory.'/docker-'.$requestedCommand.'-build-failure.log'
+                ],
+                null,
+                20
+            );
+            $process->run();
 
-        $this->assertRuntimeBootstrapFailure($process, 'prepare');
-        $payload = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame('prepare', $payload['command']);
-        self::assertSame('release_preparation', $payload['capability']);
+            $this->assertRuntimeBootstrapFailure($process, $requestedCommand);
+        }
     }
 
     /**
-     * Covers the closed post-start command vocabulary for a preparation request.
+     * Covers the closed post-start command vocabulary through the shell fallback resolver.
      *
      * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
      */
-    public function test_that_prepare_runtime_termination_retains_its_supported_command_identity(): void
+    public function test_that_runtime_termination_retains_supported_command_identity_and_normalizes_unknowns(): void
     {
-        $process = new Process(
-            ['bash', 'bin/release', 'prepare', '--plan=/plan.json'],
-            $this->directory,
-            [
-                'DOCKER_BIN'                => $this->directory.'/docker',
-                'FAKE_CONTAINER_STATUS'     => '125',
-                'FAKE_DOCKER_LOG'           => $this->directory.'/docker-prepare-termination.log',
-                'FAKE_WRITE_CID_ON_FAILURE' => '1'
-            ],
-            null,
-            20
-        );
-        $process->run();
+        foreach (['inspect', 'plan', 'prepare', 'compatibility', 'publish'] as $requestedCommand) {
+            $process = new Process(
+                ['bash', 'bin/release', $requestedCommand],
+                $this->directory,
+                [
+                    'DOCKER_BIN'                => $this->directory.'/docker',
+                    'FAKE_CONTAINER_STATUS'     => '125',
+                    'FAKE_DOCKER_LOG'           => $this->directory.'/docker-'.$requestedCommand.'-termination.log',
+                    'FAKE_WRITE_CID_ON_FAILURE' => '1'
+                ],
+                null,
+                20
+            );
+            $process->run();
 
-        $this->assertRuntimeTermination($process, 'prepare');
-        $payload = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame('prepare', $payload['command']);
-        self::assertSame('release_preparation', $payload['capability']);
+            $this->assertRuntimeTermination($process, $requestedCommand);
+        }
     }
 
     /**
