@@ -12,6 +12,7 @@ use Fight\Release\Application\Boundary\ReleaseBoundaryOperationResult;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
 use Fight\Release\Application\StableSemVer;
+use UnexpectedValueException;
 
 /**
  * Class LocalGitPort
@@ -65,6 +66,30 @@ final readonly class LocalGitPort implements GitPort
         }
 
         return ReleaseBoundaryOperationResult::stopped($outcome);
+    }
+
+    /**
+     * Resolves one exact annotated tag without normalized-version or candidate-order inference
+     */
+    public function resolveExactAnnotatedTag(string $tagName): BaselineTagResolutionResult
+    {
+        [$referenceStatus, $tagObject] = $this->git([
+            'rev-parse', '--verify', '--quiet', 'refs/tags/'.$tagName
+        ]);
+        $referenceStatus === 0 || throw new UnexpectedValueException('The exact tag reference is unavailable.');
+        preg_match('/\A[0-9a-f]{40,64}\z/D', $tagObject) === 1
+            || throw new UnexpectedValueException('The exact tag object identity is invalid.');
+
+        [$typeStatus, $type] = $this->git(['cat-file', '-t', $tagObject]);
+        ($typeStatus === 0 && $type === 'tag')
+            || throw new UnexpectedValueException('The exact tag is not annotated.');
+
+        [$peeledStatus, $peeled] = $this->git(['rev-parse', '--verify', $tagObject.'^{commit}']);
+        ($peeledStatus === 0 && preg_match('/\A[0-9a-f]{40,64}\z/D', $peeled) === 1)
+            || throw new UnexpectedValueException('The exact tag cannot be peeled to a commit.');
+        $this->record(ReleaseBoundaryOutcome::SUCCESS);
+
+        return BaselineTagResolutionResult::resolved($tagName, $tagObject, $peeled);
     }
 
     /**
@@ -237,7 +262,7 @@ final readonly class LocalGitPort implements GitPort
     {
         $pipes = [];
         $process = @proc_open(
-            [$this->gitBinary, ...$arguments],
+            [$this->gitBinary, '-c', 'safe.directory='.$this->repository, ...$arguments],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
             $pipes,
             $this->repository,

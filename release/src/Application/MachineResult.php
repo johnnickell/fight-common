@@ -236,12 +236,13 @@ final readonly class MachineResult
         $command = $payload['command'] ?? null;
         $capability = $payload['capability'] ?? null;
         $classification = [$payload['status'] ?? null, $payload['exit_class'] ?? null];
-        $expectedCapability = match ($command) {
-            'inspect' => 'release_inspection',
-            'plan' => 'release_planning',
-            'prepare' => 'release_preparation',
-            default => 'unsupported_command',
-        };
+        $releaseCommand = is_string($command) ? ReleaseCommand::tryFrom($command) : null;
+        $expectedCapability = ReleaseCommand::UNSUPPORTED_CAPABILITY;
+
+        if (is_string($command)) {
+            $expectedCapability = ReleaseCommand::capabilityFor($command);
+        }
+
         $expectedClassification = match ($processExitCode) {
             0 => [$command === 'prepare' ? 'prepared' : 'succeeded', 'success'],
             2 => ['policy_blocked', 'invalid_input'],
@@ -265,7 +266,7 @@ final readonly class MachineResult
             || $payload['exit_code'] !== $processExitCode
             || $expectedClassification === null
             || $classification !== $expectedClassification
-            || !self::isFindings($payload['findings'] ?? null, $classification, $processExitCode)
+            || !self::isFindings($payload['findings'] ?? null, $classification, $processExitCode, $command)
             || !self::isStringList($payload['verified_postconditions'] ?? null)
             || !self::isPerformedEffects($payload['performed_effects'] ?? null)
             || !self::isProposedEffects($payload['proposed_effects'] ?? null)
@@ -296,22 +297,18 @@ final readonly class MachineResult
                 };
         }
 
-        $optional = match ($command) {
-            'inspect' => ['resolved_inputs', 'recommendation'],
-            'plan' => ['plan_id', 'artifact'],
-            'prepare' => ['plan_id', 'run_id', 'run_state', 'artifacts'],
-            default => [],
-        };
+        $optional = $releaseCommand?->optionalResultFields() ?? [];
 
         if (array_diff(array_keys($payload), [...$required, ...$optional]) !== []) {
             return false;
         }
 
-        return match ($command) {
-            'inspect' => self::isInspectionFields($payload),
-            'plan' => self::isPlanFields($payload),
-            'prepare' => self::isPrepareFields($payload),
-            default => true,
+        return match ($releaseCommand) {
+            ReleaseCommand::INSPECT => self::isInspectionFields($payload),
+            ReleaseCommand::PLAN => self::isPlanFields($payload),
+            ReleaseCommand::PREPARE => self::isPrepareFields($payload),
+            ReleaseCommand::COMPATIBILITY => self::isCompatibilityFields($payload),
+            null => true,
         };
     }
 
@@ -322,7 +319,7 @@ final readonly class MachineResult
      */
     private static function isRuntimeBootstrapFailure(array $payload): bool
     {
-        return in_array($payload['command'], ['inspect', 'plan', 'prepare', 'unknown'], true)
+        return ReleaseCommand::isRuntimeCommand($payload['command'])
             && $payload['findings'] === [[
                 'id'      => self::RUNTIME_FAILURE_FINDING,
                 'message' => self::RUNTIME_FAILURE_MESSAGE
@@ -340,7 +337,7 @@ final readonly class MachineResult
      */
     private static function isRuntimeTermination(array $payload): bool
     {
-        return in_array($payload['command'], ['inspect', 'plan', 'prepare', 'unknown'], true)
+        return ReleaseCommand::isRuntimeCommand($payload['command'])
             && $payload['findings'] === [[
                 'id'      => self::RUNTIME_TERMINATION_FINDING,
                 'message' => self::RUNTIME_TERMINATION_MESSAGE
@@ -357,15 +354,23 @@ final readonly class MachineResult
      * @param mixed                     $findings       Candidate finding list.
      * @param array{0: mixed, 1: mixed} $classification Result status and exit class.
      */
-    private static function isFindings(mixed $findings, array $classification, int $exitCode): bool
-    {
+    private static function isFindings(
+        mixed $findings,
+        array $classification,
+        int $exitCode,
+        string $command
+    ): bool {
         if (!is_array($findings) || !array_is_list($findings) || $findings === []) {
             return false;
         }
 
         return array_all(
             $findings,
-            static function (mixed $finding) use ($classification, $exitCode): bool {
+            static function (mixed $finding) use ($classification, $exitCode, $command): bool {
+                if ($command === 'compatibility' && CompatibilityFinding::isMachineFinding($finding)) {
+                    return $classification === ['evidence_indeterminate', 'uncertain'] && $exitCode === 5;
+                }
+
                 if (
                     !is_array($finding)
                     || !is_string($finding['id'] ?? null)
@@ -525,6 +530,54 @@ final readonly class MachineResult
 
         return !isset($nextAction['version'])
             || ($command === 'inspect' && is_string($nextAction['version']) && $nextAction['version'] !== '');
+    }
+
+    /**
+     * Validates the read-only composed compatibility evidence result
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isCompatibilityFields(array $payload): bool
+    {
+        if (($payload['exit_code'] ?? null) !== 0) {
+            return !isset($payload['evidence'])
+                && $payload['verified_postconditions'] === []
+                && $payload['performed_effects'] === []
+                && $payload['proposed_effects'] === [];
+        }
+
+        $evidence = $payload['evidence'] ?? null;
+        if (!is_array($evidence) || array_keys($evidence) !== ['manifest', 'structural', 'consumer']) {
+            return false;
+        }
+
+        $manifest = $evidence['manifest'];
+        $structural = $evidence['structural'];
+        $consumer = $evidence['consumer'];
+
+        return is_array($manifest)
+            && ($manifest['status'] ?? null) === 'valid'
+            && is_array($manifest['baseline'] ?? null)
+            && ($manifest['baseline']['version'] ?? null) === '1.1.0'
+            && is_array($structural)
+            && ($structural['status'] ?? null) === 'valid'
+            && in_array($structural['classification'] ?? null, ['patch', 'minor', 'major'], true)
+            && is_array($structural['findings'] ?? null)
+            && array_is_list($structural['findings'])
+            && is_array($consumer)
+            && ($consumer['schema_version'] ?? null) === 'fight-common.disposable-public-consumer/v1'
+            && ($consumer['status'] ?? null) === 'valid'
+            && ($consumer['resolved_package']['installed_as'] ?? null) === 'copy'
+            && is_string($consumer['lock']['sha256'] ?? null)
+            && preg_match('/\A[0-9a-f]{64}\z/D', $consumer['lock']['sha256']) === 1
+            && $payload['verified_postconditions'] === [
+                'compatibility_manifest_authenticated',
+                'structural_evidence_composed',
+                'disposable_public_consumer_verified'
+            ]
+            && $payload['performed_effects'] === []
+            && $payload['proposed_effects'] === []
+            && $payload['next_action'] === ['action' => 'review_compatibility_evidence'];
     }
 
     /**

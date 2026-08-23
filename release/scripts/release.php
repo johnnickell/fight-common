@@ -7,15 +7,22 @@ require __DIR__.'/../../vendor/autoload.php';
 
 use Fight\Release\Adapter\ArtifactReleasePlanAuthority;
 use Fight\Release\Adapter\CryptographicRunIdGenerator;
+use Fight\Release\Adapter\DisposablePublicConsumer;
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
+use Fight\Release\Adapter\GitBaselineStructuralInventory;
+use Fight\Release\Adapter\LocalCompatibilityInput;
+use Fight\Release\Adapter\LocalCompatibilityWorkspace;
 use Fight\Release\Adapter\LocalGitPort;
+use Fight\Release\Adapter\PhpParserStructuralInventory;
 use Fight\Release\Adapter\ReleaseFixtureLoader;
 use Fight\Release\Application\Boundary\ReleaseBoundaryCrash;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
 use Fight\Release\Application\Boundary\ReleaseRuntimeTermination;
 use Fight\Release\Application\CanonicalJson;
+use Fight\Release\Application\CompatibilityAssessmentService;
 use Fight\Release\Application\MachineResult;
+use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseInspectionService;
 use Fight\Release\Application\ReleasePlanCapabilityFirewall;
 use Fight\Release\Application\ReleasePlanFactory;
@@ -352,11 +359,11 @@ try {
         ));
     }
 
-    if (!in_array($command, ['inspect', 'plan', 'prepare'], true)) {
+    if (ReleaseCommand::tryFrom($command) === null) {
         dispatch_release_result($results->failure(
             $command,
             'release.command.unsupported',
-            'Only the inspect, plan, and prepare commands are available.',
+            'Only the inspect, plan, prepare, and compatibility commands are available.',
             'run_supported_release_command'
         ));
     }
@@ -368,6 +375,34 @@ try {
             'The command exposes its in-memory boundary ledger in the result and does not write ledger artifacts.',
             'read_performed_effects'
         ));
+    }
+
+    if ($command === 'compatibility') {
+        if ($arguments !== []) {
+            dispatch_release_result($results->failure(
+                'compatibility',
+                'release.compatibility.arguments_invalid',
+                'Compatibility accepts no caller-supplied policy, fixture, or success evidence.',
+                'run_repository_compatibility_authority'
+            ));
+        }
+
+        $effects = static function (ReleaseEffect $_effect, ReleaseBoundaryOutcome $_outcome): void {
+        };
+        $git = new LocalGitPort($repositoryRoot, $effects);
+        $input = new LocalCompatibilityInput();
+        $workspace = new LocalCompatibilityWorkspace();
+        $inventory = new PhpParserStructuralInventory($input);
+        $result = new CompatibilityAssessmentService(
+            $input,
+            $workspace,
+            $inventory,
+            new GitBaselineStructuralInventory($repositoryRoot, $workspace, $inventory),
+            $git,
+            new DisposablePublicConsumer()
+        )->assess($repositoryRoot);
+
+        dispatch_release_result($result);
     }
 
     if ($command === 'plan') {

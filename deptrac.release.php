@@ -14,15 +14,19 @@ return static function (DeptracConfig $config, string ...$paths): void {
         ->paths(...$paths)
         ->layers(
             $releaseApplication = Layer::withName('Release Application')->collectors(
-                ClassLikeConfig::create('^Fight\\Release\\Application\\'),
+                ClassLikeConfig::create('^Fight\\Release\\Application\\')
             ),
             $releaseAdapter = Layer::withName('Release Adapter')->collectors(
-                ClassLikeConfig::create('^Fight\\Release\\Adapter\\'),
+                ClassLikeConfig::create('^Fight\\Release\\Adapter\\')
             ),
+            $phpParser = Layer::withName('PhpParser tooling')->collectors(
+                ClassLikeConfig::create('^PhpParser\\')
+            )
         )
         ->rulesets(
             Ruleset::forLayer($releaseApplication)->accesses($phpInternals),
-            Ruleset::forLayer($releaseAdapter)->accesses($releaseApplication, $phpInternals),
+            Ruleset::forLayer($releaseAdapter)->accesses($releaseApplication, $phpInternals, $phpParser),
+            Ruleset::forLayer($phpParser)
         )
     ;
 };

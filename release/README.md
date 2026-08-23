@@ -11,6 +11,12 @@ does not register root-package development autoloading when Fight Common is inst
 may therefore be present in a distribution archive while remaining unavailable to a consumer's autoloader and
 IDE completion surface.
 
+Until T-00054 owns final production-only archive certification, Fight Common intentionally uses Composer's default
+archive configuration: no custom archive name and no explicit exclusion list. The production-autoloaded content
+roots are `src` and `tests/TestCase`; the maintainer-only `release` module may be exported but remains excluded from
+production autoloading. This records the current package-content boundary without certifying an exact archive
+member list.
+
 ## Layout
 
 - `src/` contains release application policy, boundaries, and adapters.

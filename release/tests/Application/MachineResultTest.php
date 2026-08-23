@@ -8,6 +8,7 @@ use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
 use Fight\Release\Application\CompatibilityAssessment;
 use Fight\Release\Application\MachineResult;
+use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseResultFactory;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use InvalidArgumentException;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 #[CoversClass(MachineResult::class)]
+#[CoversClass(ReleaseCommand::class)]
 #[CoversClass(ReleaseEffect::class)]
 #[CoversClass(CompatibilityAssessment::class)]
 /**
@@ -133,10 +135,11 @@ final class MachineResultTest extends UnitTestCase
     {
         foreach (
             [
-            'inspect' => 'release_inspection',
-            'plan'    => 'release_planning',
-            'prepare' => 'release_preparation',
-            'unknown' => 'unsupported_command'
+            'inspect'       => 'release_inspection',
+            'plan'          => 'release_planning',
+            'prepare'       => 'release_preparation',
+            'compatibility' => 'compatibility_assessment',
+            'unknown'       => 'unsupported_command'
             ] as $command => $capability
         ) {
             self::assertTrue(MachineResult::isValidPayload(
@@ -1256,6 +1259,70 @@ final class MachineResultTest extends UnitTestCase
     }
 
     /**
+     * Covers the closed success and fail-closed shapes for compatibility evidence.
+     */
+    public function test_that_compatibility_results_require_complete_read_only_evidence(): void
+    {
+        $success = $this->compatibilityPayload();
+        self::assertTrue(MachineResult::isValidPayload($success, 0));
+        self::assertSame(0, new MachineResult($success, 0)->exitCode);
+
+        $failure = $this->payload();
+        $failure['command'] = 'compatibility';
+        $failure['capability'] = 'compatibility_assessment';
+        $failure['status'] = 'evidence_indeterminate';
+        $failure['exit_class'] = 'uncertain';
+        $failure['exit_code'] = 5;
+        self::assertTrue(MachineResult::isValidPayload($failure, 5));
+
+        $invalid = $success;
+        $invalid['evidence']['consumer']['lock']['sha256'] = 'untrusted';
+        self::assertFalse(MachineResult::isValidPayload($invalid, 0));
+
+        $invalid = $success;
+        $invalid['evidence'] = [];
+        self::assertFalse(MachineResult::isValidPayload($invalid, 0));
+    }
+
+    /**
+     * Covers acceptance of one exact attributed compatibility-authority failure at the public result seam.
+     */
+    public function test_that_compatibility_accepts_an_authenticated_attributed_failure_finding(): void
+    {
+        $result = new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'compatibility',
+            'capability'              => 'compatibility_assessment',
+            'status'                  => 'evidence_indeterminate',
+            'exit_class'              => 'uncertain',
+            'findings'                => [[
+                'id'          => 'release.compatibility.structural-api.missing-classification',
+                'message'     => 'Structural compatibility authority rejected the evidence.',
+                'attribution' => 'compatibility-manifest',
+                'subject'     => 'Fight\\Common\\Domain\\Value\\UnclassifiedValue',
+                'operation'   => null
+            ]],
+            'verified_postconditions' => [],
+            'performed_effects'       => [],
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'restore_manifest_evidence_and_retry']
+        ], 5);
+
+        self::assertSame(5, $result->exitCode);
+        self::assertSame([
+            'id'          => 'release.compatibility.structural-api.missing-classification',
+            'message'     => 'Structural compatibility authority rejected the evidence.',
+            'attribution' => 'compatibility-manifest',
+            'subject'     => 'Fight\\Common\\Domain\\Value\\UnclassifiedValue',
+            'operation'   => null
+        ], $result->payload['findings'][0]);
+        self::assertSame(
+            ['action' => 'restore_manifest_evidence_and_retry'],
+            $result->payload['next_action']
+        );
+    }
+
+    /**
      * Covers fail-closed construction of semantically incomplete successful results.
      *
      * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -1336,6 +1403,41 @@ final class MachineResultTest extends UnitTestCase
             ],
             'verified_postconditions' => ['minimum_increment_recommendation_derived'],
             'next_action'             => ['action' => 'approve_exact_version_for_plan', 'version' => '1.0.1']
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function compatibilityPayload(): array
+    {
+        return [
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'compatibility',
+            'capability'              => 'compatibility_assessment',
+            'status'                  => 'succeeded',
+            'exit_class'              => 'success',
+            'exit_code'               => 0,
+            'findings'                => [[
+                'id'      => 'release.compatibility.harness-completed',
+                'message' => 'Repository-owned compatibility evidence completed without certifying release.'
+            ]],
+            'verified_postconditions' => [
+                'compatibility_manifest_authenticated',
+                'structural_evidence_composed',
+                'disposable_public_consumer_verified'
+            ],
+            'performed_effects'       => [],
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'review_compatibility_evidence'],
+            'evidence'                => [
+                'manifest'   => ['status' => 'valid', 'baseline' => ['version' => '1.1.0']],
+                'structural' => ['status' => 'valid', 'classification' => 'minor', 'findings' => []],
+                'consumer'   => [
+                    'schema_version'   => 'fight-common.disposable-public-consumer/v1',
+                    'status'           => 'valid',
+                    'resolved_package' => ['installed_as' => 'copy'],
+                    'lock'             => ['sha256' => str_repeat('a', 64)]
+                ]
+            ]
         ];
     }
 
