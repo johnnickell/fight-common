@@ -5,7 +5,7 @@
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../fight-framework-portability-map.md)
 **Specification:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../specs/00014-PRD.md)
-**Implementation tickets:** T-00047 through T-00056 plus T-00059 and T-00060 in the canonical Fight Common
+**Implementation tickets:** T-00047 through T-00056 plus T-00059, T-00060, and T-00069 in the canonical Fight Common
 ticket tracker
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md), [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md), [Define the portable AccessControl and persistence boundaries](WF-012-access-control-and-persistence-boundaries.md), [Define starter product, governance, and documentation standards](WF-013-starter-product-governance-and-documentation.md)
 
