@@ -6,6 +6,7 @@ namespace Fight\Release\Application;
 
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
+use Fight\Release\Application\Boundary\ReleasePackageEffectSet;
 use InvalidArgumentException;
 
 /**
@@ -243,8 +244,14 @@ final readonly class MachineResult
             $expectedCapability = ReleaseCommand::capabilityFor($command);
         }
 
+        $successStatus = match ($command) {
+            'prepare' => 'prepared',
+            'package' => 'packaged',
+            default => 'succeeded'
+        };
+
         $expectedClassification = match ($processExitCode) {
-            0 => [$command === 'prepare' ? 'prepared' : 'succeeded', 'success'],
+            0 => [$successStatus, 'success'],
             2 => ['policy_blocked', 'invalid_input'],
             3 => ['authority_required', 'refused'],
             4 => ['policy_blocked', 'failed'],
@@ -307,6 +314,7 @@ final readonly class MachineResult
             ReleaseCommand::INSPECT => self::isInspectionFields($payload),
             ReleaseCommand::PLAN => self::isPlanFields($payload),
             ReleaseCommand::PREPARE => self::isPrepareFields($payload),
+            ReleaseCommand::PACKAGE => self::isPackageFields($payload),
             ReleaseCommand::COMPATIBILITY => self::isCompatibilityFields($payload),
             null => true,
         };
@@ -1465,5 +1473,250 @@ final readonly class MachineResult
         $version = substr($tag, 1);
 
         return StableSemVer::isValid($version) ? $version : null;
+    }
+
+    /**
+     * Validates optional package result fields
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isPackageFields(array $payload): bool
+    {
+        foreach (['plan_id', 'run_id'] as $field) {
+            if (
+                isset($payload[$field])
+                && (!is_string($payload[$field]) || preg_match('/\A[0-9a-f]{64}\z/D', $payload[$field]) !== 1)
+            ) {
+                return false;
+            }
+        }
+
+        if (
+            isset($payload['candidate_oid'])
+            && (!is_string($payload['candidate_oid'])
+                || preg_match('/\A[0-9a-f]{40,64}\z/D', $payload['candidate_oid']) !== 1)
+        ) {
+            return false;
+        }
+
+        if (isset($payload['archive_digest'])) {
+            if (
+                !is_string($payload['archive_digest'])
+                || preg_match('/\A[0-9a-f]{64}\z/D', $payload['archive_digest']) !== 1
+            ) {
+                return false;
+            }
+        }
+
+        if (isset($payload['effect_set'])) {
+            $effectSet = $payload['effect_set'];
+
+            if (
+                !is_array($effectSet)
+                || ($effectSet['schema_version'] ?? null) !== ReleasePackageEffectSet::SCHEMA_VERSION
+                || !is_string($effectSet['effect_set_id'] ?? null)
+                || preg_match('/\A[0-9a-f]{64}\z/D', $effectSet['effect_set_id']) !== 1
+                || !is_string($effectSet['candidate_oid'] ?? null)
+                || !is_string($effectSet['version'] ?? null)
+                || !is_string($effectSet['archive_name'] ?? null)
+                || !is_array($effectSet['included_paths'] ?? null)
+                || !array_is_list($effectSet['included_paths'])
+                || !is_array($effectSet['excluded_paths'] ?? null)
+                || !array_is_list($effectSet['excluded_paths'])
+                || array_keys($effectSet) !== [
+                    'schema_version',
+                    'effect_set_id',
+                    'candidate_oid',
+                    'version',
+                    'archive_name',
+                    'included_paths',
+                    'excluded_paths'
+                ]
+            ) {
+                return false;
+            }
+        }
+
+        if (($payload['exit_code'] ?? null) !== 0) {
+            $findingId = $payload['findings'][0]['id'] ?? null;
+
+            if (($payload['exit_code'] ?? null) === 2) {
+                return self::isPackageInputFailure($payload);
+            }
+
+            return self::isPackageStop($payload, $findingId);
+        }
+
+        if (!isset($payload['plan_id'], $payload['run_id'], $payload['candidate_oid'], $payload['archive_digest'])) {
+            return false;
+        }
+
+        $created = $payload['findings'] === [[
+            'id'      => 'release.package.completed',
+            'message' => 'The deterministic release archive was created and its identity was bound.'
+        ]] && $payload['verified_postconditions'] === [
+            'phase_handoff_revalidated',
+            'archive_created_and_verified'
+        ];
+        $alreadySatisfied = $payload['findings'] === [[
+            'id'      => 'release.package.already_satisfied',
+            'message' => 'The deterministic release archive already existed and was verified.'
+        ]] && $payload['verified_postconditions'] === [
+            'phase_handoff_revalidated',
+            'archive_already_persisted'
+        ];
+
+        return ($created || $alreadySatisfied)
+            && $payload['next_action'] === ['action' => 'certify_release_package']
+            && isset($payload['effect_set']);
+    }
+
+    /**
+     * Validates one exact pre-identity package rejection
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isPackageInputFailure(array $payload): bool
+    {
+        $findingId = $payload['findings'][0]['id'] ?? null;
+
+        $expected = match ($findingId) {
+            'release.package.handoff_forbidden' => [
+                'release.package.handoff_forbidden',
+                'Packaging requires one phase handoff below the repository .runs directory.',
+                'select_immutable_phase_handoff',
+                []
+            ],
+            'release.package.handoff_unreadable' => [
+                'release.package.handoff_unreadable',
+                'The phase handoff could not be read.',
+                'select_immutable_phase_handoff',
+                []
+            ],
+            'release.package.handoff_invalid' => [
+                'release.package.handoff_invalid',
+                'The phase handoff failed canonical identity or binding revalidation.',
+                'create_current_release_plan',
+                []
+            ],
+            'release.package.effect_set_derivation_failed' => [
+                'release.package.effect_set_derivation_failed',
+                'The archive effect set could not be derived from the candidate commit.',
+                'repair_release_repository_storage',
+                []
+            ],
+            'release.package.approval_unreadable' => [
+                'release.package.approval_unreadable',
+                'The package approval could not be read.',
+                'provide_valid_package_approval',
+                []
+            ],
+            'release.package.approval_invalid' => [
+                'release.package.approval_invalid',
+                'The package approval must be valid JSON.',
+                'provide_valid_package_approval',
+                []
+            ],
+            default => null
+        };
+
+        if ($expected === null) {
+            return false;
+        }
+
+        $message = $payload['findings'][0]['message'] ?? null;
+
+        return $message === $expected[1]
+            && $payload['verified_postconditions'] === []
+            && $payload['proposed_effects'] === []
+            && $payload['next_action'] === ['action' => $expected[2]]
+            && array_intersect(
+                array_keys($payload),
+                ['plan_id', 'run_id', 'candidate_oid', 'archive_digest', 'effect_set', 'handoff']
+            ) === [];
+    }
+
+    /**
+     * Validates one exact artifact-backed package stop
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isPackageStop(array $payload, mixed $findingId): bool
+    {
+        return match ($findingId) {
+            'release.package.effect_set_refused' => (
+                ($payload['status'] ?? null) === 'authority_required'
+                && ($payload['exit_class'] ?? null) === 'refused'
+                && ($payload['exit_code'] ?? null) === 3
+                && $payload['findings'] === [[
+                    'id'      => 'release.package.effect_set_refused',
+                    'message' => 'The packaging effect set was not approved for the exact bounded local effects.'
+                ]]
+                && $payload['verified_postconditions'] === []
+                && $payload['proposed_effects'] === []
+                && $payload['next_action'] === ['action' => 'approve_exact_packaging_effects']
+                && isset($payload['plan_id'], $payload['run_id'])
+            ),
+            'release.package.archive_creation_refused' => self::isPackageArchiveStop(
+                $payload,
+                'authority_required', 'refused', 3,
+                'release.package.archive_creation_refused',
+                'The deterministic archive creation was refused by the archive provider.',
+                'obtain_archive_creation_authority'
+            ),
+            'release.package.archive_creation_failed' => self::isPackageArchiveStop(
+                $payload,
+                'policy_blocked', 'failed', 4,
+                'release.package.archive_creation_failed',
+                'The deterministic archive could not be created.',
+                'repair_archive_creation_provider'
+            ),
+            'release.package.archive_creation_uncertain' => self::isPackageArchiveStop(
+                $payload,
+                'evidence_indeterminate', 'uncertain', 5,
+                'release.package.archive_creation_uncertain',
+                'The archive creation outcome could not be determined.',
+                'reconcile_archive_creation'
+            ),
+            'release.package.archive_creation_drift' => self::isPackageArchiveStop(
+                $payload,
+                'stale_plan', 'drifted', 6,
+                'release.package.archive_creation_drift',
+                'The candidate commit identity drifted during archive creation.',
+                'create_current_release_plan'
+            ),
+            'release.package.archive_creation_indeterminate' => self::isPackageArchiveStop(
+                $payload,
+                'evidence_indeterminate', 'uncertain', 5,
+                'release.package.archive_creation_indeterminate',
+                'The archive creation state is indeterminate.',
+                'reconcile_archive_creation'
+            ),
+            default => false
+        };
+    }
+
+    /**
+     * Validates one package archive-classified stop
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isPackageArchiveStop(
+        array $payload,
+        string $expectedStatus,
+        string $expectedExitClass,
+        int $expectedExitCode,
+        string $expectedFindingId,
+        string $expectedMessage,
+        string $expectedAction
+    ): bool {
+        return ($payload['status'] ?? null) === $expectedStatus
+            && ($payload['exit_class'] ?? null) === $expectedExitClass
+            && ($payload['exit_code'] ?? null) === $expectedExitCode
+            && $payload['findings'] === [['id' => $expectedFindingId, 'message' => $expectedMessage]]
+            && $payload['verified_postconditions'] === []
+            && $payload['proposed_effects'] === []
+            && $payload['next_action'] === ['action' => $expectedAction]
+            && isset($payload['plan_id'], $payload['run_id']);
     }
 }

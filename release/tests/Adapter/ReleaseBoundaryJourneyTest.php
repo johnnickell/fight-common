@@ -139,7 +139,7 @@ class ReleaseBoundaryJourneyTest extends UnitTestCase
 
             if ($command === 'publish') {
                 self::assertSame(
-                    'Only the inspect, plan, prepare, and compatibility commands are available.',
+                    'Only the inspect, plan, prepare, package, and compatibility commands are available.',
                     $result['findings'][0]['message']
                 );
                 self::assertSame(['action' => 'run_supported_release_command'], $result['next_action']);

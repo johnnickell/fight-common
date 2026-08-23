@@ -14,6 +14,7 @@ enum ReleaseCommand: string
     case INSPECT = 'inspect';
     case PLAN = 'plan';
     case PREPARE = 'prepare';
+    case PACKAGE = 'package';
     case COMPATIBILITY = 'compatibility';
 
     public const string UNSUPPORTED_CAPABILITY = 'unsupported_command';
@@ -59,6 +60,7 @@ enum ReleaseCommand: string
             self::INSPECT => 'release_inspection',
             self::PLAN => 'release_planning',
             self::PREPARE => 'release_preparation',
+            self::PACKAGE => 'release_packaging',
             self::COMPATIBILITY => 'compatibility_assessment'
         };
     }
@@ -74,6 +76,7 @@ enum ReleaseCommand: string
             self::INSPECT => ['resolved_inputs', 'recommendation'],
             self::PLAN => ['plan_id', 'artifact'],
             self::PREPARE => ['plan_id', 'run_id', 'run_state', 'artifacts'],
+            self::PACKAGE => ['plan_id', 'run_id', 'candidate_oid', 'archive_digest', 'effect_set'],
             self::COMPATIBILITY => ['evidence']
         };
     }
