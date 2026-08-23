@@ -526,6 +526,10 @@ class ReleaseResultFactoryTest extends UnitTestCase
             ['composer.json'],
             []
         );
+        $artifacts = ['certification_handoff' => [
+            'handoff_id' => str_repeat('e', 64),
+            'path'       => '/runs/'.str_repeat('e', 64).'.certification-handoff.json'
+        ]];
 
         $packaged = $factory->packaged(
             $planId,
@@ -533,6 +537,7 @@ class ReleaseResultFactoryTest extends UnitTestCase
             str_repeat('c', 40),
             str_repeat('d', 64),
             $effectSet,
+            $artifacts,
             []
         );
         self::assertSame(0, $packaged->exitCode);
@@ -549,17 +554,18 @@ class ReleaseResultFactoryTest extends UnitTestCase
             str_repeat('c', 40),
             str_repeat('d', 64),
             $effectSet,
+            $artifacts,
             []
         );
         self::assertSame(0, $satisfied->exitCode);
         self::assertSame('release.package.already_satisfied', $satisfied->payload['findings'][0]['id']);
 
         $stops = [
-            'archive_refused'    => [3, 'release.package.archive_creation_refused'],
-            'archive_failed'     => [4, 'release.package.archive_creation_failed'],
-            'archive_uncertain'  => [5, 'release.package.archive_creation_uncertain'],
-            'archive_drift'      => [6, 'release.package.archive_creation_drift'],
-            'unexpected_stop'    => [5, 'release.package.archive_creation_indeterminate']
+            'archive_refused'   => [3, 'release.package.archive_creation_refused'],
+            'archive_failed'    => [4, 'release.package.archive_creation_failed'],
+            'archive_uncertain' => [5, 'release.package.archive_creation_uncertain'],
+            'archive_drift'     => [6, 'release.package.archive_creation_drift'],
+            'unexpected_stop'   => [5, 'release.package.archive_creation_indeterminate']
         ];
 
         foreach ($stops as $stop => [$exitCode, $findingId]) {

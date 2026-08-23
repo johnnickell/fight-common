@@ -637,6 +637,39 @@ def _finalized_after(
     return transition, projection
 
 
+def _certified_after(
+    plan_id: str,
+    run_id: str,
+    prior: dict[str, Any],
+    state: str,
+    artifact_id: str,
+    handoff_id: str,
+) -> tuple[bytes, bytes]:
+    sequence = prior["sequence"] + 1
+    transition = _canonical({
+        "sequence": sequence,
+        "from": "prepared",
+        "state": state,
+        "operation": "certify_release_run",
+        "plan_id": plan_id,
+        "run_id": run_id,
+        "certification_artifact_id": artifact_id,
+        "prerequisite_certification_handoff_id": handoff_id,
+        "next_action": {"action": "review_certification_manifest" if state == "certified" else "reconcile_certification_evidence"},
+    })
+    projection = _canonical({
+        "schema_version": "fight-common.release-run-state/v1",
+        "plan_id": plan_id,
+        "run_id": run_id,
+        "sequence": sequence,
+        "state": state,
+        "certification_artifact_id": artifact_id,
+        "prerequisite_certification_handoff_id": handoff_id,
+        "next_action": {"action": "review_certification_manifest" if state == "certified" else "reconcile_certification_evidence"},
+    })
+    return transition, projection
+
+
 def _recovered(plan_id: str, run_id: str, stopped: dict[str, Any]) -> tuple[bytes, bytes]:
     sequence = stopped["sequence"] + 1
     event = {
@@ -837,6 +870,26 @@ def _validate_history(
             ):
                 return None
             transition, projection = _finalized_after(plan_id, run_id, prior, manifest_id, handoff_id)
+            if raw + b"\n" != transition:
+                return None
+            expected_projection = projection
+        elif (
+            prior.get("state") == "prepared"
+            and prior.get("next_action") == {"action": "package_release_run"}
+        ):
+            state = event.get("state")
+            artifact_id = event.get("certification_artifact_id")
+            handoff_id = event.get("prerequisite_certification_handoff_id")
+            if (
+                event.get("operation") != "certify_release_run"
+                or state not in {"certified", "certification_failed", "evidence_indeterminate"}
+                or not isinstance(artifact_id, str)
+                or not isinstance(handoff_id, str)
+                or not _digest_identity(artifact_id)
+                or not _digest_identity(handoff_id)
+            ):
+                return None
+            transition, projection = _certified_after(plan_id, run_id, prior, state, artifact_id, handoff_id)
             if raw + b"\n" != transition:
                 return None
             expected_projection = projection
@@ -1353,6 +1406,92 @@ def finalize(root: str, relative_output: str, plan_id: str, run_id: str, manifes
             "prepared_projection_sha256": hashlib.sha256(projection).hexdigest(),
             "prerequisite_evidence_manifest_id": manifest_id,
             "prerequisite_phase_handoff_id": handoff_id,
+        }
+    finally:
+        if proof is not None:
+            proof.close()
+        if lock_fd is not None:
+            os.close(lock_fd)
+        authority.close()
+
+
+def certify(
+    root: str,
+    relative_output: str,
+    plan_id: str,
+    run_id: str,
+    state: str,
+    artifact_id: str,
+    handoff_id: str,
+    expected_sequence: int,
+    expected_state: str,
+    fault: str,
+    replacement: str,
+) -> dict[str, Any]:
+    if state not in {"certified", "certification_failed", "evidence_indeterminate"}:
+        return {"status": INDETERMINATE}
+    authority, status = _open_existing(root, relative_output, plan_id, run_id, fault, replacement)
+    if authority is None or status != "verified":
+        return {"status": INDETERMINATE if status == "missing" else status}
+    lock_fd: int | None = None
+    proof: ArtifactProof | None = None
+    try:
+        lock_fd, lock_status = _lock(authority, fault, replacement)
+        if lock_fd is None:
+            return {"status": lock_status}
+        history = _read_regular(authority.run_fd, "history.jsonl", fault, replacement)
+        projection = _read_regular(authority.run_fd, "projection.json", fault, replacement)
+        validated = _validate_history(history, plan_id, run_id) if isinstance(history, bytes) else None
+        if validated is None:
+            return {"status": INDETERMINATE}
+        events, expected_projection, _ = validated
+        prior = events[-1]
+        if prior.get("sequence") != expected_sequence or prior.get("state") != expected_state:
+            return {"status": "advanced"}
+        if (
+            projection != expected_projection
+            or prior.get("state") != "prepared"
+            or prior.get("next_action") != {"action": "package_release_run"}
+        ):
+            return {"status": INDETERMINATE}
+        artifact_name = artifact_id + (".certification-manifest.json" if state == "certified" else ".certification-stop.json")
+        handoff_name = handoff_id + ".certification-handoff.json"
+        proof = _pin_artifacts(authority.output_fd, [artifact_name, handoff_name])
+        if proof is None or not proof.valid():
+            return {"status": INDETERMINATE}
+        artifact = _artifact(proof, artifact_name, "manifest_id" if state == "certified" else "stop_id", artifact_id)
+        handoff = _artifact(proof, handoff_name, "handoff_id", handoff_id)
+        if (
+            artifact is None
+            or handoff is None
+            or artifact.get("plan_id") != plan_id
+            or artifact.get("run_id") != run_id
+            or handoff.get("plan_id") != plan_id
+            or handoff.get("run_id") != run_id
+            or artifact.get("certification_handoff_id") != handoff_id
+        ):
+            return {"status": INDETERMINATE}
+        transition, certification_projection = _certified_after(
+            plan_id, run_id, prior, state, artifact_id, handoff_id
+        )
+        certification_history = history + transition
+        if not _publish(authority, "history.jsonl", certification_history, fault, "history", root, relative_output, run_id, replacement):
+            return {"status": INDETERMINATE}
+        if not proof.valid() or not _publish(authority, "projection.json", certification_projection, fault, "projection", root, relative_output, run_id, replacement):
+            return {"status": INDETERMINATE}
+        if not proof.valid():
+            return {"status": INDETERMINATE}
+        history_path, projection_path = _paths(root, relative_output, run_id)
+        return {
+            "status": "created",
+            "history_path": history_path,
+            "projection_path": projection_path,
+            "sequence": prior["sequence"] + 1,
+            "state": state,
+            "history_sha256": hashlib.sha256(certification_history).hexdigest(),
+            "projection_sha256": hashlib.sha256(certification_projection).hexdigest(),
+            "certification_artifact_id": artifact_id,
+            "prerequisite_certification_handoff_id": handoff_id,
         }
     finally:
         if proof is not None:
@@ -2024,6 +2163,23 @@ def main(arguments: list[str]) -> int:
                     expected_state,
                     fault,
                     replacement,
+                )
+        elif action == "certify" and len(extras) == 7:
+            state, artifact_id, handoff_id, raw_sequence, expected_state, fault, replacement = extras
+            if (
+                state not in {"certified", "certification_failed", "evidence_indeterminate"}
+                or not _digest_identity(artifact_id)
+                or not _digest_identity(handoff_id)
+                or not raw_sequence.isascii()
+                or not raw_sequence.isdecimal()
+                or raw_sequence.startswith("0")
+                or expected_state == ""
+            ):
+                result = {"status": INDETERMINATE}
+            else:
+                result = certify(
+                    root, relative_output, plan_id, run_id, state, artifact_id, handoff_id,
+                    int(raw_sequence), expected_state, fault, replacement
                 )
         elif action == "stop" and len(extras) == 10:
             (
