@@ -650,6 +650,7 @@ final readonly class ReleaseResultFactory
      * @param string $candidateOid Exact candidate commit OID.
      * @param string $archiveDigest SHA-256 digest of the deterministic archive.
      *
+     * @phpstan-param array<string, mixed> $artifacts
      * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
      */
     public function packaged(
@@ -658,6 +659,7 @@ final readonly class ReleaseResultFactory
         string $candidateOid,
         string $archiveDigest,
         ReleasePackageEffectSet $effectSet,
+        array $artifacts,
         array $performedEffects
     ): MachineResult {
         return new MachineResult([
@@ -670,6 +672,7 @@ final readonly class ReleaseResultFactory
             'run_id'                  => $runId,
             'candidate_oid'           => $candidateOid,
             'archive_digest'          => $archiveDigest,
+            'artifacts'               => $artifacts,
             'effect_set'              => $effectSet->toArray(),
             'findings'                => [[
                 'id'      => 'release.package.completed',
@@ -725,6 +728,7 @@ final readonly class ReleaseResultFactory
      * @param string $candidateOid Exact candidate commit OID.
      * @param string $archiveDigest SHA-256 digest of the existing archive.
      *
+     * @phpstan-param array<string, mixed> $artifacts
      * @phpstan-param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
      */
     public function packageAlreadySatisfied(
@@ -733,6 +737,7 @@ final readonly class ReleaseResultFactory
         string $candidateOid,
         string $archiveDigest,
         ReleasePackageEffectSet $effectSet,
+        array $artifacts,
         array $performedEffects
     ): MachineResult {
         return new MachineResult([
@@ -745,6 +750,7 @@ final readonly class ReleaseResultFactory
             'run_id'                  => $runId,
             'candidate_oid'           => $candidateOid,
             'archive_digest'          => $archiveDigest,
+            'artifacts'               => $artifacts,
             'effect_set'              => $effectSet->toArray(),
             'findings'                => [[
                 'id'      => 'release.package.already_satisfied',
@@ -832,5 +838,101 @@ final readonly class ReleaseResultFactory
             'proposed_effects'        => [],
             'next_action'             => ['action' => $action]
         ], $exitCode);
+    }
+
+    /**
+     * Builds the verification-only certification result for one revalidated package handoff
+     *
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     * @param array{status: string, history_path: string, projection_path: string, sequence: int, state: string,
+     *     history_sha256: string, projection_sha256: string, certification_artifact_id: string,
+     *     prerequisite_certification_handoff_id: string} $state Current certification run state.
+     * @param array{certification_manifest: array{manifest_id: string, path: string}} $artifacts
+     * @param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function certified(
+        string $planId,
+        string $runId,
+        array $state,
+        array $artifacts,
+        array $performedEffects
+    ): MachineResult {
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'certify',
+            'capability'              => 'release_certification',
+            'status'                  => 'certified',
+            'exit_class'              => 'success',
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'run_state'               => $state,
+            'artifacts'               => $artifacts,
+            'findings'                => [[
+                'id'      => 'release.certification.manifest_persisted',
+                'message' => 'The verified package handoff was bound into an immutable certification manifest.'
+            ]],
+            'verified_postconditions' => [
+                'package_handoff_revalidated',
+                'certification_manifest_persisted'
+            ],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'review_certification_manifest']
+        ], 0);
+    }
+
+    /**
+     * Builds one persisted fail-closed certification result
+     *
+     * @param string $planId Immutable plan identity.
+     * @param string $runId Named run identity.
+     * @param string $state Certification outcome state.
+     * @param string $lane Certification lane name.
+     * @param array{status: string, history_path: string, projection_path: string, sequence: int, state: string,
+     *     history_sha256: string, projection_sha256: string, certification_artifact_id: string,
+     *     prerequisite_certification_handoff_id: string} $runState Current certification run state.
+     * @param array{certification_stop: array{stop_id: string, path: string}} $artifacts
+     * @param list<array{capability: string, effect_class: string, outcome: string}> $performedEffects
+     */
+    public function certificationStop(
+        string $planId,
+        string $runId,
+        string $state,
+        string $lane,
+        array $runState,
+        array $artifacts,
+        array $performedEffects
+    ): MachineResult {
+        $indeterminate = $state === 'evidence_indeterminate';
+        if ($indeterminate) {
+            $findingId = 'release.certification.evidence_indeterminate';
+            $findingMessage = 'A required certification lane has no composed authoritative evidence: '.$lane.'.';
+            $nextAction = 'reconcile_certification_evidence';
+        } else {
+            $findingId = 'release.certification.lane_failed';
+            $findingMessage = 'A required certification lane failed: '.$lane.'.';
+            $nextAction = 'repair_failed_certification_lane';
+        }
+
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'certify',
+            'capability'              => 'release_certification',
+            'status'                  => $state,
+            'exit_class'              => $indeterminate ? 'uncertain' : 'failed',
+            'plan_id'                 => $planId,
+            'run_id'                  => $runId,
+            'run_state'               => $runState,
+            'artifacts'               => $artifacts,
+            'findings'                => [[
+                'id'      => $findingId,
+                'message' => $findingMessage
+            ]],
+            'verified_postconditions' => ['package_handoff_revalidated', 'certification_stop_persisted'],
+            'performed_effects'       => $performedEffects,
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => $nextAction]
+        ], $indeterminate ? 5 : 4);
     }
 }
