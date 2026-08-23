@@ -24,6 +24,7 @@ use Fight\Release\Application\CompatibilityAssessmentService;
 use Fight\Release\Application\MachineResult;
 use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseInspectionService;
+use Fight\Release\Application\ReleasePackageService;
 use Fight\Release\Application\ReleasePlanCapabilityFirewall;
 use Fight\Release\Application\ReleasePlanFactory;
 use Fight\Release\Application\ReleasePlanService;
@@ -294,6 +295,65 @@ function configure_release_preparation(
 }
 
 /**
+ * Applies credential-free packaging controls that never become release authority.
+ *
+ * @param DeterministicReleaseBoundaryFake $ports         Credential-free release boundaries.
+ * @param array<string, mixed> $configuration Controlled packaging fixture.
+ */
+function configure_release_package(
+    DeterministicReleaseBoundaryFake $ports,
+    array $configuration
+): bool {
+    if (
+        array_diff(
+            array_keys($configuration),
+            [
+                'archive_outcome',
+                'archive_file_list',
+                'archive_verify_outcome',
+                'effect_set_refusal'
+            ]
+        ) !== []
+    ) {
+        return false;
+    }
+
+    if (isset($configuration['archive_outcome'])) {
+        if (
+            !is_string($configuration['archive_outcome'])
+            || !$ports->configureOutcome('archive.create', $configuration['archive_outcome'])
+        ) {
+            return false;
+        }
+    }
+
+    if (isset($configuration['archive_verify_outcome'])) {
+        if (
+            !is_string($configuration['archive_verify_outcome'])
+            || !$ports->configureOutcome('archive.verify', $configuration['archive_verify_outcome'])
+        ) {
+            return false;
+        }
+    }
+
+    if (isset($configuration['archive_file_list'])) {
+        if (
+            !is_array($configuration['archive_file_list'])
+            || array_any(
+                $configuration['archive_file_list'],
+                static fn (mixed $key, mixed $value): bool => !is_string($key) || !is_string($value)
+            )
+        ) {
+            return false;
+        }
+
+        $ports->configureArchiveFileList($configuration['archive_file_list']);
+    }
+
+    return true;
+}
+
+/**
  * Authenticates a deliberately configured crash to the repository wrapper.
  */
 function mark_configured_release_crash(ReleaseBoundaryCrash $crash): void
@@ -363,7 +423,7 @@ try {
         dispatch_release_result($results->failure(
             $command,
             'release.command.unsupported',
-            'Only the inspect, plan, prepare, and compatibility commands are available.',
+            'Only the inspect, plan, prepare, package, and compatibility commands are available.',
             'run_supported_release_command'
         ));
     }
@@ -571,6 +631,67 @@ try {
             $options['plan'],
             $repositoryRoot.'/.runs',
             $options['resume'] ?? null
+        ));
+    }
+
+    if ($command === 'package') {
+        $options = release_options($arguments, ['handoff', 'approval', 'fixture']);
+
+        if ($options === null || !isset($options['handoff'])) {
+            dispatch_release_result($results->failure(
+                'package',
+                'release.package.inputs_required',
+                'Packaging requires exactly one handoff option.',
+                'provide_package_handoff'
+            ));
+        }
+
+        $testFixture = isset($options['fixture']);
+
+        if (
+            $testFixture
+            && getenv('FIGHT_COMMON_RELEASE_TEST_RUNTIME') !== 'fight-common-release-direct-test-v1'
+        ) {
+            dispatch_release_result($results->failure(
+                'package',
+                'release.package.fixture_forbidden',
+                'Package fixtures are available only in the explicit direct-test runtime.',
+                'remove_package_fixture'
+            ));
+        }
+
+        if ($testFixture) {
+            $fixture = $fixtures->load($options['fixture']);
+
+            if (
+                $fixture->status !== 'valid'
+                || !is_array($fixture->candidate)
+                || !configure_release_package($ports, $fixture->candidate)
+            ) {
+                dispatch_release_result($results->failure(
+                    'package',
+                    'release.package.fixture_invalid',
+                    'The controlled package fixture is invalid.',
+                    'provide_valid_package_fixture',
+                    []
+                ));
+            }
+        }
+
+        $service = new ReleasePackageService(
+            $ports,
+            $ports,
+            $ports,
+            $ports,
+            $ports,
+            new CanonicalJson(),
+            $results
+        );
+
+        dispatch_release_result($service->package(
+            $options['handoff'],
+            $repositoryRoot.'/.runs',
+            $options['approval'] ?? null
         ));
     }
 
