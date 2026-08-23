@@ -54,6 +54,8 @@ final class MachineResultTest extends UnitTestCase
             'filesystem.inspect_writable'       => 'filesystem',
             'filesystem.inspect_exists'         => 'filesystem',
             'filesystem.inspect_runs_directory' => 'filesystem',
+            'archive.create'                    => 'archive',
+            'archive.verify'                    => 'archive',
             'git.inspect_repository'            => 'git',
             'git.resolve_ref'                   => 'git',
             'hashing.sha256'                    => 'hashing',
@@ -69,6 +71,8 @@ final class MachineResultTest extends UnitTestCase
         }
 
         self::assertSame([
+            'archive.create',
+            'archive.verify',
             'authorization.check',
             'clock.now',
             'filesystem.inspect_directory',
@@ -780,6 +784,208 @@ final class MachineResultTest extends UnitTestCase
         $conflict['exit_class'] = 'refused';
         $conflict['exit_code'] = 23;
         self::assertFalse(MachineResult::isValidPayload($conflict, 23));
+    }
+
+    /**
+     * Covers package validation: malformed fields and the closed input-failure and stop contracts.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_package_validation_rejects_malformed_fields_and_closed_stop_contracts(): void
+    {
+        $effectSet = [
+            'schema_version' => 'fight-common.package-effect-set/v1',
+            'effect_set_id'  => str_repeat('e', 64),
+            'candidate_oid'  => str_repeat('c', 40),
+            'version'        => '1.3.0',
+            'archive_name'   => 'fight-common-v1.3.0.zip',
+            'included_paths' => ['composer.json'],
+            'excluded_paths' => []
+        ];
+        $success = [
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'package',
+            'capability'              => 'release_packaging',
+            'status'                  => 'packaged',
+            'exit_class'              => 'success',
+            'exit_code'               => 0,
+            'plan_id'                 => str_repeat('a', 64),
+            'run_id'                  => str_repeat('b', 64),
+            'candidate_oid'           => str_repeat('c', 40),
+            'archive_digest'          => str_repeat('d', 64),
+            'effect_set'              => $effectSet,
+            'findings'                => [[
+                'id'      => 'release.package.completed',
+                'message' => 'The deterministic release archive was created and its identity was bound.'
+            ]],
+            'verified_postconditions' => [
+                'phase_handoff_revalidated',
+                'archive_created_and_verified'
+            ],
+            'performed_effects'       => [],
+            'proposed_effects'        => [],
+            'next_action'             => ['action' => 'certify_release_package']
+        ];
+
+        self::assertTrue(MachineResult::isValidPayload($success, 0));
+
+        $alreadySatisfied = $success;
+        $alreadySatisfied['findings'] = [[
+            'id'      => 'release.package.already_satisfied',
+            'message' => 'The deterministic release archive already existed and was verified.'
+        ]];
+        $alreadySatisfied['verified_postconditions'] = [
+            'phase_handoff_revalidated',
+            'archive_already_persisted'
+        ];
+        self::assertTrue(MachineResult::isValidPayload($alreadySatisfied, 0));
+
+        foreach (
+            [
+            ['plan_id' => 'invalid'],
+            ['run_id' => 'invalid'],
+            ['candidate_oid' => 'invalid'],
+            ['archive_digest' => 'invalid'],
+            ['effect_set' => 'invalid'],
+            ['effect_set' => [...$effectSet, 'extra' => true]],
+            ['effect_set' => [...$effectSet, 'included_paths' => 'invalid']],
+            ['effect_set' => [...$effectSet, 'excluded_paths' => ['key' => 'value']]],
+            ['effect_set' => [...$effectSet, 'schema_version' => 'wrong']]
+            ] as $replacement
+        ) {
+            self::assertFalse(MachineResult::isValidPayload(array_replace($success, $replacement), 0));
+        }
+
+        $missingRequired = $success;
+        unset($missingRequired['archive_digest']);
+        self::assertFalse(MachineResult::isValidPayload($missingRequired, 0));
+
+        $noPostconditions = $success;
+        $noPostconditions['verified_postconditions'] = [];
+        self::assertFalse(MachineResult::isValidPayload($noPostconditions, 0));
+
+        $wrongNextAction = $success;
+        $wrongNextAction['next_action'] = ['action' => 'package_release_run'];
+        self::assertFalse(MachineResult::isValidPayload($wrongNextAction, 0));
+
+        $missingEffectSet = $success;
+        unset($missingEffectSet['effect_set']);
+        self::assertFalse(MachineResult::isValidPayload($missingEffectSet, 0));
+
+        $inputFailure = $this->payload();
+        $inputFailure['command'] = 'package';
+        $inputFailure['capability'] = 'release_packaging';
+        $inputFailure['status'] = 'policy_blocked';
+        $inputFailure['exit_class'] = 'invalid_input';
+        $inputFailure['exit_code'] = 2;
+        $inputFailure['findings'] = [[
+            'id'      => 'release.package.handoff_forbidden',
+            'message' => 'Packaging requires one phase handoff below the repository .runs directory.'
+        ]];
+        $inputFailure['next_action'] = ['action' => 'select_immutable_phase_handoff'];
+        self::assertTrue(MachineResult::isValidPayload($inputFailure, 2));
+
+        $unreadableInput = $inputFailure;
+        $unreadableInput['findings'] = [[
+            'id'      => 'release.package.handoff_unreadable',
+            'message' => 'The phase handoff could not be read.'
+        ]];
+        self::assertTrue(MachineResult::isValidPayload($unreadableInput, 2));
+
+        $invalidInput = $inputFailure;
+        $invalidInput['findings'] = [[
+            'id'      => 'release.package.handoff_invalid',
+            'message' => 'The phase handoff failed canonical identity or binding revalidation.'
+        ]];
+        $invalidInput['next_action'] = ['action' => 'create_current_release_plan'];
+        self::assertTrue(MachineResult::isValidPayload($invalidInput, 2));
+
+        $derivationInput = $inputFailure;
+        $derivationInput['findings'] = [[
+            'id'      => 'release.package.effect_set_derivation_failed',
+            'message' => 'The archive effect set could not be derived from the candidate commit.'
+        ]];
+        $derivationInput['next_action'] = ['action' => 'repair_release_repository_storage'];
+        self::assertTrue(MachineResult::isValidPayload($derivationInput, 2));
+
+        $approvalUnreadable = $inputFailure;
+        $approvalUnreadable['findings'] = [[
+            'id'      => 'release.package.approval_unreadable',
+            'message' => 'The package approval could not be read.'
+        ]];
+        $approvalUnreadable['next_action'] = ['action' => 'provide_valid_package_approval'];
+        self::assertTrue(MachineResult::isValidPayload($approvalUnreadable, 2));
+
+        $approvalInvalid = $inputFailure;
+        $approvalInvalid['findings'] = [[
+            'id'      => 'release.package.approval_invalid',
+            'message' => 'The package approval must be valid JSON.'
+        ]];
+        $approvalInvalid['next_action'] = ['action' => 'provide_valid_package_approval'];
+        self::assertTrue(MachineResult::isValidPayload($approvalInvalid, 2));
+
+        $unknownFinding = $inputFailure;
+        $unknownFinding['findings'] = [[
+            'id'      => 'release.package.unknown',
+            'message' => 'Unknown package failure.'
+        ]];
+        self::assertFalse(MachineResult::isValidPayload($unknownFinding, 2));
+
+        $nonStringFinding = $inputFailure;
+        $nonStringFinding['findings'] = [['id' => 5, 'message' => 'Non-string finding.']];
+        self::assertFalse(MachineResult::isValidPayload($nonStringFinding, 2));
+
+        $refusal = $this->payload();
+        $refusal['command'] = 'package';
+        $refusal['capability'] = 'release_packaging';
+        $refusal['status'] = 'authority_required';
+        $refusal['exit_class'] = 'refused';
+        $refusal['exit_code'] = 3;
+        $refusal['plan_id'] = str_repeat('a', 64);
+        $refusal['run_id'] = str_repeat('b', 64);
+        $refusal['findings'] = [[
+            'id'      => 'release.package.effect_set_refused',
+            'message' => 'The packaging effect set was not approved for the exact bounded local effects.'
+        ]];
+        $refusal['next_action'] = ['action' => 'approve_exact_packaging_effects'];
+        self::assertTrue(MachineResult::isValidPayload($refusal, 3));
+
+        $archiveStops = [
+            ['release.package.archive_creation_refused', 3, 'authority_required', 'refused', 'obtain_archive_creation_authority'],
+            ['release.package.archive_creation_failed', 4, 'policy_blocked', 'failed', 'repair_archive_creation_provider'],
+            ['release.package.archive_creation_uncertain', 5, 'evidence_indeterminate', 'uncertain', 'reconcile_archive_creation'],
+            ['release.package.archive_creation_drift', 6, 'stale_plan', 'drifted', 'create_current_release_plan'],
+            ['release.package.archive_creation_indeterminate', 5, 'evidence_indeterminate', 'uncertain', 'reconcile_archive_creation']
+        ];
+
+        foreach ($archiveStops as [$findingId, $exitCode, $status, $exitClass, $action]) {
+            $stop = $this->payload();
+            $stop['command'] = 'package';
+            $stop['capability'] = 'release_packaging';
+            $stop['status'] = $status;
+            $stop['exit_class'] = $exitClass;
+            $stop['exit_code'] = $exitCode;
+            $stop['plan_id'] = str_repeat('a', 64);
+            $stop['run_id'] = str_repeat('b', 64);
+            $stop['findings'] = [[
+                'id'      => $findingId,
+                'message' => 'The archive boundary classified its stop.'
+            ]];
+            $stop['next_action'] = ['action' => $action];
+            self::assertFalse(MachineResult::isValidPayload($stop, $exitCode), $findingId);
+        }
+
+        $unknownStop = $this->payload();
+        $unknownStop['command'] = 'package';
+        $unknownStop['capability'] = 'release_packaging';
+        $unknownStop['status'] = 'policy_blocked';
+        $unknownStop['exit_class'] = 'failed';
+        $unknownStop['exit_code'] = 4;
+        $unknownStop['plan_id'] = str_repeat('a', 64);
+        $unknownStop['run_id'] = str_repeat('b', 64);
+        $unknownStop['findings'] = [['id' => 'release.package.unknown_stop', 'message' => 'Unknown stop.']];
+        $unknownStop['next_action'] = ['action' => 'reconcile_archive_creation'];
+        self::assertFalse(MachineResult::isValidPayload($unknownStop, 4));
     }
 
     /**

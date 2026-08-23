@@ -6,6 +6,7 @@ namespace Fight\Test\Release\Application;
 
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
+use Fight\Release\Application\Boundary\ReleasePackageEffectSet;
 use Fight\Release\Application\MachineResult;
 use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleasePlanValidationFailure;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 #[CoversClass(ReleaseResultFactory::class)]
 #[CoversClass(ReleaseCommand::class)]
+#[CoversClass(ReleasePackageEffectSet::class)]
 /**
  * Class ReleaseResultFactoryTest
  *
@@ -505,6 +507,66 @@ class ReleaseResultFactoryTest extends UnitTestCase
             'effect_class' => 'filesystem.read',
             'outcome'      => 'success'
         ]]);
+    }
+
+    /**
+     * Covers the complete package result family including the closed archive-stop classification.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_package_results_cover_success_refusal_satisfaction_and_every_archive_stop(): void
+    {
+        $factory = new ReleaseResultFactory();
+        $planId = str_repeat('a', 64);
+        $runId = str_repeat('b', 64);
+        $effectSet = new ReleasePackageEffectSet(
+            str_repeat('c', 40),
+            '1.3.0',
+            'fight-common-v1.3.0.zip',
+            ['composer.json'],
+            []
+        );
+
+        $packaged = $factory->packaged(
+            $planId,
+            $runId,
+            str_repeat('c', 40),
+            str_repeat('d', 64),
+            $effectSet,
+            []
+        );
+        self::assertSame(0, $packaged->exitCode);
+        self::assertSame('packaged', $packaged->payload['status']);
+        self::assertSame('release.package.completed', $packaged->payload['findings'][0]['id']);
+
+        $refusal = $factory->packageRefusal($planId, $runId, []);
+        self::assertSame(3, $refusal->exitCode);
+        self::assertSame('release.package.effect_set_refused', $refusal->payload['findings'][0]['id']);
+
+        $satisfied = $factory->packageAlreadySatisfied(
+            $planId,
+            $runId,
+            str_repeat('c', 40),
+            str_repeat('d', 64),
+            $effectSet,
+            []
+        );
+        self::assertSame(0, $satisfied->exitCode);
+        self::assertSame('release.package.already_satisfied', $satisfied->payload['findings'][0]['id']);
+
+        $stops = [
+            'archive_refused'    => [3, 'release.package.archive_creation_refused'],
+            'archive_failed'     => [4, 'release.package.archive_creation_failed'],
+            'archive_uncertain'  => [5, 'release.package.archive_creation_uncertain'],
+            'archive_drift'      => [6, 'release.package.archive_creation_drift'],
+            'unexpected_stop'    => [5, 'release.package.archive_creation_indeterminate']
+        ];
+
+        foreach ($stops as $stop => [$exitCode, $findingId]) {
+            $result = $factory->packageArchiveStop($stop, $planId, $runId, []);
+            self::assertSame($exitCode, $result->exitCode, $stop);
+            self::assertSame($findingId, $result->payload['findings'][0]['id'], $stop);
+        }
     }
 }
 
