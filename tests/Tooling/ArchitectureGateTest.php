@@ -109,6 +109,14 @@ final class ArchitectureGateTest extends UnitTestCase
                 explode(',', $branchMatch['branches']),
             ),
         );
+        self::assertSame(
+            1,
+            preg_match(
+                '/^      - uses: actions\/checkout@v4\R        with:\R          fetch-depth: 0\s*$/m',
+                $workflow,
+            ),
+            'Hosted compatibility verification requires the complete annotated-tag history.',
+        );
 
         self::assertSame(
             [
