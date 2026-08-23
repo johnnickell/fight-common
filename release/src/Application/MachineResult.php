@@ -247,6 +247,7 @@ final readonly class MachineResult
         $successStatus = match ($command) {
             'prepare' => 'prepared',
             'package' => 'packaged',
+            'certify' => 'certified',
             default => 'succeeded'
         };
 
@@ -254,7 +255,7 @@ final readonly class MachineResult
             0 => [$successStatus, 'success'],
             2 => ['policy_blocked', 'invalid_input'],
             3 => ['authority_required', 'refused'],
-            4 => ['policy_blocked', 'failed'],
+            4 => $command === 'certify' ? ['certification_failed', 'failed'] : ['policy_blocked', 'failed'],
             5 => ['evidence_indeterminate', 'uncertain'],
             6 => ['stale_plan', 'drifted'],
             23 => ['conflict', 'refused'],
@@ -315,6 +316,7 @@ final readonly class MachineResult
             ReleaseCommand::PLAN => self::isPlanFields($payload),
             ReleaseCommand::PREPARE => self::isPrepareFields($payload),
             ReleaseCommand::PACKAGE => self::isPackageFields($payload),
+            ReleaseCommand::CERTIFY => self::isCertificationFields($payload),
             ReleaseCommand::COMPATIBILITY => self::isCompatibilityFields($payload),
             null => true,
         };
@@ -1568,7 +1570,175 @@ final readonly class MachineResult
 
         return ($created || $alreadySatisfied)
             && $payload['next_action'] === ['action' => 'certify_release_package']
-            && isset($payload['effect_set']);
+            && isset($payload['effect_set'])
+            && self::isCertificationHandoffArtifacts($payload['artifacts'] ?? null);
+    }
+
+    /**
+     * Validates the minimal package-bound certification result
+     *
+     * @param array<string, mixed> $payload Candidate payload.
+     */
+    private static function isCertificationFields(array $payload): bool
+    {
+        if (($payload['exit_code'] ?? null) !== 0) {
+            if (($payload['exit_code'] ?? null) === 2) {
+                return !isset($payload['plan_id'], $payload['run_id'], $payload['artifacts']);
+            }
+
+            $indeterminate = ($payload['exit_code'] ?? null) === 5;
+            $expectedAction = 'repair_failed_certification_lane';
+            if ($indeterminate) {
+                $expectedAction = 'reconcile_certification_evidence';
+            }
+
+            return isset($payload['plan_id'], $payload['run_id'], $payload['run_state'], $payload['artifacts'])
+                && is_string($payload['plan_id'])
+                && is_string($payload['run_id'])
+                && preg_match('/\A[0-9a-f]{64}\z/D', $payload['plan_id']) === 1
+                && preg_match('/\A[0-9a-f]{64}\z/D', $payload['run_id']) === 1
+                && self::isCertificationStopFinding($payload['findings'], $indeterminate)
+                && $payload['verified_postconditions'] === [
+                    'package_handoff_revalidated',
+                    'certification_stop_persisted'
+                ]
+                && $payload['proposed_effects'] === []
+                && $payload['next_action'] === ['action' => $expectedAction]
+                && self::isCertificationRunState($payload['run_state'])
+                && self::isCertificationStopArtifacts($payload['artifacts']);
+        }
+
+        return isset($payload['plan_id'], $payload['run_id'], $payload['run_state'])
+            && is_string($payload['plan_id'])
+            && is_string($payload['run_id'])
+            && preg_match('/\A[0-9a-f]{64}\z/D', $payload['plan_id']) === 1
+            && preg_match('/\A[0-9a-f]{64}\z/D', $payload['run_id']) === 1
+            && $payload['findings'] === [[
+                'id'      => 'release.certification.manifest_persisted',
+                'message' => 'The verified package handoff was bound into an immutable certification manifest.'
+            ]]
+            && $payload['verified_postconditions'] === [
+                'package_handoff_revalidated',
+                'certification_manifest_persisted'
+            ]
+            && $payload['performed_effects'] !== []
+            && $payload['proposed_effects'] === []
+            && $payload['next_action'] === ['action' => 'review_certification_manifest']
+            && self::isCertificationRunState($payload['run_state'])
+            && self::isCertificationManifestArtifacts($payload['artifacts'] ?? null);
+    }
+
+    /**
+     * Validates the atomic current-state reference returned by certification
+     */
+    private static function isCertificationRunState(mixed $state): bool
+    {
+        return is_array($state)
+            && array_keys($state) === [
+                'status', 'history_path', 'projection_path', 'sequence', 'state', 'history_sha256',
+                'projection_sha256', 'certification_artifact_id', 'prerequisite_certification_handoff_id'
+            ]
+            && is_string($state['history_path'] ?? null)
+            && is_string($state['projection_path'] ?? null)
+            && is_int($state['sequence'] ?? null)
+            && $state['sequence'] > 0
+            && in_array($state['state'] ?? null, ['certified', 'certification_failed', 'evidence_indeterminate'], true)
+            && $state['status'] === 'created'
+            && self::hasNonEmptyStrings([
+                'history_sha256'                        => $state['history_sha256'] ?? null,
+                'projection_sha256'                     => $state['projection_sha256'] ?? null,
+                'certification_artifact_id'             => $state['certification_artifact_id'] ?? null,
+                'prerequisite_certification_handoff_id' => $state['prerequisite_certification_handoff_id'] ?? null
+            ])
+            && array_all([
+                $state['history_sha256'], $state['projection_sha256'], $state['certification_artifact_id'],
+                $state['prerequisite_certification_handoff_id']
+            ], static fn (string $value): bool => preg_match('/\A[0-9a-f]{64}\z/D', $value) === 1);
+    }
+
+    /**
+     * Validates the certification-handoff artifact reference
+     *
+     * @param mixed $artifacts
+     */
+    private static function isCertificationHandoffArtifacts(mixed $artifacts): bool
+    {
+        return is_array($artifacts)
+            && array_keys($artifacts) === ['certification_handoff']
+            && self::isArtifactReference(
+                $artifacts['certification_handoff'],
+                'handoff_id',
+                '.certification-handoff.json'
+            );
+    }
+
+    /**
+     * Validates the certification-manifest artifact reference
+     *
+     * @param mixed $artifacts
+     */
+    private static function isCertificationManifestArtifacts(mixed $artifacts): bool
+    {
+        return is_array($artifacts)
+            && array_keys($artifacts) === ['certification_manifest']
+            && self::isArtifactReference(
+                $artifacts['certification_manifest'],
+                'manifest_id',
+                '.certification-manifest.json'
+            );
+    }
+
+    /**
+     * Validates the certification-stop artifact reference
+     *
+     * @param mixed $artifacts
+     */
+    private static function isCertificationStopArtifacts(mixed $artifacts): bool
+    {
+        return is_array($artifacts)
+            && array_keys($artifacts) === ['certification_stop']
+            && self::isArtifactReference($artifacts['certification_stop'], 'stop_id', '.certification-stop.json');
+    }
+
+    /**
+     * Validates one classified certification stop finding
+     *
+     * @param mixed $findings
+     */
+    private static function isCertificationStopFinding(mixed $findings, bool $indeterminate): bool
+    {
+        $finding = null;
+        if (is_array($findings) && array_is_list($findings) && count($findings) === 1) {
+            $finding = $findings[0];
+        }
+
+        $prefix = 'A required certification lane failed: ';
+        $findingId = 'release.certification.lane_failed';
+        if ($indeterminate) {
+            $prefix = 'A required certification lane has no composed authoritative evidence: ';
+            $findingId = 'release.certification.evidence_indeterminate';
+        }
+
+        return is_array($finding)
+            && $finding['id'] === $findingId
+            && is_string($finding['message'] ?? null)
+            && str_starts_with($finding['message'], $prefix)
+            && str_ends_with($finding['message'], '.');
+    }
+
+    /**
+     * Validates one named certification artifact reference
+     *
+     * @param mixed $artifact
+     */
+    private static function isArtifactReference(mixed $artifact, string $idField, string $suffix): bool
+    {
+        return is_array($artifact)
+            && array_keys($artifact) === [$idField, 'path']
+            && is_string($artifact[$idField] ?? null)
+            && preg_match('/\A[0-9a-f]{64}\z/D', $artifact[$idField]) === 1
+            && is_string($artifact['path'] ?? null)
+            && str_ends_with($artifact['path'], '/'.$artifact[$idField].$suffix);
     }
 
     /**

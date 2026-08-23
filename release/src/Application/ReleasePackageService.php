@@ -137,6 +137,10 @@ final readonly class ReleasePackageService
             return $this->invalidHandoff($this->performedEffects());
         }
 
+        if (($handoff['handoff_id'] ?? null) !== $handoffIdentity || $prefix !== $handoffIdentity) {
+            return $this->invalidHandoff($this->performedEffects());
+        }
+
         $bindings = $handoff['bindings'] ?? [];
         $sourceCommitOid = $bindings['source_commit_oid'] ?? null;
         $approvedVersion = $bindings['approved_version'] ?? null;
@@ -219,12 +223,25 @@ final readonly class ReleasePackageService
             || !is_string($archiveResult->sha256Digest)
         ) {
             if ($archiveResult->outcome === ReleaseBoundaryOutcome::ALREADY_SATISFIED) {
+                $artifacts = $this->publishCertificationHandoff(
+                    $resolved->directory,
+                    $handoff,
+                    $handoffIdentity,
+                    $archiveResult->sha256Digest ?? '',
+                    $effectSet
+                );
+
+                if ($artifacts === null) {
+                    return $this->invalidHandoff($this->performedEffects());
+                }
+
                 return $this->results->packageAlreadySatisfied(
                     $planId,
                     $runId,
                     $sourceCommitOid,
                     $archiveResult->sha256Digest ?? '',
                     $effectSet,
+                    $artifacts,
                     $this->performedEffects()
                 );
             }
@@ -245,14 +262,76 @@ final readonly class ReleasePackageService
             );
         }
 
+        $artifacts = $this->publishCertificationHandoff(
+            $resolved->directory,
+            $handoff,
+            $handoffIdentity,
+            $archiveResult->sha256Digest,
+            $effectSet
+        );
+
+        if ($artifacts === null) {
+            return $this->invalidHandoff($this->performedEffects());
+        }
+
         return $this->results->packaged(
             $planId,
             $runId,
             $sourceCommitOid,
             $archiveResult->sha256Digest,
             $effectSet,
+            $artifacts,
             $this->performedEffects()
         );
+    }
+
+    /**
+     * Persists and independently rereads the sole certification input artifact
+     *
+     * @param CanonicalRunsDirectory $directory
+     * @param array<string, mixed> $preparedHandoff
+     *
+     * @return array{certification_handoff: array{handoff_id: string, path: string}}|null
+     */
+    private function publishCertificationHandoff(
+        CanonicalRunsDirectory $directory,
+        array $preparedHandoff,
+        string $preparedHandoffId,
+        string $archiveDigest,
+        ReleasePackageEffectSet $effectSet
+    ): ?array {
+        $handoff = new ReleaseCertificationArtifactFactory()->handoff(
+            $preparedHandoff,
+            $preparedHandoffId,
+            $archiveDigest,
+            $effectSet->effectSetId
+        );
+        $encoded = $this->json->encode($handoff);
+        $hash = $this->hashing->sha256($encoded);
+
+        if ($hash->outcome !== ReleaseBoundaryOutcome::SUCCESS || !is_string($hash->value)) {
+            return null;
+        }
+
+        $handoffId = $hash->value;
+        $filename = $handoffId.'.certification-handoff.json';
+        $bytes = $this->json->encode([...$handoff, 'handoff_id' => $handoffId]).PHP_EOL;
+        $write = $this->artifacts->writeArtifact($directory, $filename, $bytes);
+
+        if ($write->outcome !== ReleaseBoundaryOutcome::SUCCESS && !$write->requiresPostconditionVerification()) {
+            return null;
+        }
+
+        $read = $this->artifacts->readArtifact($directory, $filename);
+
+        if ($read->outcome !== ReleaseBoundaryOutcome::SUCCESS || $read->missing || $read->contents !== $bytes) {
+            return null;
+        }
+
+        return ['certification_handoff' => [
+            'handoff_id' => $handoffId,
+            'path'       => $directory->artifactPath($filename)
+        ]];
     }
 
     /**

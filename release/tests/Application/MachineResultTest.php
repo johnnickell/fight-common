@@ -814,6 +814,10 @@ final class MachineResultTest extends UnitTestCase
             'candidate_oid'           => str_repeat('c', 40),
             'archive_digest'          => str_repeat('d', 64),
             'effect_set'              => $effectSet,
+            'artifacts'               => ['certification_handoff' => [
+                'handoff_id' => str_repeat('f', 64),
+                'path'       => '/runs/'.str_repeat('f', 64).'.certification-handoff.json'
+            ]],
             'findings'                => [[
                 'id'      => 'release.package.completed',
                 'message' => 'The deterministic release archive was created and its identity was bound.'

@@ -22,6 +22,7 @@ use Fight\Release\Application\Boundary\ReleaseRuntimeTermination;
 use Fight\Release\Application\CanonicalJson;
 use Fight\Release\Application\CompatibilityAssessmentService;
 use Fight\Release\Application\MachineResult;
+use Fight\Release\Application\ReleaseCertificationService;
 use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseInspectionService;
 use Fight\Release\Application\ReleasePackageService;
@@ -423,7 +424,7 @@ try {
         dispatch_release_result($results->failure(
             $command,
             'release.command.unsupported',
-            'Only the inspect, plan, prepare, package, and compatibility commands are available.',
+            'Only the inspect, plan, prepare, package, certify, and compatibility commands are available.',
             'run_supported_release_command'
         ));
     }
@@ -693,6 +694,30 @@ try {
             $repositoryRoot.'/.runs',
             $options['approval'] ?? null
         ));
+    }
+
+    if ($command === 'certify') {
+        $options = release_options($arguments, ['handoff', 'evidence']);
+
+        if ($options === null || !isset($options['handoff'], $options['evidence'])) {
+            dispatch_release_result($results->failure(
+                'certify',
+                'release.certification.inputs_required',
+                'Certification requires exactly one package handoff option.',
+                'provide_verified_package_handoff'
+            ));
+        }
+
+        $service = new ReleaseCertificationService(
+            $ports,
+            $ports,
+            $ports,
+            $ports,
+            new CanonicalJson(),
+            $results
+        );
+
+        dispatch_release_result($service->certify($options['handoff'], $options['evidence'], $repositoryRoot.'/.runs'));
     }
 
     $options = release_options($arguments, ['fixture']);

@@ -7,7 +7,15 @@ namespace Fight\Test\Release\Application;
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Release\Application\Boundary\ArchiveCreateResult;
 use Fight\Release\Application\Boundary\ArchivePort;
+use Fight\Release\Application\Boundary\CanonicalRunsDirectory;
+use Fight\Release\Application\Boundary\HashingPort;
+use Fight\Release\Application\Boundary\PlanArtifactReadResult;
+use Fight\Release\Application\Boundary\PlanArtifactStore;
+use Fight\Release\Application\Boundary\PlanArtifactWriteResult;
+use Fight\Release\Application\Boundary\ReleaseBoundaryOperationResult;
+use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleasePackageEffectSet;
+use Fight\Release\Application\Boundary\RunsDirectoryResolutionResult;
 use Fight\Release\Application\CanonicalJson;
 use Fight\Release\Application\MachineResult;
 use Fight\Release\Application\ReleaseCommand;
@@ -26,6 +34,72 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ReleasePackageEffectSet::class)]
 class ReleasePackageServiceTest extends UnitTestCase
 {
+    /**
+     * Covers fail-closed certification-handoff publication after a valid archive outcome.
+     *
+     * @phpcsSuppress PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+     */
+    public function test_that_package_rejects_each_unverifiable_certification_handoff_publication(): void
+    {
+        $wait = dirname(__DIR__, 3).'/.runs/release-package-publication-'.bin2hex(random_bytes(8));
+        mkdir($wait, 0777, true);
+
+        try {
+            $handoff = $this->handoff(hash('sha256', 'p-publish'), hash('sha256', 'r-publish'));
+            $encoded = (new CanonicalJson())->encode($handoff);
+            $handoffId = hash('sha256', $encoded);
+            $handoffPath = $wait.'/'.$handoffId.'.phase-handoff.json';
+            file_put_contents($handoffPath, (new CanonicalJson())->encode([...$handoff, 'handoff_id' => $handoffId]).PHP_EOL);
+
+            $publishHashFailure = new DeterministicReleaseBoundaryFake();
+            $publishHashFailure->configureArchiveFileList(['composer.json' => '{}']);
+            self::assertSame(2, $this->service(
+                $publishHashFailure,
+                $this->hashFailureOn($publishHashFailure, 2)
+            )->package($handoffPath, dirname(__DIR__, 3).'/.runs')->exitCode);
+
+            $satisfiedHashFailure = new DeterministicReleaseBoundaryFake();
+            $satisfiedHashFailure->configureArchiveFileList(['composer.json' => '{}']);
+            $satisfiedHashFailure->configureOutcome('archive.create', 'already_satisfied');
+            self::assertSame(2, $this->service(
+                $satisfiedHashFailure,
+                $this->hashFailureOn($satisfiedHashFailure, 2)
+            )->package($handoffPath, dirname(__DIR__, 3).'/.runs')->exitCode);
+
+            $writeFailure = new DeterministicReleaseBoundaryFake();
+            $writeFailure->configureArchiveFileList(['composer.json' => '{}']);
+            $writeFailure->configureOutcome('filesystem.write', 'failure');
+            self::assertSame(2, $this->service($writeFailure)->package(
+                $handoffPath,
+                dirname(__DIR__, 3).'/.runs'
+            )->exitCode);
+
+            $readFailure = new DeterministicReleaseBoundaryFake();
+            $readFailure->configureArchiveFileList(['composer.json' => '{}']);
+            self::assertSame(2, $this->service(
+                $readFailure,
+                null,
+                $this->readFailureOn($readFailure, 2)
+            )->package($handoffPath, dirname(__DIR__, 3).'/.runs')->exitCode);
+
+            $mismatchedPath = $wait.'/'.str_repeat('f', 64).'.phase-handoff.json';
+            file_put_contents(
+                $mismatchedPath,
+                (new CanonicalJson())->encode([...$handoff, 'handoff_id' => str_repeat('e', 64)]).PHP_EOL
+            );
+            self::assertSame(2, $this->service(new DeterministicReleaseBoundaryFake())->package(
+                $mismatchedPath,
+                dirname(__DIR__, 3).'/.runs'
+            )->exitCode);
+        } finally {
+            foreach (glob($wait.'/*') ?: [] as $artifact) {
+                unlink($artifact);
+            }
+
+            rmdir($wait);
+        }
+    }
+
     /**
      * Covers the complete packaging journey: handoff validation, effect-set derivation, and archive creation.
      *
@@ -712,17 +786,74 @@ class ReleasePackageServiceTest extends UnitTestCase
     /**
      * Builds a service around one deterministic boundary.
      */
-    private function service(DeterministicReleaseBoundaryFake $ports): ReleasePackageService
+    private function service(
+        DeterministicReleaseBoundaryFake $ports,
+        ?HashingPort $hashing = null,
+        ?PlanArtifactStore $artifacts = null
+    ): ReleasePackageService
     {
         return new ReleasePackageService(
+            $artifacts ?? $ports,
             $ports,
             $ports,
-            $ports,
-            $ports,
+            $hashing ?? $ports,
             $ports,
             new CanonicalJson(),
             new ReleaseResultFactory($ports)
         );
+    }
+
+    private function hashFailureOn(DeterministicReleaseBoundaryFake $delegate, int $call): HashingPort
+    {
+        return new class($delegate, $call) implements HashingPort {
+            private int $calls = 0;
+
+            public function __construct(private DeterministicReleaseBoundaryFake $delegate, private int $failureCall)
+            {
+            }
+
+            public function sha256(string $contents): ReleaseBoundaryOperationResult
+            {
+                ++$this->calls;
+
+                return $this->calls === $this->failureCall
+                    ? ReleaseBoundaryOperationResult::stopped(ReleaseBoundaryOutcome::FAILURE)
+                    : $this->delegate->sha256($contents);
+            }
+        };
+    }
+
+    private function readFailureOn(DeterministicReleaseBoundaryFake $delegate, int $call): PlanArtifactStore
+    {
+        return new class($delegate, $call) implements PlanArtifactStore {
+            private int $reads = 0;
+
+            public function __construct(private DeterministicReleaseBoundaryFake $delegate, private int $failureCall)
+            {
+            }
+
+            public function readArtifact(CanonicalRunsDirectory $directory, string $filename): PlanArtifactReadResult
+            {
+                ++$this->reads;
+
+                return $this->reads === $this->failureCall
+                    ? PlanArtifactReadResult::stopped(ReleaseBoundaryOutcome::FAILURE)
+                    : $this->delegate->readArtifact($directory, $filename);
+            }
+
+            public function writeArtifact(
+                CanonicalRunsDirectory $directory,
+                string $filename,
+                string $contents
+            ): PlanArtifactWriteResult {
+                return $this->delegate->writeArtifact($directory, $filename, $contents);
+            }
+
+            public function resolveRunsDirectory(string $path, string $runsDirectory): RunsDirectoryResolutionResult
+            {
+                return $this->delegate->resolveRunsDirectory($path, $runsDirectory);
+            }
+        };
     }
 
     /**
