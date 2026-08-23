@@ -83,6 +83,24 @@ interface RunStateStore
     ): array;
 
     /**
+     * Appends one certification outcome and atomically publishes its current projection
+     *
+     * @return array{status: string, history_path?: string, projection_path?: string, sequence?: int, state?: string,
+     *     history_sha256?: string, projection_sha256?: string, certification_artifact_id?: string,
+     *     prerequisite_certification_handoff_id?: string}
+     */
+    public function publishCertificationRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        string $state,
+        string $artifactId,
+        string $handoffId,
+        int $expectedSequence,
+        string $expectedState
+    ): array;
+
+    /**
      * Appends one classified preparation stop and atomically publishes its current projection
      *
      * A caller cannot safely append when another writer owns the lease or when existing state is

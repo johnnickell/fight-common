@@ -516,6 +516,31 @@ final class DeterministicReleaseBoundaryFake implements
     }
 
     /**
+     * Appends one durable certification outcome through retained directory authority
+     */
+    public function publishCertificationRun(
+        CanonicalRunsDirectory $directory,
+        string $planId,
+        string $runId,
+        string $state,
+        string $artifactId,
+        string $handoffId,
+        int $expectedSequence,
+        string $expectedState
+    ): array {
+        /** @var array{status: string, history_path?: string, projection_path?: string, sequence?: int, state?: string, history_sha256?: string, projection_sha256?: string, certification_artifact_id?: string, prerequisite_certification_handoff_id?: string} $result */
+        $result = $this->runStateOperation(
+            'certify',
+            $directory,
+            $planId,
+            $runId,
+            [$state, $artifactId, $handoffId, (string) $expectedSequence, $expectedState]
+        );
+
+        return $result;
+    }
+
+    /**
      * Validates and repairs one named prepared run without pathname authority
      */
     public function resumePreparedRun(
@@ -1106,7 +1131,9 @@ final class DeterministicReleaseBoundaryFake implements
 
         $terminal = match ($operation) {
             'create' => ['conflict', 'failed', 'indeterminate'],
-            'publish', 'finalize', 'recover' => ['advanced', 'conflict', 'indeterminate', 'missing', 'stale'],
+            'publish', 'finalize', 'recover', 'certify' => [
+                'advanced', 'conflict', 'indeterminate', 'missing', 'stale'
+            ],
             'resume' => ['conflict', 'failed', 'indeterminate', 'missing', 'stale'],
             'stop' => ['advanced', 'conflict', 'failed', 'indeterminate', 'missing', 'stale'],
             default => throw new ReleaseRuntimeTermination(
@@ -1132,6 +1159,11 @@ final class DeterministicReleaseBoundaryFake implements
                 'history_sha256', 'projection_sha256', 'prepared_history_sha256',
                 'prepared_projection_sha256', 'prerequisite_evidence_manifest_id',
                 'prerequisite_phase_handoff_id'
+            ],
+            'certify:created'         => [
+                'status', 'history_path', 'projection_path', 'sequence', 'state',
+                'history_sha256', 'projection_sha256', 'certification_artifact_id',
+                'prerequisite_certification_handoff_id'
             ],
             'recover:created'         => [
                 'status', 'history_path', 'projection_path', 'sequence', 'state', 'next_action'
@@ -1238,6 +1270,9 @@ final class DeterministicReleaseBoundaryFake implements
             'finalize:created' => $this->receiptAdvances($result, $arguments[2] ?? null, 'prepared')
                 && $result['prerequisite_evidence_manifest_id'] === ($arguments[0] ?? null)
                 && $result['prerequisite_phase_handoff_id'] === ($arguments[1] ?? null),
+            'certify:created' => $this->receiptAdvances($result, $arguments[3] ?? null, $arguments[0] ?? null)
+                && $result['certification_artifact_id'] === ($arguments[1] ?? null)
+                && $result['prerequisite_certification_handoff_id'] === ($arguments[2] ?? null),
             'recover:created' => $this->receiptAdvances($result, $arguments[0] ?? null),
             'stop:created', 'stop:verified' => $this->receiptAdvances(
                 $result,

@@ -2170,6 +2170,29 @@ final class ReleasePreparationServiceTest extends UnitTestCase
                 );
             }
 
+            /** Delegates certification run publication for interface completeness */
+            public function publishCertificationRun(
+                CanonicalRunsDirectory $directory,
+                string $planId,
+                string $runId,
+                string $state,
+                string $artifactId,
+                string $handoffId,
+                int $expectedSequence,
+                string $expectedState
+            ): array {
+                return $this->delegate->publishCertificationRun(
+                    $directory,
+                    $planId,
+                    $runId,
+                    $state,
+                    $artifactId,
+                    $handoffId,
+                    $expectedSequence,
+                    $expectedState
+                );
+            }
+
             /**
              * Delegates complete prepared-run creation
              */
