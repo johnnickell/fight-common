@@ -79,6 +79,7 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
         $success = new DeterministicReleaseBoundaryFake();
         self::assertSame('repository-inspected', $success->inspectRepository()->value);
         self::assertTrue($success->resolveBaselineTag('v1.2.3', str_repeat('c', 40))->isResolved());
+        self::assertTrue($success->resolveExactAnnotatedTag('v1.2.3')->isResolved());
         self::assertSame('2026-08-19T12:00:00.000000Z', $success->now()->value);
         self::assertSame('signature-verified', $success->verify()->value);
         self::assertSame('authorized', $success->check()->value);
@@ -1008,7 +1009,8 @@ class DeterministicReleaseBoundaryFakeTest extends UnitTestCase
             ],
             GitPort::class           => [
                 'inspectRepository():'.ReleaseBoundaryOperationResult::class,
-                'resolveBaselineTag(string,string):'.\Fight\Release\Application\Boundary\BaselineTagResolutionResult::class
+                'resolveBaselineTag(string,string):'.\Fight\Release\Application\Boundary\BaselineTagResolutionResult::class,
+                'resolveExactAnnotatedTag(string):'.\Fight\Release\Application\Boundary\BaselineTagResolutionResult::class
             ],
             HashingPort::class       => ['sha256(string):'.ReleaseBoundaryOperationResult::class],
             ClockPort::class         => ['now():'.ReleaseBoundaryOperationResult::class],

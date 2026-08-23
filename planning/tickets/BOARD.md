@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-22
+Last updated: 2026-08-23
 
 ## “What’s Next?” Contract
 
@@ -26,10 +26,17 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 13 | [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes the authoritative compatibility baseline and consumer seam required by every Fight Common contract-repair slice. |
 | 14 | [T-00057 — Pin Fight Common's Symfony Components to the Current Supported Line](00057-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Aligns Fight Common's own Symfony floor with the current-only window used by downstream repository-owned compatibility lanes. |
 | 15 | [T-00058 — Publish the Normative Supported-Line Window and Activation Suggestions](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Records the supported window and activation packages as normative consumer documentation. |
 | 23 | [T-00033 — Prove the Normal Feature Package Journey](00033-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | Extends the isolated maintainer release module with the first package journey. |
+| 34 | [T-00048 — Restore Scheduler 1.x Construction Compatibility](00048-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Restores the first consumer-visible `1.x` construction contract against the completed T-00047 authority. |
+| 35 | [T-00049 — Deliver Typed JSend Through the Symfony Response Boundary](00049-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Delivers the next independent public-contract repair against the completed authority and consumer harness. |
+| 37 | [T-00051 — Publish Canonical Symfony Messaging Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the messaging namespace compatibility slice against the completed T-00047 authority. |
+| 38 | [T-00052 — Publish Canonical Symfony Event Sourcing and Templating Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the event-sourcing and templating namespace slice against the completed T-00047 authority. |
+| 39 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the Doctrine data-type namespace slice against the completed T-00047 authority. |
+| 40 | [T-00054 — Prove Root Dependency Modes and Production Package Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Extends T-00047's explicit pre-certification archive boundary into the production-package isolation lane. |
+| 41 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the transaction boundary against the completed public API authority. |
+| 42 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private Mercure publication boundary against the completed public API authority. |
 
 ## Waiting
 
@@ -46,15 +53,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 30 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
 | 31 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 | 32 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
-| 34 | [T-00048 — Restore Scheduler 1.x Construction Compatibility](00048-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 35 | [T-00049 — Deliver Typed JSend Through the Symfony Response Boundary](00049-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 36 | [T-00050 — Publish Canonical Symfony HTTP, Filesystem, and Routing Paths](00050-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00049 |
-| 37 | [T-00051 — Publish Canonical Symfony Messaging Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 38 | [T-00052 — Publish Canonical Symfony Event Sourcing and Templating Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 39 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 40 | [T-00054 — Prove Root Dependency Modes and Production Package Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 41 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
-| 42 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00047 |
 | 43 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00034, T-00048 through T-00054, T-00059, T-00060 |
 
 ## Needs Info
@@ -99,8 +98,9 @@ maintenance lifecycle work may proceed independently at T-00036 after certificat
 the oldest affected-line patch at T-00037 and ordered forward ports at T-00042. Operator skills, dispatcher
 and runbook, and final CI traceability then close the epic through T-00038, T-00043, and T-00039.
 
-The Fight Common compatibility path starts at T-00047. Scheduler, JSend, namespace, package, transactional
-UnitOfWork, and private Mercure lanes then proceed through T-00048 to T-00054, T-00059, and T-00060. After
+The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
+Scheduler, JSend, namespace, package, transactional UnitOfWork, and private Mercure lanes now proceed through
+T-00048 to T-00054, T-00059, and T-00060. After
 those slices and the release certification engine complete, T-00056 composes the Fight Common black-box
 `1.2.0` compatibility evidence required before T-00017 can close release acceptance. Framework composition
 evidence remains repository-owned and joins the umbrella through the T-00061 through T-00067 handoff graph.
@@ -121,6 +121,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00047 — Establish the Public API Authority and Consumer Harness](00047-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Established the exact `1.1.0` baseline, scanner-authenticated public policy, stable fail-closed structural findings, and a distinct installed-package consumer copy with exact machine-readable receipts. |
 | [T-00068 — Move Release Coordination into a Maintainer-Only Module](00068-TICKET.md) | [PRD-00019](../specs/00019-PRD.md) | Moved release source, scripts, tests, helpers, and fixtures into a development-autoloaded `Fight\Release` module; retained the sole `bin/release` command, exact quality and architecture enforcement, clean consumer isolation, and the documentation-owned MkDocs override. |
 | [T-00040 — Prove Resumable Release Runs and Phase Handoffs](00040-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Delivered unique plan-bound runs, append-only crash-safe transitions, atomic projections, live input and postcondition revalidation, precise stop recovery, and canonical content-addressed preparation evidence and handoffs. |
 | [T-00032 — Establish Release Inspection, Plans, and Boundary Fakes](00032-TICKET.md) | [PRD-00010](../specs/00010-PRD.md) | Delivered complete category-derived inspection, typed immutable release approval and plan identity, credential-free deterministic boundary fakes, capability firewalls, and confined content-addressed planning artifacts without external release effects. |
