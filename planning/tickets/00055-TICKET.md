@@ -19,8 +19,8 @@ clean-clone evidence to the five public-source starter repositories that own tho
 PRD-00015 still supplies the exact supported package lines and default compositions. T-00057 applies Fight
 Common's own Symfony floor, and T-00058 publishes the normative support and activation guidance. PRD-00016
 owns repository bootstrap and authority transfer; PRD-00018 owns repository-local compatibility and walking-
-slice acceptance. A future umbrella handoff ticket may link immutable repository-owned receipts, but Fight
-Common does not recreate or rerun their projects.
+slice acceptance. T-00075 links immutable repository-owned receipts into the Fight Common certification graph,
+but Fight Common does not recreate or rerun their projects.
 
 ## Closure Evidence
 
@@ -29,8 +29,9 @@ Common does not recreate or rerun their projects.
   authority to each owning repository.
 - PRD-00018 explicitly rejects five nested applications and one central cross-repository build in Fight
   Common.
-- The PRD-00015 implementation graph therefore contains only T-00057 and T-00058 in Fight Common.
+- The expanded PRD-00015 graph retains repository-owned booted journeys while T-00057, T-00058, and T-00070
+  through T-00075 deliver Fight Common adapters, guidance, and receipt composition without nested applications.
 
 ## Parent
 
-PRD-00015 — Framework Supported Lines and Default Capability Compositions.
+PRD-00015 — Framework Adapter Support and Capability Composition.
