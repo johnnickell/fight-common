@@ -21,6 +21,13 @@ PRD-00014, PRD-00015, and T-00050 through T-00075 now agree. Use `/ask-matt` aft
 to recalculate the executable frontier; implementation, commit, push, pull request, merge, and release remain
 separate approvals.
 
+## Wayfinder Review
+
+No active Wayfinder map currently has an unblocked decision frontier. When one does, list its linked map and
+frontier ticket here as the next `/grill-with-docs` candidate; this does not displace the implementation frontier.
+When `/ask-matt` is otherwise unqualified, offer `/wayfinder` to chart a new feature instead of fabricating a
+grilling target.
+
 ## Ready Frontier
 
 These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready
