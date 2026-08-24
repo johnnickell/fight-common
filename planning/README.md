@@ -14,4 +14,6 @@ This directory is the committed source of truth for Fight Common planning.
 
 Identifiers are independent five-digit sequences. Ticket identifiers are displayed as `T-NNNNN`. Valid statuses are `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `in-progress`, `done`, and `wontfix`. Blocking is derived from unfinished `blocked_by` edges and is not stored as a status.
 
+`CONVENTIONS.md` is the canonical reference for planning structure, file naming, ticket lifecycle, BOARD.md, wayfinder maps, epics, PRDs, and pre-PR synchronization.
+
 Run `./bin/planning-check` after changing planning files. Coordinate-build scratch belongs in gitignored `.runs/`, never here.
