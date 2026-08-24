@@ -9,6 +9,7 @@ use Fight\Release\Application\Boundary\CompatibilityInputPort;
 use Fight\Release\Application\Boundary\CompatibilityWorkspacePort;
 use Fight\Release\Application\Boundary\GitPort;
 use Fight\Release\Application\Boundary\PublicConsumerPort;
+use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
 use Fight\Release\Application\Boundary\StructuralInventoryPort;
 use RuntimeException;
 use Throwable;
@@ -85,13 +86,53 @@ final readonly class CompatibilityAssessmentService
             }
 
             $stage = 'consumer';
-            $consumerRoot = $workspace.'/consumer';
-            $this->workspace->createDirectory($consumerRoot);
-            $consumer = $this->consumer->run(
-                $root,
+            $baselineConsumerRoot = $workspace.'/consumer/baseline';
+            $candidateConsumerRoot = $workspace.'/consumer/candidate';
+            $this->workspace->createDirectory($baselineConsumerRoot);
+            $this->workspace->createDirectory($candidateConsumerRoot);
+            $baselineConsumer = $this->consumer->run(
+                $workspace.'/baseline',
                 $root.'/release/fixtures/PublicApiConsumer',
-                $consumerRoot
+                $baselineConsumerRoot
             );
+            SchedulerEvidenceAuthority::isCanonicalBaselineReceipt($baselineConsumer)
+                || throw new RuntimeException('Canonical baseline Scheduler evidence is invalid.');
+            try {
+                $candidateConsumer = $this->consumer->run(
+                    $root,
+                    $root.'/release/fixtures/PublicApiConsumer',
+                    $candidateConsumerRoot
+                );
+            } catch (PublicConsumerProbeRejected) {
+                return $this->schedulerIncompatibility();
+            }
+
+            if (SchedulerEvidenceAuthority::candidateIsProvenIncompatible($baselineConsumer, $candidateConsumer)) {
+                return $this->schedulerIncompatibility();
+            }
+
+            $consumer = [
+                ...$candidateConsumer,
+                'package_probes' => [
+                    'baseline'               => [
+                        'identity'    => [
+                            'version'                => $manifest['baseline']['version'],
+                            'peeled_commit_oid'      => $manifest['baseline']['peeled_commit_oid'],
+                            'production_tree_sha256' => $baselineConsumer['candidate']['production_tree_sha256']
+                        ],
+                        'attribution' => 'baseline',
+                        'receipt'     => $baselineConsumer
+                    ],
+                    'candidate'              => [
+                        'identity'    => [
+                            'production_tree_sha256' => $candidateConsumer['candidate']['production_tree_sha256']
+                        ],
+                        'attribution' => 'candidate',
+                        'receipt'     => $candidateConsumer
+                    ],
+                    'distinct_installations' => $baselineConsumerRoot !== $candidateConsumerRoot
+                ]
+            ];
 
             return new MachineResult([
                 'schema_version'          => 'fight-common.release-result/v1',
@@ -106,7 +147,8 @@ final readonly class CompatibilityAssessmentService
                 'verified_postconditions' => [
                     'compatibility_manifest_authenticated',
                     'structural_evidence_composed',
-                    'disposable_public_consumer_verified'
+                    'disposable_public_consumer_verified',
+                    'baseline_and_candidate_public_probes_verified'
                 ],
                 'performed_effects'       => [],
                 'proposed_effects'        => [],
@@ -166,5 +208,13 @@ final readonly class CompatibilityAssessmentService
             'proposed_effects'        => [],
             'next_action'             => ['action' => 'restore_'.$stage.'_evidence_and_retry']
         ], 5);
+    }
+
+    /**
+     * Returns the stable stop for a candidate that cannot reproduce the Scheduler 1.x contract
+     */
+    private function schedulerIncompatibility(): MachineResult
+    {
+        return new MachineResult(SchedulerEvidenceAuthority::incompatibilityResult(), 4);
     }
 }

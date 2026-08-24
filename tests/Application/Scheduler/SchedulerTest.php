@@ -7,11 +7,11 @@ namespace Fight\Test\Common\Application\Scheduler;
 require_once __DIR__.'/RuntimeInspectionFunctionController.php';
 require_once __DIR__.'/LockLifecycleFunctionController.php';
 
+use Closure;
 use Fight\Common\Application\Mail\MailService;
 use Fight\Common\Application\Mail\Message\MailFactory;
 use Fight\Common\Application\Mail\Message\MailMessage;
 use Fight\Common\Application\Mail\Transport\MailTransport;
-use Fight\Common\Application\Process\Exception\ProcessException;
 use Fight\Common\Application\Process\Process as ApplicationProcess;
 use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Common\Application\Scheduler\Exception\SchedulerException;
@@ -22,78 +22,81 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use Symfony\Component\Process\Process;
 
 #[CoversClass(Scheduler::class)]
 class SchedulerTest extends UnitTestCase
 {
     private string $tempDir;
     private Timezone $timezone;
-    private ProcessRunner $processRunner;
 
-    public function test_that_constructor_requires_process_runner_as_its_third_parameter(): void
+    public function test_that_constructor_preserves_the_published_one_dot_one_dot_zero_signature(): void
     {
         $parameters = (new ReflectionMethod(Scheduler::class, '__construct'))->getParameters();
 
-        self::assertSame('processRunner', $parameters[2]->getName());
-        self::assertSame(ProcessRunner::class, (string) $parameters[2]->getType());
-        self::assertFalse($parameters[2]->isOptional());
-        self::assertFalse($parameters[2]->allowsNull());
+        self::assertSame(
+            ['timezone', 'tempDirectory', 'logger', 'mailService', 'fromEmail', 'processFactory'],
+            array_map(static fn(\ReflectionParameter $parameter): string => $parameter->getName(), $parameters)
+        );
+        self::assertSame(
+            [
+                Timezone::class,
+                'string',
+                '?'.LoggerInterface::class,
+                '?'.MailService::class,
+                'string',
+                '?'.Closure::class
+            ],
+            array_map(static fn(\ReflectionParameter $parameter): string => (string) $parameter->getType(), $parameters)
+        );
+        self::assertSame([false, false, true, true, true, true], array_map(
+            static fn(\ReflectionParameter $parameter): bool => $parameter->isOptional(),
+            $parameters
+        ));
+        self::assertSame([false, false, true, true, false, true], array_map(
+            static fn(\ReflectionParameter $parameter): bool => $parameter->allowsNull(),
+            $parameters
+        ));
+        self::assertSame([null, null, '', null], array_map(
+            static fn(\ReflectionParameter $parameter): mixed => $parameter->getDefaultValue(),
+            array_slice($parameters, 2)
+        ));
     }
 
-    public function test_that_scheduler_source_has_no_coverage_exclusions(): void
+    public function test_that_published_positional_and_named_construction_styles_remain_accepted(): void
     {
-        $source = file_get_contents(dirname(__DIR__, 3).'/src/Application/Scheduler/Scheduler.php');
+        $logger = $this->mock(LoggerInterface::class);
+        $mailService = new MailService(
+            $this->mock(MailTransport::class),
+            $this->mock(MailFactory::class)
+        );
+        $processFactory = static fn(string $command): string => $command;
 
-        self::assertIsString($source);
-        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
+        $schedulers = [
+            new Scheduler($this->timezone, $this->tempDir),
+            new Scheduler($this->timezone, $this->tempDir, $logger),
+            new Scheduler(
+                $this->timezone,
+                $this->tempDir,
+                $logger,
+                $mailService,
+                'scheduler@example.com',
+                $processFactory
+            ),
+            new Scheduler(
+                timezone: $this->timezone,
+                tempDirectory: $this->tempDir,
+                logger: $logger,
+                mailService: $mailService,
+                fromEmail: 'scheduler@example.com',
+                processFactory: $processFactory
+            )
+        ];
+
+        self::assertContainsOnlyInstancesOf(Scheduler::class, $schedulers);
     }
 
-    protected function setUp(): void
-    {
-        LockLifecycleFunctionController::reset();
-        RuntimeInspectionFunctionController::reset();
-        $this->tempDir  = sys_get_temp_dir().'/test_scheduler_'.uniqid();
-        mkdir($this->tempDir, 0777, true);
-        $this->timezone = new Timezone('UTC');
-        $this->processRunner = $this->mock(ProcessRunner::class);
-    }
-
-    protected function tearDown(): void
-    {
-        LockLifecycleFunctionController::reset();
-        RuntimeInspectionFunctionController::reset();
-        array_map('unlink', glob($this->tempDir.'/*.lock') ?: []);
-        @rmdir($this->tempDir);
-        parent::tearDown();
-    }
-
-    // -------------------------------------------------------------------------
-    // addJob / addCommand — basic execution
-    // -------------------------------------------------------------------------
-
-    public function test_that_callable_job_runs_when_due(): void
-    {
-        $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
-        $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
-            $ran = true;
-            return true;
-        });
-        $scheduler->run();
-
-        self::assertTrue($ran);
-    }
-
-    public function test_that_command_job_runs_when_due(): void
-    {
-        $runner = $this->mockProcessRunner();
-
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $runner);
-        $scheduler->addCommand('cmd-job', fn() => true, 'echo hello');
-        $scheduler->run();
-    }
-
-    public function test_that_command_job_builds_and_runs_process_while_routing_output(): void
+    public function test_that_named_process_runner_construction_executes_commands_through_the_portable_port(): void
     {
         $process = null;
         $runner = $this->mock(ProcessRunner::class);
@@ -112,14 +115,125 @@ class SchedulerTest extends UnitTestCase
             }
         );
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $runner);
-        $scheduler->addCommand('cmd-job', fn() => true, 'printf "hello" && printf "error" >&2', output: true);
+        $scheduler = Scheduler::withProcessRunner(
+            timezone: $this->timezone,
+            tempDirectory: $this->tempDir,
+            processRunner: $runner
+        );
+        $scheduler->addCommand(
+            'portable-command',
+            fn() => true,
+            'printf "hello" && printf "error" >&2',
+            output: true
+        );
 
         ob_start();
         $scheduler->run();
         $output = ob_get_clean();
 
         self::assertSame('printf "hello" && printf "error" >&2', $process?->command());
+        self::assertSame("standard output\nstandard error\n", $output);
+    }
+
+    public function test_that_scheduler_source_has_no_coverage_exclusions(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 3).'/src/Application/Scheduler/Scheduler.php');
+
+        self::assertIsString($source);
+        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
+    }
+
+    protected function setUp(): void
+    {
+        LockLifecycleFunctionController::reset();
+        RuntimeInspectionFunctionController::reset();
+        $this->tempDir  = sys_get_temp_dir().'/test_scheduler_'.uniqid();
+        mkdir($this->tempDir, 0777, true);
+        $this->timezone = new Timezone('UTC');
+    }
+
+    protected function tearDown(): void
+    {
+        LockLifecycleFunctionController::reset();
+        RuntimeInspectionFunctionController::reset();
+        array_map('unlink', glob($this->tempDir.'/*.lock') ?: []);
+        @rmdir($this->tempDir);
+        parent::tearDown();
+    }
+
+    // -------------------------------------------------------------------------
+    // addJob / addCommand — basic execution
+    // -------------------------------------------------------------------------
+
+    public function test_that_callable_job_runs_when_due(): void
+    {
+        $ran = false;
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
+        $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
+            $ran = true;
+            return true;
+        });
+        $scheduler->run();
+
+        self::assertTrue($ran);
+    }
+
+    public function test_that_command_job_reports_the_missing_optional_symfony_process_dependency(): void
+    {
+        RuntimeInspectionFunctionController::control($this->tempDir, classExists: false);
+        $logger = $this->mock(LoggerInterface::class);
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === 'Command jobs require symfony/process or a custom processFactory'
+                && ($context['exception'] ?? null) instanceof SchedulerException
+        );
+
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, logger: $logger);
+        $scheduler->addCommand('cmd-job', static fn(): bool => true, 'echo hello');
+        $scheduler->run();
+    }
+
+    public function test_that_command_job_runs_when_due(): void
+    {
+        $process = $this->mock(Process::class);
+        $process->shouldReceive('run')->once()->with(\Mockery::type('callable'));
+        $process->shouldReceive('isSuccessful')->once()->andReturn(true);
+        $processFactory = function (string $command) use ($process): Process {
+            self::assertSame('echo hello', $command);
+
+            return $process;
+        };
+
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, processFactory: $processFactory);
+        $scheduler->addCommand('cmd-job', fn() => true, 'echo hello');
+        $scheduler->run();
+    }
+
+    public function test_that_command_job_builds_and_runs_process_while_routing_output(): void
+    {
+        $process = $this->mock(Process::class);
+        $process->shouldReceive('run')->once()->with(\Mockery::type('callable'))->andReturnUsing(
+            function (callable $callback): int {
+                $callback(Process::OUT, 'standard output');
+                $callback(Process::ERR, 'standard error');
+
+                return 0;
+            }
+        );
+        $process->shouldReceive('isSuccessful')->once()->andReturn(true);
+        $processFactory = function (string $command) use ($process): Process {
+            self::assertSame('printf "hello" && printf "error" >&2', $command);
+
+            return $process;
+        };
+
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, processFactory: $processFactory);
+        $scheduler->addCommand('cmd-job', fn() => true, 'printf "hello" && printf "error" >&2', output: true);
+
+        ob_start();
+        $scheduler->run();
+        $output = ob_get_clean();
+
         self::assertSame("standard output\nstandard error\n", $output);
     }
 
@@ -130,7 +244,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_job_skips_when_not_due(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => false, function () use (&$ran): bool {
             $ran = true;
             return true;
@@ -143,7 +257,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_cron_expression_matches_current_minute(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         // '* * * * *' is always due
         $scheduler->addJob('test', '* * * * *', function () use (&$ran): bool {
             $ran = true;
@@ -157,7 +271,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_future_cron_expression_is_not_due(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         // February 30th never exists
         $scheduler->addJob('test', '0 0 30 2 *', function () use (&$ran): bool {
             $ran = true;
@@ -173,7 +287,7 @@ class SchedulerTest extends UnitTestCase
         $ran = false;
         $now = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s');
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', $now, function () use (&$ran): bool {
             $ran = true;
             return true;
@@ -186,7 +300,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_past_datetime_string_is_not_due(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', '2000-01-01 00:00:00', function () use (&$ran): bool {
             $ran = true;
             return true;
@@ -203,7 +317,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_disabled_job_is_skipped(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
             $ran = true;
             return true;
@@ -219,7 +333,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_callable_returning_zero_succeeds(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, fn() => 0);
         $scheduler->run();
 
@@ -228,7 +342,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_callable_returning_null_succeeds(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, fn() => null);
         $scheduler->run();
 
@@ -240,7 +354,7 @@ class SchedulerTest extends UnitTestCase
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('error')->once();
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, logger: $logger);
         $scheduler->addJob('test', fn() => true, fn() => 'bad');
         $scheduler->run();
     }
@@ -250,7 +364,7 @@ class SchedulerTest extends UnitTestCase
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('error')->once();
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, logger: $logger);
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('boom');
         });
@@ -263,33 +377,44 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_successful_command_does_not_throw(): void
     {
-        $runner = $this->mockProcessRunner();
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
+        $scheduler->addCommand('cmd', fn() => true, 'printf "default process output"', output: true);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $runner);
-        $scheduler->addCommand('cmd', fn() => true, 'echo hello');
+        ob_start();
         $scheduler->run();
+        $output = ob_get_clean();
 
-        self::assertTrue(true);
+        self::assertStringContainsString('default process output', $output);
     }
 
     public function test_that_failing_command_logs_error(): void
     {
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('error')->once();
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === 'Command exited with non-zero status 1'
+                && ($context['exception'] ?? null) instanceof SchedulerException
+        );
+        $process = $this->mockFailingProcess();
 
-        $runner = $this->mockProcessRunner(new ProcessException('Command failed'));
-
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $runner, logger: $logger);
+        $scheduler = new Scheduler(
+            $this->timezone,
+            $this->tempDir,
+            logger: $logger,
+            processFactory: static fn(string $command): Process => $process
+        );
         $scheduler->addCommand('cmd', fn() => true, 'false');
         $scheduler->run();
     }
 
     public function test_that_failing_command_logs_notifies_and_releases_its_lock(): void
     {
-        $failure = new ProcessException('Command failed');
-
         $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('error')->once()->with('Command failed', ['exception' => $failure]);
+        $logger->shouldReceive('error')->once()->withArgs(
+            static fn(string $message, array $context): bool =>
+                $message === 'Command exited with non-zero status 1'
+                && ($context['exception'] ?? null) instanceof SchedulerException
+        );
 
         $message = new MailMessage();
         $factory = $this->mock(MailFactory::class);
@@ -299,21 +424,22 @@ class SchedulerTest extends UnitTestCase
         $transport->shouldReceive('send')->once()->with($message);
 
         $runCount = 0;
-        $runner   = $this->mock(ProcessRunner::class);
-        $runner->shouldReceive('attach')->twice()->with(\Mockery::type(ApplicationProcess::class));
-        $runner->shouldReceive('run')->twice()->andReturnUsing(function () use (&$runCount, $failure): void {
-            if ($runCount++ === 0) {
-                throw $failure;
+        $process = $this->mock(Process::class);
+        $process->shouldReceive('run')->twice()->with(\Mockery::type('callable'))->andReturn(0);
+        $process->shouldReceive('isSuccessful')->twice()->andReturnUsing(
+            static function () use (&$runCount): bool {
+                return $runCount++ > 0;
             }
-        });
+        );
+        $process->shouldReceive('getExitCode')->once()->andReturn(1);
 
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $runner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
-            fromEmail: 'scheduler@example.com'
+            fromEmail: 'scheduler@example.com',
+            processFactory: static fn(string $command): Process => $process
         );
         $scheduler->addCommand(
             'cmd',
@@ -328,7 +454,10 @@ class SchedulerTest extends UnitTestCase
 
         self::assertSame('[Scheduler] Job "cmd" failed', $message->getSubject());
         self::assertSame(['admin@example.com'], array_column($message->getTo(), 'address'));
-        self::assertStringContainsString('Error: Command failed', $message->getContent()[0]['content']);
+        self::assertStringContainsString(
+            'Error: Command exited with non-zero status 1',
+            $message->getContent()[0]['content']
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -337,7 +466,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_output_false_produces_no_output(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function (): bool {
             echo 'should not appear';
             return true;
@@ -352,7 +481,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_output_true_echoes_to_stdout(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function (): bool {
             echo 'hello output';
             return true;
@@ -369,7 +498,7 @@ class SchedulerTest extends UnitTestCase
     {
         $file = $this->tempDir.'/output.log';
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function () use ($file): bool {
             echo 'logged line';
             return true;
@@ -385,7 +514,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_null_max_runtime_never_throws(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, fn() => true, maxRuntime: null);
         $scheduler->run();
 
@@ -394,7 +523,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_nonexistent_lock_file_has_zero_lifetime(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         // maxRuntime=9999 and no existing lock → lifetime=0 → no throw
         $scheduler->addJob('test', fn() => true, fn() => true, maxRuntime: 9999);
         $scheduler->run();
@@ -408,7 +537,7 @@ class SchedulerTest extends UnitTestCase
         $lockFile = $this->tempDir.'/test.lock';
         touch($lockFile);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
             $ran = true;
 
@@ -426,7 +555,7 @@ class SchedulerTest extends UnitTestCase
         file_put_contents($lockFile, '4242');
         RuntimeInspectionFunctionController::control($lockFile, processActive: false);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
             $ran = true;
 
@@ -445,7 +574,7 @@ class SchedulerTest extends UnitTestCase
         touch($lockFile, 1_999_999_999);
         RuntimeInspectionFunctionController::control($lockFile, processActive: true, currentTime: 2_000_000_000);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function () use (&$ran): bool {
             $ran = true;
 
@@ -480,7 +609,6 @@ class SchedulerTest extends UnitTestCase
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $this->processRunner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
             fromEmail: 'scheduler@example.com'
@@ -528,7 +656,6 @@ class SchedulerTest extends UnitTestCase
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $this->processRunner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
             fromEmail: 'scheduler@example.com'
@@ -579,7 +706,6 @@ class SchedulerTest extends UnitTestCase
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $this->processRunner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
             fromEmail: 'scheduler@example.com'
@@ -629,7 +755,6 @@ class SchedulerTest extends UnitTestCase
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $this->processRunner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
             fromEmail: 'scheduler@example.com'
@@ -679,7 +804,6 @@ class SchedulerTest extends UnitTestCase
             $scheduler = new Scheduler(
                 $this->timezone,
                 $this->tempDir,
-                $this->processRunner,
                 logger: $logger,
                 mailService: new MailService($transport, $factory),
                 fromEmail: 'scheduler@example.com'
@@ -726,7 +850,6 @@ class SchedulerTest extends UnitTestCase
         $scheduler = new Scheduler(
             $this->timezone,
             $this->tempDir,
-            $this->processRunner,
             logger: $logger,
             mailService: new MailService($transport, $factory),
             fromEmail: 'scheduler@example.com'
@@ -754,7 +877,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_log_error_is_no_op_without_logger(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         });
@@ -768,7 +891,7 @@ class SchedulerTest extends UnitTestCase
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('error')->once()->with(\Mockery::type('string'), \Mockery::any());
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, logger: $logger);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, logger: $logger);
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('something broke');
         });
@@ -781,7 +904,7 @@ class SchedulerTest extends UnitTestCase
 
     public function test_that_notify_is_skipped_without_mail_service(): void
     {
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         }, notify: ['admin@example.com']);
@@ -800,7 +923,7 @@ class SchedulerTest extends UnitTestCase
 
         $mail = new MailService($transport, $factory);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, mailService: $mail, fromEmail: 'from@example.com');
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, mailService: $mail, fromEmail: 'from@example.com');
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         }, notify: []);
@@ -820,7 +943,7 @@ class SchedulerTest extends UnitTestCase
 
         $mail = new MailService($transport, $factory);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, mailService: $mail, fromEmail: 'from@example.com');
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, mailService: $mail, fromEmail: 'from@example.com');
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         }, notify: ['admin@example.com'], environment: 'production');
@@ -844,7 +967,7 @@ class SchedulerTest extends UnitTestCase
 
         $mail = new MailService($transport, $factory);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, mailService: $mail, fromEmail: 'from@example.com');
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, mailService: $mail, fromEmail: 'from@example.com');
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         }, notify: ['a@example.com', 'b@example.com']);
@@ -867,7 +990,7 @@ class SchedulerTest extends UnitTestCase
 
         $mail = new MailService($transport, $factory);
 
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner, mailService: $mail, fromEmail: 'from@example.com');
+        $scheduler = new Scheduler($this->timezone, $this->tempDir, mailService: $mail, fromEmail: 'from@example.com');
         $scheduler->addJob('test', fn() => true, function (): never {
             throw new \RuntimeException('error');
         }, notify: 'a@example.com, b@example.com');
@@ -884,7 +1007,7 @@ class SchedulerTest extends UnitTestCase
     public function test_that_escape_sanitizes_job_names(): void
     {
         $ran = false;
-        $scheduler = new Scheduler($this->timezone, $this->tempDir, $this->processRunner);
+        $scheduler = new Scheduler($this->timezone, $this->tempDir);
         // Job name with special characters — should run fine (lock file created safely)
         $scheduler->addJob('My  Job!! Name', fn() => true, function () use (&$ran): bool {
             $ran = true;
@@ -903,14 +1026,12 @@ class SchedulerTest extends UnitTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function mockProcessRunner(?ProcessException $failure = null): ProcessRunner
+    private function mockFailingProcess(): Process
     {
-        $mock = $this->mock(ProcessRunner::class);
-        $mock->shouldReceive('attach')->once()->with(\Mockery::type(ApplicationProcess::class));
-        $run = $mock->shouldReceive('run')->once();
-        if ($failure instanceof ProcessException) {
-            $run->andThrow($failure);
-        }
+        $mock = $this->mock(Process::class);
+        $mock->shouldReceive('run')->once()->with(\Mockery::type('callable'))->andReturn(1);
+        $mock->shouldReceive('isSuccessful')->once()->andReturn(false);
+        $mock->shouldReceive('getExitCode')->once()->andReturn(1);
 
         return $mock;
     }

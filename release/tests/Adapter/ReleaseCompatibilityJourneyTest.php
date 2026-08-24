@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Release\Adapter;
 
+use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use Symfony\Component\Filesystem\Filesystem;
@@ -48,6 +49,121 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             $result['evidence']['consumer']['candidate']['production_tree_sha256'],
             $result['evidence']['consumer']['resolved_package']['production_tree_sha256']
         );
+        self::assertSame(
+            ['baseline', 'candidate', 'distinct_installations'],
+            array_keys($result['evidence']['consumer']['package_probes'])
+        );
+        self::assertSame(
+            [
+                'version'                => '1.1.0',
+                'peeled_commit_oid'      => 'fdd48065c5527f4968943db7d61d6f1ad17619e7',
+                'production_tree_sha256' => $result['evidence']['consumer']['package_probes']['baseline'][
+                    'receipt'
+                ]['candidate']['production_tree_sha256']
+            ],
+            $result['evidence']['consumer']['package_probes']['baseline']['identity']
+        );
+        self::assertSame(
+            [
+                'production_tree_sha256' => $result['evidence']['consumer']['package_probes']['candidate'][
+                    'receipt'
+                ]['candidate']['production_tree_sha256']
+            ],
+            $result['evidence']['consumer']['package_probes']['candidate']['identity']
+        );
+        self::assertSame(
+            'baseline',
+            $result['evidence']['consumer']['package_probes']['baseline']['attribution']
+        );
+        self::assertSame(
+            'candidate',
+            $result['evidence']['consumer']['package_probes']['candidate']['attribution']
+        );
+        self::assertSame(
+            'copy',
+            $result['evidence']['consumer']['package_probes']['baseline']['receipt']['resolved_package'][
+                'installed_as'
+            ]
+        );
+        self::assertSame(
+            'copy',
+            $result['evidence']['consumer']['package_probes']['candidate']['receipt']['resolved_package'][
+                'installed_as'
+            ]
+        );
+        $legacyFindings = [
+            [
+                'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
+                'evidence_id' => 'fight-common.consumer.public-api-representative',
+                'attribution' => 'release/fixtures/PublicApiConsumer/public-api-probe.php',
+                'status'      => 'passed'
+            ],
+            [
+                'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-construction-passed',
+                'evidence_id' => 'fight-common.behavior.scheduler-legacy-construction',
+                'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                'status'      => 'passed'
+            ],
+            [
+                'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-command-passed',
+                'evidence_id' => 'fight-common.behavior.scheduler-legacy-command',
+                'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                'status'      => 'passed'
+            ]
+        ];
+        self::assertSame(
+            $legacyFindings,
+            $result['evidence']['consumer']['package_probes']['baseline']['receipt']['findings']
+        );
+        self::assertSame(
+            [
+                ...$legacyFindings,
+                [
+                    'finding_id'  => 'release.compatibility.consumer.scheduler-portable-runner-passed',
+                    'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                    'status'      => 'passed'
+                ]
+            ],
+            $result['evidence']['consumer']['package_probes']['candidate']['receipt']['findings']
+        );
+        $schedulerObservation = [
+            'construction_styles'      => ['two_argument', 'positional_optional', 'named_arguments'],
+            'callable_output'          => "scheduler callable\n",
+            'command_output'           => "scheduler command\nscheduler command\n",
+            'default_process_commands' => ['default-command'],
+            'factory_process_commands' => ['factory-command', 'false', 'false'],
+            'non_zero_failure'         => $this->schedulerNonZeroFailureObservation()
+        ];
+        self::assertSame(
+            [],
+            $result['evidence']['consumer']['package_probes']['baseline']['receipt']['probe']['observations'][
+                'runtime_deprecations'
+            ]
+        );
+        self::assertSame(
+            $schedulerObservation,
+            $result['evidence']['consumer']['package_probes']['baseline']['receipt']['probe']['observations'][
+                'scheduler'
+            ]
+        );
+        $schedulerObservation['portable_process_runner'] = [
+            'commands' => ['portable-command'],
+            'output'   => "scheduler portable command\n"
+        ];
+        self::assertSame(
+            [],
+            $result['evidence']['consumer']['package_probes']['candidate']['receipt']['probe']['observations'][
+                'runtime_deprecations'
+            ]
+        );
+        self::assertSame(
+            $schedulerObservation,
+            $result['evidence']['consumer']['package_probes']['candidate']['receipt']['probe']['observations'][
+                'scheduler'
+            ]
+        );
+        self::assertTrue($result['evidence']['consumer']['package_probes']['distinct_installations']);
         self::assertMatchesRegularExpression('/\A[0-9a-f]{64}\z/D', $result['evidence']['consumer']['lock']['sha256']);
         self::assertSame([], $result['performed_effects']);
         self::assertSame([], $result['proposed_effects']);
@@ -55,7 +171,8 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             [
                 'compatibility_manifest_authenticated',
                 'structural_evidence_composed',
-                'disposable_public_consumer_verified'
+                'disposable_public_consumer_verified',
+                'baseline_and_candidate_public_probes_verified'
             ],
             $result['verified_postconditions']
         );
@@ -106,6 +223,8 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
 
         $filesystem->symlink($root.'/bin/release', $repository.'/bin/release');
         $filesystem->symlink($root.'/release/README.md', $repository.'/release/README.md');
+        $filesystem->symlink($root.'/release/fixtures', $repository.'/release/fixtures');
+        $filesystem->symlink($root.'/release/src', $repository.'/release/src');
         $filesystem->symlink($root.'/release/tests', $repository.'/release/tests');
         $filesystem->copy($root.'/release/scripts/release.php', $repository.'/release/scripts/release.php');
 
@@ -247,5 +366,43 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
         } finally {
             $filesystem->remove($repository);
         }
+    }
+
+    /** @return array<string, mixed> */
+    private function schedulerNonZeroFailureObservation(): array
+    {
+        $log = [
+            'level'   => 'error',
+            'message' => 'Command exited with non-zero status 1',
+            'context' => [
+                'keys'      => ['exception'],
+                'exception' => [
+                    'class'   => SchedulerException::class,
+                    'message' => 'Command exited with non-zero status 1',
+                    'code'    => 0
+                ]
+            ]
+        ];
+        $notification = [
+            'subject' => '[Scheduler] Job "consumer-failing-command" failed',
+            'from'    => [['address' => 'scheduler@example.com', 'name' => null]],
+            'to'      => [['address' => 'operator@example.com', 'name' => null]],
+            'content' => [
+                'environment'  => 'Environment: consumer',
+                'error'        => 'Error: Command exited with non-zero status 1',
+                'code'         => 'Code: 0',
+                'content_type' => 'text/plain',
+                'charset'      => 'utf-8'
+            ]
+        ];
+
+        return [
+            'attempts'                       => 2,
+            'reported_exit_codes'            => [1, 1],
+            'logs'                           => [$log, $log],
+            'notification_count'             => 2,
+            'notifications'                  => [$notification, $notification],
+            'lock_reacquired_after_attempts' => [true, true]
+        ];
     }
 }
