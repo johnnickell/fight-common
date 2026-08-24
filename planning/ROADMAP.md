@@ -1,5 +1,9 @@
 # Roadmap
 
+Live roadmap links point to current planning records. Terminal records may be archived only through the explicit
+archive operation in `CONVENTIONS.md`; the operation preserves identifiers and repairs these links so historical
+outcomes remain navigable.
+
 ## In progress
 
 | Epic | Target | Status | Outcome |

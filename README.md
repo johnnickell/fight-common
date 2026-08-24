@@ -10,6 +10,13 @@ A shared PHP library for projects implementing Hexagonal (Ports & Adapters) / Cl
 
 **[Documentation](https://johnnickell.github.io/fight-common/)** · **[Quick Start](https://johnnickell.github.io/fight-common/quickstart/)** · **[Changelog](CHANGELOG.md)**
 
+## Maintainer Planning
+
+The committed [planning guide](planning/README.md) records the roadmap, execution Board, PRDs, epics, and
+Wayfinder maps. Start with the Board's “What's Next?” contract after time away. Use
+[planning conventions](planning/CONVENTIONS.md) for artifact naming, templates, and the explicit-only archive
+operation; terminal records are moved with `./bin/archive-planning` only after reviewing its dry run.
+
 ## Requirements
 
 - PHP 8.5+
