@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  * Class JSendResponse
  *
  * @link https://github.com/omniti-labs/jsend JSend specification
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Http\Symfony\JSendResponse
  */
 final class JSendResponse extends JsonResponse
 {

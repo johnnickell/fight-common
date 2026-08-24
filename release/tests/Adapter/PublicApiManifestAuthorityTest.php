@@ -743,10 +743,10 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             ],
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
-                'Application' => ['declarations' => 166, 'functions' => 0],
-                'Adapter'     => ['declarations' => 107, 'functions' => 0]
+                'Application' => ['declarations' => 168, 'functions' => 0],
+                'Adapter'     => ['declarations' => 108, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 403, 'internal' => 1],
+            'classifications'         => ['public' => 406, 'internal' => 1],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,
@@ -779,7 +779,9 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
                 'fight-common.behavior.stored-event-stable-identity',
                 'fight-common.behavior.scheduler-legacy-construction',
                 'fight-common.behavior.scheduler-legacy-command',
-                'fight-common.behavior.scheduler-portable-runner'
+                'fight-common.behavior.scheduler-portable-runner',
+                'fight-common.behavior.jsend-legacy-response',
+                'fight-common.behavior.jsend-typed-response'
             ],
             'package_promise_ids'     => [
                 'fight-common.package.name',

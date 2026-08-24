@@ -12,7 +12,7 @@ interface Arrayable
     /**
      * Retrieves an array representation
      *
-     * @return array<string, mixed>
+     * @return array<array-key, mixed>
      */
     public function toArray(): array;
 }

@@ -136,6 +136,24 @@ class ResultSetTest extends UnitTestCase
         ], $resultSet->toArray());
     }
 
+    public function test_that_to_array_preserves_arbitrary_record_types_and_pagination(): void
+    {
+        $object = new \stdClass();
+        $list = ArrayList::of();
+        $list->add('scalar');
+        $list->add($object);
+
+        $resultSet = new ResultSet(2, 2, 3, $list);
+
+        self::assertSame([
+            'page'          => 2,
+            'per_page'      => 2,
+            'total_pages'   => 2,
+            'total_records' => 3,
+            'records'       => ['scalar', $object]
+        ], $resultSet->toArray());
+    }
+
     public function test_that_json_serialize_matches_to_array(): void
     {
         $list = ArrayList::of('string');

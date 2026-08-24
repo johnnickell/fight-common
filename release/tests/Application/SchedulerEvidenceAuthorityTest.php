@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Release\Application;
 
 use Fight\Common\Application\Scheduler\Exception\SchedulerException;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Release\Application\SchedulerEvidenceAuthority;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -153,7 +154,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
         self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($mutated));
         self::assertFalse(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $mutated));
 
-        foreach (['uuid', 'meta', 'collection'] as $field) {
+        foreach (['uuid', 'meta', 'collection', 'jsend'] as $field) {
             $genericMutated = $candidate;
             $genericMutated['probe']['observations'][$field] = 'mutated';
             self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($genericMutated));
@@ -362,7 +363,11 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
         return [
             'schema_version'   => 'fight-common.disposable-public-consumer/v1',
             'status'           => 'valid',
-            'findings'         => [...$this->legacyFindings(), ...($portable ? [$this->portableFinding()] : [])],
+            'findings'         => [
+                ...$this->legacyFindings(),
+                ...($portable ? [$this->portableFinding()] : []),
+                ...JSendEvidenceAuthority::findings($portable)
+            ],
             'candidate'        => ['production_tree_sha256' => $tree],
             'resolved_package' => [
                 'installed_as'           => 'copy',
@@ -376,7 +381,8 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
                     'meta'                 => ['consumer' => 'disposable'],
                     'collection'           => ['alpha', 'beta'],
                     'runtime_deprecations' => [],
-                    'scheduler'            => $scheduler
+                    'scheduler'            => $scheduler,
+                    'jsend'                => JSendEvidenceAuthority::observation($portable)
                 ]
             ]
         ];
@@ -389,7 +395,10 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
 
         return [
             'schema_version' => 'fight-common.scheduler-probe/v1',
-            'findings'       => array_slice($receipt['findings'], 1),
+            'findings'       => [
+                ...array_slice($this->legacyFindings(), 1),
+                ...($portable ? [$this->portableFinding()] : [])
+            ],
             'observations'   => [
                 'runtime_deprecations' => [],
                 'scheduler'            => $receipt['probe']['observations']['scheduler']

@@ -118,9 +118,18 @@ $service->validate([
 | `DoctrineNonceRepository` | `doctrine/dbal` |
 | `PhpPasswordHasher`, `PhpPasswordValidator` | — |
 | `JwtEncoder`, `JwtDecoder` | `lcobucci/jwt` |
-| `JsonRequestMiddleware`, `JSendResponse` | `symfony/http-foundation` |
+| `JsonRequestMiddleware`, `Adapter\Http\Symfony\JSendResponse` | `symfony/http-foundation` |
+| `Adapter\HttpFoundation\JSendResponse` (deprecated 1.x compatibility) | `symfony/http-foundation` |
 | `SymfonyFilesystem` | `symfony/filesystem` |
 | `EventSubscriberCompilerPass` | `symfony/dependency-injection` |
+
+### JSend response compatibility
+
+`Application\Http\JSend\JSendEnvelope` owns the framework-neutral success, fail, and error representation and
+its final JSON encoding. `Adapter\Http\Symfony\JSendResponse` accepts that encoded envelope with a
+controller-selected status and headers. The deprecated `Adapter\HttpFoundation\JSendResponse` continues to
+accept raw arrays throughout `1.x`, including its option-79 default and caller-selected encoding options,
+without emitting runtime deprecations.
 
 ## Development
 

@@ -7,6 +7,7 @@ namespace Fight\Test\Release\Adapter;
 use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Release\Adapter\DisposablePublicConsumer;
 use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use FilesystemIterator;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -22,9 +23,101 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 #[CoversClass(DisposablePublicConsumer::class)]
 #[CoversClass(PublicConsumerProbeRejected::class)]
+#[CoversClass(JSendEvidenceAuthority::class)]
 final class DisposablePublicConsumerTest extends UnitTestCase
 {
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+
+    /**
+     * Proves installed-package JSend evidence is authenticated before receipt composition.
+     */
+    public function test_that_the_installed_candidate_emits_authenticated_jsend_evidence(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $consumer = sys_get_temp_dir().'/fight-common-jsend-evidence-'.bin2hex(random_bytes(8));
+        mkdir($consumer, 0777, true);
+
+        try {
+            $receipt = new DisposablePublicConsumer()->run(
+                $root,
+                $root.'/release/fixtures/PublicApiConsumer',
+                $consumer
+            );
+
+            self::assertSame(
+                [
+                    'legacy' => [
+                        'success'                      => [
+                            'body'    => ['status' => 'success', 'data' => ['id' => 42]],
+                            'status'  => 202,
+                            'headers' => ['x-jsend' => ['legacy-success']],
+                            'options' => 79,
+                            'type'    => 'success'
+                        ],
+                        'success_null'                 => ['status' => 'success', 'data' => null],
+                        'fail'                         => [
+                            'body'    => ['status' => 'fail', 'data' => ['email' => 'invalid']],
+                            'status'  => 422,
+                            'headers' => ['x-jsend' => ['legacy-fail']],
+                            'options' => 79,
+                            'type'    => 'fail'
+                        ],
+                        'error'                        => [
+                            'body'    => [
+                                'status'  => 'error',
+                                'message' => 'The bridge is out',
+                                'data'    => ['request_id' => 'request-42'],
+                                'code'    => 4102
+                            ],
+                            'status'  => 502,
+                            'headers' => ['retry-after' => ['30']],
+                            'options' => 79,
+                            'type'    => 'error'
+                        ],
+                        'error_optional_fields_absent' => [
+                            'status'  => 'error',
+                            'message' => 'Optional fields are absent'
+                        ],
+                        'caller_selected_encoding'     => '{"status":"success","data":{"url":"https:\\/\\/example.com\\/path"}}',
+                        'runtime_deprecations'         => []
+                    ],
+                    'typed'  => [
+                        'available'        => true,
+                        'single'           => ['status' => 'success', 'data' => ['id' => 42]],
+                        'fail'             => ['status' => 'fail', 'data' => ['email' => 'invalid']],
+                        'paginated'        => [
+                            'status' => 'success',
+                            'data'   => [
+                                'page'          => 2,
+                                'per_page'      => 2,
+                                'total_pages'   => 3,
+                                'total_records' => 5,
+                                'records'       => [
+                                    ['id' => 42, 'name' => 'Frodo'],
+                                    ['id' => 43, 'name' => 'Samwise']
+                                ]
+                            ]
+                        ],
+                        'response'         => [
+                            'body'         => '{"status":"error","message":"The bridge is out","data":{"request_id":"request-42"},"code":4102}',
+                            'status'       => 502,
+                            'headers'      => ['retry-after' => ['30']],
+                            'content_type' => 'application/json'
+                        ],
+                        'encoding_option_79' => implode('', [
+                            '{"status":"success","data":{"url":"https://example.com/path",',
+                            '"tag":"\u003Csafe\u003E","quote":"\u0022","apostrophe":"\u0027",',
+                            '"ampersand":"\u0026"}}'
+                        ]),
+                        'invalid_encoding' => 'JsonException'
+                    ]
+                ],
+                $receipt['probe']['observations']['jsend']
+            );
+        } finally {
+            new Filesystem()->remove($consumer);
+        }
+    }
 
     /**
      * Proves an attributed public probe through a copied Composer package outside the repository
@@ -79,6 +172,18 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                             'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
                             'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
                             'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.jsend-legacy-passed',
+                            'evidence_id' => 'fight-common.behavior.jsend-legacy-response',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/jsend-probe.php',
+                            'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.jsend-typed-passed',
+                            'evidence_id' => 'fight-common.behavior.jsend-typed-response',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/jsend-probe.php',
+                            'status'      => 'passed'
                         ]
                     ],
                     'candidate'        => [
@@ -120,7 +225,8 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                                     'commands' => ['portable-command'],
                                     'output'   => "scheduler portable command\n"
                                 ]
-                            ]
+                            ],
+                            'jsend'                => JSendEvidenceAuthority::observation(true)
                         ]
                     ]
                 ],
@@ -221,7 +327,8 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                         'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
                         'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
                         'status'      => 'passed'
-                    ]
+                    ],
+                    ...JSendEvidenceAuthority::findings(true)
                 ],
                 $receipt['findings']
             );
@@ -246,6 +353,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
             $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
             $fixture.'/public-api-probe.php'
         );
+        $this->copyJSendFixture($root, $fixture, $filesystem);
 
         $composer = json_decode(
             (string) file_get_contents($root.'/release/fixtures/PublicApiConsumer/composer.json'),
@@ -356,6 +464,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
             $fixture.'/probe.php',
             "<?php\n\ndeclare(strict_types=1);\n\nfile_put_contents(__DIR__.'/scheduler-ran', 'yes');\n"
         );
+        $this->copyJSendFixture($root, $fixture, $filesystem);
 
         try {
             new DisposablePublicConsumer()->run($root, $fixture, $consumer);
@@ -366,6 +475,47 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                 $runtimeException->getMessage()
             );
             self::assertFileDoesNotExist($consumer.'/scheduler-ran');
+        } finally {
+            $filesystem->remove($workspace);
+        }
+    }
+
+    /**
+     * Proves malformed successful JSend evidence fails before Scheduler execution and receipt composition.
+     */
+    public function test_that_malformed_jsend_probe_evidence_stops_before_scheduler_execution(): void
+    {
+        self::assertFalse(JSendEvidenceAuthority::isProbeReceipt([]));
+
+        $root = dirname(__DIR__, 3);
+        $workspace = sys_get_temp_dir().'/fight-common-jsend-envelope-'.bin2hex(random_bytes(8));
+        $fixture = $workspace.'/fixture';
+        $consumer = $workspace.'/consumer';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir([$fixture, $consumer]);
+        $filesystem->copy($root.'/release/fixtures/PublicApiConsumer/composer.json', $fixture.'/composer.json');
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
+            $fixture.'/public-api-probe.php'
+        );
+        $filesystem->dumpFile(
+            $fixture.'/probe.php',
+            "<?php\n\ndeclare(strict_types=1);\n\nfile_put_contents(__DIR__.'/scheduler-ran', 'yes');\n"
+        );
+        $this->copyJSendFixture($root, $fixture, $filesystem);
+        $jsendProbe = (string) file_get_contents($fixture.'/jsend-probe.php');
+        $filesystem->dumpFile(
+            $fixture.'/jsend-probe.php',
+            str_replace('fight-common.jsend-probe/v1', 'fight-common.jsend-probe/v999', $jsendProbe)
+        );
+
+        try {
+            new DisposablePublicConsumer()->run($root, $fixture, $consumer);
+            self::fail('Malformed JSend evidence was accepted.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame('The JSend probe evidence is invalid.', $runtimeException->getMessage());
+            self::assertFileDoesNotExist($consumer.'/scheduler-ran');
+            self::assertFileDoesNotExist($consumer.'/probe-receipt.json');
         } finally {
             $filesystem->remove($workspace);
         }
@@ -400,6 +550,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                     $fixture.'/public-api-probe.php'
                 );
                 $filesystem->dumpFile($fixture.'/probe.php', str_replace($schema, $replacement, $probe));
+                $this->copyJSendFixture($root, $fixture, $filesystem);
 
                 try {
                     new DisposablePublicConsumer()->run($root, $fixture, $consumer);
@@ -446,6 +597,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                 $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
                 $fixture.'/public-api-probe.php'
             );
+            $this->copyJSendFixture($root, $fixture, $filesystem);
         }
 
         $failedProbe = "<?php\n\ndeclare(strict_types=1);\n\nfwrite(STDERR, 'private probe diagnostics');\nexit(19);\n";
@@ -470,6 +622,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
             $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
             $composerFixture.'/public-api-probe.php'
         );
+        $this->copyJSendFixture($root, $composerFixture, $filesystem);
 
         try {
             try {
@@ -527,6 +680,21 @@ final class DisposablePublicConsumerTest extends UnitTestCase
             self::assertSame(RuntimeException::class, $runtimeException::class);
             self::assertSame('The public consumer process is unavailable.', $runtimeException->getMessage());
         }
+    }
+
+    /**
+     * Copies the optional HttpFoundation boundary fake and the closed JSend probe into a custom fixture.
+     */
+    private function copyJSendFixture(string $root, string $fixture, Filesystem $filesystem): void
+    {
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/jsend-probe.php',
+            $fixture.'/jsend-probe.php'
+        );
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/http-foundation-boundary-fake.php',
+            $fixture.'/http-foundation-boundary-fake.php'
+        );
     }
 
     /**
