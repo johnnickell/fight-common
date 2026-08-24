@@ -171,7 +171,8 @@ final readonly class SchedulerEvidenceAuthority
             && $scheduler === [
             ...self::legacyObservation(),
             ...($portable ? ['portable_process_runner' => self::portableObservation()] : [])
-        ];
+        ]
+            && ($receipt['probe']['observations']['jsend'] ?? null) === JSendEvidenceAuthority::observation($portable);
     }
 
     /**
@@ -199,7 +200,9 @@ final readonly class SchedulerEvidenceAuthority
 
         return !isset($baselineScheduler['portable_process_runner'])
             && $candidateScheduler === $baselineScheduler
-            && $portableObservation === self::portableObservation();
+            && $portableObservation === self::portableObservation()
+            && $baseline['probe']['observations']['jsend'] === JSendEvidenceAuthority::observation(false)
+            && $candidate['probe']['observations']['jsend'] === JSendEvidenceAuthority::observation(true);
     }
 
     /**
@@ -335,14 +338,23 @@ final readonly class SchedulerEvidenceAuthority
             && preg_match('/\A[0-9a-f]{64}\z/D', $candidateTree) === 1
             && $candidateTree === $installedTree
             && is_array($observations)
-            && array_keys($observations) === ['uuid', 'meta', 'collection', 'runtime_deprecations', 'scheduler']
+            && array_keys($observations) === [
+                'uuid', 'meta', 'collection', 'runtime_deprecations', 'scheduler', 'jsend'
+            ]
             && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
             && $observations['meta'] === ['consumer' => 'disposable']
             && $observations['collection'] === ['alpha', 'beta']
             && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations'])
             && is_array($scheduler)
             && self::isSchedulerObservationEnvelope($scheduler)
-            && ($receipt['findings'] ?? null) === self::findings(isset($scheduler['portable_process_runner']))
+            && ($receipt['findings'] ?? null) === [
+                ...self::findings(isset($scheduler['portable_process_runner'])),
+                ...JSendEvidenceAuthority::findings(isset($scheduler['portable_process_runner']))
+            ]
+            && self::jsendObservationHasAuthenticatedShape(
+                $observations['jsend'] ?? null,
+                isset($scheduler['portable_process_runner'])
+            )
             && is_string($receipt['lock']['sha256'] ?? null)
             && preg_match('/\A[0-9a-f]{64}\z/D', $receipt['lock']['sha256']) === 1
             && is_string($receipt['probe']['sha256'] ?? null)
@@ -401,6 +413,23 @@ final readonly class SchedulerEvidenceAuthority
                 && in_array($deprecation['severity'], ['E_DEPRECATED', 'E_USER_DEPRECATED'], true)
                 && is_string($deprecation['message'])
         );
+    }
+
+    /**
+     * Validates exact JSend evidence while allowing normalized deprecations to be composed separately
+     */
+    private static function jsendObservationHasAuthenticatedShape(mixed $observation, bool $typed): bool
+    {
+        if (!is_array($observation)) {
+            return false;
+        }
+
+        $runtimeDeprecations = $observation['legacy']['runtime_deprecations'] ?? null;
+        $expected = JSendEvidenceAuthority::observation($typed);
+        $expected['legacy']['runtime_deprecations'] = $runtimeDeprecations;
+
+        return self::runtimeDeprecationsAreNormalized($runtimeDeprecations)
+            && $observation === $expected;
     }
 
     /**

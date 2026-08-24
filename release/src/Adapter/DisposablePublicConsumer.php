@@ -6,6 +6,7 @@ namespace Fight\Release\Adapter;
 
 use Fight\Release\Application\Boundary\PublicConsumerPort;
 use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Release\Application\SchedulerEvidenceAuthority;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
@@ -45,6 +46,8 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         );
         copy($fixture.'/probe.php', $consumer.'/probe.php');
         copy($fixture.'/public-api-probe.php', $consumer.'/public-api-probe.php');
+        copy($fixture.'/jsend-probe.php', $consumer.'/jsend-probe.php');
+        copy($fixture.'/http-foundation-boundary-fake.php', $consumer.'/http-foundation-boundary-fake.php');
 
         $this->runProcess(
             ['/usr/local/bin/composer', 'install', '--no-interaction', '--no-progress', '--no-plugins', '--no-scripts'],
@@ -67,6 +70,20 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         SchedulerEvidenceAuthority::isPublicApiProbeReceipt($publicApiProbeReceipt)
             || throw new RuntimeException('The representative public API probe evidence is invalid.');
 
+        $jsendProbeBytes = $this->runPublicApiProbe(
+            [
+                PHP_BINARY,
+                $consumer.'/jsend-probe.php',
+                $consumer.'/vendor/autoload.php',
+                $consumer.'/http-foundation-boundary-fake.php'
+            ],
+            $consumer,
+            ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+        );
+        $jsendProbeReceipt = json_decode($jsendProbeBytes, true, flags: JSON_THROW_ON_ERROR);
+        JSendEvidenceAuthority::isProbeReceipt($jsendProbeReceipt)
+            || throw new RuntimeException('The JSend probe evidence is invalid.');
+
         $schedulerProbeBytes = $this->runProbe(
             [PHP_BINARY, $consumer.'/probe.php', $consumer.'/vendor/autoload.php'],
             $consumer,
@@ -79,6 +96,7 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         foreach (
             [
                 ...$publicApiProbeReceipt['observations']['runtime_deprecations'],
+                ...$jsendProbeReceipt['observations']['jsend']['legacy']['runtime_deprecations'],
                 ...$schedulerProbeReceipt['observations']['runtime_deprecations']
             ] as $runtimeDeprecation
         ) {
@@ -89,14 +107,16 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
             'schema_version' => 'fight-common.public-api-probe/v1',
             'findings'       => [
                 ...$publicApiProbeReceipt['findings'],
-                ...$schedulerProbeReceipt['findings']
+                ...$schedulerProbeReceipt['findings'],
+                ...$jsendProbeReceipt['findings']
             ],
             'observations'   => [
                 'uuid'                 => $publicApiProbeReceipt['observations']['uuid'],
                 'meta'                 => $publicApiProbeReceipt['observations']['meta'],
                 'collection'           => $publicApiProbeReceipt['observations']['collection'],
                 'runtime_deprecations' => array_values($runtimeDeprecations),
-                'scheduler'            => $schedulerProbeReceipt['observations']['scheduler']
+                'scheduler'            => $schedulerProbeReceipt['observations']['scheduler'],
+                'jsend'                => $jsendProbeReceipt['observations']['jsend']
             ]
         ];
         $probeBytes = json_encode(

@@ -12,11 +12,11 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 166,
+            "declarations": 168,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 107,
+            "declarations": 108,
             "functions": 0
         }
     },
@@ -31,7 +31,7 @@
         },
         "fight-common.classification.prd-00014-addition": {
             "path": "planning/specs/00014-PRD.md",
-            "locator": "Implementation Decisions: 41 post-1.1.0 classifications"
+            "locator": "Implementation Decisions: 44 post-1.1.0 classifications"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -4332,6 +4332,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+            "source": "src/Adapter/Http/Symfony/JSendResponse.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                "source_locator": "working-tree:src/Adapter/Http/Symfony/JSendResponse.php#Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Http/Symfony/JSendResponse.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/JSendResponse.php#Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/JSendResponse.php#Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/JSendResponse.php#Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/JSendResponse.php#Fight\\Common\\Adapter\\Http\\Symfony\\JSendResponse",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Mail\\Logging\\LoggingMailTransport",
             "source": "src/Adapter/Mail/Logging/LoggingMailTransport.php",
             "layer": "Adapter",
@@ -4860,6 +4926,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+            "source": "src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.baseline-grandfathered",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus was production-autoloaded from src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\Routing\\CommandRouter",
             "source": "src/Adapter/Messaging/Command/Sync/Routing/CommandRouter.php",
             "layer": "Adapter",
@@ -5051,72 +5183,6 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\Routing\\ServiceAwareCommandRouter",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/Routing/ServiceAwareCommandRouter.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\Routing\\ServiceAwareCommandRouter",
-                            "operation": "implementable"
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-            "source": "src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php",
-            "layer": "Adapter",
-            "kind": "class",
-            "classification": "public",
-            "evidence_binding": {
-                "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus"
-            },
-            "classification_evidence": {
-                "authority": "fight-common.classification.baseline-grandfathered",
-                "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus was production-autoloaded from src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
-            },
-            "members": [],
-            "operations": {
-                "callable": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus promises its inventoried public callable surface to consumers.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "operation": "callable"
-                        }
-                    }
-                },
-                "constructible": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus promises construction through its inventoried public constructor or named factory.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "operation": "constructible"
-                        }
-                    }
-                },
-                "extensible": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "operation": "extensible"
-                        }
-                    }
-                },
-                "implementable": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Command/Sync/RoutingCommandBus.php#Fight\\Common\\Adapter\\Messaging\\Command\\Sync\\RoutingCommandBus",
                             "operation": "implementable"
                         }
                     }
@@ -5586,6 +5652,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+            "source": "src/Adapter/Messaging/Query/RoutingQueryBus.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.baseline-grandfathered",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus was production-autoloaded from src/Adapter/Messaging/Query/RoutingQueryBus.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Messaging\\Query\\Routing\\InMemoryQueryRouter",
             "source": "src/Adapter/Messaging/Query/Routing/InMemoryQueryRouter.php",
             "layer": "Adapter",
@@ -5777,72 +5909,6 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\Routing\\ServiceAwareQueryRouter",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/Routing/ServiceAwareQueryRouter.php#Fight\\Common\\Adapter\\Messaging\\Query\\Routing\\ServiceAwareQueryRouter",
-                            "operation": "implementable"
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-            "source": "src/Adapter/Messaging/Query/RoutingQueryBus.php",
-            "layer": "Adapter",
-            "kind": "class",
-            "classification": "public",
-            "evidence_binding": {
-                "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus"
-            },
-            "classification_evidence": {
-                "authority": "fight-common.classification.baseline-grandfathered",
-                "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus was production-autoloaded from src/Adapter/Messaging/Query/RoutingQueryBus.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
-            },
-            "members": [],
-            "operations": {
-                "callable": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus promises its inventoried public callable surface to consumers.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "operation": "callable"
-                        }
-                    }
-                },
-                "constructible": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus promises construction through its inventoried public constructor or named factory.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "operation": "constructible"
-                        }
-                    }
-                },
-                "extensible": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "operation": "extensible"
-                        }
-                    }
-                },
-                "implementable": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Messaging/Query/RoutingQueryBus.php#Fight\\Common\\Adapter\\Messaging\\Query\\RoutingQueryBus",
                             "operation": "implementable"
                         }
                     }
@@ -6510,138 +6576,6 @@
             }
         },
         {
-            "name": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-            "source": "src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php",
-            "layer": "Adapter",
-            "kind": "class",
-            "classification": "public",
-            "evidence_binding": {
-                "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository"
-            },
-            "classification_evidence": {
-                "authority": "fight-common.classification.baseline-grandfathered",
-                "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository was production-autoloaded from src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
-            },
-            "members": [],
-            "operations": {
-                "callable": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository promises its inventoried public callable surface to consumers.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "operation": "callable"
-                        }
-                    }
-                },
-                "constructible": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository promises construction through its inventoried public constructor or named factory.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "operation": "constructible"
-                        }
-                    }
-                },
-                "extensible": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "operation": "extensible"
-                        }
-                    }
-                },
-                "implementable": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
-                            "operation": "implementable"
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-            "source": "src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php",
-            "layer": "Adapter",
-            "kind": "class",
-            "classification": "public",
-            "evidence_binding": {
-                "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository"
-            },
-            "classification_evidence": {
-                "authority": "fight-common.classification.baseline-grandfathered",
-                "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository was production-autoloaded from src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
-            },
-            "members": [],
-            "operations": {
-                "callable": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository promises its inventoried public callable surface to consumers.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "operation": "callable"
-                        }
-                    }
-                },
-                "constructible": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository promises construction through its inventoried public constructor or named factory.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "operation": "constructible"
-                        }
-                    }
-                },
-                "extensible": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "operation": "extensible"
-                        }
-                    }
-                },
-                "implementable": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
-                            "operation": "implementable"
-                        }
-                    }
-                }
-            }
-        },
-        {
             "name": "Fight\\Common\\Adapter\\Repository\\DoctrineRepository",
             "source": "src/Adapter/Repository/DoctrineRepository.php",
             "layer": "Adapter",
@@ -6767,6 +6701,138 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Repository\\DoctrineUnitOfWork",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/DoctrineUnitOfWork.php#Fight\\Common\\Adapter\\Repository\\DoctrineUnitOfWork",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+            "source": "src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.baseline-grandfathered",
+                "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository was production-autoloaded from src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineAuditRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineAuditRepository",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+            "source": "src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.baseline-grandfathered",
+                "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository was production-autoloaded from src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php at 1.1.0 without @internal, so ADR 0009 grandfathers it public."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
+                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Repository/Doctrine/DoctrineNonceRepository.php#Fight\\Common\\Adapter\\Repository\\Doctrine\\DoctrineNonceRepository",
                             "operation": "implementable"
                         }
                     }
@@ -11625,6 +11691,192 @@
                         "binding": {
                             "subject": "Fight\\Common\\Application\\HttpFoundation\\HttpStatus",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Application/HttpFoundation/HttpStatus.php#Fight\\Common\\Application\\HttpFoundation\\HttpStatus",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+            "source": "src/Application/Http/JSend/JSendEnvelope.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Application/Http/JSend/JSendEnvelope.php."
+            },
+            "members": [
+                {
+                    "name": "constant DEFAULT_ENCODING_OPTIONS",
+                    "signature": "public const int DEFAULT_ENCODING_OPTIONS = 79",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope governs constant DEFAULT_ENCODING_OPTIONS from src/Application/Http/JSend/JSendEnvelope.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "member": "constant DEFAULT_ENCODING_OPTIONS"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendEnvelope.php#Fight\\Common\\Application\\Http\\JSend\\JSendEnvelope",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+            "source": "src/Application/Http/JSend/JSendStatus.php",
+            "layer": "Application",
+            "kind": "enum",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Application/Http/JSend/JSendStatus.php."
+            },
+            "members": [
+                {
+                    "name": "case ERROR",
+                    "signature": "case ERROR = 'error'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus governs case ERROR from src/Application/Http/JSend/JSendStatus.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "member": "case ERROR"
+                        }
+                    }
+                },
+                {
+                    "name": "case FAIL",
+                    "signature": "case FAIL = 'fail'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus governs case FAIL from src/Application/Http/JSend/JSendStatus.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "member": "case FAIL"
+                        }
+                    }
+                },
+                {
+                    "name": "case SUCCESS",
+                    "signature": "case SUCCESS = 'success'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus governs case SUCCESS from src/Application/Http/JSend/JSendStatus.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "member": "case SUCCESS"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus is not promised for consumer callable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus is not promised for consumer constructible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
+                            "source_locator": "working-tree:src/Application/Http/JSend/JSendStatus.php#Fight\\Common\\Application\\Http\\JSend\\JSendStatus",
                             "operation": "implementable"
                         }
                     }
@@ -30203,6 +30455,26 @@
             },
             "fixture": {
                 "path": "tests/Application/Scheduler/SchedulerTest.php"
+            }
+        },
+        {
+            "id": "fight-common.behavior.jsend-legacy-response",
+            "normative": {
+                "path": "README.md",
+                "section": "JSend response compatibility"
+            },
+            "fixture": {
+                "path": "release/fixtures/PublicApiConsumer/jsend-probe.php"
+            }
+        },
+        {
+            "id": "fight-common.behavior.jsend-typed-response",
+            "normative": {
+                "path": "README.md",
+                "section": "JSend response compatibility"
+            },
+            "fixture": {
+                "path": "release/fixtures/PublicApiConsumer/jsend-probe.php"
             }
         }
     ],

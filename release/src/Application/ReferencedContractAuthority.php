@@ -49,6 +49,14 @@ final readonly class ReferencedContractAuthority
                 'section' => 'Portable ProcessRunner Composition'
             ],
             'fixture'   => ['path' => 'tests/Application/Scheduler/SchedulerTest.php']
+        ],
+        'fight-common.behavior.jsend-legacy-response'          => [
+            'normative' => ['path' => 'README.md', 'section' => 'JSend response compatibility'],
+            'fixture'   => ['path' => 'release/fixtures/PublicApiConsumer/jsend-probe.php']
+        ],
+        'fight-common.behavior.jsend-typed-response'           => [
+            'normative' => ['path' => 'README.md', 'section' => 'JSend response compatibility'],
+            'fixture'   => ['path' => 'release/fixtures/PublicApiConsumer/jsend-probe.php']
         ]
     ];
     private const array PACKAGE_PROMISE_REFERENCES = [
