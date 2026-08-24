@@ -9,8 +9,8 @@ use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Doctrine\DBAL\Types\Type;
-use Fight\Common\Domain\Messaging\Message;
 use Fight\Common\Application\Serialization\JsonSerializer;
+use Fight\Common\Domain\Messaging\Message;
 use Override;
 use Throwable;
 

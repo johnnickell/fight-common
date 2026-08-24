@@ -10,11 +10,20 @@ use Fight\Common\Application\HttpClient\Message\MessageFactory;
 use Fight\Common\Application\HttpClient\Transport\HttpClient;
 
 /**
- * @deprecated since 1.2, will be removed in 2.0. Use direct JSON payload construction
- * until MCP tooling is available as a future feature.
+ * Class HmacWebhookDispatcher
+ *
+ * @deprecated since 1.2, will be removed in 2.0. Use direct JSON payload
+ * construction until MCP tooling is available as a future feature.
  */
 final readonly class HmacWebhookDispatcher implements WebhookDispatcher
 {
+    /**
+     * Constructs HmacWebhookDispatcher
+     *
+     * @param HttpClient    $client
+     * @param MessageFactory $factory
+     * @param RequestService $signer
+     */
     public function __construct(
         private HttpClient $client,
         private MessageFactory $factory,
@@ -22,6 +31,13 @@ final readonly class HmacWebhookDispatcher implements WebhookDispatcher
     ) {
     }
 
+    /**
+     * Authenticates and dispatches an outbound webhook by signing its request
+     *
+     * @param string               $url
+     * @param string               $action
+     * @param array<string, mixed> $payload
+     */
     public function dispatch(string $url, string $action, array $payload = []): void
     {
         $body = json_encode(['action' => $action, 'payload' => $payload], JSON_UNESCAPED_SLASHES);

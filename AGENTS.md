@@ -80,9 +80,11 @@ class AndSpecificationTest extends UnitTestCase
 **Always run before committing or creating a PR:**
 
 ```bash
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpunit
+./bin/build
 ```
+
+This runs the complete submit gate: PHPCS, Deptrac architecture enforcement, PHPStan static analysis,
+Rector (dry-run), and the full PHPUnit test suite with coverage.
 
 For focused iteration:
 
