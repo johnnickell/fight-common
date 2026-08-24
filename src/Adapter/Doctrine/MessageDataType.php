@@ -10,7 +10,7 @@ use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Doctrine\DBAL\Types\Type;
 use Fight\Common\Domain\Messaging\Message;
-use Fight\Common\Domain\Serialization\JsonSerializer;
+use Fight\Common\Application\Serialization\JsonSerializer;
 use Override;
 use Throwable;
 

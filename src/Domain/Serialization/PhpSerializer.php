@@ -8,13 +8,10 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Utility\ClassName;
 
 /**
- * Class PhpSerializer
+ * @deprecated since 1.2, will be removed in 2.0. Use {@see \Fight\Common\Application\Serialization\PhpSerializer} instead.
  */
 final class PhpSerializer implements Serializer
 {
-    /**
-     * @inheritDoc
-     */
     public function deserialize(string $state): Serializable
     {
         $data = @unserialize($state);
@@ -36,9 +33,6 @@ final class PhpSerializer implements Serializer
         return $class::arrayDeserialize($data['$']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function serialize(Serializable $object): string
     {
         $data = [

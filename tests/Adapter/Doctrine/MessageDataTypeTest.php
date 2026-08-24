@@ -10,7 +10,7 @@ use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
 use Fight\Common\Adapter\Doctrine\MessageDataType;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Message;
-use Fight\Common\Domain\Serialization\JsonSerializer;
+use Fight\Common\Application\Serialization\JsonSerializer;
 use Fight\Test\Common\Domain\Serialization\SampleCommand;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
