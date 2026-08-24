@@ -2,19 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Domain\Serialization;
+namespace Fight\Common\Application\Serialization;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Serialization\Serializable;
+use Fight\Common\Domain\Serialization\Serializer;
 use Fight\Common\Domain\Utility\ClassName;
 
-/**
- * @deprecated since 1.2, will be removed in 2.0. Use {@see \Fight\Common\Application\Serialization\JsonSerializer} instead.
- */
-final class JsonSerializer implements Serializer
+class PhpSerializer implements Serializer
 {
     public function deserialize(string $state): Serializable
     {
-        $data = json_decode($state, $array = true);
+        $data = @unserialize($state);
 
         $keys = ['@', '$'];
         foreach ($keys as $key) {
@@ -40,6 +39,6 @@ final class JsonSerializer implements Serializer
             '$' => $object->arraySerialize()
         ];
 
-        return json_encode($data, JSON_UNESCAPED_SLASHES);
+        return serialize($data);
     }
 }

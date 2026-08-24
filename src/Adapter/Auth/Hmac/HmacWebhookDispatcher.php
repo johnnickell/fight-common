@@ -8,16 +8,13 @@ use Fight\Common\Application\Auth\RequestService;
 use Fight\Common\Application\Auth\WebhookDispatcher;
 use Fight\Common\Application\HttpClient\Message\MessageFactory;
 use Fight\Common\Application\HttpClient\Transport\HttpClient;
-use Fight\Common\Domain\Auth\AiOperation;
 
 /**
- * Class HmacWebhookDispatcher
+ * @deprecated since 1.2, will be removed in 2.0. Use direct JSON payload construction
+ * until MCP tooling is available as a future feature.
  */
 final readonly class HmacWebhookDispatcher implements WebhookDispatcher
 {
-    /**
-     * Constructs HmacWebhookDispatcher
-     */
     public function __construct(
         private HttpClient $client,
         private MessageFactory $factory,
@@ -25,13 +22,9 @@ final readonly class HmacWebhookDispatcher implements WebhookDispatcher
     ) {
     }
 
-    /**
-     * @inheritDoc
-     */
     public function dispatch(string $url, string $action, array $payload = []): void
     {
-        $operation = AiOperation::fromArray(['action' => $action, 'payload' => $payload]);
-        $body = json_encode($operation->toArray(), JSON_UNESCAPED_SLASHES);
+        $body = json_encode(['action' => $action, 'payload' => $payload], JSON_UNESCAPED_SLASHES);
 
         $request = $this->factory->createRequest(
             'POST',

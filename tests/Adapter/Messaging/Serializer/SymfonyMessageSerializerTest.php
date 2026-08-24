@@ -8,7 +8,7 @@ use stdClass;
 use Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
-use Fight\Common\Domain\Serialization\JsonSerializer;
+use Fight\Common\Application\Serialization\JsonSerializer;
 use Fight\Common\Domain\Serialization\Serializer as DomainSerializer;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
