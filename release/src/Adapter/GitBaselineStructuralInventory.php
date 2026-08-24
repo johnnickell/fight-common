@@ -43,7 +43,9 @@ final readonly class GitBaselineStructuralInventory implements BaselineStructura
             '--format=tar',
             '--output='.$archive,
             $commitOid,
-            'src'
+            'composer.json',
+            'src',
+            'tests/TestCase'
         ]);
         new PharData($archive)->extractTo($baselineRoot);
 

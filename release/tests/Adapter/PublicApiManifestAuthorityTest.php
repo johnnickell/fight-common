@@ -776,7 +776,10 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'behavioral_contract_ids' => [
                 'fight-common.behavior.event-dispatch-complete-fanout',
                 'fight-common.behavior.message-meta-isolation',
-                'fight-common.behavior.stored-event-stable-identity'
+                'fight-common.behavior.stored-event-stable-identity',
+                'fight-common.behavior.scheduler-legacy-construction',
+                'fight-common.behavior.scheduler-legacy-command',
+                'fight-common.behavior.scheduler-portable-runner'
             ],
             'package_promise_ids'     => [
                 'fight-common.package.name',

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Scheduler;
 
+use Closure;
 use Cron\CronExpression;
 use DateTimeImmutable;
 use DateTimeZone;
 use Fight\Common\Application\Mail\Exception\MailException;
 use Fight\Common\Application\Mail\MailService;
 use Fight\Common\Application\Mail\Message\MailMessage;
-use Fight\Common\Application\Process\Exception\ProcessException;
 use Fight\Common\Application\Process\ProcessBuilder;
 use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Common\Application\Scheduler\Exception\LockException;
@@ -37,6 +37,7 @@ use Throwable;
  */
 final class Scheduler
 {
+    private ?ProcessRunner $processRunner = null;
     /** @var list<JobConfig> */
     private array $jobs = [];
     /** @var array<string, resource> */
@@ -48,11 +49,28 @@ final class Scheduler
     public function __construct(
         private readonly Timezone $timezone,
         private readonly string $tempDirectory,
-        private readonly ProcessRunner $processRunner,
         private readonly ?LoggerInterface $logger = null,
         private readonly ?MailService $mailService = null,
-        private readonly string $fromEmail = ''
+        private readonly string $fromEmail = '',
+        private readonly ?Closure $processFactory = null
     ) {
+    }
+
+    /**
+     * Creates Scheduler with the portable process runner
+     */
+    public static function withProcessRunner(
+        Timezone $timezone,
+        string $tempDirectory,
+        ProcessRunner $processRunner,
+        ?LoggerInterface $logger = null,
+        ?MailService $mailService = null,
+        string $fromEmail = ''
+    ): self {
+        $scheduler = new self($timezone, $tempDirectory, $logger, $mailService, $fromEmail);
+        $scheduler->processRunner = $processRunner;
+
+        return $scheduler;
     }
 
     /**
@@ -237,18 +255,65 @@ final class Scheduler
      *
      * @phpstan-param JobConfig $job
      *
-     * @throws ProcessException When the process runner cannot execute the command
+     * @throws SchedulerException When the command exits with a non-zero status
      */
     private function runCommand(array $job): void
     {
-        $process = ProcessBuilder::create()
-            ->shellCommand($job['command'])
-            ->stdout(fn(string $data) => $this->writeLine($data, $job))
-            ->stderr(fn(string $data) => $this->writeLine($data, $job))
-            ->getProcess();
+        if ($this->processRunner instanceof ProcessRunner) {
+            $process = ProcessBuilder::create()
+                ->shellCommand($job['command'])
+                ->stdout(fn(string $data) => $this->writeLine($data, $job))
+                ->stderr(fn(string $data) => $this->writeLine($data, $job))
+                ->getProcess();
 
-        $this->processRunner->attach($process);
-        $this->processRunner->run();
+            $this->processRunner->attach($process);
+            $this->processRunner->run();
+
+            return;
+        }
+
+        $process = $this->createProcess($job['command']);
+
+        /** @var Closure(callable(string, string): void): int $run */
+        $run = Closure::fromCallable([$process, 'run']);
+        $run(function (string $type, string $data) use ($job): void {
+            $this->writeLine($data, $job);
+        });
+
+        /** @var Closure(): bool $isSuccessful */
+        $isSuccessful = Closure::fromCallable([$process, 'isSuccessful']);
+        if ($isSuccessful()) {
+            return;
+        }
+
+        /** @var Closure(): (int|null) $getExitCode */
+        $getExitCode = Closure::fromCallable([$process, 'getExitCode']);
+        throw new SchedulerException(sprintf(
+            'Command exited with non-zero status %d',
+            $getExitCode()
+        ));
+    }
+
+    /**
+     * Creates the legacy process without making Symfony Process a required package dependency
+     */
+    private function createProcess(string $command): object
+    {
+        if ($this->processFactory instanceof Closure) {
+            /** @var object $process */
+            $process = ($this->processFactory)($command);
+        } else {
+            $processClass = 'Symfony\\Component\\Process\\Process';
+            if (!class_exists($processClass)) {
+                throw new SchedulerException('Command jobs require symfony/process or a custom processFactory');
+            }
+
+            /** @var Closure(string): object $factory */
+            $factory = Closure::fromCallable([$processClass, 'fromShellCommandline']);
+            $process = $factory($command);
+        }
+
+        return $process;
     }
 
     /**

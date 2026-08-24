@@ -16,6 +16,7 @@ use Fight\Release\Application\Boundary\CompatibilityInputPort;
 use Fight\Release\Application\Boundary\CompatibilityWorkspacePort;
 use Fight\Release\Application\Boundary\GitPort;
 use Fight\Release\Application\Boundary\PublicConsumerPort;
+use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOperationResult;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
@@ -25,6 +26,7 @@ use Fight\Release\Application\CompatibilityFinding;
 use Fight\Release\Application\CompatibilityManifestAuthority;
 use Fight\Release\Application\CompatibilityManifestRejected;
 use Fight\Release\Application\PublicApiManifestAuthority;
+use Fight\Release\Application\SchedulerEvidenceAuthority;
 use Fight\Release\Application\StructuralApiComparison;
 use Fight\Release\Application\StructuralCompatibilityAuthority;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -39,7 +41,9 @@ use UnexpectedValueException;
 #[CoversClass(CompatibilityAssessmentService::class)]
 #[CoversClass(CompatibilityFinding::class)]
 #[CoversClass(CompatibilityManifestRejected::class)]
+#[CoversClass(PublicConsumerProbeRejected::class)]
 #[CoversClass(PublicApiManifestAuthority::class)]
+#[CoversClass(SchedulerEvidenceAuthority::class)]
 #[CoversClass(StructuralApiComparison::class)]
 #[CoversClass(GitBaselineStructuralInventory::class)]
 #[CoversClass(LocalCompatibilityInput::class)]
@@ -586,6 +590,520 @@ PHP
         );
 
         self::assertSame($expected, $actual);
+    }
+
+    /**
+     * Proves authenticated candidate Scheduler divergence stops for an explicit 2.0.0 replan.
+     */
+    public function test_that_proven_candidate_scheduler_incompatibility_requires_an_explicit_major_replan(): void
+    {
+        $scheduler = [
+            'construction_styles'      => ['two_argument', 'positional_optional', 'named_arguments'],
+            'callable_output'          => "scheduler callable\n",
+            'command_output'           => "scheduler command\nscheduler command\n",
+            'default_process_commands' => ['default-command'],
+            'factory_process_commands' => ['factory-command', 'false', 'false'],
+            'non_zero_failure'         => SchedulerEvidenceAuthority::nonZeroFailureObservation()
+        ];
+        $receipt = (static fn (string $tree, array $observation): array => [
+            'schema_version'   => 'fight-common.disposable-public-consumer/v1',
+            'status'           => 'valid',
+            'findings'         => SchedulerEvidenceAuthority::findings(
+                isset($observation['portable_process_runner'])
+            ),
+            'candidate'        => ['production_tree_sha256' => $tree],
+            'resolved_package' => [
+                'installed_as'           => 'copy',
+                'production_tree_sha256' => $tree
+            ],
+            'lock'             => ['sha256' => str_repeat('d', 64)],
+            'probe'            => [
+                'sha256'       => str_repeat('a', 64),
+                'observations' => [
+                    'uuid'                 => '00000000-0000-0000-0000-000000000000',
+                    'meta'                 => ['consumer' => 'disposable'],
+                    'collection'           => ['alpha', 'beta'],
+                    'runtime_deprecations' => [],
+                    'scheduler'            => $observation
+                ]
+            ]
+        ]);
+        $baseline = $receipt(str_repeat('b', 64), $scheduler);
+        $candidateScheduler = $scheduler;
+        $candidateScheduler['portable_process_runner'] = SchedulerEvidenceAuthority::portableObservation();
+        $candidate = $receipt(str_repeat('c', 64), $candidateScheduler);
+        $candidate['probe']['observations']['scheduler']['portable_process_runner'] = [
+            'commands' => ['candidate-only-command'],
+            'output'   => "candidate-only portable output\n"
+        ];
+        $consumer = new class ($baseline, $candidate) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs the controlled dual-package consumer
+             *
+             * @param array<string, mixed> $baseline
+             * @param array<string, mixed> $candidate
+             */
+            public function __construct(private readonly array $baseline, private readonly array $candidate)
+            {
+            }
+
+            /**
+             * Returns the baseline receipt followed by the incompatible candidate receipt
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                return $this->calls++ === 0 ? $this->baseline : $this->candidate;
+            }
+        };
+        $manifestAuthority = new class implements CompatibilityManifestAuthority {
+            /**
+             * Returns controlled valid manifest authority
+             */
+            public function validate(
+                string $_manifestPath,
+                string $_repository,
+                CompatibilityInputPort $_input,
+                StructuralInventoryPort $_inventory,
+                GitPort $_git
+            ): array {
+                return [
+                    'status'   => 'valid',
+                    'baseline' => [
+                        'version'           => '1.1.0',
+                        'peeled_commit_oid' => str_repeat('a', 40)
+                    ]
+                ];
+            }
+        };
+        $structuralAuthority = new class implements StructuralCompatibilityAuthority {
+            /**
+             * Returns controlled checker evidence
+             */
+            public function checker(array $_baseline, array $_candidate): array
+            {
+                return [];
+            }
+
+            /**
+             * Returns controlled valid structural evidence
+             */
+            public function compare(
+                array $_manifest,
+                array $_baseline,
+                array $_candidate,
+                array $_checker
+            ): array {
+                return ['status' => 'valid', 'classification' => 'minor', 'findings' => []];
+            }
+        };
+        $result = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $consumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+
+        self::assertSame(4, $result->exitCode);
+        self::assertSame('policy_blocked', $result->payload['status']);
+        self::assertSame('failed', $result->payload['exit_class']);
+        self::assertSame([[
+            'id'      => 'release.compatibility.consumer.scheduler-1x-incompatible',
+            'message' => 'The candidate cannot reproduce the published Scheduler 1.1.0 behavior.'
+        ]], $result->payload['findings']);
+        self::assertSame([], $result->payload['verified_postconditions']);
+        self::assertSame([], $result->payload['performed_effects']);
+        self::assertSame([], $result->payload['proposed_effects']);
+        self::assertSame([
+            'action'  => 'replan_scheduler_compatibility',
+            'version' => '2.0.0'
+        ], $result->payload['next_action']);
+
+        $legacyOnlyCandidate = $receipt(str_repeat('c', 64), $scheduler);
+        $divergentLog = &$legacyOnlyCandidate['probe']['observations']['scheduler']['non_zero_failure']['logs'][0];
+        $divergentLog['message'] = 'candidate-only failure report';
+        $legacyOnlyConsumer = new class ($baseline, $legacyOnlyCandidate) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs a valid baseline followed by an authenticated divergent legacy-only candidate
+             *
+             * @param array<string, mixed> $baseline
+             * @param array<string, mixed> $candidate
+             */
+            public function __construct(private readonly array $baseline, private readonly array $candidate)
+            {
+            }
+
+            /**
+             * Returns baseline followed by a divergent candidate missing the portable Scheduler contract
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                return $this->calls++ === 0 ? $this->baseline : $this->candidate;
+            }
+        };
+        $legacyOnlyResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $legacyOnlyConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(4, $legacyOnlyResult->exitCode);
+        self::assertSame(SchedulerEvidenceAuthority::incompatibilityResult(), $legacyOnlyResult->payload);
+
+        $malformedPortableCandidate = $candidate;
+        $malformedPortableCandidate['probe']['observations']['scheduler']['portable_process_runner'] = [
+            'commands' => 'portable-command',
+            'output'   => "scheduler portable command\n"
+        ];
+        $malformedPortableConsumer = new class ($baseline, $malformedPortableCandidate) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs a valid baseline followed by malformed portable candidate evidence
+             *
+             * @param array<string, mixed> $baseline
+             * @param array<string, mixed> $candidate
+             */
+            public function __construct(private readonly array $baseline, private readonly array $candidate)
+            {
+            }
+
+            /**
+             * Returns the baseline followed by malformed portable candidate evidence
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                return $this->calls++ === 0 ? $this->baseline : $this->candidate;
+            }
+        };
+        $malformedPortableResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $malformedPortableConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(5, $malformedPortableResult->exitCode);
+        self::assertSame('evidence_indeterminate', $malformedPortableResult->payload['status']);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $malformedPortableResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $malformedPortableResult->payload['next_action']
+        );
+
+        $baselineFailure = new class implements PublicConsumerPort {
+            /**
+             * Reports unavailable baseline consumer infrastructure
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                throw new RuntimeException('Baseline consumer infrastructure is unavailable.');
+            }
+        };
+        $baselineFailureResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $baselineFailure,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(5, $baselineFailureResult->exitCode);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $baselineFailureResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $baselineFailureResult->payload['next_action']
+        );
+
+        $candidateProbeFailure = new class ($baseline) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs a baseline receipt followed by a designated candidate probe rejection
+             *
+             * @param array<string, mixed> $baseline
+             */
+            public function __construct(private readonly array $baseline)
+            {
+            }
+
+            /**
+             * Returns valid baseline evidence before rejecting the candidate probe
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                if ($this->calls++ === 0) {
+                    return $this->baseline;
+                }
+
+                throw new PublicConsumerProbeRejected('Designated public consumer probe was rejected.');
+            }
+        };
+        $candidateProbeFailureResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $candidateProbeFailure,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(4, $candidateProbeFailureResult->exitCode);
+        self::assertSame('policy_blocked', $candidateProbeFailureResult->payload['status']);
+        self::assertSame('failed', $candidateProbeFailureResult->payload['exit_class']);
+        self::assertSame([[
+            'id'      => 'release.compatibility.consumer.scheduler-1x-incompatible',
+            'message' => 'The candidate cannot reproduce the published Scheduler 1.1.0 behavior.'
+        ]], $candidateProbeFailureResult->payload['findings']);
+        self::assertSame([], $candidateProbeFailureResult->payload['verified_postconditions']);
+        self::assertSame([], $candidateProbeFailureResult->payload['performed_effects']);
+        self::assertSame([], $candidateProbeFailureResult->payload['proposed_effects']);
+        self::assertSame([
+            'action'  => 'replan_scheduler_compatibility',
+            'version' => '2.0.0'
+        ], $candidateProbeFailureResult->payload['next_action']);
+
+        $portableBaseline = $receipt(str_repeat('b', 64), $candidateScheduler);
+        $portableBaselineConsumer = new class ($portableBaseline) implements PublicConsumerPort {
+            public int $calls = 0;
+
+            /**
+             * Constructs portable baseline evidence before a candidate Scheduler rejection
+             *
+             * @param array<string, mixed> $baseline
+             */
+            public function __construct(private readonly array $baseline)
+            {
+            }
+
+            /**
+             * Returns portable baseline evidence and rejects if candidate execution is incorrectly attempted
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                if ($this->calls++ === 0) {
+                    return $this->baseline;
+                }
+
+                throw new PublicConsumerProbeRejected('Candidate Scheduler probe must not be interpreted.');
+            }
+        };
+        $portableBaselineResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $portableBaselineConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(1, $portableBaselineConsumer->calls);
+        self::assertSame(5, $portableBaselineResult->exitCode);
+        self::assertSame('evidence_indeterminate', $portableBaselineResult->payload['status']);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $portableBaselineResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $portableBaselineResult->payload['next_action']
+        );
+
+        $malformedBaseline = $baseline;
+        $malformedBaseline['probe']['observations']['scheduler']['command_output'] = 'untrusted baseline';
+        $candidateMustNotRun = new class ($malformedBaseline) implements PublicConsumerPort {
+            public int $calls = 0;
+
+            /**
+             * Constructs malformed baseline evidence before a candidate Scheduler rejection
+             *
+             * @param array<string, mixed> $baseline
+             */
+            public function __construct(private readonly array $baseline)
+            {
+            }
+
+            /**
+             * Returns malformed baseline evidence and rejects if candidate execution is incorrectly attempted
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                if ($this->calls++ === 0) {
+                    return $this->baseline;
+                }
+
+                throw new PublicConsumerProbeRejected('Candidate Scheduler probe must not be interpreted.');
+            }
+        };
+        $malformedBaselineResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $candidateMustNotRun,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(1, $candidateMustNotRun->calls);
+        self::assertSame(5, $malformedBaselineResult->exitCode);
+        self::assertSame('evidence_indeterminate', $malformedBaselineResult->payload['status']);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $malformedBaselineResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $malformedBaselineResult->payload['next_action']
+        );
+
+        $candidateSchedulerEnvelopeFailure = new class ($baseline) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs a baseline receipt followed by invalid raw Scheduler-probe evidence
+             *
+             * @param array<string, mixed> $baseline
+             */
+            public function __construct(private readonly array $baseline)
+            {
+            }
+
+            /**
+             * Returns valid baseline evidence before rejecting the candidate Scheduler envelope
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                if ($this->calls++ === 0) {
+                    return $this->baseline;
+                }
+
+                throw new RuntimeException('The Scheduler probe evidence is invalid.');
+            }
+        };
+        $candidateSchedulerEnvelopeFailureResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $candidateSchedulerEnvelopeFailure,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(5, $candidateSchedulerEnvelopeFailureResult->exitCode);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $candidateSchedulerEnvelopeFailureResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $candidateSchedulerEnvelopeFailureResult->payload['next_action']
+        );
+
+        $malformedCandidate = $candidate;
+        $malformedCandidate['resolved_package']['production_tree_sha256'] = str_repeat('d', 64);
+        $unclassifiedConsumer = new class ($baseline, $malformedCandidate) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * Constructs controlled unclassified consumer evidence
+             *
+             * @param array<string, mixed> $baseline
+             * @param array<string, mixed> $candidate
+             */
+            public function __construct(private readonly array $baseline, private readonly array $candidate)
+            {
+            }
+
+            /**
+             * Returns valid baseline then malformed candidate evidence
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                return $this->calls++ === 0 ? $this->baseline : $this->candidate;
+            }
+        };
+        $unclassifiedResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $unclassifiedConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(5, $unclassifiedResult->exitCode);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $unclassifiedResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $unclassifiedResult->payload['next_action']
+        );
+
+        $malformedGenericBaseline = $baseline;
+        $malformedGenericBaseline['probe']['observations']['uuid'] = 'candidate-only-uuid';
+        $genericBaselineConsumer = new class ($malformedGenericBaseline) implements PublicConsumerPort {
+            public int $calls = 0;
+
+            /** @param array<string, mixed> $baseline */
+            public function __construct(private readonly array $baseline)
+            {
+            }
+
+            /**
+             * Returns malformed generic baseline evidence and rejects any candidate call
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                if ($this->calls++ === 0) {
+                    return $this->baseline;
+                }
+
+                throw new PublicConsumerProbeRejected('Candidate Scheduler probe must not be interpreted.');
+            }
+        };
+        $malformedGenericBaselineResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $genericBaselineConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(1, $genericBaselineConsumer->calls);
+        self::assertSame(5, $malformedGenericBaselineResult->exitCode);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $malformedGenericBaselineResult->payload['findings'][0]['id']
+        );
+
+        $malformedGenericCandidate = $candidate;
+        $malformedGenericCandidate['probe']['observations']['collection'] = ['candidate-only'];
+        $genericCandidateConsumer = new class ($baseline, $malformedGenericCandidate) implements PublicConsumerPort {
+            private int $calls = 0;
+
+            /**
+             * @param array<string, mixed> $baseline
+             * @param array<string, mixed> $candidate
+             */
+            public function __construct(private readonly array $baseline, private readonly array $candidate)
+            {
+            }
+
+            /**
+             * Returns valid baseline evidence followed by malformed generic candidate evidence
+             */
+            public function run(string $_repository, string $_fixture, string $_consumer): array
+            {
+                return $this->calls++ === 0 ? $this->baseline : $this->candidate;
+            }
+        };
+        $malformedGenericCandidateResult = new CompatibilityAssessmentService(...[
+            ...$this->compatibilityCapabilities(),
+            $genericCandidateConsumer,
+            $manifestAuthority,
+            $structuralAuthority
+        ])->assess('/repository');
+        self::assertSame(5, $malformedGenericCandidateResult->exitCode);
+        self::assertSame('evidence_indeterminate', $malformedGenericCandidateResult->payload['status']);
+        self::assertSame(
+            'release.compatibility.consumer-evidence-unavailable',
+            $malformedGenericCandidateResult->payload['findings'][0]['id']
+        );
+        self::assertSame(
+            ['action' => 'restore_consumer_evidence_and_retry'],
+            $malformedGenericCandidateResult->payload['next_action']
+        );
     }
 
     /**
