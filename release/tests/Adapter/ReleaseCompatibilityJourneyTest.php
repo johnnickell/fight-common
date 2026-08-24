@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Release\Adapter;
 
 use Fight\Common\Application\Scheduler\Exception\SchedulerException;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use Symfony\Component\Filesystem\Filesystem;
@@ -91,7 +92,7 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
                 'installed_as'
             ]
         );
-        $legacyFindings = [
+        $legacySchedulerFindings = [
             [
                 'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
                 'evidence_id' => 'fight-common.consumer.public-api-representative',
@@ -112,18 +113,19 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             ]
         ];
         self::assertSame(
-            $legacyFindings,
+            [...$legacySchedulerFindings, ...JSendEvidenceAuthority::findings(false)],
             $result['evidence']['consumer']['package_probes']['baseline']['receipt']['findings']
         );
         self::assertSame(
             [
-                ...$legacyFindings,
+                ...$legacySchedulerFindings,
                 [
                     'finding_id'  => 'release.compatibility.consumer.scheduler-portable-runner-passed',
                     'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
                     'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
                     'status'      => 'passed'
-                ]
+                ],
+                ...JSendEvidenceAuthority::findings(true)
             ],
             $result['evidence']['consumer']['package_probes']['candidate']['receipt']['findings']
         );
@@ -147,6 +149,12 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
                 'scheduler'
             ]
         );
+        self::assertSame(
+            JSendEvidenceAuthority::observation(false),
+            $result['evidence']['consumer']['package_probes']['baseline']['receipt']['probe']['observations'][
+                'jsend'
+            ]
+        );
         $schedulerObservation['portable_process_runner'] = [
             'commands' => ['portable-command'],
             'output'   => "scheduler portable command\n"
@@ -161,6 +169,12 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             $schedulerObservation,
             $result['evidence']['consumer']['package_probes']['candidate']['receipt']['probe']['observations'][
                 'scheduler'
+            ]
+        );
+        self::assertSame(
+            JSendEvidenceAuthority::observation(true),
+            $result['evidence']['consumer']['package_probes']['candidate']['receipt']['probe']['observations'][
+                'jsend'
             ]
         );
         self::assertTrue($result['evidence']['consumer']['package_probes']['distinct_installations']);
@@ -217,7 +231,7 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             $filesystem->symlink($root.'/'.$directory, $repository.'/'.$directory);
         }
 
-        foreach (['CONTEXT.md', 'composer.json'] as $file) {
+        foreach (['CONTEXT.md', 'README.md', 'composer.json'] as $file) {
             $filesystem->symlink($root.'/'.$file, $repository.'/'.$file);
         }
 
@@ -234,9 +248,11 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             flags: JSON_THROW_ON_ERROR
         );
         $completeManifest = $manifest;
-        $missing = array_pop($manifest['declarations']);
-        self::assertIsArray($missing);
-        self::assertIsString($missing['name']);
+        $missingSubject = 'Fight\Common\Domain\Value\ValueObject';
+        $manifest['declarations'] = array_values(array_filter(
+            $manifest['declarations'],
+            static fn (array $declaration): bool => $declaration['name'] !== $missingSubject
+        ));
         $filesystem->dumpFile(
             $repository.'/compatibility/manifest.json',
             json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL
@@ -254,7 +270,7 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
                 'id'          => 'release.compatibility.structural-api.missing-classification',
                 'message'     => 'Structural compatibility authority rejected the evidence.',
                 'attribution' => 'compatibility-manifest',
-                'subject'     => $missing['name'],
+                'subject'     => $missingSubject,
                 'operation'   => null
             ]], $result['findings']);
             self::assertSame([], $result['performed_effects']);
@@ -266,16 +282,14 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
             );
 
             $twoMissingManifest = $completeManifest;
-            $twoMissing = [
-                array_pop($twoMissingManifest['declarations']),
-                array_pop($twoMissingManifest['declarations'])
+            $missingSubjects = [
+                'Fight\Common\Domain\Value\Value',
+                'Fight\Common\Domain\Value\ValueObject'
             ];
-            foreach ($twoMissing as $missingEntry) {
-                self::assertIsArray($missingEntry);
-            }
-
-            $missingSubjects = array_column($twoMissing, 'name');
-            sort($missingSubjects, SORT_STRING);
+            $twoMissingManifest['declarations'] = array_values(array_filter(
+                $twoMissingManifest['declarations'],
+                static fn (array $declaration): bool => !in_array($declaration['name'], $missingSubjects, true)
+            ));
             $filesystem->dumpFile(
                 $repository.'/compatibility/manifest.json',
                 json_encode(

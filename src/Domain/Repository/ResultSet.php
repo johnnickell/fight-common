@@ -14,7 +14,8 @@ use Traversable;
 /**
  * Class ResultSet
  *
- * @implements Collection<int, object>
+ * @template TRecord
+ * @implements Collection<int, TRecord>
  */
 final class ResultSet implements Arrayable, Collection, JsonSerializable
 {
@@ -30,7 +31,7 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
      * @param integer   $totalRecords
      * @param ArrayList $records
      *
-     * @phpstan-param ArrayList<object> $records
+     * @phpstan-param ArrayList<TRecord> $records
      */
     public function __construct(
         private int $page,
@@ -96,7 +97,7 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     /**
      * Retrieves the records
      *
-     * @return ArrayList<object>
+     * @return ArrayList<TRecord>
      */
     public function records(): ArrayList
     {
@@ -104,7 +105,9 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     }
 
     /**
-     * @inheritDoc
+     * Retrieves an iterator for records
+     *
+     * @return Traversable<int, TRecord>
      */
     public function getIterator(): Traversable
     {
@@ -112,7 +115,15 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     }
 
     /**
-     * @inheritDoc
+     * Retrieves pagination and records as an array
+     *
+     * @return array{
+     *     page: int,
+     *     per_page: int,
+     *     total_pages: int,
+     *     total_records: int,
+     *     records: array<TRecord>
+     * }
      */
     public function toArray(): array
     {
@@ -128,7 +139,13 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
     /**
      * Retrieves a representation for JSON encoding
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     page: int,
+     *     per_page: int,
+     *     total_pages: int,
+     *     total_records: int,
+     *     records: array<TRecord>
+     * }
      */
     public function jsonSerialize(): array
     {

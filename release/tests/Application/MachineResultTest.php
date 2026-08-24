@@ -8,6 +8,7 @@ use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
 use Fight\Release\Application\CompatibilityAssessment;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Release\Application\MachineResult;
 use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseResultFactory;
@@ -1761,6 +1762,10 @@ final class MachineResultTest extends UnitTestCase
                     'status'      => 'passed'
                 ];
             }
+            $findings = [
+                ...$findings,
+                ...JSendEvidenceAuthority::findings(isset($scheduler['portable_process_runner']))
+            ];
 
             return [
                 'schema_version'   => 'fight-common.disposable-public-consumer/v1',
@@ -1779,7 +1784,10 @@ final class MachineResultTest extends UnitTestCase
                         'meta'                 => ['consumer' => 'disposable'],
                         'collection'           => ['alpha', 'beta'],
                         'runtime_deprecations' => [],
-                        'scheduler'            => $scheduler
+                        'scheduler'            => $scheduler,
+                        'jsend'                => JSendEvidenceAuthority::observation(
+                            isset($scheduler['portable_process_runner'])
+                        )
                     ]
                 ]
             ];
