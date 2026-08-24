@@ -29,7 +29,9 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
     }
 
     /**
-     * @inheritDoc
+     * Retrieves entries by actor
+     *
+     * @return ResultSet<AuditEntry>
      */
     public function getByActor(string $actor, Pagination $pagination): ResultSet
     {
@@ -41,7 +43,9 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
     }
 
     /**
-     * @inheritDoc
+     * Retrieves entries by action name
+     *
+     * @return ResultSet<AuditEntry>
      */
     public function getByAction(string $action, Pagination $pagination): ResultSet
     {
@@ -53,7 +57,9 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
     }
 
     /**
-     * @inheritDoc
+     * Retrieves entries within a time range
+     *
+     * @return ResultSet<AuditEntry>
      */
     public function getBetween(DateTimeImmutable $from, DateTimeImmutable $to, Pagination $pagination): ResultSet
     {

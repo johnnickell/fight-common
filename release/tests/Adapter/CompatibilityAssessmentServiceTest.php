@@ -25,6 +25,7 @@ use Fight\Release\Application\CompatibilityAssessmentService;
 use Fight\Release\Application\CompatibilityFinding;
 use Fight\Release\Application\CompatibilityManifestAuthority;
 use Fight\Release\Application\CompatibilityManifestRejected;
+use Fight\Release\Application\JSendEvidenceAuthority;
 use Fight\Release\Application\PublicApiManifestAuthority;
 use Fight\Release\Application\SchedulerEvidenceAuthority;
 use Fight\Release\Application\StructuralApiComparison;
@@ -608,9 +609,10 @@ PHP
         $receipt = (static fn (string $tree, array $observation): array => [
             'schema_version'   => 'fight-common.disposable-public-consumer/v1',
             'status'           => 'valid',
-            'findings'         => SchedulerEvidenceAuthority::findings(
-                isset($observation['portable_process_runner'])
-            ),
+            'findings'         => [
+                ...SchedulerEvidenceAuthority::findings(isset($observation['portable_process_runner'])),
+                ...JSendEvidenceAuthority::findings(isset($observation['portable_process_runner']))
+            ],
             'candidate'        => ['production_tree_sha256' => $tree],
             'resolved_package' => [
                 'installed_as'           => 'copy',
@@ -624,7 +626,10 @@ PHP
                     'meta'                 => ['consumer' => 'disposable'],
                     'collection'           => ['alpha', 'beta'],
                     'runtime_deprecations' => [],
-                    'scheduler'            => $observation
+                    'scheduler'            => $observation,
+                    'jsend'                => JSendEvidenceAuthority::observation(
+                        isset($observation['portable_process_runner'])
+                    )
                 ]
             ]
         ]);

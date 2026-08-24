@@ -17,6 +17,8 @@ interface AuditRepository
     /**
      * Retrieves entries by actor
      *
+     * @return ResultSet<AuditEntry>
+     *
      * @throws Exception When an error occurs
      */
     public function getByActor(string $actor, Pagination $pagination): ResultSet;
@@ -24,12 +26,16 @@ interface AuditRepository
     /**
      * Retrieves entries by action name
      *
+     * @return ResultSet<AuditEntry>
+     *
      * @throws Exception When an error occurs
      */
     public function getByAction(string $action, Pagination $pagination): ResultSet;
 
     /**
      * Retrieves entries within a time range
+     *
+     * @return ResultSet<AuditEntry>
      *
      * @throws Exception When an error occurs
      */

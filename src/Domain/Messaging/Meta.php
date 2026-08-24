@@ -131,7 +131,9 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
     }
 
     /**
-     * @inheritDoc
+     * Retrieves metadata as an array
+     *
+     * @return array<string, mixed>
      */
     public function toArray(): array
     {
