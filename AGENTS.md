@@ -2,6 +2,13 @@
 
 Agent instructions for `johnnickell/fight-common`.
 
+## Work Routing
+
+**Frontier:** When `/ask-matt` is invoked without a task or additional context, read
+`planning/tickets/BOARD.md` and `planning/CONVENTIONS.md` before responding. Use the board's
+“What's Next?” contract to return the current human decision and first ready implementation ticket,
+and use the conventions to interpret ticket status and ordering.
+
 ## Architecture
 
 Hexagonal (Ports & Adapters) with strict layer separation:
@@ -13,7 +20,7 @@ Adapter → Application → Domain
 | Layer | Location | Rules |
 |-------|----------|-------|
 | **Domain** | `src/Domain/` | Pure business logic. No framework or application dependencies. |
-| **Application** | `src/Application/` | Use-case coordination. Depends on Domain + PSR contracts only. |
+| **Application** | `src/Application/` | Use-case coordination. Depends on Domain, PHP internals, PSR contracts, and the allowlisted scheduler expression contract. Never depends on Adapter. |
 | **Adapter** | `src/Adapter/` | Framework/infrastructure integrations. Depends on Application + Domain. |
 | **Standards** | `src/Standards/` | Orthogonal coding standards. No runtime dependents. |
 
