@@ -20,19 +20,21 @@ Domain\Value\DateTime
 
 ## Table of Contents
 
-1. [Scheduler](#scheduler-class)
-2. [Schedule Formats](#schedule-formats)
-3. [Locking](#locking)
-4. [Output Modes](#output-modes)
-5. [Error Handling and Notification](#error-handling-and-notification)
-6. [Max Runtime Guard](#max-runtime-guard)
-7. [Timezone](#timezone)
-8. [Symfony Configuration](#symfony-configuration)
-9. [Usage Examples](#usage-examples)
+1. [Portable ProcessRunner Composition](#portable-processrunner-composition)
+2. [Legacy 1.x Construction Compatibility](#legacy-1x-construction-compatibility)
+3. [Legacy Command Compatibility Bridge](#legacy-command-compatibility-bridge)
+4. [Schedule Formats](#schedule-formats)
+5. [Locking](#locking)
+6. [Output Modes](#output-modes)
+7. [Error Handling and Notification](#error-handling-and-notification)
+8. [Max Runtime Guard](#max-runtime-guard)
+9. [Timezone](#timezone)
+10. [Symfony Configuration](#symfony-configuration)
+11. [Usage Examples](#usage-examples)
 
 ---
 
-## Scheduler Class
+## Portable ProcessRunner Composition
 
 `Fight\Common\Application\Scheduler\Scheduler`
 
@@ -41,10 +43,10 @@ use Fight\Common\Application\Scheduler\Scheduler;
 use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Common\Domain\Value\DateTime\Timezone;
 
-$scheduler = new Scheduler(
+$scheduler = Scheduler::withProcessRunner(
     timezone:       new Timezone('America/New_York'),
     tempDirectory:  '/var/run/scheduler',
-    processRunner:  $processRunner,    // ProcessRunner (required)
+    processRunner:  $processRunner,    // ProcessRunner (required on this named path)
     logger:         $logger,           // ?LoggerInterface (default null)
     mailService:    $mailService,      // ?MailService (default null)
     fromEmail:      'cron@example.com'
@@ -52,8 +54,40 @@ $scheduler = new Scheduler(
 ```
 
 Command jobs are described with `ProcessBuilder::shellCommand()` and executed through the
-Application-owned `ProcessRunner` port. The runner is a required Scheduler dependency, including when a
-Scheduler currently registers only callable jobs, so every Scheduler is ready to execute either job type.
+Application-owned `ProcessRunner` port. This named construction path is the recommended composition for new
+consumers. It keeps framework selection in the composition root and does not change any argument of the
+published constructor.
+
+## Legacy 1.x Construction Compatibility
+
+The published `1.1.0` constructor remains available unchanged through `1.x`:
+
+```php
+$scheduler = new Scheduler(
+    timezone:       new Timezone('America/New_York'),
+    tempDirectory:  '/var/run/scheduler',
+    logger:         $logger,           // ?LoggerInterface (default null)
+    mailService:    $mailService,      // ?MailService (default null)
+    fromEmail:      'cron@example.com',
+    processFactory: $processFactory    // ?Closure (default null)
+);
+```
+
+The exact positional order is `timezone`, `tempDirectory`, `logger`, `mailService`, `fromEmail`, then
+`processFactory`. Two-argument, positional-optional, and named-argument construction remain supported. The
+constructor and its optional `processFactory` command seam are deprecated compatibility APIs through `1.x` and
+will be removed in `2.0.0`. They emit no runtime deprecation warning.
+
+## Legacy Command Compatibility Bridge
+
+Schedulers created through the legacy constructor execute command jobs through the supplied `processFactory`.
+When no factory is supplied and `symfony/process` is available, Scheduler conditionally constructs
+`Symfony\Component\Process\Process` without making it a production dependency. When neither facility is
+available, the command failure is reported through the Scheduler's normal logging and notification behavior.
+
+This conditional Symfony bridge is deprecated through `1.x`, receives no new capabilities, and emits no runtime
+deprecation warning. New composition should use `withProcessRunner(...)` with an Application `ProcessRunner`
+implementation selected by the consumer.
 
 ### Registering Jobs
 
@@ -219,13 +253,14 @@ services:
             - '%env(APP_TIMEZONE)%'
 
     Fight\Common\Application\Scheduler\Scheduler:
+        factory: ['Fight\Common\Application\Scheduler\Scheduler', 'withProcessRunner']
         arguments:
-            - '@Fight\Common\Domain\Value\DateTime\Timezone'
-            - '%kernel.cache_dir%/scheduler'
-            - '@Fight\Common\Application\Process\ProcessRunner'
-            - '@logger'
-            - '@Fight\Common\Application\Mail\MailService'
-            - '%env(SCHEDULER_FROM_EMAIL)%'
+            $timezone: '@Fight\Common\Domain\Value\DateTime\Timezone'
+            $tempDirectory: '%kernel.cache_dir%/scheduler'
+            $processRunner: '@Fight\Common\Application\Process\ProcessRunner'
+            $logger: '@logger'
+            $mailService: '@Fight\Common\Application\Mail\MailService'
+            $fromEmail: '%env(SCHEDULER_FROM_EMAIL)%'
 
     Fight\Common\Adapter\Process\Symfony\SymfonyProcessRunner: ~
 

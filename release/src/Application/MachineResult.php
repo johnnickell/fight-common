@@ -539,7 +539,8 @@ final readonly class MachineResult
         }
 
         return !isset($nextAction['version'])
-            || ($command === 'inspect' && is_string($nextAction['version']) && $nextAction['version'] !== '');
+            || $command === 'inspect' && is_string($nextAction['version']) && $nextAction['version'] !== ''
+            || $command === 'compatibility' && SchedulerEvidenceAuthority::isReplanAction($nextAction);
     }
 
     /**
@@ -550,10 +551,15 @@ final readonly class MachineResult
     private static function isCompatibilityFields(array $payload): bool
     {
         if (($payload['exit_code'] ?? null) !== 0) {
-            return !isset($payload['evidence'])
+            $withoutEvidence = !isset($payload['evidence'])
                 && $payload['verified_postconditions'] === []
                 && $payload['performed_effects'] === []
                 && $payload['proposed_effects'] === [];
+            if (!SchedulerEvidenceAuthority::claimsIncompatibility($payload)) {
+                return $withoutEvidence && !isset($payload['next_action']['version']);
+            }
+
+            return $withoutEvidence && SchedulerEvidenceAuthority::isIncompatibilityResult($payload);
         }
 
         $evidence = $payload['evidence'] ?? null;
@@ -564,6 +570,15 @@ final readonly class MachineResult
         $manifest = $evidence['manifest'];
         $structural = $evidence['structural'];
         $consumer = $evidence['consumer'];
+        $packageProbes = is_array($consumer) ? ($consumer['package_probes'] ?? null) : null;
+        $baselineProbe = is_array($packageProbes) ? ($packageProbes['baseline'] ?? null) : null;
+        $candidateProbe = is_array($packageProbes) ? ($packageProbes['candidate'] ?? null) : null;
+        $baselineReceipt = is_array($baselineProbe) ? ($baselineProbe['receipt'] ?? null) : null;
+        $candidateReceipt = is_array($candidateProbe) ? ($candidateProbe['receipt'] ?? null) : null;
+        $baselineCandidate = is_array($baselineReceipt) ? ($baselineReceipt['candidate'] ?? null) : null;
+        $candidateCandidate = is_array($candidateReceipt) ? ($candidateReceipt['candidate'] ?? null) : null;
+        $baselineTree = is_array($baselineCandidate) ? ($baselineCandidate['production_tree_sha256'] ?? null) : null;
+        $candidateTree = is_array($candidateCandidate) ? ($candidateCandidate['production_tree_sha256'] ?? null) : null;
 
         return is_array($manifest)
             && ($manifest['status'] ?? null) === 'valid'
@@ -580,10 +595,28 @@ final readonly class MachineResult
             && ($consumer['resolved_package']['installed_as'] ?? null) === 'copy'
             && is_string($consumer['lock']['sha256'] ?? null)
             && preg_match('/\A[0-9a-f]{64}\z/D', $consumer['lock']['sha256']) === 1
+            && is_array($packageProbes)
+            && array_keys($packageProbes) === ['baseline', 'candidate', 'distinct_installations']
+            && ($packageProbes['distinct_installations'] ?? null) === true
+            && is_array($baselineProbe)
+            && ($baselineProbe['identity'] ?? null) === [
+                'version'                => '1.1.0',
+                'peeled_commit_oid'      => $manifest['baseline']['peeled_commit_oid'],
+                'production_tree_sha256' => $baselineTree
+            ]
+            && ($baselineProbe['attribution'] ?? null) === 'baseline'
+            && is_array($candidateProbe)
+            && ($candidateProbe['identity'] ?? null) === ['production_tree_sha256' => $candidateTree]
+            && ($candidateProbe['attribution'] ?? null) === 'candidate'
+            && SchedulerEvidenceAuthority::isCopiedReceipt($baselineReceipt)
+            && SchedulerEvidenceAuthority::isCopiedReceipt($candidateReceipt)
+            && SchedulerEvidenceAuthority::receiptsAreEquivalent($baselineReceipt, $candidateReceipt)
+            && $candidateReceipt === array_diff_key($consumer, ['package_probes' => true])
             && $payload['verified_postconditions'] === [
                 'compatibility_manifest_authenticated',
                 'structural_evidence_composed',
-                'disposable_public_consumer_verified'
+                'disposable_public_consumer_verified',
+                'baseline_and_candidate_public_probes_verified'
             ]
             && $payload['performed_effects'] === []
             && $payload['proposed_effects'] === []

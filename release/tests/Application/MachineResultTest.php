@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Test\Release\Application;
 
+use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Release\Application\Boundary\ReleaseBoundaryOutcome;
 use Fight\Release\Application\Boundary\ReleaseEffect;
 use Fight\Release\Application\CompatibilityAssessment;
 use Fight\Release\Application\MachineResult;
 use Fight\Release\Application\ReleaseCommand;
 use Fight\Release\Application\ReleaseResultFactory;
+use Fight\Release\Application\SchedulerEvidenceAuthority;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -19,6 +21,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ReleaseCommand::class)]
 #[CoversClass(ReleaseEffect::class)]
 #[CoversClass(CompatibilityAssessment::class)]
+#[CoversClass(SchedulerEvidenceAuthority::class)]
 /**
  * Class MachineResultTest
  *
@@ -1495,6 +1498,66 @@ final class MachineResultTest extends UnitTestCase
     }
 
     /**
+     * Proves copied-package identities and legacy Scheduler observations remain fail-closed.
+     */
+    public function test_that_compatibility_rejects_unbound_package_probes_and_divergent_scheduler_evidence(): void
+    {
+        $success = $this->compatibilityPayload();
+        self::assertTrue(MachineResult::isValidPayload($success, 0));
+
+        $unboundBaseline = $success;
+        $unboundBaseline['evidence']['consumer']['package_probes']['baseline']['identity'][
+            'production_tree_sha256'
+        ] = str_repeat('f', 64);
+        self::assertFalse(MachineResult::isValidPayload($unboundBaseline, 0));
+
+        $unboundCandidate = $success;
+        $unboundCandidate['evidence']['consumer']['package_probes']['candidate']['identity'][
+            'production_tree_sha256'
+        ] = str_repeat('e', 64);
+        self::assertFalse(MachineResult::isValidPayload($unboundCandidate, 0));
+
+        $divergentScheduler = $success;
+        $divergentScheduler['evidence']['consumer']['package_probes']['candidate']['receipt']['probe'][
+            'observations'
+        ]['scheduler']['command_output'] = "candidate-only output\n";
+        self::assertFalse(MachineResult::isValidPayload($divergentScheduler, 0));
+    }
+
+    /**
+     * Proves compatibility cannot pass when both installed probes omit the required non-zero behavior.
+     */
+    public function test_that_compatibility_rejects_scheduler_evidence_without_exact_non_zero_behavior(): void
+    {
+        $success = $this->compatibilityPayload();
+
+        unset(
+            $success['evidence']['consumer']['package_probes']['baseline']['receipt']['probe']['observations'][
+                'scheduler'
+            ]['non_zero_failure'],
+            $success['evidence']['consumer']['package_probes']['candidate']['receipt']['probe']['observations'][
+                'scheduler'
+            ]['non_zero_failure'],
+            $success['evidence']['consumer']['probe']['observations']['scheduler']['non_zero_failure']
+        );
+
+        self::assertFalse(MachineResult::isValidPayload($success, 0));
+
+        $mutated = $this->compatibilityPayload();
+        foreach (['baseline', 'candidate'] as $probe) {
+            $mutated['evidence']['consumer']['package_probes'][$probe]['receipt']['probe']['observations'][
+                'scheduler'
+            ]['non_zero_failure']['logs'][0]['message'] = 'mutated failure report';
+        }
+
+        $mutated['evidence']['consumer']['probe']['observations']['scheduler']['non_zero_failure']['logs'][0][
+            'message'
+        ] = 'mutated failure report';
+
+        self::assertFalse(MachineResult::isValidPayload($mutated, 0));
+    }
+
+    /**
      * Covers acceptance of one exact attributed compatibility-authority failure at the public result seam.
      */
     public function test_that_compatibility_accepts_an_authenticated_attributed_failure_finding(): void
@@ -1530,6 +1593,46 @@ final class MachineResultTest extends UnitTestCase
             ['action' => 'restore_manifest_evidence_and_retry'],
             $result->payload['next_action']
         );
+    }
+
+    /**
+     * Proves only the exact Scheduler incompatibility stop can direct a compatibility replan to 2.0.0.
+     */
+    public function test_that_compatibility_accepts_only_the_exact_scheduler_major_replan(): void
+    {
+        $payload = [
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'compatibility',
+            'capability'              => 'compatibility_assessment',
+            'status'                  => 'policy_blocked',
+            'exit_class'              => 'failed',
+            'exit_code'               => 4,
+            'findings'                => [[
+                'id'      => 'release.compatibility.consumer.scheduler-1x-incompatible',
+                'message' => 'The candidate cannot reproduce the published Scheduler 1.1.0 behavior.'
+            ]],
+            'verified_postconditions' => [],
+            'performed_effects'       => [],
+            'proposed_effects'        => [],
+            'next_action'             => [
+                'action'  => 'replan_scheduler_compatibility',
+                'version' => '2.0.0'
+            ]
+        ];
+
+        self::assertTrue(MachineResult::isValidPayload($payload, 4));
+        self::assertSame(4, new MachineResult($payload, 4)->exitCode);
+
+        $wrongVersion = $payload;
+        $wrongVersion['next_action']['version'] = '1.2.0';
+        self::assertFalse(MachineResult::isValidPayload($wrongVersion, 4));
+
+        $genericVersionedRetry = $payload;
+        $genericVersionedRetry['findings'] = [[
+            'id'      => 'release.compatibility.consumer-evidence-unavailable',
+            'message' => 'Required consumer compatibility evidence is unavailable or invalid.'
+        ]];
+        self::assertFalse(MachineResult::isValidPayload($genericVersionedRetry, 4));
     }
 
     /**
@@ -1619,6 +1722,77 @@ final class MachineResultTest extends UnitTestCase
     /** @return array<string, mixed> */
     private function compatibilityPayload(): array
     {
+        $baselineTree = str_repeat('b', 64);
+        $candidateTree = str_repeat('c', 64);
+        $schedulerObservation = [
+            'construction_styles'      => ['two_argument', 'positional_optional', 'named_arguments'],
+            'callable_output'          => "scheduler callable\n",
+            'command_output'           => "scheduler command\nscheduler command\n",
+            'default_process_commands' => ['default-command'],
+            'factory_process_commands' => ['factory-command', 'false', 'false'],
+            'non_zero_failure'         => $this->schedulerNonZeroFailureObservation()
+        ];
+        $receipt = static function (string $tree, array $scheduler): array {
+            $findings = [
+                [
+                    'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
+                    'evidence_id' => 'fight-common.consumer.public-api-representative',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/public-api-probe.php',
+                    'status'      => 'passed'
+                ],
+                [
+                    'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-construction-passed',
+                    'evidence_id' => 'fight-common.behavior.scheduler-legacy-construction',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                    'status'      => 'passed'
+                ],
+                [
+                    'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-command-passed',
+                    'evidence_id' => 'fight-common.behavior.scheduler-legacy-command',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                    'status'      => 'passed'
+                ]
+            ];
+            if (isset($scheduler['portable_process_runner'])) {
+                $findings[] = [
+                    'finding_id'  => 'release.compatibility.consumer.scheduler-portable-runner-passed',
+                    'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                    'status'      => 'passed'
+                ];
+            }
+
+            return [
+                'schema_version'   => 'fight-common.disposable-public-consumer/v1',
+                'status'           => 'valid',
+                'findings'         => $findings,
+                'candidate'        => ['production_tree_sha256' => $tree],
+                'resolved_package' => [
+                    'installed_as'           => 'copy',
+                    'production_tree_sha256' => $tree
+                ],
+                'lock'             => ['sha256' => str_repeat('d', 64)],
+                'probe'            => [
+                    'sha256'       => str_repeat('a', 64),
+                    'observations' => [
+                        'uuid'                 => '00000000-0000-0000-0000-000000000000',
+                        'meta'                 => ['consumer' => 'disposable'],
+                        'collection'           => ['alpha', 'beta'],
+                        'runtime_deprecations' => [],
+                        'scheduler'            => $scheduler
+                    ]
+                ]
+            ];
+        };
+        $baselineReceipt = $receipt($baselineTree, $schedulerObservation);
+        $candidateReceipt = $receipt($candidateTree, [
+            ...$schedulerObservation,
+            'portable_process_runner' => [
+                'commands' => ['portable-command'],
+                'output'   => "scheduler portable command\n"
+            ]
+        ]);
+
         return [
             'schema_version'          => 'fight-common.release-result/v1',
             'command'                 => 'compatibility',
@@ -1633,19 +1807,40 @@ final class MachineResultTest extends UnitTestCase
             'verified_postconditions' => [
                 'compatibility_manifest_authenticated',
                 'structural_evidence_composed',
-                'disposable_public_consumer_verified'
+                'disposable_public_consumer_verified',
+                'baseline_and_candidate_public_probes_verified'
             ],
             'performed_effects'       => [],
             'proposed_effects'        => [],
             'next_action'             => ['action' => 'review_compatibility_evidence'],
             'evidence'                => [
-                'manifest'   => ['status' => 'valid', 'baseline' => ['version' => '1.1.0']],
+                'manifest'   => [
+                    'status'   => 'valid',
+                    'baseline' => [
+                        'version'           => '1.1.0',
+                        'peeled_commit_oid' => 'fdd48065c5527f4968943db7d61d6f1ad17619e7'
+                    ]
+                ],
                 'structural' => ['status' => 'valid', 'classification' => 'minor', 'findings' => []],
                 'consumer'   => [
-                    'schema_version'   => 'fight-common.disposable-public-consumer/v1',
-                    'status'           => 'valid',
-                    'resolved_package' => ['installed_as' => 'copy'],
-                    'lock'             => ['sha256' => str_repeat('a', 64)]
+                    ...$candidateReceipt,
+                    'package_probes' => [
+                        'baseline'               => [
+                            'identity'    => [
+                                'version'                => '1.1.0',
+                                'peeled_commit_oid'      => 'fdd48065c5527f4968943db7d61d6f1ad17619e7',
+                                'production_tree_sha256' => $baselineTree
+                            ],
+                            'attribution' => 'baseline',
+                            'receipt'     => $baselineReceipt
+                        ],
+                        'candidate'              => [
+                            'identity'    => ['production_tree_sha256' => $candidateTree],
+                            'attribution' => 'candidate',
+                            'receipt'     => $candidateReceipt
+                        ],
+                        'distinct_installations' => true
+                    ]
                 ]
             ]
         ];
@@ -1671,6 +1866,44 @@ final class MachineResultTest extends UnitTestCase
             'performed_effects'       => [],
             'proposed_effects'        => [],
             'next_action'             => ['action' => 'restore_release_runtime_and_retry']
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function schedulerNonZeroFailureObservation(): array
+    {
+        $log = [
+            'level'   => 'error',
+            'message' => 'Command exited with non-zero status 1',
+            'context' => [
+                'keys'      => ['exception'],
+                'exception' => [
+                    'class'   => SchedulerException::class,
+                    'message' => 'Command exited with non-zero status 1',
+                    'code'    => 0
+                ]
+            ]
+        ];
+        $notification = [
+            'subject' => '[Scheduler] Job "consumer-failing-command" failed',
+            'from'    => [['address' => 'scheduler@example.com', 'name' => null]],
+            'to'      => [['address' => 'operator@example.com', 'name' => null]],
+            'content' => [
+                'environment'  => 'Environment: consumer',
+                'error'        => 'Error: Command exited with non-zero status 1',
+                'code'         => 'Code: 0',
+                'content_type' => 'text/plain',
+                'charset'      => 'utf-8'
+            ]
+        ];
+
+        return [
+            'attempts'                       => 2,
+            'reported_exit_codes'            => [1, 1],
+            'logs'                           => [$log, $log],
+            'notification_count'             => 2,
+            'notifications'                  => [$notification, $notification],
+            'lock_reacquired_after_attempts' => [true, true]
         ];
     }
 }
