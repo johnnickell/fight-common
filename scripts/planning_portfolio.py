@@ -42,7 +42,7 @@ def main() -> int:
 
     for directory, pattern in patterns.items():
         suffix = {"epics": "-EPIC.md", "specs": "-PRD.md", "tickets": "-TICKET.md"}[directory]
-        for path in sorted((PLANNING / directory).glob(f"*{suffix}")):
+        for path in sorted((PLANNING / directory).rglob(f"*{suffix}")):
             try:
                 data = frontmatter(path)
             except ValueError as exception:
@@ -59,6 +59,18 @@ def main() -> int:
                 if not data.get(required):
                     errors.append(f"{path.relative_to(ROOT)}: missing {required}")
             records[record_id] = (path, data)
+
+    markdown_link = re.compile(r"\!?\[[^\]]*\]\(([^\s)]+)")
+    for path in PLANNING.rglob("*.md"):
+        if path.name.startswith("_"):
+            continue
+        for target in markdown_link.findall(path.read_text(encoding="utf-8")):
+            destination, _, _anchor = target.partition("#")
+            if not destination.endswith(".md") or destination.startswith(("/", "http:", "https:", "mailto:")):
+                continue
+            resolved = (path.parent / destination).resolve()
+            if not resolved.is_file():
+                errors.append(f"{path.relative_to(ROOT)}: broken local Markdown link {target}")
 
     for record_id, (path, data) in records.items():
         parent = data.get("epic") or data.get("prd")

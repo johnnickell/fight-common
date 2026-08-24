@@ -31,6 +31,10 @@ planning/
 
 Identifiers are independent five-digit sequences. Ticket identifiers are displayed as `T-NNNNN`.
 
+Every planning directory keeps its copy-ready template beside its live artifacts. Templates begin with `_`, are
+not planning records, and are never assigned an identifier. Copy a template before authoring a new artifact; do
+not alter a template to record a live decision.
+
 ## Ticket Frontmatter
 
 Every ticket file begins with YAML frontmatter:
@@ -92,6 +96,55 @@ is not clear enough for an epic or PRD yet. Each map:
 Wayfinder tickets (WF-NNN) document design decisions. Research files capture investigation output.
 Wayfinder files are never executable implementation tickets.
 
+### Wayfinder Maps
+
+`planning/wayfinder/README.md` is the index of every map and its current charting state. It is the first
+place to look when resuming planning after time away. A map is an index, not a second store of decisions:
+each material decision belongs in one linked Wayfinder ticket, while the map gives a short linked summary.
+
+Use `_MAP_TEMPLATE.md` for every new map. A map must contain, in this order:
+
+1. a label and explicit `Active` or `Closed` status;
+2. the destination and precise done condition;
+3. scoped notes and decision summaries linked to their WF tickets;
+4. a linked ticket table with type, mode, status, and dependencies;
+5. blocking relationships when dependencies are non-trivial;
+6. a single explicit `Frontier`, followed by fog and out-of-scope boundaries.
+
+The Board may name one **Wayfinder Review** candidate only when an active map has a concrete, unblocked
+frontier ticket suitable for `/grill-with-docs`. It must link to the map and its frontier ticket. If no such
+map exists, the Board says so rather than inventing planning work and `/ask-matt` offers `/wayfinder` to chart
+a new feature. This advisory pointer never overrides the Board's implementation frontier or the map's own
+decision authority.
+
+### Archive Operation — Explicit Command Only
+
+Archiving is a deliberate repository-maintenance operation, never a completion side effect. Run it only when
+explicitly asked to archive tickets, specs, epics, a named Wayfinder map, or a named set of those artifacts.
+Use `./bin/archive-planning` with a dry run first and `--apply` only after its proposed moves are correct.
+The command moves records and rewrites local Markdown links throughout live planning and archive directories;
+never move files by hand.
+
+| Request | Command shape | Destination |
+|---------|---------------|-------------|
+| archive tickets | `./bin/archive-planning tickets T-00001 … [--apply]` | `planning/tickets/archive/` |
+| archive specs | `./bin/archive-planning specs PRD-00001 … [--apply]` | `planning/specs/archive/` |
+| archive epics | `./bin/archive-planning epics EPIC-00001 … [--apply]` | `planning/epics/archive/` |
+| archive a Wayfinder map | `./bin/archive-planning wayfinder map-name [--apply]` | map, tickets, and research under `planning/wayfinder/**/archive/` |
+
+The operation fails closed unless every requested artifact is eligible:
+
+- a ticket is terminal (`done` or `wontfix`);
+- a PRD is terminal and all of its tickets are terminal;
+- an epic is terminal and all of its PRDs are terminal; and
+- a Wayfinder map is `Closed`, all of its linked decision tickets are `Closed`, its frontier is empty, and its
+  resolution links to the resulting epic, PRD, or implementation ticket handoff. A map that still needs
+  decisions or still needs its implementation handoff must remain live.
+
+After an applied archive, run `./bin/planning-check`, inspect the rewritten links, refresh the relevant README
+index and Board/ROADMAP projections, and commit the move plus reference repair together. Archives remain
+addressable planning records; never renumber, flatten, or replace them with prose summaries.
+
 ## Epic Convention
 
 Each epic file:
@@ -121,6 +174,8 @@ Before creating a pull request for any feature or bug fix:
 5. **Update ROADMAP.md** — if the completed work moves a strategic milestone forward
 6. **Run `./bin/planning-check`** (when available) to verify planning file consistency
 7. **Verify `blocked_by` edges** — ensure no downstream tickets list the completed ticket as an unresolved blocker
+8. **Refresh Wayfinder continuity** — update the Wayfinder index and the Board's Wayfinder Review pointer when
+   a map frontier or handoff changed
 
 The BOARD.md is canonical for execution order. After every ticket completion, recalculate
 the "What's Next?" contract at the top of the board.

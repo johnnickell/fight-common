@@ -120,7 +120,10 @@ The `./bin/*` wrappers use `-it` and rebuild the image — those are for interac
 
 ## Planning
 
-See `planning/CONVENTIONS.md` for the canonical planning structure: ticket lifecycle, BOARD.md execution frontier, wayfinder maps, PRD and epic conventions, and file naming.
+See `planning/CONVENTIONS.md` for the canonical planning structure: ticket lifecycle, BOARD.md execution frontier,
+Wayfinder maps, PRD and epic conventions, file naming, templates, and explicit-only archive operations. Never
+archive planning records as a completion side effect; run `./bin/archive-planning` only on an explicit request,
+review its dry run, and then apply it.
 
 ### Pre-PR Sync Checklist
 

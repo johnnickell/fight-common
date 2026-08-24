@@ -1,7 +1,7 @@
 # Fight Framework Portability and Starter Projects
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 ## Destination
 
@@ -28,6 +28,9 @@ The destination includes:
 The starter-repository handoff route is complete. The Fight Common adapter route is reopened because the
 previous no-new-shared-adapter policy omitted reusable Laravel, Yii, and CodeIgniter integration and grouped
 equivalent framework service-container extension points by the runtime capability they happened to wire.
+
+**Done** = every linked Wayfinder decision is closed, the permanent decisions are linked to their epic, PRDs,
+and executable-ticket handoff, and no charting question remains before `/ask-matt` returns to normal execution.
 
 ## Notes
 
@@ -154,24 +157,53 @@ equivalent framework service-container extension points by the runtime capabilit
   records the decision. PRD-00014 and PRD-00015 now hold the permanent specification, and T-00050 through
   T-00054, T-00058, and T-00069 through T-00075 hold the reconciled implementation graph.
 
-## Frontier
+## Tickets
 
-None. The map's decision frontier and specification/ticket handoff are closed; the next flow is `/ask-matt`.
+| Ticket | Type | Mode | Status | Depends On |
+|---|---|---|---|---|
+| [Establish the portability destination and release boundaries](tickets/WF-009-portability-destination-and-release-boundaries.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Define the package and repository ownership model](tickets/WF-010-package-and-repository-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Define the versioned HTTP, JSend, and presentation contracts](tickets/WF-011-versioned-http-jsend-and-presentation-contracts.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Define the portable AccessControl and persistence boundaries](tickets/WF-012-access-control-and-persistence-boundaries.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Define starter product, governance, and documentation standards](tickets/WF-013-starter-product-governance-and-documentation.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
+| [Audit Fight Common contracts and the 1.2 compatibility envelope](tickets/WF-014-fight-common-contract-and-compatibility-audit.md) | Research / Domain Modeling | HITL | **Closed** | — |
+| [Select supported framework lines and default capability compositions](tickets/WF-015-framework-lines-and-default-capability-compositions.md) | Research / Domain Modeling | HITL | **Closed** | Contract audit |
+| [Specify the Fight AccessControl extraction and authentication model](tickets/WF-016-access-control-extraction-and-authentication-model.md) | Research / Domain Modeling | HITL | **Closed** | — |
+| [Prove persistence, UnitOfWork, and walking-slice portability](tickets/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md) | Research / Domain Modeling | HITL | **Closed** | — |
+| [Synthesize full-support implementation handoffs](tickets/WF-018-full-support-implementation-handoffs.md) | Grilling / Domain Modeling | HITL | **Closed** | Prior portability decisions |
+| [Define the service-container and framework-adapter namespace model](tickets/WF-019-service-container-and-adapter-namespace-model.md) | Grilling / Domain Modeling | HITL | **Closed** | Contract audit |
+| [Research Laravel-native adapter seams](tickets/WF-020-laravel-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
+| [Research Yii-native adapter seams](tickets/WF-021-yii-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
+| [Research CodeIgniter-native adapter seams](tickets/WF-022-codeigniter-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
+| [Research Symfony, Slim, and standalone adapter seams](tickets/WF-023-symfony-slim-and-standalone-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
+| [Select the framework-adapter support matrix](tickets/WF-024-framework-adapter-support-matrix.md) | Grilling / Domain Modeling | HITL | **Closed** | Framework and PSR research |
+| [Research PSR interoperability and adapter seams](tickets/WF-025-psr-interoperability-and-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
 
-## Waiting
+## Blocking relationships
 
-None.
+```text
+Contract audit ──→ Service-container model ──→ Framework and PSR research ──→ Support matrix
 
-Choose only one frontier ticket per Wayfinder session. A ticket is takeable when every item in its
-`Depends on` field is closed and it is not claimed by another session.
+Destination + ownership + HTTP + persistence + governance + audit + supported lines
+  + AccessControl + walking-slice evidence + support matrix ──→ Implementation handoff
+```
 
-## Transferred to repository-local planning
+## Implementation Handoff
 
 - Fight AccessControl owns capability-ticket creation from its local PRD-00001; T-00061 was accepted on
   2026-08-17.
 - Each starter owns its adopted PRD-00018 product plan, executable vertical tickets, hosting, licensing,
   Packagist metadata, branch protections, release automation, and release state after its T-00062 through
   T-00066 public-source bootstrap handoff.
+
+## Frontier
+
+None. The map's decision frontier and specification/ticket handoff are closed; the next flow is `/ask-matt`.
+
+## Not yet specified (fog)
+
+None within this Wayfinder. Future framework support or product capabilities start a new map through
+`/wayfinder`; they do not reopen a completed handoff without a new decision boundary.
 
 ## Out of scope
 
