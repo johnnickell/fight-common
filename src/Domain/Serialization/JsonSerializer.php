@@ -8,10 +8,16 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Utility\ClassName;
 
 /**
- * @deprecated since 1.2, will be removed in 2.0. Use {@see \Fight\Common\Application\Serialization\JsonSerializer} instead.
+ * Class JsonSerializer
+ *
+ * @deprecated since 1.2, will be removed in 2.0.
+ * Use {@see \Fight\Common\Application\Serialization\JsonSerializer} instead.
  */
 final class JsonSerializer implements Serializer
 {
+    /**
+     * @inheritDoc
+     */
     public function deserialize(string $state): Serializable
     {
         $data = json_decode($state, $array = true);
@@ -33,6 +39,9 @@ final class JsonSerializer implements Serializer
         return $class::arrayDeserialize($data['$']);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function serialize(Serializable $object): string
     {
         $data = [

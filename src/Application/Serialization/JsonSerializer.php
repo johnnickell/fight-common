@@ -9,8 +9,14 @@ use Fight\Common\Domain\Serialization\Serializable;
 use Fight\Common\Domain\Serialization\Serializer;
 use Fight\Common\Domain\Utility\ClassName;
 
+/**
+ * Class JsonSerializer
+ */
 class JsonSerializer implements Serializer
 {
+    /**
+     * @inheritDoc
+     */
     public function deserialize(string $state): Serializable
     {
         $data = json_decode($state, $array = true);
@@ -32,6 +38,9 @@ class JsonSerializer implements Serializer
         return $class::arrayDeserialize($data['$']);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function serialize(Serializable $object): string
     {
         $data = [
