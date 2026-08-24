@@ -28,6 +28,27 @@ final readonly class ReferencedContractAuthority
                 'section' => 'Migrate durable names and event schemas'
             ],
             'fixture'   => ['path' => 'tests/Domain/EventSourcing/StoredEventTest.php']
+        ],
+        'fight-common.behavior.scheduler-legacy-construction'  => [
+            'normative' => [
+                'path'    => 'docs/scheduler.md',
+                'section' => 'Legacy 1.x Construction Compatibility'
+            ],
+            'fixture'   => ['path' => 'release/fixtures/PublicApiConsumer/probe.php']
+        ],
+        'fight-common.behavior.scheduler-legacy-command'       => [
+            'normative' => [
+                'path'    => 'docs/scheduler.md',
+                'section' => 'Legacy Command Compatibility Bridge'
+            ],
+            'fixture'   => ['path' => 'release/fixtures/PublicApiConsumer/probe.php']
+        ],
+        'fight-common.behavior.scheduler-portable-runner'      => [
+            'normative' => [
+                'path'    => 'docs/scheduler.md',
+                'section' => 'Portable ProcessRunner Composition'
+            ],
+            'fixture'   => ['path' => 'tests/Application/Scheduler/SchedulerTest.php']
         ]
     ];
     private const array PACKAGE_PROMISE_REFERENCES = [

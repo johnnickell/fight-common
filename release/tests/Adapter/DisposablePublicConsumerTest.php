@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Test\Release\Adapter;
 
+use Fight\Common\Application\Scheduler\Exception\SchedulerException;
 use Fight\Release\Adapter\DisposablePublicConsumer;
+use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use FilesystemIterator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ReflectionMethod;
 use RuntimeException;
 use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
@@ -18,6 +21,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * Class DisposablePublicConsumerTest
  */
 #[CoversClass(DisposablePublicConsumer::class)]
+#[CoversClass(PublicConsumerProbeRejected::class)]
 final class DisposablePublicConsumerTest extends UnitTestCase
 {
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -51,12 +55,32 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                     'schema_version'   => 'fight-common.disposable-public-consumer/v1',
                     'status'           => 'valid',
                     'classification'   => 'patch',
-                    'findings'         => [[
-                        'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
-                        'evidence_id' => 'fight-common.consumer.public-api-representative',
-                        'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
-                        'status'      => 'passed'
-                    ]],
+                    'findings'         => [
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
+                            'evidence_id' => 'fight-common.consumer.public-api-representative',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/public-api-probe.php',
+                            'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-construction-passed',
+                            'evidence_id' => 'fight-common.behavior.scheduler-legacy-construction',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                            'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-command-passed',
+                            'evidence_id' => 'fight-common.behavior.scheduler-legacy-command',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                            'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.scheduler-portable-runner-passed',
+                            'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                            'status'      => 'passed'
+                        ]
+                    ],
                     'candidate'        => [
                         'package'                => 'johnnickell/fight-common',
                         'composer_sha256'        => hash_file('sha256', $root.'/composer.json'),
@@ -77,13 +101,129 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                     'probe'            => [
                         'sha256'       => hash('sha256', $probeBytes),
                         'observations' => [
-                            'uuid'       => '00000000-0000-0000-0000-000000000000',
-                            'meta'       => ['consumer' => 'disposable'],
-                            'collection' => ['alpha', 'beta']
+                            'uuid'                 => '00000000-0000-0000-0000-000000000000',
+                            'meta'                 => ['consumer' => 'disposable'],
+                            'collection'           => ['alpha', 'beta'],
+                            'runtime_deprecations' => [],
+                            'scheduler'            => [
+                                'construction_styles'      => [
+                                    'two_argument',
+                                    'positional_optional',
+                                    'named_arguments'
+                                ],
+                                'callable_output'          => "scheduler callable\n",
+                                'command_output'           => "scheduler command\nscheduler command\n",
+                                'default_process_commands' => ['default-command'],
+                                'factory_process_commands' => ['factory-command', 'false', 'false'],
+                                'non_zero_failure'         => $this->schedulerNonZeroFailureObservation(),
+                                'portable_process_runner'  => [
+                                    'commands' => ['portable-command'],
+                                    'output'   => "scheduler portable command\n"
+                                ]
+                            ]
                         ]
                     ]
                 ],
                 $receipt
+            );
+        } finally {
+            new Filesystem()->remove($consumer);
+        }
+    }
+
+    /**
+     * Proves the installed probe observes normalized runtime deprecations raised during package autoload
+     */
+    public function test_that_the_installed_probe_captures_normalized_runtime_deprecations(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $workspace = sys_get_temp_dir().'/fight-common-runtime-deprecation-'.bin2hex(random_bytes(8));
+        $candidate = $workspace.'/candidate';
+        $consumer = $workspace.'/consumer';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir([$candidate, $consumer]);
+        $filesystem->copy($root.'/composer.json', $candidate.'/composer.json');
+        $filesystem->mirror($root.'/src', $candidate.'/src');
+        $filesystem->mirror($root.'/tests/TestCase', $candidate.'/tests/TestCase');
+
+        $composer = json_decode(
+            (string) file_get_contents($candidate.'/composer.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $composer['autoload']['files'][] = 'runtime-deprecation.php';
+        $filesystem->dumpFile(
+            $candidate.'/composer.json',
+            json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n"
+        );
+        $filesystem->dumpFile(
+            $candidate.'/runtime-deprecation.php',
+            implode('', [
+                "<?php\n\ndeclare(strict_types=1);\n\ntrigger_error(\n",
+                "    'controlled public probe deprecation',\n    E_USER_DEPRECATED\n);\n"
+            ])
+        );
+
+        try {
+            $receipt = new DisposablePublicConsumer()->run(
+                $candidate,
+                $root.'/release/fixtures/PublicApiConsumer',
+                $consumer
+            );
+
+            self::assertSame([[
+                'severity' => 'E_USER_DEPRECATED',
+                'message'  => 'controlled public probe deprecation'
+            ]], $receipt['probe']['observations']['runtime_deprecations']);
+        } finally {
+            $filesystem->remove($workspace);
+        }
+    }
+
+    /**
+     * Proves the installed candidate receipt links each Scheduler behavior to one stable finding.
+     */
+    public function test_that_the_installed_candidate_emits_stable_scheduler_behavior_findings(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $consumer = sys_get_temp_dir().'/fight-common-scheduler-findings-'.bin2hex(random_bytes(8));
+        mkdir($consumer, 0777, true);
+
+        try {
+            $receipt = new DisposablePublicConsumer()->run(
+                $root,
+                $root.'/release/fixtures/PublicApiConsumer',
+                $consumer
+            );
+
+            self::assertSame(
+                [
+                    [
+                        'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
+                        'evidence_id' => 'fight-common.consumer.public-api-representative',
+                        'attribution' => 'release/fixtures/PublicApiConsumer/public-api-probe.php',
+                        'status'      => 'passed'
+                    ],
+                    [
+                        'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-construction-passed',
+                        'evidence_id' => 'fight-common.behavior.scheduler-legacy-construction',
+                        'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                        'status'      => 'passed'
+                    ],
+                    [
+                        'finding_id'  => 'release.compatibility.consumer.scheduler-legacy-command-passed',
+                        'evidence_id' => 'fight-common.behavior.scheduler-legacy-command',
+                        'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                        'status'      => 'passed'
+                    ],
+                    [
+                        'finding_id'  => 'release.compatibility.consumer.scheduler-portable-runner-passed',
+                        'evidence_id' => 'fight-common.behavior.scheduler-portable-runner',
+                        'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
+                        'status'      => 'passed'
+                    ]
+                ],
+                $receipt['findings']
             );
         } finally {
             new Filesystem()->remove($consumer);
@@ -102,6 +242,10 @@ final class DisposablePublicConsumerTest extends UnitTestCase
         $filesystem = new Filesystem();
         $filesystem->mkdir([$fixture, $consumer]);
         $filesystem->copy($root.'/release/fixtures/PublicApiConsumer/probe.php', $fixture.'/probe.php');
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
+            $fixture.'/public-api-probe.php'
+        );
 
         $composer = json_decode(
             (string) file_get_contents($root.'/release/fixtures/PublicApiConsumer/composer.json'),
@@ -193,6 +337,199 @@ final class DisposablePublicConsumerTest extends UnitTestCase
     }
 
     /**
+     * Proves malformed successful generic evidence fails before the Scheduler probe can run
+     */
+    public function test_that_malformed_generic_probe_evidence_stops_before_scheduler_execution(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $workspace = sys_get_temp_dir().'/fight-common-generic-evidence-'.bin2hex(random_bytes(8));
+        $fixture = $workspace.'/fixture';
+        $consumer = $workspace.'/consumer';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir([$fixture, $consumer]);
+        $filesystem->copy($root.'/release/fixtures/PublicApiConsumer/composer.json', $fixture.'/composer.json');
+        $filesystem->dumpFile(
+            $fixture.'/public-api-probe.php',
+            "<?php\n\ndeclare(strict_types=1);\n\necho '{\"schema_version\":\"malformed/v1\"}';\n"
+        );
+        $filesystem->dumpFile(
+            $fixture.'/probe.php',
+            "<?php\n\ndeclare(strict_types=1);\n\nfile_put_contents(__DIR__.'/scheduler-ran', 'yes');\n"
+        );
+
+        try {
+            new DisposablePublicConsumer()->run($root, $fixture, $consumer);
+            self::fail('Malformed representative public API evidence was accepted.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame(
+                'The representative public API probe evidence is invalid.',
+                $runtimeException->getMessage()
+            );
+            self::assertFileDoesNotExist($consumer.'/scheduler-ran');
+        } finally {
+            $filesystem->remove($workspace);
+        }
+    }
+
+    /**
+     * Proves zero-exit Scheduler evidence with missing or mutated schema is rejected before aggregation
+     */
+    public function test_that_zero_exit_scheduler_probe_requires_its_exact_schema_before_aggregation(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $workspace = sys_get_temp_dir().'/fight-common-scheduler-envelope-'.bin2hex(random_bytes(8));
+        $filesystem = new Filesystem();
+        $probe = (string) file_get_contents($root.'/release/fixtures/PublicApiConsumer/probe.php');
+        $schema = "'schema_version' => 'fight-common.scheduler-probe/v1'";
+        $mutations = [
+            'missing' => "'untrusted_schema' => 'fight-common.scheduler-probe/v1'",
+            'v999'    => "'schema_version' => 'fight-common.scheduler-probe/v999'"
+        ];
+
+        try {
+            foreach ($mutations as $name => $replacement) {
+                $fixture = $workspace.'/'.$name.'-fixture';
+                $consumer = $workspace.'/'.$name.'-consumer';
+                $filesystem->mkdir([$fixture, $consumer]);
+                $filesystem->copy(
+                    $root.'/release/fixtures/PublicApiConsumer/composer.json',
+                    $fixture.'/composer.json'
+                );
+                $filesystem->copy(
+                    $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
+                    $fixture.'/public-api-probe.php'
+                );
+                $filesystem->dumpFile($fixture.'/probe.php', str_replace($schema, $replacement, $probe));
+
+                try {
+                    new DisposablePublicConsumer()->run($root, $fixture, $consumer);
+                    self::fail('A zero-exit Scheduler probe with '.$name.' schema was aggregated.');
+                } catch (RuntimeException $runtimeException) {
+                    self::assertSame(
+                        'The Scheduler probe evidence is invalid.',
+                        $runtimeException->getMessage()
+                    );
+                    self::assertFileDoesNotExist($consumer.'/probe-receipt.json');
+                }
+            }
+        } finally {
+            $filesystem->remove($workspace);
+        }
+    }
+
+    /**
+     * Proves only failure of the Scheduler-specific installed probe receives the typed rejection.
+     */
+    public function test_that_only_the_designated_php_probe_maps_to_a_typed_rejection(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $workspace = sys_get_temp_dir().'/fight-common-probe-rejection-'.bin2hex(random_bytes(8));
+        $publicApiFixture = $workspace.'/public-api-fixture';
+        $schedulerFixture = $workspace.'/scheduler-fixture';
+        $composerFixture = $workspace.'/composer-fixture';
+        $publicApiConsumer = $workspace.'/public-api-consumer';
+        $schedulerConsumer = $workspace.'/scheduler-consumer';
+        $composerConsumer = $workspace.'/composer-consumer';
+        $filesystem = new Filesystem();
+        $filesystem->mkdir([
+            $publicApiFixture,
+            $schedulerFixture,
+            $composerFixture,
+            $publicApiConsumer,
+            $schedulerConsumer,
+            $composerConsumer
+        ]);
+        foreach ([$publicApiFixture, $schedulerFixture] as $fixture) {
+            $filesystem->copy($root.'/release/fixtures/PublicApiConsumer/composer.json', $fixture.'/composer.json');
+            $filesystem->copy($root.'/release/fixtures/PublicApiConsumer/probe.php', $fixture.'/probe.php');
+            $filesystem->copy(
+                $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
+                $fixture.'/public-api-probe.php'
+            );
+        }
+
+        $failedProbe = "<?php\n\ndeclare(strict_types=1);\n\nfwrite(STDERR, 'private probe diagnostics');\nexit(19);\n";
+        $filesystem->dumpFile($publicApiFixture.'/public-api-probe.php', $failedProbe);
+        $filesystem->dumpFile($schedulerFixture.'/probe.php', $failedProbe);
+
+        $composer = json_decode(
+            (string) file_get_contents($root.'/release/fixtures/PublicApiConsumer/composer.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $composer['require']['fight-common/missing-package'] = 'dev-main';
+        $filesystem->dumpFile(
+            $composerFixture.'/composer.json',
+            json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n"
+        );
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/probe.php',
+            $composerFixture.'/probe.php'
+        );
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/public-api-probe.php',
+            $composerFixture.'/public-api-probe.php'
+        );
+
+        try {
+            try {
+                new DisposablePublicConsumer()->run($root, $publicApiFixture, $publicApiConsumer);
+                self::fail('A failed representative public API probe did not reject evidence.');
+            } catch (RuntimeException $runtimeException) {
+                self::assertSame(RuntimeException::class, $runtimeException::class);
+                self::assertSame(
+                    'The representative public API probe failed to compile or execute.',
+                    $runtimeException->getMessage()
+                );
+                self::assertStringNotContainsString('private probe diagnostics', $runtimeException->getMessage());
+                self::assertNull($runtimeException->getPrevious());
+            }
+
+            try {
+                new DisposablePublicConsumer()->run($root, $schedulerFixture, $schedulerConsumer);
+                self::fail('A failed Scheduler probe did not receive the typed rejection.');
+            } catch (PublicConsumerProbeRejected $rejected) {
+                self::assertSame(
+                    'The installed Scheduler probe failed to compile or execute.',
+                    $rejected->getMessage()
+                );
+                self::assertStringNotContainsString('private probe diagnostics', $rejected->getMessage());
+                self::assertNull($rejected->getPrevious());
+            }
+
+            try {
+                new DisposablePublicConsumer()->run($root, $composerFixture, $composerConsumer);
+                self::fail('A failed Composer install did not reject consumer evidence.');
+            } catch (RuntimeException $runtimeException) {
+                self::assertSame(RuntimeException::class, $runtimeException::class);
+            }
+        } finally {
+            $filesystem->remove($workspace);
+        }
+    }
+
+    /**
+     * Proves process-launch infrastructure failure is not typed as an observed probe rejection.
+     */
+    public function test_that_probe_launch_infrastructure_failure_remains_generic(): void
+    {
+        $method = new ReflectionMethod(DisposablePublicConsumer::class, 'runProbe');
+
+        try {
+            $method->invoke(
+                new DisposablePublicConsumer(),
+                [PHP_BINARY, '-r', 'exit(19);'],
+                '/definitely/unavailable/fight-common-consumer',
+                ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+            );
+            self::fail('Unavailable process-launch infrastructure did not reject probe execution.');
+        } catch (RuntimeException $runtimeException) {
+            self::assertSame(RuntimeException::class, $runtimeException::class);
+            self::assertSame('The public consumer process is unavailable.', $runtimeException->getMessage());
+        }
+    }
+
+    /**
      * Independently calculates the specified production-tree framing used by the receipt
      */
     private function productionTreeDigest(string $package): string
@@ -229,5 +566,43 @@ final class DisposablePublicConsumerTest extends UnitTestCase
         }
 
         return hash_final($context);
+    }
+
+    /** @return array<string, mixed> */
+    private function schedulerNonZeroFailureObservation(): array
+    {
+        $log = [
+            'level'   => 'error',
+            'message' => 'Command exited with non-zero status 1',
+            'context' => [
+                'keys'      => ['exception'],
+                'exception' => [
+                    'class'   => SchedulerException::class,
+                    'message' => 'Command exited with non-zero status 1',
+                    'code'    => 0
+                ]
+            ]
+        ];
+        $notification = [
+            'subject' => '[Scheduler] Job "consumer-failing-command" failed',
+            'from'    => [['address' => 'scheduler@example.com', 'name' => null]],
+            'to'      => [['address' => 'operator@example.com', 'name' => null]],
+            'content' => [
+                'environment'  => 'Environment: consumer',
+                'error'        => 'Error: Command exited with non-zero status 1',
+                'code'         => 'Code: 0',
+                'content_type' => 'text/plain',
+                'charset'      => 'utf-8'
+            ]
+        ];
+
+        return [
+            'attempts'                       => 2,
+            'reported_exit_codes'            => [1, 1],
+            'logs'                           => [$log, $log],
+            'notification_count'             => 2,
+            'notifications'                  => [$notification, $notification],
+            'lock_reacquired_after_attempts' => [true, true]
+        ];
     }
 }

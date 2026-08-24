@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Release\Adapter;
 
 use Fight\Release\Application\Boundary\PublicConsumerPort;
+use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
+use Fight\Release\Application\SchedulerEvidenceAuthority;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -14,7 +16,7 @@ use SplFileInfo;
 /**
  * Class DisposablePublicConsumer
  *
- * Installs one candidate as a copied path package and runs the designated public probe.
+ * Installs one candidate as a copied path package and runs isolated representative and Scheduler probes.
  */
 final readonly class DisposablePublicConsumer implements PublicConsumerPort
 {
@@ -42,6 +44,7 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
             )."\n"
         );
         copy($fixture.'/probe.php', $consumer.'/probe.php');
+        copy($fixture.'/public-api-probe.php', $consumer.'/public-api-probe.php');
 
         $this->runProcess(
             ['/usr/local/bin/composer', 'install', '--no-interaction', '--no-progress', '--no-plugins', '--no-scripts'],
@@ -55,11 +58,51 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
 
         $installedPackage = $consumer.'/vendor/johnnickell/fight-common';
         $this->authenticateCopiedPackage($repository, $consumer, $installedPackage);
-        $probeBytes = $this->runProcess(
+        $publicApiProbeBytes = $this->runPublicApiProbe(
+            [PHP_BINARY, $consumer.'/public-api-probe.php', $consumer.'/vendor/autoload.php'],
+            $consumer,
+            ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+        );
+        $publicApiProbeReceipt = json_decode($publicApiProbeBytes, true, flags: JSON_THROW_ON_ERROR);
+        SchedulerEvidenceAuthority::isPublicApiProbeReceipt($publicApiProbeReceipt)
+            || throw new RuntimeException('The representative public API probe evidence is invalid.');
+
+        $schedulerProbeBytes = $this->runProbe(
             [PHP_BINARY, $consumer.'/probe.php', $consumer.'/vendor/autoload.php'],
             $consumer,
             ['PATH' => '/usr/local/bin:/usr/bin:/bin']
         );
+        $schedulerProbeReceipt = json_decode($schedulerProbeBytes, true, flags: JSON_THROW_ON_ERROR);
+        SchedulerEvidenceAuthority::isSchedulerProbeReceipt($schedulerProbeReceipt)
+            || throw new RuntimeException('The Scheduler probe evidence is invalid.');
+        $runtimeDeprecations = [];
+        foreach (
+            [
+                ...$publicApiProbeReceipt['observations']['runtime_deprecations'],
+                ...$schedulerProbeReceipt['observations']['runtime_deprecations']
+            ] as $runtimeDeprecation
+        ) {
+            $runtimeDeprecations[json_encode($runtimeDeprecation, JSON_THROW_ON_ERROR)] = $runtimeDeprecation;
+        }
+
+        $probeReceipt = [
+            'schema_version' => 'fight-common.public-api-probe/v1',
+            'findings'       => [
+                ...$publicApiProbeReceipt['findings'],
+                ...$schedulerProbeReceipt['findings']
+            ],
+            'observations'   => [
+                'uuid'                 => $publicApiProbeReceipt['observations']['uuid'],
+                'meta'                 => $publicApiProbeReceipt['observations']['meta'],
+                'collection'           => $publicApiProbeReceipt['observations']['collection'],
+                'runtime_deprecations' => array_values($runtimeDeprecations),
+                'scheduler'            => $schedulerProbeReceipt['observations']['scheduler']
+            ]
+        ];
+        $probeBytes = json_encode(
+            $probeReceipt,
+            JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+        )."\n";
         file_put_contents($consumer.'/probe-receipt.json', $probeBytes);
 
         $lockBytes = file_get_contents($consumer.'/composer.lock');
@@ -78,13 +121,12 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         $lock = json_decode($lockBytes, true, flags: JSON_THROW_ON_ERROR);
         $packages = array_column($lock['packages'], null, 'name');
         $resolved = $packages['johnnickell/fight-common'];
-        $probeReceipt = json_decode($probeBytes, true, flags: JSON_THROW_ON_ERROR);
 
         return [
             'schema_version'   => 'fight-common.disposable-public-consumer/v1',
             'status'           => 'valid',
             'classification'   => 'patch',
-            'findings'         => [$probeReceipt['finding']],
+            'findings'         => $probeReceipt['findings'],
             'candidate'        => [
                 'package'                => $candidateComposer['name'],
                 'composer_sha256'        => hash('sha256', $candidateComposerBytes),
@@ -234,8 +276,34 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
      */
     private function runProcess(array $command, string $directory, array $environment): string
     {
+        $outcome = $this->runProcessOutcome($command, $directory, $environment);
+        $outcome['status'] === 0 || throw new RuntimeException(
+            'The public consumer process failed: '.(
+                is_string($outcome['error']) ? trim($outcome['error']) : 'unknown failure'
+            )
+        );
+
+        return $outcome['output'];
+    }
+
+    /**
+     * Runs one closed local process and returns its observed outcome
+     *
+     * Launch and standard-output read failures throw before a subprocess outcome is available.
+     *
+     * @param array  $command     Closed process argument vector.
+     * @param string $directory   Disposable consumer working directory.
+     * @param array  $environment Isolated process environment.
+     *
+     * @phpstan-param list<string> $command
+     * @phpstan-param array<string, string> $environment
+     *
+     * @return array{status: int, output: string, error: string|false}
+     */
+    private function runProcessOutcome(array $command, string $directory, array $environment): array
+    {
         $pipes = [];
-        $process = proc_open(
+        $process = @proc_open(
             $command,
             [
                 0 => ['file', '/dev/null', 'r'],
@@ -254,10 +322,47 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         fclose($pipes[2]);
         $status = proc_close($process);
         is_string($output) || throw new RuntimeException('The public consumer output is unavailable.');
-        $status === 0 || throw new RuntimeException(
-            'The public consumer process failed: '.(is_string($error) ? trim($error) : 'unknown failure')
+
+        return ['status' => $status, 'output' => $output, 'error' => $error];
+    }
+
+    /**
+     * Runs the installed-package Scheduler probe through its typed failure boundary
+     *
+     * @param array  $command     Closed probe argument vector.
+     * @param string $directory   Disposable consumer working directory.
+     * @param array  $environment Isolated probe environment.
+     *
+     * @phpstan-param list<string> $command
+     * @phpstan-param array<string, string> $environment
+     */
+    private function runProbe(array $command, string $directory, array $environment): string
+    {
+        $outcome = $this->runProcessOutcome($command, $directory, $environment);
+        $outcome['status'] === 0 || throw new PublicConsumerProbeRejected(
+            'The installed Scheduler probe failed to compile or execute.'
         );
 
-        return $output;
+        return $outcome['output'];
+    }
+
+    /**
+     * Runs the representative installed public-API probe without assigning Scheduler semantics to its failure
+     *
+     * @param array  $command     Closed probe argument vector.
+     * @param string $directory   Disposable consumer working directory.
+     * @param array  $environment Isolated probe environment.
+     *
+     * @phpstan-param list<string> $command
+     * @phpstan-param array<string, string> $environment
+     */
+    private function runPublicApiProbe(array $command, string $directory, array $environment): string
+    {
+        $outcome = $this->runProcessOutcome($command, $directory, $environment);
+        $outcome['status'] === 0 || throw new RuntimeException(
+            'The representative public API probe failed to compile or execute.'
+        );
+
+        return $outcome['output'];
     }
 }
