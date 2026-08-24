@@ -303,7 +303,7 @@ $auditLog = new class($auditRepository) implements AuditLog {
 
 ## HMAC-Secured AI Operations
 
-> **Note:** The `WebhookDispatcher`, `HmacWebhookDispatcher`, and `AiOperation` classes are
+> **Note:** The legacy webhook dispatcher and operation record APIs are
 > deprecated since 1.2 and will be removed in 2.0. MCP/AI operation tooling will be redesigned
 > as a future feature with proper architectural boundaries. The HMAC authentication layer
 > (`HmacAuthenticator`, `HmacRequestService`) remains unaffected.
@@ -417,6 +417,7 @@ match ($action) {
     'clear_cache'   => $cache->clear(),
     'run_migration' => $migrator->run($payload['name']),
     'deploy'        => $deployer->deploy($payload['version']),
+    default         => throw new \Fight\Common\Domain\Exception\DomainException('Unknown operation action'),
 };
 ```
 

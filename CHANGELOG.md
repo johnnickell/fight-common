@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- `Domain\Serialization\JsonSerializer` — moved to `Application\Serialization\JsonSerializer`. The Domain class is now a deprecated proxy extending the Application implementation. Will be removed in 2.0.
-- `Domain\Serialization\PhpSerializer` — moved to `Application\Serialization\PhpSerializer`. The Domain class is now a deprecated proxy extending the Application implementation. Will be removed in 2.0.
+- `Domain\Serialization\JsonSerializer` — replaced by `Application\Serialization\JsonSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
+- `Domain\Serialization\PhpSerializer` — replaced by `Application\Serialization\PhpSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
 - `Domain\Auth\AiOperation` — will be removed in 2.0. MCP/AI operation tooling will be redesigned as a future feature.
 - `Application\Auth\WebhookDispatcher` — will be removed in 2.0 alongside the deprecated outbound webhook operation path.
 - `Adapter\Auth\Hmac\HmacWebhookDispatcher` — will be removed in 2.0. The HMAC authentication layer (`HmacAuthenticator`, `HmacRequestService`) remains unaffected.

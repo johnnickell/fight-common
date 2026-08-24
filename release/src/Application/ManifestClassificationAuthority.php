@@ -20,7 +20,7 @@ final readonly class ManifestClassificationAuthority
     ];
     private const array INVENTORY = [
         'Domain'      => ['declarations' => 131, 'functions' => 13],
-        'Application' => ['declarations' => 168, 'functions' => 0],
+        'Application' => ['declarations' => 170, 'functions' => 0],
         'Adapter'     => ['declarations' => 108, 'functions' => 0]
     ];
     private const array OPERATIONS = ['callable', 'constructible', 'extensible', 'implementable'];
@@ -35,7 +35,7 @@ final readonly class ManifestClassificationAuthority
         ],
         'fight-common.classification.prd-00014-addition'           => [
             'path'    => 'planning/specs/00014-PRD.md',
-            'locator' => 'Implementation Decisions: 44 post-1.1.0 classifications'
+            'locator' => 'Implementation Decisions: 46 post-1.1.0 classifications'
         ],
         'fight-common.operation.abstract-extension-base'           => [
             'path'     => 'planning/adr/0009-public-api-manifest-baseline.md',
@@ -76,7 +76,7 @@ final readonly class ManifestClassificationAuthority
     private const array CLASSIFICATION_SUBJECT_DIGESTS = [
         'baseline_declarations' => '68268346a810048e882b47685736e51d7d747cd19115c8dff67faf7f6d691ee8',
         'baseline_functions'    => '519444e4d23f8b4813df8ab5677f6d1aeab0b0c8c46ec1a8aed49e60daec9168',
-        'added_declarations'    => 'ece9edb42978e1e79e6c790ee715951b4e88c424852b2616054cb0f90734053d'
+        'added_declarations'    => 'fe53dec453826cf6ecc0a0d111365d441c53d71a44d6208b3d5fb67242d229ed'
     ];
 
     /**
@@ -167,7 +167,7 @@ final readonly class ManifestClassificationAuthority
         ) === [
             'declarations' => [
                 'fight-common.classification.baseline-grandfathered'       => 363,
-                'fight-common.classification.prd-00014-addition'           => 43,
+                'fight-common.classification.prd-00014-addition'           => 45,
                 'fight-common.classification.explicit-internal-annotation' => 1
             ],
             'functions'    => ['fight-common.classification.baseline-grandfathered' => 13]

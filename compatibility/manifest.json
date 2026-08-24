@@ -12,7 +12,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 168,
+            "declarations": 170,
             "functions": 0
         },
         "Adapter": {
@@ -31,7 +31,7 @@
         },
         "fight-common.classification.prd-00014-addition": {
             "path": "planning/specs/00014-PRD.md",
-            "locator": "Implementation Decisions: 44 post-1.1.0 classifications"
+            "locator": "Implementation Decisions: 46 post-1.1.0 classifications"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -14663,6 +14663,138 @@
                         "binding": {
                             "subject": "Fight\\Common\\Application\\Scheduler\\Scheduler",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Application/Scheduler/Scheduler.php#Fight\\Common\\Application\\Scheduler\\Scheduler",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+            "source": "src/Application/Serialization/JsonSerializer.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                "source_locator": "working-tree:src/Application/Serialization/JsonSerializer.php#Fight\\Common\\Application\\Serialization\\JsonSerializer"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Application\\Serialization\\JsonSerializer is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Application/Serialization/JsonSerializer.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\JsonSerializer promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/JsonSerializer.php#Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\JsonSerializer promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/JsonSerializer.php#Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\JsonSerializer is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/JsonSerializer.php#Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\JsonSerializer is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/JsonSerializer.php#Fight\\Common\\Application\\Serialization\\JsonSerializer",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+            "source": "src/Application/Serialization/PhpSerializer.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                "source_locator": "working-tree:src/Application/Serialization/PhpSerializer.php#Fight\\Common\\Application\\Serialization\\PhpSerializer"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Application\\Serialization\\PhpSerializer is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Application/Serialization/PhpSerializer.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\PhpSerializer promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/PhpSerializer.php#Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\PhpSerializer promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/PhpSerializer.php#Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\PhpSerializer is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/PhpSerializer.php#Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Serialization\\PhpSerializer is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Serialization\\PhpSerializer",
+                            "source_locator": "working-tree:src/Application/Serialization/PhpSerializer.php#Fight\\Common\\Application\\Serialization\\PhpSerializer",
                             "operation": "implementable"
                         }
                     }
