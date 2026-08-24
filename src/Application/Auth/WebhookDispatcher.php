@@ -9,6 +9,9 @@ use Fight\Common\Application\HttpClient\Exception\Exception as HttpException;
 
 /**
  * Interface WebhookDispatcher
+ *
+ * @deprecated since 1.2, will be removed in 2.0. Outbound webhook operations will be
+ * redesigned as part of the future MCP/AI operation tooling.
  */
 interface WebhookDispatcher
 {

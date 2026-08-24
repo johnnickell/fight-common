@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 —
 
+### Deprecated
+
+- `Domain\Serialization\JsonSerializer` — replaced by `Application\Serialization\JsonSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
+- `Domain\Serialization\PhpSerializer` — replaced by `Application\Serialization\PhpSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
+- `Domain\Auth\AiOperation` — will be removed in 2.0. MCP/AI operation tooling will be redesigned as a future feature.
+- `Application\Auth\WebhookDispatcher` — will be removed in 2.0 alongside the deprecated outbound webhook operation path.
+- `Adapter\Auth\Hmac\HmacWebhookDispatcher` — will be removed in 2.0. The HMAC authentication layer (`HmacAuthenticator`, `HmacRequestService`) remains unaffected.
+
 ### Changed
 
 - Message envelopes now isolate their mutable `Meta` snapshots by copying metadata on construction and access. Code that previously mutated metadata through `meta()` must derive a same-ID envelope with `withMeta()` or `mergeMeta()` instead.

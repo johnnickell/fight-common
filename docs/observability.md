@@ -303,6 +303,11 @@ $auditLog = new class($auditRepository) implements AuditLog {
 
 ## HMAC-Secured AI Operations
 
+> **Note:** The legacy webhook dispatcher and operation record APIs are
+> deprecated since 1.2 and will be removed in 2.0. MCP/AI operation tooling will be redesigned
+> as a future feature with proper architectural boundaries. The HMAC authentication layer
+> (`HmacAuthenticator`, `HmacRequestService`) remains unaffected.
+
 This builds on the existing `HmacAuthenticator` / `HmacRequestService` to enable AI agents to safely trigger production operations over HTTP without SSH or direct shell access.
 
 ### The request format
@@ -326,7 +331,7 @@ X-Nonce: a3f8b1c2d4e5f607
 The server side:
 1. `HmacAuthenticator::validate()` — verifies headers (timestamp tolerance, credential, content hash, signature)
 2. Optionally consumes the nonce via `NonceRepository` to prevent replay within the tolerance window
-3. Parses body → `AiOperation::fromJson()` — validates the action name
+3. Decodes the JSON body and validates the action name against known operations
 4. Executes the action
 
 ### Replay prevention (Nonce tracking)
@@ -402,17 +407,17 @@ The `WebhookDispatcher` builds the JSON body, signs the HTTP request via `HmacRe
 ### Parsing and validating incoming operations
 
 ```php
-use Fight\Common\Domain\Auth\AiOperation;
-
 // After HmacAuthenticator::validate() passes:
-$operation = AiOperation::fromJson((string) $request->getBody());
-// throws DomainException for unknown actions
+$data = json_decode((string) $request->getBody(), true);
+$action = $data['action'] ?? null;
+$payload = $data['payload'] ?? [];
 
-match ($operation->action()) {
+match ($action) {
     'health_check'  => $response->setBody(json_encode($reporter->report())),
     'clear_cache'   => $cache->clear(),
-    'run_migration' => $migrator->run($operation->payload()['name']),
-    'deploy'        => $deployer->deploy($operation->payload()['version']),
+    'run_migration' => $migrator->run($payload['name']),
+    'deploy'        => $deployer->deploy($payload['version']),
+    default         => throw new \Fight\Common\Domain\Exception\DomainException('Unknown operation action'),
 };
 ```
 

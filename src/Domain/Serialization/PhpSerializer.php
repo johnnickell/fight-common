@@ -9,6 +9,9 @@ use Fight\Common\Domain\Utility\ClassName;
 
 /**
  * Class PhpSerializer
+ *
+ * @deprecated since 1.2, will be removed in 2.0.
+ * Use {@see \Fight\Common\Application\Serialization\PhpSerializer} instead.
  */
 final class PhpSerializer implements Serializer
 {

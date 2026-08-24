@@ -247,7 +247,7 @@ final class ArchitectureGateTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 2);
         $wrapper = file_get_contents($root.'/bin/deptrac');
-        $instructions = file_get_contents($root.'/CLAUDE.md');
+        $instructions = file_get_contents($root.'/AGENTS.md');
         $qualityGate = file_get_contents($root.'/bin/quality');
 
         self::assertIsString($wrapper);
@@ -258,7 +258,7 @@ final class ArchitectureGateTest extends UnitTestCase
             $wrapper,
         );
         self::assertStringContainsString(
-            '`./bin/quality` is the single host-neutral ordered gate',
+            './bin/build',
             $instructions,
         );
         self::assertStringContainsString(
