@@ -78,3 +78,33 @@ namespace Symfony\Component\Routing\Generator {
         public const int ABSOLUTE_URL = 0;
     }
 }
+
+namespace Symfony\Component\Messenger\Transport\Serialization {
+    interface SerializerInterface
+    {
+    }
+}
+
+namespace Symfony\Component\Messenger {
+    final class Envelope
+    {
+        public function __construct(object $message, array $stamps = [])
+        {
+        }
+    }
+}
+
+namespace Symfony\Component\Messenger\Transport\Sender {
+    use Symfony\Component\Messenger\Envelope;
+
+    interface SenderInterface
+    {
+        public function send(Envelope $envelope): Envelope;
+    }
+}
+
+namespace Symfony\Component\Messenger\Exception {
+    class MessageDecodingFailedException extends \RuntimeException
+    {
+    }
+}

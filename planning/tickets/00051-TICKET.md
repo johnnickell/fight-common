@@ -2,7 +2,7 @@
 id: T-00051
 prd: PRD-00014
 title: Publish Neutral Message Handlers and Canonical Symfony Messenger Paths
-status: ready-for-agent
+status: done
 blocked_by: T-00047
 ---
 
@@ -17,24 +17,24 @@ and established Messenger behavior throughout `1.x`.
 
 ## Acceptance Criteria
 
-- [ ] One neutral command-message handler accepts a complete `CommandMessage` and invokes the synchronous Fight
+- [x] One neutral command-message handler accepts a complete `CommandMessage` and invokes the synchronous Fight
       `CommandBus` without recreating the message.
-- [ ] One neutral event-message handler accepts a complete `EventMessage` and invokes the synchronous Fight
+- [x] One neutral event-message handler accepts a complete `EventMessage` and invokes the synchronous Fight
       `EventDispatcher`, including its ordered complete fan-out behavior.
-- [ ] Handler conformance proves preservation of message ID, creation time, payload type and value, and isolated
+- [x] Handler conformance proves preservation of message ID, creation time, payload type and value, and isolated
       metadata across first delivery and repeated delivery.
-- [ ] Repeating an event delivery repeats the same event occurrence and complete synchronous fan-out; delivery is
+- [x] Repeating an event delivery repeats the same event occurrence and complete synchronous fan-out; delivery is
       documented as at least once rather than exactly once.
-- [ ] The neutral handlers contain no Symfony, queue, broker, retry, worker, topology, or outbox policy.
-- [ ] MessengerCommandBus, MessengerEventDispatcher, and the Messenger serializer are published under canonical
+- [x] The neutral handlers contain no Symfony, queue, broker, retry, worker, topology, or outbox policy.
+- [x] MessengerCommandBus, MessengerEventDispatcher, and the Messenger serializer are published under canonical
       capability-first Symfony paths with unchanged routing and serialization behavior.
-- [ ] Complete command and event envelopes round-trip through the Symfony serializer without losing identity,
+- [x] Complete command and event envelopes round-trip through the Symfony serializer without losing identity,
       timestamp, payload, or metadata.
-- [ ] Every superseded Symfony messaging and handler FQCN remains independently functional and documented as
+- [x] Every superseded Symfony messaging and handler FQCN remains independently functional and documented as
       deprecated throughout `1.x` without a runtime notice.
-- [ ] Identity-sensitive Messenger registration, attributes, service tags, extension behavior, and old/new
+- [x] Identity-sensitive Messenger registration, attributes, service tags, extension behavior, and old/new
       interoperability are proven with real Symfony components.
-- [ ] PSR-14 is not advertised as equivalent to Fight messaging, and transport operations remain outside the
+- [x] PSR-14 is not advertised as equivalent to Fight messaging, and transport operations remain outside the
       synchronous handler contract.
 
 ## Verification

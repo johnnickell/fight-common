@@ -24,13 +24,12 @@ Application\Messaging
 Adapter\Messaging
 ├── Command\Sync\RoutingCommandBus + CommandPipeline
 │            Sync\Routing\{CommandRouter, InMemory*, ServiceAware*}
-│   Async\MessengerCommandBus
+│   Symfony\MessengerCommandBus (legacy: Command\Async\MessengerCommandBus)
 ├── Query\RoutingQueryBus + QueryPipeline
 │       Query\Routing\{QueryRouter, InMemory*, ServiceAware*}
 └── Event\Sync\{SimpleEventDispatcher, ServiceAwareEventDispatcher}
-    Event\Async\MessengerEventDispatcher
-    Handler\{SymfonyCommandMessageHandler, SymfonyEventMessageHandler}
-    Serializer\SymfonyMessageSerializer
+    Symfony\{MessengerEventDispatcher, Serializer\SymfonyMessageSerializer}
+    Handler\{CommandMessageHandler, EventMessageHandler}
 
 Adapter\DependencyInjection
 ├── CommandHandlerCompilerPass
@@ -742,16 +741,30 @@ the sync bus/dispatcher.
 
 | Bus | Sends |
 |---|---|
-| `MessengerCommandBus` | `CommandMessage` → transport via `SenderInterface` |
-| `MessengerEventDispatcher` | `EventMessage` → transport via `SenderInterface` |
+| `Symfony\MessengerCommandBus` | `CommandMessage` → transport via `SenderInterface` |
+| `Symfony\MessengerEventDispatcher` | `EventMessage` → transport via `SenderInterface` |
+
+### 1.x Compatibility Names
+
+The following superseded public FQCNs remain independently functional through `1.x`. Each is
+deprecated in source only: it emits no runtime deprecation notice. New integrations should use
+the canonical replacement.
+
+| Superseded FQCN | Canonical replacement |
+|---|---|
+| `Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus` | `Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus` |
+| `Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher` | `Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher` |
+| `Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler` | `Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler` |
+| `Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler` | `Fight\Common\Adapter\Messaging\Handler\EventMessageHandler` |
+| `Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer` | `Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer` |
 
 ### Receiver Side (Consuming from Transport)
 
-**`SymfonyCommandMessageHandler`** — an invocable Messenger handler that receives
+**`CommandMessageHandler`** — a framework-neutral invocable handler that receives
 `CommandMessage` from the transport and forwards it to the sync `SynchronousCommandBus`:
 
 ```php
-final readonly class SymfonyCommandMessageHandler
+final readonly class CommandMessageHandler
 {
     public function __construct(private SynchronousCommandBus $commandBus) {}
 
@@ -762,11 +775,11 @@ final readonly class SymfonyCommandMessageHandler
 }
 ```
 
-**`SymfonyEventMessageHandler`** — receives `EventMessage` from transport and forwards
+**`EventMessageHandler`** — a framework-neutral invocable handler that receives `EventMessage` and forwards
 to the sync `SynchronousEventDispatcher`:
 
 ```php
-final readonly class SymfonyEventMessageHandler
+final readonly class EventMessageHandler
 {
     public function __construct(private SynchronousEventDispatcher $eventDispatcher) {}
 
@@ -777,11 +790,24 @@ final readonly class SymfonyEventMessageHandler
 }
 ```
 
-The message handlers **must** be tagged `messenger.message_handler` in Symfony config.
+Queue integrations may call these handlers directly. Symfony registrations must tag them
+`messenger.message_handler`; the handlers themselves carry no Symfony dependency or queue policy.
+
+### Delivery and Ownership Boundaries
+
+Queued delivery is **at least once**, not exactly once. A repeated `EventMessage` delivery forwards
+the same complete event occurrence to the synchronous dispatcher again, including its ordered,
+complete fan-out. Event subscribers must therefore tolerate retries and protect any side effects
+that cannot safely run more than once.
+
+The neutral handlers only forward complete Fight messages. Each framework starter owns its own
+non-policy integration boundary: message-handler registration, transport and routing configuration,
+and the framework queue lifecycle. Broker selection, retry/backoff, worker supervision, topology,
+dead-letter, and outbox policy remain application concerns rather than Fight Common behavior.
 
 ### Serialization
 
-**`SymfonyMessageSerializer`** — implements Messenger's `SerializerInterface`. Uses the
+**`Symfony\Serializer\SymfonyMessageSerializer`** — implements Messenger's `SerializerInterface`. Uses the
 domain `JsonSerializer` (or `PhpSerializer`) to serialize/deserialize messages, and encodes
 Messenger stamps in `X-Message-Stamp-*` headers.
 
@@ -901,7 +927,7 @@ services:
             - '@Fight\Common\Adapter\Messaging\Command\Sync\Routing\RoutingCommandBus'
 
     # Async command bus (sends to Messenger transport)
-    Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus:
+    Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus:
         arguments:
             - '@messenger.transport.commands'
 
@@ -917,19 +943,19 @@ services:
         arguments:
             - '@service_container'
 
-    Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher:
+    Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher:
         arguments:
             - '@messenger.transport.events'
 
     # --- Bridges: transport → sync ---
 
-    Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler:
+    Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler:
         arguments:
             - '@Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline'
         tags:
             - { name: messenger.message_handler }
 
-    Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler:
+    Fight\Common\Adapter\Messaging\Handler\EventMessageHandler:
         arguments:
             - '@Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher'
         tags:
@@ -937,7 +963,7 @@ services:
 
     # --- Message serializer ---
 
-    Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer:
+    Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer:
         arguments:
             - '@Fight\Common\Domain\Serialization\JsonSerializer'
 
@@ -987,7 +1013,7 @@ controllers can type-hide against the interface:
 ```yaml
 services:
     Fight\Common\Application\Messaging\Command\AsynchronousCommandBus:
-        alias: Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus
+        alias: Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus
 
     Fight\Common\Application\Messaging\Query\QueryBus:
         alias: Fight\Common\Adapter\Messaging\Query\RoutingQueryBus
@@ -1000,11 +1026,11 @@ services:
 
 ```
 Controller (async command bus)
-  └── MessengerCommandBus::execute($command)
+  └── Symfony\MessengerCommandBus::execute($command)
         └── SenderInterface::send(Envelope(CommandMessage))
               │
               ▼  (transport delivers to consumer)
-        SymfonyCommandMessageHandler::__invoke($commandMessage)
+        CommandMessageHandler::__invoke($commandMessage)
               └── CommandPipeline::dispatch($commandMessage)
                     └── filters...
                           └── RoutingCommandBus::dispatch($commandMessage)
