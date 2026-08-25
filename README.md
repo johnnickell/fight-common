@@ -128,7 +128,7 @@ $service->validate([
 | `JsonRequestMiddleware`, `Adapter\Http\Symfony\JSendResponse` | `symfony/http-foundation` |
 | `Adapter\HttpFoundation\JSendResponse` (deprecated 1.x compatibility) | `symfony/http-foundation` |
 | `SymfonyFilesystem` | `symfony/filesystem` |
-| `EventSubscriberCompilerPass` | `symfony/dependency-injection` |
+| `Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass` | `symfony/dependency-injection` |
 
 ### JSend response compatibility
 

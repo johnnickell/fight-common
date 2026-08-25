@@ -59,8 +59,10 @@ composer require --dev doctrine/orm guzzlehttp/guzzle guzzlehttp/psr7 \
 
 ### Compiler Passes
 
-Register the six compiler passes in your application kernel to auto-wire command handlers,
-filters, query handlers, event subscribers, and template helpers:
+Register only the capability-specific compiler passes your application uses, from
+`Fight\Common\Adapter\ServiceContainer\Symfony`, to auto-wire command handlers,
+filters, query handlers, event subscribers, and template helpers. Matching
+`Fight\Common\Adapter\DependencyInjection` FQCNs remain deprecated 1.x compatibility identities:
 
 ```php
 // src/Kernel.php
