@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Documentation;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\DependencyInjection\EventMappingProviderCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreSchema;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStore;

@@ -31,12 +31,13 @@ Adapter\Messaging
     Symfony\{MessengerEventDispatcher, Serializer\SymfonyMessageSerializer}
     Handler\{CommandMessageHandler, EventMessageHandler}
 
-Adapter\DependencyInjection
+Adapter\ServiceContainer\Symfony
 ├── CommandHandlerCompilerPass
 ├── CommandFilterCompilerPass
 ├── QueryHandlerCompilerPass
 ├── QueryFilterCompilerPass
-└── EventSubscriberCompilerPass
+├── EventSubscriberCompilerPass
+└── TemplateHelperCompilerPass
 ```
 
 ---
@@ -839,19 +840,22 @@ framework:
 
 ## Compiler Passes
 
-Five compiler passes automate wiring through Symfony DI tags. All tagged services **must be
+Six compiler passes automate wiring through Symfony DI tags. All tagged services **must be
 public** because handlers are lazy-loaded on first match/dispatch.
 
 | Tag | Pass | Action |
 |---|---|---|
-| `common.command_handler` | `CommandHandlerCompilerPass` | Calls `ServiceAwareCommandRouter::registerHandler($commandClass, $serviceId)` |
-| `common.command_filter` | `CommandFilterCompilerPass` | Calls `CommandPipeline::addFilter(Reference)` |
-| `common.query_handler` | `QueryHandlerCompilerPass` | Calls `ServiceAwareQueryRouter::registerHandler($queryClass, $serviceId)` |
-| `common.query_filter` | `QueryFilterCompilerPass` | Calls `QueryPipeline::addFilter(Reference)` |
-| `common.event_subscriber` | `EventSubscriberCompilerPass` | Calls `ServiceAwareEventDispatcher::registerService($className, $serviceId)` |
+| `common.command_handler` | `Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass` | Calls `ServiceAwareCommandRouter::registerHandler($commandClass, $serviceId)` |
+| `common.command_filter` | `Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass` | Calls `CommandPipeline::addFilter(Reference)` |
+| `common.query_handler` | `Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass` | Calls `ServiceAwareQueryRouter::registerHandler($queryClass, $serviceId)` |
+| `common.query_filter` | `Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass` | Calls `QueryPipeline::addFilter(Reference)` |
+| `common.event_subscriber` | `Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass` | Calls `ServiceAwareEventDispatcher::registerService($className, $serviceId)` |
+| `common.template_helper` | `Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass` | Calls `TemplateEngine::addHelper(Reference)` |
 
 Each pass validates that the tagged service implements the expected interface and throws an
 `Exception` if the router/pipeline/dispatcher service is missing or the interface check fails.
+The matching `Fight\Common\Adapter\DependencyInjection` FQCN remains a deprecated 1.x
+compatibility identity for each pass; use the `ServiceContainer\Symfony` paths in new code.
 
 ### Wiring in the Kernel
 
@@ -859,12 +863,12 @@ The cleanest approach is to use `registerForAutoconfiguration` in your `Kernel::
 that any service implementing the handler/filter/subscriber interface is automatically tagged:
 
 ```php
-use Fight\Common\Adapter\DependencyInjection\CommandFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\CommandHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\EventSubscriberCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\TemplateHelperCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;

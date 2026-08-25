@@ -131,7 +131,7 @@ manual construction remains supported with or without Symfony:
 ```
 
 Applications using Symfony's DependencyInjection component may instead opt in
-to `EventMappingProviderCompilerPass`. Register autoconfiguration for the
+to `Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass`. Register autoconfiguration for the
 portable provider interface, define an initially empty mapper, and add the
 compiler pass:
 
@@ -157,6 +157,8 @@ the compiler pass neither instantiates nor reflects over them. Symfony resolves
 the provider references and calls `EventMapper::registerProvider()`
 when the mapper is resolved,
 so the portable mapper validation remains authoritative.
+The former `Fight\Common\Adapter\DependencyInjection\EventMappingProviderCompilerPass`
+remains a deprecated 1.x compatibility identity.
 Duplicate aliases, duplicate event classes, invalid durable names, and invalid
 upcaster chains therefore raise `EventMappingException` through the same path as
 manual registration. The mapper needs to be public only if application code
