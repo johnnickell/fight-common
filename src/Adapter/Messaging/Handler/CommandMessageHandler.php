@@ -9,14 +9,12 @@ use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Throwable;
 
 /**
- * Class SymfonyCommandMessageHandler
- *
- * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler
+ * Class CommandMessageHandler
  */
-final readonly class SymfonyCommandMessageHandler
+final readonly class CommandMessageHandler
 {
     /**
-     * Constructs SymfonyCommandMessageHandler
+     * Constructs CommandMessageHandler
      */
     public function __construct(private SynchronousCommandBus $commandBus)
     {
@@ -25,7 +23,7 @@ final readonly class SymfonyCommandMessageHandler
     /**
      * Dispatches one command message synchronously
      *
-     * @throws Throwable When an error occurs
+     * @throws Throwable When synchronous command handling fails
      */
     public function __invoke(CommandMessage $commandMessage): void
     {

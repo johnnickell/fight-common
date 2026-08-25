@@ -48,6 +48,10 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         copy($fixture.'/public-api-probe.php', $consumer.'/public-api-probe.php');
         copy($fixture.'/jsend-probe.php', $consumer.'/jsend-probe.php');
         copy($fixture.'/http-foundation-boundary-fake.php', $consumer.'/http-foundation-boundary-fake.php');
+        if (is_file($fixture.'/messenger-adapter-probe.php')) {
+            copy($fixture.'/messenger-adapter-probe.php', $consumer.'/messenger-adapter-probe.php');
+        }
+
         if (is_file($fixture.'/symfony-adapter-probe.php')) {
             copy($fixture.'/symfony-adapter-probe.php', $consumer.'/symfony-adapter-probe.php');
             copy($fixture.'/symfony-adapter-boundary-fake.php', $consumer.'/symfony-adapter-boundary-fake.php');
@@ -100,6 +104,22 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
                     $consumer.'/symfony-adapter-probe.php',
                     $consumer.'/symfony-adapter-boundary-fake.php',
                     $consumer.'/http-foundation-boundary-fake.php',
+                    $consumer.'/vendor/autoload.php'
+                ],
+                $consumer,
+                ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+            );
+        }
+
+        if (
+            is_file($consumer.'/messenger-adapter-probe.php')
+            && is_file($installedPackage.'/src/Adapter/Messaging/Symfony/MessengerCommandBus.php')
+        ) {
+            $this->runPublicApiProbe(
+                [
+                    PHP_BINARY,
+                    $consumer.'/messenger-adapter-probe.php',
+                    $consumer.'/symfony-adapter-boundary-fake.php',
                     $consumer.'/vendor/autoload.php'
                 ],
                 $consumer,

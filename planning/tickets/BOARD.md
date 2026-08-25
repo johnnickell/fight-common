@@ -35,11 +35,11 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00051 — Publish Neutral Message Handlers and Canonical Symfony Messenger Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes neutral queued-message consumers and canonical Messenger identities required by later framework adapters. |
-| 2 | [T-00052 — Publish Capability-Scoped Symfony Service Container Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the capability-scoped Symfony service-container namespace against the completed authority. |
-| 3 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the Doctrine data-type namespace against the completed authority. |
-| 4 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the transaction boundary required by native framework UnitOfWork adapters. |
-| 5 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
+| 1 | [T-00052 — Publish Capability-Scoped Symfony Service Container Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the capability-scoped Symfony service-container namespace against the completed authority. |
+| 2 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the Doctrine data-type namespace against the completed authority. |
+| 3 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the transaction boundary required by native framework UnitOfWork adapters. |
+| 4 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
+| 5 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Builds the portable PSR and explicit container composition now that its JSend and Messenger prerequisites are complete. |
 
 ## Waiting
 
@@ -47,7 +47,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 11 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00051 |
 | 12 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051, T-00059 |
 | 13 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051, T-00059 |
 | 14 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00060, T-00069, T-00070 |
@@ -132,6 +131,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00051 — Publish Neutral Message Handlers and Canonical Symfony Messenger Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published neutral complete-message handlers and canonical Symfony Messenger paths; preserved legacy `1.x` FQCNs without runtime notices; and proved real Messenger registration, exact envelope fidelity, installed-package compatibility, and exact coverage. |
 | [T-00050 — Publish Canonical Symfony HTTP, Filesystem, and Routing Paths](00050-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published canonical Symfony HTTP, middleware, filesystem, and routing identities; retained legacy `1.x` paths without runtime notices; and added registration and interoperability evidence. |
 | [T-00049 — Deliver Typed JSend Through the Symfony Response Boundary](00049-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added framework-neutral typed JSend success, fail, error, and pagination semantics; published the canonical Symfony response under `Adapter/Http/Symfony`; preserved the deprecated raw-array `1.x` path; and proved both entry points through authenticated copied-package evidence. |
 | [T-00076 — Correct Architecture Drift and Canonicalize Repository Guidance](00076-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Moved canonical serializers to Application while preserving standalone Domain compatibility, retained webhook validation through deprecation, classified the new public API, and established accurate repository and planning guidance. |
