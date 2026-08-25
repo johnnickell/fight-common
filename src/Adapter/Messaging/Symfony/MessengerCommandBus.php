@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Messaging\Command\Async;
+namespace Fight\Common\Adapter\Messaging\Symfony;
 
 use Fight\Common\Application\Messaging\Command\AsynchronousCommandBus;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -12,8 +12,6 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
  * Class MessengerCommandBus
- *
- * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus
  */
 final readonly class MessengerCommandBus implements AsynchronousCommandBus
 {
