@@ -47,7 +47,7 @@ namespace Fight\Test\Common\Adapter\Filesystem {
     }
 }
 
-namespace Fight\Common\Adapter\Filesystem {
+namespace Fight\Common\Adapter\Filesystem\Symfony {
     use Fight\Test\Common\Adapter\Filesystem\FilesystemFunctionOverrides;
     use finfo;
 

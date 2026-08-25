@@ -35,12 +35,11 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00050 — Publish Canonical Symfony HTTP, Filesystem, and Routing Paths](00050-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the remaining canonical Symfony adapter paths now that the typed JSend boundary is complete. |
-| 2 | [T-00051 — Publish Neutral Message Handlers and Canonical Symfony Messenger Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes neutral queued-message consumers and canonical Messenger identities required by later framework adapters. |
-| 3 | [T-00052 — Publish Capability-Scoped Symfony Service Container Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the capability-scoped Symfony service-container namespace against the completed authority. |
-| 4 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the Doctrine data-type namespace against the completed authority. |
-| 5 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the transaction boundary required by native framework UnitOfWork adapters. |
-| 6 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
+| 1 | [T-00051 — Publish Neutral Message Handlers and Canonical Symfony Messenger Paths](00051-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Establishes neutral queued-message consumers and canonical Messenger identities required by later framework adapters. |
+| 2 | [T-00052 — Publish Capability-Scoped Symfony Service Container Paths](00052-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the capability-scoped Symfony service-container namespace against the completed authority. |
+| 3 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the Doctrine data-type namespace against the completed authority. |
+| 4 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the transaction boundary required by native framework UnitOfWork adapters. |
+| 5 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
 
 ## Waiting
 
@@ -133,6 +132,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00050 — Publish Canonical Symfony HTTP, Filesystem, and Routing Paths](00050-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published canonical Symfony HTTP, middleware, filesystem, and routing identities; retained legacy `1.x` paths without runtime notices; and added registration and interoperability evidence. |
 | [T-00049 — Deliver Typed JSend Through the Symfony Response Boundary](00049-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added framework-neutral typed JSend success, fail, error, and pagination semantics; published the canonical Symfony response under `Adapter/Http/Symfony`; preserved the deprecated raw-array `1.x` path; and proved both entry points through authenticated copied-package evidence. |
 | [T-00076 — Correct Architecture Drift and Canonicalize Repository Guidance](00076-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Moved canonical serializers to Application while preserving standalone Domain compatibility, retained webhook validation through deprecation, classified the new public API, and established accurate repository and planning guidance. |
 | [T-00048 — Restore Scheduler 1.x Construction Compatibility](00048-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Restored the exact published `1.1.0` construction and command journey, added explicit portable `ProcessRunner` composition, and proved copied-package compatibility with authenticated fail-closed evidence. |

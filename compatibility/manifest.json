@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 108,
+            "declarations": 114,
             "functions": 0
         }
     },
@@ -29687,6 +29687,402 @@
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Value\\ValueObject",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Value/ValueObject.php#Fight\\Common\\Domain\\Value\\ValueObject",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+            "source": "src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyExceptionSubscriber",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+            "source": "src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/EventSubscriber/SymfonyValidationSubscriber.php#Fight\\Common\\Adapter\\Http\\Symfony\\EventSubscriber\\SymfonyValidationSubscriber",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+            "source": "src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                "source_locator": "working-tree:src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+            "source": "src/Adapter/Http/Symfony/Controller/ErrorController.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Http/Symfony/Controller/ErrorController.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+            "source": "src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+            "source": "src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
                             "operation": "implementable"
                         }
                     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\HttpKernel;
 
-use Fight\Common\Adapter\HttpKernel\JsonRequestMiddleware;
+use Fight\Common\Adapter\Middleware\Symfony\JsonRequestMiddleware;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;

@@ -56,7 +56,7 @@ services:
 
     Fight\Common\Application\Validation\ValidationService: ~
 
-    Fight\Common\Adapter\EventSubscriber\SymfonyValidationSubscriber: ~
+    Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber: ~
 ```
 
 If you are not using autowiring, provide the dependency explicitly:
@@ -65,14 +65,14 @@ If you are not using autowiring, provide the dependency explicitly:
 services:
     Fight\Common\Application\Validation\ValidationService: ~
 
-    Fight\Common\Adapter\EventSubscriber\SymfonyValidationSubscriber:
+    Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber:
         arguments:
             - '@Fight\Common\Application\Validation\ValidationService'
         tags:
             - { name: kernel.event_subscriber }
 ```
 
-For JSON API endpoints, also wrap the kernel with `JsonRequestMiddleware` so that `application/json` request bodies are decoded into `$request->request` before the subscriber inspects them:
+For JSON API endpoints, also wrap the kernel with `Fight\Common\Adapter\Middleware\Symfony\JsonRequestMiddleware` so that `application/json` request bodies are decoded into `$request->request` before the subscriber inspects them:
 
 ```php
 // public/index.php (or wherever you build the kernel)
@@ -343,20 +343,20 @@ services:
         autowire: true
         autoconfigure: true
 
-    Fight\Common\Adapter\HttpKernel\ErrorController: ~
+Fight\Common\Adapter\Http\Symfony\Controller\ErrorController: ~
 
-    Fight\Common\Adapter\EventSubscriber\SymfonyExceptionSubscriber: ~
+Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber: ~
 ```
 
 If you are not using autoconfigure, tag the subscriber manually:
 
 ```yaml
 services:
-    Fight\Common\Adapter\HttpKernel\ErrorController: ~
+Fight\Common\Adapter\Http\Symfony\Controller\ErrorController: ~
 
-    Fight\Common\Adapter\EventSubscriber\SymfonyExceptionSubscriber:
+Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber:
         arguments:
-            - '@Fight\Common\Adapter\HttpKernel\ErrorController'
+- '@Fight\Common\Adapter\Http\Symfony\Controller\ErrorController'
         tags:
             - { name: kernel.event_subscriber }
 ```
