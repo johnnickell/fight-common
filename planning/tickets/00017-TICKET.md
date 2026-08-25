@@ -28,5 +28,5 @@ the complete certified `1.2.0` compatibility envelope, and passes the repository
       Scheduler, JSend, namespace, dependency, framework-fixture, package, and archive evidence required for
       `1.2.0`.
 - [ ] Planning validation and every non-interactive Docker submit gate pass with exact complete statement coverage.
-- [ ] Release notes target additive 1.2.0, explain the metadata behavior change, and do not alter existing tags.
+- [x] Release notes target additive 1.2.0, explain the metadata behavior change, and do not alter existing tags.
 - [ ] The epic, PRDs, tickets, board, documentation, and release surfaces agree on delivered and deferred scope.

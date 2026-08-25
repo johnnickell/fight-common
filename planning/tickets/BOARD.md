@@ -100,6 +100,11 @@ non-interactive disposable local build with locked and latest-compatible depende
 shared gate directly in hosted CI after ephemeral latest-compatible dependency resolution. T-00031 completes the
 path with opt-in tracked pre-commit enforcement that delegates to the default local build without duplication.
 
+The Unreleased changelog now presents Event Sourcing as an additive `1.2.0` capability, records the metadata
+isolation behavior change, and reconciles the typed JSend and canonical Symfony Messenger compatibility surfaces.
+This satisfies T-00017's release-notes criterion only; its certification and complete-acceptance blockers remain
+unchanged.
+
 The release foundation and maintainer-only module isolation are complete through T-00032, T-00040, and T-00068.
 The path now proves packaging and certification through T-00033 and T-00034.
 GitHub publication continues through T-00035 and downstream verification through T-00041, while
