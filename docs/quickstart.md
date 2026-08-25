@@ -139,13 +139,13 @@ services:
         class: Fight\Common\Adapter\Messaging\Event\Sync\SynchronousEventDispatcherAdapter
 
     # Validation subscriber
-    Fight\Common\Adapter\EventSubscriber\SymfonyValidationSubscriber:
+    Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber:
         tags:
             - { name: kernel.event_subscriber }
 
     # Filesystem (local)
     Fight\Common\Application\Filesystem\Filesystem:
-        class: Fight\Common\Adapter\Filesystem\SymfonyFilesystem
+        class: Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem
 ```
 
 ---

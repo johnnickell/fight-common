@@ -9,6 +9,29 @@ Agent instructions for `johnnickell/fight-common`.
 “What's Next?” contract to return the current human decision and first ready implementation ticket,
 and use the conventions to interpret ticket status and ordering.
 
+## Run and Worktree Isolation
+
+Coordinate-build evidence belongs in `.runs/<YYYY-MM-DD>-<slug>/`. It is gitignored and must never be staged.
+Use that run directory as the parent for any disposable linked worktree required by the approved task:
+
+```bash
+git worktree add -b feature/<slug> .runs/<YYYY-MM-DD>-<slug>/worktree develop
+```
+
+Run all commands from that linked worktree, preserve other worktrees and services, and remove only the
+task-owned worktree after separate cleanup authorization. Durable decisions and outcomes belong in the canonical
+planning artifact, not the ignored run directory.
+
+Tooling runs in the isolated `fight-common` PHP container. For focused iteration, run the documented
+noninteractive container command from the target checkout:
+
+```bash
+docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
+  php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
+```
+
+`./bin/build` is the canonical completion gate.
+
 ## Architecture
 
 Hexagonal (Ports & Adapters) with strict layer separation:
