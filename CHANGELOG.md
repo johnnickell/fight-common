@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-—
+- Canonical Symfony adapter paths for HTTP exception and validation subscribers, JSON request middleware, error controllers, local filesystems, and URL generation. The new paths are covered by Symfony registration and old/new interoperability probes.
 
 ### Deprecated
 
+- `Adapter\\EventSubscriber\\SymfonyExceptionSubscriber`, `Adapter\\EventSubscriber\\SymfonyValidationSubscriber`, `Adapter\\HttpKernel\\JsonRequestMiddleware`, `Adapter\\HttpKernel\\ErrorController`, `Adapter\\Filesystem\\SymfonyFilesystem`, and `Adapter\\Routing\\SymfonyUrlGenerator` — replaced by their capability-first Symfony paths. Legacy names remain functional without runtime notices throughout 1.x and will be removed in 2.0.
 - `Domain\Serialization\JsonSerializer` — replaced by `Application\Serialization\JsonSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
 - `Domain\Serialization\PhpSerializer` — replaced by `Application\Serialization\PhpSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
 - `Domain\Auth\AiOperation` — will be removed in 2.0. MCP/AI operation tooling will be redesigned as a future feature.

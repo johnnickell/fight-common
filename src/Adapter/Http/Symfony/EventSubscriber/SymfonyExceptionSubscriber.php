@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\EventSubscriber;
+namespace Fight\Common\Adapter\Http\Symfony\EventSubscriber;
 
-use Fight\Common\Adapter\HttpKernel\ErrorController;
+use Fight\Common\Adapter\Http\Symfony\Controller\ErrorController;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -12,10 +13,9 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Class SymfonyExceptionSubscriber
- *
- * @deprecated since 1.2.0, use Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber
  */
-final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterface
+#[AsEventListener(event: KernelEvents::EXCEPTION, method: 'onKernelException')]
+readonly class SymfonyExceptionSubscriber implements EventSubscriberInterface
 {
     /**
      * Constructs SymfonyExceptionSubscriber
@@ -41,11 +41,16 @@ final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterf
             return;
         }
 
-        $event->setResponse($this->errorController->handle($event->getThrowable()));
+        $response = $this->errorController->handle($event->getThrowable());
+
+        $event->setResponse($response);
     }
 
     /**
-     * Determines whether the request expects JSON
+     * Determines whether the client expects a JSON response
+     *
+     * Returns true when the request carries an XMLHttpRequest header or
+     * explicitly accepts application/json ahead of text/html.
      */
     private function wantsJson(Request $request): bool
     {
@@ -54,9 +59,15 @@ final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterf
         }
 
         $acceptable = $request->getAcceptableContentTypes();
+
         $jsonPos = array_search('application/json', $acceptable, true);
         $htmlPos = array_search('text/html', $acceptable, true);
 
-        return $jsonPos !== false && ($htmlPos === false || $jsonPos < $htmlPos);
+        if ($jsonPos === false) {
+            return false;
+        }
+
+        // JSON wins if HTML is absent or ranked lower
+        return $htmlPos === false || $jsonPos < $htmlPos;
     }
 }
