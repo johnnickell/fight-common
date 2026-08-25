@@ -11,7 +11,7 @@ Application\Routing
     ├── MissingParametersException
     └── InvalidParameterException
 
-Adapter\Routing
+Adapter\Routing\Symfony
 └── SymfonyUrlGenerator
 ```
 
@@ -54,12 +54,12 @@ Throws `UrlGenerationException` (or a subclass) on failure.
 
 ## SymfonyUrlGenerator
 
-`Fight\Common\Adapter\Routing\SymfonyUrlGenerator`
+`Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator`
 
 Wraps `Symfony\Component\Routing\Generator\UrlGeneratorInterface`. Translates Symfony's routing exceptions into the application-layer exception hierarchy.
 
 ```php
-use Fight\Common\Adapter\Routing\SymfonyUrlGenerator;
+use Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 $inner = new UrlGeneratorInterface(/* ... */);

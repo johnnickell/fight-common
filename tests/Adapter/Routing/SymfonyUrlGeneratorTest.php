@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Routing;
 
 use RuntimeException;
-use Fight\Common\Adapter\Routing\SymfonyUrlGenerator;
+use Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator;
 use Fight\Common\Application\Routing\Exception\InvalidParameterException;
 use Fight\Common\Application\Routing\Exception\MissingParametersException;
 use Fight\Common\Application\Routing\Exception\RouteNotFoundException;

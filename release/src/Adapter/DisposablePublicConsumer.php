@@ -48,6 +48,10 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         copy($fixture.'/public-api-probe.php', $consumer.'/public-api-probe.php');
         copy($fixture.'/jsend-probe.php', $consumer.'/jsend-probe.php');
         copy($fixture.'/http-foundation-boundary-fake.php', $consumer.'/http-foundation-boundary-fake.php');
+        if (is_file($fixture.'/symfony-adapter-probe.php')) {
+            copy($fixture.'/symfony-adapter-probe.php', $consumer.'/symfony-adapter-probe.php');
+            copy($fixture.'/symfony-adapter-boundary-fake.php', $consumer.'/symfony-adapter-boundary-fake.php');
+        }
 
         $this->runProcess(
             ['/usr/local/bin/composer', 'install', '--no-interaction', '--no-progress', '--no-plugins', '--no-scripts'],
@@ -83,6 +87,25 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         $jsendProbeReceipt = json_decode($jsendProbeBytes, true, flags: JSON_THROW_ON_ERROR);
         JSendEvidenceAuthority::isProbeReceipt($jsendProbeReceipt)
             || throw new RuntimeException('The JSend probe evidence is invalid.');
+
+        if (
+            is_file($consumer.'/symfony-adapter-probe.php')
+            && is_file(
+                $installedPackage.'/src/Adapter/Http/Symfony/EventSubscriber/SymfonyExceptionSubscriber.php'
+            )
+        ) {
+            $this->runPublicApiProbe(
+                [
+                    PHP_BINARY,
+                    $consumer.'/symfony-adapter-probe.php',
+                    $consumer.'/symfony-adapter-boundary-fake.php',
+                    $consumer.'/http-foundation-boundary-fake.php',
+                    $consumer.'/vendor/autoload.php'
+                ],
+                $consumer,
+                ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+            );
+        }
 
         $schedulerProbeBytes = $this->runProbe(
             [PHP_BINARY, $consumer.'/probe.php', $consumer.'/vendor/autoload.php'],

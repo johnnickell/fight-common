@@ -317,7 +317,7 @@ interface Filesystem
 
 ## SymfonyFilesystem
 
-`Fight\Common\Adapter\Filesystem\SymfonyFilesystem`
+`Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem`
 
 Wraps `Symfony\Component\Filesystem\Filesystem`. This is the sole adapter implementation.
 
@@ -467,10 +467,10 @@ services:
         autowire: true
         autoconfigure: true
 
-    Fight\Common\Adapter\Filesystem\SymfonyFilesystem: ~
+    Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem: ~
 
     Fight\Common\Application\Filesystem\Filesystem:
-        alias: Fight\Common\Adapter\Filesystem\SymfonyFilesystem
+        alias: Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem
 ```
 
 ---

@@ -12,6 +12,8 @@ use Throwable;
 
 /**
  * Class ErrorController
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Http\Symfony\Controller\ErrorController
  */
 class ErrorController
 {
