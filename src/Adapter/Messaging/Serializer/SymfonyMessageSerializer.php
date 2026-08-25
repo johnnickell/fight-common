@@ -25,6 +25,8 @@ use function stripslashes;
 
 /**
  * Class SymfonyMessageSerializer
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer
  */
 final readonly class SymfonyMessageSerializer implements SerializerInterface
 {
@@ -48,6 +50,8 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
     }
 
     /**
+     * Decodes a transport envelope
+     *
      * @inheritDoc
      */
     public function decode(array $encodedEnvelope): Envelope
@@ -71,6 +75,8 @@ final readonly class SymfonyMessageSerializer implements SerializerInterface
     }
 
     /**
+     * Encodes a transport envelope
+     *
      * @inheritDoc
      */
     public function encode(Envelope $envelope): array

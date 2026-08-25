@@ -9,14 +9,12 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Throwable;
 
 /**
- * Class SymfonyEventMessageHandler
- *
- * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler
+ * Class EventMessageHandler
  */
-final readonly class SymfonyEventMessageHandler
+final readonly class EventMessageHandler
 {
     /**
-     * Constructs SymfonyEventMessageHandler
+     * Constructs EventMessageHandler
      */
     public function __construct(private SynchronousEventDispatcher $eventDispatcher)
     {
@@ -25,7 +23,7 @@ final readonly class SymfonyEventMessageHandler
     /**
      * Dispatches one event message synchronously
      *
-     * @throws Throwable When an error occurs
+     * @throws Throwable When synchronous event handling fails
      */
     public function __invoke(EventMessage $eventMessage): void
     {

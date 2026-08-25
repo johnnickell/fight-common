@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Messaging\Event\Async;
+namespace Fight\Common\Adapter\Messaging\Symfony;
 
 use Fight\Common\Application\Messaging\Event\AsynchronousEventDispatcher;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
@@ -13,8 +13,6 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
  * Class MessengerEventDispatcher
- *
- * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher
  */
 final readonly class MessengerEventDispatcher implements AsynchronousEventDispatcher
 {
@@ -52,7 +50,6 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
      */
     public function register(EventSubscriber $subscriber): void
     {
-        // no-op: async dispatcher sends to transport, handlers not stored locally
     }
 
     /**
@@ -62,7 +59,6 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
      */
     public function unregister(EventSubscriber $subscriber): void
     {
-        // no-op: async dispatcher sends to transport, handlers not stored locally
     }
 
     /**
@@ -72,7 +68,6 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
      */
     public function addHandler(string $eventType, callable $handler, int $priority = 0): void
     {
-        // no-op: async dispatcher sends to transport, handlers not stored locally
     }
 
     /**
@@ -102,6 +97,5 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
      */
     public function removeHandler(string $eventType, callable $handler): void
     {
-        // no-op: async dispatcher sends to transport, handlers not stored locally
     }
 }
