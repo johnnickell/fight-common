@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Framework-neutral Event Sourcing: aggregate recording, replay, and reconstitution; stable stream and stored-event contracts; mapping, schema upcasting, and aggregate repositories; in-memory and Doctrine DBAL event stores for SQLite, MySQL-compatible, and PostgreSQL databases; checkpointed projections; and durable, diagnosable event publication. Symfony applications can autoconfigure `EventMappingProvider` services, and `docs/event-sourcing.md` provides an executable integration and operations guide.
 - Canonical Symfony adapter paths for HTTP exception and validation subscribers, JSON request middleware, error controllers, local filesystems, and URL generation. The new paths are covered by Symfony registration and old/new interoperability probes.
 
 ### Deprecated
 
-- `Adapter\\EventSubscriber\\SymfonyExceptionSubscriber`, `Adapter\\EventSubscriber\\SymfonyValidationSubscriber`, `Adapter\\HttpKernel\\JsonRequestMiddleware`, `Adapter\\HttpKernel\\ErrorController`, `Adapter\\Filesystem\\SymfonyFilesystem`, and `Adapter\\Routing\\SymfonyUrlGenerator` — replaced by their capability-first Symfony paths. Legacy names remain functional without runtime notices throughout 1.x and will be removed in 2.0.
+- `Adapter\HttpFoundation\JSendResponse` — replaced by the typed `Adapter\Http\Symfony\JSendResponse`. The legacy raw-array response remains functional throughout 1.x and will be removed in 2.0.
+- `Adapter\Messaging\Command\Async\MessengerCommandBus`, `Adapter\Messaging\Event\Async\MessengerEventDispatcher`, `Adapter\Messaging\Serializer\SymfonyMessageSerializer`, `Adapter\Messaging\Handler\SymfonyCommandMessageHandler`, and `Adapter\Messaging\Handler\SymfonyEventMessageHandler` — replaced by the canonical `Adapter\Messaging\Symfony\...` and transport-neutral `Adapter\Messaging\Handler\...` paths. Legacy names remain functional throughout 1.x and will be removed in 2.0.
+- `Adapter\EventSubscriber\SymfonyExceptionSubscriber`, `Adapter\EventSubscriber\SymfonyValidationSubscriber`, `Adapter\HttpKernel\JsonRequestMiddleware`, `Adapter\HttpKernel\ErrorController`, `Adapter\Filesystem\SymfonyFilesystem`, and `Adapter\Routing\SymfonyUrlGenerator` — replaced by their capability-first Symfony paths. Legacy names remain functional without runtime notices throughout 1.x and will be removed in 2.0.
 - `Domain\Serialization\JsonSerializer` — replaced by `Application\Serialization\JsonSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
 - `Domain\Serialization\PhpSerializer` — replaced by `Application\Serialization\PhpSerializer`. The Domain class remains a standalone deprecated compatibility implementation throughout 1.x and will be removed in 2.0.
 - `Domain\Auth\AiOperation` — will be removed in 2.0. MCP/AI operation tooling will be redesigned as a future feature.
@@ -22,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Typed JSend now has `Application\Http\JSend\JSendEnvelope` and `JSendStatus` semantics, while `Adapter\Http\Symfony\JSendResponse` preserves controller-selected HTTP metadata and renders `Arrayable` and paginated `ResultSet` presentation data.
+- Symfony Messenger now uses canonical command and event bus and serializer paths, with transport-neutral `CommandMessageHandler` and `EventMessageHandler` for handing messages from a worker to synchronous application buses.
 - Message envelopes now isolate their mutable `Meta` snapshots by copying metadata on construction and access. Code that previously mutated metadata through `meta()` must derive a same-ID envelope with `withMeta()` or `mergeMeta()` instead.
 - `Application\Scheduler\Scheduler` now requires an Application `ProcessRunner` as its third constructor argument and builds command jobs through `ProcessBuilder`; the former Scheduler `processFactory` constructor seam has been removed.
 - Pinned all `symfony/*` `require-dev` components to the `^8.1` floor per ADR 0020's current-only support window. `symfony/process` moves from `^7.0` to `^8.1`. The widened `^8.2 || ^8.1` form will be adopted only when Symfony 8.2 ships (~Nov 2026).
