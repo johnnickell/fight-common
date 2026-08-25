@@ -7,14 +7,51 @@ namespace Fight\Test\Common\Adapter\DependencyInjection;
 use Exception;
 use Fight\Common\Adapter\DependencyInjection\EventSubscriberCompilerPass;
 use Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass as CanonicalEventSubscriberCompilerPass;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 #[CoversClass(EventSubscriberCompilerPass::class)]
+#[CoversClass(CanonicalEventSubscriberCompilerPass::class)]
 class EventSubscriberCompilerPassTest extends UnitTestCase
 {
+    public function test_that_canonical_and_legacy_identities_register_event_subscribers(): void
+    {
+        $deprecations = [];
+        set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+                    $deprecations[] = $message;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            foreach ([CanonicalEventSubscriberCompilerPass::class, EventSubscriberCompilerPass::class] as $passClass) {
+                $container = new ContainerBuilder();
+                $dispatcher = $container->register(ServiceAwareEventDispatcher::class, ServiceAwareEventDispatcher::class);
+                $container->register('subscriber_id', StubEventSubscriber::class)
+                    ->addTag('common.event_subscriber')
+                    ->setPublic(true);
+                $container->addCompilerPass(new $passClass());
+                $container->compile();
+
+                self::assertSame(
+                    [['registerService', [StubEventSubscriber::class, 'subscriber_id']]],
+                    $dispatcher->getMethodCalls()
+                );
+            }
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame([], $deprecations);
+    }
+
     public function test_that_it_returns_early_when_dispatcher_not_registered(): void
     {
         $container = new ContainerBuilder();

@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Adapter\DependencyInjection;
 use Exception;
 use Fight\Common\Adapter\DependencyInjection\QueryHandlerCompilerPass;
 use Fight\Common\Adapter\Messaging\Query\Routing\ServiceAwareQueryRouter;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass as CanonicalQueryHandlerCompilerPass;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -15,8 +16,44 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 #[CoversClass(QueryHandlerCompilerPass::class)]
+#[CoversClass(CanonicalQueryHandlerCompilerPass::class)]
 class QueryHandlerCompilerPassTest extends UnitTestCase
 {
+    public function test_that_canonical_and_legacy_identities_register_query_handlers(): void
+    {
+        $deprecations = [];
+        set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+                    $deprecations[] = $message;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            foreach ([CanonicalQueryHandlerCompilerPass::class, QueryHandlerCompilerPass::class] as $passClass) {
+                $container = new ContainerBuilder();
+                $router = $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
+                $container->register('handler_id', StubQueryHandler::class)
+                    ->addTag('common.query_handler')
+                    ->setPublic(true);
+                $container->addCompilerPass(new $passClass());
+                $container->compile();
+
+                self::assertSame(
+                    [['registerHandler', [StubQuery::class, 'handler_id']]],
+                    $router->getMethodCalls()
+                );
+            }
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame([], $deprecations);
+    }
+
     public function test_that_it_returns_early_when_router_not_registered(): void
     {
         $container = new ContainerBuilder();
