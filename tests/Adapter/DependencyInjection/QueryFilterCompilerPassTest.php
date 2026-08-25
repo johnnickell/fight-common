@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Adapter\DependencyInjection;
 use Exception;
 use Fight\Common\Adapter\DependencyInjection\QueryFilterCompilerPass;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass as CanonicalQueryFilterCompilerPass;
 use Fight\Common\Application\Messaging\Query\QueryFilter;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -15,8 +16,42 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 #[CoversClass(QueryFilterCompilerPass::class)]
+#[CoversClass(CanonicalQueryFilterCompilerPass::class)]
 class QueryFilterCompilerPassTest extends UnitTestCase
 {
+    public function test_that_canonical_and_legacy_identities_register_query_filters(): void
+    {
+        $deprecations = [];
+        set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+                    $deprecations[] = $message;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            foreach ([CanonicalQueryFilterCompilerPass::class, QueryFilterCompilerPass::class] as $passClass) {
+                $container = new ContainerBuilder();
+                $pipeline = $container->register(QueryPipeline::class, QueryPipeline::class);
+                $container->register('filter_id', StubQueryFilter::class)->addTag('common.query_filter');
+                $container->addCompilerPass(new $passClass());
+                $container->compile();
+
+                $calls = $pipeline->getMethodCalls();
+                self::assertCount(1, $calls);
+                self::assertSame('addFilter', $calls[0][0]);
+                self::assertSame('filter_id', (string) $calls[0][1][0]);
+            }
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame([], $deprecations);
+    }
+
     public function test_that_it_returns_early_when_pipeline_not_registered(): void
     {
         $container = new ContainerBuilder();

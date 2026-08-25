@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 119,
+            "declarations": 126,
             "functions": 0
         }
     },
@@ -3685,6 +3685,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+            "source": "src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\HttpClient\\Guzzle\\GuzzleClient",
             "source": "src/Adapter/HttpClient/Guzzle/GuzzleClient.php",
             "layer": "Adapter",
@@ -6965,6 +7031,468 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Routing\\SymfonyUrlGenerator",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Routing/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\SymfonyUrlGenerator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/CommandHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandHandlerCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventMappingProviderCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventMappingProviderCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/EventSubscriberCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\EventSubscriberCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryFilterCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryFilterCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/QueryHandlerCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\QueryHandlerCompilerPass",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+            "source": "src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Symfony/TemplateHelperCompilerPass.php#Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\TemplateHelperCompilerPass",
                             "operation": "implementable"
                         }
                     }
@@ -29951,72 +30479,6 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
                             "source_locator": "working-tree:src/Adapter/Http/Symfony/Controller/ErrorController.php#Fight\\Common\\Adapter\\Http\\Symfony\\Controller\\ErrorController",
-                            "operation": "implementable"
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-            "source": "src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php",
-            "layer": "Adapter",
-            "kind": "class",
-            "classification": "public",
-            "evidence_binding": {
-                "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem"
-            },
-            "classification_evidence": {
-                "authority": "fight-common.classification.prd-00014-addition",
-                "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php."
-            },
-            "members": [],
-            "operations": {
-                "callable": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises its inventoried public callable surface to consumers.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "operation": "callable"
-                        }
-                    }
-                },
-                "constructible": {
-                    "promised": true,
-                    "evidence": {
-                        "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem promises construction through its inventoried public constructor or named factory.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "operation": "constructible"
-                        }
-                    }
-                },
-                "extensible": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "operation": "extensible"
-                        }
-                    }
-                },
-                "implementable": {
-                    "promised": false,
-                    "evidence": {
-                        "authority": "fight-common.operation.not-promised",
-                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
-                        "binding": {
-                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
-                            "source_locator": "working-tree:src/Adapter/Filesystem/Symfony/SymfonyFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Symfony\\SymfonyFilesystem",
                             "operation": "implementable"
                         }
                     }

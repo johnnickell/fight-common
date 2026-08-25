@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\DependencyInjection;
 
 use Exception;
 use Fight\Common\Adapter\DependencyInjection\TemplateHelperCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass as CanonicalTemplateHelperCompilerPass;
 use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Common\Application\Templating\TemplateHelper;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -14,8 +15,42 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 #[CoversClass(TemplateHelperCompilerPass::class)]
+#[CoversClass(CanonicalTemplateHelperCompilerPass::class)]
 class TemplateHelperCompilerPassTest extends UnitTestCase
 {
+    public function test_that_canonical_and_legacy_identities_register_template_helpers(): void
+    {
+        $deprecations = [];
+        set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED) {
+                    $deprecations[] = $message;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            foreach ([CanonicalTemplateHelperCompilerPass::class, TemplateHelperCompilerPass::class] as $passClass) {
+                $container = new ContainerBuilder();
+                $engine = $container->register(TemplateEngine::class, TemplateEngine::class);
+                $container->register('helper_id', StubTemplateHelper::class)->addTag('common.template_helper');
+                $container->addCompilerPass(new $passClass());
+                $container->compile();
+
+                $calls = $engine->getMethodCalls();
+                self::assertCount(1, $calls);
+                self::assertSame('addHelper', $calls[0][0]);
+                self::assertSame('helper_id', (string) $calls[0][1][0]);
+            }
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame([], $deprecations);
+    }
+
     public function test_that_it_returns_early_when_engine_not_registered(): void
     {
         $container = new ContainerBuilder();

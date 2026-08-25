@@ -64,12 +64,12 @@ Register the six compiler passes and configure autoconfiguration so Symfony auto
 // src/Kernel.php
 namespace App;
 
-use Fight\Common\Adapter\DependencyInjection\CommandFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\CommandHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\EventSubscriberCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\TemplateHelperCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;

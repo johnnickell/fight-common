@@ -6,6 +6,13 @@ namespace Fight\Test\Release\Adapter;
 
 use Fight\Common\Adapter\Observability\Metrics\UdpMetricSender;
 use Fight\Common\Adapter\Repository\DoctrineRepository;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
 use Fight\Common\Application\HttpClient\Exception\Exception;
 use Fight\Common\Application\HttpFoundation\HttpMethod;
 use Fight\Common\Domain\Messaging\Command\Command;
@@ -45,6 +52,41 @@ use UnexpectedValueException;
 final class PublicApiManifestAuthorityTest extends UnitTestCase
 {
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+
+    /**
+     * Proves that published Symfony compiler-pass paths are intentional additive public contracts.
+     */
+    public function test_that_published_symfony_compiler_passes_have_additive_public_classifications(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $manifest = json_decode(
+            (string) file_get_contents($root.'/compatibility/manifest.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $declarations = array_column($manifest['declarations'], null, 'name');
+
+        foreach (
+            [
+                CommandHandlerCompilerPass::class,
+                CommandFilterCompilerPass::class,
+                QueryHandlerCompilerPass::class,
+                QueryFilterCompilerPass::class,
+                EventSubscriberCompilerPass::class,
+                EventMappingProviderCompilerPass::class,
+                TemplateHelperCompilerPass::class
+            ] as $class
+        ) {
+            self::assertArrayHasKey($class, $declarations);
+            self::assertSame('Adapter', $declarations[$class]['layer']);
+            self::assertSame('class', $declarations[$class]['kind']);
+            self::assertSame('public', $declarations[$class]['classification']);
+            self::assertSame(
+                'fight-common.classification.prd-00014-addition',
+                $declarations[$class]['classification_evidence']['authority']
+            );
+        }
+    }
 
     /**
      * Proves that a generic whole-file authority cannot stand in for declaration-bound evidence.
@@ -744,9 +786,9 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
                 'Application' => ['declarations' => 170, 'functions' => 0],
-                'Adapter'     => ['declarations' => 119, 'functions' => 0]
+                'Adapter'     => ['declarations' => 126, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 419, 'internal' => 1],
+            'classifications'         => ['public' => 426, 'internal' => 1],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,
