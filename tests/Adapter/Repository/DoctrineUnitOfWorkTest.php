@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(DoctrineUnitOfWork::class)]
 class DoctrineUnitOfWorkTest extends UnitTestCase
 {
-    public function test_that_commit_flushes_the_entity_manager(): void
+    public function test_that_deprecated_legacy_commit_flushes_the_entity_manager(): void
     {
         $em = $this->mock(EntityManagerInterface::class);
         $em->shouldReceive('flush')->once()->withNoArgs();

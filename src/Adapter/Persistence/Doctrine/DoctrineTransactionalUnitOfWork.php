@@ -2,33 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Repository;
+namespace Fight\Common\Adapter\Persistence\Doctrine;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use LogicException;
 
 /**
- * Class DoctrineUnitOfWork
- *
- * @deprecated Retained for 1.x compatibility. Use
- *             \Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork.
+ * Class DoctrineTransactionalUnitOfWork
  */
-final readonly class DoctrineUnitOfWork implements UnitOfWork
+final readonly class DoctrineTransactionalUnitOfWork implements TransactionalUnitOfWork
 {
     /**
-     * Constructs DoctrineUnitOfWork
+     * Constructs DoctrineTransactionalUnitOfWork
      */
     public function __construct(private EntityManagerInterface $entityManager)
     {
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function commit(): void
-    {
-        $this->entityManager->flush();
     }
 
     /**
