@@ -2,7 +2,7 @@
 id: T-00059
 prd: PRD-00014
 title: Publish the Additive Transactional UnitOfWork Boundary
-status: ready-for-agent
+status: done
 blocked_by: T-00047
 ---
 
@@ -17,29 +17,33 @@ semantics without pretending their persistence mechanisms are identical.
 
 ## Acceptance Criteria
 
-- [ ] `TransactionalUnitOfWork` exposes `commitTransactional()` and `isClosed()` without requiring the legacy
+- [x] `TransactionalUnitOfWork` exposes `commitTransactional()` and `isClosed()` without requiring the legacy
       standalone `commit()` operation.
-- [ ] The existing `UnitOfWork` extends the narrower contract, retains functional `commit()` behavior throughout
+- [x] The existing `UnitOfWork` extends the narrower contract, retains functional `commit()` behavior throughout
       `1.x`, and documents that operation as deprecated without emitting a runtime notice.
-- [ ] A consumer adapter can implement only `TransactionalUnitOfWork` and pass the designated conformance suite
+- [x] A consumer adapter can implement only `TransactionalUnitOfWork` and pass the designated conformance suite
       without adding an artificial standalone commit operation.
-- [ ] Transactional execution preserves the callback result and atomically commits the complete mutation plus
+- [x] Transactional execution preserves the callback result and atomically commits the complete mutation plus
       every required same-store audit write.
-- [ ] Callback failure rolls back the complete transaction, propagates the original failure, and preserves the
+- [x] Callback failure rolls back the complete transaction, propagates the original failure, and preserves the
       established terminal lifecycle behavior.
-- [ ] Nested transactional execution fails explicitly and consistently instead of exposing savepoint or false
+- [x] Nested transactional execution fails explicitly and consistently instead of exposing savepoint or false
       transaction behavior through the portable contract.
-- [ ] The Doctrine adapter satisfies both the narrower and legacy contracts while preserving existing commit,
+- [x] The Doctrine adapter satisfies both the narrower and legacy contracts while preserving existing commit,
       rollback, close-state, and exception behavior.
-- [ ] Installed-package probes compile and run unchanged legacy consumers and new narrower-contract consumers
+- [x] Installed-package probes compile and run unchanged legacy consumers and new narrower-contract consumers
       using only public package APIs.
-- [ ] The public API manifest and compatibility findings classify the new contract, the legacy extension
+- [x] The public API manifest and compatibility findings classify the new contract, the legacy extension
       relationship, and every retained operation deliberately.
 
 ## Verification
 
 Full submit gate, `./bin/planning-check`, focused transaction and Doctrine tests, representative native-record
 conformance adapters, nested-call failure tests, and installed-package legacy and narrower-contract probes.
+
+Verified by `./bin/planning-check` and `./bin/build`: 3,709 tests, 13,416 assertions, and exact 17,168/17,168
+statement coverage. The linked-worktree build harness now mounts its source and Git metadata safely, so the
+installed-package compatibility journey runs under the canonical quality gate.
 
 ## Parent
 

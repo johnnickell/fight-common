@@ -71,10 +71,13 @@ final readonly class SchedulerEvidenceAuthority
         return ($receipt['schema_version'] ?? null) === 'fight-common.public-api-representative-probe/v1'
             && ($receipt['findings'] ?? null) === self::publicApiFindings()
             && is_array($observations)
-            && array_keys($observations) === ['uuid', 'meta', 'collection', 'runtime_deprecations']
+            && array_keys($observations) === [
+                'uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations'
+            ]
             && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
             && $observations['meta'] === ['consumer' => 'disposable']
             && $observations['collection'] === ['alpha', 'beta']
+            && $observations['transactional_unit_of_work'] === self::transactionalUnitOfWorkObservation()
             && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations']);
     }
 
@@ -339,11 +342,12 @@ final readonly class SchedulerEvidenceAuthority
             && $candidateTree === $installedTree
             && is_array($observations)
             && array_keys($observations) === [
-                'uuid', 'meta', 'collection', 'runtime_deprecations', 'scheduler', 'jsend'
+                'uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations', 'scheduler', 'jsend'
             ]
             && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
             && $observations['meta'] === ['consumer' => 'disposable']
             && $observations['collection'] === ['alpha', 'beta']
+            && $observations['transactional_unit_of_work'] === self::transactionalUnitOfWorkObservation()
             && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations'])
             && is_array($scheduler)
             && self::isSchedulerObservationEnvelope($scheduler)
@@ -446,6 +450,26 @@ final readonly class SchedulerEvidenceAuthority
             'default_process_commands' => ['default-command'],
             'factory_process_commands' => ['factory-command', 'false', 'false'],
             'non_zero_failure'         => self::nonZeroFailureObservation()
+        ];
+    }
+
+    /**
+     * Returns the installed-consumer proof for retained UnitOfWork and the narrow transactional contract
+     *
+     * @return array{
+     *     legacy_commit_calls: int,
+     *     transactional_result: string,
+     *     transactional_closed: bool,
+     *     runtime_deprecations: list<array{severity: string, message: string}>
+     * }
+     */
+    private static function transactionalUnitOfWorkObservation(): array
+    {
+        return [
+            'legacy_commit_calls'  => 1,
+            'transactional_result' => 'committed',
+            'transactional_closed' => true,
+            'runtime_deprecations' => []
         ];
     }
 }

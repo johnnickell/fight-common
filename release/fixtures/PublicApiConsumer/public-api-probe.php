@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Common\Domain\Value\Identifier\Uuid;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Application\Repository\UnitOfWork;
 
 use function Fight\Common\Domain\array_list;
 
@@ -29,6 +31,63 @@ try {
     $list = array_list(['alpha', 'beta'], 'string');
     $meta = Meta::create(['consumer' => 'disposable']);
     $uuid = Uuid::fromString(Uuid::NIL);
+    $legacyUnitOfWork = new class implements UnitOfWork {
+        public int $commitCalls = 0;
+
+        public function commit(): void
+        {
+            ++$this->commitCalls;
+        }
+
+        public function commitTransactional(callable $operation): mixed
+        {
+            return $operation();
+        }
+
+        public function isClosed(): bool
+        {
+            return false;
+        }
+    };
+    if (interface_exists(TransactionalUnitOfWork::class)) {
+        $transactionalUnitOfWork = new class implements TransactionalUnitOfWork {
+            private bool $closed = false;
+
+            public function commitTransactional(callable $operation): mixed
+            {
+                try {
+                    return $operation();
+                } finally {
+                    $this->closed = true;
+                }
+            }
+
+            public function isClosed(): bool
+            {
+                return $this->closed;
+            }
+        };
+    } else {
+        $transactionalUnitOfWork = new class {
+            private bool $closed = false;
+
+            public function commitTransactional(callable $operation): mixed
+            {
+                try {
+                    return $operation();
+                } finally {
+                    $this->closed = true;
+                }
+            }
+
+            public function isClosed(): bool
+            {
+                return $this->closed;
+            }
+        };
+    }
+    $legacyUnitOfWork->commit();
+    $transactionalResult = $transactionalUnitOfWork->commitTransactional(static fn (): string => 'committed');
 } finally {
     restore_error_handler();
 }
@@ -46,6 +105,12 @@ echo json_encode(
             'uuid'                 => $uuid->toString(),
             'meta'                 => $meta->toArray(),
             'collection'           => $list->toArray(),
+            'transactional_unit_of_work' => [
+                'legacy_commit_calls' => $legacyUnitOfWork->commitCalls,
+                'transactional_result' => $transactionalResult,
+                'transactional_closed' => $transactionalUnitOfWork->isClosed(),
+                'runtime_deprecations' => []
+            ],
             'runtime_deprecations' => $runtimeDeprecations
         ]
     ],

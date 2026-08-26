@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Fight\Common\Application\Repository\UnitOfWork;
+use LogicException;
 
 /**
  * Class DoctrineUnitOfWork
@@ -32,6 +33,10 @@ final readonly class DoctrineUnitOfWork implements UnitOfWork
      */
     public function commitTransactional(callable $operation): mixed
     {
+        if ($this->entityManager->getConnection()->isTransactionActive()) {
+            throw new LogicException('Nested transactional execution is not supported.');
+        }
+
         return $this->entityManager->wrapInTransaction($operation);
     }
 
