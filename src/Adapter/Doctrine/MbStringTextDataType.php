@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Doctrine;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Types\ConversionException;
-use Doctrine\DBAL\Types\Exception\InvalidType;
-use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Doctrine\DBAL\Types\Type;
 use Fight\Common\Domain\Value\Basic\MbStringObject;
-use Override;
-use Throwable;
 
 /**
  * Class MbStringTextDataType
+ *
+ * @deprecated Use \Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringTextDataType instead.
  */
-final class MbStringTextDataType extends Type
+final class MbStringTextDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringTextDataType
 {
     public const string TYPE_NAME = 'common_mb_string_text';
 
@@ -25,49 +21,26 @@ final class MbStringTextDataType extends Type
      */
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return $platform->getClobTypeDeclarationSQL($column);
+        return parent::getSQLDeclaration($column, $platform);
     }
 
     /**
      * Converts a value from its PHP representation to its database representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
-        if (empty($value)) {
-            return null;
-        }
-
-        if (!($value instanceof MbStringObject)) {
-            throw InvalidType::new($value, 'string', [MbStringObject::class]);
-        }
-
-        return $value->toString();
+        return parent::convertToDatabaseValue($value, $platform);
     }
 
     /**
      * Converts a value from its database representation to its PHP representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?MbStringObject
     {
-        if ($value === null) {
-            return null;
-        }
+        /** @var ?MbStringObject $converted */
+        $converted = parent::convertToPHPValue($value, $platform);
 
-        if ($value instanceof MbStringObject) {
-            return $value;
-        }
-
-        try {
-            return MbStringObject::fromString($value);
-        } catch (Throwable $throwable) {
-            throw ValueNotConvertible::new($value, MbStringObject::class, $throwable->getMessage(), $throwable);
-        }
+        return $converted;
     }
 
     /**
@@ -75,6 +48,6 @@ final class MbStringTextDataType extends Type
      */
     public function getName(): string
     {
-        return static::TYPE_NAME;
+        return parent::getName();
     }
 }

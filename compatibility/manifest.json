@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 126,
+            "declarations": 140,
             "functions": 0
         }
     },
@@ -6635,6 +6635,1112 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Process\\Symfony\\SymfonyProcessRunner",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Process/Symfony/SymfonyProcessRunner.php#Fight\\Common\\Adapter\\Process\\Symfony\\SymfonyProcessRunner",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'audit_entry_id'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/AuditEntryIdDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\AuditEntryIdDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_email_address'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/EmailAddressDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\EmailAddressDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_json'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/JsonObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\JsonObjectDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_mb_string'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringObjectDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_mb_string_text'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MbStringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MbStringTextDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/MessageDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/MessageDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_message'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/MessageDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MessageDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MessageDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/MetaDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/MetaDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_meta'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/MetaDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/MetaDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\MetaDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_string'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringObjectDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_string_text'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/StringTextDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\StringTextDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/TypeDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/TypeDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_type'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/TypeDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/TypeDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\TypeDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/UriDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/UriDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_uri'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/UriDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UriDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UriDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/UrlDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/UrlDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_url'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/UrlDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UrlDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UrlDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/UuidDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/Type/UuidDataType.php."
+            },
+            "members": [
+                {
+                    "name": "constant TYPE_NAME",
+                    "signature": "public const string TYPE_NAME = 'common_uuid'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType governs constant TYPE_NAME from src/Adapter/Persistence/Doctrine/Type/UuidDataType.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "member": "constant TYPE_NAME"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/UuidDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+            "source": "src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "internal",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.explicit-internal-annotation",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType is deliberately classified internal by its explicit @internal annotation in src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType is not promised for consumer callable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType is not promised for consumer constructible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/Type/ValueObjectDataType.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\ValueObjectDataType",
                             "operation": "implementable"
                         }
                     }
