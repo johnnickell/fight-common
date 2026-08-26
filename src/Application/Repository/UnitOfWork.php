@@ -8,6 +8,8 @@ use Exception;
 
 /**
  * Interface UnitOfWork
+ *
+ * @deprecated Retained for 1.x compatibility. Use TransactionalUnitOfWork for new consumers.
  */
 interface UnitOfWork extends TransactionalUnitOfWork
 {

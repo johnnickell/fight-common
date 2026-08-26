@@ -1733,7 +1733,11 @@ final class MachineResultTest extends UnitTestCase
             'factory_process_commands' => ['factory-command', 'false', 'false'],
             'non_zero_failure'         => $this->schedulerNonZeroFailureObservation()
         ];
-        $receipt = static function (string $tree, array $scheduler): array {
+        $receipt = static function (
+            string $tree,
+            array $scheduler,
+            bool $canonicalDoctrineAdapter
+        ): array {
             $findings = [
                 [
                     'finding_id'  => 'release.compatibility.consumer.public-api-probe-passed',
@@ -1780,32 +1784,42 @@ final class MachineResultTest extends UnitTestCase
                 'probe'            => [
                     'sha256'       => str_repeat('a', 64),
                     'observations' => [
-                        'uuid'                 => '00000000-0000-0000-0000-000000000000',
-                        'meta'                 => ['consumer' => 'disposable'],
-                        'collection'           => ['alpha', 'beta'],
+                        'uuid'                       => '00000000-0000-0000-0000-000000000000',
+                        'meta'                       => ['consumer' => 'disposable'],
+                        'collection'                 => ['alpha', 'beta'],
                         'transactional_unit_of_work' => [
-                            'legacy_commit_calls' => 1,
+                            'canonical_adapter'    => [
+                                'available'                       => $canonicalDoctrineAdapter,
+                                'transactional_unit_of_work_only' => $canonicalDoctrineAdapter,
+                                'standalone_commit_exposed'       => false
+                            ],
+                            'legacy_adapter'       => [
+                                'available'                 => true,
+                                'unit_of_work'              => true,
+                                'standalone_commit_exposed' => true,
+                                'commit_calls'              => 1
+                            ],
                             'transactional_result' => 'committed',
-                            'transactional_closed' => true,
+                            'transactional_closed' => !$canonicalDoctrineAdapter,
                             'runtime_deprecations' => []
                         ],
-                        'runtime_deprecations' => [],
-                        'scheduler'            => $scheduler,
-                        'jsend'                => JSendEvidenceAuthority::observation(
+                        'runtime_deprecations'       => [],
+                        'scheduler'                  => $scheduler,
+                        'jsend'                      => JSendEvidenceAuthority::observation(
                             isset($scheduler['portable_process_runner'])
                         )
                     ]
                 ]
             ];
         };
-        $baselineReceipt = $receipt($baselineTree, $schedulerObservation);
+        $baselineReceipt = $receipt($baselineTree, $schedulerObservation, false);
         $candidateReceipt = $receipt($candidateTree, [
             ...$schedulerObservation,
             'portable_process_runner' => [
                 'commands' => ['portable-command'],
                 'output'   => "scheduler portable command\n"
             ]
-        ]);
+        ], true);
 
         return [
             'schema_version'          => 'fight-common.release-result/v1',

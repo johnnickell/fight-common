@@ -608,7 +608,7 @@ final readonly class MachineResult
             && is_array($candidateProbe)
             && ($candidateProbe['identity'] ?? null) === ['production_tree_sha256' => $candidateTree]
             && ($candidateProbe['attribution'] ?? null) === 'candidate'
-            && SchedulerEvidenceAuthority::isCopiedReceipt($baselineReceipt)
+            && SchedulerEvidenceAuthority::isCanonicalBaselineReceipt($baselineReceipt)
             && SchedulerEvidenceAuthority::isCopiedReceipt($candidateReceipt)
             && SchedulerEvidenceAuthority::receiptsAreEquivalent($baselineReceipt, $candidateReceipt)
             && $candidateReceipt === array_diff_key($consumer, ['package_probes' => true])
