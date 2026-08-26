@@ -47,9 +47,19 @@ final class DisposablePublicConsumerTest extends UnitTestCase
 
             self::assertSame(
                 [
-                    'legacy_commit_calls' => 1,
+                    'canonical_adapter'    => [
+                        'available'                       => true,
+                        'transactional_unit_of_work_only' => true,
+                        'standalone_commit_exposed'       => false
+                    ],
+                    'legacy_adapter'       => [
+                        'available'                 => true,
+                        'unit_of_work'              => true,
+                        'standalone_commit_exposed' => true,
+                        'commit_calls'              => 1
+                    ],
                     'transactional_result' => 'committed',
-                    'transactional_closed' => true,
+                    'transactional_closed' => false,
                     'runtime_deprecations' => []
                 ],
                 $receipt['probe']['observations']['transactional_unit_of_work']
@@ -113,10 +123,10 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                         'runtime_deprecations'         => []
                     ],
                     'typed'  => [
-                        'available'        => true,
-                        'single'           => ['status' => 'success', 'data' => ['id' => 42]],
-                        'fail'             => ['status' => 'fail', 'data' => ['email' => 'invalid']],
-                        'paginated'        => [
+                        'available'          => true,
+                        'single'             => ['status' => 'success', 'data' => ['id' => 42]],
+                        'fail'               => ['status' => 'fail', 'data' => ['email' => 'invalid']],
+                        'paginated'          => [
                             'status' => 'success',
                             'data'   => [
                                 'page'          => 2,
@@ -129,7 +139,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                                 ]
                             ]
                         ],
-                        'response'         => [
+                        'response'           => [
                             'body'         => '{"status":"error","message":"The bridge is out","data":{"request_id":"request-42"},"code":4102}',
                             'status'       => 502,
                             'headers'      => ['retry-after' => ['30']],
@@ -140,7 +150,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                             '"tag":"\u003Csafe\u003E","quote":"\u0022","apostrophe":"\u0027",',
                             '"ampersand":"\u0026"}}'
                         ]),
-                        'invalid_encoding' => 'JsonException'
+                        'invalid_encoding'   => 'JsonException'
                     ]
                 ],
                 $receipt['probe']['observations']['jsend']
@@ -237,17 +247,27 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                     'probe'            => [
                         'sha256'       => hash('sha256', $probeBytes),
                         'observations' => [
-                            'uuid'                 => '00000000-0000-0000-0000-000000000000',
-                            'meta'                 => ['consumer' => 'disposable'],
-                            'collection'           => ['alpha', 'beta'],
+                            'uuid'                       => '00000000-0000-0000-0000-000000000000',
+                            'meta'                       => ['consumer' => 'disposable'],
+                            'collection'                 => ['alpha', 'beta'],
                             'transactional_unit_of_work' => [
-                                'legacy_commit_calls' => 1,
+                                'canonical_adapter'    => [
+                                    'available'                       => true,
+                                    'transactional_unit_of_work_only' => true,
+                                    'standalone_commit_exposed'       => false
+                                ],
+                                'legacy_adapter'       => [
+                                    'available'                 => true,
+                                    'unit_of_work'              => true,
+                                    'standalone_commit_exposed' => true,
+                                    'commit_calls'              => 1
+                                ],
                                 'transactional_result' => 'committed',
-                                'transactional_closed' => true,
+                                'transactional_closed' => false,
                                 'runtime_deprecations' => []
                             ],
-                            'runtime_deprecations' => [],
-                            'scheduler'            => [
+                            'runtime_deprecations'       => [],
+                            'scheduler'                  => [
                                 'construction_styles'      => [
                                     'two_argument',
                                     'positional_optional',
@@ -263,7 +283,7 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                                     'output'   => "scheduler portable command\n"
                                 ]
                             ],
-                            'jsend'                => JSendEvidenceAuthority::observation(true)
+                            'jsend'                      => JSendEvidenceAuthority::observation(true)
                         ]
                     ]
                 ],
@@ -720,10 +740,14 @@ final class DisposablePublicConsumerTest extends UnitTestCase
     }
 
     /**
-     * Copies the optional HttpFoundation boundary fake and the closed JSend probe into a custom fixture.
+     * Copies the boundary fakes and the closed JSend probe into a custom fixture.
      */
     private function copyJSendFixture(string $root, string $fixture, Filesystem $filesystem): void
     {
+        $filesystem->copy(
+            $root.'/release/fixtures/PublicApiConsumer/doctrine-boundary-fake.php',
+            $fixture.'/doctrine-boundary-fake.php'
+        );
         $filesystem->copy(
             $root.'/release/fixtures/PublicApiConsumer/jsend-probe.php',
             $fixture.'/jsend-probe.php'

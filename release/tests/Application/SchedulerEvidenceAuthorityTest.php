@@ -39,14 +39,26 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
             'schema_version' => 'fight-common.public-api-representative-probe/v1',
             'findings'       => SchedulerEvidenceAuthority::publicApiFindings(),
             'observations'   => [
-                'uuid'                 => '00000000-0000-0000-0000-000000000000',
-                'meta'                 => ['consumer' => 'disposable'],
-                'collection'           => ['alpha', 'beta'],
+                'uuid'                       => '00000000-0000-0000-0000-000000000000',
+                'meta'                       => ['consumer' => 'disposable'],
+                'collection'                 => ['alpha', 'beta'],
                 'transactional_unit_of_work' => $this->transactionalUnitOfWorkObservation(),
-                'runtime_deprecations' => []
+                'runtime_deprecations'       => []
             ]
         ];
         self::assertTrue(SchedulerEvidenceAuthority::isPublicApiProbeReceipt($publicApiReceipt));
+
+        $legacyOnlyPublicApiReceipt = $publicApiReceipt;
+        $legacyOnlyPublicApiReceipt['observations']['transactional_unit_of_work'] = $this
+            ->transactionalUnitOfWorkObservation(false);
+        self::assertFalse(SchedulerEvidenceAuthority::isPublicApiProbeReceipt($legacyOnlyPublicApiReceipt));
+        self::assertTrue(
+            SchedulerEvidenceAuthority::isCanonicalBaselinePublicApiProbeReceipt($legacyOnlyPublicApiReceipt)
+        );
+        self::assertFalse(
+            SchedulerEvidenceAuthority::isCanonicalBaselinePublicApiProbeReceipt($publicApiReceipt)
+        );
+
         foreach (['schema_version', 'findings'] as $field) {
             self::assertFalse(SchedulerEvidenceAuthority::isPublicApiProbeReceipt([
                 ...$publicApiReceipt,
@@ -119,14 +131,17 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
      */
     public function test_that_copied_receipt_authentication_rejects_omitted_and_mutated_evidence(): void
     {
-        $baseline = $this->receipt(str_repeat('b', 64), false);
-        $candidate = $this->receipt(str_repeat('c', 64), true);
+        $baseline = $this->receipt(str_repeat('b', 64), false, false);
+        $candidate = $this->receipt(str_repeat('c', 64), true, true);
 
-        self::assertTrue(SchedulerEvidenceAuthority::isCopiedReceipt($baseline));
+        self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($baseline));
         self::assertTrue(SchedulerEvidenceAuthority::isCopiedReceipt($candidate));
         self::assertTrue(SchedulerEvidenceAuthority::isCanonicalBaselineReceipt($baseline));
         self::assertFalse(SchedulerEvidenceAuthority::isCanonicalBaselineReceipt($candidate));
         self::assertTrue(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $candidate));
+
+        $candidateWithoutCanonicalAdapter = $this->receipt(str_repeat('c', 64), true, false);
+        self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($candidateWithoutCanonicalAdapter));
 
         $unbound = $candidate;
         $unbound['resolved_package']['production_tree_sha256'] = str_repeat('e', 64);
@@ -145,7 +160,9 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
         $transactionalUnitOfWorkOmitted = $candidate;
         unset($transactionalUnitOfWorkOmitted['probe']['observations']['transactional_unit_of_work']);
         self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($transactionalUnitOfWorkOmitted));
-        self::assertFalse(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $transactionalUnitOfWorkOmitted));
+        self::assertFalse(
+            SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $transactionalUnitOfWorkOmitted)
+        );
 
         $deprecationObserved = $candidate;
         $deprecationObserved['probe']['observations']['runtime_deprecations'] = [[
@@ -176,12 +193,12 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
      */
     public function test_that_only_proven_divergence_is_classified_as_incompatible(): void
     {
-        $baseline = $this->receipt(str_repeat('b', 64), false);
-        $candidate = $this->receipt(str_repeat('c', 64), true);
+        $baseline = $this->receipt(str_repeat('b', 64), false, false);
+        $candidate = $this->receipt(str_repeat('c', 64), true, true);
         self::assertFalse(SchedulerEvidenceAuthority::candidateIsProvenIncompatible($baseline, $candidate));
 
-        $legacyOnlyCandidate = $this->receipt(str_repeat('c', 64), false);
-        self::assertTrue(SchedulerEvidenceAuthority::isCopiedReceipt($legacyOnlyCandidate));
+        $legacyOnlyCandidate = $this->receipt(str_repeat('c', 64), false, false);
+        self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($legacyOnlyCandidate));
         self::assertTrue(SchedulerEvidenceAuthority::candidateIsProvenIncompatible($baseline, $legacyOnlyCandidate));
 
         $legacyOnlyDivergent = $legacyOnlyCandidate;
@@ -351,7 +368,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
     }
 
     /** @return array<string, mixed> */
-    private function receipt(string $tree, bool $portable): array
+    private function receipt(string $tree, bool $portable, bool $canonicalDoctrineAdapter): array
     {
         $scheduler = [
             'construction_styles'      => ['two_argument', 'positional_optional', 'named_arguments'],
@@ -383,13 +400,15 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
             'probe'            => [
                 'sha256'       => str_repeat('a', 64),
                 'observations' => [
-                    'uuid'                 => '00000000-0000-0000-0000-000000000000',
-                    'meta'                 => ['consumer' => 'disposable'],
-                    'collection'           => ['alpha', 'beta'],
-                    'transactional_unit_of_work' => $this->transactionalUnitOfWorkObservation(),
-                    'runtime_deprecations' => [],
-                    'scheduler'            => $scheduler,
-                    'jsend'                => JSendEvidenceAuthority::observation($portable)
+                    'uuid'                       => '00000000-0000-0000-0000-000000000000',
+                    'meta'                       => ['consumer' => 'disposable'],
+                    'collection'                 => ['alpha', 'beta'],
+                    'transactional_unit_of_work' => $this->transactionalUnitOfWorkObservation(
+                        $canonicalDoctrineAdapter
+                    ),
+                    'runtime_deprecations'       => [],
+                    'scheduler'                  => $scheduler,
+                    'jsend'                      => JSendEvidenceAuthority::observation($portable)
                 ]
             ]
         ];
@@ -398,7 +417,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
     /** @return array<string, mixed> */
     private function schedulerProbeReceipt(bool $portable): array
     {
-        $receipt = $this->receipt(str_repeat('c', 64), $portable);
+        $receipt = $this->receipt(str_repeat('c', 64), $portable, true);
 
         return [
             'schema_version' => 'fight-common.scheduler-probe/v1',
@@ -414,12 +433,22 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
     }
 
     /** @return array<string, mixed> */
-    private function transactionalUnitOfWorkObservation(): array
+    private function transactionalUnitOfWorkObservation(bool $canonicalDoctrineAdapter = true): array
     {
         return [
-            'legacy_commit_calls' => 1,
+            'canonical_adapter'    => [
+                'available'                       => $canonicalDoctrineAdapter,
+                'transactional_unit_of_work_only' => $canonicalDoctrineAdapter,
+                'standalone_commit_exposed'       => false
+            ],
+            'legacy_adapter'       => [
+                'available'                 => true,
+                'unit_of_work'              => true,
+                'standalone_commit_exposed' => true,
+                'commit_calls'              => 1
+            ],
             'transactional_result' => 'committed',
-            'transactional_closed' => true,
+            'transactional_closed' => !$canonicalDoctrineAdapter,
             'runtime_deprecations' => []
         ];
     }

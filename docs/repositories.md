@@ -1,6 +1,6 @@
 # Repositories
 
-Standard DTOs for paginated repository queries (`Pagination` as input, `ResultSet` as output) and a `UnitOfWork` interface for transaction management. The Doctrine adapter is included.
+Standard DTOs for paginated repository queries (`Pagination` as input, `ResultSet` as output) and the narrow `TransactionalUnitOfWork` boundary for transaction management. The canonical Doctrine adapter is included.
 
 ```
 Domain\Repository
@@ -8,10 +8,14 @@ Domain\Repository
 └── ResultSet     — output: records + pagination metadata
 
 Application\Repository
-└── UnitOfWork (interface)
+├── TransactionalUnitOfWork (canonical interface)
+└── UnitOfWork (deprecated 1.x compatibility interface)
+
+Adapter\Persistence\Doctrine
+└── DoctrineTransactionalUnitOfWork (canonical adapter)
 
 Adapter\Repository
-└── DoctrineUnitOfWork
+└── DoctrineUnitOfWork (deprecated 1.x compatibility adapter)
 ```
 
 ---
@@ -20,9 +24,10 @@ Adapter\Repository
 
 1. [Pagination](#pagination)
 2. [ResultSet](#resultset)
-3. [UnitOfWork Interface](#unitofwork-interface)
-4. [DoctrineUnitOfWork](#doctrineunitofwork)
+3. [TransactionalUnitOfWork Interface](#transactionalunitofwork-interface)
+4. [DoctrineTransactionalUnitOfWork](#doctrinetransactionalunitofwork)
 5. [Usage in a Repository Interface](#usage-in-a-repository-interface)
+6. [Deprecated 1.x Compatibility](#deprecated-1x-compatibility)
 
 ---
 
@@ -107,16 +112,15 @@ json_encode($result);   // same structure
 
 ---
 
-## UnitOfWork Interface
+## TransactionalUnitOfWork Interface
 
-`Fight\Common\Application\Repository\UnitOfWork`
+`Fight\Common\Application\Repository\TransactionalUnitOfWork`
 
-Abstracts transaction management so that application-layer services can flush changes or run transactional operations without coupling to a specific ORM.
+Defines the canonical application boundary for running a complete operation atomically without coupling application services to a specific ORM.
 
 ```php
-interface UnitOfWork
+interface TransactionalUnitOfWork
 {
-    public function commit(): void;
     public function commitTransactional(callable $operation): mixed;
     public function isClosed(): bool;
 }
@@ -124,35 +128,32 @@ interface UnitOfWork
 
 | Method | Purpose |
 |---|---|
-| `commit()` | Flushes all pending changes to the data store |
 | `commitTransactional(callable)` | Wraps the operation in a transaction; returns the operation's result |
 | `isClosed()` | Whether the unit of work is still usable (e.g. after a rollback) |
 
 ---
 
-## DoctrineUnitOfWork
+## DoctrineTransactionalUnitOfWork
 
-`Fight\Common\Adapter\Repository\DoctrineUnitOfWork`
+`Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork`
 
-Wraps Doctrine ORM's `EntityManagerInterface`.
+The canonical Doctrine ORM adapter wraps `EntityManagerInterface` and implements only `TransactionalUnitOfWork`.
 
 ```php
-use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
+use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
 
-$uow = new DoctrineUnitOfWork($entityManager);
+$unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
 
-// Flush pending changes
-$uow->commit();
+$result = $unitOfWork->commitTransactional(function () use ($users, $command) {
+    $user = User::register($command->email, $command->name);
+    $users->save($user);
 
-// Transactional operation
-$result = $uow->commitTransactional(function () use ($uow) {
-    // all changes are flushed inside a transaction
+    return $user->id();
 });
 ```
 
 | Method | Delegates to |
 |---|---|
-| `commit()` | `$entityManager->flush()` |
 | `commitTransactional($operation)` | `$entityManager->wrapInTransaction($operation)` |
 | `isClosed()` | `!$entityManager->isOpen()` |
 
@@ -160,12 +161,12 @@ $result = $uow->commitTransactional(function () use ($uow) {
 
 ## Usage in a Repository Interface
 
-The complete pattern for a repository interface using both DTOs and the `UnitOfWork`:
+The complete pattern for a repository interface using both DTOs and the canonical transaction boundary:
 
 ```php
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
-use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 
 interface UserRepository
 {
@@ -179,14 +180,33 @@ class RegisterUserService
 {
     public function __construct(
         private UserRepository $users,
-        private UnitOfWork $uow
+        private TransactionalUnitOfWork $unitOfWork
     ) {}
 
     public function execute(RegisterUserCommand $command): void
     {
-        $user = User::register($command->email, $command->name);
-        $this->users->save($user);
-        $this->uow->commit();
+        $this->unitOfWork->commitTransactional(function () use ($command): void {
+            $user = User::register($command->email, $command->name);
+            $this->users->save($user);
+        });
     }
 }
+```
+
+---
+
+## Deprecated 1.x compatibility
+
+`Fight\Common\Application\Repository\UnitOfWork` and
+`Fight\Common\Adapter\Repository\DoctrineUnitOfWork` remain functional throughout 1.x without runtime
+deprecation notices. Their standalone `UnitOfWork::commit()` journey is deprecated 1.x compatibility, not the
+path for new consumers. Migrate new and existing transaction boundaries to `TransactionalUnitOfWork` and
+`DoctrineTransactionalUnitOfWork`:
+
+```php
+use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
+
+// Deprecated 1.x compatibility only.
+$legacyUnitOfWork = new DoctrineUnitOfWork($entityManager);
+$legacyUnitOfWork->commit();
 ```

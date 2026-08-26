@@ -46,6 +46,10 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         );
         copy($fixture.'/probe.php', $consumer.'/probe.php');
         copy($fixture.'/public-api-probe.php', $consumer.'/public-api-probe.php');
+        if (is_file($fixture.'/doctrine-boundary-fake.php')) {
+            copy($fixture.'/doctrine-boundary-fake.php', $consumer.'/doctrine-boundary-fake.php');
+        }
+
         copy($fixture.'/jsend-probe.php', $consumer.'/jsend-probe.php');
         copy($fixture.'/http-foundation-boundary-fake.php', $consumer.'/http-foundation-boundary-fake.php');
         if (is_file($fixture.'/messenger-adapter-probe.php')) {
@@ -69,13 +73,32 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
 
         $installedPackage = $consumer.'/vendor/johnnickell/fight-common';
         $this->authenticateCopiedPackage($repository, $consumer, $installedPackage);
+        $publicApiProbeCommand = [PHP_BINARY, $consumer.'/public-api-probe.php'];
+        if (is_file($consumer.'/doctrine-boundary-fake.php')) {
+            $publicApiProbeCommand[] = $consumer.'/doctrine-boundary-fake.php';
+        }
+
+        $publicApiProbeCommand[] = $consumer.'/vendor/autoload.php';
         $publicApiProbeBytes = $this->runPublicApiProbe(
-            [PHP_BINARY, $consumer.'/public-api-probe.php', $consumer.'/vendor/autoload.php'],
+            $publicApiProbeCommand,
             $consumer,
             ['PATH' => '/usr/local/bin:/usr/bin:/bin']
         );
         $publicApiProbeReceipt = json_decode($publicApiProbeBytes, true, flags: JSON_THROW_ON_ERROR);
-        SchedulerEvidenceAuthority::isPublicApiProbeReceipt($publicApiProbeReceipt)
+        $canonicalDoctrineAdapter = is_file(
+            $repository.'/src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php'
+        );
+        if ($canonicalDoctrineAdapter) {
+            $publicApiProbeReceiptIsAuthentic = SchedulerEvidenceAuthority::isPublicApiProbeReceipt(
+                $publicApiProbeReceipt
+            );
+        } else {
+            $publicApiProbeReceiptIsAuthentic = SchedulerEvidenceAuthority::isCanonicalBaselinePublicApiProbeReceipt(
+                $publicApiProbeReceipt
+            );
+        }
+
+        $publicApiProbeReceiptIsAuthentic
             || throw new RuntimeException('The representative public API probe evidence is invalid.');
 
         $jsendProbeBytes = $this->runPublicApiProbe(

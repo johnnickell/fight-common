@@ -47,7 +47,7 @@
         "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
         "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
-        "doctrine/orm": "Required by the doctrine unit of work, audit repository, and base repository",
+        "doctrine/orm": "Required by the canonical Doctrine transactional unit of work, legacy 1.x unit of work, audit repository, and base repository",
         "guzzlehttp/guzzle": "Required by the guzzle http client adapter",
         "guzzlehttp/promises": "Required by the guzzle http client adapter",
         "guzzlehttp/psr7": "Required by the guzzle http client adapter",

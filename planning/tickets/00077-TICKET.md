@@ -2,7 +2,7 @@
 id: T-00077
 prd: PRD-00014
 title: Publish the Canonical Doctrine Transactional UnitOfWork Adapter
-status: ready-for-agent
+status: done
 blocked_by: T-00059
 ---
 
@@ -17,23 +17,23 @@ adapter for the narrow `TransactionalUnitOfWork` contract. Keep the legacy `Unit
 
 ## Acceptance Criteria
 
-- [ ] `DoctrineTransactionalUnitOfWork` lives under `Adapter\\Persistence\\Doctrine`, implements only
+- [x] `DoctrineTransactionalUnitOfWork` lives under `Adapter\\Persistence\\Doctrine`, implements only
       `TransactionalUnitOfWork`, delegates successful work to Doctrine's transaction boundary, preserves callback
       results and failure propagation, reports close state, and rejects nested entry consistently.
-- [ ] The canonical adapter exposes no artificial standalone `commit()` operation.
-- [ ] `Adapter\\Repository\\DoctrineUnitOfWork`, the legacy `UnitOfWork` interface, and their `commit()` journey
+- [x] The canonical adapter exposes no artificial standalone `commit()` operation.
+- [x] `Adapter\\Repository\\DoctrineUnitOfWork`, the legacy `UnitOfWork` interface, and their `commit()` journey
       remain functional through `1.x` without runtime deprecation notices.
-- [ ] Every production, documentation, fixture, and installed-consumer reference that invokes
+- [x] Every production, documentation, fixture, and installed-consumer reference that invokes
       `UnitOfWork::commit()` or `DoctrineUnitOfWork::commit()` is either migrated to the narrow transactional
       journey or deliberately retained and marked as a deprecated legacy example or compatibility probe.
-- [ ] Existing Doctrine repository, data-type, and UnitOfWork documentation names
+- [x] Existing Doctrine repository, data-type, and UnitOfWork documentation names
       `Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork` as canonical and identifies the old
       Repository-path adapter as 1.x compatibility only.
-- [ ] Public API manifest, compatibility authority, installed-package probes, and deprecation evidence classify
+- [x] Public API manifest, compatibility authority, installed-package probes, and deprecation evidence classify
       the canonical class and every retained legacy public surface deliberately.
-- [ ] `CHANGELOG.md` records the canonical transactional Doctrine adapter as added and the legacy
+- [x] `CHANGELOG.md` records the canonical transactional Doctrine adapter as added and the legacy
       `UnitOfWork::commit()` / Repository-path adapter journey as deprecated for `1.x` without claiming removal.
-- [ ] Full submit gate, `./bin/planning-check`, focused Doctrine conformance tests, legacy and narrow installed
+- [x] Full submit gate, `./bin/planning-check`, focused Doctrine conformance tests, legacy and narrow installed
       consumer probes, and exact coverage pass.
 
 ## Exclusions

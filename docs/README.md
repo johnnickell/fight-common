@@ -175,8 +175,10 @@ See [validation](validation.md) for rule definitions and usage.
    testable domain logic.
 
 6. **[repositories](repositories.md)** — Standard DTOs for paginated queries
-   (`Pagination` input, `ResultSet` output) and the `UnitOfWork` interface with its
-   `DoctrineUnitOfWork` adapter.
+   (`Pagination` input, `ResultSet` output) and the `TransactionalUnitOfWork` interface with its
+   canonical `Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork` adapter.
+   `UnitOfWork::commit()` and `Fight\Common\Adapter\Repository\DoctrineUnitOfWork` are documented only as
+   deprecated 1.x compatibility.
 
 7. **[templating](templating.md)** — Template engine abstraction (`PhpEngine`,
    `TwigEngine`, `DelegatingEngine`) with inheritance, blocks, injectable helpers,
