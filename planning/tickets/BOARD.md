@@ -37,8 +37,9 @@ ticket materially cheaper.
 |------|--------|------------|----------|
 | 1 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
 | 2 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Builds the portable PSR and explicit container composition now that its JSend and Messenger prerequisites are complete. |
-| 3 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so Laravel queued transaction and provider work is unblocked. |
-| 4 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
+| 3 | [T-00077 — Publish the Canonical Doctrine Transactional UnitOfWork Adapter](00077-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Publishes the canonical Doctrine adapter now that the narrow transactional contract is complete. |
+| 4 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so Laravel queued transaction and provider work is unblocked. |
+| 5 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
 
 ## Waiting
 
