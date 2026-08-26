@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 140,
+            "declarations": 141,
             "functions": 0
         }
     },
@@ -6635,6 +6635,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Process\\Symfony\\SymfonyProcessRunner",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Process/Symfony/SymfonyProcessRunner.php#Fight\\Common\\Adapter\\Process\\Symfony\\SymfonyProcessRunner",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+            "source": "src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
                             "operation": "implementable"
                         }
                     }

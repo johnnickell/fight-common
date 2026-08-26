@@ -62,23 +62,15 @@ final readonly class SchedulerEvidenceAuthority
      */
     public static function isPublicApiProbeReceipt(mixed $receipt): bool
     {
-        if (!is_array($receipt)) {
-            return false;
-        }
+        return self::isPublicApiProbeReceiptForRole($receipt, true);
+    }
 
-        $observations = $receipt['observations'] ?? null;
-
-        return ($receipt['schema_version'] ?? null) === 'fight-common.public-api-representative-probe/v1'
-            && ($receipt['findings'] ?? null) === self::publicApiFindings()
-            && is_array($observations)
-            && array_keys($observations) === [
-                'uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations'
-            ]
-            && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
-            && $observations['meta'] === ['consumer' => 'disposable']
-            && $observations['collection'] === ['alpha', 'beta']
-            && $observations['transactional_unit_of_work'] === self::transactionalUnitOfWorkObservation()
-            && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations']);
+    /**
+     * Authenticates the representative public-API probe for the canonical 1.1.0 baseline role
+     */
+    public static function isCanonicalBaselinePublicApiProbeReceipt(mixed $receipt): bool
+    {
+        return self::isPublicApiProbeReceiptForRole($receipt, false);
     }
 
     /**
@@ -163,19 +155,7 @@ final readonly class SchedulerEvidenceAuthority
      */
     public static function isCopiedReceipt(mixed $receipt): bool
     {
-        if (!self::hasAuthenticatedCopiedReceiptEnvelope($receipt)) {
-            return false;
-        }
-
-        $scheduler = $receipt['probe']['observations']['scheduler'];
-        $portable = isset($scheduler['portable_process_runner']);
-
-        return ($receipt['probe']['observations']['runtime_deprecations'] ?? null) === []
-            && $scheduler === [
-            ...self::legacyObservation(),
-            ...($portable ? ['portable_process_runner' => self::portableObservation()] : [])
-        ]
-            && ($receipt['probe']['observations']['jsend'] ?? null) === JSendEvidenceAuthority::observation($portable);
+        return self::isCopiedReceiptForRole($receipt, true);
     }
 
     /**
@@ -183,7 +163,7 @@ final readonly class SchedulerEvidenceAuthority
      */
     public static function isCanonicalBaselineReceipt(mixed $receipt): bool
     {
-        return self::isCopiedReceipt($receipt)
+        return self::isCopiedReceiptForRole($receipt, false)
             && !isset($receipt['probe']['observations']['scheduler']['portable_process_runner']);
     }
 
@@ -192,7 +172,7 @@ final readonly class SchedulerEvidenceAuthority
      */
     public static function receiptsAreEquivalent(mixed $baseline, mixed $candidate): bool
     {
-        if (!self::isCopiedReceipt($baseline) || !self::isCopiedReceipt($candidate)) {
+        if (!self::isCanonicalBaselineReceipt($baseline) || !self::isCopiedReceipt($candidate)) {
             return false;
         }
 
@@ -218,7 +198,7 @@ final readonly class SchedulerEvidenceAuthority
     {
         if (
             !self::isCanonicalBaselineReceipt($baseline)
-            || !self::hasAuthenticatedCopiedReceiptEnvelope($candidate)
+            || !self::isAuthenticatedCandidateEnvelope($candidate)
         ) {
             return false;
         }
@@ -324,14 +304,50 @@ final readonly class SchedulerEvidenceAuthority
     }
 
     /**
+     * Authenticates representative public-API evidence against an independently assigned role
+     */
+    private static function isPublicApiProbeReceiptForRole(
+        mixed $receipt,
+        bool $canonicalDoctrineAdapter
+    ): bool {
+        if (!is_array($receipt)) {
+            return false;
+        }
+
+        $observations = $receipt['observations'] ?? null;
+        $transactionalUnitOfWork = null;
+        if (is_array($observations)) {
+            $transactionalUnitOfWork = $observations['transactional_unit_of_work'] ?? null;
+        }
+
+        return ($receipt['schema_version'] ?? null) === 'fight-common.public-api-representative-probe/v1'
+            && ($receipt['findings'] ?? null) === self::publicApiFindings()
+            && is_array($observations)
+            && array_keys($observations) === [
+                'uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations'
+            ]
+            && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
+            && $observations['meta'] === ['consumer' => 'disposable']
+            && $observations['collection'] === ['alpha', 'beta']
+            && $transactionalUnitOfWork === self::transactionalUnitOfWorkObservation($canonicalDoctrineAdapter)
+            && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations']);
+    }
+
+    /**
      * Authenticates the copied-package receipt envelope and its stable finding set
      */
-    private static function hasAuthenticatedCopiedReceiptEnvelope(mixed $receipt): bool
-    {
+    private static function hasAuthenticatedCopiedReceiptEnvelope(
+        mixed $receipt,
+        bool $canonicalDoctrineAdapter
+    ): bool {
         $candidateTree = is_array($receipt) ? ($receipt['candidate']['production_tree_sha256'] ?? null) : null;
         $installedTree = is_array($receipt) ? ($receipt['resolved_package']['production_tree_sha256'] ?? null) : null;
         $scheduler = is_array($receipt) ? ($receipt['probe']['observations']['scheduler'] ?? null) : null;
         $observations = is_array($receipt) ? ($receipt['probe']['observations'] ?? null) : null;
+        $transactionalUnitOfWork = null;
+        if (is_array($observations)) {
+            $transactionalUnitOfWork = $observations['transactional_unit_of_work'] ?? null;
+        }
 
         return is_array($receipt)
             && ($receipt['schema_version'] ?? null) === 'fight-common.disposable-public-consumer/v1'
@@ -347,7 +363,7 @@ final readonly class SchedulerEvidenceAuthority
             && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
             && $observations['meta'] === ['consumer' => 'disposable']
             && $observations['collection'] === ['alpha', 'beta']
-            && $observations['transactional_unit_of_work'] === self::transactionalUnitOfWorkObservation()
+            && $transactionalUnitOfWork === self::transactionalUnitOfWorkObservation($canonicalDoctrineAdapter)
             && self::runtimeDeprecationsAreNormalized($observations['runtime_deprecations'])
             && is_array($scheduler)
             && self::isSchedulerObservationEnvelope($scheduler)
@@ -363,6 +379,44 @@ final readonly class SchedulerEvidenceAuthority
             && preg_match('/\A[0-9a-f]{64}\z/D', $receipt['lock']['sha256']) === 1
             && is_string($receipt['probe']['sha256'] ?? null)
             && preg_match('/\A[0-9a-f]{64}\z/D', $receipt['probe']['sha256']) === 1;
+    }
+
+    /**
+     * Authenticates an exact copied-package receipt against an independently assigned role
+     */
+    private static function isCopiedReceiptForRole(mixed $receipt, bool $canonicalDoctrineAdapter): bool
+    {
+        if (!self::hasAuthenticatedCopiedReceiptEnvelope($receipt, $canonicalDoctrineAdapter)) {
+            return false;
+        }
+
+        $scheduler = $receipt['probe']['observations']['scheduler'];
+        $portable = isset($scheduler['portable_process_runner']);
+
+        return ($receipt['probe']['observations']['runtime_deprecations'] ?? null) === []
+            && $scheduler === [
+            ...self::legacyObservation(),
+            ...($portable ? ['portable_process_runner' => self::portableObservation()] : [])
+        ]
+            && ($receipt['probe']['observations']['jsend'] ?? null) === JSendEvidenceAuthority::observation($portable);
+    }
+
+    /**
+     * Authenticates current candidate evidence or the deliberate legacy-only incompatibility case
+     *
+     * @param array<string, mixed> $candidate
+     */
+    private static function isAuthenticatedCandidateEnvelope(array $candidate): bool
+    {
+        if (self::hasAuthenticatedCopiedReceiptEnvelope($candidate, true)) {
+            return true;
+        }
+
+        $scheduler = $candidate['probe']['observations']['scheduler'] ?? null;
+
+        return is_array($scheduler)
+            && !array_key_exists('portable_process_runner', $scheduler)
+            && self::hasAuthenticatedCopiedReceiptEnvelope($candidate, false);
     }
 
     /**
@@ -457,18 +511,38 @@ final readonly class SchedulerEvidenceAuthority
      * Returns the installed-consumer proof for retained UnitOfWork and the narrow transactional contract
      *
      * @return array{
-     *     legacy_commit_calls: int,
+     *     canonical_adapter: array{
+     *         available: bool,
+     *         transactional_unit_of_work_only: bool,
+     *         standalone_commit_exposed: bool
+     *     },
+     *     legacy_adapter: array{
+     *         available: bool,
+     *         unit_of_work: bool,
+     *         standalone_commit_exposed: bool,
+     *         commit_calls: int
+     *     },
      *     transactional_result: string,
      *     transactional_closed: bool,
      *     runtime_deprecations: list<array{severity: string, message: string}>
      * }
      */
-    private static function transactionalUnitOfWorkObservation(): array
+    private static function transactionalUnitOfWorkObservation(bool $canonicalDoctrineAdapter): array
     {
         return [
-            'legacy_commit_calls'  => 1,
+            'canonical_adapter'    => [
+                'available'                       => $canonicalDoctrineAdapter,
+                'transactional_unit_of_work_only' => $canonicalDoctrineAdapter,
+                'standalone_commit_exposed'       => false
+            ],
+            'legacy_adapter'       => [
+                'available'                 => true,
+                'unit_of_work'              => true,
+                'standalone_commit_exposed' => true,
+                'commit_calls'              => 1
+            ],
             'transactional_result' => 'committed',
-            'transactional_closed' => true,
+            'transactional_closed' => !$canonicalDoctrineAdapter,
             'runtime_deprecations' => []
         ];
     }

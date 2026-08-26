@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\Release\Adapter;
 
 use Fight\Common\Adapter\Observability\Metrics\UdpMetricSender;
+use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
 use Fight\Common\Adapter\Repository\DoctrineRepository;
+use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
 use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
@@ -119,8 +121,49 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'fight-common.classification.prd-00014-addition',
             $declarations[TransactionalUnitOfWork::class]['classification_evidence']['authority']
         );
-        self::assertSame('fight-common.classification.baseline-grandfathered', $declarations[UnitOfWork::class]['classification_evidence']['authority']);
+        self::assertSame(
+            'fight-common.classification.baseline-grandfathered',
+            $declarations[UnitOfWork::class]['classification_evidence']['authority']
+        );
         self::assertTrue(is_subclass_of(UnitOfWork::class, TransactionalUnitOfWork::class));
+    }
+
+    /**
+     * Proves the canonical Doctrine adapter is an additive public class while the legacy adapter remains public.
+     */
+    public function test_that_canonical_and_legacy_doctrine_unit_of_work_adapters_are_intentional_public_contracts(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $manifest = json_decode(
+            (string) file_get_contents($root.'/compatibility/manifest.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $declarations = array_column($manifest['declarations'], null, 'name');
+
+        self::assertSame(
+            [
+                'callable'      => true,
+                'constructible' => true,
+                'extensible'    => false,
+                'implementable' => false
+            ],
+            array_map(
+                static fn (array $operation): bool => $operation['promised'],
+                $declarations[DoctrineTransactionalUnitOfWork::class]['operations']
+            )
+        );
+        self::assertSame(
+            'fight-common.classification.prd-00014-addition',
+            $declarations[DoctrineTransactionalUnitOfWork::class]['classification_evidence']['authority']
+        );
+        self::assertSame(
+            'fight-common.classification.baseline-grandfathered',
+            $declarations[DoctrineUnitOfWork::class]['classification_evidence']['authority']
+        );
+        self::assertTrue(is_a(DoctrineTransactionalUnitOfWork::class, TransactionalUnitOfWork::class, true));
+        self::assertFalse(is_a(DoctrineTransactionalUnitOfWork::class, UnitOfWork::class, true));
+        self::assertFalse(method_exists(DoctrineTransactionalUnitOfWork::class, 'commit'));
     }
 
     /**
@@ -821,9 +864,9 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
                 'Application' => ['declarations' => 171, 'functions' => 0],
-                'Adapter'     => ['declarations' => 140, 'functions' => 0]
+                'Adapter'     => ['declarations' => 141, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 440, 'internal' => 2],
+            'classifications'         => ['public' => 441, 'internal' => 2],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,

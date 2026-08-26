@@ -606,7 +606,11 @@ PHP
             'factory_process_commands' => ['factory-command', 'false', 'false'],
             'non_zero_failure'         => SchedulerEvidenceAuthority::nonZeroFailureObservation()
         ];
-        $receipt = (static fn (string $tree, array $observation): array => [
+        $receipt = (static fn (
+            string $tree,
+            array $observation,
+            bool $canonicalDoctrineAdapter
+        ): array => [
             'schema_version'   => 'fight-common.disposable-public-consumer/v1',
             'status'           => 'valid',
             'findings'         => [
@@ -622,27 +626,37 @@ PHP
             'probe'            => [
                 'sha256'       => str_repeat('a', 64),
                 'observations' => [
-                    'uuid'                 => '00000000-0000-0000-0000-000000000000',
-                    'meta'                 => ['consumer' => 'disposable'],
-                    'collection'           => ['alpha', 'beta'],
+                    'uuid'                       => '00000000-0000-0000-0000-000000000000',
+                    'meta'                       => ['consumer' => 'disposable'],
+                    'collection'                 => ['alpha', 'beta'],
                     'transactional_unit_of_work' => [
-                        'legacy_commit_calls' => 1,
+                        'canonical_adapter'    => [
+                            'available'                       => $canonicalDoctrineAdapter,
+                            'transactional_unit_of_work_only' => $canonicalDoctrineAdapter,
+                            'standalone_commit_exposed'       => false
+                        ],
+                        'legacy_adapter'       => [
+                            'available'                 => true,
+                            'unit_of_work'              => true,
+                            'standalone_commit_exposed' => true,
+                            'commit_calls'              => 1
+                        ],
                         'transactional_result' => 'committed',
-                        'transactional_closed' => true,
+                        'transactional_closed' => !$canonicalDoctrineAdapter,
                         'runtime_deprecations' => []
                     ],
-                    'runtime_deprecations' => [],
-                    'scheduler'            => $observation,
-                    'jsend'                => JSendEvidenceAuthority::observation(
+                    'runtime_deprecations'       => [],
+                    'scheduler'                  => $observation,
+                    'jsend'                      => JSendEvidenceAuthority::observation(
                         isset($observation['portable_process_runner'])
                     )
                 ]
             ]
         ]);
-        $baseline = $receipt(str_repeat('b', 64), $scheduler);
+        $baseline = $receipt(str_repeat('b', 64), $scheduler, false);
         $candidateScheduler = $scheduler;
         $candidateScheduler['portable_process_runner'] = SchedulerEvidenceAuthority::portableObservation();
-        $candidate = $receipt(str_repeat('c', 64), $candidateScheduler);
+        $candidate = $receipt(str_repeat('c', 64), $candidateScheduler, true);
         $candidate['probe']['observations']['scheduler']['portable_process_runner'] = [
             'commands' => ['candidate-only-command'],
             'output'   => "candidate-only portable output\n"
@@ -731,7 +745,7 @@ PHP
             'version' => '2.0.0'
         ], $result->payload['next_action']);
 
-        $legacyOnlyCandidate = $receipt(str_repeat('c', 64), $scheduler);
+        $legacyOnlyCandidate = $receipt(str_repeat('c', 64), $scheduler, false);
         $divergentLog = &$legacyOnlyCandidate['probe']['observations']['scheduler']['non_zero_failure']['logs'][0];
         $divergentLog['message'] = 'candidate-only failure report';
         $legacyOnlyConsumer = new class ($baseline, $legacyOnlyCandidate) implements PublicConsumerPort {
@@ -877,7 +891,7 @@ PHP
             'version' => '2.0.0'
         ], $candidateProbeFailureResult->payload['next_action']);
 
-        $portableBaseline = $receipt(str_repeat('b', 64), $candidateScheduler);
+        $portableBaseline = $receipt(str_repeat('b', 64), $candidateScheduler, false);
         $portableBaselineConsumer = new class ($portableBaseline) implements PublicConsumerPort {
             public int $calls = 0;
 

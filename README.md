@@ -111,7 +111,8 @@ $service->validate([
 | Adapter | Requires |
 |---------|----------|
 | Doctrine data types (`Uuid`, `Uri`, `Url`, `StringObject`, `JsonObject`, etc.) | `doctrine/dbal` |
-| `DoctrineUnitOfWork` | `doctrine/orm` |
+| `Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork` | `doctrine/orm` |
+| `Adapter\Repository\DoctrineUnitOfWork` (deprecated 1.x compatibility) | `doctrine/orm` |
 | `SimpleEventDispatcher`, `ServiceAwareEventDispatcher` | — |
 | `RoutingCommandBus`, `RoutingQueryBus` | — |
 | `MetricsCommandFilter`, `MetricsQueryFilter` | — |
