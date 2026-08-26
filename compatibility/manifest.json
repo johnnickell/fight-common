@@ -12,7 +12,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 170,
+            "declarations": 171,
             "functions": 0
         },
         "Adapter": {
@@ -15703,6 +15703,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Application\\Process\\ProcessRunner",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Application/Process/ProcessRunner.php#Fight\\Common\\Application\\Process\\ProcessRunner",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+            "source": "src/Application/Repository/TransactionalUnitOfWork.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                "source_locator": "working-tree:src/Application/Repository/TransactionalUnitOfWork.php#Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Application/Repository/TransactionalUnitOfWork.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Application/Repository/TransactionalUnitOfWork.php#Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork is not promised for consumer constructible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Application/Repository/TransactionalUnitOfWork.php#Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Application/Repository/TransactionalUnitOfWork.php#Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.interface-implementation",
+                        "rationale": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork is an interface promised for consumer implementation.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Application/Repository/TransactionalUnitOfWork.php#Fight\\Common\\Application\\Repository\\TransactionalUnitOfWork",
                             "operation": "implementable"
                         }
                     }

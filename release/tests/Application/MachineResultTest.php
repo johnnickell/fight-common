@@ -1783,6 +1783,12 @@ final class MachineResultTest extends UnitTestCase
                         'uuid'                 => '00000000-0000-0000-0000-000000000000',
                         'meta'                 => ['consumer' => 'disposable'],
                         'collection'           => ['alpha', 'beta'],
+                        'transactional_unit_of_work' => [
+                            'legacy_commit_calls' => 1,
+                            'transactional_result' => 'committed',
+                            'transactional_closed' => true,
+                            'runtime_deprecations' => []
+                        ],
                         'runtime_deprecations' => [],
                         'scheduler'            => $scheduler,
                         'jsend'                => JSendEvidenceAuthority::observation(
