@@ -2,7 +2,7 @@
 id: T-00053
 prd: PRD-00014
 title: Publish Canonical Doctrine Data Type Paths
-status: ready-for-agent
+status: done
 blocked_by: T-00047
 ---
 
@@ -16,20 +16,20 @@ database conversion, PHP value, SQL declaration, and type identity behavior thro
 
 ## Acceptance Criteria
 
-- [ ] Canonical paths exist for the audit-entry ID, email address, JSON object, multibyte string object,
+- [x] Canonical paths exist for the audit-entry ID, email address, JSON object, multibyte string object,
       multibyte text, message, metadata, string object, string text, generic type, URI, URL, and UUID data types.
-- [ ] Every old Doctrine FQCN remains independently loadable, functional, and documented as deprecated through
+- [x] Every old Doctrine FQCN remains independently loadable, functional, and documented as deprecated through
       `1.x`.
-- [ ] Each old/new pair is tested for construction, database-to-PHP conversion, PHP-to-database conversion, SQL
+- [x] Each old/new pair is tested for construction, database-to-PHP conversion, PHP-to-database conversion, SQL
       declaration, binding type, null behavior, invalid input, and platform-specific behavior where applicable.
-- [ ] Doctrine registration probes cover type names, registry identity, schema discovery, and round trips for
+- [x] Doctrine registration probes cover type names, registry identity, schema discovery, and round trips for
       every old/new pair.
-- [ ] Compatibility mechanisms are chosen per type from identity and registration evidence; a pure alias is
+- [x] Compatibility mechanisms are chosen per type from identity and registration evidence; a pure alias is
       accepted only when it preserves the complete consumer contract.
-- [ ] Existing serialized and persisted representations remain readable and writable without migration solely
+- [x] Existing serialized and persisted representations remain readable and writable without migration solely
       because of the PHP namespace expansion.
-- [ ] No runtime deprecation warning is emitted and no old type path is removed before `2.0.0`.
-- [ ] All twenty-six public identities and designated conversion behaviors are linked to stable compatibility
+- [x] No runtime deprecation warning is emitted and no old type path is removed before `2.0.0`.
+- [x] All twenty-six public identities and designated conversion behaviors are linked to stable compatibility
       findings.
 
 ## Verification
