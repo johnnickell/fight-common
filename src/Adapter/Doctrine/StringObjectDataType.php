@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Doctrine;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Types\ConversionException;
-use Doctrine\DBAL\Types\Exception\InvalidType;
-use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Doctrine\DBAL\Types\Type;
 use Fight\Common\Domain\Value\Basic\StringObject;
-use Override;
-use Throwable;
 
 /**
  * Class StringObjectDataType
+ *
+ * @deprecated Use \Fight\Common\Adapter\Persistence\Doctrine\Type\StringObjectDataType instead.
  */
-final class StringObjectDataType extends Type
+final class StringObjectDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type\StringObjectDataType
 {
     public const string TYPE_NAME = 'common_string';
 
@@ -25,49 +21,26 @@ final class StringObjectDataType extends Type
      */
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return $platform->getStringTypeDeclarationSQL($column);
+        return parent::getSQLDeclaration($column, $platform);
     }
 
     /**
      * Converts a value from its PHP representation to its database representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
-        if (empty($value)) {
-            return null;
-        }
-
-        if (!($value instanceof StringObject)) {
-            throw InvalidType::new($value, 'string', [StringObject::class]);
-        }
-
-        return $value->toString();
+        return parent::convertToDatabaseValue($value, $platform);
     }
 
     /**
      * Converts a value from its database representation to its PHP representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?StringObject
     {
-        if ($value === null) {
-            return null;
-        }
+        /** @var ?StringObject $converted */
+        $converted = parent::convertToPHPValue($value, $platform);
 
-        if ($value instanceof StringObject) {
-            return $value;
-        }
-
-        try {
-            return StringObject::fromString($value);
-        } catch (Throwable $throwable) {
-            throw ValueNotConvertible::new($value, StringObject::class, $throwable->getMessage(), $throwable);
-        }
+        return $converted;
     }
 
     /**
@@ -75,6 +48,6 @@ final class StringObjectDataType extends Type
      */
     public function getName(): string
     {
-        return static::TYPE_NAME;
+        return parent::getName();
     }
 }

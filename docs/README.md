@@ -117,18 +117,23 @@ Register the custom data types in `config/packages/doctrine.yaml`:
 doctrine:
     dbal:
         types:
-            common_uuid:            Fight\Common\Adapter\Doctrine\UuidDataType
-            common_email_address:   Fight\Common\Adapter\Doctrine\EmailAddressDataType
-            common_uri:             Fight\Common\Adapter\Doctrine\UriDataType
-            common_url:             Fight\Common\Adapter\Doctrine\UrlDataType
-            common_string:          Fight\Common\Adapter\Doctrine\StringObjectDataType
-            common_string_text:     Fight\Common\Adapter\Doctrine\StringTextDataType
-            common_mb_string:       Fight\Common\Adapter\Doctrine\MbStringObjectDataType
-            common_mb_string_text:  Fight\Common\Adapter\Doctrine\MbStringTextDataType
-            common_json:            Fight\Common\Adapter\Doctrine\JsonObjectDataType
-            common_type:            Fight\Common\Adapter\Doctrine\TypeDataType
-            common_message:         Fight\Common\Adapter\Doctrine\MessageDataType
+            audit_entry_id:         Fight\Common\Adapter\Persistence\Doctrine\Type\AuditEntryIdDataType
+            common_uuid:            Fight\Common\Adapter\Persistence\Doctrine\Type\UuidDataType
+            common_email_address:   Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType
+            common_uri:             Fight\Common\Adapter\Persistence\Doctrine\Type\UriDataType
+            common_url:             Fight\Common\Adapter\Persistence\Doctrine\Type\UrlDataType
+            common_string:          Fight\Common\Adapter\Persistence\Doctrine\Type\StringObjectDataType
+            common_string_text:     Fight\Common\Adapter\Persistence\Doctrine\Type\StringTextDataType
+            common_mb_string:       Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringObjectDataType
+            common_mb_string_text:  Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringTextDataType
+            common_json:            Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType
+            common_meta:            Fight\Common\Adapter\Persistence\Doctrine\Type\MetaDataType
+            common_type:            Fight\Common\Adapter\Persistence\Doctrine\Type\TypeDataType
+            common_message:         Fight\Common\Adapter\Persistence\Doctrine\Type\MessageDataType
 ```
+
+The former `Fight\Common\Adapter\Doctrine\*DataType` paths remain silent deprecated 1.x
+identities for existing consumers; register the canonical paths above in new configuration.
 
 See [values](values.md#doctrine-data-types) for details and entity usage examples.
 

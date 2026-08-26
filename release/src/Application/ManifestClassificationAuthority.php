@@ -21,7 +21,7 @@ final readonly class ManifestClassificationAuthority
     private const array INVENTORY = [
         'Domain'      => ['declarations' => 131, 'functions' => 13],
         'Application' => ['declarations' => 170, 'functions' => 0],
-        'Adapter'     => ['declarations' => 126, 'functions' => 0]
+        'Adapter'     => ['declarations' => 140, 'functions' => 0]
     ];
     private const array OPERATIONS = ['callable', 'constructible', 'extensible', 'implementable'];
     private const array EVIDENCE_AUTHORITIES = [
@@ -76,7 +76,7 @@ final readonly class ManifestClassificationAuthority
     private const array CLASSIFICATION_SUBJECT_DIGESTS = [
         'baseline_declarations' => '68268346a810048e882b47685736e51d7d747cd19115c8dff67faf7f6d691ee8',
         'baseline_functions'    => '519444e4d23f8b4813df8ab5677f6d1aeab0b0c8c46ec1a8aed49e60daec9168',
-        'added_declarations'    => '786748c662be75d82a4f6969bf21e25047506449819fd58b0f81e3255c109833'
+        'added_declarations'    => 'a529a400b689610f21124420f9f41698d4f52ab92b778bb75e454a27b090466d'
     ];
 
     /**
@@ -167,8 +167,8 @@ final readonly class ManifestClassificationAuthority
         ) === [
             'declarations' => [
                 'fight-common.classification.baseline-grandfathered'       => 363,
-                'fight-common.classification.prd-00014-addition'           => 63,
-                'fight-common.classification.explicit-internal-annotation' => 1
+                'fight-common.classification.prd-00014-addition'           => 76,
+                'fight-common.classification.explicit-internal-annotation' => 2
             ],
             'functions'    => ['fight-common.classification.baseline-grandfathered' => 13]
         ];
