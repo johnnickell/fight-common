@@ -42,6 +42,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
                 'uuid'                 => '00000000-0000-0000-0000-000000000000',
                 'meta'                 => ['consumer' => 'disposable'],
                 'collection'           => ['alpha', 'beta'],
+                'transactional_unit_of_work' => $this->transactionalUnitOfWorkObservation(),
                 'runtime_deprecations' => []
             ]
         ];
@@ -53,7 +54,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
             ]));
         }
 
-        foreach (['uuid', 'meta', 'collection', 'runtime_deprecations'] as $field) {
+        foreach (['uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations'] as $field) {
             $mutated = $publicApiReceipt;
             $mutated['observations'][$field] = null;
             self::assertFalse(SchedulerEvidenceAuthority::isPublicApiProbeReceipt($mutated));
@@ -141,6 +142,11 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
         self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($deprecationsOmitted));
         self::assertFalse(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $deprecationsOmitted));
 
+        $transactionalUnitOfWorkOmitted = $candidate;
+        unset($transactionalUnitOfWorkOmitted['probe']['observations']['transactional_unit_of_work']);
+        self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($transactionalUnitOfWorkOmitted));
+        self::assertFalse(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $transactionalUnitOfWorkOmitted));
+
         $deprecationObserved = $candidate;
         $deprecationObserved['probe']['observations']['runtime_deprecations'] = [[
             'severity' => 'E_USER_DEPRECATED',
@@ -154,7 +160,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
         self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($mutated));
         self::assertFalse(SchedulerEvidenceAuthority::receiptsAreEquivalent($baseline, $mutated));
 
-        foreach (['uuid', 'meta', 'collection', 'jsend'] as $field) {
+        foreach (['uuid', 'meta', 'collection', 'transactional_unit_of_work', 'jsend'] as $field) {
             $genericMutated = $candidate;
             $genericMutated['probe']['observations'][$field] = 'mutated';
             self::assertFalse(SchedulerEvidenceAuthority::isCopiedReceipt($genericMutated));
@@ -380,6 +386,7 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
                     'uuid'                 => '00000000-0000-0000-0000-000000000000',
                     'meta'                 => ['consumer' => 'disposable'],
                     'collection'           => ['alpha', 'beta'],
+                    'transactional_unit_of_work' => $this->transactionalUnitOfWorkObservation(),
                     'runtime_deprecations' => [],
                     'scheduler'            => $scheduler,
                     'jsend'                => JSendEvidenceAuthority::observation($portable)
@@ -403,6 +410,17 @@ final class SchedulerEvidenceAuthorityTest extends UnitTestCase
                 'runtime_deprecations' => [],
                 'scheduler'            => $receipt['probe']['observations']['scheduler']
             ]
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function transactionalUnitOfWorkObservation(): array
+    {
+        return [
+            'legacy_commit_calls' => 1,
+            'transactional_result' => 'committed',
+            'transactional_closed' => true,
+            'runtime_deprecations' => []
         ];
     }
 

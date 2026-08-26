@@ -29,6 +29,37 @@ final class DisposablePublicConsumerTest extends UnitTestCase
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 
     /**
+     * Proves an installed consumer can retain its legacy UnitOfWork implementation
+     * while a narrow consumer implements only the transactional contract.
+     */
+    public function test_that_the_installed_candidate_supports_legacy_and_transactional_unit_of_work_consumers(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $consumer = sys_get_temp_dir().'/fight-common-unit-of-work-consumer-'.bin2hex(random_bytes(8));
+        mkdir($consumer, 0777, true);
+
+        try {
+            $receipt = new DisposablePublicConsumer()->run(
+                $root,
+                $root.'/release/fixtures/PublicApiConsumer',
+                $consumer
+            );
+
+            self::assertSame(
+                [
+                    'legacy_commit_calls' => 1,
+                    'transactional_result' => 'committed',
+                    'transactional_closed' => true,
+                    'runtime_deprecations' => []
+                ],
+                $receipt['probe']['observations']['transactional_unit_of_work']
+            );
+        } finally {
+            new Filesystem()->remove($consumer);
+        }
+    }
+
+    /**
      * Proves installed-package JSend evidence is authenticated before receipt composition.
      */
     public function test_that_the_installed_candidate_emits_authenticated_jsend_evidence(): void
@@ -209,6 +240,12 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                             'uuid'                 => '00000000-0000-0000-0000-000000000000',
                             'meta'                 => ['consumer' => 'disposable'],
                             'collection'           => ['alpha', 'beta'],
+                            'transactional_unit_of_work' => [
+                                'legacy_commit_calls' => 1,
+                                'transactional_result' => 'committed',
+                                'transactional_closed' => true,
+                                'runtime_deprecations' => []
+                            ],
                             'runtime_deprecations' => [],
                             'scheduler'            => [
                                 'construction_styles'      => [
