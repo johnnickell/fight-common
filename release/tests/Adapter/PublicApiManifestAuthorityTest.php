@@ -15,6 +15,8 @@ use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
 use Fight\Common\Application\HttpClient\Exception\Exception;
 use Fight\Common\Application\HttpFoundation\HttpMethod;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Application\Repository\UnitOfWork;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\MessageType;
 use Fight\Common\Domain\Specification\CompositeSpecification;
@@ -86,6 +88,39 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
                 $declarations[$class]['classification_evidence']['authority']
             );
         }
+    }
+
+    /**
+     * Proves the transactional unit of work is a deliberate additive contract while UnitOfWork retains its legacy role.
+     */
+    public function test_that_transactional_unit_of_work_and_legacy_extension_are_intentional_public_contracts(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $manifest = json_decode(
+            (string) file_get_contents($root.'/compatibility/manifest.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $declarations = array_column($manifest['declarations'], null, 'name');
+
+        self::assertSame(
+            [
+                'callable'      => true,
+                'constructible' => false,
+                'extensible'    => false,
+                'implementable' => true
+            ],
+            array_map(
+                static fn (array $operation): bool => $operation['promised'],
+                $declarations[TransactionalUnitOfWork::class]['operations']
+            )
+        );
+        self::assertSame(
+            'fight-common.classification.prd-00014-addition',
+            $declarations[TransactionalUnitOfWork::class]['classification_evidence']['authority']
+        );
+        self::assertSame('fight-common.classification.baseline-grandfathered', $declarations[UnitOfWork::class]['classification_evidence']['authority']);
+        self::assertTrue(is_subclass_of(UnitOfWork::class, TransactionalUnitOfWork::class));
     }
 
     /**
@@ -785,10 +820,10 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             ],
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
-                'Application' => ['declarations' => 170, 'functions' => 0],
+                'Application' => ['declarations' => 171, 'functions' => 0],
                 'Adapter'     => ['declarations' => 140, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 439, 'internal' => 2],
+            'classifications'         => ['public' => 440, 'internal' => 2],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,

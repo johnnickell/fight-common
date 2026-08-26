@@ -154,12 +154,13 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
                 ...$jsendProbeReceipt['findings']
             ],
             'observations'   => [
-                'uuid'                 => $publicApiProbeReceipt['observations']['uuid'],
-                'meta'                 => $publicApiProbeReceipt['observations']['meta'],
-                'collection'           => $publicApiProbeReceipt['observations']['collection'],
-                'runtime_deprecations' => array_values($runtimeDeprecations),
-                'scheduler'            => $schedulerProbeReceipt['observations']['scheduler'],
-                'jsend'                => $jsendProbeReceipt['observations']['jsend']
+                'uuid'                       => $publicApiProbeReceipt['observations']['uuid'],
+                'meta'                       => $publicApiProbeReceipt['observations']['meta'],
+                'collection'                 => $publicApiProbeReceipt['observations']['collection'],
+                'transactional_unit_of_work' => $publicApiProbeReceipt['observations']['transactional_unit_of_work'],
+                'runtime_deprecations'       => array_values($runtimeDeprecations),
+                'scheduler'                  => $schedulerProbeReceipt['observations']['scheduler'],
+                'jsend'                      => $jsendProbeReceipt['observations']['jsend']
             ]
         ];
         $probeBytes = json_encode(

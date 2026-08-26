@@ -172,6 +172,16 @@ BASH
             '-v '.$this->gitDirectory.':'.$this->gitDirectory.':ro',
             file_get_contents($this->directory.'/docker.log'),
         );
+        self::assertStringContainsString(
+            '-v '.$this->directory.':'.$this->directory.':delegated',
+            file_get_contents($this->directory.'/docker.log'),
+        );
+        self::assertStringContainsString('--env GIT_CONFIG_COUNT=1', file_get_contents($this->directory.'/docker.log'));
+        self::assertStringContainsString(
+            '--env GIT_CONFIG_KEY_0=safe.directory',
+            file_get_contents($this->directory.'/docker.log'),
+        );
+        self::assertStringContainsString('--env GIT_CONFIG_VALUE_0=/app', file_get_contents($this->directory.'/docker.log'));
     }
 
     public function test_that_latest_updates_the_lock_and_runs_quality_in_the_same_owned_container(): void
