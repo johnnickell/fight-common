@@ -61,6 +61,11 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
             copy($fixture.'/symfony-adapter-boundary-fake.php', $consumer.'/symfony-adapter-boundary-fake.php');
         }
 
+        if (is_file($fixture.'/mercure-adapter-probe.php')) {
+            copy($fixture.'/mercure-adapter-probe.php', $consumer.'/mercure-adapter-probe.php');
+            copy($fixture.'/mercure-boundary-fake.php', $consumer.'/mercure-boundary-fake.php');
+        }
+
         $this->runProcess(
             ['/usr/local/bin/composer', 'install', '--no-interaction', '--no-progress', '--no-plugins', '--no-scripts'],
             $consumer,
@@ -150,6 +155,26 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
             );
         }
 
+        $mercureProbeReceipt = null;
+        if (
+            is_file($consumer.'/mercure-adapter-probe.php')
+            && is_file($installedPackage.'/src/Adapter/Socket/PrivateMercureHubPublisher.php')
+        ) {
+            $mercureProbeBytes = $this->runPublicApiProbe(
+                [
+                    PHP_BINARY,
+                    $consumer.'/mercure-adapter-probe.php',
+                    $consumer.'/mercure-boundary-fake.php',
+                    $consumer.'/vendor/autoload.php'
+                ],
+                $consumer,
+                ['PATH' => '/usr/local/bin:/usr/bin:/bin']
+            );
+            $mercureProbeReceipt = json_decode($mercureProbeBytes, true, flags: JSON_THROW_ON_ERROR);
+            $this->isMercureProbeReceipt($mercureProbeReceipt)
+                || throw new RuntimeException('The Mercure adapter probe evidence is invalid.');
+        }
+
         $schedulerProbeBytes = $this->runProbe(
             [PHP_BINARY, $consumer.'/probe.php', $consumer.'/vendor/autoload.php'],
             $consumer,
@@ -174,7 +199,8 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
             'findings'       => [
                 ...$publicApiProbeReceipt['findings'],
                 ...$schedulerProbeReceipt['findings'],
-                ...$jsendProbeReceipt['findings']
+                ...$jsendProbeReceipt['findings'],
+                ...($mercureProbeReceipt['findings'] ?? [])
             ],
             'observations'   => [
                 'uuid'                       => $publicApiProbeReceipt['observations']['uuid'],
@@ -183,7 +209,8 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
                 'transactional_unit_of_work' => $publicApiProbeReceipt['observations']['transactional_unit_of_work'],
                 'runtime_deprecations'       => array_values($runtimeDeprecations),
                 'scheduler'                  => $schedulerProbeReceipt['observations']['scheduler'],
-                'jsend'                      => $jsendProbeReceipt['observations']['jsend']
+                'jsend'                      => $jsendProbeReceipt['observations']['jsend'],
+                ...($mercureProbeReceipt === null ? [] : ['mercure' => $mercureProbeReceipt['observations']])
             ]
         ];
         $probeBytes = json_encode(
@@ -451,5 +478,46 @@ final readonly class DisposablePublicConsumer implements PublicConsumerPort
         );
 
         return $outcome['output'];
+    }
+
+    /**
+     * Authenticates the closed public/private Mercure adapter probe
+     */
+    private function isMercureProbeReceipt(mixed $receipt): bool
+    {
+        return is_array($receipt)
+            && ($receipt['schema_version'] ?? null) === 'fight-common.mercure-adapter-probe/v1'
+            && ($receipt['findings'] ?? null) === [[
+                'finding_id'  => 'release.compatibility.consumer.mercure-public-private-publishers-passed',
+                'evidence_id' => 'fight-common.behavior.mercure-public-private-publishers',
+                'attribution' => 'release/fixtures/PublicApiConsumer/mercure-adapter-probe.php',
+                'status'      => 'passed'
+            ]]
+            && ($receipt['observations'] ?? null) === [
+                'public'          => [
+                    'topics'  => ['/topics/public'],
+                    'data'    => '{"visibility":"public"}',
+                    'private' => false,
+                    'id'      => null,
+                    'type'    => null,
+                    'retry'   => null
+                ],
+                'private'         => [
+                    'topics'  => ['/topics/private'],
+                    'data'    => '{"visibility":"private"}',
+                    'private' => true,
+                    'id'      => null,
+                    'type'    => null,
+                    'retry'   => null
+                ],
+                'private_failure' => [
+                    'class'            => 'Fight\\Common\\Application\\Socket\\Exception\\'.'SocketException',
+                    'message'          => 'private transport failed',
+                    'code'             => 29,
+                    'previous_class'   => 'RuntimeException',
+                    'previous_message' => 'private transport failed',
+                    'previous_code'    => 29
+                ]
+            ];
     }
 }
