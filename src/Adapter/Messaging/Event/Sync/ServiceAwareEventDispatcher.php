@@ -69,9 +69,7 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
      */
     public function addHandlerService(string $eventType, string $serviceId, string $method, int $priority = 0): void
     {
-        if (!isset($this->serviceIds[$eventType])) {
-            $this->serviceIds[$eventType] = [];
-        }
+        $this->serviceIds[$eventType] ??= [];
 
         $this->serviceIds[$eventType][] = [$serviceId, $method, $priority];
     }

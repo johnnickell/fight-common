@@ -94,13 +94,9 @@ class SimpleEventDispatcher implements SynchronousEventDispatcher
      */
     public function addHandler(string $eventType, callable $handler, int $priority = 0): void
     {
-        if (!isset($this->handlers[$eventType])) {
-            $this->handlers[$eventType] = [];
-        }
+        $this->handlers[$eventType] ??= [];
 
-        if (!isset($this->handlers[$eventType][$priority])) {
-            $this->handlers[$eventType][$priority] = [];
-        }
+        $this->handlers[$eventType][$priority] ??= [];
 
         $this->handlers[$eventType][$priority][] = $handler;
         unset($this->sorted[$eventType]);
