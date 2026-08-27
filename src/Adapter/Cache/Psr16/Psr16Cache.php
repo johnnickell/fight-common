@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Adapter\Cache\Psr16;
+
+use Fight\Common\Application\Cache\Cache;
+use Fight\Common\Application\Cache\Exception\CacheException;
+use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
+use stdClass;
+use Throwable;
+
+/**
+ * Class Psr16Cache
+ */
+final readonly class Psr16Cache implements Cache
+{
+    /**
+     * Constructs Psr16Cache
+     */
+    public function __construct(private CacheInterface $simpleCache, private LoggerInterface $logger)
+    {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function read(string $key, callable $loader, int $ttl): mixed
+    {
+        try {
+            $cacheMiss = new stdClass();
+            $value = $this->simpleCache->get($key, $cacheMiss);
+
+            if ($value === $cacheMiss) {
+                $this->logger->debug(sprintf('Cache MISS: "%s"', $key));
+
+                $value = $loader();
+                $this->simpleCache->set($key, $value, $ttl);
+            } else {
+                $this->logger->debug(sprintf('Cache HIT: "%s"', $key));
+            }
+
+            return $value;
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
+    }
+}

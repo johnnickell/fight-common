@@ -900,9 +900,9 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
                 'Application' => ['declarations' => 172, 'functions' => 0],
-                'Adapter'     => ['declarations' => 142, 'functions' => 0]
+                'Adapter'     => ['declarations' => 153, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 443, 'internal' => 2],
+            'classifications'         => ['public' => 454, 'internal' => 2],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,
