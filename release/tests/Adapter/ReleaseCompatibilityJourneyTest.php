@@ -125,7 +125,13 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
                     'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
                     'status'      => 'passed'
                 ],
-                ...JSendEvidenceAuthority::findings(true)
+                ...JSendEvidenceAuthority::findings(true),
+                [
+                    'finding_id'  => 'release.compatibility.consumer.mercure-public-private-publishers-passed',
+                    'evidence_id' => 'fight-common.behavior.mercure-public-private-publishers',
+                    'attribution' => 'release/fixtures/PublicApiConsumer/mercure-adapter-probe.php',
+                    'status'      => 'passed'
+                ]
             ],
             $result['evidence']['consumer']['package_probes']['candidate']['receipt']['findings']
         );
