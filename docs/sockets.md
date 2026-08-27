@@ -150,16 +150,34 @@ Topics are typically URL strings that clients subscribe to. The topic is passed 
 
 ### Private Updates
 
-To send private updates (visible only to the target user), pass the topic and data as usual. Privacy is controlled by the Mercure JWT token, not by the `Publisher` interface. If you need to mark an update as private, construct the `Update` directly and call `$hub->publish()` instead:
+To send private updates, select the separate `PrivatePublisher` port and its
+`PrivateMercureHubPublisher` adapter. This is independent of the existing public
+`Publisher`/`MercureHubPublisher` selection; application composition owns topic
+authorization and Mercure JWT configuration.
 
 ```php
-use Symfony\Component\Mercure\Update;
+use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
+use Fight\Common\Application\Socket\PrivatePublisher;
 
-$this->hub->publish(new Update(
-    'https://example.com/user/' . $userId . '/notifications',
-    $message,
-    private: true,
-));
+$privatePublisher = new PrivateMercureHubPublisher($hub);
+$privatePublisher->pushPrivate(
+    'https://example.com/users/42',
+    json_encode(['message' => 'private'], JSON_THROW_ON_ERROR)
+);
+```
+
+`PrivateMercureHubPublisher` marks its Mercure `Update` private. It does not
+authorize subscriptions, create credentials, or transform the supplied topic or
+payload. Install `symfony/mercure` in the consuming application (it is a Composer
+suggestion, not a Fight Common production dependency), then bind either or both
+ports explicitly:
+
+```yaml
+Fight\Common\Application\Socket\Publisher:
+    alias: Fight\Common\Adapter\Socket\MercureHubPublisher
+
+Fight\Common\Application\Socket\PrivatePublisher:
+    alias: Fight\Common\Adapter\Socket\PrivateMercureHubPublisher
 ```
 
 ---

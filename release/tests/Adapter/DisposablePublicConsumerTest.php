@@ -225,6 +225,12 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                             'evidence_id' => 'fight-common.behavior.jsend-typed-response',
                             'attribution' => 'release/fixtures/PublicApiConsumer/jsend-probe.php',
                             'status'      => 'passed'
+                        ],
+                        [
+                            'finding_id'  => 'release.compatibility.consumer.mercure-public-private-publishers-passed',
+                            'evidence_id' => 'fight-common.behavior.mercure-public-private-publishers',
+                            'attribution' => 'release/fixtures/PublicApiConsumer/mercure-adapter-probe.php',
+                            'status'      => 'passed'
                         ]
                     ],
                     'candidate'        => [
@@ -283,7 +289,33 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                                     'output'   => "scheduler portable command\n"
                                 ]
                             ],
-                            'jsend'                      => JSendEvidenceAuthority::observation(true)
+                            'jsend'                      => JSendEvidenceAuthority::observation(true),
+                            'mercure'                    => [
+                                'public'          => [
+                                    'topics'  => ['/topics/public'],
+                                    'data'    => '{"visibility":"public"}',
+                                    'private' => false,
+                                    'id'      => null,
+                                    'type'    => null,
+                                    'retry'   => null
+                                ],
+                                'private'         => [
+                                    'topics'  => ['/topics/private'],
+                                    'data'    => '{"visibility":"private"}',
+                                    'private' => true,
+                                    'id'      => null,
+                                    'type'    => null,
+                                    'retry'   => null
+                                ],
+                                'private_failure' => [
+                                    'class'            => 'Fight\\Common\\Application\\Socket\\Exception\\SocketException',
+                                    'message'          => 'private transport failed',
+                                    'code'             => 29,
+                                    'previous_class'   => 'RuntimeException',
+                                    'previous_message' => 'private transport failed',
+                                    'previous_code'    => 29
+                                ]
+                            ]
                         ]
                     ]
                 ],
@@ -385,7 +417,13 @@ final class DisposablePublicConsumerTest extends UnitTestCase
                         'attribution' => 'release/fixtures/PublicApiConsumer/probe.php',
                         'status'      => 'passed'
                     ],
-                    ...JSendEvidenceAuthority::findings(true)
+                    ...JSendEvidenceAuthority::findings(true),
+                    [
+                        'finding_id'  => 'release.compatibility.consumer.mercure-public-private-publishers-passed',
+                        'evidence_id' => 'fight-common.behavior.mercure-public-private-publishers',
+                        'attribution' => 'release/fixtures/PublicApiConsumer/mercure-adapter-probe.php',
+                        'status'      => 'passed'
+                    ]
                 ],
                 $receipt['findings']
             );

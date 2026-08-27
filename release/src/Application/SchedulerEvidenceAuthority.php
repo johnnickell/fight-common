@@ -304,6 +304,56 @@ final readonly class SchedulerEvidenceAuthority
     }
 
     /**
+     * Returns the exact private Mercure publication consumer finding
+     *
+     * @return array{finding_id: string, evidence_id: string, attribution: string, status: string}
+     */
+    private static function mercureFinding(): array
+    {
+        return [
+            'finding_id'  => 'release.compatibility.consumer.mercure-public-private-publishers-passed',
+            'evidence_id' => 'fight-common.behavior.mercure-public-private-publishers',
+            'attribution' => 'release/fixtures/PublicApiConsumer/mercure-adapter-probe.php',
+            'status'      => 'passed'
+        ];
+    }
+
+    /**
+     * Returns the exact public and private Mercure adapter observation
+     *
+     * @return array<string, mixed>
+     */
+    private static function mercureObservation(): array
+    {
+        return [
+            'public'          => [
+                'topics'  => ['/topics/public'],
+                'data'    => '{"visibility":"public"}',
+                'private' => false,
+                'id'      => null,
+                'type'    => null,
+                'retry'   => null
+            ],
+            'private'         => [
+                'topics'  => ['/topics/private'],
+                'data'    => '{"visibility":"private"}',
+                'private' => true,
+                'id'      => null,
+                'type'    => null,
+                'retry'   => null
+            ],
+            'private_failure' => [
+                'class'            => 'Fight\\Common\\Application\\Socket\\Exception\\'.'SocketException',
+                'message'          => 'private transport failed',
+                'code'             => 29,
+                'previous_class'   => 'RuntimeException',
+                'previous_message' => 'private transport failed',
+                'previous_code'    => 29
+            ]
+        ];
+    }
+
+    /**
      * Authenticates representative public-API evidence against an independently assigned role
      */
     private static function isPublicApiProbeReceiptForRole(
@@ -344,6 +394,8 @@ final readonly class SchedulerEvidenceAuthority
         $installedTree = is_array($receipt) ? ($receipt['resolved_package']['production_tree_sha256'] ?? null) : null;
         $scheduler = is_array($receipt) ? ($receipt['probe']['observations']['scheduler'] ?? null) : null;
         $observations = is_array($receipt) ? ($receipt['probe']['observations'] ?? null) : null;
+        $mercure = is_array($observations) ? ($observations['mercure'] ?? null) : null;
+        $hasMercure = is_array($observations) && array_key_exists('mercure', $observations);
         $transactionalUnitOfWork = null;
         if (is_array($observations)) {
             $transactionalUnitOfWork = $observations['transactional_unit_of_work'] ?? null;
@@ -358,7 +410,14 @@ final readonly class SchedulerEvidenceAuthority
             && $candidateTree === $installedTree
             && is_array($observations)
             && array_keys($observations) === [
-                'uuid', 'meta', 'collection', 'transactional_unit_of_work', 'runtime_deprecations', 'scheduler', 'jsend'
+                'uuid',
+                'meta',
+                'collection',
+                'transactional_unit_of_work',
+                'runtime_deprecations',
+                'scheduler',
+                'jsend',
+                ...($hasMercure ? ['mercure'] : [])
             ]
             && $observations['uuid'] === '00000000-0000-0000-0000-000000000000'
             && $observations['meta'] === ['consumer' => 'disposable']
@@ -369,12 +428,14 @@ final readonly class SchedulerEvidenceAuthority
             && self::isSchedulerObservationEnvelope($scheduler)
             && ($receipt['findings'] ?? null) === [
                 ...self::findings(isset($scheduler['portable_process_runner'])),
-                ...JSendEvidenceAuthority::findings(isset($scheduler['portable_process_runner']))
+                ...JSendEvidenceAuthority::findings(isset($scheduler['portable_process_runner'])),
+                ...($hasMercure ? [self::mercureFinding()] : [])
             ]
             && self::jsendObservationHasAuthenticatedShape(
                 $observations['jsend'] ?? null,
                 isset($scheduler['portable_process_runner'])
             )
+            && (!$hasMercure || $mercure === self::mercureObservation())
             && is_string($receipt['lock']['sha256'] ?? null)
             && preg_match('/\A[0-9a-f]{64}\z/D', $receipt['lock']['sha256']) === 1
             && is_string($receipt['probe']['sha256'] ?? null)
