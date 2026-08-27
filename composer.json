@@ -59,7 +59,7 @@
         "symfony/http-foundation": "Required for the JSend response and other HTTP related utilities",
         "symfony/http-kernel": "Required for the kernel middleware and other HTTP related utilities",
         "symfony/mailer": "Required by the Symfony mail transport and attachment adapters",
-        "symfony/mercure": "Required by the Mercure hub publisher",
+        "symfony/mercure": "Required by the public and private Mercure hub publishers",
         "symfony/messenger": "Required by the async messenger command bus and event dispatcher",
         "symfony/process": "Required by the Symfony process runner adapter",
         "symfony/routing": "Required for the URL generator",

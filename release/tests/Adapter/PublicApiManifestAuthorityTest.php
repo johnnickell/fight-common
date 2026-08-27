@@ -15,10 +15,12 @@ use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
 use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
+use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
 use Fight\Common\Application\HttpClient\Exception\Exception;
 use Fight\Common\Application\HttpFoundation\HttpMethod;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Application\Repository\UnitOfWork;
+use Fight\Common\Application\Socket\PrivatePublisher;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\MessageType;
 use Fight\Common\Domain\Specification\CompositeSpecification;
@@ -56,6 +58,40 @@ use UnexpectedValueException;
 final class PublicApiManifestAuthorityTest extends UnitTestCase
 {
     // phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+
+    /**
+     * Proves private Mercure publication is an intentional additive public contract.
+     */
+    public function test_that_private_mercure_publication_contracts_have_additive_public_classifications(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $manifest = json_decode(
+            (string) file_get_contents($root.'/compatibility/manifest.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        $declarations = array_column($manifest['declarations'], null, 'name');
+
+        foreach ([PrivatePublisher::class, PrivateMercureHubPublisher::class] as $class) {
+            self::assertArrayHasKey($class, $declarations);
+            self::assertSame('public', $declarations[$class]['classification']);
+            self::assertSame(
+                'fight-common.classification.prd-00014-addition',
+                $declarations[$class]['classification_evidence']['authority']
+            );
+        }
+
+        $composer = json_decode(
+            (string) file_get_contents($root.'/composer.json'),
+            true,
+            flags: JSON_THROW_ON_ERROR
+        );
+        self::assertArrayNotHasKey('symfony/mercure', $composer['require']);
+        self::assertSame(
+            'Required by the public and private Mercure hub publishers',
+            $composer['suggest']['symfony/mercure']
+        );
+    }
 
     /**
      * Proves that published Symfony compiler-pass paths are intentional additive public contracts.
@@ -863,10 +899,10 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             ],
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
-                'Application' => ['declarations' => 171, 'functions' => 0],
-                'Adapter'     => ['declarations' => 141, 'functions' => 0]
+                'Application' => ['declarations' => 172, 'functions' => 0],
+                'Adapter'     => ['declarations' => 142, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 441, 'internal' => 2],
+            'classifications'         => ['public' => 443, 'internal' => 2],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,

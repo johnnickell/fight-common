@@ -35,10 +35,9 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Adds the private-publication boundary required by Laravel broadcasting and shared Mercure composition. |
-| 2 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Builds the portable PSR and explicit container composition now that its JSend and Messenger prerequisites are complete. |
-| 3 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so Laravel queued transaction and provider work is unblocked. |
-| 4 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
+| 1 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Builds the portable PSR and explicit container composition now that its JSend, Messenger, and private-publication prerequisites are complete. |
+| 2 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so Laravel queued transaction and provider work is unblocked. |
+| 3 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
 
 ## Waiting
 
@@ -46,13 +45,13 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 5 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00060, T-00069, T-00070 |
+| 4 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069, T-00070 |
 | 6 | [T-00072 — Deliver Yii Adapters, Providers, and Proven Fallbacks](00072-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069 |
 | 7 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069, T-00073 |
-| 8 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00050 through T-00053, T-00060, T-00069 through T-00074 |
+| 8 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00050 through T-00053, T-00069 through T-00074 |
 | 9 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00054 |
 | 10 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00058 |
-| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00050 through T-00054, T-00058, T-00060, T-00069 through T-00075 |
+| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00050 through T-00054, T-00058, T-00069 through T-00075 |
 | 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
 | 22 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
 | 23 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00034 |
@@ -111,8 +110,8 @@ and runbook, and final CI traceability then close the epic through T-00038, T-00
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
 Scheduler compatibility is complete through T-00048. JSend, Symfony and Doctrine namespace, transactional
-UnitOfWork, private Mercure, shared PSR/container, and native framework lanes then proceed through T-00049 to
-T-00054, T-00059, T-00060, and T-00069 through T-00074. Package isolation and the support guide lead
+UnitOfWork, and private Mercure are complete through T-00049 to T-00053, T-00059, T-00060, and T-00077. Shared
+PSR/container and native framework lanes proceed through T-00054 and T-00069 through T-00074. Package isolation and the support guide lead
 to T-00075's composition of repository-owned starter receipts. After those slices and the release certification
 engine complete, T-00056 composes the Fight Common black-box `1.2.0` compatibility evidence required before
 T-00017 can close release acceptance.
@@ -133,6 +132,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added the separate private-publication port and Mercure adapter; preserved public publication; proved causal transport failure, copied-package public/private behavior, optional dependency isolation, documentation, and public API authority. Hub compatibility-mode configuration remains starter-owned deployment evidence. |
 | [T-00077 — Publish the Canonical Doctrine Transactional UnitOfWork Adapter](00077-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published the transaction-only canonical Doctrine adapter, retained the silent deprecated 1.x UnitOfWork and Repository-path journey, and proved both surfaces through manifest, installed-consumer, documentation, architecture, and exact-coverage authority. |
 | [T-00059 — Publish the Additive Transactional UnitOfWork Boundary](00059-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published the additive transactional contract; retained the silent deprecated `UnitOfWork::commit()` surface; proved Doctrine nested-transaction rejection, installed-package legacy and narrow consumers, manifest authority, and exact coverage; and repaired linked-worktree quality-gate Git visibility. |
 | [T-00053 — Publish Canonical Doctrine Data Type Paths](00053-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published thirteen canonical Doctrine type paths; preserved the deprecated 1.x identities with their complete public surface; and proved all twenty-six paths through registration, schema, conversion, consumer, and compatibility-authority checks. |
