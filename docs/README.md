@@ -23,8 +23,9 @@ composer require johnnickell/fight-common
 ```
 
 PHP 8.5+ is required. The library depends on PSR-7 (`psr/http-message`), PSR-17
-(`psr/http-factory`), PSR-18 (`psr/http-client`), PSR-3 (`psr/log`), PSR-20 (`psr/cache`),
-and PSR-11 (`psr/container`) interfaces. Optional adapters and tooling require additional packages:
+(`psr/http-factory`), PSR-18 (`psr/http-client`), PSR-15 (`psr/http-server-handler` and
+`psr/http-server-middleware`), PSR-3 (`psr/log`), PSR-6 (`psr/cache`), and PSR-11
+(`psr/container`) interfaces. Optional adapters and tooling require additional packages:
 
 | Package | Enables | Doc |
 |---|---|---|
@@ -32,6 +33,8 @@ and PSR-11 (`psr/container`) interfaces. Optional adapters and tooling require a
 | `doctrine/dbal` | Custom Doctrine data types for value objects | [values](values.md) |
 | `doctrine/orm` | Doctrine unit of work | [repositories](repositories.md) |
 | `guzzlehttp/guzzle` `guzzlehttp/psr7` | HTTP client adapter | [http-client](http-client.md) |
+| `psr/simple-cache` | PSR-16 read-through cache adapter | [architecture](architecture.md) |
+| `slim/slim` | Slim named-route URL generator and explicit PSR composition | [architecture](architecture.md) |
 | `lcobucci/jwt` | JWT encoder and decoder | [auth](auth.md) |
 | `league/flysystem` | File storage adapter (Flysystem) | [files](files.md) |
 | `symfony/dependency-injection` | Compiler passes for auto-wiring handlers | [messaging](messaging.md) |

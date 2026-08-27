@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 142,
+            "declarations": 153,
             "functions": 0
         }
     },
@@ -31,7 +31,7 @@
         },
         "fight-common.classification.prd-00014-addition": {
             "path": "planning/specs/00014-PRD.md",
-            "locator": "Implementation Decisions: 48 post-1.1.0 classifications"
+            "locator": "Implementation Decisions: 59 post-1.1.0 classifications"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -658,6 +658,138 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Auth\\Security\\PhpPasswordValidator",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/Auth/Security/PhpPasswordValidator.php#Fight\\Common\\Adapter\\Auth\\Security\\PhpPasswordValidator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+            "source": "src/Adapter/Cache/Psr16/Psr16Cache.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                "source_locator": "working-tree:src/Adapter/Cache/Psr16/Psr16Cache.php#Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Cache/Psr16/Psr16Cache.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr16/Psr16Cache.php#Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr16/Psr16Cache.php#Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr16/Psr16Cache.php#Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr16/Psr16Cache.php#Fight\\Common\\Adapter\\Cache\\Psr16\\Psr16Cache",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+            "source": "src/Adapter/Cache/Psr6/Psr6Cache.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                "source_locator": "working-tree:src/Adapter/Cache/Psr6/Psr6Cache.php#Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Cache/Psr6/Psr6Cache.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr6/Psr6Cache.php#Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr6/Psr6Cache.php#Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr6/Psr6Cache.php#Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
+                            "source_locator": "working-tree:src/Adapter/Cache/Psr6/Psr6Cache.php#Fight\\Common\\Adapter\\Cache\\Psr6\\Psr6Cache",
                             "operation": "implementable"
                         }
                     }
@@ -4147,6 +4279,270 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+            "source": "src/Adapter/HttpClient/Psr18/Exception/ClientException.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/ClientException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/HttpClient/Psr18/Exception/ClientException.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/ClientException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/ClientException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/ClientException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/ClientException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\ClientException",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+            "source": "src/Adapter/HttpClient/Psr18/Exception/NetworkException.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/NetworkException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/HttpClient/Psr18/Exception/NetworkException.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/NetworkException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/NetworkException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/NetworkException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/NetworkException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\NetworkException",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+            "source": "src/Adapter/HttpClient/Psr18/Exception/RequestException.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/RequestException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/HttpClient/Psr18/Exception/RequestException.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/RequestException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/RequestException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/RequestException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Exception/RequestException.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Exception\\RequestException",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+            "source": "src/Adapter/HttpClient/Psr18/Psr18Client.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Psr18Client.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/HttpClient/Psr18/Psr18Client.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Psr18Client.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Psr18Client.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Psr18Client.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "source_locator": "working-tree:src/Adapter/HttpClient/Psr18/Psr18Client.php#Fight\\Common\\Adapter\\HttpClient\\Psr18\\Psr18Client",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\HttpFoundation\\JSendResponse",
             "source": "src/Adapter/HttpFoundation/JSendResponse.php",
             "layer": "Adapter",
@@ -4391,6 +4787,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\HttpKernel\\JsonRequestMiddleware",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Adapter/HttpKernel/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\HttpKernel\\JsonRequestMiddleware",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+            "source": "src/Adapter/Http/Psr17/JSendResponseFactory.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                "source_locator": "working-tree:src/Adapter/Http/Psr17/JSendResponseFactory.php#Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Http/Psr17/JSendResponseFactory.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "source_locator": "working-tree:src/Adapter/Http/Psr17/JSendResponseFactory.php#Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "source_locator": "working-tree:src/Adapter/Http/Psr17/JSendResponseFactory.php#Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "source_locator": "working-tree:src/Adapter/Http/Psr17/JSendResponseFactory.php#Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
+                            "source_locator": "working-tree:src/Adapter/Http/Psr17/JSendResponseFactory.php#Fight\\Common\\Adapter\\Http\\Psr17\\JSendResponseFactory",
                             "operation": "implementable"
                         }
                     }
@@ -6576,6 +7038,138 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+            "source": "src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JSendErrorMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JSendErrorMiddleware",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+            "source": "src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "source_locator": "working-tree:src/Adapter/Middleware/Psr15/JsonRequestMiddleware.php#Fight\\Common\\Adapter\\Middleware\\Psr15\\JsonRequestMiddleware",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Middleware\\Symfony\\JsonRequestMiddleware",
             "source": "src/Adapter/Middleware/Symfony/JsonRequestMiddleware.php",
             "layer": "Adapter",
@@ -8738,6 +9332,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+            "source": "src/Adapter/Routing/Slim/SlimUrlGenerator.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Routing/Slim/SlimUrlGenerator.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Routing\\SymfonyUrlGenerator",
             "source": "src/Adapter/Routing/SymfonyUrlGenerator.php",
             "layer": "Adapter",
@@ -8863,6 +9523,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
                             "source_locator": "working-tree:src/Adapter/Routing/Symfony/SymfonyUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Symfony\\SymfonyUrlGenerator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+            "source": "src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php#Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php#Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php#Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php#Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php#Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
                             "operation": "implementable"
                         }
                     }
@@ -33208,6 +33934,8 @@
                     "psr/http-client": "^1.0",
                     "psr/http-factory": "^1.1",
                     "psr/http-message": "^2.0",
+                    "psr/http-server-handler": "^1.0",
+                    "psr/http-server-middleware": "^1.0",
                     "psr/log": "^3.0"
                 }
             },
