@@ -583,9 +583,7 @@ final readonly class Uuid extends ValueObject implements Comparable
      */
     private static function uuid1(?string $node = null, ?int $clockSeq = null, ?string $timestamp = null): static
     {
-        if ($timestamp === null) {
-            $timestamp = static::timestamp();
-        }
+        $timestamp ??= static::timestamp();
 
         $timestamp = strtolower($timestamp);
         static::guardTimestamp($timestamp);
@@ -598,9 +596,7 @@ final readonly class Uuid extends ValueObject implements Comparable
         $timeHiAndVersion |= (static::VERSION_TIME << 12);
         $timeHiAndVersion = sprintf('%04x', $timeHiAndVersion);
 
-        if ($clockSeq === null) {
-            $clockSeq = random_int(0b0, 0b11111111111111);
-        }
+        $clockSeq ??= random_int(0b0, 0b11111111111111);
 
         static::guardClockSeq($clockSeq);
 

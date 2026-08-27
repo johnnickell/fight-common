@@ -268,9 +268,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             return -1;
         }
 
-        if ($start === null) {
-            $start = 0;
-        }
+        $start ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
 
@@ -306,9 +304,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             return -1;
         }
 
-        if ($stop === null) {
-            $stop = 0;
-        }
+        $stop ??= 0;
 
         if ($stop !== 0) {
             $stop = $this->prepareOffset($stop, $length) - $length;
@@ -388,9 +384,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (strlen($char) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -428,9 +422,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (strlen($char) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -468,9 +460,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (strlen($char) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -594,9 +584,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      */
     public function slice(int $start, ?int $stop = null): static
     {
-        if ($stop === null) {
-            $stop = 0;
-        }
+        $stop ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
         $length = $this->prepareLengthFromStop($stop, $start, $this->length);
@@ -612,9 +600,7 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
      */
     public function substr(int $start, ?int $length = null): static
     {
-        if ($length === null) {
-            $length = 0;
-        }
+        $length ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
         $length = $this->prepareLength($length, $start, $this->length);

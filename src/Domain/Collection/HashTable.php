@@ -78,9 +78,7 @@ final class HashTable implements Table
 
         $hash = FastHasher::hash($key);
 
-        if (!isset($this->buckets[$hash])) {
-            $this->buckets[$hash] = new TableBucketChain();
-        }
+        $this->buckets[$hash] ??= new TableBucketChain();
 
         if ($this->buckets[$hash]->set($key, $value)) {
             $this->count++;
@@ -298,9 +296,7 @@ final class HashTable implements Table
             return null;
         }
 
-        if ($callback === null) {
-            $callback = (fn($value) => $value);
-        }
+        $callback ??= fn($value) => $value;
 
         return $this->reduce(
             fn($total, $value, $key): float|int|array => $total + call_user_func($callback, $value, $key),

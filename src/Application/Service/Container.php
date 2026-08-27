@@ -28,9 +28,7 @@ final class Container implements ArrayAccess, ContainerInterface
         $this->factories[$id] = function (Container $container) use ($factory) {
             static $instance;
 
-            if ($instance === null) {
-                $instance = $factory($container);
-            }
+            $instance ??= $factory($container);
 
             return $instance;
         };
