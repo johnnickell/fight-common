@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 ## “What’s Next?” Contract
 
@@ -35,9 +35,9 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so Laravel queued transaction and provider work is unblocked. |
-| 2 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
-| 3 | [T-00072 — Deliver Yii Adapters, Providers, and Proven Fallbacks](00072-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00059 and T-00069 are complete, so Yii provider and fallback work is unblocked. |
+| 1 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00051 and T-00059 are complete, so CodeIgniter queued transaction and service-delegate work is unblocked. |
+| 2 | [T-00072 — Deliver Yii Adapters, Providers, and Proven Fallbacks](00072-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00059 and T-00069 are complete, so Yii provider and fallback work is unblocked. |
+| 3 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00070 is complete, so Laravel's remaining native adapter and fallback work is unblocked. |
 
 ## Waiting
 
@@ -45,7 +45,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 4 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00070 |
 | 7 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069, T-00073 |
 | 8 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00050 through T-00053, T-00069 through T-00074 |
 | 9 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00054 |
@@ -131,6 +130,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Added Laravel queued command/event envelopes with post-commit at-least-once semantics, the narrow transactional UnitOfWork, independently selectable providers, and the shared Doctrine/Laravel transaction conformance suite. |
 | [T-00069 — Deliver Shared PSR Interoperability and Portable Container Composition](00069-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added PSR-15/17/18 and PSR-6/16 adapters, explicit Fight-container capabilities, Slim route generation, package/manifest authority, offline-consumer proof, and exact coverage. |
 | [T-00060 — Publish Private Realtime Updates Through Mercure](00060-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added the separate private-publication port and Mercure adapter; preserved public publication; proved causal transport failure, copied-package public/private behavior, optional dependency isolation, documentation, and public API authority. Hub compatibility-mode configuration remains starter-owned deployment evidence. |
 | [T-00077 — Publish the Canonical Doctrine Transactional UnitOfWork Adapter](00077-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Published the transaction-only canonical Doctrine adapter, retained the silent deprecated 1.x UnitOfWork and Repository-path journey, and proved both surfaces through manifest, installed-consumer, documentation, architecture, and exact-coverage authority. |
