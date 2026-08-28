@@ -78,6 +78,9 @@ return static function (DeptracConfig $config, string ...$paths): void {
             $slim = Layer::withName('Slim infrastructure')->collectors(
                 ClassLikeConfig::create('^Slim\\'),
             ),
+            $laravel = Layer::withName('Laravel infrastructure')->collectors(
+                ClassLikeConfig::create('^Illuminate\\'),
+            ),
         )
         ->rulesets(
             Ruleset::forLayer($domain)->accesses($phpInternals),
@@ -96,6 +99,7 @@ return static function (DeptracConfig $config, string ...$paths): void {
                 $twig,
                 $twilio,
                 $slim,
+                $laravel,
             ),
             Ruleset::forLayer($standards)->accesses($phpInternals, $phpCodeSniffer, $slevomat),
             Ruleset::forLayer($phpInternals),
@@ -112,6 +116,7 @@ return static function (DeptracConfig $config, string ...$paths): void {
             Ruleset::forLayer($phpCodeSniffer),
             Ruleset::forLayer($slevomat),
             Ruleset::forLayer($slim),
+            Ruleset::forLayer($laravel),
         )
     ;
 };
