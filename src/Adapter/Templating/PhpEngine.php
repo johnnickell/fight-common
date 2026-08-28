@@ -121,9 +121,7 @@ final class PhpEngine implements TemplateEngine
         }
 
         $this->openBlocks[] = $name;
-        if (!isset($this->blocks[$name])) {
-            $this->blocks[$name] = '';
-        }
+        $this->blocks[$name] ??= '';
 
         ob_start();
         ob_implicit_flush(false);

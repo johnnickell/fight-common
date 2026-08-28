@@ -25,9 +25,7 @@ class MessageDataType extends Type
      */
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        if (!isset($column['length'])) {
-            $column['length'] = 4294967295;
-        }
+        $column['length'] ??= 4294967295;
 
         return $platform->getJsonTypeDeclarationSQL($column);
     }
