@@ -2,7 +2,7 @@
 id: T-00069
 prd: PRD-00014
 title: Deliver Shared PSR Interoperability and Portable Container Composition
-status: ready-for-agent
+status: done
 blocked_by: T-00049,T-00051
 ---
 
@@ -18,27 +18,27 @@ framework-branded copies of shared behavior.
 
 ## Acceptance Criteria
 
-- [ ] PSR-15 JSON and JSend error middleware converts the neutral JSend envelope into standards-based request
+- [x] PSR-15 JSON and JSend error middleware converts the neutral JSend envelope into standards-based request
       failure behavior without assuming a framework lifecycle.
-- [ ] The PSR-17 response factory preserves controller-selected status and headers, exact JSend JSON, and native
+- [x] The PSR-17 response factory preserves controller-selected status and headers, exact JSend JSON, and native
       PSR-7 response semantics without re-encoding the envelope.
-- [ ] Canonical PSR-6 and PSR-16 cache adapters satisfy their complete observable contracts, including misses,
+- [x] Canonical PSR-6 and PSR-16 cache adapters satisfy their complete observable contracts, including misses,
       values, expiry, deletion, clearing, invalid keys, and failure translation.
-- [ ] The PSR-18 client implements `sendRequest()` by composing Fight's configured synchronous `send()` behavior;
+- [x] The PSR-18 client implements `sendRequest()` by composing Fight's configured synchronous `send()` behavior;
       Fight's original client retains `sendAsync()` unchanged.
-- [ ] PSR-18 conformance returns 4xx and 5xx responses normally and translates request and network failures into
+- [x] PSR-18 conformance returns 4xx and 5xx responses normally and translates request and network failures into
       the standard's required exception interfaces.
-- [ ] One configured transport can be resolved behind Fight's HTTP-client interface and as a decorating PSR-18
+- [x] One configured transport can be resolved behind Fight's HTTP-client interface and as a decorating PSR-18
       client without claiming that arbitrary synchronous PSR-18 clients satisfy Fight's larger contract.
-- [ ] Fight-container registrars activate one bounded capability at a time from explicit service, handler,
+- [x] Fight-container registrars activate one bounded capability at a time from explicit service, handler,
       subscriber, filter, helper, and collaborator maps and use the container's existing factory callbacks.
-- [ ] Registrar conformance proves public aliases and lifecycle while unrelated capabilities, implicit scanning,
+- [x] Registrar conformance proves public aliases and lifecycle while unrelated capabilities, implicit scanning,
       and unselected optional packages remain absent.
-- [ ] Slim's URL generator translates named routes, parameters, and absolute or relative output through the native
+- [x] Slim's URL generator translates named routes, parameters, and absolute or relative output through the native
       route collector without copying shared HTTP, container, or provider adapters.
-- [ ] A booted Fight-container/Slim composition resolves representative PSR, messaging, routing, and collaborator
+- [x] A booted Fight-container/Slim composition resolves representative PSR, messaging, routing, and collaborator
       services using only explicitly selected capability registration.
-- [ ] Package metadata and documentation make every optional PSR implementation discoverable without adding a
+- [x] Package metadata and documentation make every optional PSR implementation discoverable without adding a
       redundant wrapper where direct interface wiring is sufficient.
 
 ## Verification

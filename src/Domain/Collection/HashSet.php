@@ -73,9 +73,7 @@ final class HashSet implements Set
 
         $hash = FastHasher::hash($item);
 
-        if (!isset($this->buckets[$hash])) {
-            $this->buckets[$hash] = new SetBucketChain();
-        }
+        $this->buckets[$hash] ??= new SetBucketChain();
 
         if ($this->buckets[$hash]->add($item)) {
             $this->count++;
@@ -281,9 +279,7 @@ final class HashSet implements Set
             return null;
         }
 
-        if ($callback === null) {
-            $callback = (fn($item) => $item);
-        }
+        $callback ??= fn($item) => $item;
 
         return $this->reduce(
             fn($total, $item, $index): float|int|array => $total + call_user_func($callback, $item, $index),

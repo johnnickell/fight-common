@@ -257,9 +257,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             return -1;
         }
 
-        if ($start === null) {
-            $start = 0;
-        }
+        $start ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
 
@@ -305,9 +303,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             return -1;
         }
 
-        if ($stop === null) {
-            $stop = 0;
-        }
+        $stop ??= 0;
 
         if ($stop !== 0) {
             $stop = $this->prepareOffset($stop, $length) - $length;
@@ -402,9 +398,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (mb_strlen($char, static::ENCODING) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -442,9 +436,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (mb_strlen($char, static::ENCODING) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -482,9 +474,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
             throw new DomainException($message);
         }
 
-        if ($char === null) {
-            $char = ' ';
-        }
+        $char ??= ' ';
 
         if (mb_strlen($char, static::ENCODING) !== 1) {
             $message = sprintf('Invalid string padding character: %s', $char);
@@ -610,9 +600,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
      */
     public function slice(int $start, ?int $stop = null): static
     {
-        if ($stop === null) {
-            $stop = 0;
-        }
+        $stop ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
         $length = $this->prepareLengthFromStop($stop, $start, $this->length);
@@ -630,9 +618,7 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
      */
     public function substr(int $start, ?int $length = null): static
     {
-        if ($length === null) {
-            $length = 0;
-        }
+        $length ??= 0;
 
         $start = $this->prepareOffset($start, $this->length);
         $length = $this->prepareLength($length, $start, $this->length);
