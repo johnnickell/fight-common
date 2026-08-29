@@ -8,42 +8,37 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Common\Application\Repository\UnitOfWork;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Test\Common\TestCase\Repository\TransactionalUnitOfWorkConformanceTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
-use RuntimeException;
 
 #[CoversClass(DoctrineTransactionalUnitOfWork::class)]
-class DoctrineTransactionalUnitOfWorkTest extends UnitTestCase
+class DoctrineTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConformanceTestCase
 {
-    public function test_that_it_implements_only_the_transactional_unit_of_work_contract(): void
+    protected function createTransactionalUnitOfWork(): TransactionalUnitOfWork
     {
-        $entityManager = $this->mock(EntityManagerInterface::class);
-        $unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
-
-        self::assertInstanceOf(TransactionalUnitOfWork::class, $unitOfWork);
-        self::assertNotInstanceOf(UnitOfWork::class, $unitOfWork);
-        self::assertFalse(method_exists($unitOfWork, 'commit'));
-    }
-
-    public function test_that_commit_transactional_wraps_operation_in_transaction_and_returns_its_result(): void
-    {
+        $transactionActive = false;
         $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('isTransactionActive')->once()->andReturnFalse();
-
+        $connection->shouldReceive('isTransactionActive')->andReturnUsing(
+            static function () use (&$transactionActive): bool {
+                return $transactionActive;
+            },
+        );
         $entityManager = $this->mock(EntityManagerInterface::class);
-        $entityManager->shouldReceive('getConnection')->once()->andReturn($connection);
-        $entityManager
-            ->shouldReceive('wrapInTransaction')
-            ->once()
-            ->andReturnUsing(static fn(callable $operation): mixed => $operation());
+        $entityManager->shouldReceive('getConnection')->andReturn($connection);
+        $entityManager->shouldReceive('wrapInTransaction')->andReturnUsing(
+            static function (callable $operation) use (&$transactionActive): mixed {
+                $transactionActive = true;
 
-        $unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
+                try {
+                    return $operation();
+                } finally {
+                    $transactionActive = false;
+                }
+            },
+        );
 
-        self::assertSame('transaction result', $unitOfWork->commitTransactional(
-            static fn(): string => 'transaction result'
-        ));
+        return new DoctrineTransactionalUnitOfWork($entityManager);
     }
 
     public function test_that_commit_transactional_rejects_an_active_doctrine_transaction(): void
@@ -60,30 +55,6 @@ class DoctrineTransactionalUnitOfWorkTest extends UnitTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Nested transactional execution is not supported.');
         $unitOfWork->commitTransactional(static fn(): null => null);
-    }
-
-    public function test_that_commit_transactional_propagates_the_original_callback_failure(): void
-    {
-        $connection = $this->mock(Connection::class);
-        $connection->shouldReceive('isTransactionActive')->once()->andReturnFalse();
-
-        $failure = new RuntimeException('transaction failure');
-        $entityManager = $this->mock(EntityManagerInterface::class);
-        $entityManager->shouldReceive('getConnection')->once()->andReturn($connection);
-        $entityManager->shouldReceive('wrapInTransaction')->once()->andReturnUsing(
-            static fn(callable $operation): mixed => $operation()
-        );
-
-        $unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
-
-        try {
-            $unitOfWork->commitTransactional(static function () use ($failure): never {
-                throw $failure;
-            });
-            self::fail('Expected the transaction failure to be propagated.');
-        } catch (RuntimeException $caught) {
-            self::assertSame($failure, $caught);
-        }
     }
 
     public function test_that_is_closed_returns_true_when_the_entity_manager_is_not_open(): void
