@@ -12,6 +12,7 @@ use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
+use Fight\Test\Common\TestCase\Messaging\Laravel\RecordingSyncQueue;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Bus\Dispatcher as BusDispatcher;
 use Illuminate\Container\Container;
@@ -20,7 +21,6 @@ use Illuminate\Contracts\Container\Container as ContainerContract;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcherContract;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Events\Dispatcher as EventDispatcher;
-use Illuminate\Queue\SyncQueue;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(QueuedCommandMessage::class)]
@@ -39,22 +39,34 @@ final class QueuedCommandMessageIntegrationTest extends UnitTestCase
             CommandMessageHandler::class,
             new CommandMessageHandler($commandBus),
         );
-        $queue = new SyncQueue();
+        $queue = new RecordingSyncQueue();
         $queue->setContainer($container);
         $queue->setConnectionName('sync');
         $transactions->begin('fight-common', 1);
 
-        /** @phpstan-ignore-next-line Laravel queues accept object jobs despite the inherited contract annotation */
-        $queue->push(new QueuedCommandMessage(new CommandMessage(
+        $job = new QueuedCommandMessage(new CommandMessage(
             MessageId::fromString('018c0f69-c5a4-7a7d-9bc7-6abddda6cb2e'),
             new DateTimeImmutable('2026-08-28 12:34:56.123456+00:00'),
             new QueuedCommandMessageIntegrationCommand('command-70', 3),
             Meta::create(['trace_id' => 'trace-70', 'attempt' => 1]),
-        )));
+        ));
+
+        /** @phpstan-ignore-next-line Laravel queues accept object jobs despite the inherited contract annotation */
+        $queue->push($job);
 
         self::assertSame([], $commandBus->messages);
 
         $transactions->commit('fight-common', 1, 0);
+
+        $payload = json_decode($queue->lastPayload(), true, flags: JSON_THROW_ON_ERROR);
+        $serializedJob = $payload['data']['command'] ?? null;
+        self::assertIsString($serializedJob);
+        $reconstitutedJob = unserialize(
+            $serializedJob,
+            ['allowed_classes' => [QueuedCommandMessage::class]],
+        );
+        self::assertInstanceOf(QueuedCommandMessage::class, $reconstitutedJob);
+        self::assertNotSame($job, $reconstitutedJob);
 
         self::assertCount(1, $commandBus->messages);
         $message = current($commandBus->messages);
