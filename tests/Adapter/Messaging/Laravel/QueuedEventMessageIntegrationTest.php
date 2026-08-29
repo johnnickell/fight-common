@@ -14,6 +14,7 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Common\Domain\Utility\ClassName;
+use Fight\Test\Common\TestCase\Messaging\Laravel\RecordingSyncQueue;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Bus\Dispatcher as BusDispatcher;
 use Illuminate\Container\Container;
@@ -22,7 +23,7 @@ use Illuminate\Contracts\Container\Container as ContainerContract;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcherContract;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Events\Dispatcher as EventDispatcher;
-use Illuminate\Queue\SyncQueue;
+use Illuminate\Queue\Jobs\SyncJob;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
@@ -61,7 +62,7 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             }
         );
         $container->instance(EventMessageHandler::class, new EventMessageHandler($dispatcher));
-        $queue = new SyncQueue();
+        $queue = new RecordingSyncQueue();
         $queue->setContainer($container);
         $queue->setConnectionName('sync');
         $job = new QueuedEventMessage(new EventMessage(
@@ -84,8 +85,13 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             self::assertSame('retry queued event delivery', $exception->getMessage());
         }
 
-        /** @phpstan-ignore-next-line Laravel queues accept object jobs despite the inherited contract annotation */
-        $queue->push($job);
+        $serializedPayload = $queue->lastPayload();
+        $firstAttempt = $queue->lastJob();
+        $retryAttempt = new SyncJob($container, $serializedPayload, 'sync', 'default');
+
+        self::assertNotSame($firstAttempt, $retryAttempt);
+        self::assertSame($serializedPayload, $retryAttempt->getRawBody());
+        $retryAttempt->fire();
 
         self::assertSame([
             ['event-high', '018c0f69-c5a4-7a7d-9bc7-6abddda6cb2e', '2026-08-28 12:34:56.123456', 'Fight.Test.Common.Adapter.Messaging.Laravel.QueuedEventMessageIntegrationEvent', ['reference' => 'event-70', 'quantity' => 3], ['trace_id' => 'trace-70', 'attempt' => 1]],
