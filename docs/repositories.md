@@ -159,6 +159,24 @@ $result = $unitOfWork->commitTransactional(function () use ($users, $command) {
 
 ---
 
+## CodeIgniterTransactionalUnitOfWork
+
+`Fight\Common\Adapter\Persistence\CodeIgniter\CodeIgniterTransactionalUnitOfWork` adapts one explicitly
+selected CodeIgniter database connection to `TransactionalUnitOfWork`. Register it only from the project-owned
+`Config\Services` persistence capability delegate; selecting messaging does not bind it.
+
+```php
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\PersistenceServices;
+
+return PersistenceServices::transactionalUnitOfWork(db_connect());
+```
+
+The adapter begins, checks, commits, and rolls back the native transaction around one callback. It rejects nested
+portable transactions. Connection selection, transaction-exception policy, and migrations remain application
+configuration. Any outbox remains application configuration.
+
+---
+
 ## Usage in a Repository Interface
 
 The complete pattern for a repository interface using both DTOs and the canonical transaction boundary:

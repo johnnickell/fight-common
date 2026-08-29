@@ -14,6 +14,8 @@
         "psr/log": "^3.0"
     },
     "require-dev": {
+        "codeigniter4/framework": "^4.7",
+        "codeigniter4/queue": "^1.0",
         "deptrac/deptrac": "^4.7",
         "doctrine/dbal": "^4.4",
         "doctrine/orm": "^3.6",
@@ -49,6 +51,8 @@
         "twilio/sdk": "^8.0"
     },
     "suggest": {
+        "codeigniter4/framework": "Required by the CodeIgniter transaction and capability service delegates",
+        "codeigniter4/queue": "Required by the CodeIgniter Queue messaging adapters",
         "deptrac/deptrac": "Required to run optional architecture checks in a consuming repository",
         "dragonmantank/cron-expression": "Required by the Scheduler for cron expression parsing",
         "doctrine/dbal": "Required by the custom doctrine data types",
