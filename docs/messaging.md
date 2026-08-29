@@ -1055,6 +1055,67 @@ Controller (event dispatcher)
 
 ---
 
+## CodeIgniter Queue capability delegation
+
+CodeIgniter applications opt into Fight Common messaging through their own `app/Config/Services.php`.
+`MessagingServices` is a small factory delegate; it does not replace the application's `Config\Services`
+policy and it does not activate persistence or any other Fight capability.
+
+```php
+namespace Config;
+
+use CodeIgniter\Config\BaseService;
+use Fight\Common\Adapter\Messaging\CodeIgniter\CommandMessageJob;
+use Fight\Common\Adapter\Messaging\CodeIgniter\EventMessageJob;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\MessagingServices;
+
+final class Services extends BaseService
+{
+    public static function fightQueueCommandBus(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance('fightQueueCommandBus');
+        }
+
+        return MessagingServices::queueCommandBus(static::queue(), 'commands', 'fight-command');
+    }
+
+    public static function fightCommandMessageHandler(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance(CommandMessageJob::HANDLER_SERVICE);
+        }
+
+        return MessagingServices::commandMessageHandler(static::fightSynchronousCommandBus());
+    }
+
+    public static function fightEventMessageHandler(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance(EventMessageJob::HANDLER_SERVICE);
+        }
+
+        return MessagingServices::eventMessageHandler(static::fightSynchronousEventDispatcher());
+    }
+}
+```
+
+Add the analogous `fightQueueEventDispatcher`, `fightAsynchronousCommandBus`, and
+`fightAsynchronousEventDispatcher` methods only when the messaging capability is selected. The Queue package's
+`Config\Queue` owns the broker, queue names, job aliases, retries, failed-job storage, worker commands, and
+deployment topology. The project owns the synchronous command bus and event dispatcher collaborators shown above.
+
+`CommandMessageJob::HANDLER_SERVICE` and `EventMessageJob::HANDLER_SERVICE` are the exact project service aliases
+resolved by queued jobs. Handler failures escape the job so CodeIgniter Queue's native retry and failed-job policy
+remain authoritative. Delivery is therefore at least once: handlers must be idempotent and repeated delivery keeps
+the same complete Fight message envelope.
+
+Queue submission has no portable post-commit guarantee and is not an atomic outbox. Submit only after the selected
+transaction succeeds; applications requiring atomic persistence and publication need an outbox or event-store
+delivery design configured by the application.
+
+---
+
 ## Controller Examples
 
 ### Command Controller (Async — HTTP 202)

@@ -81,6 +81,9 @@ return static function (DeptracConfig $config, string ...$paths): void {
             $laravel = Layer::withName('Laravel infrastructure')->collectors(
                 ClassLikeConfig::create('^Illuminate\\'),
             ),
+            $codeIgniter = Layer::withName('CodeIgniter infrastructure')->collectors(
+                ClassLikeConfig::create('^CodeIgniter\\'),
+            ),
         )
         ->rulesets(
             Ruleset::forLayer($domain)->accesses($phpInternals),
@@ -100,6 +103,7 @@ return static function (DeptracConfig $config, string ...$paths): void {
                 $twilio,
                 $slim,
                 $laravel,
+                $codeIgniter,
             ),
             Ruleset::forLayer($standards)->accesses($phpInternals, $phpCodeSniffer, $slevomat),
             Ruleset::forLayer($phpInternals),
@@ -117,6 +121,7 @@ return static function (DeptracConfig $config, string ...$paths): void {
             Ruleset::forLayer($slevomat),
             Ruleset::forLayer($slim),
             Ruleset::forLayer($laravel),
+            Ruleset::forLayer($codeIgniter),
         )
     ;
 };

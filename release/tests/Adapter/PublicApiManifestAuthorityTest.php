@@ -900,9 +900,9 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
             'inventory'               => [
                 'Domain'      => ['declarations' => 131, 'functions' => 13],
                 'Application' => ['declarations' => 172, 'functions' => 0],
-                'Adapter'     => ['declarations' => 158, 'functions' => 0]
+                'Adapter'     => ['declarations' => 165, 'functions' => 0]
             ],
-            'classifications'         => ['public' => 459, 'internal' => 2],
+            'classifications'         => ['public' => 466, 'internal' => 2],
             'operation_examples'      => [
                 Command::class                => [
                     'callable'      => true,
@@ -1050,6 +1050,21 @@ final class PublicApiManifestAuthorityTest extends UnitTestCase
         $this->assertMissingClassifications(
             $internalClassificationEvidence,
             [$internalClassificationEvidence['declarations'][$additionIndex]['name']],
+            $root,
+            $operations
+        );
+
+        $prd15ClassificationEvidence = $manifest;
+        $prd15Authority = 'fight-common.classification.prd-00015-addition';
+        $prd15Index = array_find_key(
+            $prd15ClassificationEvidence['declarations'],
+            static fn (array $entry): bool => $entry['classification_evidence']['authority'] === $prd15Authority
+        );
+        self::assertIsInt($prd15Index);
+        $prd15ClassificationEvidence['declarations'][$prd15Index]['classification'] = 'unknown';
+        $this->assertMissingClassifications(
+            $prd15ClassificationEvidence,
+            [$prd15ClassificationEvidence['declarations'][$prd15Index]['name']],
             $root,
             $operations
         );

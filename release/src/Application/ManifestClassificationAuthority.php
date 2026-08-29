@@ -21,7 +21,7 @@ final readonly class ManifestClassificationAuthority
     private const array INVENTORY = [
         'Domain'      => ['declarations' => 131, 'functions' => 13],
         'Application' => ['declarations' => 172, 'functions' => 0],
-        'Adapter'     => ['declarations' => 158, 'functions' => 0]
+        'Adapter'     => ['declarations' => 165, 'functions' => 0]
     ];
     private const array OPERATIONS = ['callable', 'constructible', 'extensible', 'implementable'];
     private const array EVIDENCE_AUTHORITIES = [
@@ -36,6 +36,10 @@ final readonly class ManifestClassificationAuthority
         'fight-common.classification.prd-00014-addition'           => [
             'path'    => 'planning/specs/00014-PRD.md',
             'locator' => 'Implementation Decisions: 59 post-1.1.0 classifications'
+        ],
+        'fight-common.classification.prd-00015-addition'           => [
+            'path'    => 'planning/specs/00015-PRD.md',
+            'locator' => 'Solution: optional framework adapters and capability-scoped explicit activation'
         ],
         'fight-common.operation.abstract-extension-base'           => [
             'path'     => 'planning/adr/0009-public-api-manifest-baseline.md',
@@ -76,7 +80,7 @@ final readonly class ManifestClassificationAuthority
     private const array CLASSIFICATION_SUBJECT_DIGESTS = [
         'baseline_declarations' => '68268346a810048e882b47685736e51d7d747cd19115c8dff67faf7f6d691ee8',
         'baseline_functions'    => '519444e4d23f8b4813df8ab5677f6d1aeab0b0c8c46ec1a8aed49e60daec9168',
-        'added_declarations'    => '24846187fb8fb989d10e334a9b7f2cb3e3865881292698980d3040643d698a81'
+        'added_declarations'    => '0d0995c106a212c455609ccec23927172ab64ab486c1e4d5be54f655e76aa265'
     ];
 
     /**
@@ -168,6 +172,7 @@ final readonly class ManifestClassificationAuthority
             'declarations' => [
                 'fight-common.classification.baseline-grandfathered'       => 363,
                 'fight-common.classification.prd-00014-addition'           => 96,
+                'fight-common.classification.prd-00015-addition'           => 7,
                 'fight-common.classification.explicit-internal-annotation' => 2
             ],
             'functions'    => ['fight-common.classification.baseline-grandfathered' => 13]
@@ -360,6 +365,7 @@ final readonly class ManifestClassificationAuthority
                 $classification = match ($authority) {
                     'fight-common.classification.baseline-grandfathered',
                     'fight-common.classification.prd-00014-addition' => 'public',
+                    'fight-common.classification.prd-00015-addition' => 'public',
                     'fight-common.classification.explicit-internal-annotation' => 'internal',
                     default => null
                 };
@@ -584,7 +590,8 @@ final readonly class ManifestClassificationAuthority
         $classification = $entry['classification'];
         $validPair = match ($authority) {
             'fight-common.classification.baseline-grandfathered',
-            'fight-common.classification.prd-00014-addition' => $classification === 'public',
+            'fight-common.classification.prd-00014-addition',
+            'fight-common.classification.prd-00015-addition' => $classification === 'public',
             'fight-common.classification.explicit-internal-annotation' => $classification === 'internal',
             default => false
         };
