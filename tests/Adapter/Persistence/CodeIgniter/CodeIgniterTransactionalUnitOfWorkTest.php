@@ -13,7 +13,6 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use RuntimeException;
 
-// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
 #[CoversClass(CodeIgniterTransactionalUnitOfWork::class)]
 #[PreserveGlobalState(false)]
 #[RunTestsInSeparateProcesses]
