@@ -79,6 +79,6 @@ final class ExactAllowancesTest extends UnitTestCase
         self::assertSame(0, $report['Report']['Violations']);
         self::assertSame(0, $report['Report']['Skipped violations']);
         self::assertSame(0, $report['Report']['Uncovered']);
-        self::assertSame(13, $report['Report']['Allowed']);
+        self::assertSame(14, $report['Report']['Allowed']);
     }
 }
