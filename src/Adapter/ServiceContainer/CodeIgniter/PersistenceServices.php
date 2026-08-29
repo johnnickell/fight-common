@@ -16,11 +16,12 @@ use Fight\Common\Application\Repository\TransactionalUnitOfWork;
  */
 final class PersistenceServices
 {
-    // phpcs:disable Squiz.Commenting.FunctionComment.IncorrectTypeHint
     /**
      * Creates the native transactional unit of work
      *
-     * @param BaseConnection<mixed, mixed> $connection
+     * @param BaseConnection $connection
+     *
+     * @phpstan-param BaseConnection<mixed, mixed> $connection
      */
     public static function codeIgniterTransactionalUnitOfWork(
         BaseConnection $connection
@@ -31,12 +32,13 @@ final class PersistenceServices
     /**
      * Creates the transactional unit of work through its application contract
      *
-     * @param BaseConnection<mixed, mixed> $connection
+     * @param BaseConnection $connection
+     *
+     * @phpstan-param BaseConnection<mixed, mixed> $connection
      */
     public static function transactionalUnitOfWork(
         BaseConnection $connection
     ): TransactionalUnitOfWork {
         return self::codeIgniterTransactionalUnitOfWork($connection);
     }
-    // phpcs:enable Squiz.Commenting.FunctionComment.IncorrectTypeHint
 }

@@ -18,17 +18,17 @@ final class CodeIgniterTransactionalUnitOfWork implements TransactionalUnitOfWor
     private bool $transactionActive = false;
     private bool $connectionHasBeenEstablished;
 
-    // phpcs:disable Squiz.Commenting.FunctionComment.IncorrectTypeHint
     /**
      * Constructs CodeIgniterTransactionalUnitOfWork
      *
-     * @param BaseConnection<mixed, mixed> $connection
+     * @param BaseConnection $connection
+     *
+     * @phpstan-param BaseConnection<mixed, mixed> $connection
      */
     public function __construct(private readonly BaseConnection $connection)
     {
         $this->connectionHasBeenEstablished = $this->connection->getConnection() !== false;
     }
-    // phpcs:enable Squiz.Commenting.FunctionComment.IncorrectTypeHint
 
     /**
      * @inheritDoc
