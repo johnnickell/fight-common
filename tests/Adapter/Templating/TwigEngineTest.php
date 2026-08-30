@@ -9,16 +9,48 @@ use Fight\Common\Adapter\Templating\TwigEngine;
 use Fight\Common\Application\Templating\Exception\DuplicateHelperException;
 use Fight\Common\Application\Templating\Exception\TemplatingException;
 use Fight\Common\Application\Templating\TemplateHelper;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Common\Application\Templating\TemplateEngine;
+use Fight\Test\Common\TestCase\Templating\TemplateEngineConformanceTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 use Twig\Loader\LoaderInterface;
 
 #[CoversClass(TwigEngine::class)]
-class TwigEngineTest extends UnitTestCase
+class TwigEngineTest extends TemplateEngineConformanceTestCase
 {
+    protected function templateEngine(string $templatesDirectory): TemplateEngine
+    {
+        return new TwigEngine(new Environment(new FilesystemLoader($templatesDirectory)));
+    }
+
+    protected function templateExtension(): string
+    {
+        return 'twig';
+    }
+
+    protected function renderingTemplate(): string
+    {
+        return 'Hello {{ name }}';
+    }
+
+    protected function helperTemplate(): string
+    {
+        return '{{ fight_helper.name }}';
+    }
+
+    protected function failingTemplate(): string
+    {
+        return '{{ 1 / 0 }}';
+    }
+
+    protected function nativeFailureMessage(): string
+    {
+        return 'Division by zero';
+    }
+
     public function test_that_render_returns_rendered_template(): void
     {
         /** @var MockInterface|Environment $environment */

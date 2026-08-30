@@ -4,23 +4,48 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Routing;
 
-use RuntimeException;
 use Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator;
 use Fight\Common\Application\Routing\Exception\InvalidParameterException;
 use Fight\Common\Application\Routing\Exception\MissingParametersException;
 use Fight\Common\Application\Routing\Exception\RouteNotFoundException;
 use Fight\Common\Application\Routing\Exception\UrlGenerationException;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Common\Application\Routing\UrlGenerator;
+use Fight\Test\Common\TestCase\Routing\UrlGeneratorConformanceTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use RuntimeException;
 use Symfony\Component\Routing\Exception\InvalidParameterException as ParameterException;
 use Symfony\Component\Routing\Exception\MissingMandatoryParametersException as MissingException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException as RouteException;
+use Symfony\Component\Routing\Generator\UrlGenerator as NativeUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
 
 #[CoversClass(SymfonyUrlGenerator::class)]
-class SymfonyUrlGeneratorTest extends UnitTestCase
+class SymfonyUrlGeneratorTest extends UrlGeneratorConformanceTestCase
 {
+    protected function urlGenerator(): UrlGenerator
+    {
+        $routes = new RouteCollection();
+        $routes->add('account.show', new Route('/accounts/{id}', requirements: ['id' => '\\d+']));
+
+        return new SymfonyUrlGenerator(
+            new NativeUrlGenerator($routes, new RequestContext('', 'GET', 'fight.example', 'https'))
+        );
+    }
+
+    protected function expectedRelativeUrl(): string
+    {
+        return '/accounts/42?view=summary';
+    }
+
+    protected function expectedAbsoluteUrl(): string
+    {
+        return 'https://fight.example/accounts/42';
+    }
+
     public function test_that_generate_returns_relative_path(): void
     {
         /** @var MockInterface|UrlGeneratorInterface $symfony */

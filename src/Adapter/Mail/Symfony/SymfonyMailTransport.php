@@ -12,6 +12,7 @@ use Fight\Common\Application\Mail\Transport\MailTransport;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Part\DataPart;
 use Throwable;
 
 /**
@@ -55,6 +56,7 @@ final class SymfonyMailTransport implements MailTransport
             $this->setReturnPath($message, $email);
             $this->setPriority($message, $email);
             $this->setTimestamp($message, $email);
+            $this->setMaxLineLength($message, $email);
             $this->setAttachments($message, $email);
 
             if (!empty($this->overrides)) {
@@ -221,16 +223,42 @@ final class SymfonyMailTransport implements MailTransport
     }
 
     /**
+     * Sets the maximum encoded header line length
+     */
+    private function setMaxLineLength(MailMessage $message, Email $email): void
+    {
+        $maxLineLength = $message->getMaxLineLength();
+        if ($maxLineLength !== null) {
+            $email->getHeaders()->setMaxLineLength($maxLineLength);
+        }
+    }
+
+    /**
      * Sets the attachments
      */
     private function setAttachments(MailMessage $message, Email $email): void
     {
         foreach ($message->getAttachments() as $attachment) {
             if ($attachment->getDisposition() === 'inline') {
-                $email->embed(
-                    $attachment->getBody(),
-                    $attachment->getId(),
-                    $attachment->getContentType()
+                if (!str_contains($attachment->getId(), '@')) {
+                    // DataPart rejects legacy IDs without "@". Email::embed()
+                    // retains their accepted behavior and generates a valid
+                    // Content-ID when Symfony renders the message.
+                    $email->embed(
+                        $attachment->getBody(),
+                        $attachment->getId(),
+                        $attachment->getContentType()
+                    );
+
+                    continue;
+                }
+
+                $email->addPart(
+                    new DataPart(
+                        $attachment->getBody(),
+                        $attachment->getFileName(),
+                        $attachment->getContentType()
+                    )->asInline()->setContentId($attachment->getId())
                 );
             } else {
                 $email->attach(

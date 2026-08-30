@@ -38,8 +38,29 @@ final class PackageSurfaceAuthorityTest extends UnitTestCase
         self::assertArrayNotHasKey('extra', $composer);
         self::assertArrayNotHasKey('archive', $composer);
         self::assertSame(
-            ['dealerdirect/phpcodesniffer-composer-installer' => false],
+            [
+                'dealerdirect/phpcodesniffer-composer-installer' => false,
+                'yiisoft/config'                                 => true
+            ],
             $composer['config']['allow-plugins']
+        );
+        self::assertArrayNotHasKey('yiisoft/mailer', $composer['require']);
+        self::assertSame('^6.1', $composer['require-dev']['yiisoft/mailer']);
+        self::assertSame(
+            'Required to evaluate Yii Mail against the shared Fight mail conformance suite',
+            $composer['suggest']['yiisoft/mailer']
+        );
+        self::assertArrayNotHasKey('yiisoft/view', $composer['require']);
+        self::assertSame('^12.2', $composer['require-dev']['yiisoft/view']);
+        self::assertSame(
+            'Required to evaluate Yii View against the shared Fight templating conformance suite',
+            $composer['suggest']['yiisoft/view']
+        );
+        self::assertArrayNotHasKey('yiisoft/files', $composer['require']);
+        self::assertSame('^2.0', $composer['require-dev']['yiisoft/files']);
+        self::assertSame(
+            'Required to evaluate Yii Files against the shared Fight filesystem conformance suite',
+            $composer['suggest']['yiisoft/files']
         );
         self::assertStringContainsString("roots are `src` and `tests/TestCase`", $normative);
         self::assertStringContainsString('without certifying an exact archive', $normative);
