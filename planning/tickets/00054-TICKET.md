@@ -3,7 +3,7 @@ id: T-00054
 prd: PRD-00014
 title: Prove Optional Adapter Dependency Modes and Production Isolation
 status: ready-for-agent
-blocked_by: T-00050,T-00051,T-00052,T-00053,T-00057,T-00059,T-00060,T-00069,T-00070,T-00071,T-00073,T-00074
+blocked_by: T-00050,T-00051,T-00052,T-00053,T-00057,T-00059,T-00060,T-00069,T-00070,T-00071,T-00073
 ---
 
 # Prove Optional Adapter Dependency Modes and Production Isolation
