@@ -2,7 +2,7 @@
 id: T-00074
 prd: PRD-00015
 title: Deliver CodeIgniter Native Adapters and Prove Fallbacks
-status: ready-for-agent
+status: done
 blocked_by: T-00049,T-00069,T-00073
 ---
 
@@ -16,25 +16,25 @@ shared providers for outbound HTTP, storage, process, observability, SMS, and so
 
 ## Acceptance Criteria
 
-- [ ] `CodeIgniterCache` satisfies Fight's complete cache contract through the current native `CacheInterface`,
+- [x] `CodeIgniterCache` satisfies Fight's complete cache contract through the current native `CacheInterface`,
       including misses, values, expiry, remember behavior, deletion, clearing, invalid input, and failures.
-- [ ] The separate official PSR cache bridge remains a valid documented wire composition without making the
+- [x] The separate official PSR cache bridge remains a valid documented wire composition without making the
       native adapter redundant or mandatory.
-- [ ] Native JSend/error response creation consumes the neutral envelope and preserves caller-selected status,
+- [x] Native JSend/error response creation consumes the neutral envelope and preserves caller-selected status,
       headers, exact JSON, and encoding failures.
-- [ ] Native URL generation preserves named routes, parameters, query values, absolute or relative output, and
+- [x] Native URL generation preserves named routes, parameters, query values, absolute or relative output, and
       failure behavior.
-- [ ] Mail, View, and Filesystem prototypes run the complete Fight conformance suites; a passing prototype ships,
+- [x] Mail, View, and Filesystem prototypes run the complete Fight conformance suites; a passing prototype ships,
       while a failure records the exact gap and proves Symfony Mailer, Twig/PHP, or Symfony Filesystem as the
       selected fallback.
-- [ ] CodeIgniter's native PSR-3 logger is wired directly without a Fight-branded logger wrapper.
-- [ ] Guzzle/PSR-18, Flysystem, Symfony Process, Twilio, Mercure, and shared health, audit, and metrics adapters
+- [x] CodeIgniter's native PSR-3 logger is wired directly without a Fight-branded logger wrapper.
+- [x] Guzzle/PSR-18, Flysystem, Symfony Process, Twilio, Mercure, and shared health, audit, and metrics adapters
       remain provider compositions where CodeIgniter exposes no distinct complete Fight contract.
-- [ ] Capability service delegates register each shipped adapter or proven fallback independently without
+- [x] Capability service delegates register each shipped adapter or proven fallback independently without
       activating unrelated optional packages.
-- [ ] Application-owned templates, mail content, routes, credentials, service overrides, and operations policy
+- [x] Application-owned templates, mail content, routes, credentials, service overrides, and operations policy
       remain downstream.
-- [ ] Every ship or fallback claim links to shared conformance evidence and one booted CodeIgniter composition.
+- [x] Every ship or fallback claim links to shared conformance evidence and one booted CodeIgniter composition.
 
 ## Verification
 

@@ -35,7 +35,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069 and T-00073 are complete, so the remaining CodeIgniter native adapters and fallback proofs are unblocked. |
+| 1 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Every selected adapter lane is now complete, so package-isolation and dependency-mode receipts are the next release blocker. |
 
 ## Waiting
 
@@ -43,10 +43,9 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 8 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00071 and T-00074 |
 | 9 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00054 |
 | 10 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00058 |
-| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00054, T-00058, T-00071, T-00074, and T-00075 |
+| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00054, T-00058, and T-00075 |
 | 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
 | 22 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
 | 23 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00034 |
@@ -129,6 +128,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped native CodeIgniter cache, JSend/error response, and named-route URL adapters with independently selectable service delegates; retained conformance-proven Symfony Mailer, Twig/PHP, and Symfony Filesystem fallbacks where native facilities are incomplete; and proved booted capability isolation, optional-package absence, public authority, and exact coverage. |
 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped Laravel password, cache, JSend/error, URL, Blade, mail, and private-broadcast adapters with independently selectable providers; wired PSR-3 directly; and proved exact native FileStorage and accepted Symfony, Guzzle, Process, and null-metrics fallbacks where Laravel is incomplete. |
 | [T-00072 — Deliver Yii Adapters, Providers, and Proven Fallbacks](00072-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped native Yii DB transaction, routing, and View adapters; proved capability-scoped strict-container composition; retained tested Symfony Mailer and Filesystem fallbacks after exact native prototype gaps; and classified stable Yii Queue as unavailable. |
 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Added official Queue command/event envelope transport with visible push and retry failures, the native transactional UnitOfWork, independently selectable service delegates, real CodeIgniter lifecycle proof, development-only dependencies, and exact public-authority coverage. |
