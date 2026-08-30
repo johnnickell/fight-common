@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Adapter\Cache;
 use Exception;
 use Fight\Common\Adapter\Cache\PsrCache;
 use Fight\Common\Application\Cache\Exception\CacheException;
+use Fight\Common\Application\Cache\MutableCache;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -17,6 +18,17 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(PsrCache::class)]
 class PsrCacheTest extends UnitTestCase
 {
+    public function test_that_psr_cache_implements_the_additive_mutable_cache_contract(): void
+    {
+        /** @var MockInterface|CacheItemPoolInterface $pool */
+        $pool = $this->mock(CacheItemPoolInterface::class);
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        self::assertInstanceOf(MutableCache::class, new PsrCache($pool, $logger));
+    }
+
     public function test_that_read_returns_cached_value_on_cache_hit(): void
     {
         /** @var MockInterface|CacheItemInterface $item */
@@ -83,5 +95,52 @@ class PsrCacheTest extends UnitTestCase
         $this->expectException(CacheException::class);
 
         $cache->read('key', fn (): null => null, 60);
+    }
+
+    public function test_that_delete_and_clear_delegate_to_the_pool(): void
+    {
+        /** @var MockInterface|CacheItemPoolInterface $pool */
+        $pool = $this->mock(CacheItemPoolInterface::class);
+        $pool->shouldReceive('deleteItem')->once()->with('key')->andReturn(true);
+        $pool->shouldReceive('clear')->once()->andReturn(true);
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $cache = new PsrCache($pool, $logger);
+        $cache->delete('key');
+        $cache->clear();
+
+        self::addToAssertionCount(1);
+    }
+
+    public function test_that_delete_translates_pool_failures(): void
+    {
+        /** @var MockInterface|CacheItemPoolInterface $pool */
+        $pool = $this->mock(CacheItemPoolInterface::class);
+        $pool->shouldReceive('deleteItem')->once()->with('key')->andThrow(new Exception('delete error'));
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('delete error');
+
+        (new PsrCache($pool, $logger))->delete('key');
+    }
+
+    public function test_that_clear_translates_pool_failures(): void
+    {
+        /** @var MockInterface|CacheItemPoolInterface $pool */
+        $pool = $this->mock(CacheItemPoolInterface::class);
+        $pool->shouldReceive('clear')->once()->andThrow(new Exception('clear error'));
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('clear error');
+
+        (new PsrCache($pool, $logger))->clear();
     }
 }

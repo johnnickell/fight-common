@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Cache\Psr6;
 
-use Fight\Common\Application\Cache\Cache;
 use Fight\Common\Application\Cache\Exception\CacheException;
+use Fight\Common\Application\Cache\MutableCache;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -13,7 +13,7 @@ use Throwable;
 /**
  * Class Psr6Cache
  */
-final readonly class Psr6Cache implements Cache
+final readonly class Psr6Cache implements MutableCache
 {
     /**
      * Constructs Psr6Cache
@@ -42,6 +42,30 @@ final readonly class Psr6Cache implements Cache
             }
 
             return $cacheItem->get();
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(string $key): void
+    {
+        try {
+            $this->cachePool->deleteItem($key);
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clear(): void
+    {
+        try {
+            $this->cachePool->clear();
         } catch (Throwable $throwable) {
             throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
