@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Templating;
+namespace Fight\Common\Adapter\Templating\Yii;
 
 use Fight\Common\Application\Templating\Exception\DuplicateHelperException;
 use Fight\Common\Application\Templating\Exception\TemplateNotFoundException;
@@ -10,22 +10,23 @@ use Fight\Common\Application\Templating\Exception\TemplatingException;
 use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Common\Application\Templating\TemplateHelper;
 use Throwable;
-use Twig\Environment;
-use Twig\Error\LoaderError;
+use Yiisoft\View\ViewInterface;
 
 /**
- * Class TwigEngine
+ * Class YiiTemplateEngine
  */
-final class TwigEngine implements TemplateEngine
+final class YiiTemplateEngine implements TemplateEngine
 {
     /** @var array<string, TemplateHelper> */
     private array $helpers = [];
 
     /**
-     * Constructs TwigEngine
+     * Constructs YiiTemplateEngine
      */
-    public function __construct(private readonly Environment $environment)
-    {
+    public function __construct(
+        private readonly ViewInterface $view,
+        private readonly string $templatesPath
+    ) {
     }
 
     /**
@@ -33,10 +34,15 @@ final class TwigEngine implements TemplateEngine
      */
     public function render(string $template, array $data = []): string
     {
+        if (!$this->exists($template)) {
+            throw TemplateNotFoundException::fromName($template);
+        }
+
         try {
-            return $this->environment->render($template, $data);
-        } catch (LoaderError $loaderError) {
-            throw TemplateNotFoundException::fromName($template, $loaderError);
+            $view = $this->view->withClearedState()->withBasePath($this->templatesPath);
+            $view->setParameters($this->helpers);
+
+            return $view->render($template, $data);
         } catch (Throwable $throwable) {
             throw new TemplatingException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
@@ -47,7 +53,14 @@ final class TwigEngine implements TemplateEngine
      */
     public function exists(string $template): bool
     {
-        return $this->environment->getLoader()->exists($template);
+        $templatesPath = realpath($this->templatesPath);
+        $templatePath = realpath($this->templatesPath.'/'.$template);
+        $templatesPrefix = rtrim((string) $templatesPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+        return $templatesPath !== false
+            && $templatePath !== false
+            && is_file($templatePath)
+            && str_starts_with($templatePath, $templatesPrefix);
     }
 
     /**
@@ -55,7 +68,7 @@ final class TwigEngine implements TemplateEngine
      */
     public function supports(string $template): bool
     {
-        return pathinfo($template, PATHINFO_EXTENSION) === 'twig';
+        return pathinfo($template, PATHINFO_EXTENSION) === 'php';
     }
 
     /**
@@ -70,7 +83,6 @@ final class TwigEngine implements TemplateEngine
         }
 
         $this->helpers[$name] = $helper;
-        $this->environment->addGlobal($name, $helper);
     }
 
     /**
@@ -78,12 +90,6 @@ final class TwigEngine implements TemplateEngine
      */
     public function hasHelper(TemplateHelper $helper): bool
     {
-        $name = $helper->getName();
-
-        if (isset($this->helpers[$name])) {
-            return true;
-        }
-
-        return false;
+        return isset($this->helpers[$helper->getName()]);
     }
 }
