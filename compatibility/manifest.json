@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 158,
+            "declarations": 165,
             "functions": 0
         }
     },
@@ -32,6 +32,10 @@
         "fight-common.classification.prd-00014-addition": {
             "path": "planning/specs/00014-PRD.md",
             "locator": "Implementation Decisions: 59 post-1.1.0 classifications"
+        },
+        "fight-common.classification.prd-00015-addition": {
+            "path": "planning/specs/00015-PRD.md",
+            "locator": "Solution: optional framework adapters and capability-scoped explicit activation"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -5454,6 +5458,298 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+            "source": "src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php."
+            },
+            "members": [
+                {
+                    "name": "constant HANDLER_SERVICE",
+                    "signature": "public const string HANDLER_SERVICE = 'fightCommandMessageHandler'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob governs constant HANDLER_SERVICE from src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "member": "constant HANDLER_SERVICE"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/CommandMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\CommandMessageJob",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+            "source": "src/Adapter/Messaging/CodeIgniter/EventMessageJob.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Messaging/CodeIgniter/EventMessageJob.php."
+            },
+            "members": [
+                {
+                    "name": "constant HANDLER_SERVICE",
+                    "signature": "public const string HANDLER_SERVICE = 'fightEventMessageHandler'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob governs constant HANDLER_SERVICE from src/Adapter/Messaging/CodeIgniter/EventMessageJob.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "member": "constant HANDLER_SERVICE"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/EventMessageJob.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\EventMessageJob",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+            "source": "src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueCommandBus.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueCommandBus",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+            "source": "src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "source_locator": "working-tree:src/Adapter/Messaging/CodeIgniter/QueueEventDispatcher.php#Fight\\Common\\Adapter\\Messaging\\CodeIgniter\\QueueEventDispatcher",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Messaging\\Command\\Async\\MessengerCommandBus",
             "source": "src/Adapter/Messaging/Command/Async/MessengerCommandBus.php",
             "layer": "Adapter",
@@ -6383,14 +6679,64 @@
             "layer": "Adapter",
             "kind": "class",
             "classification": "public",
-            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage"},
-            "classification_evidence": {"authority": "fight-common.classification.prd-00014-addition", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Messaging/Laravel/QueuedCommandMessage.php."},
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Messaging/Laravel/QueuedCommandMessage.php."
+            },
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage promises its inventoried public callable surface to consumers.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage promises construction through its inventoried public constructor or named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage", "operation": "implementable"}}}
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedCommandMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedCommandMessage",
+                            "operation": "implementable"
+                        }
+                    }
+                }
             }
         },
         {
@@ -6399,14 +6745,64 @@
             "layer": "Adapter",
             "kind": "class",
             "classification": "public",
-            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage"},
-            "classification_evidence": {"authority": "fight-common.classification.prd-00014-addition", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Messaging/Laravel/QueuedEventMessage.php."},
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Messaging/Laravel/QueuedEventMessage.php."
+            },
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage promises its inventoried public callable surface to consumers.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage promises construction through its inventoried public constructor or named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage", "operation": "implementable"}}}
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "source_locator": "working-tree:src/Adapter/Messaging/Laravel/QueuedEventMessage.php#Fight\\Common\\Adapter\\Messaging\\Laravel\\QueuedEventMessage",
+                            "operation": "implementable"
+                        }
+                    }
+                }
             }
         },
         {
@@ -7796,6 +8192,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+            "source": "src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                "source_locator": "working-tree:src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\CodeIgniter\\CodeIgniterTransactionalUnitOfWork",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork",
             "source": "src/Adapter/Persistence/Doctrine/DoctrineTransactionalUnitOfWork.php",
             "layer": "Adapter",
@@ -8973,14 +9435,64 @@
             "layer": "Adapter",
             "kind": "class",
             "classification": "public",
-            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork"},
-            "classification_evidence": {"authority": "fight-common.classification.prd-00014-addition", "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php."},
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php."
+            },
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork promises its inventoried public callable surface to consumers.", "binding": {"subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork promises construction through its inventoried public constructor or named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork", "operation": "implementable"}}}
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Laravel/LaravelTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Laravel\\LaravelTransactionalUnitOfWork",
+                            "operation": "implementable"
+                        }
+                    }
+                }
             }
         },
         {
@@ -9578,6 +10090,138 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MessagingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MessagingServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/PersistenceServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\PersistenceServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\ServiceContainer\\Fight\\ContainerCapabilityRegistrar",
             "source": "src/Adapter/ServiceContainer/Fight/ContainerCapabilityRegistrar.php",
             "layer": "Adapter",
@@ -9649,14 +10293,64 @@
             "layer": "Adapter",
             "kind": "class",
             "classification": "public",
-            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider"},
-            "classification_evidence": {"authority": "fight-common.classification.prd-00014-addition", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php."},
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php."
+            },
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider promises its inventoried public callable surface to consumers.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider promises construction through its inventoried public constructor or named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider", "operation": "implementable"}}}
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MessagingServiceProvider",
+                            "operation": "implementable"
+                        }
+                    }
+                }
             }
         },
         {
@@ -9665,14 +10359,64 @@
             "layer": "Adapter",
             "kind": "class",
             "classification": "public",
-            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider"},
-            "classification_evidence": {"authority": "fight-common.classification.prd-00014-addition", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php."},
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00014-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is deliberately classified public as a post-1.1.0 PRD-00014 addition from src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php."
+            },
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider promises its inventoried public callable surface to consumers.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider promises construction through its inventoried public constructor or named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.", "binding": {"subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider", "operation": "implementable"}}}
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/Laravel/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\PersistenceServiceProvider",
+                            "operation": "implementable"
+                        }
+                    }
+                }
             }
         },
         {

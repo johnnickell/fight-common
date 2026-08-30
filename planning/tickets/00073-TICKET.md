@@ -2,7 +2,7 @@
 id: T-00073
 prd: PRD-00015
 title: Deliver CodeIgniter Queued Messaging Transactions and Service Delegates
-status: ready-for-agent
+status: done
 blocked_by: T-00051,T-00059
 ---
 
@@ -17,25 +17,25 @@ retaining native services and queue lifecycle.
 
 ## Acceptance Criteria
 
-- [ ] Queued command delivery transports one complete `CommandMessage` and delegates it unchanged to the neutral
+- [x] Queued command delivery transports one complete `CommandMessage` and delegates it unchanged to the neutral
       command-message handler and synchronous Fight bus.
-- [ ] Queued event delivery transports one complete `EventMessage` and delegates it unchanged to the neutral
+- [x] Queued event delivery transports one complete `EventMessage` and delegates it unchanged to the neutral
       event-message handler and complete synchronous dispatcher fan-out.
-- [ ] Official Queue serialization, acknowledgement, and retry preserve message ID, creation time, payload type
+- [x] Official Queue serialization, acknowledgement, and retry preserve message ID, creation time, payload type
       and value, and isolated metadata; repeated delivery retains the same event occurrence.
-- [ ] Post-commit submission is used where the official facility exposes it; otherwise the exact timing gap is
+- [x] Post-commit submission is used where the official facility exposes it; otherwise the exact timing gap is
       reported before support is claimed. Delivery remains at least once and is not an atomic outbox.
-- [ ] Broker choice, queue names, retry and failure policy, failed-job storage, workers, topology, and outbox
+- [x] Broker choice, queue names, retry and failure policy, failed-job storage, workers, topology, and outbox
       behavior remain starter or application configuration.
-- [ ] The native UnitOfWork preserves callback results, commits success, rolls back and rethrows the original
+- [x] The native UnitOfWork preserves callback results, commits success, rolls back and rethrows the original
       failure, reports lifecycle consistently, and rejects nested portable transactions explicitly.
-- [ ] Transaction behavior passes the same conformance suite as Doctrine and Laravel without exposing native
+- [x] Transaction behavior passes the same conformance suite as Doctrine and Laravel without exposing native
       savepoint differences through the Fight contract.
-- [ ] Capability service delegates register only their bounded services, aliases, handlers, and collaborators and
+- [x] Capability service delegates register only their bounded services, aliases, handlers, and collaborators and
       do not replace project-owned `Config\Services` policy.
-- [ ] Real CodeIgniter boot tests activate one selected service delegate at a time while unrelated capabilities
+- [x] Real CodeIgniter boot tests activate one selected service delegate at a time while unrelated capabilities
       and optional packages remain absent.
-- [ ] No inward contract gains a CodeIgniter dependency or framework-specific lifecycle operation.
+- [x] No inward contract gains a CodeIgniter dependency or framework-specific lifecycle operation.
 
 ## Verification
 

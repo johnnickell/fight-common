@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Documentation;
 
 use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
+use Fight\Common\Adapter\Persistence\CodeIgniter\CodeIgniterTransactionalUnitOfWork;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(DoctrineTransactionalUnitOfWork::class)]
+#[CoversClass(CodeIgniterTransactionalUnitOfWork::class)]
 final class RepositoriesGuideTest extends UnitTestCase
 {
     public function test_that_new_consumers_are_directed_to_the_canonical_doctrine_transaction_boundary(): void
@@ -69,5 +71,16 @@ final class RepositoriesGuideTest extends UnitTestCase
         );
         self::assertStringContainsString('Deprecated 1.x compatibility journey.', $installedProbe);
         self::assertStringContainsString('Canonical transaction-only journey.', $installedProbe);
+    }
+
+    public function test_that_codeigniter_persistence_guidance_keeps_project_selection_and_policy_explicit(): void
+    {
+        $guide = file_get_contents(dirname(__DIR__, 2).'/docs/repositories.md');
+
+        self::assertIsString($guide);
+        self::assertStringContainsString('CodeIgniterTransactionalUnitOfWork', $guide);
+        self::assertStringContainsString('Config\\Services', $guide);
+        self::assertStringContainsString('selecting messaging does not bind it', $guide);
+        self::assertStringContainsString('Any outbox remains application configuration.', $guide);
     }
 }
