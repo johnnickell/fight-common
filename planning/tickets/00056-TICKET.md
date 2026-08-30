@@ -3,7 +3,7 @@ id: T-00056
 prd: PRD-00014
 title: Certify the Fight Common 1.2 Compatibility Envelope
 status: ready-for-agent
-blocked_by: T-00034,T-00048,T-00049,T-00050,T-00051,T-00052,T-00053,T-00054,T-00058,T-00059,T-00060,T-00069,T-00070,T-00071,T-00073,T-00074,T-00075
+blocked_by: T-00034,T-00048,T-00049,T-00050,T-00051,T-00052,T-00053,T-00054,T-00058,T-00059,T-00060,T-00069,T-00070,T-00071,T-00073,T-00075
 ---
 
 # Certify the Fight Common 1.2 Compatibility Envelope

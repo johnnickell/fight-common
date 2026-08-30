@@ -134,6 +134,13 @@ docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
 
 The `./bin/*` wrappers use `-it` and rebuild the image — those are for interactive terminal use only.
 
+### Learning: hooks are non-negotiable gates
+
+If a commit hook runs this package gate, the hook itself must complete successfully before the commit is created.
+Never use `git commit --no-verify`, disable the hook, or otherwise bypass it because a run is slow, interrupted, or
+inconvenient. Diagnose and repair every failure, then rerun the hook to completion. An exception requires the user's
+explicit authorization for that specific commit and must be reported as an unverified delivery state.
+
 ## Git Flow
 
 - `main` — production-ready, merges from `develop` only

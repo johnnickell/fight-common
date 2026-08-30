@@ -208,6 +208,9 @@ See [validation](validation.md) for rule definitions and usage.
     via Flysystem) and `Filesystem` (local OS operations via Symfony), with a
     `StorageService` registry for multi-storage scenarios.
 
+14. **[codeigniter](codeigniter.md)** — Native cache, JSend response, and routing
+    adapters plus independently selectable mail, template, and filesystem fallbacks.
+
 14. **[auth](auth.md)** — Two subsystems: HMAC request signing/validation and
     Security (password hashing via `password_hash()`, JWT via `lcobucci/jwt`).
 

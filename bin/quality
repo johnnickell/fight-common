@@ -10,7 +10,10 @@ printf '[quality] PHP syntax\n'
     find . -maxdepth 1 -type f -name '*.php' -print
     find src tests release -type f -name '*.php' -print
 } | LC_ALL=C sort | while IFS= read -r php_file; do
-    php -l "${php_file#./}"
+    if ! php -l "${php_file#./}" > /dev/null; then
+        php -l "${php_file#./}"
+        exit 1
+    fi
 done
 
 printf '[quality] Python syntax\n'

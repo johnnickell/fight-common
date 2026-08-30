@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\ServiceContainer\CodeIgniter;
 
 use CodeIgniter\Config\Services as CoreServices;
+use CodeIgniter\Cache\CacheInterface;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Queue\Interfaces\QueueInterface;
 use CodeIgniter\Router\RouteCollectionInterface;
+use Fight\Common\Adapter\Cache\CodeIgniter\CodeIgniterCache;
 use Fight\Common\Adapter\Messaging\CodeIgniter\CommandMessageJob;
 use Fight\Common\Adapter\Messaging\CodeIgniter\EventMessageJob;
 use Fight\Common\Adapter\Messaging\CodeIgniter\QueueCommandBus;
@@ -15,21 +17,40 @@ use Fight\Common\Adapter\Messaging\CodeIgniter\QueueEventDispatcher;
 use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler;
 use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler;
 use Fight\Common\Adapter\Persistence\CodeIgniter\CodeIgniterTransactionalUnitOfWork;
+use Fight\Common\Adapter\Routing\CodeIgniter\CodeIgniterUrlGenerator;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\CacheServices;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\FilesystemServices;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\MailServices;
 use Fight\Common\Adapter\ServiceContainer\CodeIgniter\MessagingServices;
 use Fight\Common\Adapter\ServiceContainer\CodeIgniter\PersistenceServices;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\RoutingServices;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\TemplateServices;
+use Fight\Common\Application\Cache\MutableCache;
+use Fight\Common\Application\Filesystem\Filesystem;
+use Fight\Common\Application\Mail\Message\MailFactory;
+use Fight\Common\Application\Mail\Transport\MailTransport;
 use Fight\Common\Application\Messaging\Command\AsynchronousCommandBus;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Messaging\Event\AsynchronousEventDispatcher;
 use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Application\Routing\UrlGenerator;
+use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RuntimeException;
+use Symfony\Component\Mailer\MailerInterface;
+use Twig\Environment;
 
 #[CoversClass(MessagingServices::class)]
 #[CoversClass(PersistenceServices::class)]
+#[CoversClass(CacheServices::class)]
+#[CoversClass(RoutingServices::class)]
+#[CoversClass(MailServices::class)]
+#[CoversClass(TemplateServices::class)]
+#[CoversClass(FilesystemServices::class)]
 final class CapabilityServicesIntegrationTest extends UnitTestCase
 {
     private ?string $project = null;
@@ -52,6 +73,17 @@ final class CapabilityServicesIntegrationTest extends UnitTestCase
             TransactionalUnitOfWork::class,
             PersistenceServices::transactionalUnitOfWork($connection)
         );
+
+        $cache = $this->mock(CacheInterface::class);
+        self::assertInstanceOf(MutableCache::class, CacheServices::mutableCache($cache));
+        $routes = $this->mock(RouteCollectionInterface::class);
+        self::assertInstanceOf(UrlGenerator::class, RoutingServices::routing($routes, 'https://fight.example'));
+        $mailer = $this->mock(MailerInterface::class);
+        self::assertInstanceOf(MailFactory::class, MailServices::mailFactory());
+        self::assertInstanceOf(MailTransport::class, MailServices::mailTransport($mailer));
+        $twig = $this->mock(Environment::class);
+        self::assertInstanceOf(TemplateEngine::class, TemplateServices::templateEngine($twig));
+        self::assertInstanceOf(Filesystem::class, FilesystemServices::filesystem());
     }
 
     #[RunInSeparateProcess]
@@ -97,6 +129,66 @@ final class CapabilityServicesIntegrationTest extends UnitTestCase
         self::assertFalse(\Config\Services::has('fightQueueCommandBus'));
         self::assertFalse(CoreServices::has('queue'));
         self::assertInstanceOf(RouteCollectionInterface::class, \Config\Services::get('routes'));
+    }
+
+    #[RunInSeparateProcess]
+    public function test_that_a_project_owned_cache_fixture_boots_its_selected_native_capability(): void
+    {
+        $this->bootProjectServices('CacheServices.php');
+        $cache = $this->mock(CacheInterface::class);
+        \Config\Services::override('fightCacheCollaborator', $cache);
+        self::assertInstanceOf(CodeIgniterCache::class, \Config\Services::fightCodeIgniterCache());
+        self::assertInstanceOf(MutableCache::class, \Config\Services::fightMutableCache());
+        self::assertFalse(method_exists(\Config\Services::class, 'fightUrlGenerator'));
+        self::assertFalse(CoreServices::has('queue'));
+    }
+
+    #[RunInSeparateProcess]
+    public function test_that_a_project_owned_routing_fixture_boots_its_selected_native_capability(): void
+    {
+        $this->bootProjectServices('RoutingServices.php');
+        $routes = $this->mock(RouteCollectionInterface::class);
+        \Config\Services::override('fightRoutesCollaborator', $routes);
+        self::assertInstanceOf(CodeIgniterUrlGenerator::class, \Config\Services::fightCodeIgniterUrlGenerator());
+        self::assertInstanceOf(UrlGenerator::class, \Config\Services::fightUrlGenerator());
+        self::assertFalse(method_exists(\Config\Services::class, 'fightCodeIgniterCache'));
+        self::assertFalse(CoreServices::has('queue'));
+    }
+
+    #[RunInSeparateProcess]
+    public function test_that_each_project_owned_fallback_fixture_boots_without_native_cache_or_messaging_activation(): void
+    {
+        $this->bootProjectServices('MailServices.php');
+        $mailer = $this->mock(MailerInterface::class);
+        \Config\Services::override('fightMailerCollaborator', $mailer);
+        self::assertInstanceOf(MailFactory::class, \Config\Services::fightMailFactory());
+        self::assertInstanceOf(MailTransport::class, \Config\Services::fightMailTransport());
+        self::assertFalse(CoreServices::has('cache'));
+        self::assertFalse(CoreServices::has('queue'));
+    }
+
+    #[RunInSeparateProcess]
+    public function test_that_a_project_owned_template_fixture_boots_its_selected_fallback_capability(): void
+    {
+        $this->bootProjectServices('TemplateServices.php');
+        $twig = $this->mock(Environment::class);
+        \Config\Services::override('fightTwigCollaborator', $twig);
+
+        self::assertInstanceOf(TemplateEngine::class, \Config\Services::fightTemplateEngine());
+        self::assertFalse(method_exists(\Config\Services::class, 'fightFilesystem'));
+        self::assertFalse(CoreServices::has('cache'));
+        self::assertFalse(CoreServices::has('queue'));
+    }
+
+    #[RunInSeparateProcess]
+    public function test_that_a_project_owned_filesystem_fixture_boots_its_selected_fallback_capability(): void
+    {
+        $this->bootProjectServices('FilesystemServices.php');
+
+        self::assertInstanceOf(Filesystem::class, \Config\Services::fightFilesystem());
+        self::assertFalse(method_exists(\Config\Services::class, 'fightTemplateEngine'));
+        self::assertFalse(CoreServices::has('cache'));
+        self::assertFalse(CoreServices::has('queue'));
     }
 
     private function bootProjectServices(string $fixture): void
