@@ -7,7 +7,8 @@ namespace Fight\Test\Common\Adapter\Filesystem;
 use Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem;
 use Fight\Common\Application\Filesystem\Exception\FileNotFoundException;
 use Fight\Common\Application\Filesystem\Exception\FilesystemException;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Common\Application\Filesystem\Filesystem as FilesystemInterface;
+use Fight\Test\Common\TestCase\Filesystem\FilesystemConformanceTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RecursiveDirectoryIterator;
@@ -46,9 +47,14 @@ class FailStream
 }
 
 #[CoversClass(SymfonyFilesystem::class)]
-class SymfonyFilesystemTest extends UnitTestCase
+class SymfonyFilesystemTest extends FilesystemConformanceTestCase
 {
     private string $tmpDir;
+
+    protected function create_filesystem(): FilesystemInterface
+    {
+        return new SymfonyFilesystem();
+    }
 
     protected function setUp(): void
     {

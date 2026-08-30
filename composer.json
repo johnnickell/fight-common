@@ -48,7 +48,16 @@
         "symfony/process": "^8.1",
         "symfony/routing": "^8.1",
         "twig/twig": "^3.0",
-        "twilio/sdk": "^8.0"
+        "twilio/sdk": "^8.0",
+        "yiisoft/config": "^1.2",
+        "yiisoft/db": "^2.0",
+        "yiisoft/db-sqlite": "^2.0",
+        "yiisoft/di": "^1.4",
+        "yiisoft/files": "^2.0",
+        "yiisoft/mailer": "^6.1",
+        "yiisoft/router": "^4.0",
+        "yiisoft/router-fastroute": "^4.0",
+        "yiisoft/view": "^12.2"
     },
     "suggest": {
         "codeigniter4/framework": "Required by the CodeIgniter transaction and capability service delegates",
@@ -78,7 +87,16 @@
         "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
         "psr/simple-cache": "Required by the optional PSR-16 read-through cache adapter",
         "twilio/sdk": "Required by the Twilio SMS transport adapter",
-        "twig/twig": "Required by the Twig template engine adapter"
+        "twig/twig": "Required by the Twig template engine adapter",
+        "yiisoft/db": "Required by the Yii DB transactional unit of work adapter",
+        "yiisoft/db-sqlite": "Required to run the Yii DB transactional unit of work adapter conformance tests",
+        "yiisoft/config": "Required to select Yii capability configuration groups",
+        "yiisoft/di": "Required to boot Yii capability service providers",
+        "yiisoft/files": "Required to evaluate Yii Files against the shared Fight filesystem conformance suite",
+        "yiisoft/mailer": "Required to evaluate Yii Mail against the shared Fight mail conformance suite",
+        "yiisoft/router": "Required by the Yii URL generator adapter",
+        "yiisoft/router-fastroute": "Required to run the Yii URL generator adapter conformance tests",
+        "yiisoft/view": "Required to evaluate Yii View against the shared Fight templating conformance suite"
     },
     "autoload": {
         "psr-4": {
@@ -98,7 +116,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": false
+            "dealerdirect/phpcodesniffer-composer-installer": false,
+            "yiisoft/config": true
         },
         "platform": {
             "php": "8.5.4",

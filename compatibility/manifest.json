@@ -16,7 +16,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 165,
+            "declarations": 176,
             "functions": 0
         }
     },
@@ -9496,6 +9496,72 @@
             }
         },
         {
+            "name": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+            "source": "src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                "source_locator": "working-tree:src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "source_locator": "working-tree:src/Adapter/Persistence/Yii/YiiTransactionalUnitOfWork.php#Fight\\Common\\Adapter\\Persistence\\Yii\\YiiTransactionalUnitOfWork",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "Fight\\Common\\Adapter\\Process\\Symfony\\SymfonyProcessRunner",
             "source": "src/Adapter/Process/Symfony/SymfonyProcessRunner.php",
             "layer": "Adapter",
@@ -9951,6 +10017,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
                             "source_locator": "working-tree:src/Adapter/Routing/Slim/SlimUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Slim\\SlimUrlGenerator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+            "source": "src/Adapter/Routing/Yii/YiiUrlGenerator.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                "source_locator": "working-tree:src/Adapter/Routing/Yii/YiiUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Routing/Yii/YiiUrlGenerator.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Yii/YiiUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Yii/YiiUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Yii/YiiUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/Yii/YiiUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\Yii\\YiiUrlGenerator",
                             "operation": "implementable"
                         }
                     }
@@ -10419,6 +10551,13 @@
                 }
             }
         },
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source":"src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\HttpClientServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source":"src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MessagingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MessagingServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source":"src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/PersistenceServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\PersistenceServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source":"src/Adapter/ServiceContainer/Yii/MailServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MailServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/MailServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MailServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MailServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MailServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/MailServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\MailServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source":"src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/RoutingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\RoutingServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source":"src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/ViewServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\ViewServiceProvider","operation":"implementable"}}}}},
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source":"src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/YiiCapabilityConfiguration.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\YiiCapabilityConfiguration","operation":"implementable"}}}}},
         {
             "name": "Fight\\Common\\Adapter\\ServiceContainer\\Symfony\\CommandFilterCompilerPass",
             "source": "src/Adapter/ServiceContainer/Symfony/CommandFilterCompilerPass.php",
@@ -11409,6 +11548,7 @@
                 }
             }
         },
+        {"name":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source":"src/Adapter/Templating/Yii/YiiTemplateEngine.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source_locator":"working-tree:src/Adapter/Templating/Yii/YiiTemplateEngine.php#Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Templating/Yii/YiiTemplateEngine.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source_locator":"working-tree:src/Adapter/Templating/Yii/YiiTemplateEngine.php#Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source_locator":"working-tree:src/Adapter/Templating/Yii/YiiTemplateEngine.php#Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source_locator":"working-tree:src/Adapter/Templating/Yii/YiiTemplateEngine.php#Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","source_locator":"working-tree:src/Adapter/Templating/Yii/YiiTemplateEngine.php#Fight\\Common\\Adapter\\Templating\\Yii\\YiiTemplateEngine","operation":"implementable"}}}}},
         {
             "name": "Fight\\Common\\Application\\Attribute\\Validation",
             "source": "src/Application/Attribute/Validation.php",
@@ -33800,7 +33940,8 @@
                     }
                 }
             }
-        }
+        },
+        {"name":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source":"src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Yii/FilesystemServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Yii\\FilesystemServiceProvider","operation":"implementable"}}}}}
     ],
     "functions": [
         {
@@ -34806,7 +34947,8 @@
                 "type": "library",
                 "extra": [],
                 "allow-plugins": {
-                    "dealerdirect/phpcodesniffer-composer-installer": false
+                    "dealerdirect/phpcodesniffer-composer-installer": false,
+                    "yiisoft/config": true
                 }
             },
             "normative": {
