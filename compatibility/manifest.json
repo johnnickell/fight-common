@@ -16,7 +16,7 @@
             "functions": 0
         },
             "Adapter": {
-                "declarations": 200,
+                "declarations": 208,
             "functions": 0
         }
     },
@@ -33966,7 +33966,535 @@
     ,{"name":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source":"src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/HttpClientServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\HttpClientServiceProvider","operation":"implementable"}}}}}
     ,{"name":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source":"src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/ProcessServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\ProcessServiceProvider","operation":"implementable"}}}}}
     ,{"name":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source":"src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/MetricsServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\MetricsServiceProvider","operation":"implementable"}}}}}
-    ,{"name":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source":"src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"implementable"}}}}}
+    ,{"name":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source":"src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php","layer":"Adapter","kind":"class","classification":"public","evidence_binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider"},"classification_evidence":{"authority":"fight-common.classification.prd-00015-addition","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider promises its inventoried public callable surface to consumers.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"callable"}}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider promises construction through its inventoried public constructor or named factory.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"constructible"}}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"extensible"}}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.","binding":{"subject":"Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","source_locator":"working-tree:src/Adapter/ServiceContainer/Laravel/LoggingServiceProvider.php#Fight\\Common\\Adapter\\ServiceContainer\\Laravel\\LoggingServiceProvider","operation":"implementable"}}}}},
+        {
+            "name": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+            "source": "src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                "source_locator": "working-tree:src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php#Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "source_locator": "working-tree:src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php#Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "source_locator": "working-tree:src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php#Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "source_locator": "working-tree:src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php#Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "source_locator": "working-tree:src/Adapter/Cache/CodeIgniter/CodeIgniterCache.php#Fight\\Common\\Adapter\\Cache\\CodeIgniter\\CodeIgniterCache",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+            "source": "src/Adapter/Http/CodeIgniter/JSendResponse.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/JSendResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Http/CodeIgniter/JSendResponse.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/JSendResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/JSendResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/JSendResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/JSendResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\JSendResponse",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+            "source": "src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                "source_locator": "working-tree:src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "source_locator": "working-tree:src/Adapter/Routing/CodeIgniter/CodeIgniterUrlGenerator.php#Fight\\Common\\Adapter\\Routing\\CodeIgniter\\CodeIgniterUrlGenerator",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/CacheServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\CacheServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/FilesystemServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\FilesystemServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/MailServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MailServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/MailServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MailServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MailServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MailServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/MailServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\MailServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/RoutingServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\RoutingServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+            "source": "src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        }
     ],
     "functions": [
         {
