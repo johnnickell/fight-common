@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## “What’s Next?” Contract
 
@@ -35,8 +35,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00070 is complete, so Laravel's remaining native adapter and fallback work is unblocked. |
-| 2 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069 and T-00073 are complete, so the remaining CodeIgniter native adapters and fallback proofs are unblocked. |
+| 1 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00069 and T-00073 are complete, so the remaining CodeIgniter native adapters and fallback proofs are unblocked. |
 
 ## Waiting
 
@@ -130,6 +129,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped Laravel password, cache, JSend/error, URL, Blade, mail, and private-broadcast adapters with independently selectable providers; wired PSR-3 directly; and proved exact native FileStorage and accepted Symfony, Guzzle, Process, and null-metrics fallbacks where Laravel is incomplete. |
 | [T-00072 — Deliver Yii Adapters, Providers, and Proven Fallbacks](00072-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped native Yii DB transaction, routing, and View adapters; proved capability-scoped strict-container composition; retained tested Symfony Mailer and Filesystem fallbacks after exact native prototype gaps; and classified stable Yii Queue as unavailable. |
 | [T-00073 — Deliver CodeIgniter Queued Messaging, Transactions, and Service Delegates](00073-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Added official Queue command/event envelope transport with visible push and retry failures, the native transactional UnitOfWork, independently selectable service delegates, real CodeIgniter lifecycle proof, development-only dependencies, and exact public-authority coverage. |
 | [T-00070 — Deliver Laravel Queued Messaging, Transactions, and Service Providers](00070-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Added Laravel queued command/event envelopes with post-commit at-least-once semantics, exact serialized-payload reconstitution and byte-identical retry replay proof, the narrow transactional UnitOfWork, independently selectable providers, and the shared Doctrine/Laravel transaction conformance suite. |
