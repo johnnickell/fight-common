@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Adapter\Cache\Psr16;
 use Exception;
 use Fight\Common\Adapter\Cache\Psr16\Psr16Cache;
 use Fight\Common\Application\Cache\Exception\CacheException;
+use Fight\Common\Application\Cache\MutableCache;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery;
 use Mockery\MockInterface;
@@ -17,6 +18,17 @@ use Psr\SimpleCache\CacheInterface;
 #[CoversClass(Psr16Cache::class)]
 class Psr16CacheTest extends UnitTestCase
 {
+    public function test_that_psr16_cache_implements_the_additive_mutable_cache_contract(): void
+    {
+        /** @var MockInterface|CacheInterface $simpleCache */
+        $simpleCache = $this->mock(CacheInterface::class);
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        self::assertInstanceOf(MutableCache::class, new Psr16Cache($simpleCache, $logger));
+    }
+
     public function test_that_read_returns_a_cached_value_without_calling_the_loader(): void
     {
         /** @var MockInterface|CacheInterface $simpleCache */
@@ -86,5 +98,52 @@ class Psr16CacheTest extends UnitTestCase
         $this->expectExceptionMessage('invalid key');
 
         $cache->read('invalid/key', fn (): null => null, 60);
+    }
+
+    public function test_that_delete_and_clear_delegate_to_the_simple_cache(): void
+    {
+        /** @var MockInterface|CacheInterface $simpleCache */
+        $simpleCache = $this->mock(CacheInterface::class);
+        $simpleCache->shouldReceive('delete')->once()->with('key')->andReturn(true);
+        $simpleCache->shouldReceive('clear')->once()->andReturn(true);
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $cache = new Psr16Cache($simpleCache, $logger);
+        $cache->delete('key');
+        $cache->clear();
+
+        self::addToAssertionCount(1);
+    }
+
+    public function test_that_delete_translates_simple_cache_failures(): void
+    {
+        /** @var MockInterface|CacheInterface $simpleCache */
+        $simpleCache = $this->mock(CacheInterface::class);
+        $simpleCache->shouldReceive('delete')->once()->with('key')->andThrow(new Exception('delete error'));
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('delete error');
+
+        (new Psr16Cache($simpleCache, $logger))->delete('key');
+    }
+
+    public function test_that_clear_translates_simple_cache_failures(): void
+    {
+        /** @var MockInterface|CacheInterface $simpleCache */
+        $simpleCache = $this->mock(CacheInterface::class);
+        $simpleCache->shouldReceive('clear')->once()->andThrow(new Exception('clear error'));
+
+        /** @var MockInterface|LoggerInterface $logger */
+        $logger = $this->mock(LoggerInterface::class);
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage('clear error');
+
+        (new Psr16Cache($simpleCache, $logger))->clear();
     }
 }

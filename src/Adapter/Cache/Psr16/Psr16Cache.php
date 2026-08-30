@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Cache\Psr16;
 
-use Fight\Common\Application\Cache\Cache;
 use Fight\Common\Application\Cache\Exception\CacheException;
+use Fight\Common\Application\Cache\MutableCache;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use stdClass;
@@ -14,7 +14,7 @@ use Throwable;
 /**
  * Class Psr16Cache
  */
-final readonly class Psr16Cache implements Cache
+final readonly class Psr16Cache implements MutableCache
 {
     /**
      * Constructs Psr16Cache
@@ -42,6 +42,30 @@ final readonly class Psr16Cache implements Cache
             }
 
             return $value;
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function delete(string $key): void
+    {
+        try {
+            $this->simpleCache->delete($key);
+        } catch (Throwable $throwable) {
+            throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clear(): void
+    {
+        try {
+            $this->simpleCache->clear();
         } catch (Throwable $throwable) {
             throw new CacheException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }

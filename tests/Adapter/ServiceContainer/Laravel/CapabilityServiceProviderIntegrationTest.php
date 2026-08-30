@@ -9,6 +9,7 @@ use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler;
 use Fight\Common\Adapter\Persistence\Laravel\LaravelTransactionalUnitOfWork;
 use Fight\Common\Adapter\ServiceContainer\Laravel\MessagingServiceProvider;
 use Fight\Common\Adapter\ServiceContainer\Laravel\PersistenceServiceProvider;
+use Fight\Common\Application\Routing\UrlGenerator;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
 use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -32,7 +33,7 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
         self::assertArrayNotHasKey('laravel/framework', $composer['require']);
         self::assertSame('^13.0', $composer['require-dev']['laravel/framework'] ?? null);
         self::assertSame(
-            'Required by the Laravel queue, transaction, and capability provider adapters',
+            'Required by the Laravel cache, queue, transaction, security, routing, and capability provider adapters',
             $composer['suggest']['laravel/framework'] ?? null,
         );
     }
@@ -56,6 +57,7 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
         self::assertFalse($application->bound('db.connection'));
         self::assertFalse($application->resolved('db'));
         self::assertFalse($application->resolved('db.connection'));
+        self::assertFalse($application->bound(UrlGenerator::class));
     }
 
     public function test_that_real_laravel_applications_boot_selected_capabilities_without_unrelated_activation(): void
@@ -75,6 +77,7 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
         self::assertTrue($messagingApplication->bound(CommandMessageHandler::class));
         self::assertTrue($messagingApplication->bound(EventMessageHandler::class));
         self::assertFalse($messagingApplication->bound(TransactionalUnitOfWork::class));
+        self::assertFalse($messagingApplication->bound(UrlGenerator::class));
         self::assertInstanceOf(CommandMessageHandler::class, $messagingApplication->make(CommandMessageHandler::class));
         self::assertInstanceOf(EventMessageHandler::class, $messagingApplication->make(EventMessageHandler::class));
 
@@ -86,6 +89,7 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
         self::assertTrue($persistenceApplication->bound(TransactionalUnitOfWork::class));
         self::assertFalse($persistenceApplication->bound(CommandMessageHandler::class));
         self::assertFalse($persistenceApplication->bound(EventMessageHandler::class));
+        self::assertFalse($persistenceApplication->bound(UrlGenerator::class));
         self::assertInstanceOf(
             LaravelTransactionalUnitOfWork::class,
             $persistenceApplication->make(TransactionalUnitOfWork::class)
