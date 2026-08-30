@@ -31,6 +31,8 @@ final readonly class DatabaseQueueFixture
 
         require dirname(__DIR__, 4).'/vendor/codeigniter4/framework/system/Test/bootstrap.php';
 
+        Factories::injectMock('config', 'database', new \Config\Database());
+
         $config = new class extends QueueConfig {
             /** @var array{dbGroup: string, getShared: bool, skipLocked: bool} */
             public array $database = ['dbGroup' => 'tests', 'getShared' => true, 'skipLocked' => true];
