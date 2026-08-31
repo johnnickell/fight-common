@@ -86,6 +86,7 @@
         "squizlabs/php_codesniffer": "Required to run the optional FightCommon PHP_CodeSniffer standard",
         "phpseclib/phpseclib": "Required by the SFTP file transport adapter",
         "psr/simple-cache": "Required by the optional PSR-16 read-through cache adapter",
+        "slim/slim": "Required by the Slim HTTP and middleware adapter prototypes",
         "twilio/sdk": "Required by the Twilio SMS transport adapter",
         "twig/twig": "Required by the Twig template engine adapter",
         "yiisoft/db": "Required by the Yii DB transactional unit of work adapter",

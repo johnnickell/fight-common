@@ -8,6 +8,7 @@ require __DIR__.'/../../vendor/autoload.php';
 use Fight\Release\Adapter\ArtifactReleasePlanAuthority;
 use Fight\Release\Adapter\CryptographicRunIdGenerator;
 use Fight\Release\Adapter\DisposablePublicConsumer;
+use Fight\Release\Adapter\DependencyLaneVerifier;
 use Fight\Release\Adapter\Fake\DeterministicReleaseBoundaryFake;
 use Fight\Release\Adapter\GitBaselineStructuralInventory;
 use Fight\Release\Adapter\LocalCompatibilityInput;
@@ -460,7 +461,8 @@ try {
             $inventory,
             new GitBaselineStructuralInventory($repositoryRoot, $workspace, $inventory),
             $git,
-            new DisposablePublicConsumer()
+            new DisposablePublicConsumer(),
+            dependencyLanes: new DependencyLaneVerifier()
         )->assess($repositoryRoot);
 
         dispatch_release_result($result);

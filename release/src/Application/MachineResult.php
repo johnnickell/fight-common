@@ -540,7 +540,10 @@ final readonly class MachineResult
 
         return !isset($nextAction['version'])
             || $command === 'inspect' && is_string($nextAction['version']) && $nextAction['version'] !== ''
-            || $command === 'compatibility' && SchedulerEvidenceAuthority::isReplanAction($nextAction);
+            || $command === 'compatibility' && (
+                SchedulerEvidenceAuthority::isReplanAction($nextAction)
+                || new DependencyLaneEvidenceAuthority()->isRetryAction($nextAction)
+            );
     }
 
     /**
@@ -563,13 +566,31 @@ final readonly class MachineResult
         }
 
         $evidence = $payload['evidence'] ?? null;
-        if (!is_array($evidence) || array_keys($evidence) !== ['manifest', 'structural', 'consumer']) {
+        if (
+            !is_array($evidence)
+            || !in_array(
+                array_keys($evidence),
+                [
+                    ['manifest', 'structural', 'consumer'],
+                    ['manifest', 'structural', 'consumer', 'dependency_lanes']
+                ],
+                true
+            )
+        ) {
             return false;
         }
 
         $manifest = $evidence['manifest'];
         $structural = $evidence['structural'];
         $consumer = $evidence['consumer'];
+        $dependencyLanes = $evidence['dependency_lanes'] ?? null;
+        if (
+            $dependencyLanes !== null
+            && (!is_array($dependencyLanes) || !new DependencyLaneEvidenceAuthority()->isValid($dependencyLanes))
+        ) {
+            return false;
+        }
+
         $packageProbes = is_array($consumer) ? ($consumer['package_probes'] ?? null) : null;
         $baselineProbe = is_array($packageProbes) ? ($packageProbes['baseline'] ?? null) : null;
         $candidateProbe = is_array($packageProbes) ? ($packageProbes['candidate'] ?? null) : null;
@@ -612,12 +633,25 @@ final readonly class MachineResult
             && SchedulerEvidenceAuthority::isCopiedReceipt($candidateReceipt)
             && SchedulerEvidenceAuthority::receiptsAreEquivalent($baselineReceipt, $candidateReceipt)
             && $candidateReceipt === array_diff_key($consumer, ['package_probes' => true])
-            && $payload['verified_postconditions'] === [
-                'compatibility_manifest_authenticated',
-                'structural_evidence_composed',
-                'disposable_public_consumer_verified',
-                'baseline_and_candidate_public_probes_verified'
-            ]
+            && in_array(
+                $payload['verified_postconditions'],
+                [
+                    [
+                        'compatibility_manifest_authenticated',
+                        'structural_evidence_composed',
+                        'disposable_public_consumer_verified',
+                        'baseline_and_candidate_public_probes_verified'
+                    ],
+                    [
+                        'compatibility_manifest_authenticated',
+                        'structural_evidence_composed',
+                        'disposable_public_consumer_verified',
+                        'baseline_and_candidate_public_probes_verified',
+                        'optional_dependency_lanes_verified'
+                    ]
+                ],
+                true
+            )
             && $payload['performed_effects'] === []
             && $payload['proposed_effects'] === []
             && $payload['next_action'] === ['action' => 'review_compatibility_evidence'];
