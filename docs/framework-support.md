@@ -128,3 +128,19 @@ Every **ship** item needs adapter conformance plus a booted starter receipt befo
 claim. A prototype may fail only when its documented tested **wire** fallback remains; otherwise that framework
 claim is blocked. Compatible new adapters, including Yii Queue after its gate, may be additive in 1.3. Legacy
 name removal and incompatible inward contract changes are reserved for 2.0.
+
+### Starter support receipt v1
+
+Each starter commits its canonical receipt at `evidence/framework-support/receipt-v1.json`. The receipt uses
+`fight-common.framework-support-receipt/v1` and records a content ID, the resolved Fight Common 1.2 candidate
+package/version/reference, framework and selected provider versions, its Composer lock SHA-256, selected
+capabilities and their states, booted lifecycle journeys, result, and build/planning evidence references.
+
+`passed` requires every recorded journey to pass and has no next action. Every other result—`failed`,
+`unavailable`, `skipped`, or `indeterminate`—records exactly one resumable action. A receipt is eligible only
+after the starter's canonical `./bin/build`, receipt canonicalization, and `./bin/planning-check` succeed.
+
+Fight Common composes the five receipts only from immutable pins containing the framework, repository URL, exact
+40-character commit, canonical path, and receipt SHA-256. Missing, stale, malformed, candidate-mismatched,
+failed, unavailable, skipped, or indeterminate evidence fails closed; a support claim is never inferred from a
+Composer constraint or a copied package source.

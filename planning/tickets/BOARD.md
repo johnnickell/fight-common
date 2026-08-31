@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-30
+Last updated: 2026-08-31
 
 ## “What’s Next?” Contract
 
@@ -35,7 +35,13 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00058 is complete; compose the repository-owned starter receipts before 1.2 compatibility certification. |
+No ready ticket is currently available while T-00075 establishes the receipt contract and awaits repository-owned evidence.
+
+## In Progress
+
+| Ticket | Parent PRD | Current slice |
+| --- | --- | --- |
+| [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Versioned receipt validator and immutable pin contract; all five booted starter receipts remain required for composition. |
 
 ## Waiting
 
