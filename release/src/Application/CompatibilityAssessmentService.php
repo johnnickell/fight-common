@@ -7,6 +7,7 @@ namespace Fight\Release\Application;
 use Fight\Release\Application\Boundary\BaselineStructuralInventoryPort;
 use Fight\Release\Application\Boundary\CompatibilityInputPort;
 use Fight\Release\Application\Boundary\CompatibilityWorkspacePort;
+use Fight\Release\Application\Boundary\DependencyLanePort;
 use Fight\Release\Application\Boundary\GitPort;
 use Fight\Release\Application\Boundary\PublicConsumerPort;
 use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
@@ -30,7 +31,8 @@ final readonly class CompatibilityAssessmentService
         private GitPort $git,
         private PublicConsumerPort $consumer,
         private CompatibilityManifestAuthority $manifestAuthority = new PublicApiManifestAuthority(),
-        private StructuralCompatibilityAuthority $structuralComparison = new StructuralApiComparison()
+        private StructuralCompatibilityAuthority $structuralComparison = new StructuralApiComparison(),
+        private ?DependencyLanePort $dependencyLanes = null
     ) {
     }
 
@@ -111,6 +113,18 @@ final readonly class CompatibilityAssessmentService
                 return $this->schedulerIncompatibility();
             }
 
+            SchedulerEvidenceAuthority::isCopiedReceipt($candidateConsumer)
+                || throw new RuntimeException('Candidate public consumer evidence is invalid.');
+
+            $stage = 'dependency-lanes';
+            $dependencyLanes = $this->dependencyLanes?->verify($root, $workspace);
+            if (
+                $dependencyLanes !== null
+                && !new DependencyLaneEvidenceAuthority()->isValid($dependencyLanes)
+            ) {
+                return $this->dependencyLanesIncompatible($dependencyLanes);
+            }
+
             $consumer = [
                 ...$candidateConsumer,
                 'package_probes' => [
@@ -148,7 +162,8 @@ final readonly class CompatibilityAssessmentService
                     'compatibility_manifest_authenticated',
                     'structural_evidence_composed',
                     'disposable_public_consumer_verified',
-                    'baseline_and_candidate_public_probes_verified'
+                    'baseline_and_candidate_public_probes_verified',
+                    ...($dependencyLanes === null ? [] : ['optional_dependency_lanes_verified'])
                 ],
                 'performed_effects'       => [],
                 'proposed_effects'        => [],
@@ -156,7 +171,8 @@ final readonly class CompatibilityAssessmentService
                 'evidence'                => [
                     'manifest'   => $manifest,
                     'structural' => $structural,
-                    'consumer'   => $consumer
+                    'consumer'   => $consumer,
+                    ...($dependencyLanes === null ? [] : ['dependency_lanes' => $dependencyLanes])
                 ]
             ], 0);
         } catch (CompatibilityManifestRejected $rejected) {
@@ -216,5 +232,36 @@ final readonly class CompatibilityAssessmentService
     private function schedulerIncompatibility(): MachineResult
     {
         return new MachineResult(SchedulerEvidenceAuthority::incompatibilityResult(), 4);
+    }
+
+    /**
+     * Returns one attributed, resumable optional-dependency evidence stop
+     *
+     * @param array<string, mixed> $receipt Dependency-lane verifier output.
+     */
+    private function dependencyLanesIncompatible(array $receipt): MachineResult
+    {
+        $failure = $receipt['failure'] ?? [];
+        $lane = is_array($failure) && is_string($failure['lane'] ?? null) ? $failure['lane'] : 'unknown';
+        $nextAction = ['action' => 'restore_dependency_lanes_evidence_and_retry'];
+        if (is_array($failure) && is_array($failure['next_action'] ?? null)) {
+            $nextAction = $failure['next_action'];
+        }
+
+        return new MachineResult([
+            'schema_version'          => 'fight-common.release-result/v1',
+            'command'                 => 'compatibility',
+            'capability'              => 'compatibility_assessment',
+            'status'                  => 'evidence_indeterminate',
+            'exit_class'              => 'uncertain',
+            'findings'                => [[
+                'id'      => 'release.compatibility.dependency-lane-'.$lane.'-unavailable',
+                'message' => 'The '.$lane.' optional-dependency lane did not produce valid evidence.'
+            ]],
+            'verified_postconditions' => [],
+            'performed_effects'       => [],
+            'proposed_effects'        => [],
+            'next_action'             => $nextAction
+        ], 5);
     }
 }

@@ -65,4 +65,23 @@ final class PackageSurfaceAuthorityTest extends UnitTestCase
         self::assertStringContainsString("roots are `src` and `tests/TestCase`", $normative);
         self::assertStringContainsString('without certifying an exact archive', $normative);
     }
+
+    /**
+     * Proves optional framework requirements do not leak into production.
+     */
+    public function test_that_framework_and_provider_dependencies_are_development_only_and_suggested(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $composer = json_decode((string) file_get_contents($root.'/composer.json'), true, flags: JSON_THROW_ON_ERROR);
+        $frameworks = [
+            'symfony/dependency-injection', 'laravel/framework', 'yiisoft/di', 'codeigniter4/framework', 'slim/slim'
+        ];
+
+        foreach ($frameworks as $package) {
+            self::assertArrayNotHasKey($package, $composer['require']);
+            self::assertArrayHasKey($package, $composer['require-dev']);
+            self::assertArrayHasKey($package, $composer['suggest']);
+            self::assertNotSame('', $composer['suggest'][$package]);
+        }
+    }
 }

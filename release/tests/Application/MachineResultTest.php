@@ -1496,6 +1496,15 @@ final class MachineResultTest extends UnitTestCase
         $invalid = $success;
         $invalid['evidence'] = [];
         self::assertFalse(MachineResult::isValidPayload($invalid, 0));
+
+        $invalidDependencyLane = $success;
+        $invalidDependencyLane['verified_postconditions'][] = 'optional_dependency_lanes_verified';
+        $invalidDependencyLane['evidence']['dependency_lanes'] = [
+            'schema_version' => 'fight-common.dependency-lanes/v1',
+            'status'         => 'invalid',
+            'lanes'          => []
+        ];
+        self::assertFalse(MachineResult::isValidPayload($invalidDependencyLane, 0));
     }
 
     /**
