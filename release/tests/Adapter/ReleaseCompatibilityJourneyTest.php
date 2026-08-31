@@ -27,6 +27,7 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 3);
         $process = ReleaseProcess::create([$root.'/bin/release', 'compatibility']);
+        $process->setTimeout(300);
 
         $process->mustRun();
 
@@ -192,7 +193,8 @@ final class ReleaseCompatibilityJourneyTest extends UnitTestCase
                 'compatibility_manifest_authenticated',
                 'structural_evidence_composed',
                 'disposable_public_consumer_verified',
-                'baseline_and_candidate_public_probes_verified'
+                'baseline_and_candidate_public_probes_verified',
+                'optional_dependency_lanes_verified'
             ],
             $result['verified_postconditions']
         );

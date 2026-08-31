@@ -14,6 +14,7 @@ use Fight\Release\Application\Boundary\BaselineStructuralInventoryPort;
 use Fight\Release\Application\Boundary\BaselineTagResolutionResult;
 use Fight\Release\Application\Boundary\CompatibilityInputPort;
 use Fight\Release\Application\Boundary\CompatibilityWorkspacePort;
+use Fight\Release\Application\Boundary\DependencyLanePort;
 use Fight\Release\Application\Boundary\GitPort;
 use Fight\Release\Application\Boundary\PublicConsumerPort;
 use Fight\Release\Application\Boundary\PublicConsumerProbeRejected;
@@ -93,6 +94,49 @@ final class CompatibilityAssessmentServiceTest extends UnitTestCase
         } finally {
             rmdir($existing);
         }
+    }
+
+    /**
+     * Proves an invalid optional-dependency receipt becomes one attributed resumable stop.
+     */
+    public function test_that_invalid_dependency_lane_evidence_is_attributed_to_its_lane(): void
+    {
+        $root = dirname(__DIR__, 3);
+        $effects = static function (ReleaseEffect $_effect, ReleaseBoundaryOutcome $_outcome): void {
+        };
+        $input = new LocalCompatibilityInput();
+        $workspace = new LocalCompatibilityWorkspace();
+        $inventory = new PhpParserStructuralInventory($input);
+        $result = new CompatibilityAssessmentService(
+            $input,
+            $workspace,
+            $inventory,
+            new GitBaselineStructuralInventory($root, $workspace, $inventory),
+            new LocalGitPort($root, $effects),
+            new DisposablePublicConsumer(),
+            dependencyLanes: new class implements DependencyLanePort {
+                /** @return array<string, mixed> */
+                public function verify(string $_repository, string $_workspace): array
+                {
+                    return [
+                        'schema_version' => 'fight-common.dependency-lanes/v1',
+                        'status'         => 'invalid',
+                        'lanes'          => [],
+                        'failure'        => [
+                            'lane'        => 'slim',
+                            'next_action' => ['action' => 'restore_slim_dependency_lane_and_retry']
+                        ]
+                    ];
+                }
+            }
+        )->assess($root);
+
+        self::assertSame(5, $result->exitCode);
+        self::assertSame(
+            'release.compatibility.dependency-lane-slim-unavailable',
+            $result->payload['findings'][0]['id']
+        );
+        self::assertSame(['action' => 'restore_slim_dependency_lane_and_retry'], $result->payload['next_action']);
     }
 
     /**
