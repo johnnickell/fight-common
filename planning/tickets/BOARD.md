@@ -35,7 +35,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00054 is complete; publish the support guide before starter-receipt composition. |
+| 1 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00058 is complete; compose the repository-owned starter receipts before 1.2 compatibility certification. |
 
 ## Waiting
 
@@ -43,7 +43,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 10 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | T-00058 |
 | 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00054, T-00058, and T-00075 |
 | 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
 | 22 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
@@ -127,6 +126,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published the normative framework support matrix and capability-scoped activation guide, with Composer-suggestion and navigation contract coverage; confirmed the complete canonical build and exact coverage. |
 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added dependency-mode and selected-framework isolation receipts to `bin/release compatibility`, with production consumer evidence, attributed retry stops, and exact coverage. |
 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped native CodeIgniter cache, JSend/error response, and named-route URL adapters with independently selectable service delegates; retained conformance-proven Symfony Mailer, Twig/PHP, and Symfony Filesystem fallbacks where native facilities are incomplete; and proved booted capability isolation, optional-package absence, public authority, and exact coverage. |
 | [T-00071 — Deliver Laravel Native Adapters and Prove Fallbacks](00071-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped Laravel password, cache, JSend/error, URL, Blade, mail, and private-broadcast adapters with independently selectable providers; wired PSR-3 directly; and proved exact native FileStorage and accepted Symfony, Guzzle, Process, and null-metrics fallbacks where Laravel is incomplete. |

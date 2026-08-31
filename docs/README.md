@@ -13,6 +13,7 @@ usage examples.
 2. [Installation](#installation)
 3. [Symfony Wiring](#symfony-wiring)
 4. [Component Catalog](#component-catalog)
+5. [Framework support and activation](framework-support.md) — Support windows, capability matrix, and opt-in framework composition
 
 ---
 
