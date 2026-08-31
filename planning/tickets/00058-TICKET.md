@@ -2,7 +2,7 @@
 id: T-00058
 prd: PRD-00015
 title: Publish the Framework Support Matrix and Activation Guide
-status: ready-for-agent
+status: done
 blocked_by: T-00054
 ---
 
@@ -17,29 +17,29 @@ prototyped, wired through a standard/provider, or deliberately starter-owned.
 
 ## Acceptance Criteria
 
-- [ ] Documentation records the current-only supported constraints for Symfony `^8.1`, Laravel `^13.0`,
+- [x] Documentation records the current-only supported constraints for Symfony `^8.1`, Laravel `^13.0`,
       CodeIgniter `^4.7`, Slim `^4.15`, and the accepted current Yii 3 package set.
-- [ ] Each framework documents its widen trigger, tighten trigger, PHP 8.6 re-resolution horizon, and the rule
+- [x] Each framework documents its widen trigger, tighten trigger, PHP 8.6 re-resolution horizon, and the rule
       that the support window never exceeds two maintained majors.
-- [ ] Every audited capability is labeled `ship`, `prototype`, or `wire` for all five frameworks, with the exact
+- [x] Every audited capability is labeled `ship`, `prototype`, or `wire` for all five frameworks, with the exact
       adapter, standard, provider, or starter-owned policy named.
-- [ ] Capability-scoped Symfony compiler passes, Laravel providers, Yii providers/configuration groups,
+- [x] Capability-scoped Symfony compiler passes, Laravel providers, Yii providers/configuration groups,
       CodeIgniter service delegates, and Fight-container registrars are activated explicitly; no aggregate
       provider is documented.
-- [ ] Queue documentation covers complete Fight envelopes, neutral synchronous delegation, at-least-once
+- [x] Queue documentation covers complete Fight envelopes, neutral synchronous delegation, at-least-once
       delivery, post-commit submission where native, and starter-owned broker, retry, failure, worker, topology,
       and outbox policy.
-- [ ] Yii Queue is identified as unavailable for stable `1.2` support rather than skipped, with the stable
+- [x] Yii Queue is identified as unavailable for stable `1.2` support rather than skipped, with the stable
       upstream and production-broker evidence required for a possible additive `1.3` adapter.
-- [ ] Authentication documentation limits Fight Common to exact password, HMAC, JWT, and boolean authenticator
+- [x] Authentication documentation limits Fight Common to exact password, HMAC, JWT, and boolean authenticator
       seams and assigns guards, sessions, principals, and authorization to downstream project integration.
-- [ ] PSR documentation distinguishes direct interface use, lossless adapters, explicit mismatches, and standards
+- [x] PSR documentation distinguishes direct interface use, lossless adapters, explicit mismatches, and standards
       with no Fight capability; PSR-6 cache is not confused with unrelated PSR contracts.
-- [ ] Composer suggestion entries and guide installation instructions agree with T-00054 receipts and do not add
+- [x] Composer suggestion entries and guide installation instructions agree with T-00054 receipts and do not add
       framework packages to production requirements.
-- [ ] Failed prototypes document the exact missing operation or value and the tested fallback; no capability is
+- [x] Failed prototypes document the exact missing operation or value and the tested fallback; no capability is
       silently omitted from a support claim.
-- [ ] Additive adapters remain eligible for `1.3`, while legacy-name removal and incompatible inward changes are
+- [x] Additive adapters remain eligible for `1.3`, while legacy-name removal and incompatible inward changes are
       reserved for `2.0`.
 
 ## Verification
