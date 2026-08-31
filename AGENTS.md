@@ -32,6 +32,8 @@ docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
 
 `./bin/build` is the canonical completion gate.
 
+For a long non-interactive build, run `screen -dmS <ticket>-build /bin/zsh -lc './bin/build > /private/tmp/<ticket>-build.log 2>&1; print -r -- $? > /private/tmp/<ticket>-build.exit'`, then inspect the log and require an exit file containing `0`; never treat foreground timeout output as a build result.
+
 ## Architecture
 
 Hexagonal (Ports & Adapters) with strict layer separation:

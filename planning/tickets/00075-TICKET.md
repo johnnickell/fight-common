@@ -2,7 +2,7 @@
 id: T-00075
 prd: PRD-00015
 title: Compose the Five Booted Starter Support Receipts
-status: ready-for-agent
+status: in-progress
 blocked_by: T-00058
 ---
 
@@ -14,6 +14,10 @@ Consume one immutable lowest- and latest-resolution installed-package receipt fr
 Yii, CodeIgniter, and Slim starter. Fight Common can then prove that the candidate package installs with only the
 selected framework stack, activates its documented capabilities through the native container, and completes the
 representative lifecycle journeys required by that framework's support claim.
+
+The first committed slice owns the versioned receipt-v1 schema, validator, canonical starter path, and immutable
+pin contract. It does not manufacture starter evidence; composition remains in progress until each repository's
+local adoption ticket supplies an eligible receipt.
 
 ## Acceptance Criteria
 
