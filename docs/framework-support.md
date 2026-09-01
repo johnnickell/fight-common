@@ -83,7 +83,11 @@ remain their own selected integrations. There is no Fight Common Symfony bundle.
 Laravel applications register only the relevant provider under
 `Fight\Common\Adapter\ServiceContainer\Laravel`: messaging, persistence, security, cache, HTTP, routing,
 templating, mail, broadcasting, file storage, filesystem, HTTP client, process, metrics, or logging. Do not
-enable unrelated providers through application auto-discovery. The filesystem provider selects
+enable unrelated providers through application auto-discovery. The messaging provider selects
+`LaravelCommandBus` and `LaravelEventDispatcher` for the asynchronous Fight ports and retains application-owned
+command handlers, event handlers, queue configuration, migrations, and workers. The broadcasting provider
+selects both `LaravelBroadcastPublisher` and `LaravelPrivatePublisher`; applications retain channel definitions,
+authorization, and broadcaster configuration. The filesystem provider selects
 `Fight\Common\Adapter\Filesystem\Laravel\LaravelFilesystem`; applications supply path policy only when their
 own services require it.
 

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Framework-neutral Event Sourcing: aggregate recording, replay, and reconstitution; stable stream and stored-event contracts; mapping, schema upcasting, and aggregate repositories; in-memory and Doctrine DBAL event stores for SQLite, MySQL-compatible, and PostgreSQL databases; checkpointed projections; and durable, diagnosable event publication. Symfony applications can autoconfigure `EventMappingProvider` services, and `docs/event-sourcing.md` provides an executable integration and operations guide.
 - Canonical Symfony adapter paths for HTTP exception and validation subscribers, JSON request middleware, error controllers, local filesystems, and URL generation. The new paths are covered by Symfony registration and old/new interoperability probes.
 - `Adapter\Filesystem\Laravel\LaravelFilesystem`, a complete local-filesystem adapter that composes Laravel's native filesystem, fills its missing metadata and ownership operations with PHP primitives, and is selected by Laravel's capability-scoped filesystem provider.
+- Laravel asynchronous command/event adapters and private broadcast publication, selected by the bounded messaging
+  and broadcasting providers so consuming applications own only handlers, queue operations, channels, and authorization.
 - `Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork`, the canonical Doctrine adapter for the narrow `Application\Repository\TransactionalUnitOfWork` boundary.
 
 ### Fixed
