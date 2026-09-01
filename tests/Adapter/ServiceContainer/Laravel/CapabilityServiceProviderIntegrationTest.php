@@ -6,14 +6,19 @@ namespace Fight\Test\Common\Adapter\ServiceContainer\Laravel;
 
 use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler;
 use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler;
+use Fight\Common\Adapter\Messaging\Laravel\LaravelCommandBus;
+use Fight\Common\Adapter\Messaging\Laravel\LaravelEventDispatcher;
 use Fight\Common\Adapter\Persistence\Laravel\LaravelTransactionalUnitOfWork;
 use Fight\Common\Adapter\ServiceContainer\Laravel\MessagingServiceProvider;
 use Fight\Common\Adapter\ServiceContainer\Laravel\PersistenceServiceProvider;
-use Fight\Common\Application\Routing\UrlGenerator;
+use Fight\Common\Application\Messaging\Command\AsynchronousCommandBus;
 use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
+use Fight\Common\Application\Messaging\Event\AsynchronousEventDispatcher;
 use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Application\Routing\UrlGenerator;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Application;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -49,6 +54,7 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
             SynchronousEventDispatcher::class,
             $this->mock(SynchronousEventDispatcher::class)
         );
+        $application->instance(Dispatcher::class, $this->mock(Dispatcher::class));
         $application->register(MessagingServiceProvider::class);
         $application->boot();
 
@@ -71,15 +77,26 @@ final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
             SynchronousEventDispatcher::class,
             $this->mock(SynchronousEventDispatcher::class)
         );
+        $messagingApplication->instance(Dispatcher::class, $this->mock(Dispatcher::class));
         $messagingApplication->register(MessagingServiceProvider::class);
         $messagingApplication->boot();
 
         self::assertTrue($messagingApplication->bound(CommandMessageHandler::class));
         self::assertTrue($messagingApplication->bound(EventMessageHandler::class));
+        self::assertTrue($messagingApplication->bound(AsynchronousCommandBus::class));
+        self::assertTrue($messagingApplication->bound(AsynchronousEventDispatcher::class));
         self::assertFalse($messagingApplication->bound(TransactionalUnitOfWork::class));
         self::assertFalse($messagingApplication->bound(UrlGenerator::class));
         self::assertInstanceOf(CommandMessageHandler::class, $messagingApplication->make(CommandMessageHandler::class));
         self::assertInstanceOf(EventMessageHandler::class, $messagingApplication->make(EventMessageHandler::class));
+        self::assertInstanceOf(
+            LaravelCommandBus::class,
+            $messagingApplication->make(AsynchronousCommandBus::class)
+        );
+        self::assertInstanceOf(
+            LaravelEventDispatcher::class,
+            $messagingApplication->make(AsynchronousEventDispatcher::class)
+        );
 
         $persistenceApplication = new Application(__DIR__);
         $persistenceApplication->instance('db.connection', new Connection(new \PDO('sqlite::memory:')));
