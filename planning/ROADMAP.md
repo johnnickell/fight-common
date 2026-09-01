@@ -10,15 +10,16 @@ outcomes remain navigable.
 | --- | --- | --- | --- |
 | [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing core, durable storage, aggregate repository, checkpointed projection, durable post-commit publication, and optional Symfony mapping-provider autoconfiguration complete; integration documentation and release acceptance remain |
 | [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | Deterministic inspection, immutable plans, resumable runs, and preparation handoffs complete; maintainer-tooling isolation now precedes packaging, certification, publication recovery, maintenance workflows, and operator integration |
-| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, installed-package consumer harness, canonical Doctrine and Yii transactions, private Mercure publication, shared PSR/container composition, Laravel and complete CodeIgniter native adapter/fallback lanes, package isolation, and the framework support guide are complete; starter receipts and final certification remain |
+| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, installed-package consumer harness, canonical Doctrine and Yii transactions, private Mercure publication, shared PSR/container composition, Laravel including its complete native filesystem and CodeIgniter adapter/fallback lanes, package isolation, and the framework support guide are complete; starter receipts and final certification remain |
 
 ## Route to 1.2.0
 
 1. WF-024 is closed with the complete framework-adapter matrix accepted in ADR 0024.
 2. PRD-00014 and PRD-00015 are refreshed from WF-024 without duplicate specifications.
 3. The reconciled implementation graph is published in T-00050 through T-00054, T-00058, T-00069 through
-   T-00075, and T-00077; T-00049, T-00050, T-00051, T-00053, T-00059, and T-00060 remain valid unchanged.
-   T-00050 through T-00054, T-00058 through T-00060, T-00069 through T-00074, and T-00077 are complete.
+   T-00075, T-00077, and T-00084; T-00049, T-00050, T-00051, T-00053, T-00059, and T-00060 remain valid
+   unchanged. T-00050 through T-00054, T-00058 through T-00060, T-00069 through T-00074, T-00077, and T-00084
+   are complete.
 4. Run `$aios /ask-matt` at each planning or implementation boundary. It returns the current human decision and
    first ready implementation ticket from the board rather than selecting by ticket number.
 5. Run `$aios /coordinate-build T-xxxxx` for a ready ticket with several vertical slices, or

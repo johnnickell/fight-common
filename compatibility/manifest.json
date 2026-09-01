@@ -15,8 +15,8 @@
             "declarations": 173,
             "functions": 0
         },
-            "Adapter": {
-                "declarations": 208,
+        "Adapter": {
+            "declarations": 209,
             "functions": 0
         }
     },
@@ -34489,6 +34489,72 @@
                         "binding": {
                             "subject": "Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
                             "source_locator": "working-tree:src/Adapter/ServiceContainer/CodeIgniter/TemplateServices.php#Fight\\Common\\Adapter\\ServiceContainer\\CodeIgniter\\TemplateServices",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+            "source": "src/Adapter/Filesystem/Laravel/LaravelFilesystem.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                "source_locator": "working-tree:src/Adapter/Filesystem/Laravel/LaravelFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.prd-00015-addition",
+                "rationale": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem is deliberately classified public as a post-1.1.0 PRD-00015 addition from src/Adapter/Filesystem/Laravel/LaravelFilesystem.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Laravel/LaravelFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Laravel/LaravelFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Laravel/LaravelFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
+                            "source_locator": "working-tree:src/Adapter/Filesystem/Laravel/LaravelFilesystem.php#Fight\\Common\\Adapter\\Filesystem\\Laravel\\LaravelFilesystem",
                             "operation": "implementable"
                         }
                     }

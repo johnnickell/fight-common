@@ -51,7 +51,7 @@ Application services are wired directly unless a framework lifecycle or infrastr
 | Async commands and events | **ship** Messenger + neutral handlers | **ship** complete Fight Queue envelopes | unavailable for stable 1.2; experimental neutral handlers only | **ship** official Queue envelopes | **wire** Messenger + neutral handlers |
 | Synchronous messaging | **wire** buses, routers, pipelines, dispatcher | **wire** unchanged | **wire** unchanged | **wire** unchanged | **wire** unchanged |
 | File storage | **wire** Flysystem | **prototype** native; Flysystem fallback | **wire** Flysystem | **wire** Flysystem | **wire** Flysystem |
-| Local filesystem | **ship** Symfony Filesystem | **prototype** native; Symfony fallback | **prototype** native; Symfony fallback | **prototype** native; Symfony fallback | **wire** Symfony Filesystem |
+| Local filesystem | **ship** Symfony Filesystem | **ship** native filesystem | **prototype** native; Symfony fallback | **prototype** native; Symfony fallback | **wire** Symfony Filesystem |
 | File transfer | **wire** FTP/SFTP/logging/null | **wire** unchanged | **wire** unchanged | **wire** unchanged | **wire** unchanged |
 | Outbound HTTP | **wire** Guzzle + PSR-18 | **prototype** native; Guzzle/PSR-18 fallback | **wire** PSR/provider lane | **wire** Guzzle/PSR-18 | **wire** Guzzle/PSR-18 |
 | Request, response, middleware | **ship** middleware/controller/JSend | **ship** JSend/error response | **wire** PSR-15/17 lane | **ship** JSend/error response | **wire** PSR-15/17 lane |
@@ -83,7 +83,9 @@ remain their own selected integrations. There is no Fight Common Symfony bundle.
 Laravel applications register only the relevant provider under
 `Fight\Common\Adapter\ServiceContainer\Laravel`: messaging, persistence, security, cache, HTTP, routing,
 templating, mail, broadcasting, file storage, filesystem, HTTP client, process, metrics, or logging. Do not
-enable unrelated providers through application auto-discovery.
+enable unrelated providers through application auto-discovery. The filesystem provider selects
+`Fight\Common\Adapter\Filesystem\Laravel\LaravelFilesystem`; applications supply path policy only when their
+own services require it.
 
 Yii applications select only the relevant `YiiCapabilityConfiguration` group and matching bounded provider
 under `Fight\Common\Adapter\ServiceContainer\Yii` (persistence, routing, messaging, HTTP, mail, view, or
