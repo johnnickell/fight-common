@@ -132,6 +132,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00085 — Emit PSR-7-Compatible HMAC Request Headers](00085-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Corrected HMAC timestamp emission to the PSR-7 string contract and proved the unchanged canonical signature through a real signer-to-authenticator journey. |
 | [T-00084 — Publish the Complete Laravel Filesystem Adapter](00084-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published the complete Laravel-native filesystem adapter, composed Laravel's filesystem service where available, filled the remaining Fight operations with PHP primitives, and proved the public contract with exact coverage. |
 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published the normative framework support matrix and capability-scoped activation guide, with Composer-suggestion and navigation contract coverage; confirmed the complete canonical build and exact coverage. |
 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added dependency-mode and selected-framework isolation receipts to `bin/release compatibility`, with production consumer evidence, attributed retry stops, and exact coverage. |

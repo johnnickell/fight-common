@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Auth\Hmac;
 
-use Mockery;
+use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use GuzzleHttp\Psr7\ServerRequest;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
 #[CoversClass(HmacRequestService::class)]
+#[UsesClass(HmacAuthenticator::class)]
 class HmacRequestServiceTest extends UnitTestCase
 {
     private const string PUBLIC_KEY = 'test-public-key';
@@ -48,7 +52,7 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withHeader')->with('Credential', self::PUBLIC_KEY)->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('Signature', Mockery::type('string'))->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::any())->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::type('string'))->once()->andReturnSelf();
 
         $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
         $result = $service->signRequest($request);
@@ -82,11 +86,31 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withHeader')->with('Signature', Mockery::type('string'))->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Content-SHA256', $expectedContentHash)->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
-        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::any())->once()->andReturnSelf();
+        $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::type('string'))->once()->andReturnSelf();
 
         $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
         $result = $service->signRequest($request);
 
         self::assertSame($request, $result);
+    }
+
+    public function test_that_sign_request_emits_valid_headers_through_a_real_psr_7_request(): void
+    {
+        $request = new ServerRequest('POST', 'https://example.com/api/resource?b=2&a=1', [], 'request-body');
+        $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
+
+        $result = $service->signRequest($request);
+
+        self::assertInstanceOf(ServerRequest::class, $result);
+        self::assertMatchesRegularExpression('/^\d+$/', $result->getHeaderLine('X-Timestamp'));
+        self::assertSame('HMAC-SHA256', $result->getHeaderLine('Authorization'));
+        self::assertSame(self::PUBLIC_KEY, $result->getHeaderLine('Credential'));
+        self::assertNotSame('', $result->getHeaderLine('Signature'));
+        self::assertNotSame('', $result->getHeaderLine('X-Nonce'));
+        self::assertSame(hash('sha256', 'request-body'), $result->getHeaderLine('X-Content-SHA256'));
+        self::assertSame('a=1&b=2', $result->getUri()->getQuery());
+
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 60);
+        self::assertTrue($authenticator->validate($result));
     }
 }

@@ -78,7 +78,7 @@ final class HmacRequestService implements RequestService
     /**
      * Builds standard headers
      *
-     * @return array<string, int|string>
+     * @return array<string, string>
      *
      * @throws Exception
      */
@@ -86,7 +86,7 @@ final class HmacRequestService implements RequestService
     {
         $headers = [];
 
-        $headers['X-Timestamp'] = $timestamp;
+        $headers['X-Timestamp'] = (string) $timestamp;
         $headers['X-Nonce'] = HmacKeyGenerator::generateSecureRandom(8);
 
         if ($content !== '') {

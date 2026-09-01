@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Adapter\Filesystem\Laravel\LaravelFilesystem`, a complete local-filesystem adapter that composes Laravel's native filesystem, fills its missing metadata and ownership operations with PHP primitives, and is selected by Laravel's capability-scoped filesystem provider.
 - `Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork`, the canonical Doctrine adapter for the narrow `Application\Repository\TransactionalUnitOfWork` boundary.
 
+### Fixed
+
+- `HmacRequestService` now emits `X-Timestamp` as a PSR-7-compatible string while retaining the same integer
+  timestamp for canonical request and signature calculation.
+
 ### Deprecated
 
 - `Adapter\HttpFoundation\JSendResponse` — replaced by the typed `Adapter\Http\Symfony\JSendResponse`. The legacy raw-array response remains functional throughout 1.x and will be removed in 2.0.
