@@ -49,6 +49,36 @@ final class StarterSupportReceiptAuthorityTest extends UnitTestCase
     }
 
     /**
+     * Proves invalid capability, journey, and composition inputs fail closed.
+     */
+    public function test_that_rejects_invalid_capability_journey_and_composition_inputs(): void
+    {
+        $authority = new StarterSupportReceiptAuthority();
+        $invalidCapability = $this->receipt();
+        $invalidCapability['capabilities']['container'] = 'skipped';
+        $emptyCapabilities = $this->receipt();
+        $emptyCapabilities['capabilities'] = [];
+        $invalidJourney = $this->receipt();
+        $invalidJourney['journeys'][0]['evidence'] = '';
+        $emptyJourneys = $this->receipt();
+        $emptyJourneys['journeys'] = [];
+        $pins = [];
+        $receipts = [];
+        foreach (['symfony', 'laravel', 'yii', 'codeigniter', 'slim'] as $framework) {
+            $pins[$framework] = $this->pin($framework);
+            $receipts[$framework] = $this->receipt($framework);
+        }
+        $pins['slim']['path'] = 'evidence/incorrect.json';
+
+        self::assertFalse($authority->isValid($invalidCapability));
+        self::assertFalse($authority->isValid($emptyCapabilities));
+        self::assertFalse($authority->isValid($invalidJourney));
+        self::assertFalse($authority->isValid($emptyJourneys));
+        self::assertFalse($authority->hasPassingComposition([], [], 'not-a-reference'));
+        self::assertFalse($authority->hasPassingComposition($pins, $receipts, str_repeat('b', 40)));
+    }
+
+    /**
      * Proves each required framework must provide a passing matched receipt.
      */
     public function test_that_requires_all_five_passing_candidate_matched_pins(): void
