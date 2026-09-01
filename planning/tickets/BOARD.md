@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-08-31
+Last updated: 2026-09-01
 
 ## “What’s Next?” Contract
 
@@ -132,6 +132,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00084 — Publish the Complete Laravel Filesystem Adapter](00084-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published the complete Laravel-native filesystem adapter, composed Laravel's filesystem service where available, filled the remaining Fight operations with PHP primitives, and proved the public contract with exact coverage. |
 | [T-00058 — Publish the Framework Support Matrix and Activation Guide](00058-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published the normative framework support matrix and capability-scoped activation guide, with Composer-suggestion and navigation contract coverage; confirmed the complete canonical build and exact coverage. |
 | [T-00054 — Prove Optional Adapter Dependency Modes and Production Isolation](00054-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Added dependency-mode and selected-framework isolation receipts to `bin/release compatibility`, with production consumer evidence, attributed retry stops, and exact coverage. |
 | [T-00074 — Deliver CodeIgniter Native Adapters and Prove Fallbacks](00074-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Shipped native CodeIgniter cache, JSend/error response, and named-route URL adapters with independently selectable service delegates; retained conformance-proven Symfony Mailer, Twig/PHP, and Symfony Filesystem fallbacks where native facilities are incomplete; and proved booted capability isolation, optional-package absence, public authority, and exact coverage. |
