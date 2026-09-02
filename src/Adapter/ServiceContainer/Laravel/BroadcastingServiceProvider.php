@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\ServiceContainer\Laravel;
 
 use Fight\Common\Adapter\Socket\Laravel\LaravelBroadcastPublisher;
+use Fight\Common\Adapter\Socket\Laravel\LaravelPrivatePublisher;
+use Fight\Common\Application\Socket\PrivatePublisher;
 use Fight\Common\Application\Socket\Publisher;
 use Illuminate\Contracts\Broadcasting\Factory;
 use Illuminate\Contracts\Container\Container;
@@ -30,5 +32,11 @@ final class BroadcastingServiceProvider extends ServiceProvider
 
             return new LaravelBroadcastPublisher($broadcaster, $eventName);
         });
+        $this->app->singleton(
+            PrivatePublisher::class,
+            static fn (Container $container): LaravelPrivatePublisher => new LaravelPrivatePublisher(
+                $container->make(Publisher::class)
+            )
+        );
     }
 }

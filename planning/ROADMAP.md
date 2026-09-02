@@ -17,8 +17,8 @@ outcomes remain navigable.
 1. WF-024 is closed with the complete framework-adapter matrix accepted in ADR 0024.
 2. PRD-00014 and PRD-00015 are refreshed from WF-024 without duplicate specifications.
 3. The reconciled implementation graph is published in T-00050 through T-00054, T-00058, T-00069 through
-   T-00075, T-00077, T-00084, and T-00085; T-00049, T-00050, T-00051, T-00053, T-00059, and T-00060 remain valid
-   unchanged. T-00050 through T-00054, T-00058 through T-00060, T-00069 through T-00074, T-00077, T-00084, and T-00085
+   T-00075, T-00077, and T-00084 through T-00086; T-00049, T-00050, T-00051, T-00053, T-00059, and T-00060 remain valid
+   unchanged. T-00050 through T-00054, T-00058 through T-00060, T-00069 through T-00074, T-00077, and T-00084 through T-00086
    are complete.
 4. Run `$aios /ask-matt` at each planning or implementation boundary. It returns the current human decision and
    first ready implementation ticket from the board rather than selecting by ticket number.
