@@ -25,9 +25,9 @@ separate approvals.
 
 The active [Fight Common Documentation Presentation](../wayfinder/fight-common-documentation-presentation-map.md)
 map now has three unblocked decisions. Its recommended next session is
-[Establish the Fight visual system and logo brief](../wayfinder/tickets/WF-029-establish-visual-system-and-logo-brief.md)
-through `$aios /design-consultation`. The profile-adaptation and presentation-quality decisions are also
-unblocked, but neither displaces the implementation frontier.
+[Select the documentation delivery architecture](../wayfinder/tickets/WF-033-select-documentation-delivery-architecture.md)
+through `$aios /wayfinder Fight Common Documentation Presentation`. The profile-adaptation and
+presentation-quality decisions are also unblocked, but neither displaces the implementation frontier.
 
 ## Ready Frontier
 
