@@ -59,6 +59,22 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
   prioritizes PHP developers and architects, gives the README and documentation surfaces distinct jobs, makes
   Architecture, Quick Start, and a directly linked problem-oriented component atlas the homepage entry routes,
   and fixes the real content used in later visual comparisons.
+- [Establish the Fight visual system and logo brief](tickets/WF-029-establish-visual-system-and-logo-brief.md)
+  adopts tempered precision, cold-steel surfaces with a kiln-orange active seam, Open Sans SemiBold with Source
+  Sans 3 and ligature-enabled Fira Code, restrained depth and motion, architecture-led illustration, and a
+  reusable structural-F family-mark brief.
+- [Generate and select reusable logo directions](tickets/WF-030-generate-and-select-reusable-logo-directions.md)
+  selects Inward Port — No Lower Rail: a dark structural `F`, one inbound steel approach rail, an orange active
+  port, one upper ownership rail, and open lower counterspace, with deterministic SVG and small-size proof
+  required during implementation.
+- [Compare homepage and article-shell directions](tickets/WF-031-compare-homepage-and-article-shell-directions.md)
+  selects Atlas Deck: a promise and architecture proof, three prominent entry routes, the complete directly
+  linked problem-grouped atlas, a conventional three-column article shell, responsive local navigation, and a
+  restrained John Nickell copyright footer.
+- [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md)
+  approves the repaired Atlas Deck fixed point with Open Sans SemiBold headings, the deterministic Inward Port
+  SVG, resilient flex and layer diagrams, 375px-to-1440px reflow, accessible interactions, equivalent-format
+  configuration tabs, consequential kiln warning callouts, and the representative Mail article.
 
 ## Tickets
 
@@ -67,10 +83,10 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
 | [Establish the presentation destination and ownership](tickets/WF-026-establish-presentation-destination-and-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
 | [Research documentation references and delivery constraints](tickets/WF-027-research-documentation-references-and-delivery-constraints.md) | Research | AFK | **Closed** | Presentation destination |
 | [Define the audience, promise, entry actions, and component taxonomy](tickets/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) | Grilling / Domain Modeling | HITL | **Closed** | Destination and research |
-| [Establish the Fight visual system and logo brief](tickets/WF-029-establish-visual-system-and-logo-brief.md) | Prototype / Design Consultation | HITL | **Open** | Audience and promise |
-| [Generate and select reusable logo directions](tickets/WF-030-generate-and-select-reusable-logo-directions.md) | Prototype / Taste Design | HITL | **Open** | Visual system and logo brief |
-| [Compare homepage and article-shell directions](tickets/WF-031-compare-homepage-and-article-shell-directions.md) | Prototype / Design Shotgun | HITL | **Open** | Selected logo direction |
-| [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Open** | Selected page direction |
+| [Establish the Fight visual system and logo brief](tickets/WF-029-establish-visual-system-and-logo-brief.md) | Prototype / Design Consultation | HITL | **Closed** | Audience and promise |
+| [Generate and select reusable logo directions](tickets/WF-030-generate-and-select-reusable-logo-directions.md) | Prototype / Taste Design | HITL | **Closed** | Visual system and logo brief |
+| [Compare homepage and article-shell directions](tickets/WF-031-compare-homepage-and-article-shell-directions.md) | Prototype / Design Shotgun | HITL | **Closed** | Selected logo direction |
+| [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Closed** | Selected page direction |
 | [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Open** | Reviewed prototype |
 | [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Open** | Audience and promise |
 | [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Open** | Audience and promise |
@@ -89,10 +105,10 @@ Delivery architecture + GitHub-profile adaptation + Compatibility and quality ga
 
 ## Frontier
 
-The audience decision exposes three unblocked tickets. Work through one per session; the recommended next ticket
-in the program sequence is listed first:
+The reviewed Atlas Deck prototype exposes the documentation-delivery decision. Three tickets are unblocked; work
+through one per session. The recommended next ticket in the program sequence is listed first:
 
-1. [Establish the Fight visual system and logo brief](tickets/WF-029-establish-visual-system-and-logo-brief.md)
+1. [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md)
 2. [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md)
 3. [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md)
 
