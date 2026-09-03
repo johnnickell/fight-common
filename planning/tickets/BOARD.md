@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-01
+Last updated: 2026-09-03
 
 ## “What’s Next?” Contract
 
@@ -23,10 +23,11 @@ separate approvals.
 
 ## Wayfinder Review
 
-No active Wayfinder map currently has an unblocked decision frontier. When one does, list its linked map and
-frontier ticket here as the next `/grill-with-docs` candidate; this does not displace the implementation frontier.
-When `/ask-matt` is otherwise unqualified, offer `/wayfinder` to chart a new feature instead of fabricating a
-grilling target.
+The active [Fight Common Documentation Presentation](../wayfinder/fight-common-documentation-presentation-map.md)
+map now has three unblocked decisions. Its recommended next session is
+[Select the documentation delivery architecture](../wayfinder/tickets/WF-033-select-documentation-delivery-architecture.md)
+through `$aios /wayfinder Fight Common Documentation Presentation`. The profile-adaptation and
+presentation-quality decisions are also unblocked, but neither displaces the implementation frontier.
 
 ## Ready Frontier
 
