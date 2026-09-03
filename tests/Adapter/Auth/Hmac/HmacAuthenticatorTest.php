@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use RuntimeException;
 
 #[CoversClass(HmacAuthenticator::class)]
 class HmacAuthenticatorTest extends UnitTestCase
@@ -348,5 +349,60 @@ class HmacAuthenticatorTest extends UnitTestCase
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonces);
 
         self::assertTrue($authenticator->validate($request));
+    }
+
+    public function test_that_validate_wraps_nonce_repository_failure(): void
+    {
+        $timestamp = time();
+        $nonce = 'test-nonce';
+        $method = 'GET';
+        $authority = 'example.com';
+        $path = '/api';
+
+        $hmacHeaders = ['X-Timestamp' => $timestamp, 'X-Nonce' => $nonce];
+        $signature = $this->computeSignature(
+            $this->privateKeyHex,
+            $method,
+            $authority,
+            $path,
+            '',
+            $hmacHeaders,
+            $timestamp
+        );
+
+        $uri = $this->mockUri($authority, $path);
+        $body = $this->mockEmptyBody();
+
+        /** @var MockInterface|ServerRequestInterface $request */
+        $request = $this->mock(ServerRequestInterface::class);
+        foreach (self::REQUIRED_HEADERS as $header) {
+            $request->shouldReceive('hasHeader')->with($header)->andReturn(true);
+        }
+
+        $request->shouldReceive('hasHeader')->with('X-Content-SHA256')->andReturn(false);
+        $request->shouldReceive('getServerParams')->andReturn(['REQUEST_TIME' => $timestamp]);
+        $request->shouldReceive('getHeaderLine')->with('X-Timestamp')->andReturn((string) $timestamp);
+        $request->shouldReceive('getHeaderLine')->with('Credential')->andReturn(self::PUBLIC_KEY);
+        $request->shouldReceive('getHeaderLine')->with('X-Nonce')->andReturn($nonce);
+        $request->shouldReceive('getHeaderLine')->with('Signature')->andReturn($signature);
+        $request->shouldReceive('getBody')->andReturn($body);
+        $request->shouldReceive('getMethod')->andReturn($method);
+        $request->shouldReceive('getUri')->andReturn($uri);
+
+        $failure = new RuntimeException('nonce repository failed', 42);
+        /** @var MockInterface|NonceRepository $nonces */
+        $nonces = $this->mock(NonceRepository::class);
+        $nonces->shouldReceive('consume')->once()->andThrow($failure);
+
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonces);
+
+        try {
+            $authenticator->validate($request);
+            self::fail('Expected authentication exception was not thrown');
+        } catch (AuthException $authException) {
+            self::assertSame('nonce repository failed', $authException->getMessage());
+            self::assertSame(42, $authException->getCode());
+            self::assertSame($failure, $authException->getPrevious());
+        }
     }
 }

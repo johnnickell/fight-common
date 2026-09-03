@@ -42,8 +42,8 @@ final readonly class HmacWebhookDispatcher implements WebhookDispatcher
     /**
      * Authenticates and dispatches an outbound webhook by signing its request
      *
-     * @param string               $url
-     * @param string               $action
+     * @param string $url
+     * @param string $action
      * @param array<string, mixed> $payload
      *
      * @throws DomainException When the action is unknown
