@@ -11,6 +11,7 @@ use Fight\Common\Application\HttpFoundation\HttpStatus;
 use Fight\Common\Domain\Auth\Nonce;
 use Fight\Common\Domain\Auth\NonceRepository;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 /**
  * Class HmacAuthenticator
@@ -33,10 +34,10 @@ final class HmacAuthenticator implements Authenticator
      * Constructs HmacAuthenticator
      */
     public function __construct(
-        private string $public,
+        private readonly string $public,
         string $private,
-        private int $timeTolerance,
-        private ?NonceRepository $nonces = null
+        private readonly int $timeTolerance,
+        private readonly ?NonceRepository $nonceRepository = null
     ) {
         $this->secret = hex2bin($private);
     }
@@ -116,10 +117,14 @@ final class HmacAuthenticator implements Authenticator
             throw new AuthException('Invalid signature', HttpStatus::UNAUTHORIZED);
         }
 
-        if ($this->nonces instanceof NonceRepository) {
-            $expiresAt = new DateTimeImmutable('@'.($timestamp + $this->timeTolerance));
-            $nonce = new Nonce($request->getHeaderLine('X-Nonce'), $expiresAt);
-            $this->nonces->consume($nonce);
+        try {
+            if ($this->nonceRepository instanceof NonceRepository) {
+                $expiresAt = new DateTimeImmutable('@'.($timestamp + $this->timeTolerance));
+                $nonce = new Nonce($request->getHeaderLine('X-Nonce'), $expiresAt);
+                $this->nonceRepository->consume($nonce);
+            }
+        } catch (Throwable $throwable) {
+            throw new AuthException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
 
         return true;

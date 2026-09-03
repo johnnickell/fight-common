@@ -11,7 +11,8 @@ Application\Cache
     └── CacheException       — extends SystemException
 
 Adapter\Cache
-└── PsrCache                — Cache → PSR-6 CacheItemPoolInterface
+├── Psr6\Psr6Cache          — canonical Cache → PSR-6 CacheItemPoolInterface adapter
+└── PsrCache                — deprecated 1.x compatibility path
 ```
 
 ---
@@ -19,10 +20,11 @@ Adapter\Cache
 ## Table of Contents
 
 1. [Cache (Interface)](#cache-interface)
-2. [PsrCache](#psrcache)
-3. [CacheException](#cacheexception)
-4. [Symfony Configuration](#symfony-configuration)
-5. [Usage Examples](#usage-examples)
+2. [Psr6Cache](#psr6cache)
+3. [Deprecated PsrCache Compatibility](#deprecated-psrcache-compatibility)
+4. [CacheException](#cacheexception)
+5. [Symfony Configuration](#symfony-configuration)
+6. [Usage Examples](#usage-examples)
 
 ---
 
@@ -56,15 +58,15 @@ interface Cache
 
 ---
 
-## PsrCache
+## Psr6Cache
 
-`Fight\Common\Adapter\Cache\PsrCache`
+`Fight\Common\Adapter\Cache\Psr6\Psr6Cache`
 
-Wraps any PSR-6 `CacheItemPoolInterface` and a PSR-3 `LoggerInterface`. This is the sole
-adapter implementation.
+Wraps any PSR-6 `CacheItemPoolInterface` and a PSR-3 `LoggerInterface`. This is the canonical
+PSR-6 adapter implementation.
 
 ```php
-final readonly class PsrCache implements Cache
+final readonly class Psr6Cache implements MutableCache
 {
     public function __construct(
         private CacheItemPoolInterface $cachePool,
@@ -85,6 +87,14 @@ final readonly class PsrCache implements Cache
    - Return `$cacheItem->get()`
 
 All exceptions are caught and wrapped in `CacheException`.
+
+---
+
+## Deprecated PsrCache Compatibility
+
+`Fight\Common\Adapter\Cache\PsrCache` remains a silent compatibility path throughout 1.x and delegates to
+`Psr6Cache`. New integrations should use `Fight\Common\Adapter\Cache\Psr6\Psr6Cache`. The legacy class will be
+removed in 2.0.
 
 ---
 
@@ -122,15 +132,15 @@ services:
     Psr\Cache\CacheItemPoolInterface:
         alias: Symfony\Component\Cache\Adapter\AdapterInterface
 
-    # --- PsrCache adapter ---
-    Fight\Common\Adapter\Cache\PsrCache:
+    # --- Canonical PSR-6 adapter ---
+    Fight\Common\Adapter\Cache\Psr6\Psr6Cache:
         arguments:
             - '@Psr\Cache\CacheItemPoolInterface'
             - '@logger'
 
     # --- Interface alias ---
     Fight\Common\Application\Cache\Cache:
-        alias: Fight\Common\Adapter\Cache\PsrCache
+        alias: Fight\Common\Adapter\Cache\Psr6\Psr6Cache
 ```
 
 ---
@@ -187,11 +197,11 @@ class WeatherService
 
 ```php
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
-use Fight\Common\Adapter\Cache\PsrCache;
+use Fight\Common\Adapter\Cache\Psr6\Psr6Cache;
 
 $pool   = new ArrayAdapter();
 $logger = new NullLogger();
-$cache  = new PsrCache($pool, $logger);
+$cache  = new Psr6Cache($pool, $logger);
 
 // First call — invokes loader
 $result = $cache->read('key', fn () => 'computed', 60);
