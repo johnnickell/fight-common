@@ -197,7 +197,8 @@ See [validation](validation.md) for rule definitions and usage.
    logging/null transport adapters.
 
 10. **[cache](cache.md)** — Cache-through abstraction (`Cache::read()` with loader
-    callback). Single `PsrCache` adapter wrapping any PSR-6 cache pool.
+    callback). Canonical `Psr6Cache` adapter wrapping any PSR-6 cache pool, with the former
+    `PsrCache` name retained as deprecated 1.x compatibility.
 
 11. **[routing](routing.md)** — `UrlGenerator` interface for framework-agnostic URL
     generation, with a `SymfonyUrlGenerator` adapter.

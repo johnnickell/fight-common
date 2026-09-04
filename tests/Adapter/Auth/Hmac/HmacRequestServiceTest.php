@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\Auth\Hmac;
 
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
+use Fight\Common\Application\Auth\Exception\CredentialsException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\ServerRequest;
 use Mockery;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use RuntimeException;
 
 #[CoversClass(HmacRequestService::class)]
 #[UsesClass(HmacAuthenticator::class)]
@@ -112,5 +114,26 @@ class HmacRequestServiceTest extends UnitTestCase
 
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 60);
         self::assertTrue($authenticator->validate($result));
+    }
+
+    public function test_that_sign_request_wraps_nonce_generation_failure(): void
+    {
+        $failure = new RuntimeException('nonce generation failed', 41);
+        $service = new HmacRequestService(
+            self::PUBLIC_KEY,
+            $this->privateKeyHex,
+            static function () use ($failure): never {
+                throw $failure;
+            }
+        );
+
+        try {
+            $service->signRequest(new ServerRequest('GET', 'https://example.com/api/resource'));
+            self::fail('Expected credentials exception was not thrown');
+        } catch (CredentialsException $credentialsException) {
+            self::assertSame('nonce generation failed', $credentialsException->getMessage());
+            self::assertSame(41, $credentialsException->getCode());
+            self::assertSame($failure, $credentialsException->getPrevious());
+        }
     }
 }

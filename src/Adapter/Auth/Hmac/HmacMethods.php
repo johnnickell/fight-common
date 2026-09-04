@@ -56,6 +56,8 @@ trait HmacMethods
      * @param string $path
      * @param string $query
      * @param array<string, int|string> $headers
+     *
+     * @return string
      */
     protected function createCanonicalRequestString(
         string $method,
@@ -92,7 +94,6 @@ trait HmacMethods
      */
     protected function createSignature(string $canonicalRequest, int $timestamp): string
     {
-        $rawOutput = true;
         $requestHash = hash('sha256', $canonicalRequest);
 
         $stringToSign = sprintf(
@@ -105,14 +106,14 @@ trait HmacMethods
             'sha256',
             (string) $timestamp,
             'HMAC'.$this->getSecret(),
-            $rawOutput
+            true
         );
 
         $signingKey = hash_hmac(
             'sha256',
             'signed-request',
             $dateKey,
-            $rawOutput
+            true
         );
 
         return hash_hmac('sha256', $stringToSign, $signingKey);
