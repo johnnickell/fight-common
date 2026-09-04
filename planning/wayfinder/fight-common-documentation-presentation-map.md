@@ -80,6 +80,11 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
   narrow Atlas Deck presentation seams, validates pull requests without publication, deploys `main` through
   artifact-based GitHub Pages, and permits one grouped-route reset before the new URLs become compatibility
   commitments.
+- [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md)
+  keeps John as the profile identity, presents a compact Fight family section as proof of his architecture work,
+  makes Fight Common documentation its primary call to action, curates Fight Access Control and the grouped
+  framework starters beneath it, and defers a hand-maintained profile publication until canonical assets and
+  final documentation URLs have landed.
 
 ## Tickets
 
@@ -93,7 +98,7 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
 | [Compare homepage and article-shell directions](tickets/WF-031-compare-homepage-and-article-shell-directions.md) | Prototype / Design Shotgun | HITL | **Closed** | Selected logo direction |
 | [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Closed** | Selected page direction |
 | [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Closed** | Reviewed prototype |
-| [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Open** | Audience and promise |
+| [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Closed** | Audience and promise |
 | [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Open** | Audience and promise |
 | [Produce the implementation planning handoff](tickets/WF-036-produce-implementation-planning-handoff.md) | Grilling / Domain Modeling | HITL | **Open** | Delivery architecture, profile adaptation, and quality gates |
 
@@ -110,11 +115,8 @@ Delivery architecture + GitHub-profile adaptation + Compatibility and quality ga
 
 ## Frontier
 
-The renderer and publication architecture are settled. Two tickets are unblocked; work through one per session.
-The recommended next ticket in the program sequence is listed first:
-
-1. [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md)
-2. [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md)
+The delivery architecture and constrained GitHub-profile adaptation are settled. The next unblocked decision is
+[Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md).
 
 ## Not yet specified (fog)
 

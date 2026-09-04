@@ -24,10 +24,10 @@ separate approvals.
 ## Wayfinder Review
 
 The active [Fight Common Documentation Presentation](../wayfinder/fight-common-documentation-presentation-map.md)
-map now has two unblocked decisions. Its recommended next session is
-[Design the GitHub-profile adaptation](../wayfinder/tickets/WF-034-design-github-profile-adaptation.md) through
-`$aios /wayfinder Fight Common Documentation Presentation`. The presentation-quality decision is also
-unblocked, but neither decision displaces the implementation frontier.
+map now has one unblocked decision. Its recommended next session is
+[Define compatibility and presentation quality gates](../wayfinder/tickets/WF-035-define-compatibility-and-quality-gates.md)
+through `$aios /wayfinder Fight Common Documentation Presentation`. This planning decision does not displace the
+implementation frontier.
 
 ## Ready Frontier
 
