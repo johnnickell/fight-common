@@ -1,7 +1,7 @@
 # Fight Common Documentation Presentation
 
 **Label:** `wayfinder:map`
-**Status:** Active
+**Status:** Closed
 
 > This map is an **index, not a store**. Each material decision lives in exactly one linked ticket under
 > `tickets/`; this map only summarizes the linked resolutions and shows the next decision frontier.
@@ -19,8 +19,8 @@ accessible themes, and GitHub Pages deployment under `/fight-common/`. It may re
 visual presentation, assets, and documentation delivery, but it does not change Fight Common's PHP public API.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
-to the resulting implementation epic, PRDs, and executable tickets for the documentation, repository README,
-reusable Fight identity assets, and constrained GitHub-profile adaptation.
+to the implementation epic that carries these decisions into separately invoked `/to-spec` and `/to-tickets`
+handoffs. The separately governed GitHub-profile adaptation may be planned later and does not block this map.
 
 ## Notes
 
@@ -85,6 +85,17 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
   makes Fight Common documentation its primary call to action, curates Fight Access Control and the grouped
   framework starters beneath it, and defers a hand-maintained profile publication until canonical assets and
   final documentation URLs have landed.
+- [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md)
+  requires trustworthy component guidance, fast deterministic documentation checks, WCAG 2.2 AA in both themes,
+  one human Brave responsive review and launch accessibility smoke check, modest truthful metadata, stable new
+  routes, and separate hosted Pages verification without routine browser, visual-regression, or performance
+  suites.
+- [Produce the implementation planning handoff](tickets/WF-036-produce-implementation-planning-handoff.md)
+  creates [Fight Common Documentation Presentation](../epics/00005-EPIC.md) as the permanent implementation
+  destination. [PRD-00020](../specs/00020-PRD.md) through [PRD-00022](../specs/00022-PRD.md) now hold the approved
+  identity, content, presentation, and delivery requirements, while [T-00088](../tickets/00088-TICKET.md) through
+  [T-00099](../tickets/00099-TICKET.md) form the dependency-ordered implementation graph. The separately governed
+  profile adaptation remains a later non-blocking follow-up.
 
 ## Tickets
 
@@ -99,8 +110,8 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
 | [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Closed** | Selected page direction |
 | [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Closed** | Reviewed prototype |
 | [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Closed** | Audience and promise |
-| [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Open** | Audience and promise |
-| [Produce the implementation planning handoff](tickets/WF-036-produce-implementation-planning-handoff.md) | Grilling / Domain Modeling | HITL | **Open** | Delivery architecture, profile adaptation, and quality gates |
+| [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Closed** | Audience and promise |
+| [Produce the implementation planning handoff](tickets/WF-036-produce-implementation-planning-handoff.md) | Grilling / Domain Modeling | HITL | **Closed** | Delivery architecture, profile adaptation, and quality gates |
 
 ## Blocking relationships
 
@@ -115,8 +126,8 @@ Delivery architecture + GitHub-profile adaptation + Compatibility and quality ga
 
 ## Frontier
 
-The delivery architecture and constrained GitHub-profile adaptation are settled. The next unblocked decision is
-[Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md).
+None. The map is closed. Continue through the Board's implementation frontier, beginning with T-00088 and
+T-00089.
 
 ## Not yet specified (fog)
 
