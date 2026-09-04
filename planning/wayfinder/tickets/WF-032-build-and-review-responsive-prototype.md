@@ -82,3 +82,20 @@ Verification covered the homepage and Mail article at 375px, 768px, 1280px, and 
 mouse and keyboard configuration-tab selection; visible keyboard focus beginning with the skip link; light and
 dark themes; search, menu, copy, and local-anchor behavior; reduced-motion CSS; WCAG AA palette ratios; and a
 clean browser console.
+
+## Follow-up design review
+
+An independent browser pass after approval found two accessibility gaps in the disposable prototype. The dark
+theme inherited the light-theme success color for the Composer copy confirmation, producing only `2.82:1`
+contrast against the raised dark surface instead of the approved semantic token's `8.12:1`. Code-block copy
+buttons rendered at 29px high and the search-dialog close button at 38px, below the reviewed 44px compact-control
+target.
+
+The prototype now overrides dark success with `#66D19E` and gives those compact controls a 44px target without
+restoring the earlier stretched copy-button behavior. Search focus, theme labels, first-Tab skip navigation,
+arrow-key configuration tabs, article-local anchors, and a clean console were reverified in the browser.
+
+| Dimension | Before follow-up | After follow-up | Repair |
+|---|---:|---:|---|
+| Color | 8 | 9 | The copied state now uses the approved dark semantic token at `8.12:1`. |
+| Accessibility | 6 | 9 | Compact copy and close controls now meet the 44px reviewed target. |

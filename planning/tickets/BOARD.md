@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
 ## “What’s Next?” Contract
 
@@ -23,11 +23,11 @@ separate approvals.
 
 ## Wayfinder Review
 
-The active [Fight Common Documentation Presentation](../wayfinder/fight-common-documentation-presentation-map.md)
-map now has three unblocked decisions. Its recommended next session is
-[Select the documentation delivery architecture](../wayfinder/tickets/WF-033-select-documentation-delivery-architecture.md)
-through `$aios /wayfinder Fight Common Documentation Presentation`. The profile-adaptation and
-presentation-quality decisions are also unblocked, but neither displaces the implementation frontier.
+No active Wayfinder map currently has an unblocked review candidate. The closed
+[Fight Common Documentation Presentation](../wayfinder/fight-common-documentation-presentation-map.md) map hands
+off to [EPIC-00005](../epics/00005-EPIC.md), PRD-00020 through PRD-00022, and T-00088 through T-00099. Wayfinding
+and implementation planning are complete; new uncertainty should begin in a new map rather than reopening this
+one.
 
 ## Ready Frontier
 
@@ -36,7 +36,8 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-No ready ticket is currently available while T-00075 establishes the receipt contract and awaits repository-owned evidence.
+| 1 | [T-00088 — Build One Reproducible Documentation Artifact](00088-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Establish the pinned build and artifact delivery seam that every presentation and content slice must pass. |
+| 2 | [T-00089 — Create the Canonical Fight Identity Asset Family](00089-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Create the independent identity prerequisite in parallel with the documentation foundation. |
 
 ## In Progress
 
@@ -60,6 +61,16 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 26 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
 | 27 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 | 28 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
+| 31 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00088, T-00089 |
+| 32 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | T-00089, T-00090 |
+| 33 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
+| 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
+| 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
+| 36 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 37 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 38 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 39 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00091 through T-00097 |
+| 40 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00098 and separately authorized publication |
 
 ## Needs Info
 
