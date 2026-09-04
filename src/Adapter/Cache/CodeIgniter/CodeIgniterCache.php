@@ -39,7 +39,7 @@ final readonly class CodeIgniterCache implements MutableCache
 
             $value = $loader();
 
-            if (! $this->cache->save($key, [self::VALUE => $value], $ttl)) {
+            if (!$this->cache->save($key, [self::VALUE => $value], $ttl)) {
                 throw new CacheException('CodeIgniter cache could not save the value.');
             }
 
@@ -55,7 +55,7 @@ final readonly class CodeIgniterCache implements MutableCache
     public function delete(string $key): void
     {
         try {
-            if (! $this->cache->delete($key)) {
+            if (!$this->cache->delete($key)) {
                 throw new CacheException('CodeIgniter cache could not delete the value.');
             }
         } catch (CacheException $exception) {
@@ -69,7 +69,7 @@ final readonly class CodeIgniterCache implements MutableCache
     public function clear(): void
     {
         try {
-            if (! $this->cache->clean()) {
+            if (!$this->cache->clean()) {
                 throw new CacheException('CodeIgniter cache could not clear the store.');
             }
         } catch (CacheException $exception) {

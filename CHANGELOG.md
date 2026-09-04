@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- `Adapter\Cache\PsrCache` — replaced by `Adapter\Cache\Psr6\Psr6Cache`. The legacy class remains functional without runtime notices throughout 1.x and will be removed in 2.0.
 - `Adapter\HttpFoundation\JSendResponse` — replaced by the typed `Adapter\Http\Symfony\JSendResponse`. The legacy raw-array response remains functional throughout 1.x and will be removed in 2.0.
 - `Adapter\Repository\DoctrineUnitOfWork` and `Application\Repository\UnitOfWork::commit()` — replaced for new consumers by `Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork` and `Application\Repository\TransactionalUnitOfWork::commitTransactional()`. The legacy Repository-path adapter and standalone commit journey remain functional without runtime notices throughout 1.x.
 - `Adapter\Messaging\Command\Async\MessengerCommandBus`, `Adapter\Messaging\Event\Async\MessengerEventDispatcher`, `Adapter\Messaging\Serializer\SymfonyMessageSerializer`, `Adapter\Messaging\Handler\SymfonyCommandMessageHandler`, and `Adapter\Messaging\Handler\SymfonyEventMessageHandler` — replaced by the canonical `Adapter\Messaging\Symfony\...` and transport-neutral `Adapter\Messaging\Handler\...` paths. Legacy names remain functional throughout 1.x and will be removed in 2.0.

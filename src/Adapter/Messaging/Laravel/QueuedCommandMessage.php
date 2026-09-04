@@ -8,6 +8,7 @@ use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Throwable;
 
 /**
  * Class QueuedCommandMessage
@@ -33,6 +34,8 @@ final class QueuedCommandMessage implements ShouldQueue
 
     /**
      * Reconstitutes and synchronously handles the queued command envelope
+     *
+     * @throws Throwable
      */
     public function handle(CommandMessageHandler $handler): void
     {

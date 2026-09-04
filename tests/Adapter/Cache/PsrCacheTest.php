@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Cache;
 
-use Exception;
 use Fight\Common\Adapter\Cache\PsrCache;
-use Fight\Common\Application\Cache\Exception\CacheException;
 use Fight\Common\Application\Cache\MutableCache;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
@@ -18,7 +16,7 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(PsrCache::class)]
 class PsrCacheTest extends UnitTestCase
 {
-    public function test_that_psr_cache_implements_the_additive_mutable_cache_contract(): void
+    public function test_that_psr_cache_remains_a_silent_mutable_cache_compatibility_path(): void
     {
         /** @var MockInterface|CacheItemPoolInterface $pool */
         $pool = $this->mock(CacheItemPoolInterface::class);
@@ -26,32 +24,28 @@ class PsrCacheTest extends UnitTestCase
         /** @var MockInterface|LoggerInterface $logger */
         $logger = $this->mock(LoggerInterface::class);
 
-        self::assertInstanceOf(MutableCache::class, new PsrCache($pool, $logger));
+        $deprecations = [];
+        set_error_handler(
+            static function (int $severity, string $message) use (&$deprecations): bool {
+                if (in_array($severity, [E_DEPRECATED, E_USER_DEPRECATED], true)) {
+                    $deprecations[] = $message;
+                }
+
+                return true;
+            }
+        );
+
+        try {
+            $cache = new PsrCache($pool, $logger);
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertInstanceOf(MutableCache::class, $cache);
+        self::assertSame([], $deprecations);
     }
 
-    public function test_that_read_returns_cached_value_on_cache_hit(): void
-    {
-        /** @var MockInterface|CacheItemInterface $item */
-        $item = $this->mock(CacheItemInterface::class);
-        $item->shouldReceive('isHit')->once()->andReturn(true);
-        $item->shouldReceive('get')->once()->andReturn('cached-value');
-
-        /** @var MockInterface|CacheItemPoolInterface $pool */
-        $pool = $this->mock(CacheItemPoolInterface::class);
-        $pool->shouldReceive('getItem')->once()->with('key')->andReturn($item);
-
-        /** @var MockInterface|LoggerInterface $logger */
-        $logger = $this->mock(LoggerInterface::class);
-        $logger->shouldReceive('debug')->once()->with('Cache HIT: "key"');
-
-        $cache = new PsrCache($pool, $logger);
-
-        $result = $cache->read('key', fn (): string => 'loader-value', 300);
-
-        self::assertSame('cached-value', $result);
-    }
-
-    public function test_that_read_calls_loader_and_stores_value_on_cache_miss(): void
+    public function test_that_read_delegates_to_the_canonical_psr6_adapter(): void
     {
         /** @var MockInterface|CacheItemInterface $item */
         $item = $this->mock(CacheItemInterface::class);
@@ -70,31 +64,9 @@ class PsrCacheTest extends UnitTestCase
         $logger->shouldReceive('debug')->once()->with('Cache MISS: "key"');
 
         $cache = new PsrCache($pool, $logger);
-        $loaderCalled = false;
+        $result = $cache->read('key', fn (): string => 'loader-value', 300);
 
-        $result = $cache->read('key', function () use (&$loaderCalled) {
-            $loaderCalled = true;
-            return 'loader-value';
-        }, 300);
-
-        self::assertTrue($loaderCalled);
         self::assertSame('loader-value', $result);
-    }
-
-    public function test_that_read_wraps_pool_exception_in_cache_exception(): void
-    {
-        /** @var MockInterface|CacheItemPoolInterface $pool */
-        $pool = $this->mock(CacheItemPoolInterface::class);
-        $pool->shouldReceive('getItem')->once()->andThrow(new Exception('pool error'));
-
-        /** @var MockInterface|LoggerInterface $logger */
-        $logger = $this->mock(LoggerInterface::class);
-
-        $cache = new PsrCache($pool, $logger);
-
-        $this->expectException(CacheException::class);
-
-        $cache->read('key', fn (): null => null, 60);
     }
 
     public function test_that_delete_and_clear_delegate_to_the_pool(): void
@@ -114,33 +86,4 @@ class PsrCacheTest extends UnitTestCase
         self::addToAssertionCount(1);
     }
 
-    public function test_that_delete_translates_pool_failures(): void
-    {
-        /** @var MockInterface|CacheItemPoolInterface $pool */
-        $pool = $this->mock(CacheItemPoolInterface::class);
-        $pool->shouldReceive('deleteItem')->once()->with('key')->andThrow(new Exception('delete error'));
-
-        /** @var MockInterface|LoggerInterface $logger */
-        $logger = $this->mock(LoggerInterface::class);
-
-        $this->expectException(CacheException::class);
-        $this->expectExceptionMessage('delete error');
-
-        (new PsrCache($pool, $logger))->delete('key');
-    }
-
-    public function test_that_clear_translates_pool_failures(): void
-    {
-        /** @var MockInterface|CacheItemPoolInterface $pool */
-        $pool = $this->mock(CacheItemPoolInterface::class);
-        $pool->shouldReceive('clear')->once()->andThrow(new Exception('clear error'));
-
-        /** @var MockInterface|LoggerInterface $logger */
-        $logger = $this->mock(LoggerInterface::class);
-
-        $this->expectException(CacheException::class);
-        $this->expectExceptionMessage('clear error');
-
-        (new PsrCache($pool, $logger))->clear();
-    }
 }

@@ -51,6 +51,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
 | 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00054, T-00058, and T-00075 |
+| 12 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00075 |
 | 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
 | 22 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
 | 23 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00034 |
@@ -118,8 +119,9 @@ engine complete, T-00056 composes the Fight Common black-box `1.2.0` compatibili
 T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
-layer is complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Fight
-AccessControl and all five starters now create their capability tickets locally; T-00067 verified the six authority
+layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 now uses
+T-00087 only to track the transfer of the canonical pre-submit gate into five repository-local tickets. Fight
+AccessControl and all five starters create their capability tickets locally; T-00067 verified the six authority
 transfers and closed WF-018 without centralizing their builds, local acceptance criteria, visibility decisions, or
 release state in Fight Common.
 
