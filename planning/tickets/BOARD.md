@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-01
+Last updated: 2026-09-03
 
 ## “What’s Next?” Contract
 
@@ -118,8 +118,9 @@ engine complete, T-00056 composes the Fight Common black-box `1.2.0` compatibili
 T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
-layer is complete: PRD-00017 and PRD-00018 intentionally produce no detailed Fight Common tickets. Fight
-AccessControl and all five starters now create their capability tickets locally; T-00067 verified the six authority
+layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 now uses
+T-00087 only to track the transfer of the canonical pre-submit gate into five repository-local tickets. Fight
+AccessControl and all five starters create their capability tickets locally; T-00067 verified the six authority
 transfers and closed WF-018 without centralizing their builds, local acceptance criteria, visibility decisions, or
 release state in Fight Common.
 
