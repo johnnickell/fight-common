@@ -14,9 +14,9 @@ identifies this package. Adapt that system to John's GitHub profile only far eno
 Fight work clearly within GitHub README constraints.
 
 The program must preserve the documentation's useful technical behavior: discoverable component guidance,
-copyable examples, search, navigation, stable URLs, responsive layouts, accessible themes, and GitHub Pages
-deployment under `/fight-common/`. It may reshape information architecture, visual presentation, assets, and
-documentation delivery, but it does not change Fight Common's PHP public API.
+copyable examples, search, navigation, durable URLs after one deliberate route reset, responsive layouts,
+accessible themes, and GitHub Pages deployment under `/fight-common/`. It may reshape information architecture,
+visual presentation, assets, and documentation delivery, but it does not change Fight Common's PHP public API.
 
 **Done** = every linked decision ticket is closed, the remaining fog is resolved or excluded, and the map links
 to the resulting implementation epic, PRDs, and executable tickets for the documentation, repository README,
@@ -75,6 +75,11 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
   approves the repaired Atlas Deck fixed point with Open Sans SemiBold headings, the deterministic Inward Port
   SVG, resilient flex and layer diagrams, 375px-to-1440px reflow, accessible interactions, equivalent-format
   configuration tabs, consequential kiln warning callouts, and the representative Mail article.
+- [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md)
+  retains pinned MkDocs Material with Markdown and explicit navigation authority, confines customization to
+  narrow Atlas Deck presentation seams, validates pull requests without publication, deploys `main` through
+  artifact-based GitHub Pages, and permits one grouped-route reset before the new URLs become compatibility
+  commitments.
 
 ## Tickets
 
@@ -87,7 +92,7 @@ reusable Fight identity assets, and constrained GitHub-profile adaptation.
 | [Generate and select reusable logo directions](tickets/WF-030-generate-and-select-reusable-logo-directions.md) | Prototype / Taste Design | HITL | **Closed** | Visual system and logo brief |
 | [Compare homepage and article-shell directions](tickets/WF-031-compare-homepage-and-article-shell-directions.md) | Prototype / Design Shotgun | HITL | **Closed** | Selected logo direction |
 | [Build and review the selected responsive prototype](tickets/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Closed** | Selected page direction |
-| [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Open** | Reviewed prototype |
+| [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Closed** | Reviewed prototype |
 | [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Open** | Audience and promise |
 | [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Open** | Audience and promise |
 | [Produce the implementation planning handoff](tickets/WF-036-produce-implementation-planning-handoff.md) | Grilling / Domain Modeling | HITL | **Open** | Delivery architecture, profile adaptation, and quality gates |
@@ -105,12 +110,11 @@ Delivery architecture + GitHub-profile adaptation + Compatibility and quality ga
 
 ## Frontier
 
-The reviewed Atlas Deck prototype exposes the documentation-delivery decision. Three tickets are unblocked; work
-through one per session. The recommended next ticket in the program sequence is listed first:
+The renderer and publication architecture are settled. Two tickets are unblocked; work through one per session.
+The recommended next ticket in the program sequence is listed first:
 
-1. [Select the documentation delivery architecture](tickets/WF-033-select-documentation-delivery-architecture.md)
-2. [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md)
-3. [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md)
+1. [Design the GitHub-profile adaptation](tickets/WF-034-design-github-profile-adaptation.md)
+2. [Define compatibility and presentation quality gates](tickets/WF-035-define-compatibility-and-quality-gates.md)
 
 ## Not yet specified (fog)
 
