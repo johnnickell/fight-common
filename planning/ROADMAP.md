@@ -11,6 +11,7 @@ outcomes remain navigable.
 | [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing core, durable storage, aggregate repository, checkpointed projection, durable post-commit publication, and optional Symfony mapping-provider autoconfiguration complete; integration documentation and release acceptance remain |
 | [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | Deterministic inspection, immutable plans, resumable runs, and preparation handoffs complete; maintainer-tooling isolation now precedes packaging, certification, publication recovery, maintenance workflows, and operator integration |
 | [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, installed-package consumer harness, canonical Doctrine and Yii transactions, private Mercure publication, shared PSR/container composition, Laravel including its complete native filesystem and PSR-7-compatible HMAC signing, CodeIgniter adapter/fallback lanes, package isolation, and the framework support guide are complete; starter receipts and final certification remain |
+| [EPIC-00005](epics/00005-EPIC.md) | 1.2.0+ | in-progress | Wayfinding, PRD-00020 through PRD-00022, and T-00088 through T-00099 now define the Fight identity, repository entry surfaces, capability-led content, Atlas Deck presentation, and Pages delivery; T-00088 and T-00089 form the first ready frontier, and the separately governed GitHub-profile adaptation remains a later non-blocking follow-up |
 
 ## Route to 1.2.0
 

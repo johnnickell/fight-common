@@ -21,3 +21,6 @@
 | [00017](00017-PRD.md) | Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent |
 | [00018](00018-PRD.md) | Framework Starter Product and Walking-Slice Acceptance | ready-for-agent |
 | [00019](00019-PRD.md) | Isolate Release Tooling from the Consumer Runtime Surface | done |
+| [00020](00020-PRD.md) | Fight Identity and Repository Entry Surfaces | ready-for-agent |
+| [00021](00021-PRD.md) | Capability-Led Documentation and Information Architecture | ready-for-agent |
+| [00022](00022-PRD.md) | Atlas Deck Presentation and GitHub Pages Delivery | ready-for-agent |
