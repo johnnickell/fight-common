@@ -27,14 +27,16 @@ if [[ -f "${ROOT_DIR}/.git" ]]; then
     LINKED_WORKTREE_SOURCE_MOUNT=(-v "${ROOT_DIR}:${ROOT_DIR}:delegated")
 fi
 
+cd "${ROOT_DIR}"
+
+./bin/docs validate
+
 # shellcheck source=bin/.disposable-database-runtime
 source "${ROOT_DIR}/bin/.disposable-database-runtime"
 
 fight_common_install_disposable_database_cleanup
 
-cd "${ROOT_DIR}"
-
-"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/php/
 
 fight_common_start_disposable_databases
 

@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if (( $# != 1 )) || [[ "${1}" != 'preview' && "${1}" != 'build' && "${1}" != 'validate' ]]; then
+    echo 'Usage: ./bin/docs {preview|build|validate}' >&2
+    exit 2
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+ID_BIN="${ID_BIN:-id}"
+PYTHON_IMAGE="${FIGHT_COMMON_DOCS_PYTHON_IMAGE:-fight-common-docs-python-3.13.7}"
+
+cd "${ROOT_DIR}"
+
+"${DOCKER_BIN}" build -t "${PYTHON_IMAGE}" ./etc/docker/python/
+
+case "${1}" in
+    preview)
+        "${DOCKER_BIN}" container run \
+            --rm \
+            -p 127.0.0.1:8000:8000 \
+            -v "${ROOT_DIR}:/app:delegated" \
+            -w /app \
+            --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+            "${PYTHON_IMAGE}" \
+            mkdocs serve --dev-addr 0.0.0.0:8000
+        ;;
+    build|validate)
+        rm -rf "${ROOT_DIR}/site"
+        "${DOCKER_BIN}" container run \
+            --rm \
+            -v "${ROOT_DIR}:/app:delegated" \
+            -w /app \
+            --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+            "${PYTHON_IMAGE}" \
+            mkdocs build --strict --site-dir site
+
+        if [[ "${1}" == 'validate' ]]; then
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python scripts/validate_docs_artifact.py site
+
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python scripts/validate_docs_workflow.py .github/workflows/docs.yml
+
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python tests/Tooling/test_docs_workflow_validator.py
+        fi
+        ;;
+esac

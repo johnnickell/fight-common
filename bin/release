@@ -239,7 +239,7 @@ if [[ "${ROOT_DIR}" == "${CANONICAL_ROOT}" ]] \
     finish_runtime_run "${runtime_status}" 1 "${1:-}"
 fi
 
-if ! "${DOCKER_BIN}" build -t "${PHP_IMAGE}" "${ROOT_DIR}/etc/docker/" >&2; then
+if ! "${DOCKER_BIN}" build -t "${PHP_IMAGE}" "${ROOT_DIR}/etc/docker/php/" >&2; then
     runtime_bootstrap_failure "${1:-}"
     exit 70
 fi

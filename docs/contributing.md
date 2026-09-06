@@ -155,10 +155,23 @@ All tooling runs inside the `fight-common` Docker container through the standard
 ./bin/exec php vendor/bin/phpstan analyse  # static analysis (level 6)
 ```
 
-The default `./bin/build` installs the dependency versions recorded in `composer.lock` and runs the shared
-quality gate in a disposable container. Use this reproducible path for ordinary local development and release
-verification. Running `./bin/build --latest` explicitly updates the worktree's lockfile for review before an
-intentional commit.
+Documentation uses its pinned Python runtime:
+
+```bash
+./bin/docs preview   # serve a local preview on 127.0.0.1:8000
+./bin/docs build     # generate the disposable site/ artifact
+./bin/docs validate  # strict build plus artifact, workflow, and fixture validation
+```
+
+`site/` is a local disposable artifact, not publication evidence. The canonical local gate is `./bin/build`: it
+validates documentation first, then runs the ordered PHP/repository gate in a disposable container. The default `./bin/build` installs the dependency versions recorded in `composer.lock`. Use this reproducible path for release
+verification.
+Running `./bin/build --latest` explicitly updates the worktree's lockfile for review before an intentional commit.
+
+Hosted evidence is split: the `Tests` workflow verifies the PHP/repository gate and the documentation workflow
+validates the generated site artifact. Both must pass. The documentation workflow deploys only after a protected
+push to `main`; pull requests build and validate but never deploy. To roll back, redeploy a known-good artifact when
+one is available, or revert the change and rebuild the artifact for the next protected `main` deployment.
 
 To opt into the tracked pre-commit build gate for this repository, configure Git's hooks path:
 

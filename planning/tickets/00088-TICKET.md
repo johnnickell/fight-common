@@ -2,7 +2,7 @@
 id: T-00088
 prd: PRD-00022
 title: Build One Reproducible Documentation Artifact
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -24,18 +24,18 @@ that same artifact through the protected GitHub Pages environment rather than wr
 
 ## Acceptance Criteria
 
-- [ ] One exact Python version and one complete exact documentation dependency set drive local and hosted builds.
-- [ ] Repository-owned commands provide local preview, strict production build, and deterministic artifact
+- [x] One exact Python version and one complete exact documentation dependency set drive local and hosted builds.
+- [x] Repository-owned commands provide local preview, strict production build, and deterministic artifact
       validation without requiring an interactive terminal.
-- [ ] Generated output remains disposable and untracked; only documentation inputs are repository-owned.
-- [ ] Pull requests build and validate the site without publishing it.
-- [ ] The `main` workflow uploads the generated site as a Pages artifact and deploys through the protected
+- [x] Generated output remains disposable and untracked; only documentation inputs are repository-owned.
+- [x] Pull requests build and validate the site without publishing it.
+- [x] The `main` workflow uploads the generated site as a Pages artifact and deploys through the protected
       `github-pages` environment with narrowly scoped permissions.
-- [ ] Direct generated-branch deployment is removed rather than retained as a second publication path.
-- [ ] The current documentation builds with correct `https://johnnickell.github.io/fight-common/` production
+- [x] Direct generated-branch deployment is removed rather than retained as a second publication path.
+- [x] The current documentation builds with correct `https://johnnickell.github.io/fight-common/` production
       context and `/fight-common/` base-relative behavior.
-- [ ] Fast documentation checks compose into `./bin/build` without browsers, Lighthouse, or visual snapshots.
-- [ ] Maintainer guidance distinguishes local artifact success, hosted workflow success, deployment, and rollback.
+- [x] Fast documentation checks compose into `./bin/build` without browsers, Lighthouse, or visual snapshots.
+- [x] Maintainer guidance distinguishes local artifact success, hosted workflow success, deployment, and rollback.
 
 ## Verification
 
@@ -45,4 +45,15 @@ that same artifact through the protected GitHub Pages environment rather than wr
 
 ## Completion Notes
 
-Pending implementation.
+Added a repository-owned Python 3.13.7 documentation image with a completely exact dependency set and split the
+Docker contexts into `etc/docker/php` and `etc/docker/python` without changing PHP runtime behavior. `bin/docs`
+now provides noninteractive preview, strict build, and deterministic artifact validation; the validator proves
+generated routes, assets, canonicals, search targets, sitemap membership, the production project base, and 404
+behavior. Pull requests now build and upload the artifact without publishing, while protected `main` deployment
+uses the uploaded Pages artifact with narrow permissions and serialized deployment concurrency.
+
+Focused post-review verification passed with 59 PHP tests and 466 assertions plus the repository-owned strict
+documentation validation and nine workflow fixtures. The final canonical `./bin/build` passed all quality,
+architecture, compatibility, and exact-coverage gates with 4,084 tests, 15,356 assertions, and 18,579/18,579
+statements covered. Hosted workflow execution and Pages deployment were not performed; they remain separate
+post-publication evidence and authorization boundaries.
