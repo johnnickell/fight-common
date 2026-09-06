@@ -19,7 +19,7 @@ fight_common_install_disposable_database_cleanup
 
 cd "${ROOT_DIR}"
 
-"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/php/
 
 if [[ "${mode}" == "fast" ]]; then
     exec "${DOCKER_BIN}" container run \

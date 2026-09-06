@@ -3,7 +3,7 @@ id: T-00090
 prd: PRD-00022
 title: Deliver the Atlas Deck Homepage and Documentation Shell
 status: ready-for-agent
-blocked_by: T-00088,T-00089
+blocked_by: T-00089
 ---
 
 # Deliver the Atlas Deck Homepage and Documentation Shell
@@ -54,4 +54,4 @@ base behavior across accessible light, dark, desktop, and compact layouts.
 
 ## Completion Notes
 
-Pending T-00088 and T-00089.
+Pending T-00089; T-00088 completed the reproducible documentation artifact and protected Pages delivery seam.

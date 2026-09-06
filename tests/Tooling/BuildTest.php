@@ -26,6 +26,8 @@ final class BuildTest extends UnitTestCase
 
         copy(dirname(__DIR__, 2).'/bin/build', $this->directory.'/bin/build');
         chmod($this->directory.'/bin/build', 0755);
+        copy(dirname(__DIR__, 2).'/bin/docs', $this->directory.'/bin/docs');
+        chmod($this->directory.'/bin/docs', 0755);
         copy(dirname(__DIR__, 2).'/bin/.disposable-database-runtime', $this->directory.'/bin/.disposable-database-runtime');
         file_put_contents($this->directory.'/bin/quality', "#!/usr/bin/env bash\nexit 0\n");
         chmod($this->directory.'/bin/quality', 0755);
@@ -40,6 +42,10 @@ printf '\n' >> "${FAKE_DOCKER_LOG}"
 
 if [[ "${1:-}" == "inspect" ]]; then
     echo healthy
+fi
+
+if [[ "${1:-}" == "container" && "${2:-}" == "run" && " ${*} " == *" python scripts/validate_docs_workflow.py .github/workflows/docs.yml "* ]]; then
+    exit "${FAKE_DOCS_STATUS:-0}"
 fi
 
 if [[ "${1:-}" == "container" && "${2:-}" == "run" && " ${*} " == *" ./bin/quality "* ]]; then
@@ -116,9 +122,13 @@ BASH
         self::assertSame($originalLock, file_get_contents($this->directory.'/composer.lock'));
 
         $log = file_get_contents($this->directory.'/docker.log');
-        self::assertSame(1, substr_count($log, 'build -t fight-common ./etc/docker/'));
-        self::assertSame(1, substr_count($log, 'container run --rm'));
-        preg_match('/^container run --rm .*$/m', $log, $gateContainer);
+        self::assertSame(1, substr_count($log, 'build -t fight-common ./etc/docker/php/'));
+        self::assertTrue(
+            strpos($log, 'build -t fight-common-docs-python-3.13.7 ./etc/docker/python/')
+            < strpos($log, 'build -t fight-common ./etc/docker/php/'),
+        );
+        self::assertSame(1, substr_count($log, 'container run --rm --network'));
+        preg_match('/^container run --rm --network .*$/m', $log, $gateContainer);
         self::assertNotEmpty($gateContainer[0] ?? '');
         self::assertStringNotContainsString('-it', $gateContainer[0]);
         self::assertStringNotContainsString(' -i ', $gateContainer[0]);
@@ -152,6 +162,23 @@ BASH
         self::assertSame(37, $process->getExitCode());
         self::assertStringContainsString('container rm --force', file_get_contents($this->directory.'/docker.log'));
         self::assertStringContainsString('network rm', file_get_contents($this->directory.'/docker.log'));
+    }
+
+    public function test_that_docs_validation_failure_is_propagated_before_php_or_database_work_begins(): void
+    {
+        $process = $this->runBuild(docsStatus: 59);
+
+        self::assertSame(59, $process->getExitCode());
+
+        $log = file_get_contents($this->directory.'/docker.log');
+        self::assertStringContainsString('build -t fight-common-docs-python-3.13.7 ./etc/docker/python/', $log);
+        self::assertStringContainsString(
+            'python scripts/validate_docs_workflow.py .github/workflows/docs.yml',
+            $log,
+        );
+        self::assertStringNotContainsString('build -t fight-common ./etc/docker/php/', $log);
+        self::assertStringNotContainsString('network create', $log);
+        self::assertStringNotContainsString('container create', $log);
     }
 
     public function test_that_linked_worktree_metadata_is_mounted_read_only_into_the_gate_container(): void
@@ -195,8 +222,8 @@ BASH
         );
 
         $log = file_get_contents($this->directory.'/docker.log');
-        self::assertSame(1, substr_count($log, 'container run --rm'));
-        preg_match('/^container run --rm .*$/m', $log, $gateContainer);
+        self::assertSame(1, substr_count($log, 'container run --rm --network'));
+        preg_match('/^container run --rm --network .*$/m', $log, $gateContainer);
         self::assertNotEmpty($gateContainer[0] ?? '');
         self::assertStringNotContainsString('-it', $gateContainer[0]);
         self::assertStringNotContainsString(' -i ', $gateContainer[0]);
@@ -238,7 +265,12 @@ BASH
      * @param list<string> $arguments
      * @param int          $composerStatus
      */
-    private function runBuild(int $qualityStatus = 0, array $arguments = [], int $composerStatus = 0): Process
+    private function runBuild(
+        int $qualityStatus = 0,
+        array $arguments = [],
+        int $composerStatus = 0,
+        int $docsStatus = 0,
+    ): Process
     {
         $process = new Process(
             ['bash', 'bin/build', ...$arguments],
@@ -247,6 +279,7 @@ BASH
                 'DOCKER_BIN' => $this->directory.'/docker',
                 'FAKE_DOCKER_LOG' => $this->directory.'/docker.log',
                 'FAKE_COMPOSER_STATUS' => (string) $composerStatus,
+                'FAKE_DOCS_STATUS' => (string) $docsStatus,
                 'FAKE_GIT_COMMON_DIR' => $this->gitDirectory,
                 'FAKE_GIT_LOG' => $this->directory.'/git.log',
                 'FAKE_QUALITY_STATUS' => (string) $qualityStatus,
