@@ -103,6 +103,18 @@ BASH
             $log,
         );
         self::assertStringContainsString(
+            'fight-common-docs-python-3.13.7 python scripts/generate_identity_assets.py --check',
+            $log,
+        );
+        self::assertStringContainsString(
+            'fight-common-docs-python-3.13.7 python scripts/validate_identity_assets.py docs/assets/identity',
+            $log,
+        );
+        self::assertStringContainsString(
+            'fight-common-docs-python-3.13.7 python tests/Tooling/test_identity_assets.py',
+            $log,
+        );
+        self::assertStringContainsString(
             'container run --rm -v '.$this->directory.':/app:delegated -w /app --user 501:20 '
             .'fight-common-docs-python-3.13.7 mkdocs build --strict --site-dir site',
             $log,
@@ -127,7 +139,7 @@ BASH
             strpos($log, 'python scripts/validate_docs_workflow.py .github/workflows/docs.yml')
             < strpos($log, 'python tests/Tooling/test_docs_workflow_validator.py'),
         );
-        self::assertCount(6, $containerRuns[0]);
+        self::assertCount(9, $containerRuns[0]);
         foreach ($containerRuns[0] as $containerRun) {
             self::assertStringNotContainsString('-it', $containerRun);
             self::assertStringNotContainsString(' -i ', $containerRun);
