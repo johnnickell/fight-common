@@ -240,7 +240,7 @@ BASH
             $this->assertRuntimeBootstrapFailure($process);
             self::assertStringContainsString('synthetic Docker container run failure', $process->getErrorOutput());
             $dockerLog = (string) file_get_contents($log);
-            self::assertStringContainsString('build -t fight-common '.$this->directory.'/etc/docker/', $dockerLog);
+            self::assertStringContainsString('build -t fight-common '.$this->directory.'/etc/docker/php/', $dockerLog);
             self::assertStringContainsString('container run --cidfile', $dockerLog);
             self::assertStringContainsString(' --rm ', $dockerLog);
             self::assertStringNotContainsString('FIGHT_COMMON_RELEASE_INTERNAL_RUNTIME', $dockerLog);
@@ -289,7 +289,7 @@ BASH
         $this->assertRuntimeBootstrapFailure($process, 'plan');
         self::assertSame("synthetic Docker build failure\n", $process->getErrorOutput());
         self::assertSame(
-            'build -t fight-common '.$this->directory."/etc/docker/\n",
+            'build -t fight-common '.$this->directory."/etc/docker/php/\n",
             file_get_contents($log)
         );
     }
@@ -794,7 +794,7 @@ BASH
      */
     public function test_that_the_canonical_image_marker_is_root_owned_and_read_only(): void
     {
-        $dockerfile = (string) file_get_contents(dirname(__DIR__, 3).'/etc/docker/Dockerfile');
+        $dockerfile = (string) file_get_contents(dirname(__DIR__, 3).'/etc/docker/php/Dockerfile');
 
         self::assertStringContainsString(self::RUNTIME_MARKER, $dockerfile);
         self::assertStringContainsString(self::CANONICAL_RUNTIME, $dockerfile);
