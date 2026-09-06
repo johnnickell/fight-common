@@ -6,7 +6,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR/.." || exit 1
 
-docker build -t fight-common ./etc/docker/
+docker build -t fight-common ./etc/docker/php/
 
 docker container run \
     --rm -it \
