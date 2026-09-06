@@ -28,6 +28,32 @@ case "${1}" in
             mkdocs serve --dev-addr 0.0.0.0:8000
         ;;
     build|validate)
+        if [[ "${1}" == 'validate' ]]; then
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python scripts/generate_identity_assets.py --check
+
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python scripts/validate_identity_assets.py docs/assets/identity
+
+            "${DOCKER_BIN}" container run \
+                --rm \
+                -v "${ROOT_DIR}:/app:delegated" \
+                -w /app \
+                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+                "${PYTHON_IMAGE}" \
+                python tests/Tooling/test_identity_assets.py
+        fi
+
         rm -rf "${ROOT_DIR}/site"
         "${DOCKER_BIN}" container run \
             --rm \
