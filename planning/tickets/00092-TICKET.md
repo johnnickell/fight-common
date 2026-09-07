@@ -42,4 +42,4 @@ before branching into component-specific and supported framework guidance.
 
 ## Completion Notes
 
-Pending T-00090.
+Unblocked by T-00090's completed canonical routes and Atlas Deck shell.

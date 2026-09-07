@@ -297,7 +297,7 @@ public function create(): Response
 }
 ```
 
-See [validation](validation.md) for all 60+ available rules.
+See [validation](../components/validation/index.md) for all 60+ available rules.
 
 ---
 
@@ -335,9 +335,9 @@ The kernel's `EventSubscriberCompilerPass` auto-wires it — no YAML registratio
 
 | Topic | Doc |
 |-------|-----|
-| Full CQRS reference (async buses, filters) | [messaging](messaging.md) |
-| All validation rules | [validation](validation.md) |
-| Collections and value objects | [collections](collections.md), [values](values.md) |
-| File storage (local + Flysystem) | [files](files.md) |
-| Authentication (HMAC + JWT) | [auth](auth.md) |
-| Branching and release process | [contributing](contributing.md) |
+| Full CQRS reference (async buses, filters) | [messaging](../components/messaging/index.md) |
+| All validation rules | [validation](../components/validation/index.md) |
+| Collections and value objects | [collections](../components/collections/index.md), [values](../components/values/index.md) |
+| File storage (local + Flysystem) | [files](../components/files/index.md) |
+| Authentication (HMAC + JWT) | [auth](../components/auth/index.md) |
+| Branching and release process | [contributing](../maintenance/contributing/index.md) |

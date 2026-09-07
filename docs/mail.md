@@ -1,5 +1,3 @@
-# Mail
-
 A transport-abstraction layer for sending email. Messages are built via a fluent DTO
 (`MailMessage`) and sent through any `MailTransport` implementation. A `MailService` facade
 combines transport + factory into a single dependency.
@@ -28,21 +26,6 @@ Adapter\Mail
 └── Null\
     └── NullMailTransport               — No-op (tests / dev)
 ```
-
----
-
-## Table of Contents
-
-1. [MailMessage](#mailmessage)
-2. [MailService (Facade)](#mailservice-facade)
-3. [MailTransport](#mailtransport)
-4. [MailFactory](#mailfactory)
-5. [Attachment](#attachment)
-6. [Priority](#priority)
-7. [Symfony Configuration](#symfony-configuration)
-8. [Usage Examples](#usage-examples)
-
----
 
 ## MailMessage
 

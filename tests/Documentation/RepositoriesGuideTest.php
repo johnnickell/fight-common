@@ -18,13 +18,11 @@ final class RepositoriesGuideTest extends UnitTestCase
         $root = dirname(__DIR__, 2);
         $guide = file_get_contents($root.'/docs/repositories.md');
         $readme = file_get_contents($root.'/README.md');
-        $documentationIndex = file_get_contents($root.'/docs/README.md');
         $composer = file_get_contents($root.'/composer.json');
         $legacyContract = file_get_contents($root.'/src/Application/Repository/UnitOfWork.php');
 
         self::assertIsString($guide);
         self::assertIsString($readme);
-        self::assertIsString($documentationIndex);
         self::assertIsString($composer);
         self::assertIsString($legacyContract);
 
@@ -41,11 +39,6 @@ final class RepositoriesGuideTest extends UnitTestCase
 
         self::assertStringContainsString('Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork', $readme);
         self::assertStringContainsString('deprecated 1.x compatibility', $readme);
-        self::assertStringContainsString(
-            'Fight\\Common\\Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork',
-            $documentationIndex,
-        );
-        self::assertStringContainsString('deprecated 1.x compatibility', $documentationIndex);
         self::assertStringContainsString('canonical Doctrine transactional unit of work', $composer);
         self::assertStringContainsString(
             '@deprecated Retained for 1.x compatibility. Use TransactionalUnitOfWork for new consumers.',

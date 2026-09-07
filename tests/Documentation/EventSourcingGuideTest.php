@@ -275,7 +275,7 @@ final class EventSourcingGuideTest extends UnitTestCase
             self::assertStringContainsString($requiredContract, $fixture);
         }
 
-        self::assertStringContainsString('- Event Sourcing: event-sourcing.md', $mkdocs);
+        self::assertStringContainsString('- Event Sourcing: components/event-sourcing/index.md', $mkdocs);
     }
 
 }
