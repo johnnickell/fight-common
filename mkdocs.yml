@@ -12,6 +12,8 @@ copyright: Copyright &copy; 2026 John Nickell
 theme:
   name: material
   custom_dir: docs/overrides
+  logo: assets/identity/fight-mark-reversed.svg
+  favicon: assets/identity/favicon.ico
   palette:
     - scheme: default
       primary: blue grey
@@ -60,6 +62,7 @@ markdown_extensions:
 
 nav:
   - Home: README.md
+  - Identity: identity.md
   - Quick Start: quickstart.md
   - Framework Support: framework-support.md
   - Components:

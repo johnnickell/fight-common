@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="asset-title asset-desc">
+  <title id="asset-title">Fight Inward Port one-color mark for dark surfaces</title>
+  <desc id="asset-desc">A structural F with an inbound rail, active triangular port, one upper ownership rail, and open lower counterspace.</desc>
+  <g id="artwork">
+    <polygon fill="#EEF2F3" points="46,4 128,4 108,25 48,25 48,57 36,45 27,45 27,24"/>
+    <polygon fill="#EEF2F3" points="27,69 37,69 48,57 48,100 58,100 31,128 27,128"/>
+    <polygon fill="#EEF2F3" points="58,49 106,49 91,65 58,65"/>
+    <polygon fill="#EEF2F3" points="0,49 35,49 44,57 35,65 0,65"/>
+    <polygon fill="#EEF2F3" points="48,47 58,57 48,68"/>
+    <polygon fill="#EEF2F3" points="53,30 100,30 86,45 53,45"/>
+  </g>
+</svg>

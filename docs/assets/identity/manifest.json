@@ -1,0 +1,155 @@
+{
+  "files": {
+    "apple-touch-icon.png": [
+      180,
+      180
+    ],
+    "favicon-16.png": [
+      16,
+      16
+    ],
+    "favicon-32.png": [
+      32,
+      32
+    ],
+    "favicon.ico": [
+      [
+        16,
+        16
+      ],
+      [
+        32,
+        32
+      ]
+    ],
+    "favicon.svg": [
+      128,
+      128
+    ],
+    "fight-avatar-512.png": [
+      512,
+      512
+    ],
+    "fight-common-horizontal-dark.svg": [
+      500,
+      160
+    ],
+    "fight-common-horizontal-light.svg": [
+      500,
+      160
+    ],
+    "fight-common-horizontal-one-color-dark.svg": [
+      500,
+      160
+    ],
+    "fight-common-horizontal-one-color-light.svg": [
+      500,
+      160
+    ],
+    "fight-common-horizontal-reversed.svg": [
+      500,
+      160
+    ],
+    "fight-common-readme-dark.svg": [
+      720,
+      160
+    ],
+    "fight-common-readme-light.svg": [
+      720,
+      160
+    ],
+    "fight-common-social-1280x640.png": [
+      1280,
+      640
+    ],
+    "fight-common-stacked-dark.svg": [
+      340,
+      300
+    ],
+    "fight-common-stacked-light.svg": [
+      340,
+      300
+    ],
+    "fight-common-stacked-one-color-dark.svg": [
+      340,
+      300
+    ],
+    "fight-common-stacked-one-color-light.svg": [
+      340,
+      300
+    ],
+    "fight-common-stacked-reversed.svg": [
+      340,
+      300
+    ],
+    "fight-family-horizontal-dark.svg": [
+      500,
+      160
+    ],
+    "fight-family-horizontal-light.svg": [
+      500,
+      160
+    ],
+    "fight-family-horizontal-one-color-dark.svg": [
+      500,
+      160
+    ],
+    "fight-family-horizontal-one-color-light.svg": [
+      500,
+      160
+    ],
+    "fight-family-horizontal-reversed.svg": [
+      500,
+      160
+    ],
+    "fight-mark-dark.svg": [
+      128,
+      128
+    ],
+    "fight-mark-full-color.svg": [
+      128,
+      128
+    ],
+    "fight-mark-light.svg": [
+      128,
+      128
+    ],
+    "fight-mark-one-color-dark.svg": [
+      128,
+      128
+    ],
+    "fight-mark-one-color-light.svg": [
+      128,
+      128
+    ],
+    "fight-mark-reversed.svg": [
+      128,
+      128
+    ],
+    "identity-specimen.png": [
+      1440,
+      1040
+    ],
+    "identity-specimen.svg": [
+      1440,
+      1040
+    ],
+    "source/fight-identity-source.svg": [
+      460,
+      128
+    ]
+  },
+  "generator": "scripts/generate_identity_assets.py",
+  "palette": {
+    "canvas_dark": "#101619",
+    "canvas_light": "#F4F6F7",
+    "kiln_dark": "#FF7A45",
+    "kiln_light": "#C2410C",
+    "steel_dark": "#AAB7BD",
+    "steel_light": "#7E8B91",
+    "structure_dark": "#EEF2F3",
+    "structure_light": "#182126"
+  },
+  "schema": 1,
+  "source": "source/fight-identity-source.svg"
+}

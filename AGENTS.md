@@ -11,11 +11,14 @@ and use the conventions to interpret ticket status and ordering.
 
 ## Run and Worktree Isolation
 
-Coordinate-build evidence belongs in `.runs/<YYYY-MM-DD>-<slug>/`. It is gitignored and must never be staged.
-Use that run directory as the parent for any disposable linked worktree required by the approved task:
+Coordinate-build scratch is gitignored and must never be staged. Keep linked checkouts under
+`.runs/worktrees/<slug>/`, dated investigation and build notes under `.runs/notes/<YYYY-MM-DD>-<slug>/`, reusable
+handoff bundles under `.runs/handoffs/`, and explicitly retired local material under `.runs/archive/`.
+
+Create any disposable linked worktree required by the approved task beneath the worktree root:
 
 ```bash
-git worktree add -b feature/<slug> .runs/<YYYY-MM-DD>-<slug>/worktree develop
+git worktree add -b feature/<slug> .runs/worktrees/<slug> develop
 ```
 
 Run all commands from that linked worktree, preserve other worktrees and services, and remove only the

@@ -3,7 +3,7 @@ id: T-00091
 prd: PRD-00020
 title: Rebuild the Repository README as the Fight Common Entry Surface
 status: ready-for-agent
-blocked_by: T-00089,T-00090
+blocked_by: T-00090
 ---
 
 # Rebuild the Repository README as the Fight Common Entry Surface
@@ -43,4 +43,4 @@ the final documentation rather than duplicating it.
 
 ## Completion Notes
 
-Pending T-00089 and T-00090.
+Pending T-00090. T-00089 completed the canonical README-safe identity exports.
