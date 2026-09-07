@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-05
+Last updated: 2026-09-06
 
 ## “What’s Next?” Contract
 
@@ -36,7 +36,7 @@ ticket materially cheaper.
 
 | Rank | Ticket | Parent PRD | Why Next |
 |------|--------|------------|----------|
-| 1 | [T-00089 — Create the Canonical Fight Identity Asset Family](00089-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Create the identity prerequisite needed by the Atlas Deck shell and repository entry surfaces. |
+| 1 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Apply the completed documentation artifact and canonical identity to the approved Atlas Deck shell. |
 
 ## In Progress
 
@@ -60,8 +60,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 26 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
 | 27 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 | 28 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
-| 31 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00089 |
-| 32 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | T-00089, T-00090 |
+| 32 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | T-00090 |
 | 33 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
 | 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
 | 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
@@ -145,6 +144,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00089 — Create the Canonical Fight Identity Asset Family](00089-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Added the approved Inward Port family mark, outlined Fight Common lockups, deterministic theme/favicon/README/social exports, validated usage guidance, and a human-approved small-size specimen. |
 | [T-00088 — Build One Reproducible Documentation Artifact](00088-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Added exact, separated PHP and Python Docker contexts; repository-owned preview, strict build, and artifact validation; pull-request artifact proof; and protected `main` Pages deployment without generated-branch writes. |
 | [T-00086 — Complete Laravel Async Messaging and Private Publication Ownership](00086-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published reusable Laravel async command, async event, and private publication adapters through the bounded Fight Common providers. |
 | [T-00085 — Emit PSR-7-Compatible HMAC Request Headers](00085-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Corrected HMAC timestamp emission to the PSR-7 string contract and proved the unchanged canonical signature through a real signer-to-authenticator journey. |

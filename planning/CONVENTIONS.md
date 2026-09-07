@@ -161,7 +161,9 @@ PRDs describe coherent product requirements. A PRD README tracks all PRDs with t
 
 - Branches follow `feature/<description>` from `develop`
 - Never commit directly to `develop` or `main`
-- Coordinate-build scratch lives in gitignored `.runs/`, never in `planning/`
+- Coordinate-build scratch lives in gitignored `.runs/`, never in `planning/`. Linked checkouts belong under
+  `.runs/worktrees/`, dated run notes under `.runs/notes/`, reusable local handoffs under `.runs/handoffs/`, and
+  explicitly retired scratch under `.runs/archive/`.
 
 ## Pre-PR Synchronization Checklist
 

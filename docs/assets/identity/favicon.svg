@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="asset-title asset-desc">
+  <title id="asset-title">Fight favicon</title>
+  <desc id="asset-desc">The one-color Fight Inward Port mark on a carbon background.</desc>
+  <polygon fill="#101619" points="0,0 128,0 128,128 0,128"/>
+  <g id="artwork">
+    <polygon fill="#FFFFFF" points="48.25,11.5 120,11.5 102.5,29.875 50,29.875 50,57.875 39.5,47.375 31.625,47.375 31.625,29"/>
+    <polygon fill="#FFFFFF" points="31.625,68.375 40.375,68.375 50,57.875 50,95.5 58.75,95.5 35.125,120 31.625,120"/>
+    <polygon fill="#FFFFFF" points="58.75,50.875 100.75,50.875 87.625,64.875 58.75,64.875"/>
+    <polygon fill="#FFFFFF" points="8,50.875 38.625,50.875 46.5,57.875 38.625,64.875 8,64.875"/>
+    <polygon fill="#FFFFFF" points="50,49.125 58.75,57.875 50,67.5"/>
+    <polygon fill="#FFFFFF" points="54.375,34.25 95.5,34.25 83.25,47.375 54.375,47.375"/>
+  </g>
+</svg>
