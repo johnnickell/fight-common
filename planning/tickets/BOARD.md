@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-06
+Last updated: 2026-09-07
 
 ## “What’s Next?” Contract
 
@@ -31,12 +31,12 @@ one.
 
 ## Ready Frontier
 
-These tickets have no unfinished blockers. Work top to bottom unless current context makes another ready
-ticket materially cheaper.
-
-| Rank | Ticket | Parent PRD | Why Next |
-|------|--------|------------|----------|
-| 1 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Apply the completed documentation artifact and canonical identity to the approved Atlas Deck shell. |
+| Rank | Ticket | Parent PRD | Current slice |
+|------|--------|------------|---------------|
+| 32 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Apply the canonical identity and Atlas Deck hierarchy to the repository entry surface without duplicating the documentation corpus. |
+| 33 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Deliver one short executable portable journey before framework-specific branches. |
+| 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
+| 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
 
 ## In Progress
 
@@ -60,10 +60,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 26 | [T-00038 — Add Release Skills and Catalog Routing](00038-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00041, T-00042 |
 | 27 | [T-00043 — Add the State-First Dispatcher and Journey-Card Runbook](00043-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00038 |
 | 28 | [T-00039 — Integrate CI and Validate the Final Epic Handoff](00039-TICKET.md) | [PRD-00013](../specs/00013-PRD.md) | T-00043 |
-| 32 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | T-00090 |
-| 33 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
-| 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
-| 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00090 |
 | 36 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
 | 37 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
 | 38 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
@@ -144,6 +140,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Delivered the capability-led homepage, canonical route groups, responsive article shell, accessible themes and controls, resilient generated-artifact contracts, and browser-qualified interaction behavior without publishing Pages. |
 | [T-00089 — Create the Canonical Fight Identity Asset Family](00089-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Added the approved Inward Port family mark, outlined Fight Common lockups, deterministic theme/favicon/README/social exports, validated usage guidance, and a human-approved small-size specimen. |
 | [T-00088 — Build One Reproducible Documentation Artifact](00088-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Added exact, separated PHP and Python Docker contexts; repository-owned preview, strict build, and artifact validation; pull-request artifact proof; and protected `main` Pages deployment without generated-branch writes. |
 | [T-00086 — Complete Laravel Async Messaging and Private Publication Ownership](00086-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Published reusable Laravel async command, async event, and private publication adapters through the bounded Fight Common providers. |

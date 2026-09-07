@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "fonts": [
+    {
+      "family": "Open Sans",
+      "version": "44",
+      "weight": "600",
+      "subset": "latin",
+      "file": "open-sans-v44-latin.woff2",
+      "sha256": "6d030a368703b1104f229bdb0f73bf653134a95d9d68e06a7c1a52549f594cc3",
+      "source": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVIUwaEQbjA.woff2",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/open-sans-v44-ofl-1.1.txt",
+        "sha256": "fbbbcfef55318de350562559b671360de6d597112ecc5c73881b05092db89602",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/opensans/OFL.txt",
+        "copyright": "Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)",
+        "reserved_font_names": []
+      }
+    },
+    {
+      "family": "Source Sans 3",
+      "version": "19",
+      "weight": "400 600",
+      "subset": "latin",
+      "file": "source-sans-3-v19-latin.woff2",
+      "sha256": "ac057a5593cbe3df0d2585da5dd5f33b8efa84aa30550c710fe061b37fc5c54b",
+      "source": "https://fonts.gstatic.com/s/sourcesans3/v19/nwpStKy2OAdR1K-IwhWudF-R3w8aZejf5Hc.woff2",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/source-sans-3-v19-ofl-1.1.txt",
+        "sha256": "09746787287a289323b0ec3cff4d1a4a801331b82b7207c1e186f5d26619a392",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/sourcesans3/OFL.txt",
+        "copyright": "Copyright 2010-2020 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.",
+        "reserved_font_names": ["Source"]
+      }
+    },
+    {
+      "family": "Fira Code",
+      "version": "27",
+      "weight": "400 500",
+      "subset": "latin",
+      "file": "fira-code-v27-latin.woff2",
+      "sha256": "d32d5b5a7c9720cf3812f7d1e3ebdb54116f8f656e7471a03a5a93bdd93c98b3",
+      "source": "https://fonts.gstatic.com/s/firacode/v27/uU9NCBsR6Z2vfE9aq3bh3dSDqFGedA.woff2",
+      "license": {
+        "spdx": "OFL-1.1",
+        "file": "licenses/fira-code-v27-ofl-1.1.txt",
+        "sha256": "926041dac670e6922505e35ac1661a4e8d20f1ffeabbbcb5edb5544370702369",
+        "source": "https://raw.githubusercontent.com/google/fonts/main/ofl/firacode/OFL.txt",
+        "copyright": "Copyright 2014-2020 The Fira Code Project Authors (https://github.com/tonsky/FiraCode)",
+        "reserved_font_names": []
+      }
+    }
+  ]
+}

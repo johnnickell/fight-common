@@ -43,4 +43,4 @@ the final documentation rather than duplicating it.
 
 ## Completion Notes
 
-Pending T-00090. T-00089 completed the canonical README-safe identity exports.
+Unblocked by T-00090's completed Atlas Deck shell. T-00089 supplied the canonical README-safe identity exports.

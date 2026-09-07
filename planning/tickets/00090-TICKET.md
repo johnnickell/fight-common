@@ -2,7 +2,7 @@
 id: T-00090
 prd: PRD-00022
 title: Deliver the Atlas Deck Homepage and Documentation Shell
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -24,25 +24,25 @@ base behavior across accessible light, dark, desktop, and compact layouts.
 
 ## Acceptance Criteria
 
-- [ ] The homepage leads with the framework-neutral promise, shortest Composer installation, and full-width
+- [x] The homepage leads with the framework-neutral promise, shortest Composer installation, and full-width
       Adapter to Application to Domain proof.
-- [ ] Architecture, Quick Start, and Explore Components are equal prominent routes followed by the complete
+- [x] Architecture, Quick Start, and Explore Components are equal prominent routes followed by the complete
       problem-grouped atlas with direct component links and ownership rails.
-- [ ] Canonical routes follow the approved Quick Start, Architecture, Components, Frameworks, and Maintenance
+- [x] Canonical routes follow the approved Quick Start, Architecture, Components, Frameworks, and Maintenance
       groups and require no redirects during the accepted one-time reset.
-- [ ] The article shell supplies component navigation, breadcrumbs, ownership and dependency metadata, focused
+- [x] The article shell supplies component navigation, breadcrumbs, ownership and dependency metadata, focused
       prose and code, local contents, diagrams, callouts, and next steps.
-- [ ] Compact layouts use the approved horizontal component rail, remove local contents from the reading flow,
+- [x] Compact layouts use the approved horizontal component rail, remove local contents from the reading flow,
       stack the architecture chain only below the narrow breakpoint, and avoid page-level overflow.
-- [ ] Open Sans SemiBold, Source Sans 3, and ligature-enabled Fira Code are self-hosted, pinned, appropriately
+- [x] Open Sans SemiBold, Source Sans 3, and ligature-enabled Fira Code are self-hosted, pinned, appropriately
       subset, and paired with practical system fallbacks.
-- [ ] Light and dark themes use the approved cold-steel, carbon, and scarce kiln palette with restrained depth,
+- [x] Light and dark themes use the approved cold-steel, carbon, and scarce kiln palette with restrained depth,
       visible focus, color-independent meaning, and reduced-motion behavior.
-- [ ] Configuration tabs support genuine equivalent formats, pointer and arrow-key selection, semantic state,
+- [x] Configuration tabs support genuine equivalent formats, pointer and arrow-key selection, semantic state,
       format and filename labels, and correctly sized per-format copy controls.
-- [ ] Search, navigation, snippets, highlighting, copy, palette, metadata, sitemap, anchors, base-relative assets,
+- [x] Search, navigation, snippets, highlighting, copy, palette, metadata, sitemap, anchors, base-relative assets,
       and the branded custom 404 work in the generated artifact beneath `/fight-common/`.
-- [ ] The footer displays John Nickell's copyright with GitHub, contribution, and MIT-license routes.
+- [x] The footer displays John Nickell's copyright with GitHub, contribution, and MIT-license routes.
 
 ## Verification
 
@@ -54,5 +54,17 @@ base behavior across accessible light, dark, desktop, and compact layouts.
 
 ## Completion Notes
 
-Ready for implementation. T-00088 completed the reproducible documentation artifact and protected Pages delivery
-seam; T-00089 completed the canonical identity asset family consumed by this shell.
+Delivered the Atlas Deck homepage, canonical route groups, responsive article shell, accessible theme and identity
+projection, semantic configuration tabs, copy feedback, metadata, search, sitemap, link and fragment integrity,
+custom 404, and footer. The generated artifact contract now checks all 25 ownership rails, panel-local format
+controls, safe URL schemes, cached fragment resolution, font provenance, and project-base correctness.
+
+Focused documentation checks, two independent final reviews, and human Brave inspection passed. The browser pass
+covered 375px, 768px, 1024px, and 1440px layouts; both themes; keyboard skip navigation; menu, tabs, search, copy,
+anchors, reduced motion, and 404 behavior; 44px controls; contrast; and page-level overflow. The final generated
+size baseline is HTML 2,288,394 bytes, CSS 170,547 bytes, JavaScript 1,065,529 bytes, WOFF2 78,600 bytes, PNG
+40,597 bytes, and `search_index.json` 426,199 bytes (5,784 KiB total artifact allocation).
+
+The canonical local `./bin/build` passed with 4,124 tests, 15,601 assertions, and exact 18,579/18,579 statement
+coverage. Hosted CI, Pages publication, commit, push, pull request, merge, and task-worktree cleanup remain
+separate, unperformed effects.

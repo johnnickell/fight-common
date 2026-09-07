@@ -44,8 +44,8 @@ final class FrameworkSupportGuideTest extends UnitTestCase
             self::assertStringContainsString($requiredContract, $guide);
         }
 
-        self::assertStringContainsString('[Framework support and activation](framework-support.md)', $index);
-        self::assertStringContainsString('Framework Support: framework-support.md', $mkdocs);
+        self::assertStringContainsString('href="frameworks/framework-support/"', $index);
+        self::assertStringContainsString('Framework Support: frameworks/framework-support/index.md', $mkdocs);
 
         foreach ([
             'codeigniter4/framework',
