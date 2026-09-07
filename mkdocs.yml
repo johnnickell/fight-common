@@ -1,5 +1,5 @@
 site_name: fight-common
-site_description: A shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives.
+site_description: ""
 site_url: https://johnnickell.github.io/fight-common/
 repo_url: https://github.com/johnnickell/fight-common
 repo_name: johnnickell/fight-common
@@ -7,12 +7,42 @@ edit_uri: edit/main/docs/
 docs_dir: docs
 exclude_docs: |
   /overrides/
-copyright: Copyright &copy; 2026 John Nickell
+  /identity.md
+  /quickstart.md
+  /architecture.md
+  /framework-support.md
+  /codeigniter.md
+  /event-sourcing.md
+  /values.md
+  /collections.md
+  /specifications.md
+  /repositories.md
+  /messaging.md
+  /validation.md
+  /serialization.md
+  /dependency-injection.md
+  /utilities.md
+  /http-client.md
+  /auth.md
+  /cache.md
+  /files.md
+  /file-transfer.md
+  /templating.md
+  /routing.md
+  /mail.md
+  /sms.md
+  /sockets.md
+  /observability.md
+  /process.md
+  /scheduler.md
+  /contributing.md
+  /coding-standard.md
+copyright: © 2026 John Nickell
 
 theme:
   name: material
   custom_dir: docs/overrides
-  logo: assets/identity/fight-mark-reversed.svg
+  logo: assets/identity/fight-mark-light.svg
   favicon: assets/identity/favicon.ico
   palette:
     - scheme: default
@@ -36,12 +66,15 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
-  font:
-    text: Source Sans 3
-    code: JetBrains Mono
+  # Typography is locally hosted from docs/assets/fonts; do not request Material's CDN fonts.
+  font: false
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/atlas-format-tabs.js
+  - javascripts/atlas-article-accessibility.js
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -53,6 +86,7 @@ markdown_extensions:
       check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
+  - md_in_html
   - admonition
   - pymdownx.details
   - tables
@@ -62,28 +96,39 @@ markdown_extensions:
 
 nav:
   - Home: README.md
-  - Identity: identity.md
-  - Quick Start: quickstart.md
-  - Framework Support: framework-support.md
+  - Quick Start: quick-start/index.md
+  - Architecture: architecture/index.md
   - Components:
-    - Event Sourcing: event-sourcing.md
-    - Values: values.md
-    - Collections: collections.md
-    - Specifications: specifications.md
-    - Messaging (CQRS): messaging.md
-    - Validation: validation.md
-    - Repositories: repositories.md
-    - HTTP Client: http-client.md
-    - Mail: mail.md
-    - Cache: cache.md
-    - Files: files.md
-    - Templating: templating.md
-    - Routing: routing.md
-    - Auth: auth.md
-    - Sockets: sockets.md
-    - Serialization: serialization.md
-    - Dependency Injection: dependency-injection.md
-    - Utilities: utilities.md
+    - Model the Domain:
+      - Values: components/values/index.md
+      - Collections: components/collections/index.md
+      - Specifications: components/specifications/index.md
+      - Repositories: components/repositories/index.md
+      - Event Sourcing: components/event-sourcing/index.md
+      - Utilities: components/utilities/index.md
+    - Coordinate Application Behavior:
+      - Messaging (CQRS): components/messaging/index.md
+      - Validation: components/validation/index.md
+      - Serialization: components/serialization/index.md
+      - Dependency Injection: components/dependency-injection/index.md
+    - Connect Systems:
+      - HTTP Client: components/http-client/index.md
+      - Auth: components/auth/index.md
+      - Cache: components/cache/index.md
+      - Files: components/files/index.md
+      - File Transfer: components/file-transfer/index.md
+      - Templating: components/templating/index.md
+      - Routing: components/routing/index.md
+      - Mail: components/mail/index.md
+      - SMS: components/sms/index.md
+      - Sockets: components/sockets/index.md
+    - Operate Workloads:
+      - Observability: components/observability/index.md
+      - Process: components/process/index.md
+      - Scheduler: components/scheduler/index.md
+  - Frameworks:
+    - Framework Support: frameworks/framework-support/index.md
+    - CodeIgniter: frameworks/codeigniter/index.md
   - Maintenance:
-    - Architecture Enforcement: architecture.md
-    - Contributing & Branching: contributing.md
+    - Contributing: maintenance/contributing/index.md
+    - Coding Standard: maintenance/coding-standard/index.md

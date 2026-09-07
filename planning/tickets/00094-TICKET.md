@@ -46,4 +46,4 @@ behaviors matter, and where to go next.
 
 ## Completion Notes
 
-Pending T-00090.
+Unblocked by T-00090's completed Mail article shell, configuration tabs, and artifact contracts.

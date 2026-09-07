@@ -44,4 +44,4 @@ adapters, messages, and ownership.
 
 ## Completion Notes
 
-Pending T-00090.
+Unblocked by T-00090's completed responsive diagram and article-shell presentation seams.
