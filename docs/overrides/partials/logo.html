@@ -1,0 +1,7 @@
+{% if config.theme.logo %}
+  <img class="atlas-header__mark atlas-header__mark--light" src="{{ config.theme.logo | url }}" alt="Fight">
+  <img class="atlas-header__mark atlas-header__mark--dark" src="{{ 'assets/identity/fight-mark-dark.svg' | url }}" alt="" aria-hidden="true">
+{% else %}
+  {% set icon = config.theme.icon.logo or "material/library" %}
+  {% include ".icons/" ~ icon ~ ".svg" %}
+{% endif %}
