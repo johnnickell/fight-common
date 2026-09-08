@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Documentation;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use JsonException;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
@@ -35,10 +36,13 @@ final class QuickStartDocumentationContractTest extends UnitTestCase
         self::assertStringContainsString('// --8<-- [end:process-order]', $fixture);
         self::assertStringContainsString('// --8<-- [start:complete-order-processing-example]', $fixture);
         self::assertStringContainsString('// --8<-- [end:complete-order-processing-example]', $fixture);
-        self::assertStringContainsString('namespace App\\QuickStart;', $fixture);
+        self::assertStringContainsString('namespace Fight\\Test\\Common\\Documentation\\QuickStart;', $fixture);
+        $completeExample = $this->fixtureRegion($fixture, 'complete-order-processing-example');
+        self::assertStringStartsWith('use Fight\\Common\\', $completeExample);
+        self::assertStringNotContainsString('namespace ', $completeExample);
         self::assertSame(3, substr_count($guide, '```php-inline'));
         self::assertSame(6, substr_count($guide, '```'));
-        self::assertStringContainsString('Add the PHP opening tag before the copied source', $guide);
+        self::assertStringContainsString('<?php', $guide);
         self::assertStringContainsString('composer require johnnickell/fight-common', $guide);
         self::assertStringContainsString('content.code.copy', $this->readRepositoryFile('mkdocs.yml'));
     }
@@ -48,13 +52,52 @@ final class QuickStartDocumentationContractTest extends UnitTestCase
         $fixture = $this->readRepositoryFile('tests/Documentation/QuickStart/OrderProcessingExample.php');
         $directory = sys_get_temp_dir().'/fight-common-quick-start-'.bin2hex(random_bytes(8));
         $path = $directory.'/order-processing.php';
-        $vendor = $directory.'/vendor';
+        $repository = dirname(__DIR__, 2);
+        $composerFixture = $repository.'/release/fixtures/ComposerConsumer/composer.json';
 
         self::assertTrue(mkdir($directory));
-        self::assertTrue(symlink(dirname(__DIR__, 2).'/vendor', $vendor));
-        file_put_contents($path, "<?php\n".$this->fixtureRegion($fixture, 'complete-order-processing-example'));
 
         try {
+            $manifest = json_decode(
+                $this->readRepositoryFile('release/fixtures/ComposerConsumer/composer.json'),
+                true,
+                flags: JSON_THROW_ON_ERROR,
+            );
+            self::assertIsArray($manifest);
+            $manifest['repositories'][0]['url'] = $repository;
+            $manifest['repositories'][0]['options']['symlink'] = false;
+            $manifest['minimum-stability'] = 'dev';
+            $manifest['prefer-stable'] = true;
+            self::assertFileExists($composerFixture);
+            file_put_contents(
+                $directory.'/composer.json',
+                json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n",
+            );
+
+            $install = new Process(
+                ['/usr/local/bin/composer', 'install', '--no-dev', '--no-interaction', '--no-progress', '--no-plugins', '--no-scripts'],
+                $directory,
+                [
+                    'COMPOSER_DISABLE_NETWORK' => '1',
+                    'COMPOSER_HOME' => $directory.'/.composer',
+                    'PATH' => '/usr/local/bin:/usr/bin:/bin',
+                ],
+                null,
+                120,
+            );
+            $install->run();
+
+            self::assertSame(0, $install->getExitCode(), $install->getErrorOutput());
+
+            $package = $directory.'/vendor/johnnickell/fight-common';
+            self::assertDirectoryExists($package);
+            self::assertFalse(is_link($package));
+            $installedPackage = realpath($package);
+            self::assertIsString($installedPackage);
+            self::assertStringStartsWith($directory.'/', $installedPackage);
+            self::assertNotSame(realpath($repository), $installedPackage);
+
+            file_put_contents($path, "<?php\n".$this->fixtureRegion($fixture, 'complete-order-processing-example'));
             $process = new Process(['php', 'order-processing.php'], $directory);
             $process->run();
 
@@ -64,9 +107,7 @@ final class QuickStartDocumentationContractTest extends UnitTestCase
                 $process->getOutput(),
             );
         } finally {
-            unlink($path);
-            unlink($vendor);
-            rmdir($directory);
+            new Filesystem()->remove($directory);
         }
     }
 

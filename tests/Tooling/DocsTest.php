@@ -135,6 +135,11 @@ BASH
         );
         self::assertStringContainsString(
             'container run --rm -v '.$this->directory.':/app:delegated -w /app --user 501:20 '
+            .'fight-common-docs-python-3.13.7 python tests/Tooling/test_docs_artifact_validator.py',
+            $log,
+        );
+        self::assertStringContainsString(
+            'container run --rm -v '.$this->directory.':/app:delegated -w /app --user 501:20 '
             .'fight-common-docs-python-3.13.7 python scripts/validate_docs_workflow.py .github/workflows/docs.yml',
             $log,
         );
@@ -142,6 +147,14 @@ BASH
             'container run --rm -v '.$this->directory.':/app:delegated -w /app --user 501:20 '
             .'fight-common-docs-python-3.13.7 python tests/Tooling/test_docs_workflow_validator.py',
             $log,
+        );
+        self::assertTrue(
+            strpos($log, 'python scripts/validate_docs_artifact.py site')
+            < strpos($log, 'python tests/Tooling/test_docs_artifact_validator.py'),
+        );
+        self::assertTrue(
+            strpos($log, 'python tests/Tooling/test_docs_artifact_validator.py')
+            < strpos($log, 'python scripts/validate_docs_workflow.py .github/workflows/docs.yml'),
         );
         self::assertTrue(
             strpos($log, 'python scripts/validate_docs_workflow.py .github/workflows/docs.yml')
@@ -155,7 +168,7 @@ BASH
             strpos($log, 'python tests/Tooling/test_readme_validator.py')
             < strrpos($log, 'mkdocs build --strict --site-dir site'),
         );
-        self::assertCount(11, $containerRuns[0]);
+        self::assertCount(12, $containerRuns[0]);
         foreach ($containerRuns[0] as $containerRun) {
             self::assertStringNotContainsString('-it', $containerRun);
             self::assertStringNotContainsString(' -i ', $containerRun);

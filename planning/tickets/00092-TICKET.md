@@ -13,6 +13,10 @@ blocked_by: T-00090
 Give a PHP developer one short, working introduction to Fight Common that demonstrates portable composition
 before branching into component-specific and supported framework guidance.
 
+“Short” describes the concise primary guided path. Its collapsed, self-contained executable reference may be
+substantial when completeness requires it; that reference supports the path without making the guide's narrative
+or next-step decision tree longer.
+
 ## Scope
 
 - In scope: prerequisites, installation, one realistic framework-neutral journey, architecture context, expected
@@ -45,5 +49,5 @@ before branching into component-specific and supported framework guidance.
 The executable fixture, framework-neutral guide, public-compatibility contract, and generated-artifact
 structure, symbol, anchor, search, and next-path contracts are verified. Brave qualification covered mobile,
 tablet, desktop, and wide layouts in both themes, including navigation, search, anchors, copy feedback, the
-expandable example, and code overflow. The canonical Screen build completed with exit `0`, 4,145 tests, 27,652
+expandable example, and code overflow. The canonical Screen build completed with exit `0`, 4,145 tests, 27,673
 assertions, and exact 18,579/18,579 statement coverage.

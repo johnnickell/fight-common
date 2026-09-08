@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
+namespace Fight\Test\Common\Documentation\QuickStart;
+
 // --8<-- [start:complete-order-processing-example]
-
-namespace App\QuickStart;
-
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
@@ -19,8 +18,6 @@ use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\Event;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
-use LogicException;
-use Throwable;
 
 $scriptFilename = $_SERVER['SCRIPT_FILENAME'] ?? '';
 $isDirectExecution = is_string($scriptFilename) && realpath($scriptFilename) === __FILE__;
@@ -91,7 +88,7 @@ final class OrderProcessingExample
         $order = $orders->get($orderId);
 
         if ($fulfillment->requestedOrders() !== [$order]) {
-            throw new LogicException('The Quick Start fulfillment request was not recorded exactly once.');
+            throw new \LogicException('The Quick Start fulfillment request was not recorded exactly once.');
         }
 
         return new OrderProcessingResult($order, $payments, $fulfillment);
@@ -470,7 +467,7 @@ final readonly class ProcessOrderHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         if (!$command instanceof ProcessOrder) {
-            throw new LogicException('ProcessOrderHandler received an unsupported command.');
+            throw new \LogicException('ProcessOrderHandler received an unsupported command.');
         }
 
         $cart = $this->carts->getForCustomer($command->customerId);
@@ -505,7 +502,7 @@ final readonly class OrderProcessedSubscriber implements EventSubscriber
         $event = $eventMessage->payload();
 
         if (!$event instanceof OrderProcessed) {
-            throw new LogicException('OrderProcessedSubscriber received an unsupported event.');
+            throw new \LogicException('OrderProcessedSubscriber received an unsupported event.');
         }
 
         $this->commands->execute(new FulfillOrder($event->orderId));
@@ -536,7 +533,7 @@ final readonly class FulfillOrderHandler implements CommandHandler
         $command = $commandMessage->payload();
 
         if (!$command instanceof FulfillOrder) {
-            throw new LogicException('FulfillOrderHandler received an unsupported command.');
+            throw new \LogicException('FulfillOrderHandler received an unsupported command.');
         }
 
         $order = $this->orders->get($command->orderId);
@@ -582,7 +579,7 @@ final class InMemoryOrderRepository implements OrderRepository, TransactionalSta
     /** @var array<string, Order> */
     private array $orders = [];
     private ?Order $lastSavedOrder = null;
-    private ?Throwable $saveFailureAfterPersisting = null;
+    private ?\Throwable $saveFailureAfterPersisting = null;
 
     public function save(Order $order): void
     {
@@ -594,7 +591,7 @@ final class InMemoryOrderRepository implements OrderRepository, TransactionalSta
         }
     }
 
-    public function failSavingAfterPersistingWith(Throwable $failure): void
+    public function failSavingAfterPersistingWith(\Throwable $failure): void
     {
         $this->saveFailureAfterPersisting = $failure;
     }
@@ -626,7 +623,7 @@ final class InMemoryOrderRepository implements OrderRepository, TransactionalSta
     private static function ordersFromSnapshot(mixed $snapshot): array
     {
         if (!is_array($snapshot)) {
-            throw new LogicException('An in-memory order repository snapshot must be an array.');
+            throw new \LogicException('An in-memory order repository snapshot must be an array.');
         }
 
         return $snapshot;
@@ -650,7 +647,7 @@ final class DemoTransactionalUnitOfWork implements TransactionalUnitOfWork
     public function commitTransactional(callable $operation): mixed
     {
         if ($this->active) {
-            throw new LogicException('Nested transactional execution is not supported.');
+            throw new \LogicException('Nested transactional execution is not supported.');
         }
 
         $snapshots = [];
@@ -662,7 +659,7 @@ final class DemoTransactionalUnitOfWork implements TransactionalUnitOfWork
 
         try {
             return $operation();
-        } catch (Throwable $failure) {
+        } catch (\Throwable $failure) {
             foreach ($this->repositories as $index => $repository) {
                 $repository->restore($snapshots[$index]);
             }

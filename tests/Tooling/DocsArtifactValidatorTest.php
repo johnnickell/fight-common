@@ -138,21 +138,24 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         );
     }
 
-    public function test_that_generated_quick_start_requires_its_exact_section_hierarchy(): void
+    public function test_that_generated_quick_start_accepts_accurate_reworded_titles_and_consumer_symbols(): void
     {
         $quickStart = $this->directory.'/site/quick-start/index.html';
         $artifact = file_get_contents($quickStart);
 
         self::assertIsString($artifact);
-        file_put_contents($quickStart, str_replace('Complete executable example', 'Executable reference', $artifact));
+        file_put_contents(
+            $quickStart,
+            str_replace(
+                ['Framework-Neutral Quick Start', 'Complete executable example', 'SimpleEventDispatcher', 'final readonly class CustomerId'],
+                ['Portable guided introduction', 'Executable reference', 'Event dispatcher', 'final readonly class Customer'],
+                $artifact,
+            ),
+        );
 
         $process = $this->validateArtifact();
 
-        self::assertSame(1, $process->getExitCode());
-        self::assertStringContainsString(
-            'Generated Quick Start article must preserve its exact H1/H2 hierarchy and order',
-            $process->getErrorOutput(),
-        );
+        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
     }
 
     public function test_that_generated_quick_start_requires_its_complete_executable_region_syntax_and_runtime_copy_feature(): void
@@ -161,48 +164,98 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         $artifact = file_get_contents($quickStart);
 
         self::assertIsString($artifact);
-        file_put_contents($quickStart, str_replace('final readonly class CustomerId', 'final readonly class Customer', $artifact));
+        file_put_contents(
+            $quickStart,
+            str_replace(
+                'id="quick-start-complete-example" class="highlight"',
+                'id="quick-start-complete-example" class="code-surface"',
+                $artifact,
+            ),
+        );
 
         $process = $this->validateArtifact();
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing executable region: final readonly class CustomerId',
+            'Generated Quick Start article is missing syntax highlighting for executable surface: #quick-start-complete-example',
             $process->getErrorOutput(),
         );
 
-        file_put_contents($quickStart, str_replace('content.code.copy', 'content.code.annotate', $artifact));
+        file_put_contents(
+            $quickStart,
+            str_replace(
+                'final readonly class FulfillOrder implements Command provider-token-for-customer-42 OrderProcessingExample::process().PHP_EOL',
+                '',
+                $artifact,
+            ),
+        );
         $process = $this->validateArtifact();
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            "Generated Quick Start article must enable Material's runtime code-copy controls",
+            'Generated Quick Start article is missing nonempty executable PHP code surface: #quick-start-complete-example',
             $process->getErrorOutput(),
         );
 
-        file_put_contents($quickStart, str_replace('class="k"', 'class="php-keyword"', $artifact));
+        file_put_contents(
+            $quickStart,
+            str_replace(
+                '<script id="__config" type="application/json">{"features":["content.code.copy"]}</script>',
+                '<p>content.code.copy</p>',
+                $artifact,
+            ),
+        );
         $process = $this->validateArtifact();
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing PHP syntax token class: k',
+            'Generated Quick Start article is missing Material runtime configuration',
+            $process->getErrorOutput(),
+        );
+
+        file_put_contents(
+            $quickStart,
+            str_replace(
+                '<script id="__config" type="application/json">{"features":["content.code.copy"]}</script>',
+                '<p>content.code.copy</p><script id="__config" type="application/json">{</script>',
+                $artifact,
+            ),
+        );
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article has malformed Material runtime configuration',
             $process->getErrorOutput(),
         );
     }
 
-    public function test_that_generated_quick_start_requires_its_public_composition_symbols(): void
+    public function test_that_generated_quick_start_requires_its_installation_command_and_expected_output(): void
     {
         $quickStart = $this->directory.'/site/quick-start/index.html';
         $artifact = file_get_contents($quickStart);
 
         self::assertIsString($artifact);
-        file_put_contents($quickStart, str_replace('SimpleEventDispatcher', 'EventDispatcher', $artifact));
+        file_put_contents($quickStart, str_replace('composer require johnnickell/fight-common', 'composer install', $artifact));
 
         $process = $this->validateArtifact();
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing required content: SimpleEventDispatcher',
+            'Generated Quick Start article is missing required content: composer require johnnickell/fight-common',
+            $process->getErrorOutput(),
+        );
+
+        file_put_contents(
+            $quickStart,
+            str_replace('Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.', 'Order processed.', $artifact),
+        );
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing required content: Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.',
             $process->getErrorOutput(),
         );
     }
