@@ -115,6 +115,14 @@ BASH
             $log,
         );
         self::assertStringContainsString(
+            'fight-common-docs-python-3.13.7 python scripts/validate_readme.py .',
+            $log,
+        );
+        self::assertStringContainsString(
+            'fight-common-docs-python-3.13.7 python tests/Tooling/test_readme_validator.py',
+            $log,
+        );
+        self::assertStringContainsString(
             'container run --rm -v '.$this->directory.':/app:delegated -w /app --user 501:20 '
             .'fight-common-docs-python-3.13.7 mkdocs build --strict --site-dir site',
             $log,
@@ -139,7 +147,15 @@ BASH
             strpos($log, 'python scripts/validate_docs_workflow.py .github/workflows/docs.yml')
             < strpos($log, 'python tests/Tooling/test_docs_workflow_validator.py'),
         );
-        self::assertCount(9, $containerRuns[0]);
+        self::assertTrue(
+            strpos($log, 'python scripts/validate_readme.py .')
+            < strpos($log, 'python tests/Tooling/test_readme_validator.py'),
+        );
+        self::assertTrue(
+            strpos($log, 'python tests/Tooling/test_readme_validator.py')
+            < strrpos($log, 'mkdocs build --strict --site-dir site'),
+        );
+        self::assertCount(11, $containerRuns[0]);
         foreach ($containerRuns[0] as $containerRun) {
             self::assertStringNotContainsString('-it', $containerRun);
             self::assertStringNotContainsString(' -i ', $containerRun);
@@ -172,6 +188,30 @@ BASH
             'fight-common-docs-python-3.13.7 python scripts/validate_docs_artifact.py site',
             $log,
         );
+    }
+
+    public function test_that_validate_propagates_readme_fixture_failures_before_the_strict_build(): void
+    {
+        $process = $this->runDocs('validate', 0, 'python tests/Tooling/test_readme_validator.py', 47);
+
+        self::assertSame(47, $process->getExitCode());
+
+        $log = (string) file_get_contents($this->directory.'/docker.log');
+        self::assertStringContainsString('python scripts/validate_readme.py .', $log);
+        self::assertStringContainsString('python tests/Tooling/test_readme_validator.py', $log);
+        self::assertStringNotContainsString('mkdocs build --strict --site-dir site', $log);
+    }
+
+    public function test_that_validate_propagates_readme_validator_failures_before_its_fixtures(): void
+    {
+        $process = $this->runDocs('validate', 0, 'python scripts/validate_readme.py .', 43);
+
+        self::assertSame(43, $process->getExitCode());
+
+        $log = (string) file_get_contents($this->directory.'/docker.log');
+        self::assertStringContainsString('python scripts/validate_readme.py .', $log);
+        self::assertStringNotContainsString('python tests/Tooling/test_readme_validator.py', $log);
+        self::assertStringNotContainsString('mkdocs build --strict --site-dir site', $log);
     }
 
     public function test_that_validate_stops_before_artifact_validation_when_the_strict_build_fails(): void
