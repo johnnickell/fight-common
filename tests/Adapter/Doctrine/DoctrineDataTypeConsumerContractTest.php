@@ -59,10 +59,7 @@ final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
 
     public function test_that_consumer_configuration_documents_the_canonical_paths_and_legacy_1_x_identity_policy(): void
     {
-        $documentation = [
-            file_get_contents(dirname(__DIR__, 3).'/docs/quickstart.md'),
-            file_get_contents(dirname(__DIR__, 3).'/docs/values.md'),
-        ];
+        $documentation = [file_get_contents(dirname(__DIR__, 3).'/docs/values.md')];
 
         foreach ($documentation as $guide) {
             self::assertIsString($guide);

@@ -1,343 +1,93 @@
-# Quick Start — Symfony
+# Framework-Neutral Quick Start
 
-This guide walks through creating a new Symfony 7 application with `fight-common` fully wired up: CQRS buses, Doctrine types, validation, and a working command/handler pair in under 15 minutes.
-
----
+This is one complete, portable order-processing journey. It keeps business rules in the Domain,
+coordinates them through Application ports, and selects in-memory adapters only at composition time.
+No framework or database is required to understand the flow.
 
 ## Prerequisites
 
-- PHP 8.5+
-- [Composer](https://getcomposer.org/)
-- [Symfony CLI](https://symfony.com/download) (optional but recommended)
+You need PHP 8.5+, Composer, and an application where you can define a small order model and compose its
+services. Install Fight Common with `composer require johnnickell/fight-common`.
 
----
+The example deliberately uses a token supplied by a payment provider, never raw card data. Its
+application-owned types live beside your application code; Fight Common supplies the messaging,
+transaction, and synchronous adapter contracts used to compose them.
 
-## 1. Create a New Symfony Project
+## Process an order
 
-```bash
-symfony new my-app --version="7.*" --webapp
-cd my-app
+The fixture creates customer `CUSTOMER-42`, order `ORDER-1001`, a two-item cart, the token
+`provider-token-for-customer-42`, and payment reference `PAYMENT-1001`. The fake payment processor
+is configured to return `succeeded` immediately.
+
+First compose the Domain model, Application handlers and ports, and in-memory adapters. `OrderProcessed`
+is published after the unit of work callback succeeds; the Application subscriber translates it into
+`FulfillOrder`.
+
+```php-inline { #quick-start-composition }
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-processing-composition"
 ```
 
-Or with plain Composer:
+Then send the Domain command through the public command bus.
 
-```bash
-composer create-project symfony/skeleton:"7.*" my-app
-cd my-app
+```php-inline { #quick-start-process-order }
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:process-order"
 ```
 
----
-
-## 2. Install fight-common
-
-```bash
-composer require johnnickell/fight-common
-```
-
-Then install the optional adapters you need:
-
-```bash
-# Doctrine ORM + DBAL custom types
-composer require doctrine/orm doctrine/dbal
-
-# Symfony full stack (already included in --webapp, add if using skeleton)
-composer require symfony/http-kernel symfony/event-dispatcher \
-    symfony/dependency-injection symfony/routing symfony/mailer
-
-# JWT authentication
-composer require lcobucci/jwt
-
-# Guzzle HTTP client
-composer require guzzlehttp/guzzle guzzlehttp/psr7
-
-# Flysystem file storage
-composer require league/flysystem
-```
-
----
-
-## 3. Wire the Kernel
-
-Register the six compiler passes and configure autoconfiguration so Symfony auto-tags your handlers and subscribers:
-
-```php
-// src/Kernel.php
-namespace App;
-
-use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
-use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
-use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
-use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
-use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
-use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
-use Fight\Common\Application\Messaging\Command\CommandFilter;
-use Fight\Common\Application\Messaging\Command\CommandHandler;
-use Fight\Common\Application\Messaging\Event\EventSubscriber;
-use Fight\Common\Application\Messaging\Query\QueryFilter;
-use Fight\Common\Application\Messaging\Query\QueryHandler;
-use Fight\Common\Application\Templating\TemplateHelper;
-use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-
-class Kernel extends BaseKernel
-{
-    use MicroKernelTrait;
-
-    protected function build(ContainerBuilder $container): void
-    {
-        // Autoconfigure tags so classes are picked up automatically
-        $container->registerForAutoconfiguration(CommandHandler::class)
-            ->addTag('common.command_handler');
-        $container->registerForAutoconfiguration(CommandFilter::class)
-            ->addTag('common.command_filter');
-        $container->registerForAutoconfiguration(QueryHandler::class)
-            ->addTag('common.query_handler');
-        $container->registerForAutoconfiguration(QueryFilter::class)
-            ->addTag('common.query_filter');
-        $container->registerForAutoconfiguration(EventSubscriber::class)
-            ->addTag('common.event_subscriber');
-        $container->registerForAutoconfiguration(TemplateHelper::class)
-            ->addTag('common.template_helper');
-
-        // Compiler passes wire handlers into the buses
-        $container->addCompilerPass(new CommandHandlerCompilerPass());
-        $container->addCompilerPass(new CommandFilterCompilerPass());
-        $container->addCompilerPass(new QueryHandlerCompilerPass());
-        $container->addCompilerPass(new QueryFilterCompilerPass());
-        $container->addCompilerPass(new EventSubscriberCompilerPass());
-        $container->addCompilerPass(new TemplateHelperCompilerPass());
-    }
-}
-```
-
----
-
-## 4. Register Core Services
-
-Bind the library's interfaces to their Symfony adapter implementations in `config/services.yaml`:
-
-```yaml
-# config/services.yaml
-services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-
-    App\:
-        resource: '../src/'
-        exclude: '../src/{DependencyInjection,Entity,Kernel.php}'
-
-    # CQRS buses
-    Fight\Common\Application\Messaging\Command\CommandBus:
-        class: Fight\Common\Adapter\Messaging\Command\Sync\SynchronousCommandBusAdapter
-
-    Fight\Common\Application\Messaging\Query\QueryBus:
-        class: Fight\Common\Adapter\Messaging\Query\QueryHandlerProcessor
-
-    Fight\Common\Application\Messaging\Event\EventDispatcher:
-        class: Fight\Common\Adapter\Messaging\Event\Sync\SynchronousEventDispatcherAdapter
-
-    # Validation subscriber
-    Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber:
-        tags:
-            - { name: kernel.event_subscriber }
-
-    # Filesystem (local)
-    Fight\Common\Application\Filesystem\Filesystem:
-        class: Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem
-```
-
----
-
-## 5. Register Doctrine Types
-
-Add the custom DBAL types to `config/packages/doctrine.yaml`:
-
-```yaml
-# config/packages/doctrine.yaml
-doctrine:
-    dbal:
-        types:
-            audit_entry_id:         Fight\Common\Adapter\Persistence\Doctrine\Type\AuditEntryIdDataType
-            common_uuid:            Fight\Common\Adapter\Persistence\Doctrine\Type\UuidDataType
-            common_email_address:   Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType
-            common_uri:             Fight\Common\Adapter\Persistence\Doctrine\Type\UriDataType
-            common_url:             Fight\Common\Adapter\Persistence\Doctrine\Type\UrlDataType
-            common_string:          Fight\Common\Adapter\Persistence\Doctrine\Type\StringObjectDataType
-            common_string_text:     Fight\Common\Adapter\Persistence\Doctrine\Type\StringTextDataType
-            common_mb_string:       Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringObjectDataType
-            common_mb_string_text:  Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringTextDataType
-            common_json:            Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType
-            common_meta:            Fight\Common\Adapter\Persistence\Doctrine\Type\MetaDataType
-            common_type:            Fight\Common\Adapter\Persistence\Doctrine\Type\TypeDataType
-            common_message:         Fight\Common\Adapter\Persistence\Doctrine\Type\MessageDataType
-```
-
-The former `Fight\Common\Adapter\Doctrine\*DataType` paths remain silent deprecated 1.x
-identities for existing consumers; use the canonical paths above for new configuration.
-
-Then use the types in your entities:
-
-```php
-use Doctrine\ORM\Mapping as ORM;
-use Fight\Common\Domain\Value\Identifier\Uuid;
-use Fight\Common\Domain\Value\Internet\EmailAddress;
-
-#[ORM\Entity]
-class User
-{
-    #[ORM\Id]
-    #[ORM\Column(type: 'common_uuid')]
-    private Uuid $id;
-
-    #[ORM\Column(type: 'common_email_address')]
-    private EmailAddress $email;
-}
-```
-
----
-
-## 6. Your First Command + Handler
-
-Define a command (a plain data object implementing the `Command` interface):
-
-```php
-// src/User/Command/CreateUser.php
-namespace App\User\Command;
-
-use Fight\Common\Domain\Messaging\Command\Command;
-
-final readonly class CreateUser implements Command
-{
-    public function __construct(
-        public string $name,
-        public string $email,
-    ) {}
-}
-```
-
-Implement the handler (it will be auto-tagged and auto-wired by the kernel setup above):
-
-```php
-// src/User/Handler/CreateUserHandler.php
-namespace App\User\Handler;
-
-use App\User\Command\CreateUser;
-use Fight\Common\Application\Messaging\Command\CommandHandler;
-use Fight\Common\Domain\Messaging\Command\CommandMessage;
-
-final class CreateUserHandler implements CommandHandler
-{
-    public static function commandRegistration(): string
-    {
-        return CreateUser::class;
-    }
-
-    public function handle(CommandMessage $message): void
-    {
-        /** @var CreateUser $command */
-        $command = $message->payload()->data();
-
-        // your domain logic here
-    }
-}
-```
-
-Dispatch the command from a controller:
-
-```php
-// src/Controller/UserController.php
-namespace App\Controller;
-
-use App\User\Command\CreateUser;
-use Fight\Common\Application\Messaging\Command\CommandBus;
-use Fight\Common\Domain\Messaging\CommandMessage;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-
-class UserController extends AbstractController
-{
-    public function __construct(private readonly CommandBus $commandBus) {}
-
-    #[Route('/users', methods: ['POST'])]
-    public function create(): Response
-    {
-        $command = new CreateUser(name: 'Alice', email: 'alice@example.com');
-        $this->commandBus->execute($command);
-
-        return $this->json(['status' => 'ok'], 201);
-    }
-}
-```
-
----
-
-## 7. Validation with `#[Validation]`
-
-Use the `#[Validation]` attribute on any controller action to validate the incoming JSON request automatically. If validation fails, a `ValidationException` is thrown and handled by the subscriber you registered in step 4.
-
-```php
-use Fight\Common\Application\Attribute\Validation;
-
-#[Route('/users', methods: ['POST'])]
-#[Validation([
-    ['field' => 'name',  'label' => 'Name',  'rules' => 'required|min_length[2]|max_length[100]'],
-    ['field' => 'email', 'label' => 'Email', 'rules' => 'required|email'],
-])]
-public function create(): Response
-{
-    // request data is already validated here
-    $data = json_decode($this->container->get('request_stack')->getCurrentRequest()->getContent(), true);
-    $command = new CreateUser(name: $data['name'], email: $data['email']);
-    $this->commandBus->execute($command);
-
-    return $this->json(['status' => 'ok'], 201);
-}
-```
-
-See [validation](../components/validation/index.md) for all 60+ available rules.
-
----
-
-## 8. Listening to Events
-
-Implement `EventSubscriber` to react to domain events:
-
-```php
-// src/User/Subscriber/UserCreatedSubscriber.php
-namespace App\User\Subscriber;
-
-use App\User\Event\UserCreated;
-use Fight\Common\Application\Messaging\Event\EventSubscriber;
-use Fight\Common\Domain\Messaging\Event\EventMessage;
-
-final class UserCreatedSubscriber implements EventSubscriber
-{
-    public static function eventRegistration(): string
-    {
-        return UserCreated::class;
-    }
-
-    public function handle(EventMessage $message): void
-    {
-        // send welcome email, log, etc.
-    }
-}
-```
-
-The kernel's `EventSubscriberCompilerPass` auto-wires it — no YAML registration needed.
-
----
-
-## 9. What's Next
-
-| Topic | Doc |
-|-------|-----|
-| Full CQRS reference (async buses, filters) | [messaging](../components/messaging/index.md) |
-| All validation rules | [validation](../components/validation/index.md) |
-| Collections and value objects | [collections](../components/collections/index.md), [values](../components/values/index.md) |
-| File storage (local + Flysystem) | [files](../components/files/index.md) |
-| Authentication (HMAC + JWT) | [auth](../components/auth/index.md) |
-| Branching and release process | [contributing](../maintenance/contributing/index.md) |
+Running the exact fixture returns:
+
+`Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.`
+
+## Complete executable example
+
+The two steps above are deliberately short. For a copyable, runnable journey, save the following
+consumer-owned example as `order-processing.php` and run it in a project that has installed Fight
+Common. It contains every model, port, handler, in-memory adapter, and entrypoint used above; no
+framework setup or hidden application code is required.
+
+Begin the copied source with the stable `<?php` opening token, then run `php order-processing.php`.
+
+??? example "Complete `order-processing.php`"
+    ```php-inline { #quick-start-complete-example }
+    --8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:complete-order-processing-example"
+    ```
+## Ownership and flow
+
+**Domain** owns `CustomerId`, `OrderId`, `Item`, `ShoppingCart`, `Order`, the tokenized
+`PaymentMethod`, `PaymentReference`, `PaymentStatus`, repository ports, serializable `ProcessOrder`
+and `FulfillOrder` commands, `OrderProcessed`, and `PaymentNotSuccessful`.
+
+**Application** owns `PaymentProcessor`, `FulfillmentRequester`, `ProcessOrderHandler`,
+`FulfillOrderHandler`, and the `OrderProcessedSubscriber` that translates the event into a follow-up
+command. `ProcessOrderHandler` loads the cart, asks the payment port to create a stable reference,
+and stores the order inside `TransactionalUnitOfWork`. `FulfillOrderHandler` reloads the order and
+checks that stored reference before asking its fulfillment port to do any work.
+
+**Adapter and composition** own the in-memory repositories, configurable fake payment processor,
+fake fulfillment requester, demonstration transaction adapter, and Fight's
+`InMemoryCommandRouter`, `RoutingCommandBus`, and `SimpleEventDispatcher`. Replace only these edges
+when your application selects a database, payment provider, framework container, or transport.
+
+## Payment guard and retries
+
+Fulfillment is fail-closed. Only `succeeded` requests fulfillment. Both `pending` and `failed`
+throw `PaymentNotSuccessful` and make no fulfillment request. With the synchronous dispatcher in this
+journey, the subscriber failure is reported to the original `ProcessOrder` caller as
+`EventDispatchFailed`; inspect its recorded failure to find the `PaymentNotSuccessful` cause. The
+order remains stored with its payment reference, so a later `FulfillOrder` retry succeeds after the
+payment status becomes `succeeded`.
+
+!!! warning "Production transaction boundary"
+    `DemoTransactionalUnitOfWork` restores only the supplied in-memory repository state when its
+    callback fails. It cannot atomically commit an external payment processor with order persistence.
+    A production adapter needs an explicit idempotency, reconciliation, and transaction policy for
+    that boundary.
+
+An asynchronous payment adapter must arrange redelivery or retry of `FulfillOrder` when the provider
+reports completion. This Quick Start implements no queue, saga, or durable outbox.
+
+## Continue
+
+- [Architecture](../architecture/index.md) explains the inward Adapter → Application → Domain dependency direction.
+- [Messaging](../components/messaging/index.md) details commands, events, buses, handlers, and dispatchers.
+- [Repositories](../components/repositories/index.md) covers the `TransactionalUnitOfWork` boundary and production adapters.
+- [Framework Support](../frameworks/framework-support/index.md) separates supported framework activation from this portable composition.

@@ -78,7 +78,9 @@ Test namespaces mirror source: `src/Domain/Specification/AndSpecification.php` â
 
 - **100% statement coverage required** â€” enforced by the coverage gate (`requireCoverageMetadata` enabled)
 - Every test class extends `Fight\Test\Common\TestCase\UnitTestCase`
-- Every test class carries `#[CoversClass(Target::class)]`
+- Every PHPUnit test class carries explicit coverage metadata
+- Direct unit tests use `#[CoversClass(Target::class)]`; qualifying integration, journey, documentation-contract, and tooling-process tests may use `#[CoversNothing]`
+- `#[CoversNothing]` cannot hide missing direct unit-test coverage
 - Method naming: `test_that_<subject>_<condition>()`
 - Assertions: `self::assertTrue`, `self::assertSame`, `self::assertInstanceOf`, etc.
 

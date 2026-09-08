@@ -33,7 +33,6 @@ one.
 
 | Rank | Ticket | Parent PRD | Current slice |
 |------|--------|------------|---------------|
-| 33 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Deliver one short executable portable journey before framework-specific branches. |
 | 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
 | 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
 
@@ -62,7 +61,7 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 | 36 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
 | 37 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
 | 38 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
-| 39 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00092 through T-00097 |
+| 39 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00093 through T-00097 |
 | 40 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00098 and separately authorized publication |
 
 ## Needs Info
@@ -139,6 +138,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Delivered an executable, framework-neutral order-processing journey with explicit layer ownership, post-commit event translation, fail-closed payment verification and retry guidance, deterministic generated-artifact contracts, and responsive Brave qualification in both themes. |
 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Rebuilt the concise repository entry surface with canonical themed identity, factual trust signals, inward architecture proof, representative capability routes, deterministic validation, and browser-qualified fallback behavior. |
 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Delivered the capability-led homepage, canonical route groups, responsive article shell, accessible themes and controls, resilient generated-artifact contracts, and browser-qualified interaction behavior without publishing Pages. |
 | [T-00089 — Create the Canonical Fight Identity Asset Family](00089-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Added the approved Inward Port family mark, outlined Fight Common lockups, deterministic theme/favicon/README/social exports, validated usage guidance, and a human-approved small-size specimen. |
