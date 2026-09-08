@@ -121,6 +121,136 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         );
     }
 
+    public function test_that_generated_quick_start_requires_its_payment_guard_anchor(): void
+    {
+        $quickStart = $this->directory.'/site/quick-start/index.html';
+        $artifact = file_get_contents($quickStart);
+
+        self::assertIsString($artifact);
+        file_put_contents($quickStart, str_replace('id="payment-guard-and-retries"', 'id="payment-guard"', $artifact));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing required article anchor: #payment-guard-and-retries',
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_that_generated_quick_start_requires_its_exact_section_hierarchy(): void
+    {
+        $quickStart = $this->directory.'/site/quick-start/index.html';
+        $artifact = file_get_contents($quickStart);
+
+        self::assertIsString($artifact);
+        file_put_contents($quickStart, str_replace('Complete executable example', 'Executable reference', $artifact));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article must preserve its exact H1/H2 hierarchy and order',
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_that_generated_quick_start_requires_its_complete_executable_region_syntax_and_runtime_copy_feature(): void
+    {
+        $quickStart = $this->directory.'/site/quick-start/index.html';
+        $artifact = file_get_contents($quickStart);
+
+        self::assertIsString($artifact);
+        file_put_contents($quickStart, str_replace('final readonly class CustomerId', 'final readonly class Customer', $artifact));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing executable region: final readonly class CustomerId',
+            $process->getErrorOutput(),
+        );
+
+        file_put_contents($quickStart, str_replace('content.code.copy', 'content.code.annotate', $artifact));
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            "Generated Quick Start article must enable Material's runtime code-copy controls",
+            $process->getErrorOutput(),
+        );
+
+        file_put_contents($quickStart, str_replace('class="k"', 'class="php-keyword"', $artifact));
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing PHP syntax token class: k',
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_that_generated_quick_start_requires_its_public_composition_symbols(): void
+    {
+        $quickStart = $this->directory.'/site/quick-start/index.html';
+        $artifact = file_get_contents($quickStart);
+
+        self::assertIsString($artifact);
+        file_put_contents($quickStart, str_replace('SimpleEventDispatcher', 'EventDispatcher', $artifact));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing required content: SimpleEventDispatcher',
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_that_generated_quick_start_requires_each_next_path(): void
+    {
+        $quickStart = $this->directory.'/site/quick-start/index.html';
+        $artifact = file_get_contents($quickStart);
+
+        self::assertIsString($artifact);
+        file_put_contents($quickStart, str_replace('href="../frameworks/framework-support/"', 'href="../frameworks/codeigniter/"', $artifact));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated Quick Start article is missing required next path: ../frameworks/framework-support/',
+            $process->getErrorOutput(),
+        );
+    }
+
+    public function test_that_generated_search_index_requires_the_quick_start_entry(): void
+    {
+        $searchIndex = $this->directory.'/site/search/search_index.json';
+        $artifact = file_get_contents($searchIndex);
+
+        self::assertIsString($artifact);
+        $index = json_decode($artifact, true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($index);
+        self::assertIsArray($index['docs']);
+        foreach ($index['docs'] as &$entry) {
+            if (is_array($entry) && ($entry['location'] ?? null) === 'quick-start/') {
+                $entry['location'] = 'architecture/';
+            }
+        }
+        unset($entry);
+        file_put_contents($searchIndex, json_encode($index, JSON_THROW_ON_ERROR));
+
+        $process = $this->validateArtifact();
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString(
+            'Generated search index is missing the Quick Start entry',
+            $process->getErrorOutput(),
+        );
+    }
+
     public function test_that_generated_artifact_requires_44px_native_control_targets_across_reviewed_viewports(): void
     {
         $stylesheet = $this->directory.'/site/stylesheets/extra.css';
@@ -784,6 +914,28 @@ final class DocsArtifactValidatorTest extends UnitTestCase
                     '<section role="tabpanel" id="atlas-mail-config-yaml-panel" aria-labelledby="atlas-mail-config-yaml-tab" data-atlas-format-panel="yaml"><code data-atlas-filename="config/services.yaml">config/services.yaml</code><button data-atlas-copy aria-label="Copy YAML configuration">Copy</button></section>',
                     '<section role="tabpanel" id="atlas-mail-config-xml-panel" aria-labelledby="atlas-mail-config-xml-tab" data-atlas-format-panel="xml" hidden><code data-atlas-filename="config/services.xml">config/services.xml</code><button data-atlas-copy aria-label="Copy XML configuration">Copy</button></section>',
                     '<section role="tabpanel" id="atlas-mail-config-php-panel" aria-labelledby="atlas-mail-config-php-tab" data-atlas-format-panel="php" hidden><code data-atlas-filename="config/services.php">config/services.php</code><button data-atlas-copy aria-label="Copy PHP configuration">Copy</button></section></section>',
+                ]);
+            }
+            if ($route === 'quick-start/') {
+                $content .= implode('', [
+                    '<h1 id="framework-neutral-quick-start">Framework-Neutral Quick Start</h1>',
+                    '<h2 id="prerequisites">Prerequisites</h2>composer require johnnickell/fight-common',
+                    '<h2 id="process-an-order">Process an order</h2>Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.',
+                    '<p>InMemoryCommandRouter RoutingCommandBus SimpleEventDispatcher TransactionalUnitOfWork</p>',
+                    '<div id="quick-start-composition" class="highlight"><pre><code>final <span class="k">class</span> OrderProcessingExample CustomerId::fromString(<span class="s1">\'CUSTOMER-42\'</span>) require $_SERVER[\'FIGHT_AUTOLOAD\'] ?? __DIR__.\'/vendor/autoload.php\';</code></pre></div><button class="md-code__button" data-md-type="copy" data-clipboard-target="#quick-start-composition code"></button>',
+                    '<div id="quick-start-process-order" class="highlight"><pre><code>final readonly class CustomerId final readonly class ProcessOrder implements Command</code></pre></div>',
+                    '<div id="quick-start-complete-example" class="highlight"><pre><code>final readonly class FulfillOrder implements Command provider-token-for-customer-42 OrderProcessingExample::process().PHP_EOL</code></pre></div>',
+                    '<script id="__config" type="application/json">{"features":["content.code.copy"]}</script>',
+                    '<h2 id="complete-executable-example">Complete executable example</h2>',
+                    '<h2 id="ownership-and-flow">Ownership and flow</h2>',
+                    '<p>FulfillmentRequester</p>',
+                    '<h2 id="payment-guard-and-retries">Payment guard and retries</h2>EventDispatchFailed PaymentNotSuccessful Only succeeded requests fulfillment. Both pending and failed redelivery or retry of FulfillOrder',
+                    '<aside>Production transaction boundary no queue, saga, or durable outbox</aside>',
+                    '<h2 id="continue">Continue</h2>',
+                    '<a href="../architecture/">Architecture</a>',
+                    '<a href="../components/messaging/">Messaging</a>',
+                    '<a href="../components/repositories/">Repositories</a>',
+                    '<a href="../frameworks/framework-support/">Framework Support</a>',
                 ]);
             }
             file_put_contents(

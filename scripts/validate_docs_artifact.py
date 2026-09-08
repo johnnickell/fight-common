@@ -180,6 +180,57 @@ MAIL_CONFIGURATION_FORMATS = (
     ("xml", "XML", "config/services.xml"),
     ("php", "PHP", "config/services.php"),
 )
+QUICK_START_ARTICLE_TEXT = (
+    "Framework-Neutral Quick Start",
+    "composer require johnnickell/fight-common",
+    "Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.",
+    "InMemoryCommandRouter",
+    "RoutingCommandBus",
+    "SimpleEventDispatcher",
+    "TransactionalUnitOfWork",
+    "EventDispatchFailed",
+    "PaymentNotSuccessful",
+    "FulfillmentRequester",
+    "Only succeeded requests fulfillment.",
+    "Both pending and failed",
+    "redelivery or retry of FulfillOrder",
+    "Production transaction boundary",
+    "no queue, saga, or durable outbox",
+)
+QUICK_START_ARTICLE_HEADINGS = (
+    (1, "framework-neutral-quick-start", "Framework-Neutral Quick Start"),
+    (2, "prerequisites", "Prerequisites"),
+    (2, "process-an-order", "Process an order"),
+    (2, "complete-executable-example", "Complete executable example"),
+    (2, "ownership-and-flow", "Ownership and flow"),
+    (2, "payment-guard-and-retries", "Payment guard and retries"),
+    (2, "continue", "Continue"),
+)
+QUICK_START_ARTICLE_ANCHORS = (
+    "prerequisites",
+    "process-an-order",
+    "complete-executable-example",
+    "ownership-and-flow",
+    "payment-guard-and-retries",
+    "continue",
+)
+QUICK_START_EXECUTABLE_REGIONS = (
+    "final class OrderProcessingExample",
+    "final readonly class CustomerId",
+    "final readonly class ProcessOrder implements Command",
+    "final readonly class FulfillOrder implements Command",
+    "require $_SERVER['FIGHT_AUTOLOAD'] ?? __DIR__.'/vendor/autoload.php';",
+    "OrderProcessingExample::process().PHP_EOL",
+    "provider-token-for-customer-42",
+)
+QUICK_START_REQUIRED_PHP_CODE_BLOCKS = 3
+QUICK_START_COPY_FEATURE = "content.code.copy"
+QUICK_START_NEXT_PATHS = (
+    "../architecture/",
+    "../components/messaging/",
+    "../components/repositories/",
+    "../frameworks/framework-support/",
+)
 REQUIRED_LOCAL_ASSETS = (
     "assets/fonts/open-sans-v44-latin.woff2",
     "assets/fonts/source-sans-3-v19-latin.woff2",
@@ -329,16 +380,20 @@ class DocumentParser(HTMLParser):
         self.metadata: dict[str, list[str]] = {}
         self.headings: list[tuple[int, str, str]] = []
         self.local_contents_links: list[tuple[str, str]] = []
+        self.pre_code_blocks: list[str] = []
         self._current_heading: tuple[int, str, list[str]] | None = None
         self._in_heading_permalink = False
         self._in_local_contents = False
         self._current_local_contents_link: tuple[str, list[str]] | None = None
         self._open_logo_contexts: list[tuple[str, str]] = []
         self._open_section_panels: list[str | None] = []
+        self._current_pre_code: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
         self.elements.append((tag, attributes))
+        if tag == "pre":
+            self._current_pre_code = []
         if tag == "section":
             self._open_section_panels.append(attributes.get("data-atlas-format-panel"))
         format_panel = next((panel for panel in reversed(self._open_section_panels) if panel is not None), None)
@@ -399,12 +454,17 @@ class DocumentParser(HTMLParser):
 
     def handle_data(self, data: str) -> None:
         self.text.append(data)
+        if self._current_pre_code is not None:
+            self._current_pre_code.append(data)
         if self._current_heading is not None and not self._in_heading_permalink:
             self._current_heading[2].append(data)
         if self._current_local_contents_link is not None:
             self._current_local_contents_link[1].append(data)
 
     def handle_endtag(self, tag: str) -> None:
+        if tag == "pre" and self._current_pre_code is not None:
+            self.pre_code_blocks.append("".join(self._current_pre_code))
+            self._current_pre_code = None
         if tag == "section" and self._open_section_panels:
             self._open_section_panels.pop()
         if self._open_logo_contexts and self._open_logo_contexts[-1][0] == tag:
@@ -926,6 +986,44 @@ def validate_mail_article_skip_navigation(parser: DocumentParser, site_directory
         fail("Generated Mail skip navigation must target the focusable article start")
 
 
+def validate_quick_start_article(parser: DocumentParser, search_data: dict[str, object]) -> None:
+    quick_start_text = "".join(parser.text)
+    for required_text in QUICK_START_ARTICLE_TEXT:
+        if required_text not in quick_start_text:
+            fail(f"Generated Quick Start article is missing required content: {required_text}")
+    for anchor in QUICK_START_ARTICLE_ANCHORS:
+        if anchor not in parser.ids:
+            fail(f"Generated Quick Start article is missing required article anchor: #{anchor}")
+    if tuple(heading for heading in parser.headings if heading[0] <= 2) != QUICK_START_ARTICLE_HEADINGS:
+        fail("Generated Quick Start article must preserve its exact H1/H2 hierarchy and order")
+    for next_path in QUICK_START_NEXT_PATHS:
+        if next_path not in parser.return_links:
+            fail(f"Generated Quick Start article is missing required next path: {next_path}")
+    if len(parser.pre_code_blocks) < QUICK_START_REQUIRED_PHP_CODE_BLOCKS:
+        fail("Generated Quick Start article is missing its required executable PHP code blocks")
+    highlighted_code_blocks = sum(
+        1
+        for tag, attributes in parser.elements
+        if tag == "div" and "highlight" in (attributes.get("class") or "").split()
+    )
+    if highlighted_code_blocks < QUICK_START_REQUIRED_PHP_CODE_BLOCKS:
+        fail("Generated Quick Start article is missing syntax highlighting for its executable PHP code blocks")
+    for token_class in ("k", "s1"):
+        if token_class not in parser.classes:
+            fail(f"Generated Quick Start article is missing PHP syntax token class: {token_class}")
+    for region in QUICK_START_EXECUTABLE_REGIONS:
+        if region not in quick_start_text:
+            fail(f"Generated Quick Start article is missing executable region: {region}")
+    if QUICK_START_COPY_FEATURE not in quick_start_text:
+        fail("Generated Quick Start article must enable Material's runtime code-copy controls")
+
+    entries = search_data.get("docs")
+    if not isinstance(entries, list) or not any(
+        isinstance(entry, dict) and entry.get("location") == "quick-start/" for entry in entries
+    ):
+        fail("Generated search index is missing the Quick Start entry")
+
+
 def validate(site_directory: Path) -> None:
     if not site_directory.is_dir() or site_directory.is_symlink():
         fail(f"Generated site directory is missing or unsafe: {site_directory}")
@@ -1129,6 +1227,9 @@ def validate(site_directory: Path) -> None:
     validate_mail_article_skip_navigation(mail_article, site_directory)
     if not has_mail_configuration_controls(mail_article):
         fail("Generated Mail article is missing semantic configuration tab and copy controls")
+
+    quick_start_article = parse_html(site_directory / "quick-start/index.html", parsed_documents)
+    validate_quick_start_article(quick_start_article, search_data)
 
 
 def main(arguments: list[str]) -> int:
