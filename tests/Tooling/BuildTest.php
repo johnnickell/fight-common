@@ -173,6 +173,14 @@ BASH
         $log = file_get_contents($this->directory.'/docker.log');
         self::assertStringContainsString('build -t fight-common-docs-python-3.13.7 ./etc/docker/python/', $log);
         self::assertStringContainsString(
+            'python scripts/validate_readme.py .',
+            $log,
+        );
+        self::assertStringContainsString(
+            'python tests/Tooling/test_readme_validator.py',
+            $log,
+        );
+        self::assertStringContainsString(
             'python scripts/validate_docs_workflow.py .github/workflows/docs.yml',
             $log,
         );

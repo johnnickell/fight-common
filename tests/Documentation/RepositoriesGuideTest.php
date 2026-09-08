@@ -37,8 +37,12 @@ final class RepositoriesGuideTest extends UnitTestCase
             self::assertStringContainsString($requiredContract, $guide);
         }
 
-        self::assertStringContainsString('Adapter\\Persistence\\Doctrine\\DoctrineTransactionalUnitOfWork', $readme);
-        self::assertStringContainsString('deprecated 1.x compatibility', $readme);
+        self::assertStringContainsString(
+            'https://johnnickell.github.io/fight-common/components/repositories/',
+            $readme,
+        );
+        self::assertStringNotContainsString('DoctrineTransactionalUnitOfWork', $readme);
+        self::assertStringNotContainsString('deprecated 1.x compatibility', $readme);
         self::assertStringContainsString('canonical Doctrine transactional unit of work', $composer);
         self::assertStringContainsString(
             '@deprecated Retained for 1.x compatibility. Use TransactionalUnitOfWork for new consumers.',
