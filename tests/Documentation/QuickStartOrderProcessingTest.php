@@ -10,26 +10,27 @@ use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
-use App\QuickStart\CustomerId;
-use App\QuickStart\DemoTransactionalUnitOfWork;
-use App\QuickStart\FakeFulfillmentRequester;
-use App\QuickStart\FakePaymentProcessor;
-use App\QuickStart\FulfillOrder;
-use App\QuickStart\FulfillOrderHandler;
-use App\QuickStart\InMemoryOrderRepository;
-use App\QuickStart\InMemoryShoppingCartRepository;
-use App\QuickStart\Item;
-use App\QuickStart\OrderId;
-use App\QuickStart\OrderProcessingExample;
-use App\QuickStart\OrderProcessed;
-use App\QuickStart\OrderProcessedSubscriber;
-use App\QuickStart\PaymentMethod;
-use App\QuickStart\PaymentNotSuccessful;
-use App\QuickStart\PaymentReference;
-use App\QuickStart\PaymentStatus;
-use App\QuickStart\ProcessOrder;
-use App\QuickStart\ProcessOrderHandler;
-use App\QuickStart\ShoppingCart;
+use Fight\Test\Common\Documentation\QuickStart\CustomerId;
+use Fight\Test\Common\Documentation\QuickStart\DemoTransactionalUnitOfWork;
+use Fight\Test\Common\Documentation\QuickStart\FakeFulfillmentRequester;
+use Fight\Test\Common\Documentation\QuickStart\FakePaymentProcessor;
+use Fight\Test\Common\Documentation\QuickStart\FulfillOrder;
+use Fight\Test\Common\Documentation\QuickStart\FulfillOrderHandler;
+use Fight\Test\Common\Documentation\QuickStart\InMemoryOrderRepository;
+use Fight\Test\Common\Documentation\QuickStart\InMemoryShoppingCartRepository;
+use Fight\Test\Common\Documentation\QuickStart\Item;
+use Fight\Test\Common\Documentation\QuickStart\Order;
+use Fight\Test\Common\Documentation\QuickStart\OrderId;
+use Fight\Test\Common\Documentation\QuickStart\OrderProcessingExample;
+use Fight\Test\Common\Documentation\QuickStart\OrderProcessed;
+use Fight\Test\Common\Documentation\QuickStart\OrderProcessedSubscriber;
+use Fight\Test\Common\Documentation\QuickStart\PaymentMethod;
+use Fight\Test\Common\Documentation\QuickStart\PaymentNotSuccessful;
+use Fight\Test\Common\Documentation\QuickStart\PaymentReference;
+use Fight\Test\Common\Documentation\QuickStart\PaymentStatus;
+use Fight\Test\Common\Documentation\QuickStart\ProcessOrder;
+use Fight\Test\Common\Documentation\QuickStart\ProcessOrderHandler;
+use Fight\Test\Common\Documentation\QuickStart\ShoppingCart;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use RuntimeException;
@@ -96,7 +97,7 @@ final class QuickStartOrderProcessingTest extends UnitTestCase
             $unitOfWork->commitTransactional(
                 static function () use ($customerId, $orderId, $orders): never {
                     $orders->save(
-                        \App\QuickStart\Order::fromCart(
+                        Order::fromCart(
                             $orderId,
                             ShoppingCart::forCustomer($customerId, Item::create('FILTERS', 700, 1)),
                             PaymentReference::fromString('PAYMENT-1001'),

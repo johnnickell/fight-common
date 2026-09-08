@@ -6,7 +6,7 @@ No framework or database is required to understand the flow.
 
 ## Prerequisites
 
-You need PHP, Composer, and an application where you can define a small order model and compose its
+You need PHP 8.5+, Composer, and an application where you can define a small order model and compose its
 services. Install Fight Common with `composer require johnnickell/fight-common`.
 
 The example deliberately uses a token supplied by a payment provider, never raw card data. Its
@@ -44,7 +44,7 @@ consumer-owned example as `order-processing.php` and run it in a project that ha
 Common. It contains every model, port, handler, in-memory adapter, and entrypoint used above; no
 framework setup or hidden application code is required.
 
-Add the PHP opening tag before the copied source, then run `php order-processing.php`.
+Begin the copied source with the stable `<?php` opening token, then run `php order-processing.php`.
 
 ??? example "Complete `order-processing.php`"
     ```php-inline { #quick-start-complete-example }
