@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-07
+Last updated: 2026-09-08
 
 ## “What’s Next?” Contract
 
@@ -33,14 +33,14 @@ one.
 
 | Rank | Ticket | Parent PRD | Current slice |
 |------|--------|------------|---------------|
+| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Compose the accepted five starter receipts with the remaining black-box compatibility evidence. |
+| 12 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | Create the five repository-local permanent quality-gate implementation tickets. |
 | 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
 | 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
 
 ## In Progress
 
-| Ticket | Parent PRD | Current slice |
-| --- | --- | --- |
-| [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Versioned receipt validator and immutable pin contract; all five booted starter receipts remain required for composition. |
+No ticket is currently in progress.
 
 ## Waiting
 
@@ -48,8 +48,6 @@ Waiting tickets retain `ready-for-agent`; their position here is derived from un
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 11 | [T-00056 — Certify the Fight Common 1.2 Compatibility Envelope](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | T-00054, T-00058, and T-00075 |
-| 12 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00075 |
 | 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00034 |
 | 22 | [T-00041 — Verify Packagist Projection and Clean Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
 | 23 | [T-00036 — Implement Maintenance-Line Lifecycle Decisions](00036-TICKET.md) | [PRD-00012](../specs/00012-PRD.md) | T-00034 |
@@ -116,10 +114,9 @@ Scheduler compatibility is complete through T-00048. JSend, Symfony and Doctrine
 UnitOfWork, private Mercure, shared PSR/container composition, and the first Laravel and CodeIgniter walking
 slices are complete through T-00049 to T-00053, T-00059, T-00060, T-00069, T-00070, T-00073, and T-00077.
 The Yii native and fallback lane is complete through T-00072. Native framework lanes continue through T-00054,
-T-00071, and T-00074. Package isolation and the support guide lead
-to T-00075's composition of repository-owned starter receipts. After those slices and the release certification
-engine complete, T-00056 composes the Fight Common black-box `1.2.0` compatibility evidence required before
-T-00017 can close release acceptance.
+T-00071, and T-00074. T-00075 now binds all five repository-owned starter receipts after independent review and
+merge, unblocking T-00056's composition of the Fight Common black-box `1.2.0` compatibility evidence required
+before T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
 layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 now uses
@@ -138,6 +135,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Bound the five repository-owned, lowest/latest booted starter receipts to immutable merged commits and content identities after independent review; final certification composition moves to T-00056. |
 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Delivered an executable, framework-neutral order-processing journey with explicit layer ownership, post-commit event translation, fail-closed payment verification and retry guidance, deterministic generated-artifact contracts, and responsive Brave qualification in both themes. |
 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Rebuilt the concise repository entry surface with canonical themed identity, factual trust signals, inward architecture proof, representative capability routes, deterministic validation, and browser-qualified fallback behavior. |
 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Delivered the capability-led homepage, canonical route groups, responsive article shell, accessible themes and controls, resilient generated-artifact contracts, and browser-qualified interaction behavior without publishing Pages. |
