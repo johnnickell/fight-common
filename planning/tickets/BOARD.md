@@ -16,10 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No unresolved human planning decision currently blocks the framework-adapter graph. WF-024, ADR 0024,
-PRD-00014, PRD-00015, and the current ticket graph now agree. Use `/ask-matt` after each verified ticket handoff
-to recalculate the executable frontier; implementation, commit, push, pull request, merge, and release remain
-separate approvals.
+[T-00035](00035-TICKET.md) is the current human decision: review the T-00056 certification handoff and separately
+authorize or decline merge, signed tag, push, and GitHub Release effects. This pull request authorizes none of
+those publication effects. T-00041 remains downstream Packagist qualification.
 
 ## Wayfinder Review
 
@@ -37,19 +36,12 @@ one.
 | 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
 | 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
 
-## In Progress
-
-| Ticket | Parent PRD | Current slice |
-|--------|------------|---------------|
-| [T-00056 — Replace the Release Framework with Thin Certification](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Implementation and local gates are complete; exact-commit certification remains pending. |
-
 ## Waiting
 
 Waiting tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 21 | [T-00035 — Publish the Signed Tag and Immutable GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00056 |
 | 22 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
 | 36 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
 | 37 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
@@ -63,12 +55,12 @@ No tickets currently require a decision authority.
 
 ## Final Priority
 
-This ticket is the final `1.2` acceptance boundary and remains waiting until its explicit compatibility
-certification blocker and every higher-priority release item are complete.
+This ticket is the final `1.2` acceptance boundary and remains last until every higher-priority release item is
+complete.
 
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
-| 50 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Prove repository-wide additive compatibility and close the 1.2 acceptance boundary only after T-00056 certifies the complete Fight Common contract evidence. |
+| 50 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Compose the completed thin-certification evidence with the remaining repository-wide acceptance criteria and close the 1.2 boundary last. |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -76,9 +68,8 @@ in-memory event publication, durable named publication cursors, transactional fa
 logging are complete across the same database matrix. T-00016 now documents the complete integration and
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
-Mapper contract. T-00017 remains the board's final priority and now explicitly waits on T-00056 so `1.2`
-compatibility and release acceptance cannot be declared before the complete contract, package, quality-gate,
-and release-coordination evidence exists. The
+Mapper contract. T-00017 remains the board's final priority; T-00056 now supplies its complete contract,
+package, quality-gate, and release-certification evidence. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
@@ -98,9 +89,9 @@ This satisfies T-00017's release-notes criterion only; its certification and com
 unchanged.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
-T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 is implementing one real thin
-certification seam; after its exact-commit certification succeeds, T-00035 and T-00041 remain separately
-authorized publication and Packagist qualification outcomes. T-00036 through T-00039 and T-00042 through
+T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 completed one real thin certification
+seam and its exact-commit evidence; T-00035 and T-00041 remain separately authorized publication and Packagist
+qualification outcomes. T-00036 through T-00039 and T-00042 through
 T-00043 are closed `wontfix`.
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
@@ -108,8 +99,8 @@ Scheduler compatibility is complete through T-00048. JSend, Symfony and Doctrine
 UnitOfWork, private Mercure, shared PSR/container composition, and the first Laravel and CodeIgniter walking
 slices are complete through T-00049 to T-00053, T-00059, T-00060, T-00069, T-00070, T-00073, and T-00077.
 The Yii native and fallback lane is complete through T-00072. Native framework lanes continue through T-00054,
-T-00071, and T-00074. T-00075 now binds all five repository-owned starter receipts after independent review and
-merge, unblocking T-00056's composition of the Fight Common black-box `1.2.0` compatibility evidence required
+T-00071, and T-00074. T-00075 binds all five repository-owned starter receipts after independent review and
+merge; T-00056 now cites their immutable identities in the Fight Common `1.2.0` certification evidence required
 before T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
@@ -135,7 +126,8 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
-| [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Bound the five repository-owned, lowest/latest booted starter receipts to immutable merged commits and content identities after independent review; final certification composition moves to T-00056. |
+| [T-00056 — Replace the Release Framework with Thin Certification](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Removed the simulated release framework and 418 release tests; retained one fail-fast exact-commit certification seam with three dependency lanes, archive and clean consumer proof, package-surface comparison, and cited starter receipts. |
+| [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Bound the five repository-owned, lowest/latest booted starter receipts to immutable merged commits and content identities after independent review; T-00056 now cites them in exact-candidate certification. |
 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Delivered the approved framework-picker entry, honest pre-1.0 starter guidance, and an executable framework-neutral order-processing journey through individually explained, syntax-highlighted, copyable classes in event-before-handler order. |
 | [T-00091 — Rebuild the Repository README as the Fight Common Entry Surface](00091-TICKET.md) | [PRD-00020](../specs/00020-PRD.md) | Rebuilt the concise repository entry surface with canonical themed identity, factual trust signals, inward architecture proof, representative capability routes, deterministic validation, and browser-qualified fallback behavior. |
 | [T-00090 — Deliver the Atlas Deck Homepage and Documentation Shell](00090-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Reimplemented the generated documentation against the human-approved Atlas Deck with dedicated homepage, guide, and article templates; preserved Material search, navigation, palette, and copy behavior; and passed desktop, compact, light, and dark visual QA. |

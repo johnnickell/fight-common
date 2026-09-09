@@ -2,7 +2,7 @@
 id: T-00056
 prd: PRD-00014
 title: Replace the Release Framework with Thin Certification
-status: in-progress
+status: done
 blocked_by:
 ---
 
@@ -29,7 +29,7 @@ Fight Common suite; expensive compatibility and packaging proof runs only for an
       package-surface and consumer results, and the five accepted T-00075 starter receipt identities.
 - [x] Certification performs no merge, tag, push, GitHub, Packagist, or deployment effect.
 - [x] `./bin/build` passes with exact product coverage.
-- [ ] `./bin/release certify 1.2.0` succeeds for the separately authorized committed candidate, and its record is
+- [x] `./bin/release certify 1.2.0` succeeds for the separately authorized committed candidate, and its record is
       inspected against the exact commit, archive, three dependency lanes, consumer result, and receipt references.
 - [x] Independent Standards and specification review accept the implementation against this contract.
 
@@ -39,6 +39,16 @@ Run `./bin/build`, confirm the removed release test namespace and coverage paths
 commit authorization—run `./bin/release certify 1.2.0` for the clean exact commit. Inspect the installed package and
 generated `.runs/handoffs/release-1.2.0-<commit>/certification.json`. Run `./bin/planning-check` and recalculate the
 Board frontier. Certification, commit, push, pull request, merge, publication, and cleanup remain distinct effects.
+
+## Completion Evidence
+
+The canonical `./bin/build` passed with 3,641 tests, 20,620 assertions, and exact 10,089/10,089 statement
+coverage. `./bin/release certify 1.2.0` then certified implementation commit
+`301a94f58331465b312373c0bfd0ffc589279a36`: all eight commands passed, the three dependency lanes were recorded,
+the clean installed consumer proved representative UUID and typed-collection behavior with `Fight\Release\`
+unavailable, the package surface matched, and all five T-00075 receipt identities were cited. Independent
+Standards and specification reviews accepted the implementation. The final planning-only PR head is recertified
+as a separate ignored handoff before publication.
 
 ## Parent
 
