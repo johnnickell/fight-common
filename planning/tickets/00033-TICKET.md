@@ -8,6 +8,9 @@ blocked_by: T-00068
 
 # Prove the Normal Feature Package Journey
 
+> Historical outcome: completed as recorded. ADR 0025 later replaced this simulated package journey with direct
+> Composer archive evidence inside `release certify`.
+
 ## What to Build
 
 Implement plan/package behavior for a normal `develop` feature, including the exact approved local

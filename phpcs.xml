@@ -3,6 +3,8 @@
     <description>Fight Common Coding Standard</description>
     <file>src</file>
     <file>release/src</file>
+    <file>release/scripts</file>
+    <file>release/consumer</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
     </rule>
 </ruleset>

@@ -2,11 +2,16 @@
 id: T-00042
 prd: PRD-00012
 title: Forward-port patches through newer affected lines
-status: ready-for-agent
-blocked_by: T-00037
+status: wontfix
+blocked_by:
 ---
 
 # Forward-Port Patches Through Newer Affected Lines
+
+## Resolution
+
+Closed by ADR 0025. Forward-port automation and its fake multi-line histories are outside the thin certification
+boundary. Each future port remains a separately reviewed change and separately certified candidate.
 
 ## What to Build
 

@@ -2,11 +2,16 @@
 id: T-00043
 prd: PRD-00013
 title: Add the state-first dispatcher and journey-card runbook
-status: ready-for-agent
-blocked_by: T-00038
+status: wontfix
+blocked_by:
 ---
 
 # Add the State-First Dispatcher and Journey-Card Runbook
+
+## Resolution
+
+Closed by ADR 0025. The retired multi-command state machine no longer needs a dispatcher or journey-card layer; the
+release module documents the one certification command and keeps publication as a distinct human workflow.
 
 ## What to Build
 

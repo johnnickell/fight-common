@@ -1,37 +1,37 @@
 ---
 id: T-00041
 prd: PRD-00011
-title: Verify Packagist projection and clean installation
-status: ready-for-agent
+title: Verify Packagist Projection and Published Installation
+status: ready-for-human
 blocked_by: T-00035
 ---
 
-# Verify Packagist Projection and Clean Installation
+# Verify Packagist Projection and Published Installation
 
-## What to Build
+## Outcome
 
-Complete a GitHub-published release by observing its bounded Packagist projection, installing the exact
-version in a clean temporary Composer consumer, and reconciling downstream incompleteness without weakening
-the signed tag and GitHub Release authority.
+After T-00035 publishes the certified release, verify Packagist's projection and install the exact public version in
+a fresh `--no-dev` consumer. This is a bounded observation and qualification outcome, not a simulated provider
+workflow.
 
 ## Acceptance Criteria
 
-- [ ] Packagist observation follows the approved bounded polling schedule and compares the exact version,
-      source reference, distribution metadata, and expected package projection.
-- [ ] Timeout, stale metadata, mismatched source or distribution, and installation failure emit
-      `packagist_incomplete` with preserved evidence and one next action.
-- [ ] Clean-install proof uses the exact published version without development dependencies and verifies
-      production autoloading plus the approved representative public-API probe.
-- [ ] Recovery revalidates each downstream postcondition, requires separate authorization for any
-      Packagist-affecting effect, and never treats metadata presence or provider acknowledgement as authority.
-- [ ] Successful completion emits a permanent clean-install receipt linked to the immutable evidence manifest,
-      with bounded, redacted, digest-linked supporting logs.
+- [ ] Packagist reports the exact version and source reference published by T-00035.
+- [ ] A new temporary consumer installs that exact public version with `--prefer-dist --no-dev`.
+- [ ] The installed consumer completes the representative public behavior probe and cannot autoload
+      `Fight\Release\`.
+- [ ] Stale, missing, mismatched, timed-out, or failed evidence remains incomplete and is never reported as passed.
+- [ ] Any Packagist-affecting recovery requires a separate explicit authorization.
 
 ## Verification
 
-Full submit gate and deterministic clock, Packagist response-sequence, temporary-consumer, clean-install,
-timeout, mismatch, crash, and recovery fixtures.
+Capture the exact Packagist metadata and clean-install outcome, compare them with the T-00035 publication receipt and
+T-00056 certification record, and record any mismatch without automatic mutation.
 
 ## Parent
 
 PRD-00011 — Release Lifecycle and Publication Recovery.
+
+## Decision Source
+
+ADR 0025 and the still-applicable Packagist boundary in ADR 0016.

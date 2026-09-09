@@ -2,11 +2,16 @@
 id: T-00039
 prd: PRD-00013
 title: Integrate CI and validate the final epic handoff
-status: ready-for-agent
-blocked_by: T-00043
+status: wontfix
+blocked_by:
 ---
 
 # Integrate CI and Validate the Final Epic Handoff
+
+## Resolution
+
+Closed by ADR 0025. Expensive certification remains an on-demand release operation; everyday hosted CI continues to
+run the product quality gate and does not reproduce certification or simulated provider state.
 
 ## What to Build
 

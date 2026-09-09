@@ -3,275 +3,251 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 GIT_BIN="${GIT_BIN:-git}"
-CANONICAL_PHP='/usr/local/bin/php'
-CANONICAL_ROOT='/app'
-RUNTIME_MARKER='/usr/local/share/fight-common/release-runtime-v1'
-RUNTIME_ID='fight-common-release-php-8.5-v1'
-CONFIGURED_CRASH_STATUS=86
-RELEASE_ENV=(
-    'HOME=/tmp/fight-common-release/home'
-    'COMPOSER_HOME=/tmp/fight-common-release/composer'
-    'GNUPGHOME=/tmp/fight-common-release/gnupg'
-    'GH_CONFIG_DIR=/tmp/fight-common-release/gh'
-    'GIT_CONFIG_GLOBAL=/dev/null'
-    'GIT_CONFIG_NOSYSTEM=1'
-    'LANG=C.UTF-8'
-    'LC_ALL=C.UTF-8'
-    'PATH=/usr/local/bin:/usr/bin:/bin'
-)
-RUNTIME_RUN_DIR=''
-RUNTIME_STDOUT=''
-RUNTIME_CID=''
-RUNTIME_CRASH_MARKER=''
-RUNTIME_RESULT_EVIDENCE=''
-RUNTIME_RESULT_OUTPUT=''
-RUNTIME_CRASH_NONCE=''
-RUNTIME_RESULT_NONCE=''
-GIT_METADATA_MOUNT=()
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+WORKSPACE=''
+OUTCOMES=''
 
-if [[ -f "${ROOT_DIR}/.git" ]]; then
-    GIT_COMMON_DIR="$(
-        "${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir
-    )"
-    GIT_METADATA_MOUNT=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro")
-fi
-
-release_command_metadata() {
-    case "${1:-}" in
-        inspect)
-            printf '%s\n' 'inspect release_inspection'
-            ;;
-        plan)
-            printf '%s\n' 'plan release_planning'
-            ;;
-        prepare)
-            printf '%s\n' 'prepare release_preparation'
-            ;;
-        compatibility)
-            printf '%s\n' 'compatibility compatibility_assessment'
-            ;;
-        *)
-            printf '%s\n' 'unknown unsupported_command'
-            ;;
-    esac
+usage() {
+    echo 'Usage: ./bin/release certify <version>' >&2
+    exit 2
 }
 
-runtime_bootstrap_failure() {
-    local release_command=''
-    local release_capability=''
-
-    read -r release_command release_capability <<< "$(release_command_metadata "${1:-}")"
-
-    printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_unavailable\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.bootstrap_unavailable\",\"message\":\"The canonical release runtime could not be started.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"restore_release_runtime_and_retry\"},\"exit_code\":70}"
+sha256_file() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        sha256sum "$1" | awk '{print $1}'
+    fi
 }
 
-runtime_termination_failure() {
-    local release_command=''
-    local release_capability=''
-
-    read -r release_command release_capability <<< "$(release_command_metadata "${1:-}")"
-
-    printf '%s\n' "{\"schema_version\":\"fight-common.release-result/v1\",\"command\":\"${release_command}\",\"capability\":\"${release_capability}\",\"status\":\"infrastructure_terminated\",\"exit_class\":\"failed\",\"findings\":[{\"id\":\"release.runtime.result_unavailable\",\"message\":\"The started runtime returned no valid authenticated result.\"}],\"verified_postconditions\":[],\"performed_effects\":[],\"proposed_effects\":[],\"next_action\":{\"action\":\"inspect_release_runtime_termination\"},\"exit_code\":71}"
-}
-
-create_runtime_run() {
-    local entropy=''
-    local runtime_run_dir=''
-
-    umask 077
-    if ! runtime_run_dir="$(mktemp -d /tmp/fight-common-release-run.XXXXXX)"; then
-        return 1
-    fi
-    if [[ ! "${runtime_run_dir}" =~ ^/tmp/fight-common-release-run\.[A-Za-z0-9]+$ ]] \
-        || [[ ! -d "${runtime_run_dir}" ]] \
-        || [[ -L "${runtime_run_dir}" ]]; then
-        return 1
-    fi
-
-    RUNTIME_RUN_DIR="${runtime_run_dir}"
-    RUNTIME_STDOUT="${RUNTIME_RUN_DIR}/stdout"
-    RUNTIME_CID="${RUNTIME_RUN_DIR}/cid"
-    RUNTIME_CRASH_MARKER="${RUNTIME_RUN_DIR}/configured-crash"
-    RUNTIME_RESULT_EVIDENCE="${RUNTIME_RUN_DIR}/result-evidence"
-    RUNTIME_RESULT_OUTPUT="${RUNTIME_RUN_DIR}/result-output"
-
-    if ! entropy="$(od -An -N32 -tx1 /dev/urandom)"; then
-        return 1
-    fi
-    RUNTIME_CRASH_NONCE="${entropy//[[:space:]]/}"
-    if [[ ! "${RUNTIME_CRASH_NONCE}" =~ ^[0-9a-f]{64}$ ]]; then
-        return 1
-    fi
-
-    if ! entropy="$(od -An -N32 -tx1 /dev/urandom)"; then
-        return 1
-    fi
-    RUNTIME_RESULT_NONCE="${entropy//[[:space:]]/}"
-    if [[ ! "${RUNTIME_RESULT_NONCE}" =~ ^[0-9a-f]{64}$ ]]; then
-        return 1
-    fi
-
-    RELEASE_ENV+=(
-        "FIGHT_COMMON_RELEASE_CRASH_MARKER=${RUNTIME_CRASH_MARKER}"
-        "FIGHT_COMMON_RELEASE_CRASH_NONCE=${RUNTIME_CRASH_NONCE}"
-        "FIGHT_COMMON_RELEASE_RESULT_EVIDENCE=${RUNTIME_RESULT_EVIDENCE}"
-        "FIGHT_COMMON_RELEASE_RESULT_OUTPUT=${RUNTIME_RESULT_OUTPUT}"
-        "FIGHT_COMMON_RELEASE_RESULT_NONCE=${RUNTIME_RESULT_NONCE}"
-    )
-}
-
-cleanup_runtime_run() {
+cleanup() {
     local intended_status=$?
 
     trap - EXIT
-    set +e
-
-    if [[ -n "${RUNTIME_RUN_DIR}" ]]; then
-        if ! rm -f "${RUNTIME_STDOUT}" "${RUNTIME_CID}" "${RUNTIME_CRASH_MARKER}" \
-            "${RUNTIME_RESULT_EVIDENCE}" "${RUNTIME_RESULT_OUTPUT}"; then
-            printf '%s\n' 'bin/release: cleanup could not remove runtime files.' >&2
-        fi
-
-        if ! rmdir "${RUNTIME_RUN_DIR}"; then
-            printf '%s\n' 'bin/release: cleanup could not remove runtime directory.' >&2
-        fi
+    if [[ -n "${WORKSPACE}" && -d "${WORKSPACE}" ]]; then
+        find "${WORKSPACE}" -depth -delete
     fi
-
     exit "${intended_status}"
 }
 
-is_authenticated_machine_result() {
-    local runtime_status="$1"
-    local evidence_nonce=''
-    local evidence_status=''
-    local evidence_digest=''
-    local evidence_extra=''
-    local actual_digest=''
+export_candidate() {
+    local target="$1"
 
-    [[ -s "${RUNTIME_STDOUT}" ]] || return 1
-    [[ "$(wc -l < "${RUNTIME_STDOUT}")" -eq 1 ]] || return 1
-    [[ -f "${RUNTIME_RESULT_OUTPUT}" && ! -L "${RUNTIME_RESULT_OUTPUT}" ]] || return 1
-    [[ -f "${RUNTIME_RESULT_EVIDENCE}" && ! -L "${RUNTIME_RESULT_EVIDENCE}" ]] || return 1
-    cmp -s "${RUNTIME_STDOUT}" "${RUNTIME_RESULT_OUTPUT}" || return 1
-
-    {
-        IFS= read -r evidence_nonce
-        IFS= read -r evidence_status
-        IFS= read -r evidence_digest
-        IFS= read -r evidence_extra || true
-    } < "${RUNTIME_RESULT_EVIDENCE}"
-
-    [[ "${evidence_nonce}" == "${RUNTIME_RESULT_NONCE}" ]] || return 1
-    [[ "${evidence_status}" == "${runtime_status}" ]] || return 1
-    [[ "${evidence_digest}" =~ ^[0-9a-f]{64}$ ]] || return 1
-    [[ -z "${evidence_extra}" ]] || return 1
-
-    if [[ -x /usr/bin/sha256sum ]]; then
-        actual_digest="$(/usr/bin/sha256sum "${RUNTIME_STDOUT}")"
-    elif [[ -x /bin/sha256sum ]]; then
-        actual_digest="$(/bin/sha256sum "${RUNTIME_STDOUT}")"
-    elif [[ -x /usr/bin/shasum ]]; then
-        actual_digest="$(/usr/bin/shasum -a 256 "${RUNTIME_STDOUT}")"
-    else
-        return 1
-    fi
-
-    [[ "${evidence_digest}" == "${actual_digest%% *}" ]]
+    mkdir -p "${target}"
+    "${GIT_BIN}" -C "${ROOT_DIR}" archive "${COMMIT}" | tar -x -C "${target}"
+    "${GIT_BIN}" -C "${target}" init --quiet
 }
 
-finish_runtime_run() {
-    local runtime_status="$1"
-    local runtime_started="$2"
+run_step() {
+    local name="$1"
+    local display="$2"
+    local directory="$3"
+    local output="$4"
+    local started
+    local finished
+    local status
 
-    if [[ "${runtime_started}" -eq 1 ]] \
-        && [[ "${runtime_status}" -eq "${CONFIGURED_CRASH_STATUS}" ]] \
-        && [[ ! -s "${RUNTIME_STDOUT}" ]] \
-        && [[ -f "${RUNTIME_CRASH_MARKER}" ]] \
-        && [[ ! -L "${RUNTIME_CRASH_MARKER}" ]] \
-        && [[ "$(< "${RUNTIME_CRASH_MARKER}")" == "${RUNTIME_CRASH_NONCE}" ]]; then
-        exit "${CONFIGURED_CRASH_STATUS}"
-    fi
-
-    if [[ "${runtime_started}" -eq 1 ]] && is_authenticated_machine_result "${runtime_status}"; then
-        cat "${RUNTIME_STDOUT}"
-        exit "${runtime_status}"
-    fi
-
-    if [[ -s "${RUNTIME_STDOUT}" ]]; then
-        cat "${RUNTIME_STDOUT}" >&2
-    fi
-
-    if [[ "${runtime_started}" -eq 1 ]]; then
-        runtime_termination_failure "${3:-}"
-        exit 71
-    fi
-
-    runtime_bootstrap_failure "${3:-}"
-    exit 70
-}
-
-trap cleanup_runtime_run EXIT
-
-if [[ "${ROOT_DIR}" == "${CANONICAL_ROOT}" ]] \
-    && [[ -f "${RUNTIME_MARKER}" ]] \
-    && [[ "$(< "${RUNTIME_MARKER}")" == "${RUNTIME_ID}" ]]; then
-    if ! "${CANONICAL_PHP}" -r 'exit(PHP_VERSION_ID >= 80500 ? 0 : 1);'; then
-        printf '%s\n' 'bin/release: canonical runtime requires PHP 8.5 or newer.' >&2
-        runtime_bootstrap_failure "${1:-}"
-        exit 70
-    fi
-
-    if ! create_runtime_run; then
-        runtime_bootstrap_failure "${1:-}"
-        exit 70
-    fi
-
+    shift 4
+    started="$(date +%s)"
+    printf '[release] %s\n' "${name}"
     set +e
-    /usr/bin/env -i "${RELEASE_ENV[@]}" \
-        "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/release/scripts/release.php" "$@" \
-        > "${RUNTIME_STDOUT}"
-    runtime_status=$?
+    (
+        cd "${directory}"
+        "$@"
+    ) > "${output}" 2>&1
+    status=$?
     set -e
+    finished="$(date +%s)"
 
-    finish_runtime_run "${runtime_status}" 1 "${1:-}"
+    if (( status == 0 )); then
+        printf '%s\tpassed\t0\t%s\t%s\t%s\n' \
+            "${name}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
+            >> "${OUTCOMES}"
+        return 0
+    fi
+
+    printf '%s\tfailed\t%s\t%s\t%s\t%s\n' \
+        "${name}" "${status}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
+        >> "${OUTCOMES}"
+    tail -80 "${output}" >&2
+    printf 'bin/release: %s failed with exit code %s.\n' "${name}" "${status}" >&2
+    return "${status}"
+}
+
+if (( $# != 2 )) || [[ "$1" != 'certify' ]]; then
+    usage
 fi
 
-if ! "${DOCKER_BIN}" build -t "${PHP_IMAGE}" "${ROOT_DIR}/etc/docker/php/" >&2; then
-    runtime_bootstrap_failure "${1:-}"
-    exit 70
+VERSION="$2"
+if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    usage
 fi
 
-if ! create_runtime_run; then
-    runtime_bootstrap_failure "${1:-}"
-    exit 70
+cd "${ROOT_DIR}"
+if [[ -n "$("${GIT_BIN}" status --porcelain --untracked-files=all)" ]]; then
+    echo 'bin/release: certification requires a clean checkout.' >&2
+    exit 3
 fi
 
-set +e
-"${DOCKER_BIN}" container run \
-    --cidfile "${RUNTIME_CID}" \
-    --rm \
-    -v "${ROOT_DIR}:${ROOT_DIR}:delegated" \
-    ${GIT_METADATA_MOUNT[@]+"${GIT_METADATA_MOUNT[@]}"} \
-    -v "${RUNTIME_RUN_DIR}:${RUNTIME_RUN_DIR}" \
-    -w "${ROOT_DIR}" \
+COMMIT="$("${GIT_BIN}" rev-parse --verify HEAD)"
+if [[ ! "${COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then
+    echo 'bin/release: the exact candidate commit is unavailable.' >&2
+    exit 3
+fi
+if [[ ! -f "${ROOT_DIR}/composer.lock" ]]; then
+    echo 'bin/release: the locked dependency lane requires composer.lock.' >&2
+    exit 3
+fi
+
+HANDOFF_DIR="${ROOT_DIR}/.runs/handoffs/release-${VERSION}-${COMMIT}"
+if [[ -e "${HANDOFF_DIR}" ]]; then
+    echo "bin/release: certification handoff already exists: ${HANDOFF_DIR}" >&2
+    exit 3
+fi
+
+WORKSPACE="$(mktemp -d /tmp/fight-common-release-certify.XXXXXX)"
+trap cleanup EXIT
+OUTCOMES="${WORKSPACE}/command-outcomes.tsv"
+touch "${OUTCOMES}"
+
+LOCKED_ROOT="${WORKSPACE}/locked"
+LATEST_ROOT="${WORKSPACE}/latest"
+LOWEST_ROOT="${WORKSPACE}/lowest"
+ARTIFACT_ROOT="${WORKSPACE}/artifacts"
+CONSUMER_ROOT="${WORKSPACE}/consumer"
+mkdir -p "${ARTIFACT_ROOT}" "${CONSUMER_ROOT}"
+export_candidate "${LOCKED_ROOT}"
+export_candidate "${LATEST_ROOT}"
+export_candidate "${LOWEST_ROOT}"
+cp "${ROOT_DIR}/composer.lock" "${LOCKED_ROOT}/composer.lock"
+cp "${ROOT_DIR}/composer.lock" "${LOWEST_ROOT}/composer.lock"
+
+run_step 'locked-product-gate' './bin/build' "${LOCKED_ROOT}" "${WORKSPACE}/locked.log" ./bin/build
+run_step \
+    'latest-product-gate' \
+    './bin/build --latest' \
+    "${LATEST_ROOT}" \
+    "${WORKSPACE}/latest.log" \
+    ./bin/build --latest
+run_step \
+    'lowest-product-gate' \
+    './bin/build --lowest' \
+    "${LOWEST_ROOT}" \
+    "${WORKSPACE}/lowest.log" \
+    ./bin/build --lowest
+
+ARCHIVE="${ARTIFACT_ROOT}/fight-common-${VERSION}.tar"
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:delegated" \
+    -w /source \
     --user "$(id -u):$(id -g)" \
     "${PHP_IMAGE}" \
-    /usr/bin/env -i "${RELEASE_ENV[@]}" \
-    "${CANONICAL_PHP}" -d display_errors=stderr "${ROOT_DIR}/release/scripts/release.php" "$@" \
-    > "${RUNTIME_STDOUT}"
-runtime_status=$?
-set -e
+    php release/scripts/certify.php archive-manifest /source/composer.json "${VERSION}"
+run_step \
+    'composer-archive' \
+    'composer archive --format=tar' \
+    "${LOCKED_ROOT}" \
+    "${WORKSPACE}/archive.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/app:ro" \
+        -v "${ARTIFACT_ROOT}:/artifacts:delegated" \
+        -w /app \
+        --user "$(id -u):$(id -g)" \
+        --env "COMPOSER_ROOT_VERSION=${VERSION}" \
+        "${PHP_IMAGE}" \
+        composer archive --no-interaction --format=tar --dir=/artifacts --file="fight-common-${VERSION}"
 
-runtime_started=0
-runtime_cid=''
-if [[ -f "${RUNTIME_CID}" && ! -L "${RUNTIME_CID}" ]]; then
-    runtime_cid="$(< "${RUNTIME_CID}")"
-fi
-if [[ "${runtime_cid}" =~ ^[0-9a-f]{64}$ ]]; then
-    runtime_started=1
-fi
+[[ -f "${ARCHIVE}" ]] || {
+    echo 'bin/release: Composer did not create the expected archive.' >&2
+    exit 4
+}
 
-finish_runtime_run "${runtime_status}" "${runtime_started}" "${1:-}"
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:ro" \
+    -v "${CONSUMER_ROOT}:/consumer:delegated" \
+    -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+    -w /source \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    php release/scripts/certify.php consumer-manifest /consumer/composer.json /artifacts "${VERSION}"
+
+run_step \
+    'consumer-resolution' \
+    'composer update --no-dev --no-install' \
+    "${CONSUMER_ROOT}" \
+    "${WORKSPACE}/consumer-resolution.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${CONSUMER_ROOT}:/consumer:delegated" \
+        -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+        -w /consumer \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        composer update --no-dev --no-install --no-interaction --no-progress --prefer-dist --no-scripts
+run_step \
+    'production-install' \
+    'composer install --no-dev' \
+    "${CONSUMER_ROOT}" \
+    "${WORKSPACE}/production-install.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${CONSUMER_ROOT}:/consumer:delegated" \
+        -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+        -w /consumer \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
+run_step \
+    'installed-consumer-probe' \
+    'php release/consumer/probe.php <installed-autoload.php>' \
+    "${ROOT_DIR}" \
+    "${WORKSPACE}/consumer.json" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/source:ro" \
+        -v "${CONSUMER_ROOT}:/consumer:ro" \
+        -w /source \
+        "${PHP_IMAGE}" \
+        php release/consumer/probe.php /consumer/vendor/autoload.php
+run_step \
+    'package-surface' \
+    'compare installed archive with compatibility/manifest.json' \
+    "${ROOT_DIR}" \
+    "${WORKSPACE}/surface.json" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/source:ro" \
+        -v "${CONSUMER_ROOT}:/consumer:ro" \
+        -w /source \
+        "${PHP_IMAGE}" \
+        php release/scripts/certify.php surface \
+            /consumer/vendor/johnnickell/fight-common \
+            /consumer/vendor/johnnickell/fight-common/compatibility/manifest.json \
+            "${COMMIT}"
+
+STAGED_HANDOFF="${WORKSPACE}/handoff"
+mkdir -p "${STAGED_HANDOFF}"
+cp "${ARCHIVE}" "${STAGED_HANDOFF}/"
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:ro" \
+    -v "${WORKSPACE}:/evidence:ro" \
+    -v "${STAGED_HANDOFF}:/handoff:delegated" \
+    -w /source \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    php release/scripts/certify.php record \
+        "${VERSION}" \
+        "${COMMIT}" \
+        "/evidence/artifacts/$(basename "${ARCHIVE}")" \
+        /evidence/command-outcomes.tsv \
+        /source/composer.lock \
+        /evidence/latest/composer.lock \
+        /evidence/lowest/composer.lock \
+        /evidence/surface.json \
+        /evidence/consumer.json \
+        /source/release/starter-receipts.json \
+        /handoff/certification.json
+
+mkdir -p "$(dirname "${HANDOFF_DIR}")"
+mv "${STAGED_HANDOFF}" "${HANDOFF_DIR}"
+printf 'Certified %s at %s\nEvidence: %s/certification.json\n' "${VERSION}" "${COMMIT}" "${HANDOFF_DIR}"

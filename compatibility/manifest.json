@@ -1,5 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
+    "operation_shapes_sha256": "176a8a88a7a7b76ec91663d22309f446c24c250b64943b3f30aec19179adf409",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -35437,7 +35438,7 @@
                 "section": "Legacy 1.x Construction Compatibility"
             },
             "fixture": {
-                "path": "release/fixtures/PublicApiConsumer/probe.php"
+                "path": "tests/Application/Scheduler/SchedulerTest.php"
             }
         },
         {
@@ -35447,7 +35448,7 @@
                 "section": "Legacy Command Compatibility Bridge"
             },
             "fixture": {
-                "path": "release/fixtures/PublicApiConsumer/probe.php"
+                "path": "tests/Application/Scheduler/SchedulerTest.php"
             }
         },
         {
@@ -35467,7 +35468,7 @@
                 "section": "JSend response compatibility"
             },
             "fixture": {
-                "path": "release/fixtures/PublicApiConsumer/jsend-probe.php"
+                "path": "tests/Application/Http/JSend/JSendEnvelopeTest.php"
             }
         },
         {
@@ -35477,7 +35478,7 @@
                 "section": "JSend response compatibility"
             },
             "fixture": {
-                "path": "release/fixtures/PublicApiConsumer/jsend-probe.php"
+                "path": "tests/Application/Http/JSend/JSendEnvelopeTest.php"
             }
         }
     ],
@@ -35489,7 +35490,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35507,7 +35508,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35530,7 +35531,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35540,7 +35541,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35550,7 +35551,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35560,7 +35561,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35577,7 +35578,7 @@
                 "path": "composer.json"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         },
         {
@@ -35598,7 +35599,7 @@
                 "section": "Loading and distribution"
             },
             "fixture": {
-                "path": "release/tests/Tooling/PackageSurfaceAuthorityTest.php"
+                "path": "release/scripts/certify.php"
             }
         }
     ]
