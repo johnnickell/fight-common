@@ -19,16 +19,17 @@ or next-step decision tree longer.
 
 ## Scope
 
-- In scope: prerequisites, installation, one realistic framework-neutral journey, architecture context, expected
-  result, supported next paths, executable representative PHP, and current public-symbol verification.
+- In scope: framework starter selection with an honest pre-1.0 release note, prerequisites, installation, one
+  realistic framework-neutral journey, architecture context, expected result, supported next paths, executable
+  representative PHP, and current public-symbol verification.
 - Out of scope: installing every optional adapter, beginning with Symfony, duplicating component articles, or
   changing the PHP API to simplify the example.
 
 ## Acceptance Criteria
 
 - [x] The journey assumes PHP, Composer, and basic dependency-injection knowledge but no prior Fight experience.
-- [x] The guide begins with the shortest valid installation and introduces only dependencies needed by its
-      working path.
+- [x] The guide begins with a framework picker and accurate starter-release status, then gives the shortest valid
+      framework-neutral installation and introduces only dependencies needed by its working path.
 - [x] One coherent portable capability is configured, executed, and explained through public Fight Common
       contracts without requiring a framework.
 - [x] The result is observable and the example explains relevant Domain, Application, and Adapter ownership.
@@ -46,8 +47,16 @@ or next-step decision tree longer.
 
 ## Completion Notes
 
-The executable fixture, framework-neutral guide, public-compatibility contract, and generated-artifact
-structure, symbol, anchor, search, and next-path contracts are verified. Brave qualification covered mobile,
-tablet, desktop, and wide layouts in both themes, including navigation, search, anchors, copy feedback, the
-expandable example, and code overflow. The canonical Screen build completed with exit `0`, 4,145 tests, 27,673
-assertions, and exact 18,579/18,579 statement coverage.
+The approved reimplementation opens with a five-starter framework picker and clearly states that the intended
+`1.0.0` starter releases are still being prepared. The framework-neutral path then presents the supporting domain
+type, command, event, command handler, follow-up command, event subscriber, fulfillment handler, composition, and
+dispatch call as individually explained, syntax-highlighted, copyable examples. The event intentionally precedes
+the handler that dispatches it; the reader-visible full test fixture was removed while the executable fixture
+remains the single source behind every snippet.
+
+Generated-artifact contracts verify the exact narrative order, nine named snippet surfaces, public symbols,
+anchors, search, next paths, and the absence of the full fixture from reader-visible output. Browser verification
+confirmed 11 rendered code blocks with 11 copy controls, the framework picker, event-before-handler order, search,
+navigation, both themes, and responsive code overflow. Human review accepted the rendered guide. The canonical
+local `./bin/build` completed with exit `0`, 4,145 tests, 27,730 assertions, and exact 18,579/18,579 statement
+coverage.

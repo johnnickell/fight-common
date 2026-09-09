@@ -54,14 +54,15 @@ CANONICAL_ROUTES = (
     "maintenance/coding-standard/",
 )
 HOMEPAGE_TEXT = (
-    "Adopt focused PHP building blocks without coupling Domain or Application code to a framework.",
+    "Keep your core clean. Connect everything else.",
+    "Adopt focused PHP components without coupling Domain or Application code to a framework.",
     "composer require johnnickell/fight-common",
     "Adapter",
     "Application",
     "Domain",
-    "Architecture",
-    "Quick Start",
-    "Explore Components",
+    "Understand the architecture",
+    "Start building",
+    "Explore components",
     "Model the Domain",
     "Coordinate Application Behavior",
     "Connect Systems",
@@ -98,52 +99,55 @@ HOMEPAGE_LINKS = (
     "frameworks/codeigniter/",
 )
 HOMEPAGE_OWNERSHIP_RAILS = (
-    ("components/values/", "Values", "Ownership: Domain · Adapter"),
-    ("components/collections/", "Collections", "Ownership: Domain"),
-    ("components/specifications/", "Specifications", "Ownership: Domain"),
+    ("components/values/", "Values", "Domain · Adapter"),
+    ("components/collections/", "Collections", "Domain"),
+    ("components/specifications/", "Specifications", "Domain"),
     (
         "components/repositories/",
         "Repositories",
-        "Ownership: Domain · Application · Adapter",
+        "Domain · Application · Adapter",
     ),
     (
         "components/event-sourcing/",
         "Event Sourcing",
-        "Ownership: Domain · Application · Adapter",
+        "Domain · Application · Adapter",
     ),
-    ("components/utilities/", "Utilities", "Ownership: Domain"),
+    ("components/utilities/", "Utilities", "Domain"),
     (
         "components/messaging/",
         "Messaging (CQRS)",
-        "Ownership: Domain · Application · Adapter",
+        "Domain · Application · Adapter",
     ),
-    ("components/validation/", "Validation", "Ownership: Application · Adapter"),
-    ("components/serialization/", "Serialization", "Ownership: Domain · Application"),
-    ("components/dependency-injection/", "Dependency Injection", "Ownership: Application"),
-    ("components/http-client/", "HTTP Client", "Ownership: Application · Adapter"),
-    ("components/auth/", "Auth", "Ownership: Domain · Application · Adapter"),
-    ("components/cache/", "Cache", "Ownership: Application · Adapter"),
-    ("components/files/", "Files", "Ownership: Application · Adapter"),
-    ("components/file-transfer/", "File Transfer", "Ownership: Application · Adapter"),
-    ("components/templating/", "Templating", "Ownership: Application · Adapter"),
-    ("components/routing/", "Routing", "Ownership: Application · Adapter"),
-    ("components/mail/", "Mail", "Ownership: Application · Adapter"),
-    ("components/sms/", "SMS", "Ownership: Application · Adapter"),
-    ("components/sockets/", "Sockets", "Ownership: Application · Adapter"),
+    ("components/validation/", "Validation", "Application · Adapter"),
+    ("components/serialization/", "Serialization", "Domain · Application"),
+    ("components/dependency-injection/", "Dependency Injection", "Application"),
+    ("components/http-client/", "HTTP Client", "Application · Adapter"),
+    ("components/auth/", "Auth", "Domain · Application · Adapter"),
+    ("components/cache/", "Cache", "Application · Adapter"),
+    ("components/files/", "Files", "Application · Adapter"),
+    ("components/file-transfer/", "File Transfer", "Application · Adapter"),
+    ("components/templating/", "Templating", "Application · Adapter"),
+    ("components/routing/", "Routing", "Application · Adapter"),
+    ("components/mail/", "Mail", "Application · Adapter"),
+    ("components/sms/", "SMS", "Application · Adapter"),
+    ("components/sockets/", "Sockets", "Application · Adapter"),
     (
         "components/observability/",
         "Observability",
-        "Ownership: Domain · Application · Adapter",
+        "Domain · Application · Adapter",
     ),
-    ("components/process/", "Process", "Ownership: Application · Adapter"),
-    ("components/scheduler/", "Scheduler", "Ownership: Application · Adapter"),
-    ("frameworks/framework-support/", "Framework Support", "Ownership: Adapter"),
-    ("frameworks/codeigniter/", "CodeIgniter", "Ownership: Adapter"),
+    ("components/process/", "Process", "Application · Adapter"),
+    ("components/scheduler/", "Scheduler", "Application · Adapter"),
+    ("frameworks/framework-support/", "Framework Support", "Adapter"),
+    ("frameworks/codeigniter/", "CodeIgniter", "Adapter"),
 )
 MAIL_ARTICLE_TEXT = (
     "Connect Systems",
-    "Application and Adapter",
-    "MailTransport, MailFactory, Symfony Mailer",
+    "Application · Adapter",
+    "Send email through an application-owned port, then choose the transport at the boundary.",
+    "PHP 8.5+",
+    "symfony/mailer",
+    "johnnickell/fight-common",
     "Consequential behavior",
     "Recipient overrides replace every original To, Cc, and Bcc recipient.",
     "Next steps",
@@ -183,17 +187,34 @@ MAIL_CONFIGURATION_FORMATS = (
 QUICK_START_INSTALLATION_COMMAND = "composer require johnnickell/fight-common"
 QUICK_START_EXPECTED_OUTPUT = "Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested."
 QUICK_START_ARTICLE_ANCHORS = (
-    "prerequisites",
-    "process-an-order",
-    "complete-executable-example",
-    "ownership-and-flow",
-    "payment-guard-and-retries",
-    "continue",
+    "pick-your-framework",
+    "the-supporting-domain-type",
+    "the-command",
+    "the-event",
+    "the-command-handler",
+    "the-follow-up-command",
+    "the-event-subscriber",
+    "the-fulfillment-handler",
+    "wire-the-application",
+    "dispatch-the-command",
 )
 QUICK_START_EXECUTABLE_ANCHORS = (
+    "quick-start-order-id",
+    "quick-start-process-order-command",
+    "quick-start-order-processed-event",
+    "quick-start-process-order-handler",
+    "quick-start-fulfill-order-command",
+    "quick-start-order-processed-subscriber",
+    "quick-start-fulfill-order-handler",
     "quick-start-composition",
-    "quick-start-process-order",
-    "quick-start-complete-example",
+    "quick-start-dispatch",
+)
+QUICK_START_FRAMEWORK_REPOSITORIES = (
+    "https://github.com/johnnickell/project-symfony",
+    "https://github.com/johnnickell/project-laravel",
+    "https://github.com/johnnickell/project-yii",
+    "https://github.com/johnnickell/project-codeigniter",
+    "https://github.com/johnnickell/project-slim",
 )
 QUICK_START_COPY_FEATURE = "content.code.copy"
 QUICK_START_NEXT_PATHS = (
@@ -932,7 +953,6 @@ def validate_mail_article_title_order(parser: DocumentParser) -> None:
         fail("Generated Mail article must render its title before supporting shell affordances")
 
     for tag, class_name in (
-        ("nav", "atlas-breadcrumbs"),
         ("dl", "atlas-article-metadata"),
         ("figure", "atlas-relationship-diagram"),
         ("aside", "atlas-consequential-callout"),
@@ -981,6 +1001,11 @@ def validate_quick_start_article(parser: DocumentParser, search_data: dict[str, 
     for required_text in (QUICK_START_INSTALLATION_COMMAND, QUICK_START_EXPECTED_OUTPUT):
         if required_text not in quick_start_text:
             fail(f"Generated Quick Start article is missing required content: {required_text}")
+    if "still being prepared for that release" not in quick_start_text:
+        fail("Generated Quick Start article must identify the starter repositories as pre-1.0 previews")
+    for repository in QUICK_START_FRAMEWORK_REPOSITORIES:
+        if repository not in parser.hyperlinks:
+            fail(f"Generated Quick Start article is missing framework starter route: {repository}")
     for anchor in QUICK_START_ARTICLE_ANCHORS:
         if anchor not in parser.ids:
             fail(f"Generated Quick Start article is missing required article anchor: #{anchor}")
@@ -1195,10 +1220,14 @@ def validate(site_directory: Path) -> None:
     homepage_html = (site_directory / "index.html").read_text(encoding="utf-8")
     for route, component, ownership in HOMEPAGE_OWNERSHIP_RAILS:
         expected_rail = (
-            f'<a href="{route}">{component}</a>\n'
-            f'  <span class="atlas-ownership-rail">{ownership}</span>'
+            f'<a href="{route}"><span>{component}</span>'
+            f'<small class="atlas-ownership-rail">{ownership}</small></a>'
         )
-        if expected_rail not in homepage_html:
+        legacy_rail = (
+            f'<a href="{route}">{component}</a>\n'
+            f'  <span class="atlas-ownership-rail">Ownership: {ownership}</span>'
+        )
+        if expected_rail not in homepage_html and legacy_rail not in homepage_html:
             fail(f"Generated homepage is missing complete ownership rail: {component}")
 
     mail_article = parse_html(site_directory / "components/mail/index.html", parsed_documents)

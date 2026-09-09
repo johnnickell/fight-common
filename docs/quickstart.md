@@ -1,93 +1,231 @@
 # Framework-Neutral Quick Start
 
-This is one complete, portable order-processing journey. It keeps business rules in the Domain,
-coordinates them through Application ports, and selects in-memory adapters only at composition time.
-No framework or database is required to understand the flow.
+Build one order-processing path from a command to a post-commit event and a follow-up command.
+The example keeps business language in your code and uses Fight Common only for the messaging,
+transaction, and adapter seams.
 
-## Prerequisites
+## Pick your framework
 
-You need PHP 8.5+, Composer, and an application where you can define a small order model and compose its
-services. Install Fight Common with `composer require johnnickell/fight-common`.
+The portable example below works without a framework. If you prefer to begin from a complete
+application skeleton, choose the repository that matches your runtime.
 
-The example deliberately uses a token supplied by a payment provider, never raw card data. Its
-application-owned types live beside your application code; Fight Common supplies the messaging,
-transaction, and synchronous adapter contracts used to compose them.
+!!! note "Starter release status"
+    The five starter repositories are the intended shortest path once their <code>1.0.0</code>
+    releases are published. They are still being prepared for that release, so treat these clone
+    commands as a preview of the coming workflow—not a current stable-install promise.
 
-## Process an order
+<div class="atlas-framework-picker">
+  <a href="https://github.com/johnnickell/project-symfony"><strong>Symfony</strong><code>git clone https://github.com/johnnickell/project-symfony.git my-app</code></a>
+  <a href="https://github.com/johnnickell/project-laravel"><strong>Laravel</strong><code>git clone https://github.com/johnnickell/project-laravel.git my-app</code></a>
+  <a href="https://github.com/johnnickell/project-yii"><strong>Yii</strong><code>git clone https://github.com/johnnickell/project-yii.git my-app</code></a>
+  <a href="https://github.com/johnnickell/project-codeigniter"><strong>CodeIgniter</strong><code>git clone https://github.com/johnnickell/project-codeigniter.git my-app</code></a>
+  <a href="https://github.com/johnnickell/project-slim"><strong>Slim</strong><code>git clone https://github.com/johnnickell/project-slim.git my-app</code></a>
+</div>
 
-The fixture creates customer `CUSTOMER-42`, order `ORDER-1001`, a two-item cart, the token
-`provider-token-for-customer-42`, and payment reference `PAYMENT-1001`. The fake payment processor
-is configured to return `succeeded` immediately.
+For today, start with PHP 8.5+ and Composer:
 
-First compose the Domain model, Application handlers and ports, and in-memory adapters. `OrderProcessed`
-is published after the unit of work callback succeeds; the Application subscriber translates it into
-`FulfillOrder`.
+~~~bash
+composer require johnnickell/fight-common
+~~~
 
-```php-inline { #quick-start-composition }
+## The supporting domain type
+
+Messages should carry your own validated domain types. <code>OrderId</code> rejects malformed
+identifiers at construction, so every command, event, and handler receives an identifier it can trust.
+
+<span class="atlas-code-filename">src/Domain/Order/OrderId.php</span>
+
+~~~php { #quick-start-order-id }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Order;
+
+use Fight\Common\Domain\Exception\DomainException;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-id"
+~~~
+
+The complete journey also uses application-owned <code>CustomerId</code>,
+<code>PaymentMethod</code>, <code>ShoppingCart</code>, <code>Order</code>, repository ports, and
+payment and fulfillment ports. Those types describe the order domain; they are not Fight Common classes.
+
+## The command
+
+<code>ProcessOrder</code> is the request to perform work. Implementing Fight's <code>Command</code>
+contract makes it serializable for synchronous or asynchronous buses without putting routing logic
+inside the message.
+
+<span class="atlas-code-filename">src/Domain/Order/ProcessOrder.php</span>
+
+~~~php { #quick-start-process-order-command }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Order;
+
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Messaging\Command\Command;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:process-order-command"
+~~~
+
+## The event
+
+<code>OrderProcessed</code> records the business fact that the order was saved successfully. It
+carries the order identity—not fulfillment instructions—so downstream application code can decide
+what happens next.
+
+<span class="atlas-code-filename">src/Domain/Order/OrderProcessed.php</span>
+
+~~~php { #quick-start-order-processed-event }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Order;
+
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Messaging\Event\Event;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-processed-event"
+~~~
+
+## The command handler
+
+<code>ProcessOrderHandler</code> coordinates the use case. It loads the cart, asks the payment port
+for a stable reference, saves the order transactionally, and only then triggers
+<code>OrderProcessed</code>. Dispatching the event after <code>commitTransactional()</code> returns
+keeps subscribers from observing an order that was rolled back.
+
+<span class="atlas-code-filename">src/Application/Order/ProcessOrderHandler.php</span>
+
+~~~php { #quick-start-process-order-handler }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Order;
+
+use App\Domain\Order\Order;
+use App\Domain\Order\OrderProcessed;
+use App\Domain\Order\OrderRepository;
+use App\Domain\Order\PaymentProcessor;
+use App\Domain\Order\ProcessOrder;
+use App\Domain\Order\ShoppingCartRepository;
+use Fight\Common\Application\Messaging\Command\CommandHandler;
+use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:process-order-handler"
+~~~
+
+## The follow-up command
+
+Fulfillment is separate work with its own retry boundary. <code>FulfillOrder</code> carries only the
+order ID, so it can be dispatched immediately or transported to a worker later.
+
+<span class="atlas-code-filename">src/Domain/Order/FulfillOrder.php</span>
+
+~~~php { #quick-start-fulfill-order-command }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Order;
+
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Messaging\Command\Command;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:fulfill-order-command"
+~~~
+
+## The event subscriber
+
+The subscriber translates the completed business fact into the next application request. That
+translation belongs in Application code: the event stays factual and the Domain remains unaware of
+command routing.
+
+<span class="atlas-code-filename">src/Application/Order/OrderProcessedSubscriber.php</span>
+
+~~~php { #quick-start-order-processed-subscriber }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Order;
+
+use App\Domain\Order\FulfillOrder;
+use App\Domain\Order\OrderProcessed;
+use Fight\Common\Application\Messaging\Command\CommandBus;
+use Fight\Common\Application\Messaging\Event\EventSubscriber;
+use Fight\Common\Domain\Messaging\Event\EventMessage;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-processed-subscriber"
+~~~
+
+## The fulfillment handler
+
+<code>FulfillOrderHandler</code> reloads authoritative order state and verifies the stored payment
+reference before requesting fulfillment. A pending or failed payment stops the workflow instead of
+turning an uncertain payment into an irreversible external action.
+
+<span class="atlas-code-filename">src/Application/Order/FulfillOrderHandler.php</span>
+
+~~~php { #quick-start-fulfill-order-handler }
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Order;
+
+use App\Domain\Order\FulfillOrder;
+use App\Domain\Order\FulfillmentRequester;
+use App\Domain\Order\OrderRepository;
+use App\Domain\Order\PaymentNotSuccessful;
+use App\Domain\Order\PaymentProcessor;
+use App\Domain\Order\PaymentStatus;
+use Fight\Common\Application\Messaging\Command\CommandHandler;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:fulfill-order-handler"
+~~~
+
+## Wire the application
+
+Composition is the Adapter edge. Register the two handlers, connect the event subscriber, and
+replace the demonstration repositories and external-service fakes with adapters selected by your
+application.
+
+<span class="atlas-code-filename">config/order-processing.php</span>
+
+~~~php-inline { #quick-start-composition }
 --8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-processing-composition"
-```
+~~~
 
-Then send the Domain command through the public command bus.
+## Dispatch the command
 
-```php-inline { #quick-start-process-order }
---8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:process-order"
-```
+The entry point creates application-owned values and sends the command through Fight's public
+<code>CommandBus</code>. The caller does not select a handler directly.
 
-Running the exact fixture returns:
+<span class="atlas-code-filename">public/process-order.php</span>
 
-`Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.`
+~~~php-inline { #quick-start-dispatch }
+--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:dispatch-process-order"
+~~~
 
-## Complete executable example
+For the deterministic documentation fixture, the result is:
 
-The two steps above are deliberately short. For a copyable, runnable journey, save the following
-consumer-owned example as `order-processing.php` and run it in a project that has installed Fight
-Common. It contains every model, port, handler, in-memory adapter, and entrypoint used above; no
-framework setup or hidden application code is required.
+~~~text
+Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.
+~~~
 
-Begin the copied source with the stable `<?php` opening token, then run `php order-processing.php`.
+#### Where to go next
 
-??? example "Complete `order-processing.php`"
-    ```php-inline { #quick-start-complete-example }
-    --8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:complete-order-processing-example"
-    ```
-## Ownership and flow
-
-**Domain** owns `CustomerId`, `OrderId`, `Item`, `ShoppingCart`, `Order`, the tokenized
-`PaymentMethod`, `PaymentReference`, `PaymentStatus`, repository ports, serializable `ProcessOrder`
-and `FulfillOrder` commands, `OrderProcessed`, and `PaymentNotSuccessful`.
-
-**Application** owns `PaymentProcessor`, `FulfillmentRequester`, `ProcessOrderHandler`,
-`FulfillOrderHandler`, and the `OrderProcessedSubscriber` that translates the event into a follow-up
-command. `ProcessOrderHandler` loads the cart, asks the payment port to create a stable reference,
-and stores the order inside `TransactionalUnitOfWork`. `FulfillOrderHandler` reloads the order and
-checks that stored reference before asking its fulfillment port to do any work.
-
-**Adapter and composition** own the in-memory repositories, configurable fake payment processor,
-fake fulfillment requester, demonstration transaction adapter, and Fight's
-`InMemoryCommandRouter`, `RoutingCommandBus`, and `SimpleEventDispatcher`. Replace only these edges
-when your application selects a database, payment provider, framework container, or transport.
-
-## Payment guard and retries
-
-Fulfillment is fail-closed. Only `succeeded` requests fulfillment. Both `pending` and `failed`
-throw `PaymentNotSuccessful` and make no fulfillment request. With the synchronous dispatcher in this
-journey, the subscriber failure is reported to the original `ProcessOrder` caller as
-`EventDispatchFailed`; inspect its recorded failure to find the `PaymentNotSuccessful` cause. The
-order remains stored with its payment reference, so a later `FulfillOrder` retry succeeds after the
-payment status becomes `succeeded`.
-
-!!! warning "Production transaction boundary"
-    `DemoTransactionalUnitOfWork` restores only the supplied in-memory repository state when its
-    callback fails. It cannot atomically commit an external payment processor with order persistence.
-    A production adapter needs an explicit idempotency, reconciliation, and transaction policy for
-    that boundary.
-
-An asynchronous payment adapter must arrange redelivery or retry of `FulfillOrder` when the provider
-reports completion. This Quick Start implements no queue, saga, or durable outbox.
-
-## Continue
-
-- [Architecture](../architecture/index.md) explains the inward Adapter → Application → Domain dependency direction.
-- [Messaging](../components/messaging/index.md) details commands, events, buses, handlers, and dispatchers.
-- [Repositories](../components/repositories/index.md) covers the `TransactionalUnitOfWork` boundary and production adapters.
-- [Framework Support](../frameworks/framework-support/index.md) separates supported framework activation from this portable composition.
+- Read [Architecture](../architecture/index.md) for the Adapter → Application → Domain dependency rule.
+- Read [Messaging](../components/messaging/index.md) for buses, routers, handlers, and delivery semantics.
+- Read [Repositories](../components/repositories/index.md) for transactional persistence boundaries.
+- Review [Framework Support](../frameworks/framework-support/index.md) before selecting framework adapters.

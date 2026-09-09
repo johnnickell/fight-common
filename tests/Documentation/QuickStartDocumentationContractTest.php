@@ -18,30 +18,38 @@ final class QuickStartDocumentationContractTest extends UnitTestCase
         $guide = $this->readRepositoryFile('docs/quickstart.md');
         $fixture = $this->readRepositoryFile('tests/Documentation/QuickStart/OrderProcessingExample.php');
 
-        self::assertStringContainsString(
-            '--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:order-processing-composition"',
-            $guide,
-        );
-        self::assertStringContainsString(
-            '--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:process-order"',
-            $guide,
-        );
-        self::assertStringContainsString(
+        $readerVisibleSnippets = [
+            'order-id',
+            'process-order-command',
+            'order-processed-event',
+            'process-order-handler',
+            'fulfill-order-command',
+            'order-processed-subscriber',
+            'fulfill-order-handler',
+            'order-processing-composition',
+            'dispatch-process-order',
+        ];
+
+        foreach ($readerVisibleSnippets as $snippet) {
+            self::assertStringContainsString(
+                sprintf('--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:%s"', $snippet),
+                $guide,
+            );
+            self::assertStringContainsString(sprintf('// --8<-- [start:%s]', $snippet), $fixture);
+            self::assertStringContainsString(sprintf('// --8<-- [end:%s]', $snippet), $fixture);
+        }
+
+        self::assertStringNotContainsString(
             '--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:complete-order-processing-example"',
             $guide,
         );
-        self::assertStringContainsString('// --8<-- [start:order-processing-composition]', $fixture);
-        self::assertStringContainsString('// --8<-- [end:order-processing-composition]', $fixture);
-        self::assertStringContainsString('// --8<-- [start:process-order]', $fixture);
-        self::assertStringContainsString('// --8<-- [end:process-order]', $fixture);
-        self::assertStringContainsString('// --8<-- [start:complete-order-processing-example]', $fixture);
-        self::assertStringContainsString('// --8<-- [end:complete-order-processing-example]', $fixture);
         self::assertStringContainsString('namespace Fight\\Test\\Common\\Documentation\\QuickStart;', $fixture);
         $completeExample = $this->fixtureRegion($fixture, 'complete-order-processing-example');
         self::assertStringStartsWith('use Fight\\Common\\', $completeExample);
         self::assertStringNotContainsString('namespace ', $completeExample);
-        self::assertSame(3, substr_count($guide, '```php-inline'));
-        self::assertSame(6, substr_count($guide, '```'));
+        self::assertSame(9, substr_count($guide, '--8<-- "tests/Documentation/QuickStart/OrderProcessingExample.php:'));
+        self::assertSame(2, substr_count($guide, '~~~php-inline'));
+        self::assertSame(7, substr_count($guide, '~~~php {'));
         self::assertStringContainsString('<?php', $guide);
         self::assertStringContainsString('composer require johnnickell/fight-common', $guide);
         self::assertStringContainsString('content.code.copy', $this->readRepositoryFile('mkdocs.yml'));
