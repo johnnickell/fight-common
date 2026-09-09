@@ -109,7 +109,7 @@ BASH
         $process->run();
 
         self::assertSame(2, $process->getExitCode());
-        self::assertSame("Usage: ./bin/build [--latest]\n", $process->getErrorOutput());
+        self::assertSame("Usage: ./bin/build [--latest|--lowest]\n", $process->getErrorOutput());
     }
 
     public function test_that_default_build_installs_the_lock_and_runs_quality_once_in_one_owned_container(): void
@@ -266,6 +266,19 @@ BASH
 
         self::assertSame(42, $process->getExitCode());
         self::assertSame($originalLock, file_get_contents($this->directory.'/composer.lock'));
+    }
+
+    public function test_that_lowest_resolves_stable_minimums_and_runs_quality_in_the_same_owned_container(): void
+    {
+        $process = $this->runBuild(arguments: ['--lowest']);
+
+        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        $log = file_get_contents($this->directory.'/docker.log');
+        self::assertStringContainsString('LOWEST_PACKAGES=', $log);
+        self::assertStringContainsString('composer update ${LOWEST_PACKAGES}', $log);
+        self::assertStringContainsString('--prefer-lowest --prefer-stable --with-all-dependencies', $log);
+        self::assertStringContainsString('$composer["require"]', $log);
+        self::assertStringContainsString(' && ./bin/quality', $log);
     }
 
     /**

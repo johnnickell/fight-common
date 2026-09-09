@@ -2,11 +2,16 @@
 id: T-00038
 prd: PRD-00013
 title: Add release skills and catalog routing
-status: ready-for-agent
-blocked_by: T-00041,T-00042
+status: wontfix
+blocked_by:
 ---
 
 # Add Release Skills and Catalog Routing
+
+## Resolution
+
+Closed by ADR 0025. The single `release certify` operation and the repository's existing approval boundaries do not
+justify six simulated release-phase skills or another catalog policy layer.
 
 ## What to Build
 

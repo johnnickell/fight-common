@@ -1,0 +1,45 @@
+{
+    "schema_version": "fight-common.starter-receipt-references/v1",
+    "receipts": [
+        {
+            "ticket": "T-00075",
+            "framework": "symfony",
+            "repository": "johnnickell/project-symfony",
+            "commit": "ade02de762c6dd049f3183a1137a83247740dbdd",
+            "path": "evidence/framework-support/receipt-v1.json",
+            "sha256": "1c71f6fc74a73a1976b562043630d403bb7e873b5049d64c6d5705b098b027fe"
+        },
+        {
+            "ticket": "T-00075",
+            "framework": "laravel",
+            "repository": "johnnickell/project-laravel",
+            "commit": "19c7d839da0d6bd579f83a34950ed2433bff44dc",
+            "path": "evidence/framework-support/receipt-v1.json",
+            "sha256": "bdda487f5ae57a6137b962be83680361be5d40967dc739d3ce2c6cc75842b8d6"
+        },
+        {
+            "ticket": "T-00075",
+            "framework": "yii",
+            "repository": "johnnickell/project-yii",
+            "commit": "7414dfb8800c0b4506ee10ff324c8eecc65f0d3c",
+            "path": "evidence/framework-support/receipt-v1.json",
+            "sha256": "9085309c84f26cd5c48e771b8f2746912515c134c371a3f419bbb1ec2009e717"
+        },
+        {
+            "ticket": "T-00075",
+            "framework": "codeigniter",
+            "repository": "johnnickell/project-codeigniter",
+            "commit": "9cd90fd17938eeca3562e0fe2107decee2190783",
+            "path": "evidence/framework-support/receipt-v1.json",
+            "sha256": "6b8e71456054721f1989043acb7a53738553f83daa5d0bcd793417922ec83124"
+        },
+        {
+            "ticket": "T-00075",
+            "framework": "slim",
+            "repository": "johnnickell/project-slim",
+            "commit": "243c018869e7f833f2bc5a19d1402d6d8c5c45ab",
+            "path": "evidence/framework-support/receipt-v1.json",
+            "sha256": "3dc8b643c50a62fd9bf6fdb120d596a734cb0fca1b5c82d5d96ccc8b731d87b7"
+        }
+    ]
+}

@@ -111,7 +111,6 @@
     "autoload-dev": {
         "psr-4": {
             "Fight\\Release\\": "release/src",
-            "Fight\\Test\\Release\\": "release/tests",
             "Fight\\Test\\Common\\": "tests"
         }
     },

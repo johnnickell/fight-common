@@ -2,11 +2,16 @@
 id: T-00036
 prd: PRD-00012
 title: Implement maintenance-line lifecycle decisions
-status: ready-for-agent
-blocked_by: T-00033,T-00034
+status: wontfix
+blocked_by:
 ---
 
 # Implement Maintenance-Line Lifecycle Decisions
+
+## Resolution
+
+Closed by ADR 0025. Fight Common will not rebuild maintenance-line simulation, support-clock fakes, or a repository
+release state machine. A real maintenance need requires a fresh scoped decision and human-authorized Git workflow.
 
 ## What to Build
 

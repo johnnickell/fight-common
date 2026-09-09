@@ -8,6 +8,9 @@ blocked_by: T-00050,T-00051,T-00052,T-00053,T-00057,T-00059,T-00060,T-00069,T-00
 
 # Prove Optional Adapter Dependency Modes and Production Isolation
 
+> Historical outcome: ADR 0025 and T-00056 replaced this ticket's simulated compatibility command with real
+> locked, lowest, latest, archive, and clean `--no-dev` consumer lanes in `bin/release certify`.
+
 ## What to Build
 
 Extend the exported-package consumer harness across Fight Common's locked, lowest, latest, and production-only

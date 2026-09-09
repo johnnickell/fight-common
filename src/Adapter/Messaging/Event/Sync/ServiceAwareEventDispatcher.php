@@ -9,7 +9,6 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Utility\Validate;
 use Override;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -155,8 +154,6 @@ final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 
     /**
      * Loads event handlers lazily from the service container
-     *
-     * @throws ContainerExceptionInterface When an error occurs
      */
     private function lazyLoad(string $eventType): void
     {

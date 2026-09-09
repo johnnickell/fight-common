@@ -8,6 +8,9 @@ blocked_by: T-00047
 
 # Restore Scheduler 1.x Construction Compatibility
 
+> Historical outcome: the product compatibility delivered here remains. ADR 0025 and T-00056 later retired the
+> dedicated simulated release probes; the normal product suite and thin `bin/release certify` seam now protect it.
+
 ## What to Build
 
 Restore the complete published `1.1.0` Scheduler construction and command-execution journey while adding a named
