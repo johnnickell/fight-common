@@ -1,10 +1,16 @@
 ---
+template: atlas-article.html
 atlas_article: true
 title: Mail
 atlas_article_heading_id: mail
 atlas_component_group: Connect Systems
 atlas_component_owner: Application and Adapter
 atlas_component_dependencies: MailTransport, MailFactory, Symfony Mailer
+atlas_article_context: Application · Adapter
+atlas_article_lead: Send email through an application-owned port, then choose the transport at the boundary.
+atlas_article_requires: PHP 8.5+
+atlas_article_optional: symfony/mailer
+atlas_article_package: johnnickell/fight-common
 atlas_relationship_source_label: Adapter
 atlas_relationship_source: Symfony Mailer
 atlas_relationship_target_label: Application port

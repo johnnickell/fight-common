@@ -121,19 +121,19 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         );
     }
 
-    public function test_that_generated_quick_start_requires_its_payment_guard_anchor(): void
+    public function test_that_generated_quick_start_requires_its_event_anchor(): void
     {
         $quickStart = $this->directory.'/site/quick-start/index.html';
         $artifact = file_get_contents($quickStart);
 
         self::assertIsString($artifact);
-        file_put_contents($quickStart, str_replace('id="payment-guard-and-retries"', 'id="payment-guard"', $artifact));
+        file_put_contents($quickStart, str_replace('id="the-event"', 'id="event"', $artifact));
 
         $process = $this->validateArtifact();
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing required article anchor: #payment-guard-and-retries',
+            'Generated Quick Start article is missing required article anchor: #the-event',
             $process->getErrorOutput(),
         );
     }
@@ -158,7 +158,7 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
     }
 
-    public function test_that_generated_quick_start_requires_its_complete_executable_region_syntax_and_runtime_copy_feature(): void
+    public function test_that_generated_quick_start_requires_each_class_surface_and_runtime_copy_feature(): void
     {
         $quickStart = $this->directory.'/site/quick-start/index.html';
         $artifact = file_get_contents($quickStart);
@@ -167,8 +167,8 @@ final class DocsArtifactValidatorTest extends UnitTestCase
         file_put_contents(
             $quickStart,
             str_replace(
-                'id="quick-start-complete-example" class="highlight"',
-                'id="quick-start-complete-example" class="code-surface"',
+                'id="quick-start-order-processed-event" class="highlight"',
+                'id="quick-start-order-processed-event" class="code-surface"',
                 $artifact,
             ),
         );
@@ -177,14 +177,14 @@ final class DocsArtifactValidatorTest extends UnitTestCase
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing syntax highlighting for executable surface: #quick-start-complete-example',
+            'Generated Quick Start article is missing syntax highlighting for executable surface: #quick-start-order-processed-event',
             $process->getErrorOutput(),
         );
 
         file_put_contents(
             $quickStart,
             str_replace(
-                'final readonly class FulfillOrder implements Command provider-token-for-customer-42 OrderProcessingExample::process().PHP_EOL',
+                'final readonly class OrderProcessed implements Event',
                 '',
                 $artifact,
             ),
@@ -193,7 +193,7 @@ final class DocsArtifactValidatorTest extends UnitTestCase
 
         self::assertSame(1, $process->getExitCode());
         self::assertStringContainsString(
-            'Generated Quick Start article is missing nonempty executable PHP code surface: #quick-start-complete-example',
+            'Generated Quick Start article is missing nonempty executable PHP code surface: #quick-start-order-processed-event',
             $process->getErrorOutput(),
         );
 
@@ -866,9 +866,10 @@ final class DocsArtifactValidatorTest extends UnitTestCase
             '<nav><a class="md-nav__button md-logo"><img class="atlas-header__mark atlas-header__mark--light" src="assets/identity/fight-mark-light.svg" alt="Fight"><img class="atlas-header__mark atlas-header__mark--dark" src="assets/identity/fight-mark-dark.svg" alt="" aria-hidden="true"></a></nav>',
             '<footer><img class="atlas-footer__mark" src="assets/identity/fight-mark-dark.svg" alt="Fight"></footer>',
             '<link rel="stylesheet" href="/fight-common/assets/site.css?cache=1#version">',
-            'Adopt focused PHP building blocks without coupling Domain or Application code to a framework.',
+            'Keep your core clean. Connect everything else.',
+            'Adopt focused PHP components without coupling Domain or Application code to a framework.',
             'composer require johnnickell/fight-common',
-            'Adapter Application Domain Architecture Quick Start Explore Components',
+            'Adapter Application Domain Understand the architecture Start building Explore components',
             'Model the Domain Coordinate Application Behavior Connect Systems Operate Workloads Integrate Frameworks',
             '<a href="components/values/">Values</a>'
             ."\n  ".'<span class="atlas-ownership-rail">Ownership: Domain · Adapter</span>',
@@ -937,7 +938,9 @@ final class DocsArtifactValidatorTest extends UnitTestCase
                     '<nav class="atlas-component-rail">Connect Systems</nav>',
                     '<h1 id="mail" tabindex="-1" data-atlas-article-start>Mail</h1>',
                     '<nav class="atlas-breadcrumbs"></nav>',
-                    '<dl class="atlas-article-metadata">Application and Adapter MailTransport, MailFactory, Symfony Mailer</dl>',
+                    '<p class="atlas-context-label">Application · Adapter</p>',
+                    '<p class="atlas-article-lead">Send email through an application-owned port, then choose the transport at the boundary.</p>',
+                    '<dl class="atlas-article-metadata">Requires PHP 8.5+ Optional symfony/mailer Package johnnickell/fight-common</dl>',
                     '<aside class="atlas-local-contents"><p>On this page</p><ul>',
                     '<li><a href="#configuration-formats">Configuration formats</a></li>',
                     '<li><a href="#mailmessage">MailMessage</a></li>',
@@ -972,19 +975,38 @@ final class DocsArtifactValidatorTest extends UnitTestCase
             if ($route === 'quick-start/') {
                 $content .= implode('', [
                     '<h1 id="framework-neutral-quick-start">Framework-Neutral Quick Start</h1>',
-                    '<h2 id="prerequisites">Prerequisites</h2>composer require johnnickell/fight-common',
-                    '<h2 id="process-an-order">Process an order</h2>Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.',
+                    '<h2 id="pick-your-framework">Pick your framework</h2>',
+                    '<p>The starter repositories are still being prepared for that release.</p>',
+                    '<a href="https://github.com/johnnickell/project-symfony">Symfony</a>',
+                    '<a href="https://github.com/johnnickell/project-laravel">Laravel</a>',
+                    '<a href="https://github.com/johnnickell/project-yii">Yii</a>',
+                    '<a href="https://github.com/johnnickell/project-codeigniter">CodeIgniter</a>',
+                    '<a href="https://github.com/johnnickell/project-slim">Slim</a>',
+                    'composer require johnnickell/fight-common',
+                    '<h2 id="the-supporting-domain-type">The supporting domain type</h2>',
+                    '<h2 id="the-command">The command</h2>',
+                    '<h2 id="the-event">The event</h2>',
+                    '<h2 id="the-command-handler">The command handler</h2>',
+                    '<h2 id="the-follow-up-command">The follow-up command</h2>',
+                    '<h2 id="the-event-subscriber">The event subscriber</h2>',
+                    '<h2 id="the-fulfillment-handler">The fulfillment handler</h2>',
+                    '<h2 id="wire-the-application">Wire the application</h2>',
+                    '<h2 id="dispatch-the-command">Dispatch the command</h2>',
+                    'Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested.',
                     '<p>InMemoryCommandRouter RoutingCommandBus SimpleEventDispatcher TransactionalUnitOfWork</p>',
+                    '<div id="quick-start-order-id" class="highlight"><pre><code>final readonly class OrderId</code></pre></div>',
+                    '<div id="quick-start-process-order-command" class="highlight"><pre><code>final readonly class ProcessOrder implements Command</code></pre></div>',
+                    '<div id="quick-start-order-processed-event" class="highlight"><pre><code>final readonly class OrderProcessed implements Event</code></pre></div>',
+                    '<div id="quick-start-process-order-handler" class="highlight"><pre><code>final readonly class ProcessOrderHandler implements CommandHandler</code></pre></div>',
+                    '<div id="quick-start-fulfill-order-command" class="highlight"><pre><code>final readonly class FulfillOrder implements Command</code></pre></div>',
+                    '<div id="quick-start-order-processed-subscriber" class="highlight"><pre><code>final readonly class OrderProcessedSubscriber implements EventSubscriber</code></pre></div>',
+                    '<div id="quick-start-fulfill-order-handler" class="highlight"><pre><code>final readonly class FulfillOrderHandler implements CommandHandler</code></pre></div>',
                     '<div id="quick-start-composition" class="highlight"><pre><code>final <span class="k">class</span> OrderProcessingExample CustomerId::fromString(<span class="s1">\'CUSTOMER-42\'</span>) require $_SERVER[\'FIGHT_AUTOLOAD\'] ?? __DIR__.\'/vendor/autoload.php\';</code></pre></div><button class="md-code__button" data-md-type="copy" data-clipboard-target="#quick-start-composition code"></button>',
-                    '<div id="quick-start-process-order" class="highlight"><pre><code>final readonly class CustomerId final readonly class ProcessOrder implements Command</code></pre></div>',
-                    '<div id="quick-start-complete-example" class="highlight"><pre><code>final readonly class FulfillOrder implements Command provider-token-for-customer-42 OrderProcessingExample::process().PHP_EOL</code></pre></div>',
+                    '<div id="quick-start-dispatch" class="highlight"><pre><code>OrderProcessingExample::process().PHP_EOL</code></pre></div>',
                     '<script id="__config" type="application/json">{"features":["content.code.copy"]}</script>',
-                    '<h2 id="complete-executable-example">Complete executable example</h2>',
-                    '<h2 id="ownership-and-flow">Ownership and flow</h2>',
                     '<p>FulfillmentRequester</p>',
-                    '<h2 id="payment-guard-and-retries">Payment guard and retries</h2>EventDispatchFailed PaymentNotSuccessful Only succeeded requests fulfillment. Both pending and failed redelivery or retry of FulfillOrder',
+                    'EventDispatchFailed PaymentNotSuccessful Only succeeded requests fulfillment. Both pending and failed redelivery or retry of FulfillOrder',
                     '<aside>Production transaction boundary no queue, saga, or durable outbox</aside>',
-                    '<h2 id="continue">Continue</h2>',
                     '<a href="../architecture/">Architecture</a>',
                     '<a href="../components/messaging/">Messaging</a>',
                     '<a href="../components/repositories/">Repositories</a>',

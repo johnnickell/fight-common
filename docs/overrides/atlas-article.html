@@ -1,0 +1,76 @@
+{% extends "main.html" %}
+
+{% block content %}
+  <section class="atlas-article-shell" aria-label="{{ page.title | e }} article" data-atlas-layout="article">
+    <nav class="atlas-component-rail" aria-label="Component navigation">
+      {% for component in page.parent.children %}
+        <a{% if component.active %} class="atlas-component-rail__link--active" aria-current="page"{% endif %} href="{{ component.url | url }}">{{ component.title }}</a>
+      {% endfor %}
+    </nav>
+
+    <article class="atlas-article-content">
+      <nav class="atlas-breadcrumbs" aria-label="Breadcrumb">
+        <a href="{{ nav.homepage.url | url }}">Home</a>
+        <span aria-hidden="true">/</span>
+        <span>Components</span>
+        <span aria-hidden="true">/</span>
+        <span>{{ page.meta.atlas_component_group }}</span>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{{ page.title }}</span>
+      </nav>
+
+      <p class="atlas-context-label">{{ page.meta.atlas_article_context | e }}</p>
+      <h1 id="{{ page.meta.atlas_article_heading_id }}" tabindex="-1" data-atlas-article-start>{{ page.title | e }}</h1>
+      <p class="atlas-article-lead">{{ page.meta.atlas_article_lead | e }}</p>
+
+      <dl class="atlas-article-metadata">
+        <div><dt>Requires</dt><dd>{{ page.meta.atlas_article_requires }}</dd></div>
+        <div><dt>Optional</dt><dd>{{ page.meta.atlas_article_optional }}</dd></div>
+        <div><dt>Package</dt><dd>{{ page.meta.atlas_article_package }}</dd></div>
+      </dl>
+
+      <figure class="atlas-relationship-diagram">
+        <div class="atlas-relationship-diagram__flow" role="img" aria-label="{{ page.meta.atlas_relationship_description }}">
+          <div class="atlas-relationship-diagram__node">
+            <span>{{ page.meta.atlas_relationship_source_label }}</span>
+            <strong>{{ page.meta.atlas_relationship_source }}</strong>
+          </div>
+          <span class="atlas-relationship-diagram__direction" aria-hidden="true">→</span>
+          <div class="atlas-relationship-diagram__node">
+            <span>{{ page.meta.atlas_relationship_target_label }}</span>
+            <strong>{{ page.meta.atlas_relationship_target }}</strong>
+          </div>
+        </div>
+        <figcaption>{{ page.meta.atlas_relationship_caption }}</figcaption>
+      </figure>
+
+      <aside class="atlas-consequential-callout" role="note">
+        <span class="atlas-consequential-callout__icon" aria-hidden="true">!</span>
+        <div>
+          <p class="atlas-consequential-callout__label">{{ page.meta.atlas_consequential_label }}</p>
+          <p>{{ page.meta.atlas_consequential_message }}</p>
+        </div>
+      </aside>
+
+      {% include "partials/content.html" %}
+
+      <nav class="atlas-next-steps" aria-label="Next steps">
+        <span>Next steps</span>
+        {% for next_step in page.meta.atlas_next_steps %}
+          <a href="{{ next_step.href }}">{{ next_step.label }}</a>
+        {% endfor %}
+      </nav>
+    </article>
+
+    <aside class="atlas-local-contents" aria-label="Local contents">
+      {% if page.meta.atlas_local_contents %}
+        <p>On this page</p>
+        <ul>
+          {% for local_content in page.meta.atlas_local_contents %}
+            <li><a href="{{ local_content.href }}">{{ local_content.label }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </aside>
+  </section>
+{% endblock %}
