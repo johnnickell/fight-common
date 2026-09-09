@@ -8,6 +8,10 @@ blocked_by: T-00040
 
 # Move Release Coordination into a Maintainer-Only Module
 
+> Historical outcome: this ticket established the development-only module boundary. ADR 0025 and T-00056 later
+> removed its simulated workflow, tests, helpers, and fake boundaries, retaining only the thin real certifier and
+> the consumer-runtime isolation proved here.
+
 ## What to Build
 
 Relocate the existing release coordination implementation, supporting scripts, tests, and fixtures into one

@@ -2,11 +2,16 @@
 id: T-00037
 prd: PRD-00012
 title: Release the oldest affected supported-line patch
-status: ready-for-agent
-blocked_by: T-00036,T-00041
+status: wontfix
+blocked_by:
 ---
 
 # Release the Oldest Affected Supported-Line Patch
+
+## Resolution
+
+Closed by ADR 0025. Patch selection and publication will not be simulated inside Fight Common. A concrete supported-
+line repair must establish its own evidence, review, certification, and separately authorized publication path.
 
 ## What to Build
 

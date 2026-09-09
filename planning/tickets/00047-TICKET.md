@@ -8,6 +8,9 @@ blocked_by:
 
 # Establish the Public API Authority and Consumer Harness
 
+> Historical outcome: ADR 0025 and T-00056 retained the public API manifest and real installed-consumer proof but
+> replaced this ticket's simulated compatibility subcommand and release-test harness with `bin/release certify`.
+
 ## What to Build
 
 Establish the intentional `1.1.0` public API baseline and the black-box consumer harness used by every later

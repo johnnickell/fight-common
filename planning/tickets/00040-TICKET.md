@@ -8,6 +8,9 @@ blocked_by: T-00032
 
 # Prove Resumable Release Runs and Phase Handoffs
 
+> Historical outcome: completed as recorded. ADR 0025 later removed resumable run state and phase handoffs from
+> Fight Common's release boundary.
+
 ## What to Build
 
 Advance an approved plan through uniquely identified execution attempts whose append-only transitions,

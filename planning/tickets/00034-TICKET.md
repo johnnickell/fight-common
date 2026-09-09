@@ -8,6 +8,9 @@ blocked_by: T-00033
 
 # Compose Certification Evidence and Compatibility Lanes
 
+> Historical outcome: completed as recorded. ADR 0025 later superseded its certification engine with the real,
+> thin `release certify` command implemented by T-00056.
+
 ## What to Build
 
 Implement verification-only certification that composes the complete quality, dependency, archive,

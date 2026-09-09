@@ -10,7 +10,6 @@
     <testsuites>
         <testsuite name="complete">
             <directory>tests</directory>
-            <directory>release/tests</directory>
         </testsuite>
     </testsuites>
     <php>
@@ -19,7 +18,6 @@
     <source>
         <include>
             <directory suffix=".php">src</directory>
-            <directory suffix=".php">release/src</directory>
         </include>
     </source>
     <coverage includeUncoveredFiles="true"

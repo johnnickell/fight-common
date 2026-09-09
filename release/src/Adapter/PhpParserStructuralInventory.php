@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Release\Adapter;
 
-use Fight\Release\Application\Boundary\CompatibilityInputPort;
-use Fight\Release\Application\Boundary\StructuralInventoryPort;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Const_;
@@ -42,15 +40,8 @@ use UnexpectedValueException;
 /**
  * Class PhpParserStructuralInventory
  */
-final readonly class PhpParserStructuralInventory implements StructuralInventoryPort
+final readonly class PhpParserStructuralInventory
 {
-    /**
-     * Constructs PhpParserStructuralInventory
-     */
-    public function __construct(private CompatibilityInputPort $input)
-    {
-    }
-
     /**
      * Returns runtime declarations without assigning compatibility policy
      *
@@ -74,14 +65,14 @@ final readonly class PhpParserStructuralInventory implements StructuralInventory
                 }
 
                 $declarations[] = $this->declarationInventory(
-                    $this->input->read($file->getPathname()),
+                    $this->read($file->getPathname()),
                     $this->repositoryRelativeSource($sourceRoot, $file->getPathname())
                 );
             }
         }
 
         $functionPath = $sourceRoot.'/src/Domain/functions.php';
-        $functionSource = $this->input->read($functionPath);
+        $functionSource = $this->read($functionPath);
         $functionInventory = $this->functionInventory(
             $functionSource,
             $this->repositoryRelativeSource($sourceRoot, $functionPath)
@@ -319,6 +310,17 @@ final readonly class PhpParserStructuralInventory implements StructuralInventory
         $resolved = array_values($traverser->traverse($nodes));
 
         return $resolved;
+    }
+
+    /**
+     * Reads one source file completely
+     */
+    private function read(string $path): string
+    {
+        $contents = file_get_contents($path);
+        is_string($contents) || throw new UnexpectedValueException('Structural source is unreadable.');
+
+        return $contents;
     }
 
     /**

@@ -14,18 +14,15 @@ return RectorConfig::configure()
         __DIR__.'/src',
         __DIR__.'/tests',
         __DIR__.'/release/src',
-        __DIR__.'/release/tests'
+        __DIR__.'/release/scripts',
+        __DIR__.'/release/consumer'
     ])
     ->withPhpSets(php84: true)
     ->withSkip([
         NewlineBetweenClassLikeStmtsRector::class,
         RemoveParentCallWithoutParentRector::class,
         // Compatibility policy stores names as data; loading runtime classes would reverse the release boundary.
-        StringClassNameToClassConstantRector::class          => [
-            __DIR__.'/release/src/Application/PublicApiManifestAuthority.php',
-            __DIR__.'/release/src/Application/SchedulerEvidenceAuthority.php',
-            __DIR__.'/src/Application/Scheduler/Scheduler.php'
-        ],
+        StringClassNameToClassConstantRector::class          => [__DIR__.'/src/Application/Scheduler/Scheduler.php'],
         // The legacy Scheduler bridge intentionally late-binds an optional Process implementation.
         ClosureFromCallableToFirstClassCallableRector::class => [
             __DIR__.'/src/Application/Scheduler/Scheduler.php'

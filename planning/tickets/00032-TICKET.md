@@ -8,6 +8,9 @@ blocked_by:
 
 # Establish Release Inspection, Plans, and Boundary Fakes
 
+> Historical outcome: completed as recorded. ADR 0025 later superseded and removed the inspection, plan, and fake
+> boundary machinery; this ticket does not authorize restoring it.
+
 ## What to Build
 
 Implement the public inspection and planning journey behind `bin/release`. An operator can inspect a

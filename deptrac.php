@@ -18,6 +18,8 @@ return static function (DeptracConfig $config) use ($configureRelease, $configur
         $config,
         __DIR__.'/release/src/Application',
         __DIR__.'/release/src/Adapter',
+        __DIR__.'/release/scripts',
+        __DIR__.'/release/consumer',
     );
     $config->cacheFile(__DIR__.'/var/cache/deptrac.cache');
 };

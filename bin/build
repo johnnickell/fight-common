@@ -6,8 +6,18 @@ COMPOSER_COMMAND='composer install --no-interaction --no-progress --prefer-dist'
 
 if (( $# == 1 )) && [[ "${1}" == '--latest' ]]; then
     COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
+elif (( $# == 1 )) && [[ "${1}" == '--lowest' ]]; then
+    COMPOSER_COMMAND='LOWEST_PACKAGES="$(php -r '\''
+$composer = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR);
+$requirements = $composer["require"];
+$packages = array_filter(
+    array_keys($requirements),
+    static fn (string $package): bool => str_contains($package, "/"),
+);
+echo implode(" ", $packages);
+'\'')"; composer update ${LOWEST_PACKAGES} --no-interaction --no-progress --prefer-dist --prefer-lowest --prefer-stable --with-all-dependencies'
 elif (( $# > 0 )); then
-    echo 'Usage: ./bin/build [--latest]' >&2
+    echo 'Usage: ./bin/build [--latest|--lowest]' >&2
     exit 2
 fi
 

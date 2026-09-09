@@ -6,6 +6,8 @@ parameters:
     paths:
         - src
         - release/src
+        - release/scripts
+        - release/consumer
     bootstrapFiles:
         - vendor/squizlabs/php_codesniffer/autoload.php
         - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
