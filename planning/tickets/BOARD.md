@@ -126,6 +126,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00101 — Rewrite Root Authorship and Re-certify Framework Consumers](00101-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Rewrote the root email with byte-equivalent trees and topology, migrated all affected refs, and merged five exact-candidate consumer re-certifications after hosted CI. |
 | [T-00056 — Replace the Release Framework with Thin Certification](00056-TICKET.md) | [PRD-00014](../specs/00014-PRD.md) | Removed the simulated release framework and 418 release tests; retained one fail-fast exact-commit certification seam with three dependency lanes, archive and clean consumer proof, package-surface comparison, and cited starter receipts. |
 | [T-00075 — Compose the Five Booted Starter Support Receipts](00075-TICKET.md) | [PRD-00015](../specs/00015-PRD.md) | Bound the five repository-owned, lowest/latest booted starter receipts to immutable merged commits and content identities after independent review; T-00056 now cites them in exact-candidate certification. |
 | [T-00092 — Deliver the Framework-Neutral Quick Start](00092-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Delivered the approved framework-picker entry, honest pre-1.0 starter guidance, and an executable framework-neutral order-processing journey through individually explained, syntax-highlighted, copyable classes in event-before-handler order. |

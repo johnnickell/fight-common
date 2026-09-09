@@ -50,6 +50,12 @@ unavailable, the package surface matched, and all five T-00075 receipt identitie
 Standards and specification reviews accepted the implementation. The final planning-only PR head is recertified
 as a separate ignored handoff before publication.
 
+## Supersession
+
+T-00101 records the authorship-only rewrite of the certified Fight Common graph and the replacement identities
+for all five repository-owned consumer receipts. The original certification evidence above remains historical;
+no runtime tree or public package behavior changed.
+
 ## Parent
 
 PRD-00014 — Fight Common Contract Repair and Compatibility Certification.
