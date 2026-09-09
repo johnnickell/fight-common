@@ -81,9 +81,10 @@ Both Fight Common builds passed 3,641 tests with 20,620 assertions and exact 10,
 Remote branches and tags resolve to the table above. GitHub's root commit API attributes both author and committer
 to `johnnickell` with `john.r.nickell@gmail.com`.
 
-GitHub's aggregate contributors endpoint still returned its pre-refresh cached `jnickell-code` entry immediately
-after the rewrite. Recheck that endpoint after GitHub's documented statistics refresh interval; the commit-level
-attribution and reachable graph are already corrected.
+Fight Common PR #134 passed both hosted workflows at exact head
+`08c284eb3793a7a9d031cbceed1bf3eac8736df8` before merging as
+`17959730470f4160dfb6f398760a093b5e47a2b4`; the merge tree is identical to the tested head tree. The live GitHub
+contributors endpoint subsequently refreshed and returns only `johnnickell` for the rewritten history.
 
 ## Completion Notes
 
