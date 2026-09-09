@@ -68,6 +68,12 @@ through independent code review before merge. The starter repositories remain th
 records immutable links and identities without copying their applications or centralizing their builds. T-00056
 now owns composition of these five accepted receipts into the final `1.2.0` compatibility certification.
 
+## Supersession
+
+The table above remains the historical 2026-09-08 certification. Fight Common's 2026-09-09 authorship-only
+rewrite and the resulting five consumer re-certifications are recorded by T-00101, including exact old-to-new
+candidate mappings, replacement receipt identities, exact hosted-CI heads, and merged consumer commits.
+
 ## Parent
 
 PRD-00015 — Framework Adapter Support and Capability Composition.
