@@ -1,0 +1,37 @@
+{% extends "main.html" %}
+
+{% block content %}
+  <section class="atlas-guide-shell" aria-label="{{ page.title | e }} guide" data-atlas-layout="guide">
+    <nav class="atlas-guide-rail" aria-label="Documentation starting points">
+      <p>Start here</p>
+      <a{% if page.url == 'quick-start/' %} class="atlas-guide-rail__link--active" aria-current="page"{% endif %} href="{{ 'quick-start/' | url }}">Quick Start</a>
+      <a{% if page.url == 'architecture/' %} class="atlas-guide-rail__link--active" aria-current="page"{% endif %} href="{{ 'architecture/' | url }}">Architecture</a>
+      <a href="{{ '' | url }}#component-atlas">Components</a>
+      <a href="{{ 'frameworks/framework-support/' | url }}">Frameworks</a>
+    </nav>
+
+    <article class="atlas-guide-content">
+      <nav class="atlas-breadcrumbs" aria-label="Breadcrumb">
+        <a href="{{ nav.homepage.url | url }}">Home</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{{ page.title | e }}</span>
+      </nav>
+      {% include "partials/content.html" %}
+    </article>
+
+    <aside class="atlas-local-contents" aria-label="Local contents">
+      <p>On this page</p>
+      <ul>
+        {% for toc_item in page.toc %}
+          {% if toc_item.children %}
+            {% for child in toc_item.children %}
+              <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+            {% endfor %}
+          {% else %}
+            <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </aside>
+  </section>
+{% endblock %}
