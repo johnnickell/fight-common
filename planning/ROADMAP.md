@@ -9,8 +9,8 @@ outcomes remain navigable.
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
 | [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing core, durable storage, aggregate repository, checkpointed projection, durable post-commit publication, and optional Symfony mapping-provider autoconfiguration complete; integration documentation and release acceptance remain |
-| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00056 has implemented thin certification and awaits its exact committed-candidate run before separately authorized publication |
-| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, framework support, package isolation, and five starter receipts are complete; exact committed-candidate compatibility certification remains |
+| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00056 completed exact-candidate thin certification; T-00035 publication and T-00041 Packagist qualification remain separately authorized outcomes |
+| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, framework support, package isolation, five starter receipts, and exact committed-candidate compatibility certification are complete |
 | [EPIC-00005](epics/00005-EPIC.md) | 1.2.0+ | in-progress | The exact documentation runtime, protected artifact-based Pages workflow, canonical Fight identity, browser-qualified Atlas Deck shell, validated repository entry surface, and executable framework-neutral Quick Start are complete through T-00092; T-00093 and T-00094 remain independently ready reader journeys; hosted deployment and the separately governed GitHub-profile adaptation remain later boundaries |
 
 ## Route to 1.2.0
@@ -27,8 +27,8 @@ outcomes remain navigable.
    `$aios /implement T-xxxxx` when the approved ticket is already one small tracer bullet. Complete one ticket at
    a time and return to `/ask-matt` after its verified handoff. Commit, push, pull-request, merge, and publication
    effects remain separately approved actions.
-6. With the framework-adapter graph and five starter receipts complete, finish T-00056 exact-commit certification
-   and then final release acceptance. GitHub publication and
+6. With the framework-adapter graph, five starter receipts, and T-00056 exact-commit certification complete,
+   finish final release acceptance. GitHub publication and
    Packagist qualification remain separate human-authorized outcomes; the simulated maintenance and operator
    framework is closed `wontfix`.
 

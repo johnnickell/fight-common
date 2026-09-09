@@ -3,7 +3,7 @@ id: T-00035
 prd: PRD-00011
 title: Publish the Certified Tag and GitHub Release
 status: ready-for-human
-blocked_by: T-00056
+blocked_by:
 ---
 
 # Publish the Certified Tag and GitHub Release
