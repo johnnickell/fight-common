@@ -127,14 +127,19 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
         }
 
         foreach ([
-            'Adopt focused PHP building blocks without coupling Domain or Application code to a framework.',
+            'template: atlas-home.html',
+            'Keep your core clean. Connect everything else.',
+            'Adopt focused PHP components without coupling Domain or Application code to a framework.',
             'composer require johnnickell/fight-common',
             'Adapter',
             'Application',
             'Domain',
-            'href="architecture/">Architecture</a>',
-            'href="quick-start/">Quick Start</a>',
-            'href="#component-atlas">Explore Components</a>',
+            'href="architecture/">',
+            'Understand the architecture',
+            'href="quick-start/">',
+            'Start building',
+            'href="#component-atlas">',
+            'Explore components',
             '<h3>Model the Domain</h3>',
             '<h3>Coordinate Application Behavior</h3>',
             '<h3>Connect Systems</h3>',
@@ -197,7 +202,13 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
             '<a href="frameworks/codeigniter/">CodeIgniter</a>'
             ."\n  ".'<span class="atlas-ownership-rail">Ownership: Adapter</span>',
         ] as $requiredHomepageOwnershipRail) {
-            self::assertStringContainsString($requiredHomepageOwnershipRail, $homepage);
+            $currentOwnershipRail = preg_replace(
+                '#<a href="([^"]+)">([^<]+)</a>\n  <span class="atlas-ownership-rail">Ownership: ([^<]+)</span>#',
+                '<a href="$1"><span>$2</span><small class="atlas-ownership-rail">$3</small></a>',
+                $requiredHomepageOwnershipRail,
+            );
+            self::assertIsString($currentOwnershipRail);
+            self::assertStringContainsString($currentOwnershipRail, $homepage);
         }
     }
 
@@ -205,7 +216,7 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
     {
         $root = dirname(__DIR__, 2);
         $article = file_get_contents($root.'/docs/components/mail/index.md');
-        $override = file_get_contents($root.'/docs/overrides/main.html');
+        $override = file_get_contents($root.'/docs/overrides/atlas-article.html');
         $stylesheet = file_get_contents($root.'/docs/stylesheets/extra.css');
 
         self::assertIsString($article);
@@ -217,6 +228,11 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
             'atlas_component_group: Connect Systems',
             'atlas_component_owner: Application and Adapter',
             'atlas_component_dependencies: MailTransport, MailFactory, Symfony Mailer',
+            'atlas_article_context: Application · Adapter',
+            'atlas_article_lead: Send email through an application-owned port, then choose the transport at the boundary.',
+            'atlas_article_requires: PHP 8.5+',
+            'atlas_article_optional: symfony/mailer',
+            'atlas_article_package: johnnickell/fight-common',
             'atlas_relationship_source: Symfony Mailer',
             'atlas_relationship_target: MailTransport',
             'atlas_consequential_message: Recipient overrides replace every original To, Cc, and Bcc recipient.',
@@ -229,6 +245,7 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
             'atlas-component-rail',
             'aria-label="Component navigation"',
             'atlas-breadcrumbs',
+            'atlas-article-lead',
             'atlas-article-metadata',
             'atlas-local-contents',
             'atlas-relationship-diagram',
@@ -245,12 +262,13 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
 
         foreach ([
             '.atlas-article-shell {',
-            'grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr) minmax(11rem, 15rem);',
+            'grid-template-columns: 208px minmax(0, 736px) 176px;',
+            'width: min(100%, 1408px);',
             '@media screen and (min-width: 60em)',
             '.md-main:has(.atlas-article-shell) .md-sidebar--secondary {',
             'display: none;',
             '.md-main:has(.atlas-article-shell) .md-content > .md-content__inner {',
-            'margin-inline: 0.8rem;',
+            'margin-inline: 0;',
             '@media screen and (min-width: 76.25em)',
             '.md-main:has(.atlas-article-shell) .md-sidebar--primary {',
             '.atlas-article-content .highlight {',
@@ -270,7 +288,7 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
         $root = dirname(__DIR__, 2);
         $article = file_get_contents($root.'/docs/components/mail/index.md');
         $legacyGuide = file_get_contents($root.'/docs/mail.md');
-        $override = file_get_contents($root.'/docs/overrides/main.html');
+        $override = file_get_contents($root.'/docs/overrides/atlas-article.html');
 
         self::assertIsString($article);
         self::assertIsString($legacyGuide);
@@ -288,11 +306,11 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
         self::assertStringNotContainsString('{% set toc = page.toc %}', $override);
     }
 
-    public function test_that_the_article_title_renders_before_its_supporting_shell_affordances(): void
+    public function test_that_the_article_header_renders_in_the_approved_prototype_order(): void
     {
         $root = dirname(__DIR__, 2);
         $article = file_get_contents($root.'/docs/components/mail/index.md');
-        $override = file_get_contents($root.'/docs/overrides/main.html');
+        $override = file_get_contents($root.'/docs/overrides/atlas-article.html');
         $contentPartial = file_get_contents($root.'/docs/overrides/partials/content.html');
         $accessibilityScript = file_get_contents($root.'/docs/javascripts/atlas-article-accessibility.js');
         $configuration = file_get_contents($root.'/mkdocs.yml');
@@ -305,8 +323,11 @@ final class DocumentationThemeOverrideTest extends UnitTestCase
         self::assertStringContainsString('title: Mail', $article);
         self::assertStringContainsString('atlas_article_heading_id: mail', $article);
         self::assertMatchesRegularExpression(
-            '/<h1 id="{{ page.meta.atlas_article_heading_id }}" tabindex="-1" data-atlas-article-start>{{ page.title \| e }}<\/h1>\s*'
-            .'<nav class="atlas-breadcrumbs"/s',
+            '/<nav class="atlas-breadcrumbs".*?<\/nav>\s*'
+            .'<p class="atlas-context-label".*?<\/p>\s*'
+            .'<h1 id="{{ page.meta.atlas_article_heading_id }}" tabindex="-1" data-atlas-article-start>{{ page.title \| e }}<\/h1>\s*'
+            .'<p class="atlas-article-lead".*?<\/p>\s*'
+            .'<dl class="atlas-article-metadata">/s',
             $override,
         );
         self::assertStringContainsString('not page.meta.atlas_article', $contentPartial);

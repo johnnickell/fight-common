@@ -75,7 +75,7 @@ final class OrderProcessingExample
         ]);
         // --8<-- [end:order-processing-composition]
 
-        // --8<-- [start:process-order]
+        // --8<-- [start:dispatch-process-order]
         $commands->execute(
             new ProcessOrder(
                 $customerId,
@@ -83,7 +83,7 @@ final class OrderProcessingExample
                 PaymentMethod::tokenized('provider-token-for-customer-42'),
             ),
         );
-        // --8<-- [end:process-order]
+        // --8<-- [end:dispatch-process-order]
 
         $order = $orders->get($orderId);
 
@@ -150,6 +150,7 @@ final readonly class CustomerId
     }
 }
 
+// --8<-- [start:order-id]
 final readonly class OrderId
 {
     private function __construct(private string $value)
@@ -170,6 +171,7 @@ final readonly class OrderId
         return $this->value;
     }
 }
+// --8<-- [end:order-id]
 
 final readonly class Item
 {
@@ -343,6 +345,7 @@ interface OrderRepository
     public function get(OrderId $orderId): Order;
 }
 
+// --8<-- [start:process-order-command]
 final readonly class ProcessOrder implements Command
 {
     public function __construct(
@@ -382,7 +385,9 @@ final readonly class ProcessOrder implements Command
         return $data[$key];
     }
 }
+// --8<-- [end:process-order-command]
 
+// --8<-- [start:fulfill-order-command]
 final readonly class FulfillOrder implements Command
 {
     public function __construct(public OrderId $orderId)
@@ -411,7 +416,9 @@ final readonly class FulfillOrder implements Command
         return $data[$key];
     }
 }
+// --8<-- [end:fulfill-order-command]
 
+// --8<-- [start:order-processed-event]
 final readonly class OrderProcessed implements Event
 {
     public function __construct(public OrderId $orderId)
@@ -434,6 +441,7 @@ final readonly class OrderProcessed implements Event
         return ['order_id' => $this->orderId->toString()];
     }
 }
+// --8<-- [end:order-processed-event]
 
 final class PaymentNotSuccessful extends DomainException
 {
@@ -446,6 +454,7 @@ interface PaymentProcessor
     public function status(PaymentReference $paymentReference): PaymentStatus;
 }
 
+// --8<-- [start:process-order-handler]
 final readonly class ProcessOrderHandler implements CommandHandler
 {
     public function __construct(
@@ -482,10 +491,12 @@ final readonly class ProcessOrderHandler implements CommandHandler
         $this->events->trigger(new OrderProcessed($command->orderId));
     }
 }
+// --8<-- [end:process-order-handler]
 
 /**
  * Application-owned translation from a business event to its follow-up command.
  */
+// --8<-- [start:order-processed-subscriber]
 final readonly class OrderProcessedSubscriber implements EventSubscriber
 {
     public function __construct(private CommandBus $commands)
@@ -508,12 +519,14 @@ final readonly class OrderProcessedSubscriber implements EventSubscriber
         $this->commands->execute(new FulfillOrder($event->orderId));
     }
 }
+// --8<-- [end:order-processed-subscriber]
 
 interface FulfillmentRequester
 {
     public function request(Order $order): void;
 }
 
+// --8<-- [start:fulfill-order-handler]
 final readonly class FulfillOrderHandler implements CommandHandler
 {
     public function __construct(
@@ -547,6 +560,7 @@ final readonly class FulfillOrderHandler implements CommandHandler
         $this->fulfillment->request($order);
     }
 }
+// --8<-- [end:fulfill-order-handler]
 
 final class InMemoryShoppingCartRepository implements ShoppingCartRepository
 {

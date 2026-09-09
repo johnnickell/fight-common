@@ -1,115 +1,111 @@
-# Fight Common
+---
+template: atlas-home.html
+title: Fight Common
+hide:
+  - navigation
+  - toc
+---
 
-## Framework-neutral PHP building blocks
+<section class="atlas-home__hero" aria-labelledby="atlas-home-title">
+  <div class="atlas-home__promise">
+    <p class="atlas-context-label">Framework-neutral PHP building blocks</p>
+    <h1 id="atlas-home-title">Keep your core clean. Connect everything else.</h1>
+    <p class="atlas-home__lead">Adopt focused PHP components without coupling Domain or Application code to a framework.</p>
 
-Adopt focused PHP building blocks without coupling Domain or Application code to a framework.
-Fight Common keeps the boundaries visible: use portable contracts where they belong, then choose only the adapters
-your project needs.
-
+    <div class="atlas-install" aria-label="Composer installation command" markdown="1">
 ```bash
 composer require johnnickell/fight-common
 ```
+    </div>
+  </div>
 
-<section class="atlas-architecture-proof" aria-label="Fight Common dependency direction">
-  <div class="atlas-architecture-proof__layer atlas-architecture-proof__layer--adapter">
-    <span class="atlas-architecture-proof__label">Adapter</span>
-    <span>Frameworks, providers, and infrastructure</span>
-  </div>
-  <span class="atlas-architecture-proof__direction" aria-hidden="true">→</span>
-  <div class="atlas-architecture-proof__layer atlas-architecture-proof__layer--application">
-    <span class="atlas-architecture-proof__label">Application</span>
-    <span>Use-case coordination and ports</span>
-  </div>
-  <span class="atlas-architecture-proof__direction" aria-hidden="true">→</span>
-  <div class="atlas-architecture-proof__layer atlas-architecture-proof__layer--domain">
-    <span class="atlas-architecture-proof__label">Domain</span>
-    <span>Business rules and durable primitives</span>
-  </div>
+  <a class="atlas-home__architecture" href="architecture/">
+    <strong>Adapter → Application → Domain</strong>
+    <span>Inward dependencies enforced by Deptrac</span>
+    <span class="atlas-home__layer-flow" aria-label="Dependencies flow from Adapter through Application to Domain">
+      <b>Adapter</b><i aria-hidden="true">→</i><b>Application</b><i aria-hidden="true">→</i><b>Domain</b>
+    </span>
+  </a>
 </section>
 
-<div class="atlas-entry-routes">
-  <a class="md-button" href="architecture/">Architecture</a>
-  <a class="md-button" href="quick-start/">Quick Start</a>
-  <a class="md-button" href="#component-atlas">Explore Components</a>
-</div>
+<nav class="atlas-entry-routes" aria-label="Documentation starting points">
+  <a class="atlas-route-card" href="architecture/">
+    <strong>Understand the architecture</strong>
+    <span>Hexagonal Architecture, CQRS, and the dependency rules behind every component.</span>
+  </a>
+  <a class="atlas-route-card" href="quick-start/">
+    <strong>Start building</strong>
+    <span>Install Fight Common and wire one framework-neutral path end to end.</span>
+  </a>
+  <a class="atlas-route-card" href="#component-atlas">
+    <strong>Explore components</strong>
+    <span>Find the focused building block that matches the problem in front of you.</span>
+  </a>
+</nav>
 
-## Component Atlas
+<section class="atlas-catalog" aria-labelledby="component-atlas">
+  <header class="atlas-catalog__heading">
+    <div>
+      <p class="atlas-context-label">Complete component atlas</p>
+      <h2 id="component-atlas">Start with the problem you need to solve.</h2>
+    </div>
+    <p>Every component stays visible. Ownership rails show where it belongs before you open the guide.</p>
+  </header>
 
-<div id="component-atlas" class="atlas-component-atlas">
+  <div class="atlas-grid">
+    <section class="atlas-card">
+      <header><span>Domain</span><h3>Model the Domain</h3></header>
+      <div class="atlas-card__links">
+        <a href="components/values/"><span>Values</span><small class="atlas-ownership-rail">Domain · Adapter</small></a>
+        <a href="components/collections/"><span>Collections</span><small class="atlas-ownership-rail">Domain</small></a>
+        <a href="components/specifications/"><span>Specifications</span><small class="atlas-ownership-rail">Domain</small></a>
+        <a href="components/repositories/"><span>Repositories</span><small class="atlas-ownership-rail">Domain · Application · Adapter</small></a>
+        <a href="components/event-sourcing/"><span>Event Sourcing</span><small class="atlas-ownership-rail">Domain · Application · Adapter</small></a>
+        <a href="components/utilities/"><span>Utilities</span><small class="atlas-ownership-rail">Domain</small></a>
+      </div>
+    </section>
 
-<h3>Model the Domain</h3>
+    <section class="atlas-card atlas-card--active">
+      <header><span>Domain · Application · Adapter</span><h3>Coordinate Application Behavior</h3></header>
+      <div class="atlas-card__links">
+        <a href="components/messaging/"><span>Messaging (CQRS)</span><small class="atlas-ownership-rail">Domain · Application · Adapter</small></a>
+        <a href="components/validation/"><span>Validation</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/serialization/"><span>Serialization</span><small class="atlas-ownership-rail">Domain · Application</small></a>
+        <a href="components/dependency-injection/"><span>Dependency Injection</span><small class="atlas-ownership-rail">Application</small></a>
+      </div>
+    </section>
 
-<div class="atlas-component-group">
-  <a href="components/values/">Values</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Adapter</span>
-  <a href="components/collections/">Collections</a>
-  <span class="atlas-ownership-rail">Ownership: Domain</span>
-  <a href="components/specifications/">Specifications</a>
-  <span class="atlas-ownership-rail">Ownership: Domain</span>
-  <a href="components/repositories/">Repositories</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application · Adapter</span>
-  <a href="components/event-sourcing/">Event Sourcing</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application · Adapter</span>
-  <a href="components/utilities/">Utilities</a>
-  <span class="atlas-ownership-rail">Ownership: Domain</span>
-</div>
+    <section class="atlas-card atlas-card--active">
+      <header><span>Application · Adapter</span><h3>Connect Systems</h3></header>
+      <div class="atlas-card__links">
+        <a href="components/http-client/"><span>HTTP Client</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/auth/"><span>Auth</span><small class="atlas-ownership-rail">Domain · Application · Adapter</small></a>
+        <a href="components/cache/"><span>Cache</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/files/"><span>Files</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/file-transfer/"><span>File Transfer</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/templating/"><span>Templating</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/routing/"><span>Routing</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/mail/"><span>Mail</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/sms/"><span>SMS</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/sockets/"><span>Sockets</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+      </div>
+    </section>
 
-<h3>Coordinate Application Behavior</h3>
+    <section class="atlas-card atlas-card--active">
+      <header><span>Application · Adapter</span><h3>Operate Workloads</h3></header>
+      <div class="atlas-card__links">
+        <a href="components/observability/"><span>Observability</span><small class="atlas-ownership-rail">Domain · Application · Adapter</small></a>
+        <a href="components/process/"><span>Process</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+        <a href="components/scheduler/"><span>Scheduler</span><small class="atlas-ownership-rail">Application · Adapter</small></a>
+      </div>
+    </section>
 
-<div class="atlas-component-group">
-  <a href="components/messaging/">Messaging (CQRS)</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application · Adapter</span>
-  <a href="components/validation/">Validation</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/serialization/">Serialization</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application</span>
-  <a href="components/dependency-injection/">Dependency Injection</a>
-  <span class="atlas-ownership-rail">Ownership: Application</span>
-</div>
-
-<h3>Connect Systems</h3>
-
-<div class="atlas-component-group">
-  <a href="components/http-client/">HTTP Client</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/auth/">Auth</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application · Adapter</span>
-  <a href="components/cache/">Cache</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/files/">Files</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/file-transfer/">File Transfer</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/templating/">Templating</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/routing/">Routing</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/mail/">Mail</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/sms/">SMS</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/sockets/">Sockets</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-</div>
-
-<h3>Operate Workloads</h3>
-
-<div class="atlas-component-group">
-  <a href="components/observability/">Observability</a>
-  <span class="atlas-ownership-rail">Ownership: Domain · Application · Adapter</span>
-  <a href="components/process/">Process</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-  <a href="components/scheduler/">Scheduler</a>
-  <span class="atlas-ownership-rail">Ownership: Application · Adapter</span>
-</div>
-
-<h3>Integrate Frameworks</h3>
-
-<div class="atlas-component-group">
-  <a href="frameworks/framework-support/">Framework Support</a>
-  <span class="atlas-ownership-rail">Ownership: Adapter</span>
-  <a href="frameworks/codeigniter/">CodeIgniter</a>
-  <span class="atlas-ownership-rail">Ownership: Adapter</span>
-</div>
-
-</div>
+    <section class="atlas-card">
+      <header><span>Adapter</span><h3>Integrate Frameworks</h3></header>
+      <div class="atlas-card__links">
+        <a href="frameworks/framework-support/"><span>Framework Support</span><small class="atlas-ownership-rail">Adapter</small></a>
+        <a href="frameworks/codeigniter/"><span>CodeIgniter</span><small class="atlas-ownership-rail">Adapter</small></a>
+      </div>
+    </section>
+  </div>
+</section>

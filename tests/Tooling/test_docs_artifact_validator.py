@@ -32,8 +32,8 @@ class DocsArtifactValidatorTest(unittest.TestCase):
 
         validator.validate_quick_start_article(parser, {"docs": [{"location": "quick-start/"}]})
 
-        parser.ids.remove("payment-guard-and-retries")
-        with self.assertRaisesRegex(ValueError, "#payment-guard-and-retries"):
+        parser.ids.remove("the-event")
+        with self.assertRaisesRegex(ValueError, "#the-event"):
             validator.validate_quick_start_article(parser, {"docs": [{"location": "quick-start/"}]})
 
         parser = self.quick_start_parser()
@@ -56,8 +56,8 @@ class DocsArtifactValidatorTest(unittest.TestCase):
             validator.validate_quick_start_article(parser, {"docs": [{"location": "quick-start/"}]})
 
         parser = self.quick_start_parser()
-        parser.code_blocks_by_anchor["quick-start-complete-example"] = [""]
-        with self.assertRaisesRegex(ValueError, "nonempty executable PHP code surface: #quick-start-complete-example"):
+        parser.code_blocks_by_anchor["quick-start-order-processed-event"] = [""]
+        with self.assertRaisesRegex(ValueError, "nonempty executable PHP code surface: #quick-start-order-processed-event"):
             validator.validate_quick_start_article(parser, {"docs": [{"location": "quick-start/"}]})
 
         parser = self.quick_start_parser("<p>content.code.copy</p>")
@@ -110,23 +110,39 @@ class DocsArtifactValidatorTest(unittest.TestCase):
             '<h1 id="framework-neutral-quick-start">Framework-Neutral Quick Start</h1>'
             '<p>composer require johnnickell/fight-common '
             'Order ORDER-1001 processed for CUSTOMER-42; fulfillment requested. '
+            'The starter repositories are still being prepared for that release. '
             'InMemoryCommandRouter RoutingCommandBus SimpleEventDispatcher TransactionalUnitOfWork '
             'EventDispatchFailed PaymentNotSuccessful FulfillmentRequester Only succeeded requests fulfillment. '
             'Both pending and failed redelivery or retry of FulfillOrder Production transaction boundary '
             'no queue, saga, or durable outbox</p>'
-            '<h2 id="prerequisites">Prerequisites</h2>'
-            '<h2 id="process-an-order">Process an order</h2>'
-            '<h2 id="complete-executable-example">Complete executable example</h2>'
-            '<h2 id="ownership-and-flow">Ownership and flow</h2>'
-            '<h2 id="payment-guard-and-retries">Payment guard and retries</h2>'
-            '<h2 id="continue">Continue</h2>'
+            '<h2 id="pick-your-framework">Pick your framework</h2>'
+            '<h2 id="the-supporting-domain-type">The supporting domain type</h2>'
+            '<h2 id="the-command">The command</h2>'
+            '<h2 id="the-event">The event</h2>'
+            '<h2 id="the-command-handler">The command handler</h2>'
+            '<h2 id="the-follow-up-command">The follow-up command</h2>'
+            '<h2 id="the-event-subscriber">The event subscriber</h2>'
+            '<h2 id="the-fulfillment-handler">The fulfillment handler</h2>'
+            '<h2 id="wire-the-application">Wire the application</h2>'
+            '<h2 id="dispatch-the-command">Dispatch the command</h2>'
+            '<a href="https://github.com/johnnickell/project-symfony">Symfony</a>'
+            '<a href="https://github.com/johnnickell/project-laravel">Laravel</a>'
+            '<a href="https://github.com/johnnickell/project-yii">Yii</a>'
+            '<a href="https://github.com/johnnickell/project-codeigniter">CodeIgniter</a>'
+            '<a href="https://github.com/johnnickell/project-slim">Slim</a>'
             '<a href="../architecture/">Architecture</a>'
             '<a href="../components/messaging/">Messaging</a>'
             '<a href="../components/repositories/">Repositories</a>'
             '<a href="../frameworks/framework-support/">Framework Support</a>'
+            '<div id="quick-start-order-id" class="highlight"><pre><code>final readonly class OrderId</code></pre></div>'
+            '<div id="quick-start-process-order-command" class="highlight"><pre><code>final readonly class ProcessOrder implements Command</code></pre></div>'
+            '<div id="quick-start-order-processed-event" class="highlight"><pre><code>final readonly class OrderProcessed implements Event</code></pre></div>'
+            '<div id="quick-start-process-order-handler" class="highlight"><pre><code>final readonly class ProcessOrderHandler implements CommandHandler</code></pre></div>'
+            '<div id="quick-start-fulfill-order-command" class="highlight"><pre><code>final readonly class FulfillOrder implements Command</code></pre></div>'
+            '<div id="quick-start-order-processed-subscriber" class="highlight"><pre><code>final readonly class OrderProcessedSubscriber implements EventSubscriber</code></pre></div>'
+            '<div id="quick-start-fulfill-order-handler" class="highlight"><pre><code>final readonly class FulfillOrderHandler implements CommandHandler</code></pre></div>'
             '<div id="quick-start-composition" class="highlight"><pre><code>final <span class="k">class</span> OrderProcessingExample CustomerId::fromString(<span class="s1">\'CUSTOMER-42\'</span>) require $_SERVER[\'FIGHT_AUTOLOAD\'] ?? __DIR__.\'/vendor/autoload.php\';</code></pre></div><button class="md-code__button" data-md-type="copy" data-clipboard-target="#quick-start-composition code"></button>'
-            '<div id="quick-start-process-order" class="highlight"><pre><code>final readonly class CustomerId final readonly class ProcessOrder implements Command</code></pre></div>'
-            '<div id="quick-start-complete-example" class="highlight"><pre><code>final readonly class FulfillOrder implements Command provider-token-for-customer-42 OrderProcessingExample::process().PHP_EOL</code></pre></div>'
+            '<div id="quick-start-dispatch" class="highlight"><pre><code>OrderProcessingExample::process().PHP_EOL</code></pre></div>'
             + runtime_configuration,
         )
 

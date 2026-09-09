@@ -54,17 +54,20 @@ base behavior across accessible light, dark, desktop, and compact layouts.
 
 ## Completion Notes
 
-Delivered the Atlas Deck homepage, canonical route groups, responsive article shell, accessible theme and identity
-projection, semantic configuration tabs, copy feedback, metadata, search, sitemap, link and fragment integrity,
-custom 404, and footer. The generated artifact contract now checks all 25 ownership rails, panel-local format
-controls, safe URL schemes, cached fragment resolution, font provenance, and project-base correctness.
+The initially delivered generic Material presentation was reimplemented against the human-approved Atlas Deck
+source. The final homepage now preserves the approved hero, architecture proof, entry routes, complete five-group
+component atlas, ownership rails, restrained kiln accents, and responsive three-line compact headline while
+retaining Material's top bar, search, navigation, palette, and copy behavior.
 
-Focused documentation checks, two independent final reviews, and human Brave inspection passed. The browser pass
-covered 375px, 768px, 1024px, and 1440px layouts; both themes; keyboard skip navigation; menu, tabs, search, copy,
-anchors, reduced motion, and 404 behavior; 44px controls; contrast; and page-level overflow. The final generated
-size baseline is HTML 2,288,394 bytes, CSS 170,547 bytes, JavaScript 1,065,529 bytes, WOFF2 78,600 bytes, PNG
-40,597 bytes, and `search_index.json` 426,199 bytes (5,784 KiB total artifact allocation).
+Dedicated homepage, guide, and component-article templates keep the approved visual language across different
+content shapes. The representative Mail article now uses the approved ownership context, large title, lead, and
+Requires/Optional/Package strip, followed by the documentation-specific relationship diagram, consequential
+behavior, configuration formats, local contents, and next steps. The generated artifact contract continues to
+enforce all 25 ownership rails, semantic controls, route integrity, safe URLs, font provenance, and project-base
+correctness.
 
-The canonical local `./bin/build` passed with 4,124 tests, 15,601 assertions, and exact 18,579/18,579 statement
-coverage. Hosted CI, Pages publication, commit, push, pull request, merge, and task-worktree cleanup remain
-separate, unperformed effects.
+Human review accepted the rendered reimplementation. Same-input browser comparisons passed at 1728 by
+1003 in light and dark modes and at a 390 by 844 compact rendering; search, navigation, theme switching, copy
+surfaces, and page-level overflow were exercised. `design-qa.md` records the source, evidence, fixes, and final
+`passed` result. The canonical local `./bin/build` completed with exit `0`, 4,145 tests, 27,730 assertions, and
+exact 18,579/18,579 statement coverage. Hosted CI and Pages publication remain separate evidence.
