@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-09
+Last updated: 2026-09-10
 
 ## “What’s Next?” Contract
 
@@ -16,9 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-[T-00035](00035-TICKET.md) is the current human decision: review the T-00056 certification handoff and separately
-authorize or decline merge, signed tag, push, and GitHub Release effects. This pull request authorizes none of
-those publication effects. T-00041 remains downstream Packagist qualification.
+No release-publication decision is currently ready. The earlier T-00056 candidate will be superseded by the
+documentation-complete, lean-gate candidate from T-00102. T-00035 becomes the next human publication decision only
+after T-00017 accepts that fresh candidate.
 
 ## Wayfinder Review
 
@@ -32,22 +32,25 @@ one.
 
 | Rank | Ticket | Parent PRD | Current slice |
 |------|--------|------------|---------------|
-| 12 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | Create the five repository-local permanent quality-gate implementation tickets. |
-| 34 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
-| 35 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
+| 1 | [T-00093 — Explain Hexagonal Architecture and CQRS Visually](00093-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Establish the shared diagram-led architecture and message-flow explanation. |
+| 2 | [T-00094 — Establish the Component Guide Contract Through Mail](00094-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Turn the accepted Mail shell into the complete approachable component-guide contract. |
 
 ## Waiting
 
-Waiting tickets retain `ready-for-agent`; their position here is derived from unfinished blocking edges.
+Waiting tickets retain their executable or human-review status; their position here is derived from unfinished
+blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 22 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
-| 36 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
-| 37 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
-| 38 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
-| 39 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00093 through T-00097 |
-| 40 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00098 and separately authorized publication |
+| 3 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 4 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 5 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | T-00094 |
+| 6 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00093 through T-00097 |
+| 7 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00098 and separately authorized publication |
+| 8 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00099 |
+| 10 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
+| 11 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
+| 12 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
 
 ## Needs Info
 
@@ -60,7 +63,7 @@ complete.
 
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
-| 50 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Compose the completed thin-certification evidence with the remaining repository-wide acceptance criteria and close the 1.2 boundary last. |
+| 9 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -68,8 +71,8 @@ in-memory event publication, durable named publication cursors, transactional fa
 logging are complete across the same database matrix. T-00016 now documents the complete integration and
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
-Mapper contract. T-00017 remains the board's final priority; T-00056 now supplies its complete contract,
-package, quality-gate, and release-certification evidence. The
+Mapper contract. T-00017 remains the board's final pre-publication priority after T-00102 replaces the earlier
+candidate with documentation-complete, simplified quality-gate and release-certification evidence. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
@@ -89,9 +92,9 @@ This satisfies T-00017's release-notes criterion only; its certification and com
 unchanged.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
-T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 completed one real thin certification
-seam and its exact-commit evidence; T-00035 and T-00041 remain separately authorized publication and Packagist
-qualification outcomes. T-00036 through T-00039 and T-00042 through
+T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 proved the real thin-certification seam;
+T-00102 will apply ADR 0026 and certify a fresh exact candidate before T-00017 acceptance. T-00035 and T-00041
+remain separately authorized publication and Packagist qualification outcomes. T-00036 through T-00039 and T-00042 through
 T-00043 are closed `wontfix`.
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
@@ -104,8 +107,9 @@ merge; T-00056 now cites their immutable identities in the Fight Common `1.2.0` 
 before T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
-layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 now uses
-T-00087 only to track the transfer of the canonical pre-submit gate into five repository-local tickets. Fight
+layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 uses
+T-00087 to transfer ADR 0026's lean pre-submit gate into five repository-local tickets after public 1.2
+qualification. Fight
 AccessControl and all five starters create their capability tickets locally; T-00067 verified the six authority
 transfers and closed WF-018 without centralizing their builds, local acceptance criteria, visibility decisions, or
 release state in Fight Common.

@@ -25,8 +25,8 @@ workflow.
 
 ## Verification
 
-Capture the exact Packagist metadata and clean-install outcome, compare them with the T-00035 publication receipt and
-T-00056 certification record, and record any mismatch without automatic mutation.
+Capture the exact Packagist metadata and clean-install outcome, compare them with the T-00035 publication receipt
+and current certification record accepted by T-00017, and record any mismatch without automatic mutation.
 
 ## Parent
 

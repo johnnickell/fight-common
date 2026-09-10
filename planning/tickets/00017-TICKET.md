@@ -3,7 +3,7 @@ id: T-00017
 prd: PRD-00006
 title: Complete 1.2 compatibility and release acceptance
 status: ready-for-agent
-blocked_by:
+blocked_by: T-00102
 ---
 
 # Complete 1.2 Compatibility and Release Acceptance
