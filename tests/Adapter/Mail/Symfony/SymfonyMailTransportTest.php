@@ -107,6 +107,41 @@ class SymfonyMailTransportTest extends MailTransportConformanceTestCase
     }
 
     /**
+     * @param array<string, string|string[]> $overrides
+     */
+    private function deliveredEmail(MailMessage $message, array $overrides): Email
+    {
+        $mailer = new class implements MailerInterface {
+            public ?Email $delivered = null;
+
+            public function send(RawMessage $message, ?Envelope $envelope = null): void
+            {
+                if (!$message instanceof Email) {
+                    throw new RuntimeException('Expected a Symfony Email.');
+                }
+
+                $this->delivered = $message;
+            }
+        };
+
+        new SymfonyMailTransport($mailer, $overrides)->send($message);
+
+        self::assertInstanceOf(Email::class, $mailer->delivered);
+
+        return $mailer->delivered;
+    }
+
+    /**
+     * @param list<Address> $addresses
+     *
+     * @return list<string>
+     */
+    private function addressStrings(array $addresses): array
+    {
+        return array_map(static fn (Address $address): string => $address->getAddress(), $addresses);
+    }
+
+    /**
      * @return array{address: string, name: string}
      */
     private function address(Address $address): array
@@ -223,58 +258,60 @@ class SymfonyMailTransportTest extends MailTransportConformanceTestCase
         $transport->send($message);
     }
 
-    public function test_that_send_uses_overrides_when_provided(): void
+    public function test_that_send_replaces_all_original_recipients_with_array_overrides(): void
     {
         $message = MailMessage::create()
             ->addFrom('from@example.com')
-            ->addTo('to@example.com');
+            ->addTo('original-to@example.com')
+            ->addCc('original-cc@example.com')
+            ->addBcc('original-bcc@example.com');
 
-        /** @var MailerInterface&MockInterface $mailer */
-        $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
-
-        $transport = new SymfonyMailTransport($mailer, [
-            'to'  => ['override@example.com'],
-            'cc'  => [],
-            'bcc' => [],
+        $email = $this->deliveredEmail($message, [
+            'to'  => ['override-to@example.com'],
+            'cc'  => ['override-cc@example.com'],
+            'bcc' => ['override-bcc@example.com'],
         ]);
-        $transport->send($message);
+
+        self::assertSame(['override-to@example.com'], $this->addressStrings($email->getTo()));
+        self::assertSame(['override-cc@example.com'], $this->addressStrings($email->getCc()));
+        self::assertSame(['override-bcc@example.com'], $this->addressStrings($email->getBcc()));
     }
 
-    public function test_that_send_uses_override_string_csv(): void
+    public function test_that_send_replaces_all_original_recipients_with_csv_overrides(): void
     {
         $message = MailMessage::create()
             ->addFrom('from@example.com')
-            ->addTo('to@example.com');
+            ->addTo('original-to@example.com')
+            ->addCc('original-cc@example.com')
+            ->addBcc('original-bcc@example.com');
 
-        /** @var MailerInterface&MockInterface $mailer */
-        $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
-
-        $transport = new SymfonyMailTransport($mailer, [
-            'to'  => 'a@test.com,b@test.com',
-            'cc'  => 'cc@test.com',
-            'bcc' => 'bcc@test.com',
+        $email = $this->deliveredEmail($message, [
+            'to'  => 'first-override@example.com, second-override@example.com',
+            'cc'  => 'override-cc@example.com',
+            'bcc' => 'override-bcc@example.com',
         ]);
-        $transport->send($message);
+
+        self::assertSame(
+            ['first-override@example.com', 'second-override@example.com'],
+            $this->addressStrings($email->getTo())
+        );
+        self::assertSame(['override-cc@example.com'], $this->addressStrings($email->getCc()));
+        self::assertSame(['override-bcc@example.com'], $this->addressStrings($email->getBcc()));
     }
 
-    public function test_that_send_uses_override_with_all_types(): void
+    public function test_that_send_removes_original_cc_and_bcc_when_only_to_is_overridden(): void
     {
         $message = MailMessage::create()
             ->addFrom('from@example.com')
-            ->addTo('to@example.com');
+            ->addTo('original-to@example.com')
+            ->addCc('original-cc@example.com')
+            ->addBcc('original-bcc@example.com');
 
-        /** @var MailerInterface&MockInterface $mailer */
-        $mailer = $this->mock(MailerInterface::class);
-        $mailer->shouldReceive('send')->once()->with(Mockery::type(Email::class));
+        $email = $this->deliveredEmail($message, ['to' => ['override-to@example.com']]);
 
-        $transport = new SymfonyMailTransport($mailer, [
-            'to'  => ['a@test.com'],
-            'cc'  => ['cc@test.com'],
-            'bcc' => ['bcc@test.com'],
-        ]);
-        $transport->send($message);
+        self::assertSame(['override-to@example.com'], $this->addressStrings($email->getTo()));
+        self::assertSame([], $this->addressStrings($email->getCc()));
+        self::assertSame([], $this->addressStrings($email->getBcc()));
     }
 
     public function test_that_send_wraps_exception_in_mail_exception(): void

@@ -21,6 +21,10 @@ Adapter\Mail
 │   ├── SymfonyMailTransport            — MailTransport → Symfony MailerInterface
 │   ├── SymfonyMailFactory              — MailFactory → SymfonyAttachment
 │   └── SymfonyAttachment               — Attachment: fromString / fromPath, inline support
+├── Laravel\
+│   ├── LaravelMailTransport            — MailTransport → Laravel Mailer
+│   ├── LaravelMailFactory              — MailFactory → SymfonyAttachment
+│   └── FightMailMailable               — Laravel Mailable → Symfony Email
 ├── Logging\
 │   └── LoggingMailTransport            — Decorator: logs metadata then delegates
 └── Null\
@@ -34,7 +38,7 @@ Adapter\Mail
 A mutable, fluent DTO for building email messages. Use `MailMessage::create()` then chain
 setters.
 
-```php
+```php-inline
 use Fight\Common\Application\Mail\Message\MailMessage;
 use Fight\Common\Application\Mail\Message\Priority;
 
@@ -75,7 +79,7 @@ Call `addContent()` multiple times to build a multipart message. The Symfony tra
 `CONTENT_TYPE_HTML` (`text/html`) to `$email->html()` and `CONTENT_TYPE_PLAIN` (`text/plain`)
 to `$email->text()`.
 
-```php
+```php-inline
 $message
     ->addContent('<h1>Hello</h1>', MailMessage::CONTENT_TYPE_HTML)
     ->addContent('Hello', MailMessage::CONTENT_TYPE_PLAIN);
@@ -102,7 +106,7 @@ Implements both `MailTransport` and `MailFactory`, delegating to injected implem
 This is the recommended way to depend on mail in application services — one dependency gives
 you `send()`, `createMessage()`, and attachment creation.
 
-```php
+```php-inline
 final readonly class MailService implements MailTransport, MailFactory
 {
     public function __construct(
@@ -112,7 +116,7 @@ final readonly class MailService implements MailTransport, MailFactory
 }
 ```
 
-```php
+```php-inline
 class WelcomeEmailService
 {
     public function __construct(private MailService $mailer) {}
@@ -136,7 +140,7 @@ class WelcomeEmailService
 
 `Fight\Common\Application\Mail\Transport\MailTransport`
 
-```php
+```php-inline
 interface MailTransport
 {
     /** @throws MailException */
@@ -149,6 +153,7 @@ interface MailTransport
 | Implementation | Namespace | Purpose |
 |---|---|---|
 | `SymfonyMailTransport` | `Adapter\Mail\Symfony` | Production — wraps Symfony `MailerInterface` |
+| `LaravelMailTransport` | `Adapter\Mail\Laravel` | Production — wraps Laravel `Mailer` |
 | `LoggingMailTransport` | `Adapter\Mail\Logging` | Dev — logs message metadata then delegates |
 | `NullMailTransport` | `Adapter\Mail\Null` | Test — silent no-op |
 
@@ -159,7 +164,7 @@ interface MailTransport
 Maps every `MailMessage` field to Symfony Mime `Email`. Supports address overrides for
 dev/staging:
 
-```php
+```php-inline
 $transport = new SymfonyMailTransport(
     $symfonyMailer,
     ['to' => ['dev@example.com'], 'cc' => [], 'bcc' => []]
@@ -169,13 +174,36 @@ $transport = new SymfonyMailTransport(
 When overrides are set, all `To`/`Cc`/`Bcc` from the message are **replaced** with the
 override addresses. Each override accepts a comma-separated string or an array of strings.
 
+### Delivery, failures, and safe operation
+
+`SymfonyMailTransport` builds the Symfony `Email` and calls `MailerInterface::send()` inline. The
+Fight adapter owns no queue, retry, worker, or durable outbox. A selected Symfony Mailer
+configuration may dispatch the mail through Messenger and enqueue it before delivery, however.
+The application owns retry policy, delayed delivery, worker supervision, idempotency, and any
+durable outbox; queue a use case or message descriptor rather than assuming this transport
+supplies those concerns.
+
+`SymfonyMailTransport` translates failures thrown while building an email or handing it to
+`MailerInterface::send()` into `MailException`. Attachment creation is also a failure boundary:
+`SymfonyAttachment::fromPath()` throws `MailException` when the file cannot be opened, and
+attachment conversion during `send()` is translated in the same way. If Messenger accepts the
+mail for later delivery, a worker delivery failure cannot surface to the original caller as
+`MailException`; the application owns how it observes and handles that outcome. Catch and
+classify `MailException` at the application boundary where the business outcome is known.
+
+Recipient overrides are a consequential safety switch, not an additive routing rule. Any
+non-empty override map removes every original `To`, `Cc`, and `Bcc` recipient before applying
+the supplied values. Supplying only `to` therefore sends to the override `To` list and leaves
+`Cc` and `Bcc` empty; use explicit values for every recipient class required in the target
+environment.
+
 ### LoggingMailTransport
 
 `Fight\Common\Adapter\Mail\Logging\LoggingMailTransport`
 
 Decorator that logs message metadata via PSR-3 before calling the inner transport:
 
-```php
+```php-inline
 $transport = new LoggingMailTransport(
     new SymfonyMailTransport($symfonyMailer),
     $logger,
@@ -183,15 +211,23 @@ $transport = new LoggingMailTransport(
 );
 ```
 
+It logs subject, sender, recipient, reply-to, return-path, and other message metadata before delegation. Those fields
+can be personal or sensitive even though message bodies and attachments are not logged here.
+Choose a protected log sink, apply retention/redaction policy, and do not wrap a production
+transport with this decorator by default merely for delivery diagnostics.
+
 ### NullMailTransport
 
 `Fight\Common\Adapter\Mail\Null\NullMailTransport`
 
 Silent no-op. `send()` does nothing. Useful in tests.
 
-```php
+```php-inline
 $transport = new NullMailTransport();
 ```
+
+It is appropriate for tests and deliberate development suppression, but it provides no delivery
+evidence and must not be used to model a successful production mail path.
 
 ---
 
@@ -199,7 +235,7 @@ $transport = new NullMailTransport();
 
 `Fight\Common\Application\Mail\Message\MailFactory`
 
-```php
+```php-inline
 interface MailFactory
 {
     public function createMessage(): MailMessage;
@@ -219,9 +255,10 @@ interface MailFactory
 }
 ```
 
-`SymfonyMailFactory` (`Adapter\Mail\Symfony`) is the sole adapter implementation.
+The included adapter implementations are `SymfonyMailFactory` (`Adapter\Mail\Symfony`) and
+`LaravelMailFactory` (`Adapter\Mail\Laravel`).
 
-```php
+```php-inline
 $factory = new SymfonyMailFactory();
 
 $message   = $factory->createMessage();
@@ -235,7 +272,7 @@ $embedId    = $factory->generateEmbedId();
 
 `Fight\Common\Application\Mail\Message\Attachment`
 
-```php
+```php-inline
 interface Attachment
 {
     public function getId(): string;
@@ -251,7 +288,7 @@ interface Attachment
 
 ### Creating Attachments
 
-```php
+```php-inline
 use Fight\Common\Adapter\Mail\Symfony\SymfonyAttachment;
 
 // From a content string
@@ -278,7 +315,7 @@ The disposition is determined by whether `$embedId` is provided:
 - **`$embedId` is provided** — inline attachment (disposition: `inline`). Use with `embed()`
   for CID references in HTML.
 
-```php
+```php-inline
 // Inline — for embedding in HTML
 $image = SymfonyAttachment::fromString(
     $pngData,
@@ -299,7 +336,7 @@ $image = SymfonyAttachment::fromString(
 
 A backed integer enum matching RFC priorities:
 
-```php
+```php-inline
 enum Priority: int
 {
     case HIGHEST = 1;
@@ -312,191 +349,9 @@ enum Priority: int
 
 Access the integer value via `->value` (PHP backed-enum property):
 
-```php
+```php-inline
 $priority = Priority::HIGH;
 $priority->value;  // 2
 
 $message->setPriority(Priority::HIGHEST);
-```
-
----
-
-## Symfony Configuration
-
-```yaml
-# config/packages/common_mail.yaml
-
-services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-
-    # --- Factory ---
-    Fight\Common\Adapter\Mail\Symfony\SymfonyMailFactory: ~
-
-    # --- Transports ---
-    Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport:
-        arguments:
-            - '@mailer.mailer'
-            - []   # overrides — empty in production
-
-    Fight\Common\Adapter\Mail\Logging\LoggingMailTransport:
-        decorates: Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport
-        arguments:
-            - '@.inner'
-            - '@logger'
-            - 'info'
-
-    Fight\Common\Adapter\Mail\Null\NullMailTransport: ~
-
-    # --- Facade ---
-    Fight\Common\Application\Mail\MailService:
-        arguments:
-            - '@Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport'
-            - '@Fight\Common\Adapter\Mail\Symfony\SymfonyMailFactory'
-
-    # --- Interface aliases ---
-    Fight\Common\Application\Mail\Transport\MailTransport:
-        alias: Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport
-
-    Fight\Common\Application\Mail\Message\MailFactory:
-        alias: Fight\Common\Adapter\Mail\Symfony\SymfonyMailFactory
-```
-
-Environment-specific overrides:
-
-```yaml
-# config/packages/dev/common_mail.yaml
-services:
-    Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport:
-        arguments:
-            - '@mailer.mailer'
-            - to: ['dev-team@example.com']
-
-# config/packages/test/common_mail.yaml
-services:
-    Fight\Common\Application\Mail\Transport\MailTransport:
-        alias: Fight\Common\Adapter\Mail\Null\NullMailTransport
-```
-
----
-
-## Usage Examples
-
-### Sending from a Service
-
-```php
-use Fight\Common\Application\Mail\MailService;
-use Fight\Common\Application\Mail\Message\MailMessage;
-
-class OrderConfirmationService
-{
-    public function __construct(private MailService $mailer) {}
-
-    public function send(Order $order): void
-    {
-        $html = sprintf('<h1>Order #%d confirmed</h1>', $order->id());
-        $text = sprintf('Order #%d confirmed', $order->id());
-
-        $message = $this->mailer->createMessage()
-            ->setSubject('Order Confirmed')
-            ->addTo($order->customerEmail(), $order->customerName())
-            ->addFrom('orders@example.com', 'Example Store')
-            ->addContent($html, MailMessage::CONTENT_TYPE_HTML)
-            ->addContent($text, MailMessage::CONTENT_TYPE_PLAIN);
-
-        $this->mailer->send($message);
-    }
-}
-```
-
-### Sending with Attachments
-
-```php
-class InvoiceService
-{
-    public function __construct(private MailService $mailer) {}
-
-    public function send(Invoice $invoice): void
-    {
-        $pdf = $this->generatePdf($invoice);
-
-        $attachment = $this->mailer->createAttachmentFromString(
-            $pdf,
-            sprintf('invoice-%d.pdf', $invoice->number()),
-            'application/pdf'
-        );
-
-        $message = $this->mailer->createMessage()
-            ->setSubject('Your Invoice')
-            ->addTo($invoice->customerEmail())
-            ->addFrom('billing@example.com')
-            ->addContent('Please find your invoice attached.', MailMessage::CONTENT_TYPE_PLAIN)
-            ->addAttachment($attachment);
-
-        $this->mailer->send($message);
-    }
-}
-```
-
-### Sending with Inline Image
-
-```php
-class BrandedMailService
-{
-    public function __construct(private MailService $mailer) {}
-
-    public function send(string $email): void
-    {
-        $embedId = $this->mailer->generateEmbedId();
-        $logo    = $this->mailer->createAttachmentFromPath(
-            '/assets/logo.png',
-            'logo.png',
-            'image/png',
-            $embedId  // inline
-        );
-
-        $html = sprintf(
-            '<img src="%s" alt="Logo"><h1>Welcome</h1>',
-            $logo->embed()   // cid:<embedId>
-        );
-
-        $message = $this->mailer->createMessage()
-            ->setSubject('Welcome')
-            ->addTo($email)
-            ->addFrom('noreply@example.com')
-            ->addContent($html, MailMessage::CONTENT_TYPE_HTML)
-            ->addAttachment($logo);
-
-        $this->mailer->send($message);
-    }
-}
-```
-
-### Testing with NullMailTransport
-
-```php
-use Fight\Common\Adapter\Mail\Null\NullMailTransport;
-use Fight\Common\Adapter\Mail\Symfony\SymfonyMailFactory;
-
-$service = new MailService(
-    new NullMailTransport(),
-    new SymfonyMailFactory()
-);
-
-$service->send($message);  // no-op, no exception
-```
-
-### Development with LoggingMailTransport
-
-```php
-$transport = new LoggingMailTransport(
-    new NullMailTransport(),
-    $logger,
-    LogLevel::DEBUG
-);
-
-// Logs subject, from, to, cc, bcc, reply-to, sender, return-path,
-// charset, priority, timestamp, and max-line-length to the logger
-// before delegating to NullMailTransport
 ```
