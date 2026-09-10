@@ -2,7 +2,7 @@
 id: T-00094
 prd: PRD-00021
 title: Establish the Component Guide Contract Through Mail
-status: ready-for-agent
+status: done
 blocked_by: T-00090
 ---
 
@@ -24,18 +24,18 @@ behaviors matter, and where to go next.
 
 ## Acceptance Criteria
 
-- [ ] The guide states the Mail problem and its Domain, Application, and Adapter ownership before configuration.
-- [ ] Required and optional dependencies are accurate and the shortest framework-neutral example uses public
+- [x] The guide states the Mail problem and its Domain, Application, and Adapter ownership before configuration.
+- [x] Required and optional dependencies are accurate and the shortest framework-neutral example uses public
       contracts and produces an observable result.
-- [ ] Available adapters and supported framework composition are explicit without redefining Mail semantics.
-- [ ] Alternate formats appear only where genuinely equivalent, with labels, filenames, keyboard operation,
+- [x] Available adapters and supported framework composition are explicit without redefining Mail semantics.
+- [x] Alternate formats appear only where genuinely equivalent, with labels, filenames, keyboard operation,
       semantic tab state, and per-format copy controls.
-- [ ] The kiln warning callout explains real recipient-override replacement behavior through icon, label, and
+- [x] The kiln warning callout explains real recipient-override replacement behavior through icon, label, and
       prose rather than color alone.
-- [ ] Failure modes, operational concerns, related components, and next steps give the reader a complete adoption
+- [x] Failure modes, operational concerns, related components, and next steps give the reader a complete adoption
       path without duplicating source reference material.
-- [ ] Mail is linked directly from Connect Systems, navigation, search, and relevant related guides.
-- [ ] Examples, public symbols, packages, behavior claims, configuration syntax, links, and anchors are current.
+- [x] Mail is linked directly from Connect Systems, navigation, search, and relevant related guides.
+- [x] Examples, public symbols, packages, behavior claims, configuration syntax, links, and anchors are current.
 
 ## Verification
 
@@ -47,4 +47,9 @@ behaviors matter, and where to go next.
 
 ## Completion Notes
 
-Unblocked by T-00090's completed Mail article shell, configuration tabs, and artifact contracts.
+Completed the portable Mail adoption journey, accurate Symfony and Laravel delivery guidance, framework fallbacks,
+safe-operation boundaries, reciprocal discovery, and behavioral recipient-replacement proof without changing the
+runtime API. The copied portable example and representative YAML, XML, and PHP configuration passed direct checks;
+focused Mail tests passed with 79 tests and 262 assertions; rendered browser review covered the guide, configuration
+tabs, standard square copy controls, navigation, search, anchors, themes, and responsive layouts. The canonical
+background `./bin/build` passed with 3,641 tests, 20,638 assertions, and exact 10,089/10,089 statement coverage.

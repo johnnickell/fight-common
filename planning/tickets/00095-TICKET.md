@@ -49,4 +49,4 @@ operational concerns. Use Messaging to prove that the structure survives a dense
 
 ## Completion Notes
 
-Pending T-00094.
+Unblocked by T-00094's completed Mail reference guide and its verified component-guide contract.
