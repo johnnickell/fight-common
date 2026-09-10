@@ -3,21 +3,21 @@ id: T-00035
 prd: PRD-00011
 title: Publish the Certified Tag and GitHub Release
 status: ready-for-human
-blocked_by:
+blocked_by: T-00017
 ---
 
 # Publish the Certified Tag and GitHub Release
 
 ## Outcome
 
-Publish one T-00056-certified candidate through explicitly authorized, separately verified merge, annotated signed
-tag, push, and GitHub Release actions. This is a human-operated publication outcome, not another repository release
-engine.
+Publish the exact candidate accepted by T-00017 through explicitly authorized, separately verified merge,
+annotated signed tag, push, and GitHub Release actions. This is a human-operated publication outcome, not another
+repository release engine.
 
 ## Acceptance Criteria
 
-- [ ] Publication uses the exact version, commit, archive digest, and certification identity from the accepted
-      T-00056 handoff.
+- [ ] Publication uses the exact version, commit, archive digest, and certification identity accepted by T-00017
+      after T-00102 supersedes the earlier candidate.
 - [ ] Merge, tag, push, and GitHub Release are separately authorized before each effect.
 - [ ] The remote tag object, peeled commit, immutable GitHub Release, assets, and checksums are verified after the
       corresponding action; an uncertain postcondition stops for reconciliation rather than blind retry.
@@ -26,7 +26,7 @@ engine.
 
 ## Verification
 
-Review the T-00056 certification record, perform each approved publication action with the provider-native tool,
+Review the current certification record accepted by T-00017, perform each approved publication action with the provider-native tool,
 and verify the exact remote identities independently. This ticket itself authorizes no publication.
 
 ## Parent
