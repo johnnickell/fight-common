@@ -30,8 +30,8 @@ certify the resulting exact release candidate through the separate release opera
 
 - [ ] Every production class under the owned coverage scope has direct unit coverage through `#[CoversClass]`, and
       the unit suite alone proves exact statement equality without coverage-ignore directives.
-- [ ] Necessary integration, documentation-contract, and functional tests use `#[CoversNothing]` and prove real
-      public, installed-consumer, framework, persistence, filesystem, or application boundaries.
+- [ ] Necessary integration and functional tests use `#[CoversNothing]` and prove real public, installed-consumer,
+      framework, persistence, filesystem, or application boundaries; documentation and tooling have no tests.
 - [ ] `tests/Tooling` and equivalent tests of shell wrappers, builds, CI, Dockerfile text, PHPUnit configuration,
       hooks, coverage parsing, command ordering, and maintained third-party tools are removed.
 - [ ] Tests and fixtures for the published `FightCommon` PHPCS ruleset remain where they prove its real public

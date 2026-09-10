@@ -40,10 +40,12 @@ maintainer-facing operational practice.
 
 ## Verification
 
-- Build the generated routes and validate atlas, navigation, search, links, anchors, public symbols, dependencies,
-  and support claims.
-- Run a focused representative set of existing process, scheduler, observability, and composition checks.
-- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`.
+- Build the routes with the strict MkDocs renderer and inspect atlas, navigation, search, links, anchors, public
+  symbols, dependencies, and support claims directly in the rendered site.
+- Check examples against current source and existing production-code tests. Do not add documentation,
+  generated-file, fixture, or tooling tests.
+- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`; PHPUnit remains limited to
+  production code.
 
 ## Completion Notes
 

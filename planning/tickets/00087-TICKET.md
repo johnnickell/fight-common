@@ -37,7 +37,7 @@ contract; each starter owns its framework-specific tooling, implementation, veri
 - [ ] Deptrac enforces the starter's Adapter -> Application -> Domain direction, fails on unclassified production
       code, and keeps framework types at the Adapter/composition boundary.
 - [ ] Unit tests use `#[CoversClass]` and alone satisfy coverage. Necessary Integration and Functional journeys use
-      `#[CoversNothing]`; tooling and structural tests do not become a catch-all for scaffold, planning, cache,
+      `#[CoversNothing]`; tooling and structural tests are absent, including tests of scaffold, planning, cache,
       configuration, wrappers, or ignore-policy assertions.
 - [ ] Test fixtures and capability probes remain test-only. A starter does not publish global profile aggregates,
       synthetic Domain events, receipt authorities, or other production services solely to make tests convenient.

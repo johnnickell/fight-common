@@ -39,10 +39,11 @@ behaviors matter, and where to go next.
 
 ## Verification
 
-- Execute the representative Mail journey with deterministic test transport and prove recipient-override
-  behavior at the public seam.
-- Syntax-check representative supported configuration formats and exercise pointer and keyboard tab/copy use.
-- Run strict documentation and artifact checks plus `./bin/planning-check`, `git diff --check`, and `./bin/build`.
+- Confirm the representative Mail example and recipient-override claim against the existing public production-code
+  tests; this documentation ticket adds no documentation, generated-file, fixture, or tooling tests.
+- Build with the strict MkDocs renderer, syntax-check representative supported configuration directly, and
+  exercise pointer and keyboard tab/copy use in the rendered site.
+- Run `./bin/planning-check`, `git diff --check`, and `./bin/build`; PHPUnit remains limited to production code.
 
 ## Completion Notes
 

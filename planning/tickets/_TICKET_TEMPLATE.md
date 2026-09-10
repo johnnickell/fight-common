@@ -23,7 +23,8 @@ State the independently reviewable vertical slice.
 
 ## Verification
 
-- Command and expected evidence.
+- Name direct validation and expected evidence. Tests cover owned production code and behavior only; never require
+  tests for documentation, generated files, wrappers, configuration text, tooling validator scripts, or tooling.
 
 ## Completion Notes
 
