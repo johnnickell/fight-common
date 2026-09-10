@@ -40,11 +40,12 @@ operational concerns. Use Messaging to prove that the structure survives a dense
 
 ## Verification
 
-- Build the complete generated group and validate atlas, navigation, search, links, anchors, public symbols, and
-  dependency claims.
-- Execute representative Domain, messaging, repository or event-sourcing, and validation journeys selected for
-  copied-behavior risk.
-- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`.
+- Build the complete group with the strict MkDocs renderer and inspect atlas, navigation, search, links, anchors,
+  public symbols, and dependency claims directly in the rendered site.
+- Check copied examples against current source and existing production-code tests. Do not add documentation,
+  generated-file, fixture, or tooling tests.
+- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`; PHPUnit remains limited to
+  production code.
 
 ## Completion Notes
 

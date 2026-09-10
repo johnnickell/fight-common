@@ -63,6 +63,14 @@ blocked_by: T-00033
 
 Do not store `blocked` as a status; derive it from unfinished `blocked_by` edges.
 
+## Ticket Testing Policy
+
+Tickets require tests only for owned production code and meaningful product behavior. Documentation, generated
+files, shell wrappers, build orchestration, configuration text, tooling validator scripts, and tooling are verified
+directly by their owning renderer or tool and by human inspection where appropriate; tickets must never require
+tests of those surfaces. Historical completion records remain unchanged, but every new or unfinished ticket follows
+this rule.
+
 ## BOARD.md
 
 `planning/tickets/BOARD.md` is the canonical execution frontier. It must be structured as:

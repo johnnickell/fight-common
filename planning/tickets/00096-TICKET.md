@@ -41,10 +41,12 @@ templating, routing, SMS, and sockets.
 
 ## Verification
 
-- Build the generated group and validate atlas, navigation, search, links, anchors, symbols, and dependencies.
-- Execute a small representative set of HTTP/security, storage/transfer, and outbound integration journeys and
-  syntax-check copied configuration where useful.
-- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`.
+- Build the group with the strict MkDocs renderer and inspect atlas, navigation, search, links, anchors, symbols,
+  and dependencies directly in the rendered site.
+- Check copied examples against current source and existing production-code tests, and syntax-check configuration
+  with its owning tool where useful. Do not add documentation, generated-file, fixture, or tooling tests.
+- Run `./bin/planning-check`, `git diff --check`, and the canonical `./bin/build`; PHPUnit remains limited to
+  production code.
 
 ## Completion Notes
 
