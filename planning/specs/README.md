@@ -23,4 +23,4 @@
 | [00019](00019-PRD.md) | Isolate Release Tooling from the Consumer Runtime Surface | done |
 | [00020](00020-PRD.md) | Fight Identity and Repository Entry Surfaces | done |
 | [00021](00021-PRD.md) | Capability-Led Documentation and Information Architecture | in-progress |
-| [00022](00022-PRD.md) | Atlas Deck Presentation and GitHub Pages Delivery | ready-for-agent |
+| [00022](00022-PRD.md) | Atlas Deck Presentation and GitHub Pages Delivery | in-progress |

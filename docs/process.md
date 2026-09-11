@@ -1,5 +1,3 @@
-# Process
-
 A port-and-adapter layer for running shell processes. `Process` describes what to run;
 `ProcessRunner` manages a queue of processes, controls concurrency, and handles failures.
 `SymfonyProcessRunner` is the concrete adapter backed by `symfony/process`.

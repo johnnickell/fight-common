@@ -1,5 +1,3 @@
-# Sockets
-
 Sockets provides public and private publication ports with Symfony Mercure and Laravel broadcasting
 adapters. It publishes real-time messages to the selected transport; it is not a durable event store,
 job queue, retry engine, or proof that a subscriber received a message.

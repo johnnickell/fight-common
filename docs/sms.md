@@ -1,5 +1,3 @@
-# SMS
-
 A transport-abstraction layer for sending SMS and MMS messages. Messages are built via a
 fluent `SmsMessage` DTO and sent through any `SmsTransport` implementation. An `SmsService`
 facade combines transport + factory into a single dependency.

@@ -92,7 +92,7 @@ Serialization produces a uniform envelope:
 [
     'id'           => '018abc...',     // MessageId as string
     'type'         => 'command',       // MessageType value
-    'timestamp'    => '1712345678',    // Unix timestamp
+    'timestamp'    => '1712345678.123456', // Unix timestamp with microseconds
     'payload_type' => 'RegisterUserCommand',
     'payload'      => ['email' => '...', 'name' => '...'],
     'meta'         => ['trace_id' => 'abc123'],
@@ -144,8 +144,9 @@ interface Payload extends Arrayable
 
 `Fight\Common\Domain\Messaging\Meta`
 
-Key-value metadata container attached to every message envelope. Accepts only scalars and
-arrays of scalars — guards against complex types on `set()`.
+Key-value metadata container attached to every message envelope. Accepts scalars, arrays,
+or `null`; arrays may be nested and contain only arrays, scalars, or `null`. Guards against
+more complex types on `set()`.
 
 ```php-inline
 $meta = Meta::create(['trace_id' => 'abc', 'user_id' => 42]);

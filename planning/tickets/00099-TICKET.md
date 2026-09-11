@@ -3,7 +3,7 @@ id: T-00099
 prd: PRD-00022
 title: Verify the First Hosted Pages Publication
 status: ready-for-agent
-blocked_by: T-00098
+blocked_by:
 ---
 
 # Verify the First Hosted Pages Publication
@@ -47,4 +47,4 @@ deploys, verify the real public Fight Common site and establish its grouped rout
 
 ## Completion Notes
 
-Pending T-00098 and a separately authorized first publication.
+T-00098 accepted the predeployment candidate. Pending a separately authorized first publication.

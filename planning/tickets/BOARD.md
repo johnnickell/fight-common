@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-10
+Last updated: 2026-09-11
 
 ## “What’s Next?” Contract
 
@@ -16,9 +16,10 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No release-publication decision is currently ready. The earlier T-00056 candidate will be superseded by the
-documentation-complete, lean-gate candidate from T-00102. T-00035 becomes the next human publication decision only
-after T-00017 accepts that fresh candidate.
+Decide whether to authorize and perform the `develop` to `main` merge that publishes the T-00098-accepted
+documentation candidate through the protected Pages workflow. The T-00098 pull request into `develop` records
+predeployment acceptance only and does not itself publish the site. If publication occurs, T-00099 is the next
+verification target. The later 1.2 package-publication decision remains gated by T-00102 and T-00017.
 
 ## Wayfinder Review
 
@@ -32,7 +33,7 @@ one.
 
 | Rank | Ticket | Parent PRD | Current slice |
 |------|--------|------------|---------------|
-| 1 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Accept the complete predeployment documentation candidate through focused human review. |
+| 1 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | After separately authorized publication, verify the exact protected Pages artifact over HTTPS. |
 
 ## Waiting
 
@@ -41,11 +42,10 @@ blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 2 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | T-00098 and separately authorized publication |
-| 3 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00099 |
-| 5 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
-| 6 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
-| 7 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
+| 2 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | T-00099 |
+| 4 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
+| 5 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
+| 6 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
 
 ## Needs Info
 
@@ -58,7 +58,7 @@ complete.
 
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
-| 4 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
+| 3 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -125,6 +125,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Accepted the repaired predeployment candidate pinned at `098d18f` through strict artifact and editorial review, exact asset baselines, responsive and accessibility evidence, John's separate Brave and VoiceOver passes, and the complete canonical build; hosted publication remains T-00099. |
 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Completed the Operate Workloads guides, direct framework-free and supported-framework adoption paths, accurate provider and unavailable-capability boundaries, and current maintainer guidance with responsive Atlas presentation. |
 | [T-00096 — Complete Connect Systems Component Guidance](00096-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Completed all nine remaining Connect Systems guides with accurate portable contracts, adapters, security and operational boundaries, syntax-highlighted examples, direct discovery, and an accepted responsive Atlas presentation. |
 | [T-00095 — Complete Domain and Application Component Guidance](00095-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Completed all ten Domain and Application guides with accurate ownership, portable adoption paths, current symbols, behavior and failure guidance, reciprocal discovery, contrast-safe syntax highlighting, consistently aligned examples, and responsive Atlas presentation. |
