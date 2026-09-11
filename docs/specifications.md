@@ -1,5 +1,3 @@
-# Specification Pattern
-
 Encapsulate business rules into reusable, composable objects. Each rule is a single class; combine them with logical operators (`and`, `or`, `not`) to build complex business logic from small, testable pieces.
 
 ```
@@ -39,7 +37,7 @@ Specification (interface)
 
 Every specification implements this contract:
 
-```php
+```php-inline
 interface Specification
 {
     public function isSatisfiedBy(mixed $candidate): bool;
@@ -59,7 +57,7 @@ The single evaluation method `isSatisfiedBy` takes a candidate (any domain objec
 
 Extend this abstract class to create your business rules. You only need to implement `isSatisfiedBy` — the three combinator methods are provided for free:
 
-```php
+```php-inline
 abstract class CompositeSpecification implements Specification
 {
     abstract public function isSatisfiedBy(mixed $candidate): bool;
@@ -97,7 +95,7 @@ Three concrete classes implement the boolean operations. All are `final` — you
 
 Internally they are simple wrappers around PHP's native operators:
 
-```php
+```php-inline
 // AndSpecification
 public function isSatisfiedBy(mixed $candidate): bool
 {
@@ -127,7 +125,7 @@ public function isSatisfiedBy(mixed $candidate): bool
 
 For one-off checks in tests or simple filters, create an anonymous class extending `CompositeSpecification`:
 
-```php
+```php-inline
 $isPremium = new class extends CompositeSpecification {
     public function isSatisfiedBy(mixed $candidate): bool
     {
@@ -142,7 +140,7 @@ $isPremium->isSatisfiedBy($user);  // true or false
 
 Extract the logic into a named class when the rule is used in multiple places or needs configuration:
 
-```php
+```php-inline
 use Fight\Common\Domain\Specification\CompositeSpecification;
 
 class PremiumCustomerSpecification extends CompositeSpecification
@@ -179,7 +177,7 @@ Build complex business rules from small, single-responsibility leaf specs.
 
 Each checks one thing:
 
-```php
+```php-inline
 class IsAdminSpecification extends CompositeSpecification
 {
     public function isSatisfiedBy(mixed $candidate): bool
@@ -221,7 +219,7 @@ class TeamNotFullSpecification extends CompositeSpecification
 
 Combine them fluently:
 
-```php
+```php-inline
 // User must be admin AND active
 $canAccessAdmin = (new IsAdminSpecification())
     ->and(new IsActiveSpecification());
@@ -233,7 +231,7 @@ $hasEditorialRole = (new IsEditorSpecification())
 
 ### Negation
 
-```php
+```php-inline
 // User must be active AND NOT banned
 $canAccess = (new IsActiveSpecification())
     ->and(new IsBannedSpecification()->not());
@@ -241,7 +239,7 @@ $canAccess = (new IsActiveSpecification())
 
 ### Chained Composition
 
-```php
+```php-inline
 // Admin or editor, active, and not banned
 $canPublish = (new IsAdminSpecification())
     ->or(new IsEditorSpecification())
@@ -251,7 +249,7 @@ $canPublish = (new IsAdminSpecification())
 
 ### Parameterized Rules
 
-```php
+```php-inline
 // Not full AND (admin OR editor) AND active AND not banned
 $canInviteMember = (new TeamNotFullSpecification(10))
     ->and(new IsAdminSpecification())
@@ -266,7 +264,7 @@ $canInviteMember = (new TeamNotFullSpecification(10))
 
 Each combinator creates a node in a tree. When `isSatisfiedBy` is called, the tree is traversed depth-first.
 
-```php
+```php-inline
 $spec = (new IsAdminSpecification())
     ->or(new IsEditorSpecification())
     ->and(new IsActiveSpecification());
@@ -321,7 +319,7 @@ A realistic domain rule: an order qualifies for a promotional discount when the 
 
 ### Leaf Specifications
 
-```php
+```php-inline
 class LoyalCustomerSpecification extends CompositeSpecification
 {
     public function isSatisfiedBy(mixed $candidate): bool
@@ -376,7 +374,7 @@ class DateRangeSpecification extends CompositeSpecification
 
 ### Composed Rule
 
-```php
+```php-inline
 $eligibleForDiscount = (new LoyalCustomerSpecification())
     ->and(new MinimumOrderSpecification(50.0))
     ->and(new ValidCouponSpecification('SAVE20', 'WELCOME10'))
@@ -394,7 +392,7 @@ if ($eligibleForDiscount->isSatisfiedBy($order)) {
 
 The same leaf specs can be combined differently for other business rules:
 
-```php
+```php-inline
 // Early-access program: loyal OR has a special coupon
 $earlyAccess = (new LoyalCustomerSpecification())
     ->or(new ValidCouponSpecification('EARLY2026'));

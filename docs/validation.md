@@ -1,6 +1,7 @@
-# Validation
-
-The validation system provides declarative, attribute-driven input validation for Symfony controller actions. Rules are declared directly on the controller method; the framework intercepts the request before the action body executes and throws a `ValidationException` if any rule fails. If the action body is reached, the input is guaranteed to be clean.
+Validation is a portable Application service for named input and declarative rules. The optional
+Symfony subscriber is Adapter composition: it reads controller metadata, selects HTTP input, and
+delegates to the same `ValidationService` used outside Symfony. Passing rules does not sanitize or
+authorize input; it only establishes that the declared rules passed.
 
 ---
 
@@ -19,7 +20,7 @@ The validation system provides declarative, attribute-driven input validation fo
 
 ## Overview
 
-The system is built from three cooperating pieces:
+The optional Symfony HTTP composition is built from three cooperating pieces:
 
 ```
 Request
@@ -27,19 +28,19 @@ Request
         └─► SymfonyValidationSubscriber
               └─► reads #[Validation] attribute from the controller method
                     └─► ValidationService::validate()
-                          ├─► passes  →  controller action executes (input is clean)
+                          ├─► passes  →  controller action executes (declared rules passed)
                           └─► fails   →  ValidationException thrown (action never executes)
 ```
 
-**`#[Validation]` attribute** — attached to a controller method; declares the fields to validate and the rules each field must satisfy.
+**`#[Validation]` attribute** — Application metadata attached to a method; declares the fields to validate and the rules each field must satisfy.
 
-**`SymfonyValidationSubscriber`** — subscribes to `kernel.controller`. For every dispatched request it reflects on the resolved controller method, reads any `#[Validation]` attributes, and runs validation before the action body is entered. Input is drawn from:
-- Query string (`$request->query->all()`) for safe HTTP methods (GET, HEAD, OPTIONS).
+**`SymfonyValidationSubscriber`** — an Adapter that subscribes to `kernel.controller`. For every dispatched request it reflects on the resolved controller method, reads any `#[Validation]` attributes, and runs validation before the action body is entered. Input is drawn from:
+- Query string (`$request->query->all()`) for HTTP methods Symfony considers safe.
 - Request body (`$request->request->all()`) for state-changing methods (POST, PUT, PATCH, DELETE).
 
 For JSON APIs, register `JsonRequestMiddleware` so that the JSON body is parsed into `$request->request` before the subscriber runs.
 
-**`ValidationService`** — orchestrates field-level validation using the parsed rules. On success it returns an `ApplicationData` object (unused in the attribute flow). On failure it throws `Fight\Common\Application\Validation\Exception\ValidationException`.
+**`ValidationService`** — a portable Application service that orchestrates field-level validation using the parsed rules. On success it returns an `ApplicationData` object (unused in the attribute flow). On failure it throws `Fight\Common\Application\Validation\Exception\ValidationException`.
 
 ---
 
@@ -74,7 +75,7 @@ services:
 
 For JSON API endpoints, also wrap the kernel with `Fight\Common\Adapter\Middleware\Symfony\JsonRequestMiddleware` so that `application/json` request bodies are decoded into `$request->request` before the subscriber inspects them:
 
-```php
+```php-inline
 // public/index.php (or wherever you build the kernel)
 $kernel = new JsonRequestMiddleware($kernel);
 ```
@@ -89,7 +90,7 @@ Fight\Common\Application\Attribute\Validation
 
 The attribute is scoped to methods (`Attribute::TARGET_METHOD`). Apply it to any controller action that requires validated input.
 
-```php
+```php-inline
 use Fight\Common\Application\Attribute\Validation;
 
 #[Validation(rules: [...])]
@@ -101,7 +102,7 @@ public function store(Request $request): JsonResponse { ... }
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `rules` | `array` | `[]` | Array of rule-definition arrays. Each element declares one field's validation rules. See [Defining Rules](#defining-rules). |
-| `formName` | `?string` | `null` | Reserved for future front-end form integration. Has no effect on validation behavior. |
+| `formName` | `?string` | `null` | Stored attribute metadata; the supplied validation service and Symfony subscriber do not read it. |
 
 ---
 
@@ -109,7 +110,7 @@ public function store(Request $request): JsonResponse { ... }
 
 Each element of the `rules` array is an associative array describing one field:
 
-```php
+```php-inline
 [
     'field'  => 'email',            // (required) input key to validate
     'label'  => 'Email',            // (required) human-readable field name used in error messages
@@ -262,7 +263,7 @@ Every rule has a default error message that is produced automatically from the f
 
 The format string follows PHP `sprintf` conventions. The first `%s` is always replaced with the field label. Any subsequent placeholders correspond to the rule's arguments in order.
 
-```php
+```php-inline
 [
     'field'  => 'password',
     'label'  => 'Password',
@@ -277,7 +278,7 @@ The format string follows PHP `sprintf` conventions. The first `%s` is always re
 
 For rules without arguments (e.g., `required`, `email`), the format string receives only the label:
 
-```php
+```php-inline
 'errors' => [
     'required' => 'Please provide your %s.',
     'email'    => '%s does not look right.',
@@ -294,7 +295,7 @@ When validation fails, `SymfonyValidationSubscriber` allows the `ValidationExcep
 
 `Fight\Common\Application\Validation\Exception\ValidationException` carries a structured error map:
 
-```php
+```php-inline
 // $exception->getErrors() returns:
 [
     'email'    => ['Email must be a valid email address'],
@@ -424,7 +425,7 @@ class UserController extends AbstractController
 
 If any rule fails — for example, the submitted `role` is `'superuser'` — the subscriber throws a `ValidationException` before `create()` is entered, with `getErrors()` returning:
 
-```php
+```php-inline
 [
     'role' => ['Role must be one of [admin,editor,viewer]'],
 ]

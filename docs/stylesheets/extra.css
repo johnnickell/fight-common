@@ -39,6 +39,12 @@
   --fight-footer-text: #EEF2F3;
   --fight-footer-link: #FF7A45;
   --fight-footer-focus: #FF9A72;
+  --fight-code-keyword: #C2410C;
+  --fight-code-string: #147A4B;
+  --fight-code-type: #6D4BC3;
+  --fight-code-symbol: #006C8F;
+  --fight-code-number: #9A5B00;
+  --fight-code-comment: #5D6A70;
   --md-default-bg-color: var(--fight-canvas);
   --md-default-fg-color: var(--fight-text);
   --md-default-fg-color--light: var(--fight-muted-text);
@@ -68,6 +74,12 @@
   --fight-footer-text: #EEF2F3;
   --fight-footer-link: #FF7A45;
   --fight-footer-focus: #FF9A72;
+  --fight-code-keyword: #FF9A72;
+  --fight-code-string: #68D391;
+  --fight-code-type: #C4A7FF;
+  --fight-code-symbol: #80D4FF;
+  --fight-code-number: #F3C969;
+  --fight-code-comment: #AAB7BD;
   --md-default-bg-color: var(--fight-canvas);
   --md-default-fg-color: var(--fight-text);
   --md-default-fg-color--light: var(--fight-muted-text);
@@ -576,6 +588,80 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
 .atlas-article-content .highlight {
   max-inline-size: 100%;
   overflow-x: auto;
+}
+
+/* Give Atlas examples a Fight-specific palette without changing prose chrome. */
+.atlas-article-content .highlight .k,
+.atlas-article-content .highlight .kc,
+.atlas-article-content .highlight .kd,
+.atlas-article-content .highlight .kn,
+.atlas-article-content .highlight .kp,
+.atlas-article-content .highlight .kr,
+.atlas-article-content .highlight .kt,
+.atlas-article-content .highlight .o,
+.atlas-article-content .highlight .ow {
+  color: var(--fight-code-keyword);
+}
+
+.atlas-article-content .highlight .s,
+.atlas-article-content .highlight .sa,
+.atlas-article-content .highlight .sb,
+.atlas-article-content .highlight .sc,
+.atlas-article-content .highlight .dl,
+.atlas-article-content .highlight .sd,
+.atlas-article-content .highlight .s1,
+.atlas-article-content .highlight .s2,
+.atlas-article-content .highlight .se,
+.atlas-article-content .highlight .sh,
+.atlas-article-content .highlight .si,
+.atlas-article-content .highlight .sr,
+.atlas-article-content .highlight .ss,
+.atlas-article-content .highlight .sx {
+  color: var(--fight-code-string);
+}
+
+.atlas-article-content .highlight .nc,
+.atlas-article-content .highlight .nd,
+.atlas-article-content .highlight .ne,
+.atlas-article-content .highlight .nn,
+.atlas-article-content .highlight .nt,
+.atlas-article-content .highlight .nx {
+  color: var(--fight-code-type);
+}
+
+.atlas-article-content .highlight .n,
+.atlas-article-content .highlight .na,
+.atlas-article-content .highlight .nb,
+.atlas-article-content .highlight .bp,
+.atlas-article-content .highlight .fm,
+.atlas-article-content .highlight .nf,
+.atlas-article-content .highlight .nv,
+.atlas-article-content .highlight .vc,
+.atlas-article-content .highlight .vg,
+.atlas-article-content .highlight .vi,
+.atlas-article-content .highlight .vm {
+  color: var(--fight-code-symbol);
+}
+
+.atlas-article-content .highlight .m,
+.atlas-article-content .highlight .mb,
+.atlas-article-content .highlight .mf,
+.atlas-article-content .highlight .mh,
+.atlas-article-content .highlight .mi,
+.atlas-article-content .highlight .il,
+.atlas-article-content .highlight .mo,
+.atlas-article-content .highlight .no {
+  color: var(--fight-code-number);
+}
+
+.atlas-article-content .highlight .c,
+.atlas-article-content .highlight .c1,
+.atlas-article-content .highlight .ch,
+.atlas-article-content .highlight .cm,
+.atlas-article-content .highlight .cp,
+.atlas-article-content .highlight .cpf,
+.atlas-article-content .highlight .cs {
+  color: var(--fight-code-comment);
 }
 
 .atlas-format-tabs {
@@ -1644,6 +1730,10 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
 }
 
 @media screen and (max-width: 29.9375em) {
+  .atlas-article-content > h1 {
+    font-size: clamp(2.1rem, 10vw, 2.4rem);
+  }
+
   .atlas-architecture-proof {
     align-items: stretch;
     flex-direction: column;

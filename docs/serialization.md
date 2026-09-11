@@ -1,6 +1,7 @@
-# Serializers
-
-Two cooperating layers: the `Serializable` interface lets domain objects opt in to being serialized, and `Serializer` implementations convert those objects to and from string formats.
+Two cooperating layers keep serialization boundaries explicit: the Domain `Serializable` interface
+lets objects supply and restore their state, while canonical Application `Serializer`
+implementations convert that state to and from string formats. The legacy concrete serializers in
+`Domain\Serialization` are deprecated 1.x compatibility classes, not the recommended API.
 
 ```
 Serializable (interface)
@@ -9,12 +10,12 @@ Serializable (interface)
   │
   └── YourDomainObject implements Serializable
 
-Serializer (interface)
+Serializer (Domain interface)
   │  serialize(Serializable $object): string
   │  deserialize(string $state): Serializable
   │
-  ├── JsonSerializer   → JSON strings
-  └── PhpSerializer    → PHP-serialized strings
+  └── Application\Serialization\JsonSerializer   → JSON strings
+      Application\Serialization\PhpSerializer    → PHP-serialized strings
 ```
 
 ---
@@ -36,7 +37,7 @@ Serializer (interface)
 
 Domain objects implement this interface to declare they can be serialized. It has two methods:
 
-```php
+```php-inline
 interface Serializable
 {
     public static function arrayDeserialize(array $data): static;
@@ -49,7 +50,7 @@ interface Serializable
 
 Implement it on any domain object — value objects, entities, or configuration models:
 
-```php
+```php-inline
 use Fight\Common\Domain\Serialization\Serializable;
 
 final readonly class Coordinate implements Serializable
@@ -84,7 +85,7 @@ final readonly class Coordinate implements Serializable
 
 The mechanism that converts `Serializable` objects to and from strings:
 
-```php
+```php-inline
 interface Serializer
 {
     public function serialize(Serializable $object): string;
@@ -103,7 +104,7 @@ The `Serializer` is format-agnostic — two implementations ship with the librar
 
 Both serializers wrap the object's data in a structured envelope with two keys:
 
-```php
+```php-inline
 [
     '@' => 'App.Dto.Coordinate',       // canonical class name (dots, not backslashes)
     '$' => ['lat' => 48.85, 'lng' => 2.35],  // the arraySerialize() result
@@ -119,12 +120,12 @@ During deserialization, the serializer reads `@`, resolves the class via `ClassN
 
 ## JsonSerializer
 
-`Fight\Common\Domain\Serialization\JsonSerializer`
+`Fight\Common\Application\Serialization\JsonSerializer`
 
 Converts to and from JSON strings. Uses `JSON_UNESCAPED_SLASHES` as the default encoding.
 
-```php
-use Fight\Common\Domain\Serialization\JsonSerializer;
+```php-inline
+use Fight\Common\Application\Serialization\JsonSerializer;
 
 $serializer = new JsonSerializer();
 
@@ -148,12 +149,12 @@ Throws `DomainException` when:
 
 ## PhpSerializer
 
-`Fight\Common\Domain\Serialization\PhpSerializer`
+`Fight\Common\Application\Serialization\PhpSerializer`
 
 Uses PHP's native `serialize()` and `unserialize()` with the same envelope format. The output is PHP-specific and more compact.
 
-```php
-use Fight\Common\Domain\Serialization\PhpSerializer;
+```php-inline
+use Fight\Common\Application\Serialization\PhpSerializer;
 
 $serializer = new PhpSerializer();
 
@@ -164,7 +165,8 @@ $restored = $serializer->deserialize($serialized);
 // Coordinate instance
 ```
 
-Suitable for PHP-internal use cases: cache backends, session storage, or any context where cross-language compatibility is not needed.
+Suitable only for trusted PHP-internal use cases where cross-language compatibility is not needed.
+Because it calls PHP `unserialize()`, never use it on untrusted input.
 
 Same validation as `JsonSerializer` — missing keys or non-`Serializable` classes throw `DomainException`.
 
@@ -174,8 +176,8 @@ Same validation as `JsonSerializer` — missing keys or non-`Serializable` class
 
 A richer domain object that composes another `Serializable` and handles nested deserialization:
 
-```php
-use Fight\Common\Domain\Serialization\JsonSerializer;
+```php-inline
+use Fight\Common\Application\Serialization\JsonSerializer;
 use Fight\Common\Domain\Serialization\Serializable;
 
 final readonly class CustomerProfile implements Serializable

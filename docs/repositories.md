@@ -1,6 +1,4 @@
-# Repositories
-
-Standard DTOs for paginated repository queries (`Pagination` as input, `ResultSet` as output) and the narrow `TransactionalUnitOfWork` boundary for transaction management. The canonical Doctrine adapter is included.
+Standard DTOs for paginated repository queries (`Pagination` as input, `ResultSet` as output) and the narrow `TransactionalUnitOfWork` boundary for transaction management. Shipped adapters cover Doctrine, Laravel, CodeIgniter, and Yii.
 
 ```
 Domain\Repository
@@ -11,8 +9,11 @@ Application\Repository
 ├── TransactionalUnitOfWork (canonical interface)
 └── UnitOfWork (deprecated 1.x compatibility interface)
 
-Adapter\Persistence\Doctrine
-└── DoctrineTransactionalUnitOfWork (canonical adapter)
+Adapter\Persistence
+├── Doctrine\DoctrineTransactionalUnitOfWork
+├── Laravel\LaravelTransactionalUnitOfWork
+├── CodeIgniter\CodeIgniterTransactionalUnitOfWork
+└── Yii\YiiTransactionalUnitOfWork
 
 Adapter\Repository
 └── DoctrineUnitOfWork (deprecated 1.x compatibility adapter)
@@ -26,8 +27,10 @@ Adapter\Repository
 2. [ResultSet](#resultset)
 3. [TransactionalUnitOfWork Interface](#transactionalunitofwork-interface)
 4. [DoctrineTransactionalUnitOfWork](#doctrinetransactionalunitofwork)
-5. [Usage in a Repository Interface](#usage-in-a-repository-interface)
-6. [Deprecated 1.x Compatibility](#deprecated-1x-compatibility)
+5. [CodeIgniterTransactionalUnitOfWork](#codeignitertransactionalunitofwork)
+6. [Laravel and Yii transactional adapters](#laravel-and-yii-transactional-adapters)
+7. [Usage in a Repository Interface](#usage-in-a-repository-interface)
+8. [Deprecated 1.x Compatibility](#deprecated-1x-compatibility)
 
 ---
 
@@ -37,7 +40,7 @@ Adapter\Repository
 
 An immutable input DTO for paginated repository methods. Pre-computes `offset` and `limit` from `page` and `perPage`.
 
-```php
+```php-inline
 use Fight\Common\Domain\Repository\Pagination;
 
 $pagination = new Pagination(
@@ -71,7 +74,7 @@ Constants: `Pagination::ASC`, `Pagination::DESC`, `Pagination::DEFAULT_PAGE`, `P
 
 An output DTO wrapping a typed `ArrayList` of records together with pagination metadata. Implements `Collection` (`Countable` + `IteratorAggregate`), `Arrayable`, and `JsonSerializable`.
 
-```php
+```php-inline
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Domain\Collection\ArrayList;
 
@@ -107,7 +110,7 @@ $result->toArray();
 //     'records'       => [ ... ]
 // ]
 
-json_encode($result);   // same structure
+json_encode($result);                // same structure
 ```
 
 ---
@@ -118,7 +121,7 @@ json_encode($result);   // same structure
 
 Defines the canonical application boundary for running a complete operation atomically without coupling application services to a specific ORM.
 
-```php
+```php-inline
 interface TransactionalUnitOfWork
 {
     public function commitTransactional(callable $operation): mixed;
@@ -137,9 +140,9 @@ interface TransactionalUnitOfWork
 
 `Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork`
 
-The canonical Doctrine ORM adapter wraps `EntityManagerInterface` and implements only `TransactionalUnitOfWork`.
+The Doctrine ORM adapter wraps `EntityManagerInterface` and implements only `TransactionalUnitOfWork`.
 
-```php
+```php-inline
 use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
 
 $unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
@@ -165,7 +168,7 @@ $result = $unitOfWork->commitTransactional(function () use ($users, $command) {
 selected CodeIgniter database connection to `TransactionalUnitOfWork`. Register it only from the project-owned
 `Config\Services` persistence capability delegate; selecting messaging does not bind it.
 
-```php
+```php-inline
 use Fight\Common\Adapter\ServiceContainer\CodeIgniter\PersistenceServices;
 
 return PersistenceServices::transactionalUnitOfWork(db_connect());
@@ -177,11 +180,26 @@ configuration. Any outbox remains application configuration.
 
 ---
 
+## Laravel and Yii transactional adapters
+
+`Fight\Common\Adapter\Persistence\Laravel\LaravelTransactionalUnitOfWork` wraps one Laravel
+`Illuminate\Database\Connection`; the shipped Laravel `PersistenceServiceProvider` binds it to
+`TransactionalUnitOfWork` using the application's `db.connection`. It requires `laravel/framework`.
+
+`Fight\Common\Adapter\Persistence\Yii\YiiTransactionalUnitOfWork` wraps a Yii
+`Yiisoft\Db\Connection\ConnectionInterface`; the shipped Yii `PersistenceServiceProvider` returns the
+corresponding DI definition. It requires `yiisoft/db` and the consumer's Yii DI configuration.
+
+Both adapters reject nested portable transactions. Yii also rejects execution on a connection it has observed as
+closed; consumers still own connection selection, migration, retry, and outbox policy.
+
+---
+
 ## Usage in a Repository Interface
 
 The complete pattern for a repository interface using both DTOs and the canonical transaction boundary:
 
-```php
+```php-inline
 use Fight\Common\Domain\Repository\Pagination;
 use Fight\Common\Domain\Repository\ResultSet;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
@@ -221,7 +239,7 @@ deprecation notices. Their standalone `UnitOfWork::commit()` journey is deprecat
 path for new consumers. Migrate new and existing transaction boundaries to `TransactionalUnitOfWork` and
 `DoctrineTransactionalUnitOfWork`:
 
-```php
+```php-inline
 use Fight\Common\Adapter\Repository\DoctrineUnitOfWork;
 
 // Deprecated 1.x compatibility only.
