@@ -8,6 +8,7 @@ use Fight\Common\Adapter\Auth\Hmac\HmacWebhookDispatcher;
 use Fight\Common\Application\Auth\RequestService;
 use Fight\Common\Application\HttpClient\Message\MessageFactory;
 use Fight\Common\Application\HttpClient\Transport\HttpClient;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -81,5 +82,27 @@ class HmacWebhookDispatcherTest extends UnitTestCase
 
         $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
         $dispatcher->dispatch('https://example.com/ops', 'deploy', ['version' => '1.2.3']);
+    }
+
+    public function test_that_dispatch_rejects_an_unknown_action_before_creating_a_request(): void
+    {
+        /** @var MockInterface|MessageFactory $factory */
+        $factory = $this->mock(MessageFactory::class);
+        $factory->shouldNotReceive('createRequest');
+
+        /** @var MockInterface|RequestService $signer */
+        $signer = $this->mock(RequestService::class);
+        $signer->shouldNotReceive('signRequest');
+
+        /** @var MockInterface|HttpClient $client */
+        $client = $this->mock(HttpClient::class);
+        $client->shouldNotReceive('send');
+
+        $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Unknown AI operation action: unknown');
+
+        $dispatcher->dispatch('https://example.com/ops', 'unknown');
     }
 }

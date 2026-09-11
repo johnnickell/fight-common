@@ -72,7 +72,7 @@ final class QueryMessage extends BaseMessage
         }
 
         $id = MessageId::fromString($data['id']);
-        $timestamp = DateTimeImmutable::createFromFormat('U', $data['timestamp']);
+        $timestamp = new DateTimeImmutable('@'.(string) $data['timestamp']);
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
         /** @var class-string<Query> $payloadClass */

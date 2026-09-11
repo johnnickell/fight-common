@@ -41,7 +41,7 @@ final readonly class DbalEventStoreSchema
         $events->setPrimaryKey(['global_position']);
         $events->addUniqueIndex(
             ['aggregate_name', 'aggregate_identifier', 'stream_version'],
-            'event_store_stream_version_unique',
+            'event_store_stream_version_unique'
         );
         $events->addUniqueIndex(['message_id'], 'event_store_message_id_unique');
 
@@ -70,7 +70,7 @@ final readonly class DbalEventStoreSchema
         if (
             false === $connection->fetchOne(
                 sprintf('SELECT singleton FROM %s WHERE singleton = ?', self::GLOBAL_POSITION_TABLE),
-                [1],
+                [1]
             )
         ) {
             $connection->insert(self::GLOBAL_POSITION_TABLE, [

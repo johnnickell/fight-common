@@ -12,6 +12,8 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
  * Class MessengerCommandBus
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus
  */
 final readonly class MessengerCommandBus implements AsynchronousCommandBus
 {
@@ -23,6 +25,8 @@ final readonly class MessengerCommandBus implements AsynchronousCommandBus
     }
 
     /**
+     * Dispatches a command asynchronously
+     *
      * @inheritDoc
      */
     public function execute(Command $command): void
@@ -31,6 +35,8 @@ final readonly class MessengerCommandBus implements AsynchronousCommandBus
     }
 
     /**
+     * Sends a command message to the transport
+     *
      * @inheritDoc
      */
     public function dispatch(CommandMessage $commandMessage): void

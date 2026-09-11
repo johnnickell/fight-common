@@ -37,7 +37,7 @@ final class InMemoryPublicationCursorStore implements PublicationCursorStore
                 'Publication cursor %s cannot move backward from %d to %d.',
                 $publicationName,
                 $cursor,
-                $globalPosition,
+                $globalPosition
             ));
         }
 

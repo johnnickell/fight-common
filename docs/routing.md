@@ -1,6 +1,6 @@
-# Routing
-
-No stand-alone router is provided. The `UrlGenerator` interface allows application-layer services to generate URLs without coupling to a specific framework. The Symfony adapter is included for projects that use Symfony's routing.
+No stand-alone router is provided. The `UrlGenerator` interface allows application-layer services to
+generate URLs without coupling to a specific framework. Adapters are shipped for Symfony, Laravel,
+Yii, Slim, and CodeIgniter.
 
 ```
 Application\Routing
@@ -12,7 +12,11 @@ Application\Routing
     └── InvalidParameterException
 
 Adapter\Routing
-└── SymfonyUrlGenerator
+├── Symfony\SymfonyUrlGenerator
+├── Laravel\LaravelUrlGenerator
+├── Yii\YiiUrlGenerator
+├── Slim\SlimUrlGenerator
+└── CodeIgniter\CodeIgniterUrlGenerator
 ```
 
 ---
@@ -29,7 +33,7 @@ Adapter\Routing
 
 `Fight\Common\Application\Routing\UrlGenerator`
 
-```php
+```php-inline
 interface UrlGenerator
 {
     public function generate(
@@ -54,12 +58,12 @@ Throws `UrlGenerationException` (or a subclass) on failure.
 
 ## SymfonyUrlGenerator
 
-`Fight\Common\Adapter\Routing\SymfonyUrlGenerator`
+`Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator`
 
 Wraps `Symfony\Component\Routing\Generator\UrlGeneratorInterface`. Translates Symfony's routing exceptions into the application-layer exception hierarchy.
 
-```php
-use Fight\Common\Adapter\Routing\SymfonyUrlGenerator;
+```php-inline
+use Fight\Common\Adapter\Routing\Symfony\SymfonyUrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 $inner = new UrlGeneratorInterface(/* ... */);
@@ -83,6 +87,24 @@ $generator->generate('search', ['q' => 'hello'], ['page' => 2], absolute: true);
 | `InvalidParameterException` | `InvalidParameterException` |
 | Any other `Throwable` | `UrlGenerationException` |
 
+## Framework adapters
+
+All adapters accept route parameters separately from query parameters and translate native failures
+into the Fight exception hierarchy, but their native routers are not format-compatible:
+
+- `LaravelUrlGenerator` uses named Laravel routes, optionally validates supplied values against the
+  route collection's constraints, and appends RFC 3986 query parameters.
+- `YiiUrlGenerator` delegates relative or absolute generation to Yii's native generator and preserves
+  Yii's separate query argument.
+- `SlimUrlGenerator` uses Slim's route parser and a consumer-supplied base URI; it stringifies route
+  and query values because Slim's parser contract is string-based.
+- `CodeIgniterUrlGenerator` reverses a named route using positional parameter values and joins the
+  configured base URL only for absolute output.
+
+Laravel and Yii include service providers; CodeIgniter exposes `RoutingServices`; Slim and Symfony
+are explicit composition. Route declaration, host trust, scheme, base URL, and request-context policy
+remain owned by the consuming application.
+
 ---
 
 ## Exceptions
@@ -98,7 +120,7 @@ UrlGenerationException extends SystemException   (base)
 
 Catch `UrlGenerationException` to handle any URL generation failure:
 
-```php
+```php-inline
 use Fight\Common\Application\Routing\Exception\UrlGenerationException;
 
 try {

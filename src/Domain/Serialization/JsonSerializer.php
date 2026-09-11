@@ -9,6 +9,9 @@ use Fight\Common\Domain\Utility\ClassName;
 
 /**
  * Class JsonSerializer
+ *
+ * @deprecated since 1.2, will be removed in 2.0.
+ * Use {@see \Fight\Common\Application\Serialization\JsonSerializer} instead.
  */
 final class JsonSerializer implements Serializer
 {

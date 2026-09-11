@@ -1,8 +1,6 @@
-# Value Objects
-
 Value objects are immutable, self-validating domain primitives. They measure, quantify, or describe something in the domain — they are not entities with identity, but rather values that are compared by their content rather than by reference.
 
-All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Two value objects are equal when their `toString()` output is identical.
+All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Two value objects are equal only when they have the same concrete type and an identical `toString()` representation of their attributes.
 
 ### Recommended: Helper Functions
 
@@ -45,7 +43,7 @@ A byte-oriented string wrapper with rich manipulation methods. Implements `Array
 
 ### Construction
 
-```php
+```php-inline
 $str = string('hello');                       // helper
 $str = StringObject::create('hello');
 $str = StringObject::fromString('hello');
@@ -53,7 +51,7 @@ $str = StringObject::fromString('hello');
 
 ### Basic Access
 
-```php
+```php-inline
 $str->value();                               // "hello"
 $str->length();                              // 5
 $str->isEmpty();                             // false
@@ -65,7 +63,7 @@ $str->chars();                               // ArrayList("h", "e", "l", "l", "o
 
 ### Content Checks
 
-```php
+```php-inline
 $str->contains('ell');                       // true
 $str->contains('ELL', caseSensitive: false); // true
 $str->startsWith('hel');                     // true
@@ -76,7 +74,7 @@ $str->lastIndexOf('l');                      // 3
 
 ### Mutation (always returns new instance)
 
-```php
+```php-inline
 $str->append(' world');                      // "hello world"
 $str->prepend('>> ');                        // ">> hello"
 $str->insert(5, '!');                        // "hello!"
@@ -88,7 +86,7 @@ $str->pad(7, '-');                           // "-hello--"
 $str->padLeft(7, '-');                       // "--hello"
 $str->padRight(7, '-');                      // "hello--"
 $str->truncate(4, '...');                    // "h..."
-$str->truncateWords(8, '...');              // word-aware truncation
+$str->truncateWords(8, '...');               // word-aware truncation
 $str->repeat(3);                             // "hellohellohello"
 $str->replace('l', 'z');                     // "hezzo"
 $str->expandTabs(4);                         // replaces tabs with spaces
@@ -96,7 +94,7 @@ $str->expandTabs(4);                         // replaces tabs with spaces
 
 ### Substrings
 
-```php
+```php-inline
 $str->slice(1, 4);                           // "ell"  (between indexes)
 $str->substr(0, 3);                          // "hel"  (start + length)
 $str->split(' ');                            // ArrayList of StringObject parts
@@ -105,7 +103,7 @@ $str->chunk(2);                              // ArrayList("he", "ll", "o")
 
 ### Case Transforms
 
-```php
+```php-inline
 $str->toLowerCase();                         // "hello"
 $str->toUpperCase();                         // "HELLO"
 $str->toFirstLowerCase();                    // "hELLO"
@@ -122,7 +120,7 @@ $str->toSlug();                              // URL-safe slug
 
 ### ArrayAccess & Iteration
 
-```php
+```php-inline
 $str[0];                                     // "h"
 $str[1] = 'a';                               // throws ImmutableException
 isset($str[0]);                              // true
@@ -132,7 +130,7 @@ foreach ($str as $char) { /* ... */ }        // iterates characters
 
 ### Comparison
 
-```php
+```php-inline
 $str->compareTo(StringObject::create('world')); // negative (natural sort)
 ```
 
@@ -144,7 +142,7 @@ $str->compareTo(StringObject::create('world')); // negative (natural sort)
 
 Identical API to `StringObject`, but uses multibyte-safe `mb_*` functions with hard-coded UTF-8 encoding. Use this for Unicode strings where character indexes and lengths must account for multi-byte characters.
 
-```php
+```php-inline
 $mb = mb_string('café');                     // helper
 $mb = MbStringObject::create('café');
 $mb->length();                               // 4 (not 5)
@@ -178,7 +176,7 @@ Wraps any JSON-encodable data. Validates on construction — throws `DomainExcep
 
 ### Construction
 
-```php
+```php-inline
 // Helpers
 $json = json_data(['user' => 'alice', 'role' => 'admin']);
 $json = json_string('{"user":"alice","role":"admin"}');
@@ -190,7 +188,7 @@ $json = JsonObject::fromString('{"user":"alice","role":"admin"}');
 
 ### Output
 
-```php
+```php-inline
 $json->toString();                           // '{"user":"alice","role":"admin"}'
 $json->toData();                             // ['user' => 'alice', 'role' => 'admin']
 $json->prettyPrint();                        // pretty-printed JSON with JSON_PRETTY_PRINT
@@ -209,14 +207,14 @@ Validates email address format on construction. Throws `DomainException` for inv
 
 ### Construction
 
-```php
+```php-inline
 $email = email('alice@example.com');          // helper
 $email = EmailAddress::fromString('alice@example.com');
 ```
 
 ### Accessors
 
-```php
+```php-inline
 $email->toString();                          // "alice@example.com"
 $email->localPart();                         // "alice"
 $email->domainPart();                        // "example.com"
@@ -233,7 +231,7 @@ Full RFC 3986 URI implementation. Parses, validates, normalizes, and resolves UR
 
 ### Construction
 
-```php
+```php-inline
 // Helper
 $uri = uri('https://user:pass@api.example.com:8080/path/to?q=1#frag');
 
@@ -252,7 +250,7 @@ $uri = Uri::fromArray([
 
 ### Accessors
 
-```php
+```php-inline
 $uri->scheme();                              // "https"
 $uri->authority();                           // "user:pass@api.example.com:8080"
 $uri->userInfo();                            // "user:pass"
@@ -266,7 +264,7 @@ $uri->toArray();                             // all components as array
 
 ### Immutable Modification
 
-```php
+```php-inline
 $uri->withScheme('http');                    // new instance, scheme changed
 $uri->withAuthority(null);                   // remove authority
 $uri->withPath('/new/path');                 // replace path
@@ -276,14 +274,14 @@ $uri->withFragment(null);                    // remove fragment
 
 ### Output
 
-```php
+```php-inline
 $uri->toString();                            // "https://user:pass@api.example.com:8080/path/to?q=1#frag"
 $uri->display();                             // "https://api.example.com:8080/path/to?q=1#frag" (no userinfo)
 ```
 
 ### Relative Reference Resolution
 
-```php
+```php-inline
 $base = Uri::parse('https://example.com/a/b/c');
 $uri  = Uri::resolve($base, 'd/e?q=2');
 // result: "https://example.com/a/b/d/e?q=2"
@@ -291,7 +289,7 @@ $uri  = Uri::resolve($base, 'd/e?q=2');
 
 ### Comparison
 
-```php
+```php-inline
 $uri->compareTo(Uri::parse('https://other.com')); // natural sort of string representation
 ```
 
@@ -307,7 +305,7 @@ Extends `Uri` with HTTP/HTTPS-specific behavior.
 
 Only `http` and `https` schemes are accepted:
 
-```php
+```php-inline
 $url = url('https://example.com/path');      // helper
 $url = Url::parse('https://example.com/path');
 Url::parse('ftp://example.com');             // throws DomainException
@@ -317,7 +315,7 @@ Url::parse('ftp://example.com');             // throws DomainException
 
 Standard ports are omitted: port 80 for `http` and port 443 for `https` are stripped.
 
-```php
+```php-inline
 $url = Url::parse('https://example.com:443/path');
 $url->toString();                            // "https://example.com/path"
 $url->port();                                // null
@@ -327,7 +325,7 @@ $url->port();                                // null
 
 Query parameters are sorted by key. Parameters without keys (e.g., `=value`) are dropped.
 
-```php
+```php-inline
 $url = Url::parse('https://example.com/?z=1&a=2');
 $url->query();                               // "a=2&z=1"
 ```
@@ -342,7 +340,7 @@ RFC 4122 UUID implementation with support for versions 1, 3, 4, and 5. Implement
 
 ### Named Constructors
 
-```php
+```php-inline
 // Helper — COMB UUID (default, recommended for DB primary keys)
 $uuid = uuid();                              // timestamp in MSB
 $uuid = uuid(msb: false);                    // timestamp in LSB
@@ -366,7 +364,7 @@ $uuid = Uuid::md5(Uuid::NAMESPACE_URL, 'https://example.com');
 
 ### Parsing
 
-```php
+```php-inline
 $uuid = Uuid::parse('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 $uuid = Uuid::fromHex('f47ac10b58cc4372a5670e02b2c3d479');
 $uuid = Uuid::fromBytes("\xf4\x7a\xc1\x0b\x58\xcc\x43\x72\xa5\x67\x0e\x02\xb2\xc3\xd4\x79");
@@ -376,13 +374,13 @@ $uuid = Uuid::fromString('urn:uuid:f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
 ### Validation
 
-```php
+```php-inline
 Uuid::isValid('not-a-uuid');                 // false
 ```
 
 ### Accessors
 
-```php
+```php-inline
 $uuid->timeLow();                            // "f47ac10b"
 $uuid->timeMid();                            // "58cc"
 $uuid->timeHiAndVersion();                   // "4372"
@@ -395,14 +393,14 @@ $uuid->leastSignificantBits();               // "a5670e02b2c3d479"
 
 ### Metadata
 
-```php
+```php-inline
 $uuid->version();                            // 1, 2, 3, 4, or 5 (0 for unknown)
 $uuid->variant();                            // VARIANT_RFC_4122 (2) for standard UUIDs
 ```
 
 ### Format Conversion
 
-```php
+```php-inline
 $uuid->toString();                           // "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 $uuid->toUrn();                              // "urn:uuid:f47ac10b-58cc-4372-a567-0e02b2c3d479"
 $uuid->toHex();                              // "f47ac10b58cc4372a5670e02b2c3d479"
@@ -412,7 +410,7 @@ $uuid->toArray();                            // associative array of fields
 
 ### Constants
 
-```php
+```php-inline
 Uuid::NIL;                                   // "00000000-0000-0000-0000-000000000000"
 Uuid::NAMESPACE_DNS;                         // "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
 Uuid::NAMESPACE_URL;                         // "6ba7b811-9dad-11d1-80b4-00c04fd430c8"
@@ -432,7 +430,7 @@ An abstract base class for entity identity types. Wraps a `Uuid` under the hood 
 
 To create an identity for a domain entity, extend `UniqueId` with no additional code:
 
-```php
+```php-inline
 use Fight\Common\Domain\Identity\UniqueId;
 
 final readonly class UserId extends UniqueId {}
@@ -440,7 +438,7 @@ final readonly class UserId extends UniqueId {}
 
 That is all that is needed. The `UserId` class automatically inherits:
 
-```php
+```php-inline
 // Generate a new ID
 $id = UserId::generate();
 
@@ -456,7 +454,7 @@ $id->toString();                             // "f47ac10b-58cc-4372-a567-0e02b2c
 
 Two `UserId` instances with the same UUID are equal; a `UserId` and an `OrderId` with the same UUID are not — the type check prevents cross-entity identity confusion:
 
-```php
+```php-inline
 $uid = UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 $oid = OrderId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
@@ -481,7 +479,7 @@ $uid->equals(UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479')); // tru
 
 ## Doctrine Data Types
 
-Eleven custom DBAL types in `Fight\Common\Adapter\Doctrine` map domain value objects to SQL
+Thirteen custom DBAL types in `Fight\Common\Adapter\Persistence\Doctrine\Type` map domain value objects to SQL
 columns, enabling Doctrine ORM to hydrate and dehydrate them directly. Each type extends
 `Doctrine\DBAL\Types\Type` and registers under a `common_` prefix.
 
@@ -491,6 +489,7 @@ deserialization through the `Message` interface.
 
 | Type Name | SQL Column | PHP Class | Namespace |
 |---|---|---|---|
+| `audit_entry_id` | GUID/UUID | `AuditEntryId` | `Domain\Observability` |
 | `common_uuid` | GUID/UUID | `Uuid` | `Domain\Value\Identifier` |
 | `common_email_address` | VARCHAR | `EmailAddress` | `Domain\Value\Internet` |
 | `common_uri` | VARCHAR | `Uri` | `Domain\Value\Internet` |
@@ -500,6 +499,7 @@ deserialization through the `Message` interface.
 | `common_mb_string` | VARCHAR | `MbStringObject` | `Domain\Value\Basic` |
 | `common_mb_string_text` | TEXT/CLOB | `MbStringObject` | `Domain\Value\Basic` |
 | `common_json` | JSON | `JsonObject` | `Domain\Value\Basic` |
+| `common_meta` | JSON | `Meta` | `Domain\Messaging` |
 | `common_type` | VARCHAR | `Type` | `Domain\Type` |
 | `common_message` | JSON | `Message` (interface) | `Domain\Messaging` |
 
@@ -511,7 +511,7 @@ length. Use `common_string` / `common_mb_string` (VARCHAR) for short strings and
 
 ### Usage in an Entity
 
-```php
+```php-inline
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -540,15 +540,20 @@ Register the types in `config/packages/doctrine.yaml`:
 doctrine:
     dbal:
         types:
-            common_uuid:            Fight\Common\Adapter\Doctrine\UuidDataType
-            common_email_address:   Fight\Common\Adapter\Doctrine\EmailAddressDataType
-            common_uri:             Fight\Common\Adapter\Doctrine\UriDataType
-            common_url:             Fight\Common\Adapter\Doctrine\UrlDataType
-            common_string:          Fight\Common\Adapter\Doctrine\StringObjectDataType
-            common_string_text:     Fight\Common\Adapter\Doctrine\StringTextDataType
-            common_mb_string:       Fight\Common\Adapter\Doctrine\MbStringObjectDataType
-            common_mb_string_text:  Fight\Common\Adapter\Doctrine\MbStringTextDataType
-            common_json:            Fight\Common\Adapter\Doctrine\JsonObjectDataType
-            common_type:            Fight\Common\Adapter\Doctrine\TypeDataType
-            common_message:         Fight\Common\Adapter\Doctrine\MessageDataType
+            audit_entry_id:         Fight\Common\Adapter\Persistence\Doctrine\Type\AuditEntryIdDataType
+            common_uuid:            Fight\Common\Adapter\Persistence\Doctrine\Type\UuidDataType
+            common_email_address:   Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType
+            common_uri:             Fight\Common\Adapter\Persistence\Doctrine\Type\UriDataType
+            common_url:             Fight\Common\Adapter\Persistence\Doctrine\Type\UrlDataType
+            common_string:          Fight\Common\Adapter\Persistence\Doctrine\Type\StringObjectDataType
+            common_string_text:     Fight\Common\Adapter\Persistence\Doctrine\Type\StringTextDataType
+            common_mb_string:       Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringObjectDataType
+            common_mb_string_text:  Fight\Common\Adapter\Persistence\Doctrine\Type\MbStringTextDataType
+            common_json:            Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType
+            common_meta:            Fight\Common\Adapter\Persistence\Doctrine\Type\MetaDataType
+            common_type:            Fight\Common\Adapter\Persistence\Doctrine\Type\TypeDataType
+            common_message:         Fight\Common\Adapter\Persistence\Doctrine\Type\MessageDataType
 ```
+
+The former `Fight\Common\Adapter\Doctrine\*DataType` paths remain silent deprecated 1.x
+identities for existing consumers; use the canonical paths above for new configuration.

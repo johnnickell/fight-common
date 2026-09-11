@@ -13,6 +13,8 @@ use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
 /**
  * Class MessengerEventDispatcher
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher
  */
 final readonly class MessengerEventDispatcher implements AsynchronousEventDispatcher
 {
@@ -24,6 +26,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Dispatches an event asynchronously
+     *
      * @inheritDoc
      */
     public function trigger(Event $event): void
@@ -32,6 +36,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Sends an event message to the transport
+     *
      * @inheritDoc
      */
     public function dispatch(EventMessage $eventMessage): void
@@ -40,6 +46,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Registers no local subscriber for an asynchronous dispatcher
+     *
      * @inheritDoc
      */
     public function register(EventSubscriber $subscriber): void
@@ -48,6 +56,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Removes no local subscriber from an asynchronous dispatcher
+     *
      * @inheritDoc
      */
     public function unregister(EventSubscriber $subscriber): void
@@ -56,6 +66,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Adds no local event handler for an asynchronous dispatcher
+     *
      * @inheritDoc
      */
     public function addHandler(string $eventType, callable $handler, int $priority = 0): void
@@ -74,6 +86,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Returns whether local handlers are registered
+     *
      * @inheritDoc
      */
     public function hasHandlers(?string $eventType = null): bool
@@ -82,6 +96,8 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
     }
 
     /**
+     * Removes no local event handler for an asynchronous dispatcher
+     *
      * @inheritDoc
      */
     public function removeHandler(string $eventType, callable $handler): void

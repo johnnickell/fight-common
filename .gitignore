@@ -5,12 +5,14 @@ phpunit.xml
 /vendor
 /memory
 /site
-/graphify-out
 /.phpcs-cache
 /.claude
 /.idea
 /.runs/
-/graphify-out/
+graphify-out/
+__pycache__/
+*.py[cod]
 /nbproject
 /*.sublime-project
 /*.sublime-workspace
+/.merge-plan.php

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block site_meta %}
+  {{ super() }}
+  {% if page and page.canonical_url %}
+    {% if page.is_homepage %}
+      {% set description = "Framework-neutral PHP building blocks for Hexagonal Architecture, CQRS, and reusable domain primitives." %}
+    {% elif page.meta and page.meta.description %}
+      {% set description = page.meta.description %}
+    {% else %}
+      {% set description = page.title ~ " documentation for Fight Common, the shared PHP library for Hexagonal Architecture, CQRS, and reusable domain primitives." %}
+    {% endif %}
+    {% set title = page.meta.title if page.meta and page.meta.title else page.title %}
+    {% set social_image = config.site_url ~ "assets/identity/fight-common-social-1280x640.png" %}
+    <meta name="description" content="{{ description | e }}">
+    <meta property="og:title" content="{{ title | e }} - {{ config.site_name | e }}">
+    <meta property="og:description" content="{{ description | e }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ page.canonical_url }}">
+    <meta property="og:image" content="{{ social_image }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ title | e }} - {{ config.site_name | e }}">
+    <meta name="twitter:description" content="{{ description | e }}">
+    <meta name="twitter:image" content="{{ social_image }}">
+  {% endif %}
+{% endblock %}

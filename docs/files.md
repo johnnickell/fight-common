@@ -1,9 +1,11 @@
-# Files
-
 Two complementary file-abstraction components. **FileStorage** provides an abstract interface
 for writing, reading, and listing files on any storage backend (local disk, S3, FTP, etc.)
 via Flysystem adapters. **Filesystem** operates on the local OS filesystem — creating
 directories, changing permissions, reading metadata, and requiring PHP scripts.
+
+These contracts are not interchangeable. `FileStorage` addresses durable objects by logical path;
+`Filesystem` acts on host paths, permissions, links, and PHP files. Neither opens a stateful FTP or
+SFTP session—that boundary belongs to [File Transfer](../file-transfer/index.md).
 
 ```
 Application\FileStorage
@@ -66,7 +68,7 @@ A generic file-store abstraction. Every method throws `FileStorageException` on 
 | `listDirectories(?string $path)` | `array` | List subdirectories (non-recursive) |
 | `listDirectoriesRecursively(?string $path)` | `array` | List all subdirectories recursively |
 
-```php
+```php-inline
 interface FileStorage
 {
     public function putFile(string $path, mixed $contents): void;
@@ -101,7 +103,7 @@ A `final readonly` registry of named `FileStorage` instances, backed by a
 | `copyStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath)` | `void` | Copy a file from one storage to another |
 | `moveStorageToStorage(string $sourceKey, string $sourcePath, string $destinationKey, string $destinationPath)` | `void` | Move a file from one storage to another (copy + remove source) |
 
-```php
+```php-inline
 final readonly class StorageService
 {
     public function __construct() {}
@@ -118,7 +120,7 @@ final readonly class StorageService
 `copyStorageToStorage()` and `moveStorageToStorage()` throw `FileStorageException`
 on transport failure.
 
-```php
+```php-inline
 $service = new StorageService();
 $service->addStorage('local', $localStorage);
 $service->addStorage('s3', $s3Storage);
@@ -138,7 +140,7 @@ $service->moveStorageToStorage('local', '/tmp/invoice.pdf', 's3', 'invoices/invo
 
 Wraps a `League\Flysystem\FilesystemOperator`. This is the sole adapter implementation.
 
-```php
+```php-inline
 final readonly class FlysystemStorage implements FileStorage
 {
     public function __construct(private FilesystemOperator $filesystem) {}
@@ -176,7 +178,7 @@ SystemException
 
 `Fight\Common\Application\FileStorage\Exception\FileStorageException`
 
-```php
+```php-inline
 class FileStorageException extends SystemException {}
 ```
 
@@ -184,7 +186,7 @@ class FileStorageException extends SystemException {}
 
 `Fight\Common\Application\FileStorage\Exception\StorageNotFoundException`
 
-```php
+```php-inline
 class StorageNotFoundException extends FileStorageException
 {
     public function __construct(string $message, ?string $key = null, ?Throwable $previous = null);
@@ -197,7 +199,7 @@ class StorageNotFoundException extends FileStorageException
 
 `Fight\Common\Application\FileStorage\Exception\DuplicateStorageException`
 
-```php
+```php-inline
 class DuplicateStorageException extends FileStorageException
 {
     public function __construct(string $message, ?string $key = null, ?Throwable $previous = null);
@@ -276,7 +278,7 @@ contents or metadata throw `FilesystemException` (or `FileNotFoundException`) on
 | `chown` | `(string\|iterable $paths, string $user, bool $recursive = false)` | Change owner |
 | `chgrp` | `(string\|iterable $paths, string $group, bool $recursive = false)` | Change group |
 
-```php
+```php-inline
 interface Filesystem
 {
     public function mkdir(string|iterable $dirs, int $mode = 0775): void;
@@ -317,11 +319,11 @@ interface Filesystem
 
 ## SymfonyFilesystem
 
-`Fight\Common\Adapter\Filesystem\SymfonyFilesystem`
+`Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem`
 
 Wraps `Symfony\Component\Filesystem\Filesystem`. This is the sole adapter implementation.
 
-```php
+```php-inline
 final readonly class SymfonyFilesystem implements Filesystem
 {
     public function __construct(?Filesystem $filesystem = null)
@@ -352,7 +354,7 @@ and wrapped with a null path.
 Boolean query methods (`exists`, `isFile`, `isDir`, `isLink`, `isReadable`, `isWritable`,
 `isExecutable`) call the PHP native function directly without try/catch and do not throw.
 
-```php
+```php-inline
 $fs = new SymfonyFilesystem();
 $fs->mkdir('/tmp/build/logs', 0755);
 $fs->copy('/tmp/source.txt', '/tmp/build/source.txt', true);
@@ -371,7 +373,7 @@ SystemException
 
 `Fight\Common\Application\Filesystem\Exception\FilesystemException`
 
-```php
+```php-inline
 class FilesystemException extends SystemException
 {
     public function __construct(string $message = '', ?string $path = null, ?Throwable $previous = null);
@@ -383,7 +385,7 @@ class FilesystemException extends SystemException
 
 `Fight\Common\Application\Filesystem\Exception\FileNotFoundException`
 
-```php
+```php-inline
 class FileNotFoundException extends FilesystemException
 {
     public static function fromPath(string $path, ?Throwable $previous = null): static;
@@ -393,6 +395,21 @@ class FileNotFoundException extends FilesystemException
 ---
 
 ## Installation
+
+### Supported composition
+
+- Laravel's `FileStorageServiceProvider` binds a consumer-selected disk through
+  `FlysystemStorage`; `fight-common.file-storage.disk` must name that disk. Laravel's complete local
+  filesystem adapter is `Adapter\Filesystem\Laravel\LaravelFilesystem`.
+- Yii's `FilesystemServiceProvider` deliberately uses the complete Symfony filesystem fallback.
+  `YiiCapabilityConfiguration::filesystem()` owns no paths or policy. Yii Files was evaluated for
+  compatibility but is not exposed as a Fight adapter.
+- CodeIgniter's `FilesystemServices::filesystem()` returns the Symfony fallback. File storage remains
+  explicit consumer composition because no native complete storage binding is shipped.
+- Symfony and framework-free consumers construct `FlysystemStorage` or `SymfonyFilesystem` directly.
+
+Storage roots, allowed paths, visibility, retention, credentials, and tenant separation always remain
+consumer-owned. Validate untrusted names before joining them to a local path or storage prefix.
 
 ### FileStorage (Flysystem)
 
@@ -467,10 +484,10 @@ services:
         autowire: true
         autoconfigure: true
 
-    Fight\Common\Adapter\Filesystem\SymfonyFilesystem: ~
+    Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem: ~
 
     Fight\Common\Application\Filesystem\Filesystem:
-        alias: Fight\Common\Adapter\Filesystem\SymfonyFilesystem
+        alias: Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem
 ```
 
 ---
@@ -479,7 +496,7 @@ services:
 
 ### FileStorage — Upload to S3
 
-```php
+```php-inline
 use Fight\Common\Application\FileStorage\FileStorage;
 
 class AvatarService
@@ -502,7 +519,7 @@ class AvatarService
 
 ### FileStorage — Cross-storage Copy via StorageService
 
-```php
+```php-inline
 use Fight\Common\Application\FileStorage\StorageService;
 
 class MediaManager
@@ -524,7 +541,7 @@ class MediaManager
 
 ### FileStorage — List Files
 
-```php
+```php-inline
 $files = $this->storage->listFiles('photos/2024');
 // ['photos/2024/img001.jpg', 'photos/2024/img002.jpg']
 
@@ -537,7 +554,7 @@ $dirs = $this->storage->listDirectories('photos');
 
 ### Filesystem — Read and Write
 
-```php
+```php-inline
 use Fight\Common\Application\Filesystem\Filesystem;
 
 class ConfigService
@@ -566,7 +583,7 @@ class ConfigService
 
 ### Filesystem — Directory Operations
 
-```php
+```php-inline
 class BuildService
 {
     public function __construct(private Filesystem $fs) {}
@@ -590,7 +607,7 @@ class BuildService
 
 ### Testing with In-Memory Flysystem
 
-```php
+```php-inline
 use League\Flysystem\Filesystem;
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Fight\Common\Adapter\FileStorage\FlysystemStorage;

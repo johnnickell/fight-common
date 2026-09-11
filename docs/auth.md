@@ -32,6 +32,11 @@ Adapter\Auth
     └── JwtDecoder                      — TokenDecoder → lcobucci/jwt
 ```
 
+Authentication verifies identity evidence; authorization remains an application policy. HMAC
+validation can optionally consume request nonces through a `Domain\Auth\NonceRepository`. Use a
+repository shared by all accepting instances for replay-sensitive traffic. The shipped in-memory
+repository is process-local; the Doctrine repository provides a durable shared boundary.
+
 ---
 
 ## Table of Contents
@@ -42,10 +47,10 @@ Adapter\Auth
 4. [HmacRequestService](#hmacrequestservice)
 5. [HmacMethods (Trait)](#hmacmethods-trait)
 6. [HmacKeyGenerator](#hmackeygenerator)
-7. [PasswordHasher / PasswordValidator (Interfaces)](#passwordhasher--passwordvalidator-interfaces)
-8. [PhpPasswordHasher / PhpPasswordValidator](#phppasswordhasher--phppasswordvalidator)
-9. [TokenEncoder / TokenDecoder (Interfaces)](#tokenencoder--tokendecoder-interfaces)
-10. [JwtEncoder / JwtDecoder](#jwtencoder--jwtdecoder)
+7. [PasswordHasher / PasswordValidator (Interfaces)](#passwordhasher-passwordvalidator-interfaces)
+8. [PhpPasswordHasher / PhpPasswordValidator](#phppasswordhasher-phppasswordvalidator)
+9. [TokenEncoder / TokenDecoder (Interfaces)](#tokenencoder-tokendecoder-interfaces)
+10. [JwtEncoder / JwtDecoder](#jwtencoder-jwtdecoder)
 11. [Exception Hierarchy](#exception-hierarchy)
 12. [Installation](#installation)
 13. [Symfony Configuration](#symfony-configuration)
@@ -57,7 +62,7 @@ Adapter\Auth
 
 `Fight\Common\Application\Auth\Authenticator`
 
-```php
+```php-inline
 interface Authenticator
 {
     /** @throws AuthException */
@@ -73,7 +78,7 @@ Single implementation: `HmacAuthenticator`.
 
 `Fight\Common\Application\Auth\RequestService`
 
-```php
+```php-inline
 interface RequestService
 {
     /** @throws CredentialsException */
@@ -92,13 +97,14 @@ Single implementation: `HmacRequestService`.
 Validates an incoming PSR-7 request by reconstructing its HMAC-SHA256 signature and
 comparing it against the `Signature` header. Uses the `HmacMethods` trait.
 
-```php
+```php-inline
 final class HmacAuthenticator implements Authenticator
 {
     public function __construct(
         private string $public,
         string $private,
-        private int $timeTolerance
+        private int $timeTolerance,
+        private ?NonceRepository $nonceRepository = null,
     ) {}
 }
 ```
@@ -119,11 +125,15 @@ final class HmacAuthenticator implements Authenticator
    `AuthException` (401) on mismatch.
 4. **Body content** — if body is non-empty, validates `X-Content-SHA256` header exists
    (422) and matches `sha256(body)` (400).
-5. **Signature** — builds canonical request string via `HmacMethods`, computes expected
-   signature, returns `true` on match or `false` on mismatch (no exception).
+5. **Signature** — builds the canonical request string via `HmacMethods` and compares it with
+   `hash_equals()`. Throws `AuthException` (401) on mismatch.
+6. **Replay consumption** — when a `NonceRepository` is supplied, consumes the signed nonce with
+   an expiry derived from the request timestamp and tolerance. Duplicate or storage failures are
+   wrapped as `AuthException`. Without a repository, timestamp validation alone does not prevent a
+   request from being replayed within the tolerance window.
 
-```php
-$authenticator = new HmacAuthenticator($publicKey, $privateKey, 300);
+```php-inline
+$authenticator = new HmacAuthenticator($publicKey, $privateKey, 300, $nonceRepository);
 $valid = $authenticator->validate($serverRequest);
 ```
 
@@ -136,7 +146,7 @@ $valid = $authenticator->validate($serverRequest);
 Signs an outgoing PSR-7 request with HMAC-SHA256 authentication headers. Uses the
 `HmacMethods` trait.
 
-```php
+```php-inline
 final class HmacRequestService implements RequestService
 {
     public function __construct(
@@ -161,7 +171,7 @@ final class HmacRequestService implements RequestService
 5. Adds `Authorization: HMAC-SHA256`, `Credential: {public}`, `Signature: {signature}`
 6. Sorts all headers by key and returns the modified request
 
-```php
+```php-inline
 $service = new HmacRequestService($publicKey, $privateKey);
 $signedRequest = $service->signRequest($request);
 ```
@@ -174,7 +184,7 @@ $signedRequest = $service->signRequest($request);
 
 Shared trait used by both `HmacAuthenticator` and `HmacRequestService`.
 
-```php
+```php-inline
 trait HmacMethods
 {
     abstract protected function getSecret(): string;
@@ -220,7 +230,7 @@ the using class.
 
 Generates cryptographically secure random hex-encoded keys for HMAC authentication.
 
-```php
+```php-inline
 final class HmacKeyGenerator
 {
     /** @throws Exception */
@@ -231,7 +241,7 @@ final class HmacKeyGenerator
 Returns `bin2hex(random_bytes($bytes))`. Default 16 bytes produces a 32-character hex
 string suitable for use as a public or private HMAC key.
 
-```php
+```php-inline
 $public  = HmacKeyGenerator::generateSecureRandom();
 $private = HmacKeyGenerator::generateSecureRandom(32);  // 64 hex chars
 ```
@@ -242,7 +252,7 @@ $private = HmacKeyGenerator::generateSecureRandom(32);  // 64 hex chars
 
 `Fight\Common\Application\Auth\Security\PasswordHasher`
 
-```php
+```php-inline
 interface PasswordHasher
 {
     /** @throws PasswordException */
@@ -252,7 +262,7 @@ interface PasswordHasher
 
 `Fight\Common\Application\Auth\Security\PasswordValidator`
 
-```php
+```php-inline
 interface PasswordValidator
 {
     public function validate(string $password, string $hash): bool;
@@ -268,7 +278,7 @@ interface PasswordValidator
 
 Wraps PHP's native `password_hash()`. Rejects passwords containing null bytes.
 
-```php
+```php-inline
 final readonly class PhpPasswordHasher implements PasswordHasher
 {
     public function __construct(
@@ -291,7 +301,7 @@ Throws `PasswordException` if the password contains a null byte.
 
 Wraps PHP's native `password_verify()` and `password_needs_rehash()`.
 
-```php
+```php-inline
 final readonly class PhpPasswordValidator implements PasswordValidator
 {
     public function __construct(
@@ -306,7 +316,7 @@ final readonly class PhpPasswordValidator implements PasswordValidator
 | `validate()` | `password_verify()` |
 | `needsRehash()` | `password_needs_rehash()` |
 
-```php
+```php-inline
 $hasher    = new PhpPasswordHasher(PASSWORD_BCRYPT, ['cost' => 12]);
 $validator = new PhpPasswordValidator(PASSWORD_BCRYPT, ['cost' => 12]);
 
@@ -315,13 +325,17 @@ $validator->validate('s3cret!', $hash);  // true
 $validator->needsRehash($hash);           // false (same cost)
 ```
 
+Laravel applications can instead bind `LaravelPasswordHasher` and `LaravelPasswordValidator` to
+Laravel's configured `Illuminate\Contracts\Hashing\Hasher`. These adapters preserve the same Fight
+ports; algorithm and rehash policy remain in the Laravel hasher configuration.
+
 ---
 
 ## TokenEncoder / TokenDecoder (Interfaces)
 
 `Fight\Common\Application\Auth\Security\TokenEncoder`
 
-```php
+```php-inline
 interface TokenEncoder
 {
     /** @throws TokenException */
@@ -331,7 +345,7 @@ interface TokenEncoder
 
 `Fight\Common\Application\Auth\Security\TokenDecoder`
 
-```php
+```php-inline
 interface TokenDecoder
 {
     /** @throws TokenException */
@@ -347,7 +361,7 @@ interface TokenDecoder
 
 Creates signed JWT tokens using `lcobucci/jwt`. Supported algorithms: HS256, HS384, HS512.
 
-```php
+```php-inline
 final class JwtEncoder implements TokenEncoder
 {
     public function __construct(
@@ -361,7 +375,7 @@ Registered claims (`iss`, `sub`, `aud`, `nbf`, `iat`, `jti`) are extracted from 
 `$claims` array and set via the appropriate builder methods. All other claims use
 `$builder->withClaim()`. The `exp` claim is set from the `$expiration` parameter.
 
-```php
+```php-inline
 $encoder = new JwtEncoder($hexSecret, 'HS256');
 $token   = $encoder->encode(
     ['sub' => 'user_123', 'role' => 'admin'],
@@ -375,7 +389,7 @@ $token   = $encoder->encode(
 
 Validates and decodes signed JWT tokens using `lcobucci/jwt`.
 
-```php
+```php-inline
 final class JwtDecoder implements TokenDecoder
 {
     public function __construct(
@@ -390,10 +404,13 @@ On construction, registers a `SignedWith` constraint. On `decode()`:
 1. Parses the JWT string
 2. Validates the signature via `SignedWith`
 3. Returns all claims via `$token->claims()->all()`
-4. Throws `TokenException` on any failure (invalid signature, expired token, malformed
-   string, etc.)
+4. Throws `TokenException` on parsing or signature failure
 
-```php
+`JwtDecoder` does **not** validate expiration, not-before, issuer, audience, subject, or token ID.
+The consuming authentication policy must validate every required claim and time constraint before
+trusting the returned array. Decoding is signature verification, not a complete login decision.
+
+```php-inline
 $decoder = new JwtDecoder($hexSecret, 'HS256');
 $claims  = $decoder->decode($token);
 // ['sub' => 'user_123', 'role' => 'admin', 'exp' => ..., ...]
@@ -517,7 +534,7 @@ services:
 
 ### HMAC — Signing an Outgoing Request
 
-```php
+```php-inline
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleMessageFactory;
 
@@ -535,7 +552,7 @@ $signed = $signer->signRequest($request);
 
 ### HMAC — Validating an Incoming Request
 
-```php
+```php-inline
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 
 $authenticator = new HmacAuthenticator($publicKey, $privateKey, 300);
@@ -549,7 +566,7 @@ if (!$authenticator->validate($serverRequest)) {
 
 ### Password Hashing and Verification
 
-```php
+```php-inline
 use Fight\Common\Adapter\Auth\Security\PhpPasswordHasher;
 use Fight\Common\Adapter\Auth\Security\PhpPasswordValidator;
 
@@ -574,7 +591,7 @@ if ($validator->needsRehash($storedHash)) {
 
 ### JWT — Issue and Validate a Token
 
-```php
+```php-inline
 use Fight\Common\Adapter\Auth\Security\JwtEncoder;
 use Fight\Common\Adapter\Auth\Security\JwtDecoder;
 

@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+WORKSPACE=''
+OUTCOMES=''
+
+usage() {
+    echo 'Usage: ./bin/release certify <version>' >&2
+    exit 2
+}
+
+sha256_file() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        sha256sum "$1" | awk '{print $1}'
+    fi
+}
+
+cleanup() {
+    local intended_status=$?
+
+    trap - EXIT
+    if [[ -n "${WORKSPACE}" && -d "${WORKSPACE}" ]]; then
+        find "${WORKSPACE}" -depth -delete
+    fi
+    exit "${intended_status}"
+}
+
+export_candidate() {
+    local target="$1"
+
+    mkdir -p "${target}"
+    "${GIT_BIN}" -C "${ROOT_DIR}" archive "${COMMIT}" | tar -x -C "${target}"
+    "${GIT_BIN}" -C "${target}" init --quiet
+}
+
+run_step() {
+    local name="$1"
+    local display="$2"
+    local directory="$3"
+    local output="$4"
+    local started
+    local finished
+    local status
+
+    shift 4
+    started="$(date +%s)"
+    printf '[release] %s\n' "${name}"
+    set +e
+    (
+        cd "${directory}"
+        "$@"
+    ) > "${output}" 2>&1
+    status=$?
+    set -e
+    finished="$(date +%s)"
+
+    if (( status == 0 )); then
+        printf '%s\tpassed\t0\t%s\t%s\t%s\n' \
+            "${name}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
+            >> "${OUTCOMES}"
+        return 0
+    fi
+
+    printf '%s\tfailed\t%s\t%s\t%s\t%s\n' \
+        "${name}" "${status}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
+        >> "${OUTCOMES}"
+    tail -80 "${output}" >&2
+    printf 'bin/release: %s failed with exit code %s.\n' "${name}" "${status}" >&2
+    return "${status}"
+}
+
+if (( $# != 2 )) || [[ "$1" != 'certify' ]]; then
+    usage
+fi
+
+VERSION="$2"
+if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    usage
+fi
+
+cd "${ROOT_DIR}"
+if [[ -n "$("${GIT_BIN}" status --porcelain --untracked-files=all)" ]]; then
+    echo 'bin/release: certification requires a clean checkout.' >&2
+    exit 3
+fi
+
+COMMIT="$("${GIT_BIN}" rev-parse --verify HEAD)"
+if [[ ! "${COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then
+    echo 'bin/release: the exact candidate commit is unavailable.' >&2
+    exit 3
+fi
+if [[ ! -f "${ROOT_DIR}/composer.lock" ]]; then
+    echo 'bin/release: the locked dependency lane requires composer.lock.' >&2
+    exit 3
+fi
+
+HANDOFF_DIR="${ROOT_DIR}/.runs/handoffs/release-${VERSION}-${COMMIT}"
+if [[ -e "${HANDOFF_DIR}" ]]; then
+    echo "bin/release: certification handoff already exists: ${HANDOFF_DIR}" >&2
+    exit 3
+fi
+
+WORKSPACE="$(mktemp -d /tmp/fight-common-release-certify.XXXXXX)"
+trap cleanup EXIT
+OUTCOMES="${WORKSPACE}/command-outcomes.tsv"
+touch "${OUTCOMES}"
+
+LOCKED_ROOT="${WORKSPACE}/locked"
+LATEST_ROOT="${WORKSPACE}/latest"
+LOWEST_ROOT="${WORKSPACE}/lowest"
+ARTIFACT_ROOT="${WORKSPACE}/artifacts"
+CONSUMER_ROOT="${WORKSPACE}/consumer"
+mkdir -p "${ARTIFACT_ROOT}" "${CONSUMER_ROOT}"
+export_candidate "${LOCKED_ROOT}"
+export_candidate "${LATEST_ROOT}"
+export_candidate "${LOWEST_ROOT}"
+cp "${ROOT_DIR}/composer.lock" "${LOCKED_ROOT}/composer.lock"
+cp "${ROOT_DIR}/composer.lock" "${LOWEST_ROOT}/composer.lock"
+
+run_step 'locked-product-gate' './bin/build' "${LOCKED_ROOT}" "${WORKSPACE}/locked.log" ./bin/build
+run_step \
+    'latest-product-gate' \
+    './bin/build --latest' \
+    "${LATEST_ROOT}" \
+    "${WORKSPACE}/latest.log" \
+    ./bin/build --latest
+run_step \
+    'lowest-product-gate' \
+    './bin/build --lowest' \
+    "${LOWEST_ROOT}" \
+    "${WORKSPACE}/lowest.log" \
+    ./bin/build --lowest
+
+ARCHIVE="${ARTIFACT_ROOT}/fight-common-${VERSION}.tar"
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:delegated" \
+    -w /source \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    php release/scripts/certify.php archive-manifest /source/composer.json "${VERSION}"
+run_step \
+    'composer-archive' \
+    'composer archive --format=tar' \
+    "${LOCKED_ROOT}" \
+    "${WORKSPACE}/archive.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/app:ro" \
+        -v "${ARTIFACT_ROOT}:/artifacts:delegated" \
+        -w /app \
+        --user "$(id -u):$(id -g)" \
+        --env "COMPOSER_ROOT_VERSION=${VERSION}" \
+        "${PHP_IMAGE}" \
+        composer archive --no-interaction --format=tar --dir=/artifacts --file="fight-common-${VERSION}"
+
+[[ -f "${ARCHIVE}" ]] || {
+    echo 'bin/release: Composer did not create the expected archive.' >&2
+    exit 4
+}
+
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:ro" \
+    -v "${CONSUMER_ROOT}:/consumer:delegated" \
+    -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+    -w /source \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    php release/scripts/certify.php consumer-manifest /consumer/composer.json /artifacts "${VERSION}"
+
+run_step \
+    'consumer-resolution' \
+    'composer update --no-dev --no-install' \
+    "${CONSUMER_ROOT}" \
+    "${WORKSPACE}/consumer-resolution.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${CONSUMER_ROOT}:/consumer:delegated" \
+        -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+        -w /consumer \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        composer update --no-dev --no-install --no-interaction --no-progress --prefer-dist --no-scripts
+run_step \
+    'production-install' \
+    'composer install --no-dev' \
+    "${CONSUMER_ROOT}" \
+    "${WORKSPACE}/production-install.log" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${CONSUMER_ROOT}:/consumer:delegated" \
+        -v "${ARTIFACT_ROOT}:/artifacts:ro" \
+        -w /consumer \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
+run_step \
+    'installed-consumer-probe' \
+    'php release/consumer/probe.php <installed-autoload.php>' \
+    "${ROOT_DIR}" \
+    "${WORKSPACE}/consumer.json" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/source:ro" \
+        -v "${CONSUMER_ROOT}:/consumer:ro" \
+        -w /source \
+        "${PHP_IMAGE}" \
+        php release/consumer/probe.php /consumer/vendor/autoload.php
+run_step \
+    'package-surface' \
+    'compare installed archive with compatibility/manifest.json' \
+    "${ROOT_DIR}" \
+    "${WORKSPACE}/surface.json" \
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LOCKED_ROOT}:/source:ro" \
+        -v "${CONSUMER_ROOT}:/consumer:ro" \
+        -w /source \
+        "${PHP_IMAGE}" \
+        php release/scripts/certify.php surface \
+            /consumer/vendor/johnnickell/fight-common \
+            /consumer/vendor/johnnickell/fight-common/compatibility/manifest.json \
+            "${COMMIT}"
+
+STAGED_HANDOFF="${WORKSPACE}/handoff"
+mkdir -p "${STAGED_HANDOFF}"
+cp "${ARCHIVE}" "${STAGED_HANDOFF}/"
+"${DOCKER_BIN}" container run --rm \
+    -v "${LOCKED_ROOT}:/source:ro" \
+    -v "${WORKSPACE}:/evidence:ro" \
+    -v "${STAGED_HANDOFF}:/handoff:delegated" \
+    -w /source \
+    --user "$(id -u):$(id -g)" \
+    "${PHP_IMAGE}" \
+    php release/scripts/certify.php record \
+        "${VERSION}" \
+        "${COMMIT}" \
+        "/evidence/artifacts/$(basename "${ARCHIVE}")" \
+        /evidence/command-outcomes.tsv \
+        /source/composer.lock \
+        /evidence/latest/composer.lock \
+        /evidence/lowest/composer.lock \
+        /evidence/surface.json \
+        /evidence/consumer.json \
+        /source/release/starter-receipts.json \
+        /handoff/certification.json
+
+mkdir -p "$(dirname "${HANDOFF_DIR}")"
+mv "${STAGED_HANDOFF}" "${HANDOFF_DIR}"
+printf 'Certified %s at %s\nEvidence: %s/certification.json\n' "${VERSION}" "${COMMIT}" "${HANDOFF_DIR}"

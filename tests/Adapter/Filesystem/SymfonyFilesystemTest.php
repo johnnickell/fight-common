@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Filesystem;
 
-use Fight\Common\Adapter\Filesystem\SymfonyFilesystem;
+use Fight\Common\Adapter\Filesystem\Symfony\SymfonyFilesystem;
 use Fight\Common\Application\Filesystem\Exception\FileNotFoundException;
 use Fight\Common\Application\Filesystem\Exception\FilesystemException;
-use Fight\Test\Common\TestCase\UnitTestCase;
+use Fight\Common\Application\Filesystem\Filesystem as FilesystemInterface;
+use Fight\Test\Common\TestCase\Filesystem\FilesystemConformanceTestCase;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RecursiveDirectoryIterator;
@@ -46,9 +47,14 @@ class FailStream
 }
 
 #[CoversClass(SymfonyFilesystem::class)]
-class SymfonyFilesystemTest extends UnitTestCase
+class SymfonyFilesystemTest extends FilesystemConformanceTestCase
 {
     private string $tmpDir;
+
+    protected function create_filesystem(): FilesystemInterface
+    {
+        return new SymfonyFilesystem();
+    }
 
     protected function setUp(): void
     {
@@ -454,7 +460,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     public function test_that_last_modified_throws_filesystem_exception_when_metadata_fetch_fails(): void
     {
         $path = $this->createFile('modified.txt');
-        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\filemtime', $path);
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\Symfony\filemtime', $path);
         $filesystem = new SymfonyFilesystem();
 
         $this->expectException(FilesystemException::class);
@@ -485,7 +491,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     public function test_that_last_accessed_throws_filesystem_exception_when_metadata_fetch_fails(): void
     {
         $path = $this->createFile('accessed.txt');
-        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\fileatime', $path);
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\Symfony\fileatime', $path);
         $filesystem = new SymfonyFilesystem();
 
         $this->expectException(FilesystemException::class);
@@ -516,7 +522,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     public function test_that_file_size_throws_filesystem_exception_when_metadata_fetch_fails(): void
     {
         $path = $this->createFile('size.txt');
-        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\filesize', $path);
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\Symfony\filesize', $path);
         $filesystem = new SymfonyFilesystem();
 
         $this->expectException(FilesystemException::class);
@@ -645,7 +651,7 @@ class SymfonyFilesystemTest extends UnitTestCase
     public function test_that_mime_type_throws_filesystem_exception_when_detection_fails(): void
     {
         $path = $this->createFile('mime.txt');
-        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\finfo_file', $path);
+        FilesystemFunctionOverrides::fail('Fight\Common\Adapter\Filesystem\Symfony\finfo_file', $path);
         $filesystem = new SymfonyFilesystem();
 
         $this->expectException(FilesystemException::class);

@@ -10,6 +10,8 @@ use Throwable;
 
 /**
  * Class SymfonyCommandMessageHandler
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler
  */
 final readonly class SymfonyCommandMessageHandler
 {

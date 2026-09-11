@@ -2,11 +2,14 @@
 id: T-00033
 prd: PRD-00011
 title: Prove the normal feature package journey
-status: ready-for-agent
-blocked_by: T-00040
+status: done
+blocked_by: T-00068
 ---
 
 # Prove the Normal Feature Package Journey
+
+> Historical outcome: completed as recorded. ADR 0025 later replaced this simulated package journey with direct
+> Composer archive evidence inside `release certify`.
 
 ## What to Build
 
@@ -15,11 +18,11 @@ effect set, candidate OID, deterministic rootless archive, and package handoff.
 
 ## Acceptance Criteria
 
-- [ ] A feature targeting `develop` routes to the normal release journey.
-- [ ] Packaging requires approval for the exact bounded local effect set.
-- [ ] The candidate OID and archive digest are bound into the handoff.
-- [ ] Archive ordering, timestamps, exclusions, and name are deterministic.
-- [ ] Offline tests prove approval, refusal, drift, and already-satisfied postconditions.
+- [x] A feature targeting `develop` routes to the normal release journey.
+- [x] Packaging requires approval for the exact bounded local effect set.
+- [x] The candidate OID and archive digest are bound into the handoff.
+- [x] Archive ordering, timestamps, exclusions, and name are deterministic.
+- [x] Offline tests prove approval, refusal, drift, and already-satisfied postconditions.
 
 ## Verification
 

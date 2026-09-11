@@ -1,5 +1,3 @@
-# Event Sourcing
-
 Fight Common provides portable contracts for event-sourced aggregates and event
 storage. The framework-free baseline is explicit construction: the consuming
 application owns its domain events and aggregate, registers durable names with
@@ -35,7 +33,7 @@ contracts shown below, so signature or behavior drift in that bounded journey
 fails the documentation suite. The remaining operational and Symfony snippets
 come from named regions in that same parsed and statically analyzed fixture.
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:aggregate-types"
 ```
 
@@ -47,7 +45,7 @@ used in stream identity; it is deliberately separate from `Order::class`.
 Install the reference DBAL event-store schema once for the connection, then
 construct the mapper, store, and repository directly:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:event-store-composition"
 ```
 
@@ -56,7 +54,7 @@ aggregate's previous version as the optimistic-concurrency expectation.
 `find()` reads the ordered stream, gives the aggregate plain event payloads for
 replay, and returns `null` when no stream exists:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:persist-reload"
 ```
 
@@ -126,16 +124,16 @@ have no reset operation in 1.2.
 Manual provider construction is the portable baseline, and
 manual construction remains supported with or without Symfony:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:manual-mapper"
 ```
 
 Applications using Symfony's DependencyInjection component may instead opt in
-to `EventMappingProviderCompilerPass`. Register autoconfiguration for the
+to `Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass`. Register autoconfiguration for the
 portable provider interface, define an initially empty mapper, and add the
 compiler pass:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:symfony-container"
 ```
 
@@ -148,7 +146,7 @@ implementing `EventMappingProvider`. During compilation, the compiler pass
 collects those tagged service IDs and adds provider references to the configured
 mapper definition, equivalent to this method-call wiring for each provider:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:symfony-provider-reference"
 ```
 
@@ -157,6 +155,8 @@ the compiler pass neither instantiates nor reflects over them. Symfony resolves
 the provider references and calls `EventMapper::registerProvider()`
 when the mapper is resolved,
 so the portable mapper validation remains authoritative.
+The former `Fight\Common\Adapter\DependencyInjection\EventMappingProviderCompilerPass`
+remains a deprecated 1.x compatibility identity.
 Duplicate aliases, duplicate event classes, invalid durable names, and invalid
 upcaster chains therefore raise `EventMappingException` through the same path as
 manual registration. The mapper needs to be public only if application code
@@ -175,7 +175,7 @@ The read-model storage remains application-owned. For example, this writer's
 supplied global position is newer than the position already stored. Repeating
 the same event therefore has no further effect:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:projection-types"
 ```
 
@@ -186,14 +186,14 @@ payload classes from the `EventMapper`, not stored event aliases.
 Install the checkpoint schema independently from the event-store schema as an
 application deployment step, then compose the public worker contracts:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:projection-composition"
 ```
 
 One poll reads a bounded batch. A long-running worker can repeat that bounded
 operation and back off when the named checkpoint does not advance:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:projection-worker"
 ```
 
@@ -253,7 +253,7 @@ Install the cursor and failure schemas independently as deployment steps. The
 logging recorder is composable: it logs a portable failure snapshot first,
 then delegates the same snapshot to the durable DBAL recorder.
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:publication-composition"
 ```
 
@@ -265,7 +265,7 @@ runner requires.
 
 A worker can invoke one bounded poll at a time:
 
-```php
+```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:publication-run"
 ```
 

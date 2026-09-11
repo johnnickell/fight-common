@@ -3,26 +3,35 @@
 declare(strict_types=1);
 
 use Rector\CodingStyle\Rector\ClassLike\NewlineBetweenClassLikeStmtsRector;
+use Rector\CodingStyle\Rector\FuncCall\ClosureFromCallableToFirstClassCallableRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
-use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 
 return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/src',
-        __DIR__.'/tests'
+        __DIR__.'/tests',
+        __DIR__.'/release/src',
+        __DIR__.'/release/scripts',
+        __DIR__.'/release/consumer'
     ])
     ->withPhpSets(php84: true)
     ->withSkip([
         NewlineBetweenClassLikeStmtsRector::class,
         RemoveParentCallWithoutParentRector::class,
-        AddOverrideAttributeToOverriddenMethodsRector::class,
+        // Compatibility policy stores names as data; loading runtime classes would reverse the release boundary.
+        StringClassNameToClassConstantRector::class          => [__DIR__.'/src/Application/Scheduler/Scheduler.php'],
+        // The legacy Scheduler bridge intentionally late-binds an optional Process implementation.
+        ClosureFromCallableToFirstClassCallableRector::class => [
+            __DIR__.'/src/Application/Scheduler/Scheduler.php'
+        ],
         // Array callables are load-bearing here: removeHandler compares with === against
         // stored [$service, $method] arrays, so a Closure would never match.
-        ArrayToFirstClassCallableRector::class => [
-            __DIR__.'/tests/Adapter/Messaging/Event/Sync/ServiceAwareEventDispatcherTest.php',
-        ],
+        ArrayToFirstClassCallableRector::class               => [
+            __DIR__.'/tests/Adapter/Messaging/Event/Sync/ServiceAwareEventDispatcherTest.php'
+        ]
     ])
     ->withImportNames(removeUnusedImports: true)
     ->withTypeCoverageLevel(8)

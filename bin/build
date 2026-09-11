@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+COMPOSER_COMMAND='composer install --no-interaction --no-progress --prefer-dist'
+
+if (( $# == 1 )) && [[ "${1}" == '--latest' ]]; then
+    COMPOSER_COMMAND='composer update --no-interaction --no-progress --prefer-dist'
+elif (( $# == 1 )) && [[ "${1}" == '--lowest' ]]; then
+    COMPOSER_COMMAND='LOWEST_PACKAGES="$(php -r '\''
+$composer = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR);
+$requirements = $composer["require"];
+$packages = array_filter(
+    array_keys($requirements),
+    static fn (string $package): bool => str_contains($package, "/"),
+);
+echo implode(" ", $packages);
+'\'')"; composer update ${LOWEST_PACKAGES} --no-interaction --no-progress --prefer-dist --prefer-lowest --prefer-stable --with-all-dependencies'
+elif (( $# > 0 )); then
+    echo 'Usage: ./bin/build [--latest|--lowest]' >&2
+    exit 2
+fi
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOCKER_BIN="${DOCKER_BIN:-docker}"
+GIT_BIN="${GIT_BIN:-git}"
+ID_BIN="${ID_BIN:-id}"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+GIT_METADATA_MOUNT=()
+LINKED_WORKTREE_SOURCE_MOUNT=()
+
+if [[ -f "${ROOT_DIR}/.git" ]]; then
+    GIT_COMMON_DIR="$(
+        "${GIT_BIN}" -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir
+    )"
+    GIT_METADATA_MOUNT=(-v "${GIT_COMMON_DIR}:${GIT_COMMON_DIR}:ro")
+    LINKED_WORKTREE_SOURCE_MOUNT=(-v "${ROOT_DIR}:${ROOT_DIR}:delegated")
+fi
+
+cd "${ROOT_DIR}"
+
+./bin/docs validate
+
+# shellcheck source=bin/.disposable-database-runtime
+source "${ROOT_DIR}/bin/.disposable-database-runtime"
+
+fight_common_install_disposable_database_cleanup
+
+"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/php/
+
+fight_common_start_disposable_databases
+
+"${DOCKER_BIN}" container run \
+    --rm \
+    --network "${FIGHT_COMMON_DATABASE_NETWORK}" \
+    -v "${ROOT_DIR}:/app:delegated" \
+    ${LINKED_WORKTREE_SOURCE_MOUNT[@]+"${LINKED_WORKTREE_SOURCE_MOUNT[@]}"} \
+    ${GIT_METADATA_MOUNT[@]+"${GIT_METADATA_MOUNT[@]}"} \
+    -w /app \
+    --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
+    --env HOME=/tmp \
+    --env COMPOSER_HOME=/tmp/fight-common-composer \
+    --env GIT_CONFIG_COUNT=1 \
+    --env GIT_CONFIG_KEY_0=safe.directory \
+    --env GIT_CONFIG_VALUE_0=/app \
+    --env "FIGHT_COMMON_MYSQL_DSN=${FIGHT_COMMON_MYSQL_DSN}" \
+    --env "FIGHT_COMMON_POSTGRESQL_DSN=${FIGHT_COMMON_POSTGRESQL_DSN}" \
+    "${PHP_IMAGE}" \
+    bash -c "${COMPOSER_COMMAND} && ./bin/quality"

@@ -1,37 +1,38 @@
 ---
 id: T-00035
 prd: PRD-00011
-title: Publish the signed tag and immutable GitHub release
-status: ready-for-agent
-blocked_by: T-00034
+title: Publish the Certified Tag and GitHub Release
+status: ready-for-human
+blocked_by: T-00017
 ---
 
-# Publish the Signed Tag and Immutable GitHub Release
+# Publish the Certified Tag and GitHub Release
 
-## What to Build
+## Outcome
 
-Publish the exact certified candidate through separately authorized merge, signed-tag, push, and immutable
-GitHub Release effects. Reconcile every possibly completed Git or GitHub effect independently after a crash
-or ambiguous provider response and emit a durable handoff for downstream projection verification.
+Publish the exact candidate accepted by T-00017 through explicitly authorized, separately verified merge,
+annotated signed tag, push, and GitHub Release actions. This is a human-operated publication outcome, not another
+repository release engine.
 
 ## Acceptance Criteria
 
-- [ ] Merge, signed-tag creation, push, draft preparation, and public GitHub publication each require a
-      separate authorization bound to the exact plan, candidate, version, manifest, and exceptions.
-- [ ] The approved signer fingerprint, annotated tag object, peeled candidate commit, remote ref, release
-      assets, and immutable GitHub state are verified as postconditions.
-- [ ] Public publication stops unless immutable releases and the protected publication checkpoint are
-      verified; a mutable fallback is rejected.
-- [ ] A possibly completed effect enters `partial_publication`, preserves evidence, and is reconciled without
-      deletion, tag reuse, force-push, version substitution, or blind retry.
-- [ ] Verified already-satisfied postconditions resume idempotently and successful GitHub publication emits a
-      durable downstream-verification handoff.
+- [ ] Publication uses the exact version, commit, archive digest, and certification identity accepted by T-00017
+      after T-00102 supersedes the earlier candidate.
+- [ ] Merge, tag, push, and GitHub Release are separately authorized before each effect.
+- [ ] The remote tag object, peeled commit, immutable GitHub Release, assets, and checksums are verified after the
+      corresponding action; an uncertain postcondition stops for reconciliation rather than blind retry.
+- [ ] No repository command receives signing, GitHub, or publication credentials as part of certification.
+- [ ] A concise publication receipt identifies the verified external objects for T-00041.
 
 ## Verification
 
-Full submit gate and offline Git, signing, authorization, and GitHub effect-ledger tests for every success,
-uncertainty, crash, and reconciliation branch.
+Review the current certification record accepted by T-00017, perform each approved publication action with the provider-native tool,
+and verify the exact remote identities independently. This ticket itself authorizes no publication.
 
 ## Parent
 
 PRD-00011 — Release Lifecycle and Publication Recovery.
+
+## Decision Source
+
+ADR 0025 and the still-applicable publication boundary in ADR 0016.

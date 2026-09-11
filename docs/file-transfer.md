@@ -1,5 +1,3 @@
-# File Transfer
-
 A transport-abstraction layer for remote file operations. The `FileTransport` port covers
 sending, retrieving, and listing files on a remote host. `FileTransferService` acts as a
 named registry when an application needs to talk to multiple remote endpoints.
@@ -45,7 +43,7 @@ Adapter\FileTransfer
 
 `Fight\Common\Application\FileTransfer\Transport\FileTransport`
 
-```php
+```php-inline
 interface FileTransport
 {
     /** @throws FileTransferException */
@@ -76,7 +74,7 @@ returns an open stream resource positioned at the start of the file.
 
 An immutable value object describing a single remote entry returned by `readDirectory()`.
 
-```php
+```php-inline
 final readonly class Resource implements Stringable
 {
     public function __construct(
@@ -113,7 +111,7 @@ final readonly class Resource implements Stringable
 
 `Fight\Common\Application\FileTransfer\Resource\ResourceType`
 
-```php
+```php-inline
 enum ResourceType: string
 {
     case FILE    = 'file';
@@ -136,7 +134,7 @@ enum ResourceType: string
 A named registry for multiple `FileTransport` instances. Useful when an application
 connects to more than one remote host or protocol simultaneously.
 
-```php
+```php-inline
 $service = new FileTransferService();
 $service->addTransport('sftp-primary', $sftpTransport);
 $service->addTransport('ftp-backup',   $ftpTransport);
@@ -152,6 +150,11 @@ the requested key is not found.
 
 ## Adapters
 
+FTP and SFTP are explicit protocol choices. Prefer SFTP when both endpoints support it, verify the
+remote host key outside this package, keep credentials out of committed configuration, and set
+connection timeouts in the configured client. The adapters translate provider failures to
+`FileTransferException`; they do not retry, roll back, checksum, or make multi-step operations atomic.
+
 ### SftpFileTransport
 
 `Fight\Common\Adapter\FileTransfer\Sftp\SftpFileTransport`
@@ -159,7 +162,7 @@ the requested key is not found.
 Wraps a `phpseclib3\Net\SFTP` connection. The SFTP object is constructed and authenticated
 externally then injected:
 
-```php
+```php-inline
 use phpseclib3\Net\SFTP;
 use Fight\Common\Adapter\FileTransfer\Sftp\SftpFileTransport;
 
@@ -179,7 +182,7 @@ $transport = new SftpFileTransport($sftp);
 Uses PHP's built-in FTP extension. Manages the connection lifecycle internally — connects
 on first use and disconnects after each operation.
 
-```php
+```php-inline
 use Fight\Common\Adapter\FileTransfer\Ftp\FtpFileTransport;
 
 $transport = new FtpFileTransport(
@@ -203,7 +206,7 @@ $transport = new FtpFileTransport(
 
 Decorator that logs the path of each operation via PSR-3 before delegating:
 
-```php
+```php-inline
 $transport = new LoggingFileTransport(
     new SftpFileTransport($sftp),
     $logger,
@@ -223,6 +226,9 @@ Log channels:
 Silent no-op adapter. `sendFile()` does nothing. `retrieveFileContents()` returns `''`.
 `retrieveFileResource()` returns an empty `php://memory` stream. `readDirectory()` returns
 an empty array. Useful in tests and local development.
+
+Because it records nothing, `NullFileTransport` proves only that transfer was suppressed. Use a
+consumer-owned spy when a test must assert the path or contents sent.
 
 ---
 
@@ -270,7 +276,7 @@ services:
 
 ### Uploading a File
 
-```php
+```php-inline
 use Fight\Common\Application\FileTransfer\Transport\FileTransport;
 
 class ReportExporter
@@ -289,7 +295,7 @@ class ReportExporter
 
 ### Downloading a File
 
-```php
+```php-inline
 $contents = $transport->retrieveFileContents('/reports/2026-06.csv');
 
 // As a stream resource
@@ -298,7 +304,7 @@ $stream = $transport->retrieveFileResource('/reports/2026-06.csv');
 
 ### Listing a Directory
 
-```php
+```php-inline
 foreach ($transport->readDirectory('/uploads') as $resource) {
     if ($resource->type() === ResourceType::FILE) {
         echo sprintf(
@@ -313,7 +319,7 @@ foreach ($transport->readDirectory('/uploads') as $resource) {
 
 ### Using Multiple Transports
 
-```php
+```php-inline
 $service = new FileTransferService();
 $service->addTransport('sftp',   $sftpTransport);
 $service->addTransport('backup', $ftpTransport);
@@ -325,7 +331,7 @@ $service->getTransport($isPrimary ? 'sftp' : 'backup')
 
 ### Testing with NullFileTransport
 
-```php
+```php-inline
 use Fight\Common\Adapter\FileTransfer\Null\NullFileTransport;
 
 $transport = new NullFileTransport();

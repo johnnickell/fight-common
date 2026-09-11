@@ -1,5 +1,3 @@
-# Messaging (CQRS)
-
 A full CQRS architecture with commands, queries, and events. Message primitives live in
 `Domain\Messaging`, service contracts in `Application\Messaging`, and adapters (sync + async)
 in `Adapter\Messaging`. The Symfony Messenger bridge provides async transport, and compiler
@@ -24,20 +22,20 @@ Application\Messaging
 Adapter\Messaging
 ├── Command\Sync\RoutingCommandBus + CommandPipeline
 │            Sync\Routing\{CommandRouter, InMemory*, ServiceAware*}
-│   Async\MessengerCommandBus
+│   Symfony\MessengerCommandBus (legacy: Command\Async\MessengerCommandBus)
 ├── Query\RoutingQueryBus + QueryPipeline
 │       Query\Routing\{QueryRouter, InMemory*, ServiceAware*}
 └── Event\Sync\{SimpleEventDispatcher, ServiceAwareEventDispatcher}
-    Event\Async\MessengerEventDispatcher
-    Handler\{SymfonyCommandMessageHandler, SymfonyEventMessageHandler}
-    Serializer\SymfonyMessageSerializer
+    Symfony\{MessengerEventDispatcher, Serializer\SymfonyMessageSerializer}
+    Handler\{CommandMessageHandler, EventMessageHandler}
 
-Adapter\DependencyInjection
+Adapter\ServiceContainer\Symfony
 ├── CommandHandlerCompilerPass
 ├── CommandFilterCompilerPass
 ├── QueryHandlerCompilerPass
 ├── QueryFilterCompilerPass
-└── EventSubscriberCompilerPass
+├── EventSubscriberCompilerPass
+└── TemplateHelperCompilerPass
 ```
 
 ---
@@ -65,7 +63,7 @@ Adapter\DependencyInjection
 The root interface for all message envelopes. Extends `Arrayable`, `Comparable`, `Equatable`,
 `JsonSerializable`, and `Serializable`.
 
-```php
+```php-inline
 interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Serializable
 {
     public function id(): MessageId;
@@ -90,11 +88,11 @@ considered equal regardless of other fields.
 Abstract base implementing `Message`. Stores `id`, `type`, `timestamp`, `payload`, and `meta`.
 Serialization produces a uniform envelope:
 
-```php
+```php-inline
 [
     'id'           => '018abc...',     // MessageId as string
     'type'         => 'command',       // MessageType value
-    'timestamp'    => '1712345678',    // Unix timestamp
+    'timestamp'    => '1712345678.123456', // Unix timestamp with microseconds
     'payload_type' => 'RegisterUserCommand',
     'payload'      => ['email' => '...', 'name' => '...'],
     'meta'         => ['trace_id' => 'abc123'],
@@ -107,7 +105,7 @@ Serialization produces a uniform envelope:
 
 Extends `UniqueId` — auto-generated UUID identifier for every message envelope.
 
-```php
+```php-inline
 $id = MessageId::generate();
 $id = MessageId::fromString('018abc...');
 ```
@@ -118,7 +116,7 @@ $id = MessageId::fromString('018abc...');
 
 A string-backed PHP enum:
 
-```php
+```php-inline
 enum MessageType: string
 {
     case COMMAND = 'command';
@@ -134,7 +132,7 @@ enum MessageType: string
 Marker interface extended by `Command`, `Query`, and `Event`. Requires `fromArray()` /
 `toArray()` — the actual business data.
 
-```php
+```php-inline
 interface Payload extends Arrayable
 {
     public static function fromArray(array $data): static;
@@ -146,10 +144,11 @@ interface Payload extends Arrayable
 
 `Fight\Common\Domain\Messaging\Meta`
 
-Key-value metadata container attached to every message envelope. Accepts only scalars and
-arrays of scalars — guards against complex types on `set()`.
+Key-value metadata container attached to every message envelope. Accepts scalars, arrays,
+or `null`; arrays may be nested and contain only arrays, scalars, or `null`. Guards against
+more complex types on `set()`.
 
-```php
+```php-inline
 $meta = Meta::create(['trace_id' => 'abc', 'user_id' => 42]);
 
 $meta->has('trace_id');     // true
@@ -171,7 +170,7 @@ Implements `Countable`, `IteratorAggregate`, `JsonSerializable`, `Stringable`.
 
 **`Command`** — marker interface extending `Payload`:
 
-```php
+```php-inline
 namespace Fight\Common\Domain\Messaging\Command;
 
 interface Command extends Payload {}
@@ -179,7 +178,7 @@ interface Command extends Payload {}
 
 **`CommandMessage`** — envelope wrapping a `Command`:
 
-```php
+```php-inline
 final class CommandMessage extends BaseMessage
 {
     // Wrap a command in a message with auto-generated ID + timestamp
@@ -190,7 +189,7 @@ final class CommandMessage extends BaseMessage
 }
 ```
 
-```php
+```php-inline
 $command  = new RegisterUserCommand('user@example.com', 'Alice');
 $envelope = CommandMessage::create($command);
 
@@ -206,7 +205,7 @@ $envelope->mergeMeta($meta);  // clone with merged meta
 
 **`CommandBus`** — the bus interface. Two dispatch styles:
 
-```php
+```php-inline
 interface CommandBus
 {
     // Wrap + dispatch (convenience)
@@ -222,7 +221,7 @@ adapter consumers to declare intent.
 
 **`CommandHandler`** — each handler declares which command it handles via a static method:
 
-```php
+```php-inline
 interface CommandHandler
 {
     public static function commandRegistration(): string;
@@ -230,7 +229,7 @@ interface CommandHandler
 }
 ```
 
-```php
+```php-inline
 class RegisterUserHandler implements CommandHandler
 {
     public static function commandRegistration(): string
@@ -249,7 +248,7 @@ class RegisterUserHandler implements CommandHandler
 
 **`CommandFilter`** — middleware-style pipeline filter:
 
-```php
+```php-inline
 interface CommandFilter
 {
     // $next signature: function (CommandMessage): void
@@ -261,7 +260,7 @@ interface CommandFilter
 
 **`CommandRouter`** — locates a handler for a command:
 
-```php
+```php-inline
 interface CommandRouter
 {
     /** @throws LookupException when not found */
@@ -276,7 +275,7 @@ Two implementations:
 | `InMemoryCommandRouter` | Direct handler instances | `registerHandler(CommandClass::class, $handlerInstance)` |
 | `ServiceAwareCommandRouter` | Service IDs in container | `registerHandler(CommandClass::class, 'service_id')` — lazy-loaded on `match()` |
 
-```php
+```php-inline
 // InMemory — useful in tests
 $router = new InMemoryCommandRouter();
 $router->registerHandler(RegisterUserCommand::class, $handler);
@@ -288,7 +287,7 @@ $router->registerHandler(RegisterUserCommand::class, 'app.handler.register_user'
 
 **`RoutingCommandBus`** — sync bus that delegates to the router:
 
-```php
+```php-inline
 final readonly class RoutingCommandBus implements SynchronousCommandBus
 {
     public function execute(Command $command): void
@@ -306,7 +305,7 @@ final readonly class RoutingCommandBus implements SynchronousCommandBus
 
 **`CommandPipeline`** — decorates a `SynchronousCommandBus` with a stack of `CommandFilter`s:
 
-```php
+```php-inline
 $pipeline = new CommandPipeline($routingCommandBus);
 $pipeline->addFilter(new LoggingCommandFilter());
 $pipeline->addFilter(new ValidationCommandFilter());
@@ -321,7 +320,7 @@ next filter in the stack, ending at the inner bus.
 
 **`MessengerCommandBus`** — sends commands to a Symfony Messenger transport:
 
-```php
+```php-inline
 final readonly class MessengerCommandBus implements AsynchronousCommandBus
 {
     public function execute(Command $command): void
@@ -336,7 +335,7 @@ final readonly class MessengerCommandBus implements AsynchronousCommandBus
 }
 ```
 
-```php
+```php-inline
 // In a controller you use the async bus for commands
 class RegisterController
 {
@@ -358,7 +357,7 @@ class RegisterController
 
 ### Example: RegisterUserCommand
 
-```php
+```php-inline
 use Fight\Common\Domain\Messaging\Command\Command;
 
 final readonly class RegisterUserCommand implements Command
@@ -413,7 +412,7 @@ Queries are always synchronous — there is no async query bus. The pattern mirr
 
 ### Domain Layer
 
-```php
+```php-inline
 namespace Fight\Common\Domain\Messaging\Query;
 
 interface Query extends Payload {}
@@ -422,14 +421,14 @@ interface Query extends Payload {}
 **`QueryMessage`** — envelope wrapping a `Query`. Same structure as `CommandMessage` with
 `type === 'query'`.
 
-```php
+```php-inline
 $query    = new GetUserQuery('018abc...');
 $envelope = QueryMessage::create($query);
 ```
 
 ### Application Contracts
 
-```php
+```php-inline
 interface QueryBus
 {
     public function fetch(Query $query): mixed;
@@ -454,7 +453,7 @@ interface QueryFilter
 
 **`RoutingQueryBus`** — sync-only bus:
 
-```php
+```php-inline
 final readonly class RoutingQueryBus implements QueryBus
 {
     public function fetch(Query $query): mixed
@@ -474,7 +473,7 @@ final readonly class RoutingQueryBus implements QueryBus
 
 ### Example: GetUserQuery
 
-```php
+```php-inline
 final readonly class GetUserQuery implements Query
 {
     public function __construct(private string $userId) {}
@@ -517,7 +516,7 @@ class GetUserHandler implements QueryHandler
 
 **`Event`** — marker interface extending `Payload`:
 
-```php
+```php-inline
 namespace Fight\Common\Domain\Messaging\Event;
 
 interface Event extends Payload {}
@@ -526,7 +525,7 @@ interface Event extends Payload {}
 **`EventMessage`** — envelope wrapping an `Event`. Same structure as `CommandMessage`/`QueryMessage`
 with `type === 'event'`.
 
-```php
+```php-inline
 $event    = new UserRegisteredEvent($userId);
 $envelope = EventMessage::create($event);
 ```
@@ -534,7 +533,7 @@ $envelope = EventMessage::create($event);
 **`AllEvents`** — marker class. Event subscribers can use this instead of a specific event
 class to register for every event.
 
-```php
+```php-inline
 final class AllEvents
 {
     // No methods — marker only
@@ -544,7 +543,7 @@ final class AllEvents
 **`CommandFailedEvent`** — a built-in event payload emitted when a command fails. Contains
 the original `Command` and error message:
 
-```php
+```php-inline
 final readonly class CommandFailedEvent implements Event
 {
     public function __construct(
@@ -559,7 +558,7 @@ final readonly class CommandFailedEvent implements Event
 
 ### Application Contracts
 
-```php
+```php-inline
 interface EventDispatcher
 {
     // Wrap + dispatch
@@ -585,7 +584,7 @@ interface EventDispatcher
 **`EventSubscriber`** — declarative registration. The static method returns a map of event
 class → handler method, with optional priority:
 
-```php
+```php-inline
 interface EventSubscriber
 {
     // Returns: [EventClass::class => 'methodName']
@@ -602,7 +601,7 @@ interface EventSubscriber
 type, sorted by priority (highest first). `dispatch()` calls handlers for the specific event
 type, then handlers registered for `AllEvents`.
 
-```php
+```php-inline
 $dispatcher = new SimpleEventDispatcher();
 $dispatcher->register($subscriber);
 $dispatcher->addHandler(UserRegisteredEvent::class, $callable, 10);
@@ -612,7 +611,7 @@ $dispatcher->trigger(new UserRegisteredEvent($userId));
 **`ServiceAwareEventDispatcher`** — extends `SimpleEventDispatcher`. Accepts service IDs
 instead of concrete instances. Lazy-loads handlers from the container on first dispatch:
 
-```php
+```php-inline
 $dispatcher = new ServiceAwareEventDispatcher($container);
 $dispatcher->registerService(UserRegisteredEvent::class, 'app.subscriber.send_welcome_email');
 
@@ -625,7 +624,7 @@ $dispatcher->trigger(new UserRegisteredEvent($userId));
 **`MessengerEventDispatcher`** — sends event messages to a Messenger transport. All
 `register()` / `addHandler()` / etc. are no-ops — the dispatcher only serializes and sends.
 
-```php
+```php-inline
 final readonly class MessengerEventDispatcher implements AsynchronousEventDispatcher
 {
     public function trigger(Event $event): void
@@ -637,7 +636,7 @@ final readonly class MessengerEventDispatcher implements AsynchronousEventDispat
 
 ### Example: UserRegisteredEvent + Subscriber
 
-```php
+```php-inline
 final readonly class UserRegisteredEvent implements Event
 {
     public function __construct(private string $userId) {}
@@ -682,7 +681,7 @@ interface and are stacked via `LinkedStack`.
 
 ### Creating a Filter
 
-```php
+```php-inline
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 
@@ -702,7 +701,7 @@ class LoggingCommandFilter implements CommandFilter
 }
 ```
 
-```php
+```php-inline
 use Fight\Common\Application\Messaging\Query\QueryFilter;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
@@ -714,7 +713,7 @@ class LoggingQueryFilter implements QueryFilter
 
 ### Wiring a Pipeline
 
-```php
+```php-inline
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 
@@ -742,16 +741,30 @@ the sync bus/dispatcher.
 
 | Bus | Sends |
 |---|---|
-| `MessengerCommandBus` | `CommandMessage` → transport via `SenderInterface` |
-| `MessengerEventDispatcher` | `EventMessage` → transport via `SenderInterface` |
+| `Symfony\MessengerCommandBus` | `CommandMessage` → transport via `SenderInterface` |
+| `Symfony\MessengerEventDispatcher` | `EventMessage` → transport via `SenderInterface` |
+
+### 1.x Compatibility Names
+
+The following superseded public FQCNs remain independently functional through `1.x`. Each is
+deprecated in source only: it emits no runtime deprecation notice. New integrations should use
+the canonical replacement.
+
+| Superseded FQCN | Canonical replacement |
+|---|---|
+| `Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus` | `Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus` |
+| `Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher` | `Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher` |
+| `Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler` | `Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler` |
+| `Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler` | `Fight\Common\Adapter\Messaging\Handler\EventMessageHandler` |
+| `Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer` | `Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer` |
 
 ### Receiver Side (Consuming from Transport)
 
-**`SymfonyCommandMessageHandler`** — an invocable Messenger handler that receives
+**`CommandMessageHandler`** — a framework-neutral invocable handler that receives
 `CommandMessage` from the transport and forwards it to the sync `SynchronousCommandBus`:
 
-```php
-final readonly class SymfonyCommandMessageHandler
+```php-inline
+final readonly class CommandMessageHandler
 {
     public function __construct(private SynchronousCommandBus $commandBus) {}
 
@@ -762,11 +775,11 @@ final readonly class SymfonyCommandMessageHandler
 }
 ```
 
-**`SymfonyEventMessageHandler`** — receives `EventMessage` from transport and forwards
+**`EventMessageHandler`** — a framework-neutral invocable handler that receives `EventMessage` and forwards
 to the sync `SynchronousEventDispatcher`:
 
-```php
-final readonly class SymfonyEventMessageHandler
+```php-inline
+final readonly class EventMessageHandler
 {
     public function __construct(private SynchronousEventDispatcher $eventDispatcher) {}
 
@@ -777,15 +790,30 @@ final readonly class SymfonyEventMessageHandler
 }
 ```
 
-The message handlers **must** be tagged `messenger.message_handler` in Symfony config.
+Queue integrations may call these handlers directly. Symfony registrations must tag them
+`messenger.message_handler`; the handlers themselves carry no Symfony dependency or queue policy.
+
+### Delivery and Ownership Boundaries
+
+Queued delivery is **at least once**, not exactly once. A repeated `EventMessage` delivery forwards
+the same complete event occurrence to the synchronous dispatcher again, including its ordered,
+complete fan-out. Event subscribers must therefore tolerate retries and protect any side effects
+that cannot safely run more than once.
+
+The neutral handlers only forward complete Fight messages. Each framework starter owns its own
+non-policy integration boundary: message-handler registration, transport and routing configuration,
+and the framework queue lifecycle. Broker selection, retry/backoff, worker supervision, topology,
+dead-letter, and outbox policy remain application concerns rather than Fight Common behavior.
 
 ### Serialization
 
-**`SymfonyMessageSerializer`** — implements Messenger's `SerializerInterface`. Uses the
-domain `JsonSerializer` (or `PhpSerializer`) to serialize/deserialize messages, and encodes
-Messenger stamps in `X-Message-Stamp-*` headers.
+**`Symfony\Serializer\SymfonyMessageSerializer`** — implements Messenger's `SerializerInterface`. Uses the
+Domain `Serializer` contract to serialize/deserialize messages, and encodes Messenger stamps in
+`X-Message-Stamp-*` headers. New configuration should inject the canonical
+`Fight\Common\Application\Serialization\JsonSerializer` (or `PhpSerializer`); the concrete
+`Domain\Serialization` serializers are deprecated 1.x compatibility classes.
 
-```php
+```php-inline
 final readonly class SymfonyMessageSerializer implements SerializerInterface
 {
     public function __construct(private DomainSerializer $serializer) {}
@@ -813,32 +841,35 @@ framework:
 
 ## Compiler Passes
 
-Five compiler passes automate wiring through Symfony DI tags. All tagged services **must be
+Six compiler passes automate wiring through Symfony DI tags. All tagged services **must be
 public** because handlers are lazy-loaded on first match/dispatch.
 
 | Tag | Pass | Action |
 |---|---|---|
-| `common.command_handler` | `CommandHandlerCompilerPass` | Calls `ServiceAwareCommandRouter::registerHandler($commandClass, $serviceId)` |
-| `common.command_filter` | `CommandFilterCompilerPass` | Calls `CommandPipeline::addFilter(Reference)` |
-| `common.query_handler` | `QueryHandlerCompilerPass` | Calls `ServiceAwareQueryRouter::registerHandler($queryClass, $serviceId)` |
-| `common.query_filter` | `QueryFilterCompilerPass` | Calls `QueryPipeline::addFilter(Reference)` |
-| `common.event_subscriber` | `EventSubscriberCompilerPass` | Calls `ServiceAwareEventDispatcher::registerService($className, $serviceId)` |
+| `common.command_handler` | `Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass` | Calls `ServiceAwareCommandRouter::registerHandler($commandClass, $serviceId)` |
+| `common.command_filter` | `Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass` | Calls `CommandPipeline::addFilter(Reference)` |
+| `common.query_handler` | `Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass` | Calls `ServiceAwareQueryRouter::registerHandler($queryClass, $serviceId)` |
+| `common.query_filter` | `Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass` | Calls `QueryPipeline::addFilter(Reference)` |
+| `common.event_subscriber` | `Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass` | Calls `ServiceAwareEventDispatcher::registerService($className, $serviceId)` |
+| `common.template_helper` | `Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass` | Calls `TemplateEngine::addHelper(Reference)` |
 
 Each pass validates that the tagged service implements the expected interface and throws an
 `Exception` if the router/pipeline/dispatcher service is missing or the interface check fails.
+The matching `Fight\Common\Adapter\DependencyInjection` FQCN remains a deprecated 1.x
+compatibility identity for each pass; use the `ServiceContainer\Symfony` paths in new code.
 
 ### Wiring in the Kernel
 
 The cleanest approach is to use `registerForAutoconfiguration` in your `Kernel::build()` so
 that any service implementing the handler/filter/subscriber interface is automatically tagged:
 
-```php
-use Fight\Common\Adapter\DependencyInjection\CommandFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\CommandHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\EventSubscriberCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryFilterCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\QueryHandlerCompilerPass;
-use Fight\Common\Adapter\DependencyInjection\TemplateHelperCompilerPass;
+```php-inline
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\CommandHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\EventSubscriberCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryFilterCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\QueryHandlerCompilerPass;
+use Fight\Common\Adapter\ServiceContainer\Symfony\TemplateHelperCompilerPass;
 use Fight\Common\Application\Messaging\Command\CommandFilter;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Application\Messaging\Event\EventSubscriber;
@@ -901,7 +932,7 @@ services:
             - '@Fight\Common\Adapter\Messaging\Command\Sync\Routing\RoutingCommandBus'
 
     # Async command bus (sends to Messenger transport)
-    Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus:
+    Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus:
         arguments:
             - '@messenger.transport.commands'
 
@@ -917,19 +948,19 @@ services:
         arguments:
             - '@service_container'
 
-    Fight\Common\Adapter\Messaging\Event\Async\MessengerEventDispatcher:
+    Fight\Common\Adapter\Messaging\Symfony\MessengerEventDispatcher:
         arguments:
             - '@messenger.transport.events'
 
     # --- Bridges: transport → sync ---
 
-    Fight\Common\Adapter\Messaging\Handler\SymfonyCommandMessageHandler:
+    Fight\Common\Adapter\Messaging\Handler\CommandMessageHandler:
         arguments:
             - '@Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline'
         tags:
             - { name: messenger.message_handler }
 
-    Fight\Common\Adapter\Messaging\Handler\SymfonyEventMessageHandler:
+    Fight\Common\Adapter\Messaging\Handler\EventMessageHandler:
         arguments:
             - '@Fight\Common\Adapter\Messaging\Event\Sync\ServiceAwareEventDispatcher'
         tags:
@@ -937,9 +968,9 @@ services:
 
     # --- Message serializer ---
 
-    Fight\Common\Adapter\Messaging\Serializer\SymfonyMessageSerializer:
+    Fight\Common\Adapter\Messaging\Symfony\Serializer\SymfonyMessageSerializer:
         arguments:
-            - '@Fight\Common\Domain\Serialization\JsonSerializer'
+            - '@Fight\Common\Application\Serialization\JsonSerializer'
 
     # --- Event subscriber (sync, auto-registered) ---
 
@@ -987,7 +1018,7 @@ controllers can type-hide against the interface:
 ```yaml
 services:
     Fight\Common\Application\Messaging\Command\AsynchronousCommandBus:
-        alias: Fight\Common\Adapter\Messaging\Command\Async\MessengerCommandBus
+        alias: Fight\Common\Adapter\Messaging\Symfony\MessengerCommandBus
 
     Fight\Common\Application\Messaging\Query\QueryBus:
         alias: Fight\Common\Adapter\Messaging\Query\RoutingQueryBus
@@ -1000,11 +1031,11 @@ services:
 
 ```
 Controller (async command bus)
-  └── MessengerCommandBus::execute($command)
+  └── Symfony\MessengerCommandBus::execute($command)
         └── SenderInterface::send(Envelope(CommandMessage))
               │
               ▼  (transport delivers to consumer)
-        SymfonyCommandMessageHandler::__invoke($commandMessage)
+        CommandMessageHandler::__invoke($commandMessage)
               └── CommandPipeline::dispatch($commandMessage)
                     └── filters...
                           └── RoutingCommandBus::dispatch($commandMessage)
@@ -1025,11 +1056,91 @@ Controller (event dispatcher)
 
 ---
 
+## Laravel Queue capability provider
+
+Laravel applications can register the shipped messaging capability provider in their application
+provider list:
+
+```php-inline
+use Fight\Common\Adapter\ServiceContainer\Laravel\MessagingServiceProvider;
+
+return [
+    App\Providers\AppServiceProvider::class,
+    MessagingServiceProvider::class,
+];
+```
+
+The provider binds `AsynchronousCommandBus` to `LaravelCommandBus` and
+`AsynchronousEventDispatcher` to `LaravelEventDispatcher`. Both submit complete Fight envelopes through
+Laravel's bus; handler registration, queue connection, workers, retries, and failed-job policy remain
+application configuration. This package provides no asynchronous query bus.
+
+## CodeIgniter Queue capability delegation
+
+CodeIgniter applications opt into Fight Common messaging through their own `app/Config/Services.php`.
+`MessagingServices` is a small factory delegate; it does not replace the application's `Config\Services`
+policy and it does not activate persistence or any other Fight capability.
+
+```php-inline
+namespace Config;
+
+use CodeIgniter\Config\BaseService;
+use Fight\Common\Adapter\Messaging\CodeIgniter\CommandMessageJob;
+use Fight\Common\Adapter\Messaging\CodeIgniter\EventMessageJob;
+use Fight\Common\Adapter\ServiceContainer\CodeIgniter\MessagingServices;
+
+final class Services extends BaseService
+{
+    public static function fightQueueCommandBus(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance('fightQueueCommandBus');
+        }
+
+        return MessagingServices::queueCommandBus(static::queue(), 'commands', 'fight-command');
+    }
+
+    public static function fightCommandMessageHandler(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance(CommandMessageJob::HANDLER_SERVICE);
+        }
+
+        return MessagingServices::commandMessageHandler(static::fightSynchronousCommandBus());
+    }
+
+    public static function fightEventMessageHandler(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance(EventMessageJob::HANDLER_SERVICE);
+        }
+
+        return MessagingServices::eventMessageHandler(static::fightSynchronousEventDispatcher());
+    }
+}
+```
+
+Add the analogous `fightQueueEventDispatcher`, `fightAsynchronousCommandBus`, and
+`fightAsynchronousEventDispatcher` methods only when the messaging capability is selected. The Queue package's
+`Config\Queue` owns the broker, queue names, job aliases, retries, failed-job storage, worker commands, and
+deployment topology. The project owns the synchronous command bus and event dispatcher collaborators shown above.
+
+`CommandMessageJob::HANDLER_SERVICE` and `EventMessageJob::HANDLER_SERVICE` are the exact project service aliases
+resolved by queued jobs. Handler failures escape the job so CodeIgniter Queue's native retry and failed-job policy
+remain authoritative. Delivery is therefore at least once: handlers must be idempotent and repeated delivery keeps
+the same complete Fight message envelope.
+
+Queue submission has no portable post-commit guarantee and is not an atomic outbox. Submit only after the selected
+transaction succeeds; applications requiring atomic persistence and publication need an outbox or event-store
+delivery design configured by the application.
+
+---
+
 ## Controller Examples
 
 ### Command Controller (Async — HTTP 202)
 
-```php
+```php-inline
 use Fight\Common\Application\Messaging\Command\AsynchronousCommandBus;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -1057,7 +1168,7 @@ class RegisterUserController
 
 ### Query Controller (Sync — HTTP 200)
 
-```php
+```php-inline
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -1083,7 +1194,7 @@ class GetUserController
 
 ### Event Dispatch in a Service
 
-```php
+```php-inline
 use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 
 class RegisterUserHandler implements CommandHandler

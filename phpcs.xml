@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="FightCommon">
-    <description>Fight Common coding standard</description>
-
+    <description>Fight Common Coding Standard</description>
     <file>src</file>
-
+    <file>release/src</file>
+    <file>release/scripts</file>
+    <file>release/consumer</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
-
-
     </rule>
 </ruleset>

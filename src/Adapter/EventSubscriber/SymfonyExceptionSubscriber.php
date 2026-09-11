@@ -12,6 +12,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Class SymfonyExceptionSubscriber
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber
  */
 final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterface
 {
@@ -39,16 +41,11 @@ final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterf
             return;
         }
 
-        $response = $this->errorController->handle($event->getThrowable());
-
-        $event->setResponse($response);
+        $event->setResponse($this->errorController->handle($event->getThrowable()));
     }
 
     /**
-     * Determines whether the client expects a JSON response
-     *
-     * Returns true when the request carries an XMLHttpRequest header or
-     * explicitly accepts application/json ahead of text/html.
+     * Determines whether the request expects JSON
      */
     private function wantsJson(Request $request): bool
     {
@@ -57,15 +54,9 @@ final readonly class SymfonyExceptionSubscriber implements EventSubscriberInterf
         }
 
         $acceptable = $request->getAcceptableContentTypes();
-
         $jsonPos = array_search('application/json', $acceptable, true);
         $htmlPos = array_search('text/html', $acceptable, true);
 
-        if ($jsonPos === false) {
-            return false;
-        }
-
-        // JSON wins if HTML is absent or ranked lower
-        return $htmlPos === false || $jsonPos < $htmlPos;
+        return $jsonPos !== false && ($htmlPos === false || $jsonPos < $htmlPos);
     }
 }

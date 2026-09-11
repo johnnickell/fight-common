@@ -38,7 +38,6 @@ final class EventSourcingGuideTest extends UnitTestCase
         self::assertIsString($guide);
         self::assertIsString($fixture);
         foreach ([
-            '# Event Sourcing',
             '## Persist and reload an aggregate',
             'framework-free',
             'executable',
@@ -275,7 +274,7 @@ final class EventSourcingGuideTest extends UnitTestCase
             self::assertStringContainsString($requiredContract, $fixture);
         }
 
-        self::assertStringContainsString('- Event Sourcing: event-sourcing.md', $mkdocs);
+        self::assertStringContainsString('- Event Sourcing: components/event-sourcing/index.md', $mkdocs);
     }
 
 }

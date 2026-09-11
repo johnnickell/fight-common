@@ -1,160 +1,167 @@
-# Contributing & Branching Strategy
+# Contributing
 
-This document describes the long-term maintenance model for `johnnickell/fight-common`.
+Use this guide when changing Fight Common itself. Consumer installation, component adoption, and framework
+composition belong in their respective guides; this route covers repository workflow, verification, and release
+evidence for maintainers.
 
----
+## Choose the change boundary
 
-## Branch Model
+Start with the smallest owned boundary that can deliver the requested behavior:
 
-```
-main      ←── protected; every merge is a tagged stable release
-1.1       ←── maintenance branch for 1.1.x bug fixes
-1.0       ←── maintenance branch for 1.0.x bug fixes
-develop   ←── integration branch for upcoming features
-feature/* ←── short-lived; branched off develop
-release/* ←── short-lived; branched off develop for release candidates
-hotfix/*  ←── short-lived; branched off 1.0
-```
+- **Domain** contains framework-free business rules and value objects.
+- **Application** coordinates use cases and may depend on Domain, PHP internals, PSR contracts, and the
+  allowlisted scheduler expression contract.
+- **Adapter** integrates frameworks and infrastructure through Application or Domain contracts.
+- **Standards** publishes the orthogonal coding standard and has no runtime dependants.
 
-### `main`
+The enforced dependency direction is `Adapter -> Application -> Domain`. Keep public behavior backwards
+compatible: a deprecated public API remains supported for at least one released minor and is removed only in the
+next major.
 
-The default and protected branch. Every commit on `main` has a version tag. Direct pushes are blocked — changes land here only via PR from `release/*` (for minor/major releases) or from a maintenance branch (`1.0`, `1.1`, etc.) (for patch backports).
+Before editing, read the relevant ticket, its parent PRD, and any accepted ADR named by the ticket. The live
+[Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tickets/BOARD.md) is the execution
+frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates.
 
-### `1.1`
+## Create an isolated branch
 
-Created from the `v1.1.0` tag. Accepts bug fixes and security patches for the 1.1 release line. No new features. PRs target `1.1`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
-
-### `1.0`
-
-Created from the `v1.0.0` tag. Accepts bug fixes and security patches for the 1.0 release line. No new features. PRs target `1.0`; the resulting commits are cherry-picked to `develop` to keep the branches in sync.
-
-### `develop`
-
-The active development branch for the next minor/major release. All feature work merges here first.
-
-### `release/*`
-
-Short-lived branches off `develop` for release preparation. Name them `release/<version>` (e.g. `release/1.1.0`). Use for CHANGELOG updates, version bumps, and final QA. Merge into `main` (via `--no-ff`) and back into `develop` (via `--no-ff`). Delete after merging.
-
-### `feature/*`
-
-Short-lived branches off `develop`. Name them `feature/short-description`. Delete after merging.
-
-### `hotfix/*`
-
-Short-lived branches off the relevant maintenance branch (`1.0`, `1.1`, etc.). Name them `hotfix/short-description`. Merge back into the maintenance branch, then cherry-pick the commit(s) to `develop`.
-
----
-
-## Semantic Versioning
-
-This library follows [semver](https://semver.org/):
-
-| Change type | Version component | Branch target |
-|-------------|------------------|---------------|
-| Bug fix, no API change | **Patch** `1.x.y` | maintenance branch → cherry-pick to `develop` |
-| New feature, backwards-compatible | **Minor** `x.y.0` | `main` via release branch |
-| Breaking change | **Major** `x.0.0` | `main` via release branch, with deprecation notice first |
-
-### What counts as a breaking change
-
-- Removing or renaming a public interface, class, or method
-- Changing a method signature (adding required parameters, changing return types)
-- Raising the minimum PHP version
-- Raising the minimum version of a required package in a way that drops support
-
-### What does NOT count as a breaking change
-
-- Adding a new class, interface, or method
-- Adding optional parameters to an existing method
-- Bug fixes that change incorrect behaviour to correct behaviour
-- Internal refactors with no public API impact
-
----
-
-## Release Process
-
-### Patch release (1.0.x)
+Feature work starts from `develop`, never from `main`; do not commit directly to either protected branch.
 
 ```bash
-git checkout 1.0
-git checkout -b hotfix/fix-description
-
-# make changes, commit, ensure tests pass
-git push origin hotfix/fix-description
-# open PR → 1.0
-
-# after merge:
-git checkout 1.0 && git pull
-git tag v1.0.1
-git push origin v1.0.1
-
-# backport to develop
-git checkout develop
-git cherry-pick <commit-sha>
-git push origin develop
+git switch develop
+git pull --ff-only
+git switch -c feature/short-description
 ```
 
-Update `CHANGELOG.md` under the new `[v1.0.1]` heading before tagging.
-
-### Minor / major release
+For coordinated or concurrent work, use a linked checkout under the repository's ignored run area:
 
 ```bash
-# ensure develop is green
-git checkout develop
-git checkout -b release/<version>
-
-# update CHANGELOG.md and any version references
-# run full submit gate
-
-git commit -m "Release v<version>"
-git checkout main
-git merge --no-ff release/<version>
-git tag v<version>
-git push origin main v<version>
-
-# back to develop
-git checkout develop
-git merge --no-ff release/<version>
-git push origin develop
-
-# cleanup
-git branch -d release/<version>
-
-# create maintenance branch
-git checkout -b <major>.<minor> v<version>
-git push origin <major>.<minor>
+git worktree add -b feature/short-description \
+  .runs/worktrees/short-description develop
 ```
 
----
+Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
+in `.runs/handoffs/`, and retired scratch in `.runs/archive/`. Those paths are local evidence and must not be
+staged. Removing a worktree or other run material is a separate cleanup action.
 
-## Pull Request Requirements
+## Implement and verify
 
-- All PRs must pass the `Tests` GitHub Actions workflow
-- 100% statement coverage must be maintained (enforced by `requireCoverageMetadata` in `phpunit.xml.dist`)
-- Every new class in `src/` requires a corresponding test class with `#[CoversClass]`
-- Follow the existing code style (PSR-12, enforced by PHP_CodeSniffer)
-- PHPStan must pass at the configured level (currently level 6, enforced by CI)
+Production tests cover owned production code and meaningful behavior. Every PHPUnit class extends
+`Fight\Test\Common\TestCase\UnitTestCase` and carries explicit coverage metadata. Direct unit tests use
+`#[CoversClass]`; `#[CoversNothing]` is reserved for qualifying integration or product-journey tests and cannot
+hide missing direct coverage.
 
----
+Documentation, generated files, wrappers, build orchestration, configuration text, and tooling are checked with
+their owning commands and human inspection. Do not add tests that merely inspect those surfaces.
 
-## Local Development
-
-All tooling runs inside the `fight-common` Docker container through the standard `./bin/` entrypoints:
+Use a non-interactive container command for focused feedback:
 
 ```bash
-./bin/phpunit                              # complete suite with disposable MySQL/PostgreSQL
-./bin/phpunit --fast                       # fast suite; excludes server-database tests
-./bin/phpunit --filter MyTest              # filter the complete suite
-./bin/composer require vendor/package      # add a dependency
-./bin/rector process src/                  # apply code modernization
-./bin/exec php vendor/bin/phpstan analyse  # static analysis (level 6)
+docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
+  php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
 ```
 
-Complete mode provisions disposable MySQL 8.4.11 and PostgreSQL 17 services,
-waits for health, injects both `FIGHT_COMMON_*_DSN` values, and cleans up its
-containers and network on every exit. Unavailable complete-suite infrastructure
-fails the run; it is never silently skipped. `--fast` is an optional local
-feedback workflow and is not submit or release evidence.
+Useful interactive wrappers include:
 
-See the [CLAUDE.md](../CLAUDE.md) for non-interactive (CI-style) Docker commands.
+```bash
+./bin/phpunit --filter test_method_name
+./bin/phpstan
+./bin/deptrac
+./bin/rector process src/ --dry-run
+./bin/docs validate
+```
+
+The canonical pre-submit gate is:
+
+```bash
+./bin/build
+```
+
+It validates the documentation artifact, provisions disposable MySQL and PostgreSQL services, and runs Composer
+validation, syntax checks, planning integrity, PHPCS, PHPStan, Deptrac, Rector's dry run, PHPUnit, and exact
+statement coverage. Dependency installation uses the local `composer.lock` when one exists; because the lockfile
+is intentionally ignored, an unprepared checkout instead resolves compatible dependencies and creates a local
+lockfile. A focused or fast run is feedback, not completion evidence.
+
+The default `./bin/build` installs the dependency versions recorded in `composer.lock` when that local file is
+present. Hosted CI runs `composer update` ephemerally and invokes `./bin/quality` directly on the runner, so its
+latest-compatible evidence is distinct from the local locked gate.
+
+To enable the tracked pre-commit gate:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook runs `./bin/build`. If it fails or is interrupted, diagnose the cause and run it again to completion.
+Never use `git commit --no-verify`, disable, or otherwise bypass the hook merely because the gate is slow,
+interrupted, or inconvenient. An exception requires explicit authorization for that exact commit and leaves
+delivery unverified.
+
+## Prepare the pull request
+
+Before the final commit or pull request:
+
+1. Verify every acceptance criterion with current evidence.
+2. Mark the ticket `done` and record its verified outcome.
+3. Move it to **Recently Done** on the Board and recalculate **What's Next?**.
+4. Refresh parent PRD, epic, roadmap, and downstream `blocked_by` state when the completed outcome changes them.
+5. Run `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
+
+Open the feature pull request against `develop`. The hosted Tests workflow resolves latest-compatible dependencies
+and runs the shared quality gate; the documentation workflow builds and validates the generated site. A queued,
+skipped, cancelled, warning-bearing, or no-step job is not passing evidence.
+
+Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
+that have been explicitly authorized.
+
+## Certify a release candidate
+
+A successful `./bin/build` proves the checkout's submit gate; it does not certify or publish a release.
+Certification additionally requires a reviewed local `composer.lock`, even though that file is ignored. Prepare
+the lockfile for the exact clean, committed candidate with the repository-owned latest-compatible lane, review
+the resolved dependency set, and rerun the default gate:
+
+```bash
+./bin/build --latest
+./bin/build
+```
+
+With that precondition satisfied, run:
+
+```bash
+./bin/release certify <version>
+```
+
+Certification binds its evidence to the exact `HEAD`, exercises locked, latest-compatible, and lowest-compatible
+dependency lanes, builds the Composer archive, probes an installed consumer, and writes the result under
+`.runs/handoffs/`. See the
+[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full
+contract.
+
+Certification does not merge, tag, push, create a GitHub release, publish to Packagist, or deploy documentation.
+Promotion from `develop` to `main`, tagging, publication, rollback, and maintenance-branch work each require their
+own accepted plan and authorization. Do not infer a hotfix or backport route from urgency alone.
+
+## Documentation workflow
+
+Use the pinned documentation runtime:
+
+```bash
+./bin/docs preview
+./bin/docs build
+./bin/docs validate
+```
+
+`preview` serves the local site at `127.0.0.1:8000`. `build` creates the disposable, ignored `site/` artifact.
+`validate` performs the strict render and current artifact checks. Review changed routes in the supported viewport
+and color-scheme combinations before treating the documentation as accepted.
+
+Pull requests validate documentation but do not deploy it. The hosted workflow deploys only after a push to
+`main`; a local artifact, successful build, or uploaded workflow artifact is not production publication evidence.
+
+## Related maintenance routes
+
+- Adopt or configure the package's optional [Coding Standard](../coding-standard/index.md).
+- Review the consumer-facing [Architecture](../../architecture/index.md) before changing layer ownership.
+- Check [Framework Support](../../frameworks/framework-support/index.md) before changing adapter or provider claims.
+- Use the [Quick Start](../../quick-start/index.md) as the representative portable consumer journey.

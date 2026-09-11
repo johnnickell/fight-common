@@ -1,0 +1,15 @@
+{% extends "main.html" %}
+
+{% block content %}
+  <div class="md-typeset atlas-not-found">
+    <img
+      class="atlas-not-found__mark"
+      src="{{ 'assets/identity/fight-mark-dark.svg' | url }}"
+      alt="Fight"
+    >
+    <p class="atlas-not-found__eyebrow">Fight Common</p>
+    <h1>Page not found</h1>
+    <p>The page you requested does not exist or may have moved.</p>
+    <p><a class="md-button md-button--primary atlas-not-found__link" href="{{ config.site_url }}">Return to the documentation home</a></p>
+  </div>
+{% endblock %}

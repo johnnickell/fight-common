@@ -9,6 +9,9 @@ use JsonSerializable;
 
 /**
  * Class AiOperation
+ *
+ * @deprecated since 1.2, will be removed in 2.0. MCP/AI operation tooling will be
+ * redesigned as a future feature with proper architectural boundaries.
  */
 final readonly class AiOperation implements JsonSerializable
 {

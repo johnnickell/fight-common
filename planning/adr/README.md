@@ -18,3 +18,13 @@
 | [0014](0014-deterministic-release-commands-and-evidence.md) | Deterministic release commands, run state, and evidence authority | accepted |
 | [0015](0015-patch-and-maintenance-line-workflows.md) | Patch and maintenance-line workflows with guided urgent handling | accepted |
 | [0016](0016-github-packagist-publication-and-provenance.md) | GitHub and Packagist publication and provenance | accepted |
+| [0017](0017-scheduler-1x-construction-compatibility.md) | Preserve Scheduler 1.x construction while adding portable ProcessRunner composition | accepted |
+| [0018](0018-neutral-jsend-envelope-and-native-response-boundary.md) | Neutral typed JSend envelope with native HTTP response adapters | accepted |
+| [0019](0019-capability-first-adapter-namespaces-and-1x-compatibility.md) | Capability-first adapter namespaces with behavioral 1.x compatibility | accepted |
+| [0020](0020-supported-framework-lines-and-support-window.md) | Supported framework lines with a current-only window and widen/tighten triggers | accepted |
+| [0021](0021-framework-default-capability-compositions.md) | Framework default capability compositions with starter-owned integration | accepted |
+| [0022](0022-invited-registration-and-multi-session-jwt-authentication.md) | Invited activation with shared multi-session JWT authentication | accepted |
+| [0023](0023-service-container-and-framework-adapter-namespaces.md) | Capability-oriented service-container and framework adapter namespaces | accepted |
+| [0024](0024-framework-adapter-support-and-delivery-boundaries.md) | Framework adapter support and delivery boundaries | accepted |
+| [0025](0025-thin-release-certification.md) | Thin release certification with separately authorized publication | accepted |
+| [0026](0026-lean-pre-submit-and-release-qualification.md) | Lean complete pre-submit gate with release-only candidate qualification | accepted |

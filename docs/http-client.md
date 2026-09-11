@@ -1,5 +1,3 @@
-# HTTP Client
-
 A transport-abstraction layer for making HTTP requests. The Application layer defines PSR-7
 message factories, a transport contract, and a promise interface; the Adapter layer provides
 a Guzzle implementation and a PSR-3 logging decorator. An `HttpService` facade combines
@@ -61,7 +59,7 @@ Application\HttpFoundation
 
 `Fight\Common\Application\HttpClient\Transport\HttpClient`
 
-```php
+```php-inline
 interface HttpClient
 {
     /** @throws Exception */
@@ -79,6 +77,11 @@ interface HttpClient
 | `GuzzleClient` | `Adapter\HttpClient\Guzzle` | Production — wraps Guzzle `ClientInterface` |
 | `LoggingHttpClient` | `Adapter\HttpClient\Logging` | Dev — logs request/response then delegates |
 
+`Psr18Client` points in the other direction: it exposes an already configured Fight `HttpClient`
+through the standard `Psr\Http\Client\ClientInterface`. It translates Fight network, request, and
+transfer failures into the matching PSR-18 exception interfaces. It does not discover a client or
+choose timeouts, TLS trust, proxies, retries, or credentials.
+
 ---
 
 ## HttpService (Facade)
@@ -90,7 +93,7 @@ every method to its injected dependency. This is the recommended way to depend o
 application services — one dependency gives you transport, message creation, streams, and
 URI parsing.
 
-```php
+```php-inline
 final readonly class HttpService implements HttpClient, MessageFactory, StreamFactory, UriFactory
 {
     public function __construct(
@@ -102,7 +105,7 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
 }
 ```
 
-```php
+```php-inline
 class UserApiService
 {
     public function __construct(private HttpService $http) {}
@@ -125,7 +128,7 @@ class UserApiService
 
 `Fight\Common\Application\HttpClient\Message\MessageFactory`
 
-```php
+```php-inline
 interface MessageFactory
 {
     public function createRequest(
@@ -150,7 +153,7 @@ interface MessageFactory
 
 `Fight\Common\Application\HttpClient\Message\StreamFactory`
 
-```php
+```php-inline
 interface StreamFactory
 {
     /** @throws DomainException */
@@ -162,7 +165,7 @@ interface StreamFactory
 
 `Fight\Common\Application\HttpClient\Message\UriFactory`
 
-```php
+```php-inline
 interface UriFactory
 {
     /** @throws DomainException */
@@ -180,7 +183,7 @@ All three factories have a single Guzzle adapter:
 | `StreamFactory` | `GuzzleHttp\Psr7\Utils::streamFor()` | `guzzlehttp/psr7` |
 | `UriFactory` | `GuzzleHttp\Psr7\Utils::uriFor()` | `guzzlehttp/psr7` |
 
-```php
+```php-inline
 $factory = new GuzzleMessageFactory();
 $request = $factory->createRequest('POST', '/api/orders', [
     'Content-Type' => 'application/json',
@@ -195,7 +198,7 @@ $request = $factory->createRequest('POST', '/api/orders', [
 
 Represents the eventual result of an asynchronous HTTP operation.
 
-```php
+```php-inline
 interface Promise
 {
     public const PENDING   = 'pending';
@@ -231,7 +234,7 @@ interface Promise
 
 `Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient`
 
-```php
+```php-inline
 final class GuzzleClient implements HttpClient
 {
     public function __construct(protected ClientInterface $client) {}
@@ -260,7 +263,7 @@ exception hierarchy:
 
 Simple adapters that delegate to `guzzlehttp/psr7` classes:
 
-```php
+```php-inline
 $messageFactory = new GuzzleMessageFactory();
 $streamFactory  = new GuzzleStreamFactory();
 $uriFactory     = new GuzzleUriFactory();
@@ -275,7 +278,10 @@ $uriFactory     = new GuzzleUriFactory();
 A decorator that logs every request and response via PSR-3 before delegating to the inner
 client. Configurable log level (default `LogLevel::DEBUG`).
 
-```php
+Use it only where its data policy is acceptable. Authorization headers, cookies, query values, and
+bodies can carry secrets or personal data; redact them before they reach a production logger.
+
+```php-inline
 final readonly class LoggingHttpClient implements HttpClient
 {
     public function __construct(
@@ -292,7 +298,7 @@ final readonly class LoggingHttpClient implements HttpClient
 - **Response** (on fulfill): status code, reason phrase, protocol version, headers, body content (stream is rewound after reading)
 - **Exception** (on reject): exception message and full exception object
 
-```php
+```php-inline
 $client = new LoggingHttpClient(
     new GuzzleClient(new GuzzleHttp\Client()),
     $logger,
@@ -337,7 +343,7 @@ Throwable
 
 String constant class for HTTP methods:
 
-```php
+```php-inline
 HttpMethod::GET;    // 'GET'
 HttpMethod::POST;   // 'POST'
 HttpMethod::DELETE; // 'DELETE'
@@ -352,7 +358,7 @@ All standard methods: `HEAD`, `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `PURGE`, 
 
 Integer constant class for HTTP status codes:
 
-```php
+```php-inline
 HttpStatus::OK;                    // 200
 HttpStatus::CREATED;              // 201
 HttpStatus::NOT_FOUND;            // 404
@@ -451,8 +457,8 @@ services:
 
 # config/packages/test/common_http_client.yaml
 services:
-    # Swap the logging decorator for a lightweight client in tests
-    Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient:
+    # Keep the Fight adapter and replace only its underlying client in tests
+    GuzzleHttp\ClientInterface:
         class: GuzzleHttp\Client
         arguments:
             $config:
@@ -467,7 +473,7 @@ services:
 
 ### Basic GET Request
 
-```php
+```php-inline
 use Fight\Common\Application\HttpClient\HttpService;
 use Fight\Common\Application\HttpFoundation\HttpMethod;
 
@@ -487,7 +493,7 @@ class UserApiService
 
 ### POST with JSON Body
 
-```php
+```php-inline
 class OrderApiService
 {
     public function __construct(private HttpService $http) {}
@@ -510,7 +516,7 @@ class OrderApiService
 
 ### Async Request
 
-```php
+```php-inline
 $promise = $this->http->sendAsync($request);
 
 // Attach callbacks
@@ -535,7 +541,7 @@ if ($promise->getState() === Promise::FULFILLED) {
 
 ### Exception Handling
 
-```php
+```php-inline
 use Fight\Common\Application\HttpClient\Exception\HttpException;
 use Fight\Common\Application\HttpClient\Exception\NetworkException;
 
@@ -553,7 +559,7 @@ try {
 
 ### Logging Decorator
 
-```php
+```php-inline
 use Fight\Common\Adapter\HttpClient\Logging\LoggingHttpClient;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient;
 
@@ -567,7 +573,7 @@ $response = $client->send($request);
 
 ### Testing with a Mock Client
 
-```php
+```php-inline
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;

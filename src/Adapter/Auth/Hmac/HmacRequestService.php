@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Auth\Hmac;
 
+use Closure;
 use Exception;
+use Fight\Common\Application\Auth\Exception\CredentialsException;
 use Fight\Common\Application\Auth\RequestService;
 use Psr\Http\Message\RequestInterface;
 
@@ -19,9 +21,16 @@ final class HmacRequestService implements RequestService
 
     /**
      * Constructs HmacRequestService
+     *
+     * @param string                     $public         Public credential.
+     * @param string                     $private        Hex-encoded private key.
+     * @param Closure(int): string|null $nonceGenerator
      */
-    public function __construct(private string $public, string $private)
-    {
+    public function __construct(
+        private readonly string $public,
+        string $private,
+        private readonly ?Closure $nonceGenerator = null
+    ) {
         $this->secret = hex2bin($private);
     }
 
@@ -41,7 +50,11 @@ final class HmacRequestService implements RequestService
         $content = (string) $request->getBody();
         $timestamp = time();
 
-        $headers = $this->buildHeaders($timestamp, $content);
+        try {
+            $headers = $this->buildHeaders($timestamp, $content);
+        } catch (Exception $exception) {
+            throw new CredentialsException($exception->getMessage(), $exception->getCode(), $exception);
+        }
 
         $canonicalRequest = $this->createCanonicalRequestString(
             $method,
@@ -78,7 +91,7 @@ final class HmacRequestService implements RequestService
     /**
      * Builds standard headers
      *
-     * @return array<string, int|string>
+     * @return array<string, string>
      *
      * @throws Exception
      */
@@ -86,8 +99,12 @@ final class HmacRequestService implements RequestService
     {
         $headers = [];
 
-        $headers['X-Timestamp'] = $timestamp;
-        $headers['X-Nonce'] = HmacKeyGenerator::generateSecureRandom(8);
+        $headers['X-Timestamp'] = (string) $timestamp;
+        if ($this->nonceGenerator instanceof Closure) {
+            $headers['X-Nonce'] = ($this->nonceGenerator)(8);
+        } else {
+            $headers['X-Nonce'] = HmacKeyGenerator::generateSecureRandom(8);
+        }
 
         if ($content !== '') {
             $contentHash = hash('sha256', $content);

@@ -1,0 +1,5 @@
+graphify-out/graph.json merge=graphify
+
+# Preserve byte-exact upstream license payloads pinned by the font manifest.
+docs/assets/fonts/licenses/fira-code-v27-ofl-1.1.txt -whitespace
+docs/assets/fonts/licenses/source-sans-3-v19-ofl-1.1.txt -whitespace

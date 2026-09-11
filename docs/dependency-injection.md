@@ -1,6 +1,6 @@
-# Dependency Injection Container
-
-A lightweight PSR-11 compatible DI container for stand-alone applications. When using Symfony, prefer its DI container — this is for no-framework contexts such as CLI scripts, daemons, micro-applications, or testing harnesses.
+A lightweight PSR-11-compatible Application container for explicit composition roots. It is not an
+Adapter or framework configuration layer: a consumer using Symfony or another framework should
+make its own composition choice and keep that framework's bindings at its boundary.
 
 ```
 Application\Service
@@ -25,10 +25,10 @@ Application\Service
 
 ## When to Use This Container
 
-- Stand-alone CLI scripts or daemons that need simple wiring
-- Micro-applications where Symfony's full DI is overkill
-- Testing harnesses that need a lightweight service locator
-- **Not needed** when you already have Symfony's container — use theirs instead
+- Stand-alone CLI scripts or daemons that need simple, explicit wiring
+- Small application roots that choose not to use a framework container
+- Test or integration composition where direct factories make dependencies clear
+- **Not a replacement for consumer-owned framework configuration** — a framework application may use its own container instead
 
 ---
 
@@ -36,7 +36,7 @@ Application\Service
 
 `Fight\Common\Application\Service\Container` implements `Psr\Container\ContainerInterface`:
 
-```php
+```php-inline
 public function get(string $id): mixed;
 public function has(string $id): bool;
 ```
@@ -51,7 +51,7 @@ public function has(string $id): bool;
 
 The factory receives the container as its only argument. The return value is cached — subsequent `get($id)` calls return the **same instance**.
 
-```php
+```php-inline
 use Fight\Common\Application\Service\Container;
 
 $container = new Container();
@@ -73,7 +73,7 @@ Use `set()` for objects that should be singletons within the container: database
 
 Same signature as `set()`, but the factory is invoked **fresh on every `get()` call**.
 
-```php
+```php-inline
 $container->factory('request', fn ($c) => Request::fromGlobals());
 
 $req1 = $container->get('request');   // new instance
@@ -88,7 +88,7 @@ Use `factory()` for objects that must not be shared: request objects, command in
 
 Simple key-value store completely separate from services. Parameters do not overlap with `get()`/`has()`.
 
-```php
+```php-inline
 $container->setParameter('db.host', 'localhost');
 $container->setParameter('db.name', 'myapp');
 $container->setParameter('db.port', 3306);
@@ -106,7 +106,7 @@ $container->removeParameter('db.host');
 
 `Container` implements `ArrayAccess`, which delegates to the parameter store:
 
-```php
+```php-inline
 $container['db.host'] = 'localhost';
 
 echo $container['db.host'];                       // 'localhost'
@@ -122,7 +122,7 @@ This is a convenience shorthand for parameter access — it does **not** interac
 
 A stand-alone application wired through the container:
 
-```php
+```php-inline
 use Fight\Common\Application\Service\Container;
 
 $c = new Container();
@@ -173,7 +173,7 @@ $mailer->send(new WelcomeEmail($users[0]));
 
 Extends `\Exception` and implements `Psr\Container\NotFoundExceptionInterface`. Thrown when `get()` is called with a service ID that has not been registered via `set()` or `factory()`.
 
-```php
+```php-inline
 use Fight\Common\Application\Service\Exception\NotFoundException;
 
 try {

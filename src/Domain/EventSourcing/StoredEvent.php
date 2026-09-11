@@ -23,7 +23,7 @@ final readonly class StoredEvent
         private int $schemaVersion,
         private int $streamVersion,
         private int $globalPosition,
-        private EventMessage $message,
+        private EventMessage $message
     ) {
         if ('' === $eventName) {
             throw new DomainException('Event name cannot be empty.');

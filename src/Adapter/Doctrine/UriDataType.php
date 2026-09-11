@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Doctrine;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Types\ConversionException;
-use Doctrine\DBAL\Types\Exception\InvalidType;
-use Doctrine\DBAL\Types\Exception\ValueNotConvertible;
-use Doctrine\DBAL\Types\Type;
 use Fight\Common\Domain\Value\Internet\Uri;
-use Override;
-use Throwable;
 
 /**
  * Class UriDataType
+ *
+ * @deprecated Use \Fight\Common\Adapter\Persistence\Doctrine\Type\UriDataType instead.
  */
-final class UriDataType extends Type
+final class UriDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type\UriDataType
 {
     public const string TYPE_NAME = 'common_uri';
 
@@ -25,49 +21,26 @@ final class UriDataType extends Type
      */
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return $platform->getStringTypeDeclarationSQL($column);
+        return parent::getSQLDeclaration($column, $platform);
     }
 
     /**
      * Converts a value from its PHP representation to its database representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
-        if (empty($value)) {
-            return null;
-        }
-
-        if (!($value instanceof Uri)) {
-            throw InvalidType::new($value, 'string', [Uri::class]);
-        }
-
-        return $value->toString();
+        return parent::convertToDatabaseValue($value, $platform);
     }
 
     /**
      * Converts a value from its database representation to its PHP representation
-     *
-     * @throws ConversionException When the conversion fails
      */
-    #[Override]
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Uri
     {
-        if (empty($value)) {
-            return null;
-        }
+        /** @var ?Uri $converted */
+        $converted = parent::convertToPHPValue($value, $platform);
 
-        if ($value instanceof Uri) {
-            return $value;
-        }
-
-        try {
-            return Uri::fromString($value);
-        } catch (Throwable $throwable) {
-            throw ValueNotConvertible::new($value, Uri::class, $throwable->getMessage(), $throwable);
-        }
+        return $converted;
     }
 
     /**
@@ -75,6 +48,6 @@ final class UriDataType extends Type
      */
     public function getName(): string
     {
-        return static::TYPE_NAME;
+        return parent::getName();
     }
 }

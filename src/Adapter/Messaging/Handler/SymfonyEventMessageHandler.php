@@ -10,6 +10,8 @@ use Throwable;
 
 /**
  * Class SymfonyEventMessageHandler
+ *
+ * @deprecated since 1.2.0, use Fight\Common\Adapter\Messaging\Handler\EventMessageHandler
  */
 final readonly class SymfonyEventMessageHandler
 {

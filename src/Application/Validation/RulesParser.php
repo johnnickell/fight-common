@@ -50,9 +50,7 @@ final class RulesParser
             $fieldName = $rule['field'];
             $label = $rule['label'];
 
-            if (!isset($output[$fieldName])) {
-                $output[$fieldName] = [];
-            }
+            $output[$fieldName] ??= [];
 
             $matchString = null;
             if (StringObject::create($rule['rules'])->contains('match[')) {

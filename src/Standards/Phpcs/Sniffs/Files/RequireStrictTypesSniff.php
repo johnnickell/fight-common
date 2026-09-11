@@ -41,7 +41,7 @@ final class RequireStrictTypesSniff implements Sniff
         $fix = $phpcsFile->addFixableError(
             'Missing declare(strict_types=1) at the top of the file',
             $stackPtr,
-            'Missing',
+            'Missing'
         );
 
         if ($fix) {

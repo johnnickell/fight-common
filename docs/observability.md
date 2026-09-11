@@ -1,6 +1,7 @@
-# Observability
-
-This library provides a first-class observability layer as application-layer ports with pluggable adapter implementations. The three pillars are **health checks**, **metrics**, and **audit logging**. A fourth concern — **HMAC-secured AI operations** — is documented in its own section below.
+Fight Common separates three observability signals behind narrow Application contracts:
+**health checks** report current dependency state, **metrics** record measurements over time,
+and **audit logging** preserves business-relevant facts. Provider adapters live at the boundary;
+the application decides what to collect, expose, retain, and alert on.
 
 ---
 
@@ -119,14 +120,15 @@ final class RedisHealthCheck implements HealthCheck
 
 ### What metrics look like
 
-The bus filters auto-emit these metrics without modifying any handler code:
+The bus filters auto-emit these metrics without modifying any handler code. `type` and `exception`
+contain fully qualified class names; the examples below use representative application namespaces:
 
 | Metric | Type | Tags | Tells you |
 |--------|------|------|-----------|
-| `command.executed` | counter | `type=PlaceOrderCommand` | throughput per command type |
-| `command.failed` | counter | `type=..., exception=ValidationException` | error rate + failure mode |
-| `command.latency_ms` | histogram | `type=PlaceOrderCommand` | p50/p95/p99 per handler |
-| `query.executed` | counter | `type=FindOrdersQuery` | read-path throughput |
+| `command.executed` | counter | `type=App\Domain\Order\PlaceOrder` | throughput per command type |
+| `command.failed` | counter | `type=..., exception=App\Application\Order\ValidationException` | error rate + failure mode |
+| `command.latency_ms` | histogram | `type=App\Domain\Order\PlaceOrder` | p50/p95/p99 per handler |
+| `query.executed` | counter | `type=App\Domain\Order\FindOrders` | read-path throughput |
 | `query.failed` | counter | `type=..., exception=...` | query error rate |
 | `query.latency_ms` | histogram | `type=FindOrdersQuery` | query latency distribution |
 
@@ -143,7 +145,7 @@ Application\Observability\MetricsCollector
 
 | Adapter | Notes |
 |---------|-------|
-| `NullMetricsCollector` | no-op; **default** — zero overhead |
+| `NullMetricsCollector` | deliberate no-op when metrics are disabled |
 | `StatsDMetricsCollector` | UDP DogStatsD; requires `ext-sockets` |
 
 ### Wiring the StatsD adapter
@@ -161,9 +163,9 @@ $metrics = new StatsDMetricsCollector(
 The StatsD adapter emits [DogStatsD](https://docs.datadoghq.com/developers/dogstatsd/) wire format:
 
 ```
-myapp.command.executed:1|c|#type:PlaceOrderCommand
-myapp.command.latency_ms:42.3|ms|#type:PlaceOrderCommand
-myapp.query.failed:1|c|#type:FindOrdersQuery,exception:NotFoundException
+myapp.command.executed:1|c|#type:App\Domain\Order\PlaceOrder
+myapp.command.latency_ms:42.3|ms|#type:App\Domain\Order\PlaceOrder
+myapp.query.failed:1|c|#type:App\Domain\Order\FindOrders,exception:App\Domain\Order\OrderNotFound
 ```
 
 ### Adding bus middleware
@@ -249,19 +251,19 @@ Application\Observability\AuditLog
 ### Repository (for queryable storage)
 
 ```
-Application\Repository\AuditRepository
-    save(AuditEntry $entry): void
-    findByActor(string $actor, Pagination $pagination): ResultSet
-    findByAction(string $action, Pagination $pagination): ResultSet
-    findBetween(DateTimeImmutable $from, DateTimeImmutable $to, Pagination $pagination): ResultSet
+Domain\Observability\AuditRepository
+    add(AuditEntry $entry): void
+    getByActor(string $actor, Pagination $pagination): ResultSet
+    getByAction(string $action, Pagination $pagination): ResultSet
+    getBetween(DateTimeImmutable $from, DateTimeImmutable $to, Pagination $pagination): ResultSet
 ```
 
 ### Built-in adapters
 
 | Adapter | Notes |
 |---------|-------|
-| `NullAuditLog` | no-op; **default** |
-| `LoggingAuditLog` | writes to PSR-3 as structured JSON; good for development |
+| `NullAuditLog` | deliberate no-op when audit recording is disabled |
+| `LoggingAuditLog` | logs the message `audit` with `AuditEntry::toArray()` as PSR-3 context |
 
 ### Recording entries
 
@@ -285,6 +287,9 @@ $auditLog->record($entry);
 
 ```php
 use Fight\Common\Adapter\Observability\Audit\LoggingAuditLog;
+use Fight\Common\Application\Observability\AuditLog;
+use Fight\Common\Domain\Observability\AuditEntry;
+use Fight\Common\Domain\Observability\AuditRepository;
 use Psr\Log\LogLevel;
 
 // Development: log to PSR-3
@@ -294,154 +299,54 @@ $auditLog = new LoggingAuditLog($logger, LogLevel::INFO);
 $auditLog = new class($auditRepository) implements AuditLog {
     public function __construct(private AuditRepository $repo) {}
     public function record(AuditEntry $entry): void {
-        $this->repo->save($entry);
+        $this->repo->add($entry);
     }
 };
 ```
 
 ---
 
-## HMAC-Secured AI Operations
+## Provider selection
 
-This builds on the existing `HmacAuthenticator` / `HmacRequestService` to enable AI agents to safely trigger production operations over HTTP without SSH or direct shell access.
+Choose each provider independently at the composition root. An application can, for example, use
+database and HTTP health checks, send metrics to StatsD, and persist audit entries through its own
+`AuditLog` implementation. Fight Common does not install a global observability provider or expose
+an HTTP endpoint automatically.
 
-### The request format
+| Signal | Portable contract | Supplied provider choices | Consumer-owned policy |
+|---|---|---|---|
+| Health | `HealthCheck`, `HealthAggregator` | `HealthReporter`, database and HTTP checks | Readiness/liveness meaning, endpoint status code, timeout, authentication, and exposure |
+| Metrics | `MetricsCollector` | null collector or StatsD/DogStatsD over UDP | Names, tags, cardinality, sampling, retention, dashboards, and alerts |
+| Audit | `AuditLog` | null or PSR-3 logging sink | Required business events, durable storage, querying, access, retention, and deletion |
 
-The AI agent sends a signed HTTP POST:
+Use the null adapters deliberately when a signal is disabled. They prevent conditional branches in
+application code, but they do not preserve evidence and should not be mistaken for configured
+monitoring or audit storage.
 
-```
-POST /ops HTTP/1.1
-Content-Type: application/json
-Authorization: HMAC <public-key>
-Credential: <public-key>
-Signature: <hmac-sha256-hex>
-X-Timestamp: 1748000000
-X-Nonce: a3f8b1c2d4e5f607
+## Failure behavior
 
-{"action": "health_check", "payload": {}}
-```
+- `DatabaseHealthCheck` and `HttpEndpointHealthCheck` catch provider failures and convert them to
+  unhealthy `HealthResult` values. `HealthReporter` itself does not catch exceptions from arbitrary
+  consumer-defined checks.
+- `StatsDMetricsCollector` sends UDP datagrams without delivery acknowledgement. If a socket cannot
+  be created or a datagram cannot be sent, the built-in sender returns without escalating the
+  failure. Metrics therefore must not be the only record of a consequential business event.
+- `LoggingAuditLog` delegates directly to the configured PSR-3 logger. Logger failures can propagate
+  to the caller; decide at the composition boundary whether audit failure should fail the use case,
+  be retried, or be routed to a durable outbox.
+- `NullMetricsCollector` and `NullAuditLog` intentionally discard their inputs.
 
-**Known actions**: `health_check`, `clear_cache`, `run_migration`, `deploy`
+Expose a health route only through application-owned HTTP handling. Translate the report into the
+status code and public shape required by the deployment platform, and bound probe latency so a slow
+dependency does not consume the health endpoint indefinitely.
 
-The server side:
-1. `HmacAuthenticator::validate()` — verifies headers (timestamp tolerance, credential, content hash, signature)
-2. Optionally consumes the nonce via `NonceRepository` to prevent replay within the tolerance window
-3. Parses body → `AiOperation::fromJson()` — validates the action name
-4. Executes the action
+## Privacy and operations
 
-### Replay prevention (Nonce tracking)
+Treat observability payloads as data exported from the use case. Do not place credentials, session
+tokens, message bodies, raw personal data, or unrestricted exception context in health messages,
+metric tags, or audit metadata. Prefer stable identifiers and low-cardinality metric tags; apply
+access control and retention to queryable audit storage.
 
-The `HmacAuthenticator` accepts an optional `NonceRepository`. When provided, every validated nonce is consumed — a second request with the same nonce within the timestamp tolerance window throws `AuthException`.
-
-```
-Application\Auth\NonceRepository
-    consume(Nonce $nonce): void   — throws AuthException if already consumed
-    purgeExpired(): void          — removes nonces past their TTL
-```
-
-| Adapter | Notes |
-|---------|-------|
-| `InMemoryNonceRepository` | single-process; good for testing |
-| `DoctrineNonceRepository` | `hmac_nonces` table; atomic via unique constraint |
-
-#### `hmac_nonces` schema
-
-```sql
-CREATE TABLE hmac_nonces (
-    nonce      VARCHAR(64)  NOT NULL PRIMARY KEY,
-    expires_at DATETIME     NOT NULL
-);
-```
-
-### Wiring `HmacAuthenticator` with nonce replay prevention
-
-```php
-use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
-use Fight\Common\Adapter\Auth\Nonce\DoctrineNonceRepository;
-
-$nonces = new DoctrineNonceRepository($connection);
-
-// Purge expired nonces periodically (e.g., cron, middleware)
-$nonces->purgeExpired();
-
-$authenticator = new HmacAuthenticator(
-    public: $publicKey,
-    private: $privateKeyHex,
-    timeTolerance: 300,      // seconds; nonce TTL matches this window
-    nonces: $nonces
-);
-
-// In a controller / middleware
-$authenticator->validate($request);  // throws AuthException on any failure
-```
-
-> **Breaking change from v1.0:** `validate()` now always throws `AuthException` instead of returning `false` on signature mismatch. Callers that checked `if (!$authenticator->validate($request))` should now rely on catching `AuthException`.
-
-### Dispatching signed webhook payloads
-
-```
-Application\Auth\WebhookDispatcher
-    dispatch(string $url, string $action, array $payload = []): void
-```
-
-```php
-use Fight\Common\Adapter\Auth\Hmac\HmacWebhookDispatcher;
-
-$dispatcher = new HmacWebhookDispatcher(
-    client:  $httpClient,
-    factory: $messageFactory,
-    signer:  new HmacRequestService($publicKey, $privateKeyHex)
-);
-
-// Send a signed "deploy" operation to a remote agent listener
-$dispatcher->dispatch('https://prod.example.com/ops', 'deploy', ['version' => '1.4.2']);
-```
-
-The `WebhookDispatcher` builds the JSON body, signs the HTTP request via `HmacRequestService`, and sends it. The receiving end uses `HmacAuthenticator` to verify.
-
-### Parsing and validating incoming operations
-
-```php
-use Fight\Common\Domain\Auth\AiOperation;
-
-// After HmacAuthenticator::validate() passes:
-$operation = AiOperation::fromJson((string) $request->getBody());
-// throws DomainException for unknown actions
-
-match ($operation->action()) {
-    'health_check'  => $response->setBody(json_encode($reporter->report())),
-    'clear_cache'   => $cache->clear(),
-    'run_migration' => $migrator->run($operation->payload()['name']),
-    'deploy'        => $deployer->deploy($operation->payload()['version']),
-};
-```
-
-### Generating keys
-
-Use `HmacKeyGenerator` to create key pairs:
-
-```php
-use Fight\Common\Adapter\Auth\Hmac\HmacKeyGenerator;
-
-$publicKey  = HmacKeyGenerator::generateSecureRandom(16); // 32 hex chars
-$privateKey = HmacKeyGenerator::generateSecureRandom(32); // 64 hex chars
-```
-
-Store the private key securely (environment variable, secrets manager). Share the public key with the consuming system as the credential identifier.
-
----
-
-## Exposing health and audit data to AI agents
-
-The recommended pattern:
-
-1. Register a secured `/ops` endpoint protected by `HmacAuthenticator` + `DoctrineNonceRepository`
-2. Handle `health_check` actions by returning `json_encode($reporter->report())`
-3. Handle audit queries by returning results from `AuditRepository::findBetween()`
-
-The AI agent can then:
-- Check system health before making changes (`health_check`)
-- Query the audit log to understand what happened before an anomaly
-- Trigger controlled operations (`clear_cache`, `deploy`) with full auditability
-
-All operations should be recorded to `AuditLog` — including the AI agent's own requests — using `"system:ai-agent"` as the actor.
+Health is a current snapshot, metrics are lossy measurements, and audit entries are business facts.
+None of them authorizes an operation. Protect any route that exposes these signals, and use the
+[Authentication guide](../auth/index.md) for HMAC request signing and replay protection.

@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Templating;
 
 use Fight\Common\Application\Templating\Exception\DuplicateHelperException;
+use Fight\Common\Application\Templating\Exception\TemplateNotFoundException;
 use Fight\Common\Application\Templating\Exception\TemplatingException;
 use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Common\Application\Templating\TemplateHelper;
 use Throwable;
 use Twig\Environment;
+use Twig\Error\LoaderError;
 
 /**
  * Class TwigEngine
@@ -33,6 +35,8 @@ final class TwigEngine implements TemplateEngine
     {
         try {
             return $this->environment->render($template, $data);
+        } catch (LoaderError $loaderError) {
+            throw TemplateNotFoundException::fromName($template, $loaderError);
         } catch (Throwable $throwable) {
             throw new TemplatingException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }

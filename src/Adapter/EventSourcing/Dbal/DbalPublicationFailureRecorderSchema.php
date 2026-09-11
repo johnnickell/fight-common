@@ -52,7 +52,7 @@ final readonly class DbalPublicationFailureRecorderSchema
             self::FAILURE_TABLE,
             ['publication_name', 'global_position'],
             ['publication_name', 'global_position'],
-            ['onDelete' => 'CASCADE'],
+            ['onDelete' => 'CASCADE']
         );
 
         return $schema;

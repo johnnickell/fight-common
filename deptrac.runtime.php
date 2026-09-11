@@ -75,6 +75,18 @@ return static function (DeptracConfig $config, string ...$paths): void {
             $slevomat = Layer::withName('Slevomat')->collectors(
                 ClassLikeConfig::create('^SlevomatCodingStandard\\'),
             ),
+            $slim = Layer::withName('Slim infrastructure')->collectors(
+                ClassLikeConfig::create('^Slim\\'),
+            ),
+            $laravel = Layer::withName('Laravel infrastructure')->collectors(
+                ClassLikeConfig::create('^Illuminate\\'),
+            ),
+            $codeIgniter = Layer::withName('CodeIgniter infrastructure')->collectors(
+                ClassLikeConfig::create('^CodeIgniter\\'),
+            ),
+            $yii = Layer::withName('Yii infrastructure')->collectors(
+                ClassLikeConfig::create('^Yiisoft\\'),
+            ),
         )
         ->rulesets(
             Ruleset::forLayer($domain)->accesses($phpInternals),
@@ -92,6 +104,10 @@ return static function (DeptracConfig $config, string ...$paths): void {
                 $symfony,
                 $twig,
                 $twilio,
+                $slim,
+                $laravel,
+                $codeIgniter,
+                $yii,
             ),
             Ruleset::forLayer($standards)->accesses($phpInternals, $phpCodeSniffer, $slevomat),
             Ruleset::forLayer($phpInternals),
@@ -107,6 +123,10 @@ return static function (DeptracConfig $config, string ...$paths): void {
             Ruleset::forLayer($twilio),
             Ruleset::forLayer($phpCodeSniffer),
             Ruleset::forLayer($slevomat),
+            Ruleset::forLayer($slim),
+            Ruleset::forLayer($laravel),
+            Ruleset::forLayer($codeIgniter),
+            Ruleset::forLayer($yii),
         )
     ;
 };
