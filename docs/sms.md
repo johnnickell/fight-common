@@ -44,7 +44,7 @@ Adapter\Sms
 A mutable, fluent DTO for building SMS/MMS messages. Constructed with `to` and `from`
 phone numbers; body and media are optional.
 
-```php
+```php-inline
 use Fight\Common\Application\Sms\Message\SmsMessage;
 
 $message = SmsMessage::create('+15550001234', '+15559998765')
@@ -74,14 +74,14 @@ $message = SmsMessage::create('+15550001234', '+15559998765')
 Implements both `SmsTransport` and `SmsFactory`, wrapping a `SmsTransport` delegate.
 This is the recommended single dependency for application services.
 
-```php
+```php-inline
 final readonly class SmsService implements SmsTransport, SmsFactory
 {
     public function __construct(private SmsTransport $transport) {}
 }
 ```
 
-```php
+```php-inline
 class VerificationService
 {
     public function __construct(private SmsService $sms) {}
@@ -105,7 +105,7 @@ class VerificationService
 
 `Fight\Common\Application\Sms\Transport\SmsTransport`
 
-```php
+```php-inline
 interface SmsTransport
 {
     /** @throws SmsException */
@@ -128,7 +128,7 @@ interface SmsTransport
 Wraps the Twilio `Client` SDK. Maps `SmsMessage` to `$client->messages->create()`.
 Wraps any `Throwable` from the Twilio SDK in a `SmsException`.
 
-```php
+```php-inline
 use Twilio\Rest\Client;
 use Fight\Common\Adapter\Sms\Twilio\TwilioSmsTransport;
 
@@ -142,7 +142,11 @@ $transport = new TwilioSmsTransport(new Client($accountSid, $authToken));
 Decorator that logs message metadata (`to`, `from`, `body`, `media_count`) via PSR-3
 before calling the inner transport:
 
-```php
+Phone numbers and message bodies are personal data and may contain authentication codes or other
+secrets. Do not enable this decorator in production without a consumer-owned redaction and retention
+policy. A log entry proves only that delegation was attempted.
+
+```php-inline
 $transport = new LoggingSmsTransport(
     new TwilioSmsTransport($client),
     $logger,
@@ -156,9 +160,16 @@ $transport = new LoggingSmsTransport(
 
 Silent no-op. `send()` does nothing and throws no exceptions.
 
-```php
+This suppresses delivery and records no message. Use a consumer-owned spy when a test must assert
+recipient, content, or media rather than merely prove that no provider call occurs.
+
+```php-inline
 $transport = new NullSmsTransport();
 ```
+
+Twilio returning successfully means the provider accepted the request; it is not proof that a handset
+received the message. Delivery receipts, opt-out handling, sender registration, regional policy,
+rate limits, retry, and reconciliation belong to the consuming application and its Twilio operations.
 
 ---
 
@@ -166,7 +177,7 @@ $transport = new NullSmsTransport();
 
 `Fight\Common\Application\Sms\Message\SmsFactory`
 
-```php
+```php-inline
 interface SmsFactory
 {
     public function createMessage(
@@ -185,7 +196,7 @@ strings — it coerces strings via `createMediaUrl()` automatically.
 
 `SmsService` is the sole implementation.
 
-```php
+```php-inline
 $message = $smsService->createMessage(
     to:        '+15550001234',
     from:      '+15559998765',
@@ -245,7 +256,7 @@ services:
 
 ### Sending a Text Message
 
-```php
+```php-inline
 use Fight\Common\Application\Sms\SmsService;
 
 class OrderShippedNotifier
@@ -267,7 +278,7 @@ class OrderShippedNotifier
 
 ### Sending MMS with Media
 
-```php
+```php-inline
 $message = $this->sms->createMessage(
     to:        $recipient,
     from:      '+15550000000',
@@ -280,7 +291,7 @@ $this->sms->send($message);
 
 ### Building a Message Manually
 
-```php
+```php-inline
 use Fight\Common\Application\Sms\Message\SmsMessage;
 
 $mediaUrl = $this->sms->createMediaUrl('https://example.com/image.jpg');
@@ -294,7 +305,7 @@ $this->sms->send($message);
 
 ### Testing with NullSmsTransport
 
-```php
+```php-inline
 use Fight\Common\Adapter\Sms\Null\NullSmsTransport;
 use Fight\Common\Application\Sms\SmsService;
 

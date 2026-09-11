@@ -2,7 +2,6 @@
 template: atlas-home.html
 title: Fight Common
 hide:
-  - navigation
   - toc
 ---
 
