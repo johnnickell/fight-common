@@ -3,7 +3,7 @@ id: T-00102
 prd: PRD-00006
 title: Simplify the Fight Common Pre-Submit Gate Before 1.2
 status: ready-for-agent
-blocked_by: T-00099
+blocked_by:
 ---
 
 # Simplify the Fight Common Pre-Submit Gate Before 1.2
@@ -74,5 +74,5 @@ certify the resulting exact release candidate through the separate release opera
 
 ## Completion Notes
 
-Pending completion of the Fight Common documentation presentation and first hosted Pages verification through
-T-00099.
+The Fight Common documentation presentation and first hosted Pages verification are complete through T-00099.
+This ticket is now the first Ready Frontier implementation target.
