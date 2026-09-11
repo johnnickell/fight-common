@@ -871,9 +871,16 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
   max-width: none;
 }
 
-.md-main:has([data-atlas-layout="home"]) .md-sidebar,
-.md-main:has([data-atlas-layout="guide"]) .md-sidebar {
+.md-main:has([data-atlas-layout="home"]) .md-sidebar--secondary,
+.md-main:has([data-atlas-layout="guide"]) .md-sidebar--secondary {
   display: none;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-main:has([data-atlas-layout="home"]) .md-sidebar--primary,
+  .md-main:has([data-atlas-layout="guide"]) .md-sidebar--primary {
+    display: none;
+  }
 }
 
 .md-main:has([data-atlas-layout="home"]) .md-content,
@@ -1569,6 +1576,10 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
 }
 
 @media screen and (max-width: 48rem) {
+  .atlas-home {
+    padding-inline: 1rem;
+  }
+
   .atlas-home__hero,
   .atlas-catalog__heading,
   .atlas-guide-shell {
@@ -1639,10 +1650,6 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
 }
 
 @media screen and (max-width: 30rem) {
-  .atlas-home {
-    padding-inline: 0.625rem;
-  }
-
   .md-typeset .atlas-home__promise h1 {
     font-size: clamp(2.7rem, 13vw, 3.5rem);
   }
@@ -1674,6 +1681,7 @@ html .atlas-footer .md-footer-meta.md-typeset .atlas-footer__links a.focus-visib
   .atlas-footer__inner {
     align-items: flex-start;
     flex-direction: column;
+    padding-inline: 1rem;
   }
 
   .atlas-entry-routes {

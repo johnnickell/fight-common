@@ -2,7 +2,7 @@
 id: T-00096
 prd: PRD-00021
 title: Complete Connect Systems Component Guidance
-status: ready-for-agent
+status: done
 blocked_by: T-00094
 ---
 
@@ -24,19 +24,19 @@ templating, routing, SMS, and sockets.
 
 ## Acceptance Criteria
 
-- [ ] Every Connect Systems atlas link reaches a canonical guide and Mail remains directly visible in the group.
-- [ ] Each remaining guide accurately states purpose, layer ownership, required and optional dependencies,
+- [x] Every Connect Systems atlas link reaches a canonical guide and Mail remains directly visible in the group.
+- [x] Each remaining guide accurately states purpose, layer ownership, required and optional dependencies,
       shortest portable usage, shipped adapters, supported composition, relevant failures, and next steps.
-- [ ] HTTP and authentication guidance preserves protocol, signing, security, and error boundaries without
+- [x] HTTP and authentication guidance preserves protocol, signing, security, and error boundaries without
       presenting unsafe shorthand as production guidance.
-- [ ] Files, file transfer, cache, templating, routing, SMS, and sockets distinguish portable ports from concrete
+- [x] Files, file transfer, cache, templating, routing, SMS, and sockets distinguish portable ports from concrete
       providers and document meaningful operational behavior.
-- [ ] Framework variants and configuration tabs appear only when supported by the actual integration.
-- [ ] Public symbols, package requirements, links, examples, configuration syntax, and behavior claims match the
+- [x] Framework variants and configuration tabs appear only when supported by the actual integration.
+- [x] Public symbols, package requirements, links, examples, configuration syntax, and behavior claims match the
       source and selected compatibility guidance.
-- [ ] Search, navigation, atlas links, anchors, copy controls, code scrolling, warnings, and both themes work for
+- [x] Search, navigation, atlas links, anchors, copy controls, code scrolling, warnings, and both themes work for
       the completed group.
-- [ ] Representative executable journeys prove high-risk copied behavior without adding an exhaustive provider
+- [x] Representative executable journeys prove high-risk copied behavior without adding an exhaustive provider
       matrix to routine documentation checks.
 
 ## Verification
@@ -50,4 +50,19 @@ templating, routing, SMS, and sockets.
 
 ## Completion Notes
 
-Unblocked by T-00094's completed Mail reference guide and its verified component-guide contract.
+Completed all nine remaining Connect Systems guides against Mail's verified Atlas article contract. HTTP Client
+and Auth now preserve PSR, signing, replay, credential, and validation boundaries; Cache, Files, and File Transfer
+separate storage and transfer ports from providers; and Templating, Routing, SMS, and Sockets document their real
+composition, failure, privacy, delivery, and operator-owned behavior.
+
+All ten Connect Systems routes, including unchanged Mail, remain directly discoverable. Public symbols,
+dependencies, anchors, examples, adapters, and framework claims were checked against source, Composer metadata,
+and existing production tests. PHP examples render with token-level syntax highlighting, and the shared shell now
+restores the homepage mobile drawer plus compact content and footer padding.
+
+The strict documentation validator passed after every slice. Existing HTTP/Auth, Cache/Files/File Transfer,
+Templating/Routing, and SMS/Sockets tests passed with 614 tests and 1,772 assertions in total. Desktop and compact
+review covered light and dark themes, search, rail and drawer navigation, local contents, warnings, copy controls,
+anchors, and horizontal code scrolling; John accepted the final visual result. `./bin/planning-check`,
+`git diff --check`, and the canonical persistent `./bin/build` completed successfully with 3,641 tests, 20,637
+assertions, and exact statement coverage of 10,089/10,089.

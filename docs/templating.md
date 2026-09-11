@@ -1,6 +1,8 @@
 # Templating
 
-A `TemplateEngine` contract with three implementations — `PhpEngine` (native PHP templates with inheritance and blocks), `TwigEngine` (wraps Twig), and `DelegatingEngine` (routes by file extension). View helpers are injectable via the `TemplateHelper` contract.
+A `TemplateEngine` contract with native PHP, Twig, Laravel Blade, and Yii View implementations,
+plus a `DelegatingEngine` that routes by supported template name. View helpers are injectable via
+the `TemplateHelper` contract.
 
 ```
 Application\Templating
@@ -14,6 +16,8 @@ Application\Templating
 Adapter\Templating
 ├── PhpEngine             — native PHP with extends/blocks
 ├── TwigEngine            — Twig adapter
+├── Laravel\LaravelBladeTemplateEngine — Laravel Blade adapter
+├── Yii\YiiTemplateEngine — Yii View adapter
 └── DelegatingEngine      — routes to sub-engines by supports()
 ```
 
@@ -34,7 +38,7 @@ Adapter\Templating
 
 `Fight\Common\Application\Templating\TemplateEngine`
 
-```php
+```php-inline
 interface TemplateEngine
 {
     public function render(string $template, array $data = []): string;
@@ -58,7 +62,7 @@ Throws `TemplatingException` on render failure.
 
 `Fight\Common\Application\Templating\TemplateHelper`
 
-```php
+```php-inline
 interface TemplateHelper
 {
     public function getName(): string;
@@ -67,7 +71,7 @@ interface TemplateHelper
 
 Helpers are identified by name and registered on an engine. Each implementation retrieves the helper by name and makes it available in the template context. A helper can provide any number of public methods for use in templates.
 
-```php
+```php-inline
 use Fight\Common\Application\Templating\TemplateHelper;
 
 final class AssetHelper implements TemplateHelper
@@ -86,7 +90,7 @@ final class AssetHelper implements TemplateHelper
 
 Registered on any engine:
 
-```php
+```php-inline
 $engine->addHelper(new AssetHelper());
 ```
 
@@ -100,7 +104,7 @@ A full native PHP template engine with template inheritance, a block system, HTM
 
 ### Construction
 
-```php
+```php-inline
 use Fight\Common\Adapter\Templating\PhpEngine;
 
 $engine = new PhpEngine(
@@ -114,7 +118,7 @@ Paths are searched in order. The colon separator in template names is converted 
 
 ### Rendering
 
-```php
+```php-inline
 $engine->render('Controller:action.php', ['name' => 'Alice']);
 ```
 
@@ -124,7 +128,7 @@ The data array is extracted into the template scope. The key `this` is reserved 
 
 A child template declares its parent with `$this->extends()`:
 
-```php
+```php-inline
 <!-- Controller/action.php -->
 <?php $this->extends('Layout:base.php'); ?>
 
@@ -133,7 +137,7 @@ A child template declares its parent with `$this->extends()`:
 <?php $this->endBlock(); ?>
 ```
 
-```php
+```php-inline
 <!-- Layout/base.php -->
 <!DOCTYPE html>
 <html>
@@ -160,13 +164,13 @@ A child template declares its parent with `$this->extends()`:
 
 ### Escaping
 
-```php
+```php-inline
 $this->escape($userInput);   // htmlspecialchars with ENT_QUOTES | ENT_SUBSTITUTE, UTF-8
 ```
 
 ### Helper Access
 
-```php
+```php-inline
 $this->has('asset');         // bool
 $this->get('asset');         // TemplateHelper instance
 $this->get('asset')->path('style.css');
@@ -178,7 +182,7 @@ Throws `TemplatingException` if the helper is not registered.
 
 Templates are resolved to absolute file paths on first access and cached internally. `loadTemplate()` → `getTemplatePath()` iterates the configured paths and returns the first readable file match. Throws `TemplateNotFoundException` if no path matches.
 
-```php
+```php-inline
 $engine->exists('Controller:action.php');     // checks all paths
 ```
 
@@ -190,7 +194,7 @@ $engine->exists('Controller:action.php');     // checks all paths
 
 Wraps a Twig `Environment`. Supports `.twig` templates.
 
-```php
+```php-inline
 use Fight\Common\Adapter\Templating\TwigEngine;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
@@ -208,7 +212,7 @@ $engine = new TwigEngine($twig);
 | `supports()` | Returns `true` for templates ending in `.twig` |
 | `addHelper()` | Stores the helper and adds it as a Twig global (`$environment->addGlobal($name, $helper)`) |
 
-```php
+```php-inline
 $engine->addHelper(new AssetHelper());
 // In Twig: {{ asset.path('style.css') }}
 ```
@@ -221,7 +225,7 @@ $engine->addHelper(new AssetHelper());
 
 Routes templates to sub-engines based on the `supports()` check. Useful when a project uses multiple template formats.
 
-```php
+```php-inline
 use Fight\Common\Adapter\Templating\DelegatingEngine;
 use Fight\Common\Adapter\Templating\PhpEngine;
 use Fight\Common\Adapter\Templating\TwigEngine;
@@ -240,7 +244,7 @@ $engine->render('page.html.twig');    // → TwigEngine
 
 Helpers registered on the `DelegatingEngine` are not immediately forwarded to sub-engines. Instead, they are stored locally and lazily injected into the resolved sub-engine at `render()` time:
 
-```php
+```php-inline
 $engine->addHelper(new AssetHelper());
 // On render: $resolvedEngine->addHelper($helper) is called for each stored helper
 ```
@@ -251,12 +255,29 @@ This means sub-engines only receive helpers when they actually render, and each 
 
 `getEngine()` iterates sub-engines in order and returns the first match:
 
-```php
+```php-inline
 $engine->supports('page.php');       // true (PhpEngine supports .php)
 $engine->exists('page.php');         // false if no path can resolve it
 ```
 
 Throws `TemplatingException` if no engine `supports()` the template.
+
+## Framework composition
+
+- Laravel's `ViewServiceProvider` binds `TemplateEngine` to `LaravelBladeTemplateEngine` using the
+  configured view factory and consumer-owned template root. It supports only `.blade.php` names,
+  verifies the resolved file remains beneath that root, and exposes helpers through Laravel shared data.
+- Yii's `ViewServiceProvider` binds `YiiTemplateEngine` after
+  `YiiCapabilityConfiguration::view()` supplies the native view and template root. It supports PHP
+  templates, clears Yii view state for each render, and sets helpers as view parameters.
+- CodeIgniter ships a proven Twig fallback through `TemplateServices::templateEngine()`; it does not
+  claim native view-format parity.
+- Symfony, Slim, and framework-free applications compose `PhpEngine`, `TwigEngine`, or
+  `DelegatingEngine` explicitly.
+
+Template syntax is not portable across these engines. The portable seam is `render()`, `exists()`,
+`supports()`, and helper registration. Select the engine in the composition root and keep template
+names compatible with that selected implementation.
 
 ---
 
@@ -270,7 +291,7 @@ Throws `TemplatingException` if no engine `supports()` the template.
 | `TemplateNotFoundException` | `TemplatingException` | Template file could not be resolved |
 | `DuplicateHelperException` | `TemplatingException` | Two helpers registered with the same name |
 
-```php
+```php-inline
 throw TemplateNotFoundException::fromName('Controller:missing.php');
 // "Template not found: Controller:missing.php"
 

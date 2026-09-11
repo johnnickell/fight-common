@@ -1,6 +1,8 @@
-# Mercure Hub Publisher
+# Sockets
 
-The Mercure Hub Publisher implements the `Socket\Publisher` port using the Symfony Mercure component. It publishes real-time messages to a Mercure hub, enabling server-sent events for connected clients.
+Sockets provides public and private publication ports with Symfony Mercure and Laravel broadcasting
+adapters. It publishes real-time messages to the selected transport; it is not a durable event store,
+job queue, retry engine, or proof that a subscriber received a message.
 
 ---
 
@@ -30,13 +32,18 @@ Application code
 
 **`Publisher` interface** — the application-layer port at `Fight\Common\Application\Socket\Publisher`. Defines a single method:
 
-```php
+```php-inline
 public function push(string $topic, string $message): void;
 ```
 
 **`MercureHubPublisher`** — the adapter at `Fight\Common\Adapter\Socket\MercureHubPublisher`. Takes a Symfony `HubInterface` and translates `push()` calls into `$hub->publish(new Update(...))`.
 
 **`HubInterface`** — the Symfony Mercure component's current API (v0.5+). The older `Publisher`/`PublisherInterface` from the Mercure component is deprecated; this adapter uses the new `HubInterface` API.
+
+**Laravel broadcasting** — `LaravelBroadcastPublisher` wraps Laravel's configured `Broadcaster` and
+publishes `['message' => $message]` under a consumer-selected event name. `LaravelPrivatePublisher`
+decorates a `Publisher` and prefixes the topic with `private-`; channel authorization and broadcaster
+configuration remain application-owned.
 
 ---
 
@@ -48,11 +55,26 @@ This library declares `symfony/mercure` as a suggested dev dependency. Your proj
 composer require symfony/mercure
 ```
 
-If you are running PHP 8.5 with Symfony 8.0, version `^0.7` is compatible.
+Fight Common's supported adapter line declares `symfony/mercure` `^0.7` as the optional package.
 
 ---
 
 ## Wiring Up the Publisher
+
+Laravel applications construct `LaravelBroadcastPublisher` from the configured broadcaster and an
+event name, then bind it to `Publisher`. Bind `LaravelPrivatePublisher` to `PrivatePublisher` only when
+the application's channel authorization recognizes the `private-` naming convention. No automatic
+socket service provider is shipped.
+
+```php-inline
+use Fight\Common\Adapter\Socket\Laravel\LaravelBroadcastPublisher;
+use Fight\Common\Adapter\Socket\Laravel\LaravelPrivatePublisher;
+
+$public = new LaravelBroadcastPublisher($broadcaster, 'fight.message');
+$private = new LaravelPrivatePublisher($public);
+```
+
+The remaining examples show the Mercure composition path.
 
 ### Option 1: Using MercureBundle (recommended)
 
@@ -123,7 +145,7 @@ services:
 
 ### Basic Public Update
 
-```php
+```php-inline
 use Fight\Common\Application\Socket\Publisher;
 
 class BookController
@@ -155,7 +177,7 @@ To send private updates, select the separate `PrivatePublisher` port and its
 `Publisher`/`MercureHubPublisher` selection; application composition owns topic
 authorization and Mercure JWT configuration.
 
-```php
+```php-inline
 use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
 use Fight\Common\Application\Socket\PrivatePublisher;
 
@@ -180,13 +202,17 @@ Fight\Common\Application\Socket\PrivatePublisher:
     alias: Fight\Common\Adapter\Socket\PrivateMercureHubPublisher
 ```
 
+For Laravel, `LaravelPrivatePublisher` marks privacy only through the `private-` topic prefix. That
+prefix is not authorization by itself: the consuming application must authenticate subscribers and
+enforce channel entitlement through its configured broadcaster.
+
 ---
 
 ## Error Handling
 
 `MercureHubPublisher::push()` wraps any exception thrown by `HubInterface::publish()` in a `SocketException`:
 
-```php
+```php-inline
 use Fight\Common\Application\Socket\Exception\SocketException;
 
 try {
@@ -198,6 +224,10 @@ try {
 ```
 
 `SocketException` extends `SystemException` (a domain-level exception). Both extend PHP's `\RuntimeException`, so they can be caught at any level.
+
+Mercure and Laravel public publishers wrap underlying publish failures in `SocketException`.
+`LaravelPrivatePublisher` delegates to its wrapped `Publisher`, so it preserves that publisher's
+failure behavior. None of these adapters retry or buffer a failed publication.
 
 ---
 
@@ -233,7 +263,7 @@ services:
 
 ### Controller
 
-```php
+```php-inline
 <?php
 
 declare(strict_types=1);

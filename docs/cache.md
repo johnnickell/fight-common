@@ -1,17 +1,21 @@
 # Cache
 
-A cache-through abstraction with a single operation: fetch a value by key, invoking a
-loader callback on miss. The Application layer defines the port; the Adapter wraps any
-PSR-6 cache pool.
+A cache-through abstraction that fetches a value by key and invokes a loader callback on
+miss. The Application layer defines read-only and mutable ports; adapters wrap PSR-6,
+PSR-16, Laravel, or CodeIgniter caches.
 
 ```
 Application\Cache
 ├── Cache (interface)       — read(string $key, callable $loader, int $ttl): mixed
+├── MutableCache            — Cache plus delete(string $key) and clear()
 └── Exception\
     └── CacheException       — extends SystemException
 
 Adapter\Cache
 ├── Psr6\Psr6Cache          — canonical Cache → PSR-6 CacheItemPoolInterface adapter
+├── Psr16\Psr16Cache        — MutableCache → PSR-16 CacheInterface adapter
+├── Laravel\LaravelCache    — MutableCache → Laravel cache repository adapter
+├── CodeIgniter\CodeIgniterCache — MutableCache → CodeIgniter cache adapter
 └── PsrCache                — deprecated 1.x compatibility path
 ```
 
@@ -35,7 +39,7 @@ Adapter\Cache
 A single-method port that implements the cache-through pattern: if a value is cached,
 return it; otherwise invoke `$loader()`, store the result, and return it.
 
-```php
+```php-inline
 interface Cache
 {
     /**
@@ -65,7 +69,7 @@ interface Cache
 Wraps any PSR-6 `CacheItemPoolInterface` and a PSR-3 `LoggerInterface`. This is the canonical
 PSR-6 adapter implementation.
 
-```php
+```php-inline
 final readonly class Psr6Cache implements MutableCache
 {
     public function __construct(
@@ -96,13 +100,27 @@ All exceptions are caught and wrapped in `CacheException`.
 `Psr6Cache`. New integrations should use `Fight\Common\Adapter\Cache\Psr6\Psr6Cache`. The legacy class will be
 removed in 2.0.
 
+### Mutable and framework adapters
+
+`Psr16Cache`, `LaravelCache`, and `CodeIgniterCache` implement `MutableCache`, which adds
+`delete()` and `clear()` to the read-through contract. All three preserve cached `null` values
+instead of confusing them with a miss, and wrap provider failures in `CacheException`.
+
+Laravel's `CacheServiceProvider` binds `MutableCache` and aliases `Cache` to the same singleton.
+CodeIgniter applications compose `CacheServices::mutableCache()` or `CacheServices::cache()` from
+their configured native cache. A generic PSR-16 application constructs `Psr16Cache` with its cache
+and PSR-3 logger. No Yii cache adapter is shipped; bind another supported implementation explicitly.
+
+`clear()` flushes the selected underlying store. If that store is shared with unrelated features,
+use a dedicated namespace or store, or avoid broad clearing in application use cases.
+
 ---
 
 ## CacheException
 
 `Fight\Common\Application\Cache\Exception\CacheException`
 
-```php
+```php-inline
 class CacheException extends SystemException {}
 ```
 
@@ -149,7 +167,7 @@ services:
 
 ### Caching a Database Query
 
-```php
+```php-inline
 use Fight\Common\Application\Cache\Cache;
 
 class UserRepository
@@ -172,7 +190,7 @@ class UserRepository
 
 ### Caching an API Response
 
-```php
+```php-inline
 class WeatherService
 {
     public function __construct(private Cache $cache, private HttpService $http) {}
@@ -195,7 +213,7 @@ class WeatherService
 
 ### Testing with ArrayAdapter
 
-```php
+```php-inline
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Fight\Common\Adapter\Cache\Psr6\Psr6Cache;
 
