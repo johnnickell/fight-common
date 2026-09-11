@@ -38,7 +38,6 @@ final class EventSourcingGuideTest extends UnitTestCase
         self::assertIsString($guide);
         self::assertIsString($fixture);
         foreach ([
-            '# Event Sourcing',
             '## Persist and reload an aggregate',
             'framework-free',
             'executable',

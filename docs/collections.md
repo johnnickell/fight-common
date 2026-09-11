@@ -1,6 +1,4 @@
-# Collections
-
-Typed collections organized by data structure family. All collections implement `Countable` + `IteratorAggregate` and enforce item types at runtime via `assert(Validate::isType(...))`.
+Typed collections organized by data structure family. All collections implement `Countable` + `IteratorAggregate`; with PHP assertions enabled, typed collection construction and mutations are guarded by `assert(Validate::isType(...))`. Assertions can be disabled, so this is not an input-validation boundary.
 
 Concrete classes split into two families:
 
@@ -79,7 +77,7 @@ Backed by a PHP array. Sequential index access with negative index support. Full
 - `indexOf()` / `lastIndexOf()` accepts values or `Closure` predicates
 - Internal pointer methods: `rewind`, `end`, `next`, `prev`, `key`, `current`
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\ArrayList;
 use function Fight\Common\Domain\array_list;
 
@@ -108,7 +106,7 @@ Backed by hash buckets (`FastHasher` + `SetBucketChain`). Items must have a cons
 - `complement(Set)` — items in B but not A (B \ A)
 - `union(Set)` — all items from both sets (A ∪ B)
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\HashSet;
 use function Fight\Common\Domain\hash_set;
 
@@ -135,7 +133,7 @@ Backed by hash buckets (`FastHasher` + `TableBucketChain`). Key-value mapping wi
 - `map(callback)` — transforms values, preserves keys
 - `toArray()` not available (see `keys()` + iteration instead)
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\HashTable;
 use function Fight\Common\Domain\hash_table;
 
@@ -177,7 +175,7 @@ Backed by a `RedBlackSearchTree` (left-leaning red-black BST). Items are stored 
 - `removeMin()` / `removeMax()` — remove by order
 - Set operations: `difference`, `intersection`, `complement`, `union`
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\SortedSet;
 use Fight\Common\Domain\Collection\Comparison\IntegerComparator;
 
@@ -208,7 +206,7 @@ No helper function — `SortedSet` requires a `Comparator`.
 
 Same backing (`RedBlackSearchTree`) and same named constructors as `SortedSet`, but stores key-value pairs. Keyed operations parallel `SortedSet`:
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\SortedTable;
 
 $table = SortedTable::string('int');
@@ -239,7 +237,7 @@ Two implementations of the `Stack` interface (LIFO: `push`, `pop`, `top`).
 
 Backed by `SplDoublyLinkedList` in LIFO iteration mode. Iteration order = top-to-bottom.
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\LinkedStack;
 
 $stack = LinkedStack::of('string');
@@ -254,7 +252,7 @@ $stack->pop();                               // 'a'
 
 Backed by a plain PHP array. No SPL dependency. Iteration order = bottom-to-top.
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\ArrayStack;
 use function Fight\Common\Domain\array_stack;
 
@@ -279,7 +277,7 @@ Two implementations of the `Queue` interface (FIFO: `enqueue`, `dequeue`, `front
 
 Backed by `SplDoublyLinkedList` in FIFO iteration mode. Iteration order = front-to-back.
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\LinkedQueue;
 
 $queue = LinkedQueue::of('int');
@@ -295,7 +293,7 @@ $queue->dequeue();                           // 1
 
 Backed by a PHP array with a circular buffer for amortized O(1) `enqueue`/`dequeue`. Automatically grows and shrinks capacity.
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\ArrayQueue;
 use function Fight\Common\Domain\array_queue;
 
@@ -316,7 +314,7 @@ $queue = array_queue([1, 2, 3], 'int');
 
 Double-ended queue backed by `SplDoublyLinkedList`. Add and remove from either end.
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\LinkedDeque;
 
 $deque = LinkedDeque::of('string');
@@ -336,7 +334,7 @@ No helper function.
 
 `Fight\Common\Domain\Type\Comparator` — a single-method interface:
 
-```php
+```php-inline
 public function compare(mixed $a, mixed $b): int
 ```
 
@@ -350,7 +348,7 @@ Returns `-1`, `0`, or `1`. Used by `SortedSet` and `SortedTable`.
 | `ComparableComparator` | `Comparable` objects | `SortedSet::comparable(MyClass::class)` |
 | `FunctionComparator` | any (wraps a callable) | `SortedSet::callback(fn($a, $b) => ...)` |
 
-```php
+```php-inline
 use Fight\Common\Domain\Collection\Comparison\IntegerComparator;
 
 $comparator = new IntegerComparator();

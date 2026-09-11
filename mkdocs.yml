@@ -89,6 +89,7 @@ markdown_extensions:
       base_path: !relative $config_dir
       restrict_base_path: true
       check_paths: true
+      dedent_subsections: true
   - pymdownx.tabbed:
       alternate_style: true
   - md_in_html

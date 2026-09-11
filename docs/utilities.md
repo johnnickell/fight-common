@@ -1,5 +1,3 @@
-# Utilities
-
 Static utility classes in `Fight\Common\Domain\Utility` that provide common helpers — class name inspection, value hashing, type/format validation, and human-readable variable printing.
 
 ---
@@ -24,7 +22,7 @@ Inspects PHP class names in several formats. Accepts either an object or a strin
 
 Returns the fully qualified class name. Dot-separated strings are converted to backslash-separated.
 
-```php
+```php-inline
 ClassName::full(new \App\Dto\User());          // "App\Dto\User"
 ClassName::full('App.Dto.User');               // "App\Dto\User"
 ```
@@ -33,7 +31,7 @@ ClassName::full('App.Dto.User');               // "App\Dto\User"
 
 Returns the fully qualified class name with backslashes replaced by dots.
 
-```php
+```php-inline
 ClassName::canonical(new \App\Dto\User());      // "App.Dto.User"
 ClassName::canonical('App\Dto\User');           // "App.Dto.User"
 ```
@@ -42,7 +40,7 @@ ClassName::canonical('App\Dto\User');           // "App.Dto.User"
 
 Returns the canonical form, lowercased with underscores inserted before uppercase letters.
 
-```php
+```php-inline
 ClassName::underscore(new \App\Dto\UserRole()); // "app.dto.user_role"
 ```
 
@@ -50,7 +48,7 @@ ClassName::underscore(new \App\Dto\UserRole()); // "app.dto.user_role"
 
 Returns just the class name without the namespace.
 
-```php
+```php-inline
 ClassName::short(new \App\Dto\User());           // "User"
 ClassName::short('App\Dto\User');                // "User"
 ```
@@ -79,7 +77,7 @@ Each value is prefixed by its type before hashing, preventing collisions between
 | `array` | `a_` | serialized array |
 | other | `0` | literal zero |
 
-```php
+```php-inline
 FastHasher::hash('hello');                      // fnv1a32 hash of "s_hello"
 FastHasher::hash(42);                           // fnv1a32 hash of "i_42"
 FastHasher::hash(['a', 'b']);                   // fnv1a32 hash of serialized array
@@ -98,7 +96,7 @@ A broad collection of static type, format, content, and comparison checks. Every
 
 ### Type Checks
 
-```php
+```php-inline
 Validate::isScalar(mixed $value): bool
 Validate::isBool(mixed $value): bool
 Validate::isFloat(mixed $value): bool
@@ -117,7 +115,7 @@ Wraps the corresponding PHP functions.
 
 ### Empty & Blank
 
-```php
+```php-inline
 Validate::isEmpty(mixed $value): bool       // PHP's empty()
 Validate::isNotEmpty(mixed $value): bool    // !empty()
 Validate::isBlank(mixed $value): bool       // trimmed string === ''
@@ -148,7 +146,7 @@ Validate::isNotBlank(mixed $value): bool    // trimmed string !== ''
 
 ### String Content & Length
 
-```php
+```php-inline
 Validate::isMatch(mixed $value, string $pattern): bool           // preg_match
 Validate::contains(mixed $value, string $search): bool           // str_contains
 Validate::startsWith(mixed $value, string $search): bool         // str_starts_with
@@ -191,7 +189,7 @@ Length methods accept an optional `$encoding` parameter (default `UTF-8`) passed
 
 ### Comparison & Type Introspection
 
-```php
+```php-inline
 Validate::areEqual(mixed $value1, mixed $value2): bool         // == or Equatable::equals()
 Validate::areNotEqual(mixed $value1, mixed $value2): bool
 Validate::areSame(mixed $value1, mixed $value2): bool          // ===
@@ -207,7 +205,7 @@ Validate::isSubclassOf(mixed $value, string $className): bool
 
 ### Class & Object Existence
 
-```php
+```php-inline
 Validate::classExists(mixed $value): bool          // class_exists()
 Validate::interfaceExists(mixed $value): bool      // interface_exists()
 Validate::methodExists(mixed $value, object|string $object): bool
@@ -217,7 +215,7 @@ Validate::isJsonEncodable(mixed $value): bool      // json_encode produces a str
 
 ### Filesystem
 
-```php
+```php-inline
 Validate::isPath(mixed $value): bool       // file_exists()
 Validate::isFile(mixed $value): bool       // is_file()
 Validate::isDir(mixed $value): bool        // is_dir()
@@ -256,7 +254,7 @@ The output depends on the type and value:
 | `-INF` | `-INF` |
 | Other scalar | `(string) $value` |
 
-```php
+```php-inline
 VarPrinter::toString(null);                   // "NULL"
 VarPrinter::toString(true);                   // "TRUE"
 VarPrinter::toString([1, 2, 3]);              // "Array(0 => 1, 1 => 2, 2 => 3)"
@@ -292,7 +290,7 @@ Returns the fully qualified class name (backslash-separated).
 
 Returns the canonical class name (dot-separated).
 
-```php
+```php-inline
 $type = Type::create(new \App\Dto\User());
 $type = Type::create('App.Dto.User');
 
