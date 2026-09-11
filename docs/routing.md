@@ -1,5 +1,3 @@
-# Routing
-
 No stand-alone router is provided. The `UrlGenerator` interface allows application-layer services to
 generate URLs without coupling to a specific framework. Adapters are shipped for Symfony, Laravel,
 Yii, Slim, and CodeIgniter.

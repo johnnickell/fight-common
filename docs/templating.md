@@ -1,5 +1,3 @@
-# Templating
-
 A `TemplateEngine` contract with native PHP, Twig, Laravel Blade, and Yii View implementations,
 plus a `DelegatingEngine` that routes by supported template name. View helpers are injectable via
 the `TemplateHelper` contract.

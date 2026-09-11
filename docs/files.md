@@ -1,5 +1,3 @@
-# Files
-
 Two complementary file-abstraction components. **FileStorage** provides an abstract interface
 for writing, reading, and listing files on any storage backend (local disk, S3, FTP, etc.)
 via Flysystem adapters. **Filesystem** operates on the local OS filesystem — creating

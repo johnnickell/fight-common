@@ -1,5 +1,3 @@
-# Scheduler
-
 A cron-style job scheduler for PHP CLI processes. Jobs are registered with a name, a
 schedule, and a command string or PHP callable. On each `run()` call the scheduler checks
 which jobs are due and executes them with file-based exclusive locking to prevent

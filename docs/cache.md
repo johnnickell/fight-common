@@ -1,5 +1,3 @@
-# Cache
-
 A cache-through abstraction that fetches a value by key and invokes a loader callback on
 miss. The Application layer defines read-only and mutable ports; adapters wrap PSR-6,
 PSR-16, Laravel, or CodeIgniter caches.

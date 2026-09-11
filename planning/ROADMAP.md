@@ -11,7 +11,7 @@ outcomes remain navigable.
 | [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing and integration guidance are complete; documentation presentation, the ADR 0026 Fight Common gate simplification, fresh certification, and final release acceptance remain |
 | [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00056 proved thin certification; T-00102 will certify the documentation-complete lean-gate candidate before separately authorized publication and Packagist qualification |
 | [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority and framework support are complete; T-00087 will transfer the lean starter-product gate after public Fight Common 1.2 qualification |
-| [EPIC-00005](epics/00005-EPIC.md) | 1.2.0+ | in-progress | The exact documentation runtime, protected artifact-based Pages workflow, canonical Fight identity, browser-qualified Atlas Deck shell, validated repository entry surface, executable framework-neutral Quick Start, approved Hexagonal Architecture and CQRS guide, verified component and operations guidance, direct framework paths, and maintainer guidance are complete through T-00097; T-00098 is the predeployment acceptance frontier; hosted deployment and the separately governed GitHub-profile adaptation remain later boundaries |
+| [EPIC-00005](epics/00005-EPIC.md) | 1.2.0+ | in-progress | The complete repaired documentation candidate is accepted through T-00098 with local artifact, editorial, responsive, accessibility, and canonical-build evidence; T-00099 remains the hosted verification boundary after separately authorized publication, and the GitHub-profile adaptation remains separately governed |
 
 ## Route to 1.2.0
 
@@ -27,7 +27,8 @@ outcomes remain navigable.
    `$aios /implement T-xxxxx` when the approved ticket is already one small tracer bullet. Complete one ticket at
    a time and return to `/ask-matt` after its verified handoff. Commit, push, pull-request, merge, and publication
    effects remain separately approved actions.
-6. Complete T-00093 through T-00099 so the documentation product and first hosted publication are finished.
+6. T-00098 accepted the complete predeployment documentation product; complete T-00099 after separately
+   authorized publication to verify the first hosted artifact.
 7. Apply ADR 0026 to Fight Common through T-00102, pass the complete lean pre-submit gate, and certify a fresh
    exact candidate without publishing it.
 8. Complete T-00017 final release acceptance, then separately authorize T-00035 publication and T-00041 Packagist

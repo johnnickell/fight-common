@@ -1,5 +1,3 @@
-# Observability
-
 Fight Common separates three observability signals behind narrow Application contracts:
 **health checks** report current dependency state, **metrics** record measurements over time,
 and **audit logging** preserves business-relevant facts. Provider adapters live at the boundary;

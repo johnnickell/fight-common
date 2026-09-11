@@ -1,5 +1,3 @@
-# HTTP Client
-
 A transport-abstraction layer for making HTTP requests. The Application layer defines PSR-7
 message factories, a transport contract, and a promise interface; the Adapter layer provides
 a Guzzle implementation and a PSR-3 logging decorator. An `HttpService` facade combines
@@ -459,8 +457,8 @@ services:
 
 # config/packages/test/common_http_client.yaml
 services:
-    # Swap the logging decorator for a lightweight client in tests
-    Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient:
+    # Keep the Fight adapter and replace only its underlying client in tests
+    GuzzleHttp\ClientInterface:
         class: GuzzleHttp\Client
         arguments:
             $config:

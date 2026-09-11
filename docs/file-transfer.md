@@ -1,5 +1,3 @@
-# File Transfer
-
 A transport-abstraction layer for remote file operations. The `FileTransport` port covers
 sending, retrieving, and listing files on a remote host. `FileTransferService` acts as a
 named registry when an application needs to talk to multiple remote endpoints.
