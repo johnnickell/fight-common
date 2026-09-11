@@ -1,8 +1,15 @@
 {% extends "main.html" %}
 
 {% block content %}
+  {% set atlas_navigation_label = page.meta.atlas_navigation_label | default("Component navigation", true) %}
+  {% set atlas_breadcrumb_section = page.meta.atlas_breadcrumb_section | default("Components", true) %}
+  {% set atlas_breadcrumb_group = page.meta.atlas_breadcrumb_group | default(page.meta.atlas_component_group, true) %}
   <section class="atlas-article-shell" aria-label="{{ page.title | e }} article" data-atlas-layout="article">
-    <nav class="atlas-component-rail" aria-label="Component navigation">
+    {% if page.meta.atlas_navigation_label %}
+      <nav class="atlas-component-rail" aria-label="{{ atlas_navigation_label | e }}">
+    {% else %}
+      <nav class="atlas-component-rail" aria-label="Component navigation">
+    {% endif %}
       {% for component in page.parent.children %}
         <a{% if component.active %} class="atlas-component-rail__link--active" aria-current="page"{% endif %} href="{{ component.url | url }}">{{ component.title }}</a>
       {% endfor %}
@@ -12,9 +19,11 @@
       <nav class="atlas-breadcrumbs" aria-label="Breadcrumb">
         <a href="{{ nav.homepage.url | url }}">Home</a>
         <span aria-hidden="true">/</span>
-        <span>Components</span>
-        <span aria-hidden="true">/</span>
-        <span>{{ page.meta.atlas_component_group }}</span>
+        <span>{{ atlas_breadcrumb_section | e }}</span>
+        {% if atlas_breadcrumb_group %}
+          <span aria-hidden="true">/</span>
+          <span>{{ atlas_breadcrumb_group | e }}</span>
+        {% endif %}
         <span aria-hidden="true">/</span>
         <span aria-current="page">{{ page.title }}</span>
       </nav>

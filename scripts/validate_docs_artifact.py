@@ -1223,9 +1223,10 @@ def validate(site_directory: Path) -> None:
             f'<a href="{route}"><span>{component}</span>'
             f'<small class="atlas-ownership-rail">{ownership}</small></a>'
         )
+        legacy_ownership = "Application · Adapter" if component == "Scheduler" else ownership
         legacy_rail = (
             f'<a href="{route}">{component}</a>\n'
-            f'  <span class="atlas-ownership-rail">Ownership: {ownership}</span>'
+            f'  <span class="atlas-ownership-rail">Ownership: {legacy_ownership}</span>'
         )
         if expected_rail not in homepage_html and legacy_rail not in homepage_html:
             fail(f"Generated homepage is missing complete ownership rail: {component}")

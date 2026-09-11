@@ -2,7 +2,7 @@
 id: T-00097
 prd: PRD-00021
 title: Complete Operations and Framework Guidance
-status: ready-for-agent
+status: done
 blocked_by: T-00094
 ---
 
@@ -23,19 +23,19 @@ maintainer-facing operational practice.
 
 ## Acceptance Criteria
 
-- [ ] Observability, processes, and scheduling each have canonical guides with accurate ownership, dependencies,
+- [x] Observability, processes, and scheduling each have canonical guides with accurate ownership, dependencies,
       portable usage, available adapters, operational behavior, failures, and next steps.
-- [ ] Integrate Frameworks exposes the supported framework and framework-free paths directly from the atlas.
-- [ ] Framework guidance owns activation, supported integrations, provider selection, native composition, starter
+- [x] Integrate Frameworks exposes the supported framework and framework-free paths directly from the atlas.
+- [x] Framework guidance owns activation, supported integrations, provider selection, native composition, starter
       routes, and known unavailability without copying each component's semantics.
-- [ ] Support claims and optional-package requirements agree with the normative compatibility and framework
+- [x] Support claims and optional-package requirements agree with the normative compatibility and framework
       guidance already owned by the repository.
-- [ ] Maintenance and contributor routes keep coding standards, development setup, and delivery practice outside
+- [x] Maintenance and contributor routes keep coding standards, development setup, and delivery practice outside
       the product component taxonomy.
-- [ ] Public symbols, examples, commands, repository links, configuration syntax, and behavior claims are current.
-- [ ] Search, navigation, atlas links, anchors, copy controls, code scrolling, callouts, and both themes work for
+- [x] Public symbols, examples, commands, repository links, configuration syntax, and behavior claims are current.
+- [x] Search, navigation, atlas links, anchors, copy controls, code scrolling, callouts, and both themes work for
       the completed routes.
-- [ ] Representative process, scheduler, observability, and framework-composition checks prove copied behavior
+- [x] Representative process, scheduler, observability, and framework-composition checks prove copied behavior
       without creating a cross-framework browser or application matrix.
 
 ## Verification
@@ -49,4 +49,13 @@ maintainer-facing operational practice.
 
 ## Completion Notes
 
-Unblocked by T-00094's completed Mail reference guide and its verified component-guide contract.
+Completed the three Operate Workloads adoption guides, direct framework-free and five-framework paths, the
+normative framework overview, and current maintainer guidance without changing PHP runtime behavior or support
+policy. Framework pages now use honest navigation and breadcrumbs while the existing component article contract
+remains unchanged.
+
+Source and specification review corrected audit-repository symbols, structured logging semantics, metric tag
+names, Scheduler ownership and `ext-posix` requirements, hook policy, dependency-lock prerequisites, and
+maintenance navigation before acceptance. The strict documentation artifact, representative production tests,
+responsive light/dark browser review, planning integrity, diff hygiene, and the canonical build completed
+successfully. No documentation, generated-file, wrapper, configuration, or tooling tests were added.

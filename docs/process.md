@@ -152,8 +152,10 @@ interface ProcessRunner
 }
 ```
 
-Processes are queued via `attach()`, then all started when `run()` is called. `run()`
-blocks until all queued processes complete and then clears the queue automatically.
+Processes are queued via `attach()`, then started when `run()` is called. `run()` blocks until
+the queue and active set are empty, then clears the runner. A fail-fast exception can interrupt
+that normal completion path; discard the runner after an exception rather than treating its queued
+state as reusable.
 Pass a `ProcessErrorBehavior` to control how failures are handled (defaults to
 `EXCEPTION`).
 
@@ -313,7 +315,7 @@ $runner->run();  // 4 at a time until all complete
 
 ```php
 $runner->attach(new Process('bin/optional-cleanup'));
-$runner->run(ProcessErrorBehavior::IGNORE);  // non-zero exit silently discarded
+$runner->run(ProcessErrorBehavior::IGNORE);  // continue after non-zero exit; configured logging still applies
 ```
 
 ### Retrying Flaky Processes
@@ -344,3 +346,17 @@ $runner->attach(
 
 $runner->run();
 ```
+
+## Operational guidance
+
+- Prefer `prefix()`, `arg()`, `option()`, and `short()` whenever any token comes from configuration,
+  a request, or another independently supplied value. Use `shellCommand()` only for a complete,
+  already trusted command that intentionally needs shell syntax.
+- Set a finite timeout unless the command is deliberately unbounded. `timeout(null)` disables the
+  Symfony Process timeout and transfers termination responsibility to the consumer.
+- Choose `RETRY` only for idempotent operations. The runner repeats the whole process descriptor;
+  it cannot determine whether a failed attempt already produced a side effect.
+- `maxConcurrent: 0` is unbounded. Size concurrency against CPU, memory, file descriptors, remote
+  rate limits, and downstream connection pools.
+- Output callbacks receive chunks, not guaranteed complete lines. Redact secrets before logging,
+  and do not both disable output and expect callbacks or captured failure output.

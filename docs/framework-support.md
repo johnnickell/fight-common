@@ -41,6 +41,25 @@ supported by this contract.
 Framework-free Domain values, collections, specifications, messages, repositories, and neutral
 Application services are wired directly unless a framework lifecycle or infrastructure translation is required.
 
+## Choose an integration path
+
+Start with the path that owns your application's composition root. Each guide turns this matrix into
+an activation checklist without redefining the underlying component behavior.
+
+| Path | Begin with | Application-owned decisions |
+| --- | --- | --- |
+| [Framework-free](../framework-free/index.md) | Fight's PSR-11 container or explicit construction | Service IDs, provider selection, configuration, and lifecycle |
+| [Symfony](../symfony/index.md) | Selected compiler passes and Symfony components | Service loading, aliases, transports, workers, and environment configuration |
+| [Laravel](../laravel/index.md) | Selected Fight capability providers | Provider registration, queues, migrations, workers, and deployment policy |
+| [Yii](../yii/index.md) | Selected `YiiCapabilityConfiguration` groups and providers | Configuration merge, provider packages, and fallback selection |
+| [CodeIgniter](../codeigniter/index.md) | Application-owned `Config\\Services` delegates | Service aliases, Queue jobs, routes, and provider configuration |
+| [Slim](../slim/index.md) | Fight registrars in an explicit PSR-11 composition root | Container definitions, middleware order, and provider lifecycle |
+
+These are composition routes, not separate editions of Fight Common. Use the component guides for
+portable behavior and failure contracts; return here when choosing an adapter, provider, or activation seam.
+
+### Capability matrix
+
 | Capability | Symfony | Laravel | Yii | CodeIgniter | Slim |
 | --- | --- | --- | --- | --- | --- |
 | Authentication and security | **wire** neutral HMAC, JWT, PHP passwords | **ship** password hash/validation; wire HMAC/JWT | **wire** neutral seams | **wire** neutral seams | **wire** neutral seams |

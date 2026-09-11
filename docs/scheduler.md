@@ -190,8 +190,8 @@ When a job fails the scheduler:
 2. Sends a failure email (if a `MailService` and `$notify` addresses are configured)
 
 The notification email includes the environment, error message, code, file, line, and
-full stack trace. The `$notify` parameter accepts an array of addresses or a
-comma-separated string:
+full stack trace. Treat recipients and mail transport as privileged operational configuration.
+The `$notify` parameter accepts an array of addresses or a comma-separated string:
 
 ```php
 $scheduler->addJob(
@@ -203,13 +203,19 @@ $scheduler->addJob(
 );
 ```
 
+Job execution failures are caught, logged, and handed to notification when configured; they do not
+normally propagate from `run()`. A failure from the mail transport itself can throw `MailException`,
+so the scheduler entry point should still have a top-level failure policy.
+
 ---
 
 ## Max Runtime Guard
 
-The `$maxRuntime` parameter (in seconds) is checked at the start of each run. If the job's
-lock file exists and the owning PID has been alive for longer than `$maxRuntime`, a
-`SchedulerException` is thrown, logged, and (if configured) emailed.
+The `$maxRuntime` parameter (in seconds) is checked at the start of each run. This optional guard
+requires `ext-posix` because it probes the lock-owning PID with `posix_kill()`. If the job's lock
+file exists and the owning PID has been alive for longer than `$maxRuntime`, a `SchedulerException`
+is thrown, logged, and (if configured) emailed. Leave `maxRuntime` unset on hosts without
+`ext-posix`.
 
 ```php
 $scheduler->addJob('long-import', '0 1 * * *', $callable, maxRuntime: 3600);
@@ -235,6 +241,11 @@ Timezone::fromString('Europe/London');  // factory method
 
 new Timezone('Not/Real');  // throws DomainException
 ```
+
+Cron expressions and exact datetime strings are evaluated in this configured time zone. Daylight
+saving transitions can skip or repeat local wall-clock times; choose UTC when a stable cadence is
+more important than local-time alignment, and make jobs idempotent when duplicate invocation would
+be consequential.
 
 ---
 
