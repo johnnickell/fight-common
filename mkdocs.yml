@@ -134,7 +134,12 @@ nav:
       - Scheduler: components/scheduler/index.md
   - Frameworks:
     - Framework Support: frameworks/framework-support/index.md
+    - Framework-free: frameworks/framework-free/index.md
+    - Symfony: frameworks/symfony/index.md
+    - Laravel: frameworks/laravel/index.md
+    - Yii: frameworks/yii/index.md
     - CodeIgniter: frameworks/codeigniter/index.md
+    - Slim: frameworks/slim/index.md
   - Maintenance:
     - Contributing: maintenance/contributing/index.md
     - Coding Standard: maintenance/coding-standard/index.md

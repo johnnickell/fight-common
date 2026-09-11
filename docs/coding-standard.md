@@ -1,10 +1,9 @@
-# FightCommon Coding Standard
+# Coding Standard
 
-Fight Common publishes an optional PHP_CodeSniffer standard for PHP 8.5 projects. The package remains a
-normal Composer library: it does not use the PHP_CodeSniffer Composer installer plugin, and it does not
-automatically select any files in a consuming repository.
+Fight Common publishes the optional `FightCommon` PHP_CodeSniffer standard for PHP 8.5 projects. Adopt it from a
+consumer-owned ruleset: the package supplies rules, but it never selects consumer files or installs PHPCS plugins.
 
-## Install the development tools
+## Install the tools
 
 Require the standard's tool contracts in the consuming project:
 
@@ -12,11 +11,10 @@ Require the standard's tool contracts in the consuming project:
 composer require --dev squizlabs/php_codesniffer slevomat/coding-standard
 ```
 
-The `johnnickell/fight-common` package may remain a production dependency. The PHPCS and Slevomat packages
-are development tools and are not runtime requirements of Fight Common's Domain, Application, or Adapter
-layers.
+`johnnickell/fight-common` may remain a production dependency. PHPCS and Slevomat are development tools, not
+runtime dependencies of Fight Common's Domain, Application, or Adapter layers.
 
-## Copy-ready consumer ruleset
+## Add a consumer ruleset
 
 Create `phpcs.xml` in the consumer repository:
 
@@ -52,11 +50,12 @@ Run the consumer-owned configuration normally:
 vendor/bin/phpcs
 ```
 
-The published `FightCommon` ruleset contains rules only. Removing the `<file>` and `<exclude-pattern>`
-elements above leaves PHPCS with no consumer scan scope; the package never supplies one.
+Removing the `<file>` and `<exclude-pattern>` elements leaves PHPCS with no consumer scan scope. Fight Common
+does not provide one implicitly.
 
-To run only individual sniffs while retaining the full standard's configuration, use their stable public
-identifiers in the consumer configuration:
+## Stage adoption by rule
+
+Select individual public sniffs while retaining the full standard's configuration:
 
 ```xml
 <arg name="sniffs" value="Phpcs.Files.RequireStrictTypes,Phpcs.Arrays.RequireAlignedArrayArrow" />
@@ -70,10 +69,12 @@ vendor/bin/phpcs --standard=phpcs.xml \
     --sniffs=Phpcs.Files.RequireStrictTypes,Phpcs.Arrays.RequireAlignedArrayArrow
 ```
 
-## Public compatibility reference
+Use `vendor/bin/phpcbf --standard=phpcs.xml` only after reviewing which configured rules provide fixers. Inspect
+the resulting diff and rerun PHPCS; a fixer does not replace review or the consumer's own submit gate.
 
-The standard name is `FightCommon`. These thirteen PHPCS sniff identifiers are public, stable names. The
-twelfth custom production unit, `DocumentationComment`, is a supporting helper and is not a PHPCS sniff.
+## Public identifiers
+
+The standard name is `FightCommon`. These thirteen PHPCS sniff identifiers are stable public names:
 
 | Public sniff identifier | Diagnostic codes |
 | --- | --- |
@@ -91,9 +92,11 @@ twelfth custom production unit, `DocumentationComment`, is a supporting helper a
 | `SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall` | `DisallowedTrailingComma` |
 | `SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration` | `DisallowedTrailingComma` |
 
-PHPCS reports a complete source such as
-`Phpcs.Commenting.RequireTypeDocComment.MissingDocComment` by joining the identifier prefix, category, sniff,
-and diagnostic code.
+PHPCS forms a complete source such as
+`Phpcs.Commenting.RequireTypeDocComment.MissingDocComment` by joining the identifier prefix, category, sniff, and
+diagnostic code. `DocumentationComment` is a supporting implementation helper, not a selectable PHPCS sniff.
+
+## Supported properties
 
 These custom-sniff properties are also public compatibility contracts:
 
@@ -105,21 +108,48 @@ These custom-sniff properties are also public compatibility contracts:
 | `Phpcs.Classes.NamedMethodSpacing` | `maxLinesCount` | `1` | Maximum blank lines between named-class methods |
 | `Phpcs.Commenting.RequireTypeDocComment` | `strict` | `true` | When `false`, ordinary classes may omit type documentation; interfaces, traits, and enums still require it |
 
-Consumers may override these properties with a `<rule>` and `<properties>` block like the `strict` example.
-Changing or removing the standard name, a listed sniff or diagnostic, or one of these properties follows
-the coding-standard compatibility policy in ADR 0004.
+Override a property with a `<rule>` and `<properties>` block like the `strict` example above. Exclude a public
+sniff by its complete identifier instead of copying or editing the installed ruleset.
 
-## Parity and ownership evidence
+## Compatibility and failures
 
-The initial package port was compared against the accepted Omphalos behavior at the PHPCS CLI seam. The
-durable package-owned fixtures preserve that evidence without requiring an Omphalos checkout:
+Changing or removing the standard name, a listed sniff or diagnostic, or a documented property follows
+[ADR 0004](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0004-coding-standard-compatibility.md).
+Consumer ruleset paths and excluded rules remain consumer-owned.
 
-- `MechanicalConventions.*.inc` covers strict types, trailing commas, array arrow alignment, and blank lines
-  before return statements; `CustomSniffTest` covers enum-case naming.
-- `MemberLayout.*.inc` covers declaration order, member and method spacing, visibility groups, exclusions,
-  fixes, and idempotence.
+If PHPCS cannot resolve the standard:
+
+1. Confirm `johnnickell/fight-common`, `squizlabs/php_codesniffer`, and `slevomat/coding-standard` are installed in
+   the same Composer project.
+2. Run from the directory containing the consumer `phpcs.xml`.
+3. Verify the relative `vendor/johnnickell/fight-common/src/Standards/Phpcs/ruleset.xml` path.
+4. Confirm the ruleset defines at least one consumer-owned `<file>` path or pass files on the command line.
+5. Run `vendor/bin/phpcs -i` and the targeted command again before changing exclusions.
+
+An unexpected diagnostic is not a reason to edit files under `vendor/`. Narrow the consumer configuration with a
+documented property or explicit exclusion, or report a package defect with the complete PHPCS source and a minimal
+reproduction.
+
+## Maintainer verification
+
+Fight Common owns behavioral fixtures for the published standard:
+
+Fight Common is the canonical implementation after T-00018 is accepted; the listed fixtures preserve the
+accepted standard's behavior without requiring consumers to retain another source repository.
+
+- `MechanicalConventions.*.inc` covers strict types, trailing commas, arrow alignment, blank lines before returns,
+  and enum-case naming.
+- `MemberLayout.*.inc` covers declaration order, member and method spacing, visibility groups, exclusions, fixes,
+  and idempotence.
 - `DocumentationGrammar.*.inc` covers strict and lenient type documentation, method grammar, inherited
   documentation, accepted forms, fixes, and idempotence.
 
-Fight Common is the canonical implementation after T-00018 is accepted. The Omphalos copy is temporary;
-adopting and removing it is separately planned in that repository and is not required to run this package.
+When changing the standard itself, verify the affected production behavior and then run the repository's complete
+`./bin/build` gate. Consumers need only the installation and ruleset workflow above; package maintenance evidence
+does not add runtime dependencies or require a second source repository.
+
+## Related routes
+
+- Follow [Contributing](../contributing/index.md) when changing Fight Common itself.
+- Read [Architecture](../../architecture/index.md) before changing ownership or dependency rules.
+- Use the [Quick Start](../../quick-start/index.md) for consumer installation and application composition.

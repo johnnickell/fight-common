@@ -3,7 +3,7 @@ id: T-00098
 prd: PRD-00022
 title: Accept the Initial Documentation Release Candidate
 status: ready-for-agent
-blocked_by: T-00094,T-00095,T-00096,T-00097
+blocked_by:
 ---
 
 # Accept the Initial Documentation Release Candidate
@@ -53,5 +53,6 @@ turning that focused launch review into a permanent slow browser suite.
 
 T-00091 completed the validated and browser-qualified repository entry surface. T-00092 completed the
 executable framework-neutral journey and focused Brave qualification. T-00093 completed the approved Hexagonal
-Architecture and CQRS guide. T-00094 completed the Mail reference component guide; T-00095 through T-00097 remain
-pending.
+Architecture and CQRS guide. T-00094 completed the Mail reference component guide, and T-00095 through T-00097
+completed the remaining component, operations, framework, and maintainer guidance. T-00098 is now unblocked for
+focused predeployment acceptance.

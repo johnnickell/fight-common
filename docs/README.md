@@ -103,7 +103,12 @@ composer require johnnickell/fight-common
       <header><span>Adapter</span><h3>Integrate Frameworks</h3></header>
       <div class="atlas-card__links">
         <a href="frameworks/framework-support/"><span>Framework Support</span><small class="atlas-ownership-rail">Adapter</small></a>
+        <a href="frameworks/framework-free/"><span>Framework-free</span><small class="atlas-ownership-rail">Application</small></a>
+        <a href="frameworks/symfony/"><span>Symfony</span><small class="atlas-ownership-rail">Adapter</small></a>
+        <a href="frameworks/laravel/"><span>Laravel</span><small class="atlas-ownership-rail">Adapter</small></a>
+        <a href="frameworks/yii/"><span>Yii</span><small class="atlas-ownership-rail">Adapter</small></a>
         <a href="frameworks/codeigniter/"><span>CodeIgniter</span><small class="atlas-ownership-rail">Adapter</small></a>
+        <a href="frameworks/slim/"><span>Slim</span><small class="atlas-ownership-rail">Adapter</small></a>
       </div>
     </section>
   </div>
