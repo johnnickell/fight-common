@@ -8,8 +8,8 @@ outcomes remain navigable.
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing, integration guidance, and documentation presentation are complete; the ADR 0026 Fight Common gate simplification, fresh certification, and final release acceptance remain |
-| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00056 proved thin certification; T-00102 will certify the documentation-complete lean-gate candidate before separately authorized publication and Packagist qualification |
+| [EPIC-00001](epics/00001-EPIC.md) | 1.2.0 | in-progress | Event Sourcing, integration guidance, documentation presentation, and the ADR 0026 Fight Common gate simplification are complete; fresh certification and final release acceptance remain |
+| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00056 proved thin certification; T-00102's lean gate is complete and its documentation-complete exact candidate now awaits certification before separately authorized publication and Packagist qualification |
 | [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority and framework support are complete; T-00087 will transfer the lean starter-product gate after public Fight Common 1.2 qualification |
 
 ## Route to 1.2.0
@@ -28,8 +28,8 @@ outcomes remain navigable.
    effects remain separately approved actions.
 6. T-00098 accepted the complete predeployment documentation product, and T-00099 verified the exact protected
    Pages deployment and real public product after separately authorized publication.
-7. Apply ADR 0026 to Fight Common through T-00102, pass the complete lean pre-submit gate, and certify a fresh
-   exact candidate without publishing it.
+7. T-00102 has applied ADR 0026 and passed the complete lean pre-submit gate; certify its clean exact candidate
+   without publishing it.
 8. Complete T-00017 final release acceptance, then separately authorize T-00035 publication and T-00041 Packagist
    qualification. After the public 1.2 package is verified, T-00087 transfers the imported PHPCS standard and lean
    starter-product gate into the five independently owned starter repositories.

@@ -76,15 +76,15 @@ The canonical pre-submit gate is:
 ./bin/build
 ```
 
-It validates the documentation artifact, provisions disposable MySQL and PostgreSQL services, and runs Composer
-validation, syntax checks, planning integrity, PHPCS, PHPStan, Deptrac, Rector's dry run, PHPUnit, and exact
-statement coverage. Dependency installation uses the local `composer.lock` when one exists; because the lockfile
-is intentionally ignored, an unprepared checkout instead resolves compatible dependencies and creates a local
-lockfile. A focused or fast run is feedback, not completion evidence.
+It installs ordinary dependencies, validates the documentation artifact, provisions disposable MySQL and PostgreSQL
+services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac, Rector's dry run, direct unit tests
+with exact statement coverage, integration tests, functional tests, and planning integrity. Dependency installation
+uses the local `composer.lock` when one exists; because the lockfile is intentionally ignored, an unprepared
+checkout resolves compatible dependencies and creates a local lockfile. A focused or fast run is feedback, not
+completion evidence.
 
-The default `./bin/build` installs the dependency versions recorded in `composer.lock` when that local file is
-present. Hosted CI runs `composer update` ephemerally and invokes `./bin/quality` directly on the runner, so its
-latest-compatible evidence is distinct from the local locked gate.
+Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
+evidence for the checked-out SHA, not a second dependency or quality lane.
 
 To enable the tracked pre-commit gate:
 
@@ -107,9 +107,9 @@ Before the final commit or pull request:
 4. Refresh parent PRD, epic, roadmap, and downstream `blocked_by` state when the completed outcome changes them.
 5. Run `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
 
-Open the feature pull request against `develop`. The hosted Tests workflow resolves latest-compatible dependencies
-and runs the shared quality gate; the documentation workflow builds and validates the generated site. A queued,
-skipped, cancelled, warning-bearing, or no-step job is not passing evidence.
+Open the feature pull request against `develop`. The hosted Tests workflow runs the complete pre-submit gate; the
+documentation workflow builds and validates the generated site. A queued, skipped, cancelled, warning-bearing, or
+no-step job is not passing evidence.
 
 Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
 that have been explicitly authorized.
@@ -118,11 +118,9 @@ that have been explicitly authorized.
 
 A successful `./bin/build` proves the checkout's submit gate; it does not certify or publish a release.
 Certification additionally requires a reviewed local `composer.lock`, even though that file is ignored. Prepare
-the lockfile for the exact clean, committed candidate with the repository-owned latest-compatible lane, review
-the resolved dependency set, and rerun the default gate:
+and verify that ordinary locked lane for the exact clean, committed candidate:
 
 ```bash
-./bin/build --latest
 ./bin/build
 ```
 
@@ -132,8 +130,9 @@ With that precondition satisfied, run:
 ./bin/release certify <version>
 ```
 
-Certification binds its evidence to the exact `HEAD`, exercises locked, latest-compatible, and lowest-compatible
-dependency lanes, builds the Composer archive, probes an installed consumer, and writes the result under
+Certification binds its evidence to the exact `HEAD`, resolves latest-compatible and lowest-compatible lockfiles in
+exported candidate workspaces, then exercises all three dependency lanes, builds the Composer archive, probes an
+installed consumer, and writes the result under
 `.runs/handoffs/`. See the
 [release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full
 contract.

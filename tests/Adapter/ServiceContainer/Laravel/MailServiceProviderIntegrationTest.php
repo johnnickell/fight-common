@@ -22,9 +22,9 @@ use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(MailServiceProvider::class)]
+#[CoversNothing]
 final class MailServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_mail_provider_binds_only_mail_transport_and_factory_in_a_booted_real_laravel_application(): void

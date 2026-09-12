@@ -49,7 +49,6 @@
         "symfony/routing": "^8.1",
         "twig/twig": "^3.0",
         "twilio/sdk": "^8.0",
-        "yiisoft/config": "^1.2",
         "yiisoft/db": "^2.0",
         "yiisoft/db-sqlite": "^2.0",
         "yiisoft/di": "^1.4",
@@ -91,7 +90,6 @@
         "twig/twig": "Required by the Twig template engine adapter",
         "yiisoft/db": "Required by the Yii DB transactional unit of work adapter",
         "yiisoft/db-sqlite": "Required to run the Yii DB transactional unit of work adapter conformance tests",
-        "yiisoft/config": "Required to select Yii capability configuration groups",
         "yiisoft/di": "Required to boot Yii capability service providers",
         "yiisoft/files": "Required to evaluate Yii Files against the shared Fight filesystem conformance suite",
         "yiisoft/mailer": "Required to evaluate Yii Mail against the shared Fight mail conformance suite",
@@ -116,8 +114,7 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": false,
-            "yiisoft/config": true
+            "dealerdirect/phpcodesniffer-composer-installer": false
         },
         "platform": {
             "php": "8.5.4",

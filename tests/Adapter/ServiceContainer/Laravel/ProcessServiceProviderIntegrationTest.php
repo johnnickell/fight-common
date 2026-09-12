@@ -12,10 +12,10 @@ use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Foundation\Application;
 use Illuminate\Process\PendingProcess;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use ReflectionMethod;
 
-#[CoversClass(ProcessServiceProvider::class)]
+#[CoversNothing]
 final class ProcessServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_process_provider_uses_symfony_when_laravel_lacks_attach_clear_and_retry_lifecycle(): void

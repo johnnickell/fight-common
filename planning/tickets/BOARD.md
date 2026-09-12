@@ -16,10 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is currently required. T-00099 verified the first hosted documentation publication. The next
-implementation target is T-00102, which applies ADR 0026, simplifies the package gate, and certifies a fresh exact
-candidate before T-00017 final release acceptance. Package publication remains a later, separately authorized
-effect.
+T-00102's implementation is complete and locally accepted. Review its pull request, then separately authorize
+`./bin/release certify 1.2.0` against the clean exact commit. Certification does not publish the package; T-00017
+remains blocked until that evidence is recorded, and package publication remains a later authorization.
 
 ## Wayfinder Review
 
@@ -31,9 +30,8 @@ one.
 
 ## Ready Frontier
 
-| Rank | Ticket | Parent PRD | Current slice |
-|------|--------|------------|---------------|
-| 1 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Apply ADR 0026, prove the lean package-owned gate, and certify a fresh exact release candidate. |
+No implementation ticket is currently ready. T-00102 is `ready-for-human` for pull-request review and separate
+exact-candidate certification; T-00017 remains blocked by it.
 
 ## Waiting
 
@@ -58,6 +56,10 @@ complete.
 | Rank | Ticket | Parent PRD | Why Last |
 |------|--------|------------|----------|
 | 2 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
+
+T-00102 has applied ADR 0026: the ordinary build now runs the package-owned product gate once, Unit alone proves
+exact production coverage, and release-only dependency lanes remain behind thin certification. Its clean exact
+candidate still requires separate certification before T-00017 can begin.
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -87,7 +89,7 @@ unchanged.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
 T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 proved the real thin-certification seam;
-T-00102 will apply ADR 0026 and certify a fresh exact candidate before T-00017 acceptance. T-00035 and T-00041
+T-00102 has applied ADR 0026 and now awaits fresh exact-candidate certification before T-00017 acceptance. T-00035 and T-00041
 remain separately authorized publication and Packagist qualification outcomes. T-00036 through T-00039 and T-00042 through
 T-00043 are closed `wontfix`.
 

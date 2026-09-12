@@ -5,37 +5,28 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Standards\Phpcs;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\TestCase;
+use Fight\Test\Common\TestCase\UnitTestCase;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class MechanicalConventionsTest extends TestCase
+final class MechanicalConventionsTest extends UnitTestCase
 {
     public function test_that_consumers_receive_the_mechanical_conventions_from_the_fight_common_standard(): void
     {
         $result = $this->runPhpcs('MechanicalConventions.noncompliant.inc');
 
         self::assertNotSame(0, $result->getExitCode(), $result->getErrorOutput());
-
         $report = json_decode($result->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-        $messages = array_values($report['files'])[0]['messages'];
-        $sources = array_column($messages, 'source');
+        $sources = array_column(array_values($report['files'])[0]['messages'], 'source');
 
         self::assertContains('Phpcs.Arrays.DisallowTrailingArrayComma.DisallowTrailingArrayComma', $sources);
         self::assertContains('Phpcs.Arrays.RequireAlignedArrayArrow.ArrowNotAligned', $sources);
         self::assertContains('Phpcs.Formatting.RequireBlankLineBeforeReturn.Missing', $sources);
-        self::assertContains(
-            'SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall.DisallowedTrailingComma',
-            $sources
-        );
-        self::assertContains(
-            'SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration.DisallowedTrailingComma',
-            $sources
-        );
+        self::assertContains('SlevomatCodingStandard.Functions.DisallowTrailingCommaInCall.DisallowedTrailingComma', $sources);
+        self::assertContains('SlevomatCodingStandard.Functions.DisallowTrailingCommaInDeclaration.DisallowedTrailingComma', $sources);
         self::assertContains('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses.IncorrectlyOrderedUses', $sources);
 
         $compliant = $this->runPhpcs('MechanicalConventions.compliant.inc');
-
         self::assertSame(0, $compliant->getExitCode(), $compliant->getErrorOutput().$compliant->getOutput());
     }
 

@@ -11,9 +11,9 @@ use Fight\Common\Application\Observability\MetricsCollector;
 use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(MetricsServiceProvider::class)]
+#[CoversNothing]
 final class MetricsServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_metrics_provider_uses_null_when_pulse_lacks_complete_metrics_port(): void

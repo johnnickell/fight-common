@@ -401,9 +401,8 @@ class FileNotFoundException extends FilesystemException
 - Laravel's `FileStorageServiceProvider` binds a consumer-selected disk through
   `FlysystemStorage`; `fight-common.file-storage.disk` must name that disk. Laravel's complete local
   filesystem adapter is `Adapter\Filesystem\Laravel\LaravelFilesystem`.
-- Yii's `FilesystemServiceProvider` deliberately uses the complete Symfony filesystem fallback.
-  `YiiCapabilityConfiguration::filesystem()` owns no paths or policy. Yii Files was evaluated for
-  compatibility but is not exposed as a Fight adapter.
+- Yii's `FilesystemServiceProvider` deliberately uses the complete Symfony filesystem fallback. The application
+  owns all paths and policy. Yii Files was evaluated for compatibility but is not exposed as a Fight adapter.
 - CodeIgniter's `FilesystemServices::filesystem()` returns the Symfony fallback. File storage remains
   explicit consumer composition because no native complete storage binding is shipped.
 - Symfony and framework-free consumers construct `FlysystemStorage` or `SymfonyFilesystem` directly.

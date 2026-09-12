@@ -21,11 +21,10 @@ use Fight\Test\Common\TestCase\EventSourcing\ConformanceEventMappingProvider;
 use Fight\Test\Common\TestCase\EventSourcing\ConformanceHistoricalEventRecord;
 use Fight\Test\Common\TestCase\EventSourcing\ConformanceOrderPlaced;
 use Fight\Test\Common\TestCase\EventSourcing\EventStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
-#[CoversClass(DbalEventStore::class)]
-#[CoversClass(DbalEventStoreSchema::class)]
+#[CoversNothing]
 #[Group('server-database')]
 final class MysqlDbalEventStoreTest extends EventStoreConformanceTestCase
 {

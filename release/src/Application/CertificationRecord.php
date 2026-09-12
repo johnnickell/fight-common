@@ -44,7 +44,9 @@ final readonly class CertificationRecord
 
         $expectedCommands = [
             'locked-product-gate',
+            'latest-dependency-resolution',
             'latest-product-gate',
+            'lowest-dependency-resolution',
             'lowest-product-gate',
             'composer-archive',
             'consumer-resolution',

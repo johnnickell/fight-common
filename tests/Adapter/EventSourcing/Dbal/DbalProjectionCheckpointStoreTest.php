@@ -9,10 +9,9 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStoreSchema;
 use Fight\Test\Common\TestCase\EventSourcing\DbalProjectionCheckpointStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(DbalProjectionCheckpointStore::class)]
-#[CoversClass(DbalProjectionCheckpointStoreSchema::class)]
+#[CoversNothing]
 final class DbalProjectionCheckpointStoreTest extends DbalProjectionCheckpointStoreConformanceTestCase
 {
     private ?string $databasePath = null;

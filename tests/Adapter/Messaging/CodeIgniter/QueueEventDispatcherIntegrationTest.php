@@ -21,14 +21,13 @@ use Fight\Common\Domain\Utility\ClassName;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use DateTimeImmutable;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(QueueEventDispatcher::class)]
-#[CoversClass(EventMessageJob::class)]
+#[CoversNothing]
 final class QueueEventDispatcherIntegrationTest extends UnitTestCase
 {
     public function test_that_event_producer_contract_and_job_failures_remain_visible(): void

@@ -26,7 +26,7 @@ use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -35,11 +35,7 @@ use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
 
-#[CoversClass(CommandMessageHandler::class)]
-#[CoversClass(EventMessageHandler::class)]
-#[CoversClass(MessengerCommandBus::class)]
-#[CoversClass(MessengerEventDispatcher::class)]
-#[CoversClass(SymfonyMessageSerializer::class)]
+#[CoversNothing]
 final class CanonicalMessengerIntegrationTest extends UnitTestCase
 {
     public function test_that_real_symfony_messenger_registration_keeps_neutral_and_legacy_handler_identities_distinct(): void

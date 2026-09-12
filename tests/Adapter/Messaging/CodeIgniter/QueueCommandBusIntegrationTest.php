@@ -18,14 +18,13 @@ use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RuntimeException;
 use Throwable;
 
-#[CoversClass(QueueCommandBus::class)]
-#[CoversClass(CommandMessageJob::class)]
+#[CoversNothing]
 final class QueueCommandBusIntegrationTest extends UnitTestCase
 {
     public function test_that_command_producer_and_job_failures_remain_visible(): void

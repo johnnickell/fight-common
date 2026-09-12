@@ -76,6 +76,29 @@ run_step() {
     return "${status}"
 }
 
+resolve_lowest_dependencies() {
+    local target="$1"
+
+    "${DOCKER_BIN}" container run --rm \
+        -v "${target}:/app:delegated" \
+        -w /app \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        bash -c '
+LOWEST_PACKAGES="$(php -r '\''
+$composer = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR);
+$requirements = $composer["require"];
+$packages = array_filter(
+    array_keys($requirements),
+    static fn (string $package): bool => str_contains($package, "/"),
+);
+echo implode(" ", $packages);
+'\'')"
+composer update ${LOWEST_PACKAGES} --no-interaction --no-progress --prefer-dist --prefer-lowest --prefer-stable --with-all-dependencies
+'
+}
+
 if (( $# != 2 )) || [[ "$1" != 'certify' ]]; then
     usage
 fi
@@ -126,17 +149,35 @@ cp "${ROOT_DIR}/composer.lock" "${LOWEST_ROOT}/composer.lock"
 
 run_step 'locked-product-gate' './bin/build' "${LOCKED_ROOT}" "${WORKSPACE}/locked.log" ./bin/build
 run_step \
-    'latest-product-gate' \
-    './bin/build --latest' \
+    'latest-dependency-resolution' \
+    'composer update' \
     "${LATEST_ROOT}" \
     "${WORKSPACE}/latest.log" \
-    ./bin/build --latest
+    "${DOCKER_BIN}" container run --rm \
+        -v "${LATEST_ROOT}:/app:delegated" \
+        -w /app \
+        --user "$(id -u):$(id -g)" \
+        --env COMPOSER_HOME=/tmp/fight-common-release-composer \
+        "${PHP_IMAGE}" \
+        composer update --no-interaction --no-progress --prefer-dist
 run_step \
-    'lowest-product-gate' \
-    './bin/build --lowest' \
+    'latest-product-gate' \
+    './bin/build' \
+    "${LATEST_ROOT}" \
+    "${WORKSPACE}/latest-product-gate.log" \
+    ./bin/build
+run_step \
+    'lowest-dependency-resolution' \
+    'composer update --prefer-lowest --prefer-stable' \
     "${LOWEST_ROOT}" \
     "${WORKSPACE}/lowest.log" \
-    ./bin/build --lowest
+    resolve_lowest_dependencies "${LOWEST_ROOT}"
+run_step \
+    'lowest-product-gate' \
+    './bin/build' \
+    "${LOWEST_ROOT}" \
+    "${WORKSPACE}/lowest-product-gate.log" \
+    ./bin/build
 
 ARCHIVE="${ARTIFACT_ROOT}/fight-common-${VERSION}.tar"
 "${DOCKER_BIN}" container run --rm \

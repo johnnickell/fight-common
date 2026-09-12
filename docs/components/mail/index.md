@@ -165,18 +165,17 @@ dependency that combines both ports is useful.
 | --- | --- | --- | --- |
 | Symfony | `SymfonyMailTransport` over Symfony `MailerInterface` | `SymfonyMailFactory` | Your Symfony container definitions; the equivalent examples are below. |
 | Laravel | `LaravelMailTransport` over Laravel `Illuminate\Contracts\Mail\Mailer` | `LaravelMailFactory` | Register `Fight\Common\Adapter\ServiceContainer\Laravel\MailServiceProvider`. |
-| Yii | Proven Symfony fallback: `SymfonyMailTransport` | `SymfonyMailFactory` | Supply the selected `MailerInterface` through `YiiCapabilityConfiguration::mail()` and add the bounded Yii `MailServiceProvider`. |
+| Yii | Proven Symfony fallback: `SymfonyMailTransport` | `SymfonyMailFactory` | Define the selected `MailerInterface` in the application and add the bounded Yii `MailServiceProvider`. |
 | CodeIgniter | Proven Symfony fallback: `SymfonyMailTransport` | `SymfonyMailFactory` | Delegate from the application's `app/Config/Services.php` to `MailServices::mailFactory()` and `MailServices::mailTransport()`. |
 | Slim or framework-free | Explicit Symfony composition | `SymfonyMailFactory` | Construct the two ports in the application's PSR-11 container or bootstrap code. |
 
 Laravel's `MailServiceProvider` binds `MailFactory` to `LaravelMailFactory` and `MailTransport`
 to `LaravelMailTransport`; it deliberately leaves `MailService` application-owned. Yii's bounded
-provider similarly binds the two ports after `YiiCapabilityConfiguration::mail()` supplies the
-Symfony `MailerInterface`. CodeIgniter's `MailServices` delegate returns those same two Symfony
+provider similarly binds the two ports to the application-defined Symfony `MailerInterface`. CodeIgniter's `MailServices` delegate returns those same two Symfony
 fallbacks because its native email API has not proven the full Fight mail contract.
 
 Before configuring a path, install its optional dependencies: Symfony uses `symfony/mailer`;
-Laravel uses `laravel/framework`; Yii's Symfony fallback uses `yiisoft/config`, `yiisoft/di`, and
+Laravel uses `laravel/framework`; Yii's Symfony fallback uses `yiisoft/di` and
 `symfony/mailer`; and CodeIgniter's Symfony fallback uses `codeigniter4/framework` and
 `symfony/mailer`. These are Composer suggestions, not Fight Common production requirements;
 they match the selected capability seams in `composer.json` and the framework-support contract.

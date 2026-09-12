@@ -16,9 +16,6 @@ printf '[quality] PHP syntax\n'
     fi
 done
 
-printf '[quality] Planning integrity\n'
-./bin/planning-check
-
 printf '[quality] PHPCS\n'
 php vendor/bin/phpcs
 
@@ -32,9 +29,15 @@ php vendor/bin/deptrac debug:unassigned --no-cache
 printf '[quality] Rector dry-run\n'
 php vendor/bin/rector process src/ release/src/ release/scripts/ release/consumer/ --dry-run
 
-printf '[quality] PHPUnit\n'
+printf '[quality] Unit PHPUnit coverage\n'
 rm -f var/reports/coverage/clover.xml
-php vendor/bin/phpunit --fail-on-skipped
+php vendor/bin/phpunit --testsuite Unit --fail-on-skipped
 
 printf '[quality] Exact coverage\n'
 ./bin/coverage
+
+printf '[quality] Integration PHPUnit\n'
+php vendor/bin/phpunit --testsuite Integration --no-coverage --fail-on-skipped
+
+printf '[quality] Functional PHPUnit\n'
+php vendor/bin/phpunit --testsuite Functional --no-coverage --fail-on-skipped
