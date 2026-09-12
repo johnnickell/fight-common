@@ -2,7 +2,7 @@
 id: T-00102
 prd: PRD-00006
 title: Simplify the Fight Common Pre-Submit Gate Before 1.2
-status: ready-for-human
+status: done
 blocked_by:
 ---
 
@@ -57,7 +57,7 @@ certify the resulting exact release candidate through the separate release opera
 - [x] Before/after test counts and build duration are recorded, with retained behavioral confidence rather than
       deletion count as the acceptance criterion.
 - [x] The complete simplified `./bin/build` passes from the task worktree.
-- [ ] A fresh clean exact commit passes `./bin/release certify 1.2.0`; its evidence supersedes the earlier candidate
+- [x] A fresh clean exact commit passes `./bin/release certify 1.2.0`; its evidence supersedes the earlier candidate
       for the later T-00017 and T-00035 decisions without performing publication.
 
 ## Verification
@@ -85,5 +85,8 @@ application configuration, collaborator choices, template paths, and runtime pol
 handoff identifies `HttpClientProvider`, `RoutingProvider`, `ViewProvider`, `SynchronousMessagingProvider`, and
 `MailProvider` as consumers that must stop importing the removed helper before adopting this revision.
 
-The remaining unchecked criterion is the separately authorized clean-commit `./bin/release certify 1.2.0` run.
-Until that exact-candidate evidence exists, this ticket remains `ready-for-human` and continues to block T-00017.
+The separately authorized `./bin/release certify 1.2.0` run certified clean implementation commit
+`f2a0d960e19fd9d9ddcf605345220a190374ef96`. All ten recorded commands passed across the locked, latest, and
+lowest product gates, Composer archive, clean production install, installed-consumer probe, and package-surface
+comparison. The archive SHA-256 is `d106ebe893a3d5b1317a23e43c985ccbc79ec34767f36a9ecefc2c48bc1b3560`.
+Certification performed no publication effect and unblocks T-00017.
