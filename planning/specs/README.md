@@ -4,14 +4,14 @@
 | --- | --- | --- |
 | [00001](00001-PRD.md) | Existing-Application Migration Evaluation | done |
 | [00002](00002-PRD.md) | Event-Sourcing Vocabulary and Architecture Contract | done |
-| [00003](00003-PRD.md) | Event-Sourced Aggregate and Stream Core | ready-for-agent |
-| [00004](00004-PRD.md) | Durable Storage and Aggregate Repository | ready-for-agent |
-| [00005](00005-PRD.md) | Checkpointed Projections and Event Publication | ready-for-agent |
-| [00006](00006-PRD.md) | Integration Guide and 1.2 Release Acceptance | ready-for-agent |
+| [00003](00003-PRD.md) | Event-Sourced Aggregate and Stream Core | done |
+| [00004](00004-PRD.md) | Durable Storage and Aggregate Repository | done |
+| [00005](00005-PRD.md) | Checkpointed Projections and Event Publication | done |
+| [00006](00006-PRD.md) | Integration Guide and 1.2 Release Acceptance | done |
 | [00007](00007-PRD.md) | Reusable Fight Coding Standard | done |
 | [00008](00008-PRD.md) | Architecture Enforcement | done |
-| [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | ready-for-agent |
-| [00010](00010-PRD.md) | Deterministic Release Foundation | ready-for-agent |
+| [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | done |
+| [00010](00010-PRD.md) | Deterministic Release Foundation | done |
 | [00011](00011-PRD.md) | Thin Certification and Separately Authorized Publication | in-progress |
 | [00012](00012-PRD.md) | Maintenance-Line and Patch Workflows | wontfix |
 | [00013](00013-PRD.md) | Operator Surfaces and Release Integration | wontfix |

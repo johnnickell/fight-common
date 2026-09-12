@@ -4,7 +4,7 @@ Operational execution view for Fight Common. Ticket files are canonical for stat
 board is canonical for recommended order. IDs identify artifacts only. Update this file whenever ticket
 status, dependencies, or roadmap priority changes.
 
-Last updated: 2026-09-11
+Last updated: 2026-09-12
 
 ## “What’s Next?” Contract
 
@@ -16,8 +16,9 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-Review and merge T-00102's pull request. Its clean exact candidate `f2a0d96` is certified without publication,
-and T-00017 is now the first ready implementation ticket. Package publication remains a later authorization.
+T-00035 is the next human decision. Run `bash .runs/handoffs/t00035-publish-1.2.0.sh` to guide the separately
+authorized exact-`main` certification, signing, draft creation, and immutable publication effects. T-00041 remains a later
+Packagist qualification boundary.
 
 ## Wayfinder Review
 
@@ -29,9 +30,7 @@ one.
 
 ## Ready Frontier
 
-| Rank | Ticket | Parent PRD | Outcome |
-|------|--------|------------|---------|
-| 1 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
+No ready implementation ticket. The next work is the separately authorized human publication decision in **Now**.
 
 ## Waiting
 
@@ -40,9 +39,8 @@ blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 2 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
-| 3 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
-| 4 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
+| 1 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
+| 2 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
 
 ## Needs Info
 
@@ -50,9 +48,11 @@ No tickets currently require a decision authority.
 
 ## Release Context
 
-T-00102 has applied ADR 0026: the ordinary build now runs the package-owned product gate once, Unit alone proves
-exact production coverage, and release-only dependency lanes remain behind thin certification. Clean exact
-candidate `f2a0d96` is certified, so T-00017 can begin final release acceptance.
+T-00017 accepted the `d262866714fe1a3a60e086806cede526937d5874` ten-outcome certification and its
+tree-identical `ef64fcbbcccb2c1438a15f9c5b460cc2a96e9d13` merged `develop` commit. ADR 0027 requires T-00035
+to freshly certify the exact remote `main` merge before signing it, creating a verified draft with the certified
+Composer tar, `certification.json`, and `SHA256SUMS`, and separately publishing it immutably. T-00041 remains the Packagist
+qualification boundary.
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -60,8 +60,8 @@ in-memory event publication, durable named publication cursors, transactional fa
 logging are complete across the same database matrix. T-00016 now documents the complete integration and
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
-Mapper contract. T-00017 remains the board's final pre-publication priority after T-00102 replaces the earlier
-candidate with documentation-complete, simplified quality-gate and release-certification evidence. The
+Mapper contract. T-00017 accepted the final compatibility and certification evidence; T-00035 is now the
+separately authorized human publication frontier. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
@@ -77,14 +77,12 @@ path with opt-in tracked pre-commit enforcement that delegates to the default lo
 
 The Unreleased changelog now presents Event Sourcing as an additive `1.2.0` capability, records the metadata
 isolation behavior change, and reconciles the typed JSend and canonical Symfony Messenger compatibility surfaces.
-This satisfies T-00017's release-notes criterion only; its certification and complete-acceptance blockers remain
-unchanged.
+This satisfied T-00017's release-notes criterion and is retained as part of the accepted release evidence.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
-T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 proved the real thin-certification seam;
-T-00102 applied ADR 0026 and certified fresh exact candidate `f2a0d96` for T-00017 acceptance. T-00035 and T-00041
-remain separately authorized publication and Packagist qualification outcomes. T-00036 through T-00039 and T-00042 through
-T-00043 are closed `wontfix`.
+T-00068. ADR 0025 supersedes their simulated release machinery. ADR 0027 is the current publication authority;
+T-00035 and T-00041 remain separately authorized publication and Packagist qualification outcomes. T-00036 through
+T-00039 and T-00042 through T-00043 are closed `wontfix`.
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
 Scheduler compatibility is complete through T-00048. JSend, Symfony and Doctrine namespace, transactional
@@ -119,6 +117,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accepted the ten-outcome `d262866` certification and tree-identical `ef64fcb` merge; ADR 0027 requires exact-`main` recertification before signing, draft-first immutable publication, and later Packagist qualification. |
 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Applied ADR 0026 with exact Unit-only coverage, retained meaningful Integration and Functional behavior, reduced the ordinary build from 217 to 97 seconds, and certified clean exact candidate `f2a0d96` without publication. |
 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Verified the exact protected Pages deployment for merge commit `40f347f` and the public site over HTTPS, including all canonical routes, interactions, assets, metadata, sitemap, responsive behavior, and branded 404; recorded the published route and anchor compatibility commitments. |
 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Accepted the repaired predeployment candidate pinned at `098d18f` through strict artifact and editorial review, exact asset baselines, responsive and accessibility evidence, John's separate Brave and VoiceOver passes, and the complete canonical build; T-00099 later verified the hosted publication separately. |

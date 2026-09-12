@@ -28,3 +28,4 @@
 | [0024](0024-framework-adapter-support-and-delivery-boundaries.md) | Framework adapter support and delivery boundaries | accepted |
 | [0025](0025-thin-release-certification.md) | Thin release certification with separately authorized publication | accepted |
 | [0026](0026-lean-pre-submit-and-release-qualification.md) | Lean complete pre-submit gate with release-only candidate qualification | accepted |
+| [0027](0027-human-release-publication.md) | Human release publication | accepted |
