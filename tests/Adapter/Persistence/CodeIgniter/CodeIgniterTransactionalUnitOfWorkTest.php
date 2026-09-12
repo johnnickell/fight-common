@@ -8,12 +8,12 @@ use CodeIgniter\Database\BaseConnection;
 use Fight\Common\Adapter\Persistence\CodeIgniter\CodeIgniterTransactionalUnitOfWork;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\Common\TestCase\Repository\TransactionalUnitOfWorkConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use RuntimeException;
 
-#[CoversClass(CodeIgniterTransactionalUnitOfWork::class)]
+#[CoversNothing]
 #[PreserveGlobalState(false)]
 #[RunTestsInSeparateProcesses]
 /**

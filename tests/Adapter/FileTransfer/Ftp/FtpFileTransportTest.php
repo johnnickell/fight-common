@@ -44,16 +44,6 @@ class FtpFileTransportTest extends UnitTestCase
         self::assertSame('global contents', $contents);
     }
 
-    public function test_that_transport_source_has_no_coverage_exclusions(): void
-    {
-        $source = file_get_contents(
-            dirname(__DIR__, 4).'/src/Adapter/FileTransfer/Ftp/FtpFileTransport.php'
-        );
-
-        self::assertIsString($source);
-        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
-    }
-
     public function test_that_send_string_connects_creates_directories_and_disconnects(): void
     {
         $transport = $this->transport();

@@ -23,10 +23,9 @@ use Fight\Test\Common\TestCase\EventSourcing\ConformanceEventMappingProvider;
 use Fight\Test\Common\TestCase\EventSourcing\ConformanceHistoricalEventRecord;
 use Fight\Test\Common\TestCase\EventSourcing\ConformanceOrderPlaced;
 use Fight\Test\Common\TestCase\EventSourcing\EventStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(DbalEventStore::class)]
-#[CoversClass(DbalEventStoreSchema::class)]
+#[CoversNothing]
 final class DbalEventStoreTest extends EventStoreConformanceTestCase
 {
     public function test_that_unsupported_database_platforms_fail_explicitly(): void

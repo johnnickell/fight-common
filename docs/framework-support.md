@@ -10,7 +10,7 @@ aggregate provider that activates every optional adapter.
 
 Fight Common currently supports Symfony components `^8.1`, Laravel `^13.0`, CodeIgniter `^4.7`,
 Slim `^4.15`, and the current Yii 3 package set. The Yii set is `yiisoft/di ^1.4`,
-`yiisoft/config ^1.6`, `yiisoft/yii-http ^1.1`, `yiisoft/event-dispatcher ^1.1`,
+`yiisoft/yii-http ^1.1`, `yiisoft/event-dispatcher ^1.1`,
 `yiisoft/router ^4.0`, `yiisoft/router-fastroute`, `yiisoft/view`, `yiisoft/view-twig`,
 `yiisoft/validator`, `yiisoft/mailer ^6.1`, `yiisoft/cache ^3.2`, `yiisoft/db` with its chosen
 driver, `yiisoft/session`, and `yiisoft/log`.
@@ -51,7 +51,7 @@ an activation checklist without redefining the underlying component behavior.
 | [Framework-free](../framework-free/index.md) | Fight's PSR-11 container or explicit construction | Service IDs, provider selection, configuration, and lifecycle |
 | [Symfony](../symfony/index.md) | Selected compiler passes and Symfony components | Service loading, aliases, transports, workers, and environment configuration |
 | [Laravel](../laravel/index.md) | Selected Fight capability providers | Provider registration, queues, migrations, workers, and deployment policy |
-| [Yii](../yii/index.md) | Selected `YiiCapabilityConfiguration` groups and providers | Configuration merge, provider packages, and fallback selection |
+| [Yii](../yii/index.md) | Selected bounded Yii providers | Provider registration, collaborator definitions, and fallback selection |
 | [CodeIgniter](../codeigniter/index.md) | Application-owned `Config\\Services` delegates | Service aliases, Queue jobs, routes, and provider configuration |
 | [Slim](../slim/index.md) | Fight registrars in an explicit PSR-11 composition root | Container definitions, middleware order, and provider lifecycle |
 
@@ -64,7 +64,7 @@ portable behavior and failure contracts; return here when choosing an adapter, p
 | --- | --- | --- | --- | --- | --- |
 | Authentication and security | **wire** neutral HMAC, JWT, PHP passwords | **ship** password hash/validation; wire HMAC/JWT | **wire** neutral seams | **wire** neutral seams | **wire** neutral seams |
 | Cache | **wire** canonical PSR-6/16 | **ship** native cache | **wire** standard cache/PSR lane | **ship** native `CacheInterface` | **wire** canonical PSR-6/16 |
-| Service container | **ship** compiler passes | **ship** bounded providers | **ship** configuration groups/providers | **ship** service delegates | **ship** Fight registrars/PSR-11 |
+| Service container | **ship** compiler passes | **ship** bounded providers | **ship** providers | **ship** service delegates | **ship** Fight registrars/PSR-11 |
 | UnitOfWork and persistence | **ship** Doctrine UoW/data types | **ship** native transactional UoW | **ship** Yii DB UoW | **ship** native transactional UoW | **wire** Doctrine |
 | Event store and repositories | **wire** DBAL/in-memory/logging | **wire** shared providers | **wire** shared providers | **wire** shared providers | **wire** DBAL/Doctrine |
 | Async commands and events | **ship** Messenger + neutral handlers | **ship** complete Fight Queue envelopes | unavailable for stable 1.2; experimental neutral handlers only | **ship** official Queue envelopes | **wire** Messenger + neutral handlers |
@@ -89,7 +89,7 @@ portable behavior and failure contracts; return here when choosing an adapter, p
 All framework and provider packages are Composer suggestions (and Fight Common development dependencies), never
 Fight Common production requirements. A starter requires its selected runtime stack. Use the exact optional
 package for the selected capability: `laravel/framework`, `codeigniter4/framework`, `codeigniter4/queue`,
-`slim/slim`, `symfony/messenger`, `yiisoft/config`, `yiisoft/di`, and `yiisoft/router` are the framework seams
+`slim/slim`, `symfony/messenger`, `yiisoft/di`, and `yiisoft/router` are the framework seams
 listed in `composer.json`; Symfony, Doctrine, Guzzle, Flysystem, Twig, Twilio, and Mercure remain independently
 selectable provider packages.
 
@@ -110,10 +110,11 @@ authorization, and broadcaster configuration. The filesystem provider selects
 `Fight\Common\Adapter\Filesystem\Laravel\LaravelFilesystem`; applications supply path policy only when their
 own services require it.
 
-Yii applications select only the relevant `YiiCapabilityConfiguration` group and matching bounded provider
-under `Fight\Common\Adapter\ServiceContainer\Yii` (persistence, routing, messaging, HTTP, mail, view, or
-filesystem). Standard cache/logging and the selected provider lane remain direct composition. Yii Mail, View,
-and Filesystem disclose their fallback because their native APIs have not proven the whole Fight contract.
+Yii applications register only the relevant bounded provider under
+`Fight\Common\Adapter\ServiceContainer\Yii` (persistence, routing, messaging, HTTP, mail, view, or filesystem)
+and define its collaborators in their own composition root. Standard cache/logging and the selected provider lane
+remain direct composition. Yii Mail, View, and Filesystem disclose their fallback because their native APIs have
+not proven the whole Fight contract.
 
 CodeIgniter applications expose only the selected delegate from their own `Config\Services.php`:
 `MessagingServices`, `PersistenceServices`, `CacheServices`, `RoutingServices`, `MailServices`,

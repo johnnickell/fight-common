@@ -16,9 +16,9 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Foundation\Application;
 use Illuminate\Hashing\BcryptHasher;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(SecurityServiceProvider::class)]
+#[CoversNothing]
 final class SecurityServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_security_provider_binds_password_ports_without_activating_unrelated_capabilities(): void

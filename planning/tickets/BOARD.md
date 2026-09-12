@@ -16,10 +16,8 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No human decision is currently required. T-00099 verified the first hosted documentation publication. The next
-implementation target is T-00102, which applies ADR 0026, simplifies the package gate, and certifies a fresh exact
-candidate before T-00017 final release acceptance. Package publication remains a later, separately authorized
-effect.
+Review and merge T-00102's pull request. Its clean exact candidate `f2a0d96` is certified without publication,
+and T-00017 is now the first ready implementation ticket. Package publication remains a later authorization.
 
 ## Wayfinder Review
 
@@ -31,9 +29,9 @@ one.
 
 ## Ready Frontier
 
-| Rank | Ticket | Parent PRD | Current slice |
-|------|--------|------------|---------------|
-| 1 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Apply ADR 0026, prove the lean package-owned gate, and certify a fresh exact release candidate. |
+| Rank | Ticket | Parent PRD | Outcome |
+|------|--------|------------|---------|
+| 1 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
 
 ## Waiting
 
@@ -42,22 +40,19 @@ blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 3 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
-| 4 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
-| 5 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
+| 2 | [T-00035 — Publish the Certified Tag and GitHub Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00017 |
+| 3 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
+| 4 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
 
 ## Needs Info
 
 No tickets currently require a decision authority.
 
-## Final Priority
+## Release Context
 
-This ticket is the final `1.2` acceptance boundary and remains last until every higher-priority release item is
-complete.
-
-| Rank | Ticket | Parent PRD | Why Last |
-|------|--------|------------|----------|
-| 2 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accept the documentation-complete, simplified, freshly certified T-00102 candidate before publication. |
+T-00102 has applied ADR 0026: the ordinary build now runs the package-owned product gate once, Unit alone proves
+exact production coverage, and release-only dependency lanes remain behind thin certification. Clean exact
+candidate `f2a0d96` is certified, so T-00017 can begin final release acceptance.
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -87,7 +82,7 @@ unchanged.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
 T-00068. ADR 0025 supersedes their simulated release machinery. T-00056 proved the real thin-certification seam;
-T-00102 will apply ADR 0026 and certify a fresh exact candidate before T-00017 acceptance. T-00035 and T-00041
+T-00102 applied ADR 0026 and certified fresh exact candidate `f2a0d96` for T-00017 acceptance. T-00035 and T-00041
 remain separately authorized publication and Packagist qualification outcomes. T-00036 through T-00039 and T-00042 through
 T-00043 are closed `wontfix`.
 
@@ -124,6 +119,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Applied ADR 0026 with exact Unit-only coverage, retained meaningful Integration and Functional behavior, reduced the ordinary build from 217 to 97 seconds, and certified clean exact candidate `f2a0d96` without publication. |
 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Verified the exact protected Pages deployment for merge commit `40f347f` and the public site over HTTPS, including all canonical routes, interactions, assets, metadata, sitemap, responsive behavior, and branded 404; recorded the published route and anchor compatibility commitments. |
 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Accepted the repaired predeployment candidate pinned at `098d18f` through strict artifact and editorial review, exact asset baselines, responsive and accessibility evidence, John's separate Brave and VoiceOver passes, and the complete canonical build; T-00099 later verified the hosted publication separately. |
 | [T-00097 — Complete Operations and Framework Guidance](00097-TICKET.md) | [PRD-00021](../specs/00021-PRD.md) | Completed the Operate Workloads guides, direct framework-free and supported-framework adoption paths, accurate provider and unavailable-capability boundaries, and current maintainer guidance with responsive Atlas presentation. |

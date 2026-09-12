@@ -9,15 +9,14 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStoreSchema;
 use Fight\Test\Common\TestCase\EventSourcing\DbalPublicationCursorStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class DbalPublicationCursorStoreTest
  *
  * SQLite publication cursor conformance tests
  */
-#[CoversClass(DbalPublicationCursorStore::class)]
-#[CoversClass(DbalPublicationCursorStoreSchema::class)]
+#[CoversNothing]
 final class DbalPublicationCursorStoreTest extends DbalPublicationCursorStoreConformanceTestCase
 {
     private ?string $databasePath = null;

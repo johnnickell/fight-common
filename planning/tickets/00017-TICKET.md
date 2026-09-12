@@ -3,7 +3,7 @@ id: T-00017
 prd: PRD-00006
 title: Complete 1.2 compatibility and release acceptance
 status: ready-for-agent
-blocked_by: T-00102
+blocked_by:
 ---
 
 # Complete 1.2 Compatibility and Release Acceptance
@@ -22,6 +22,8 @@ the complete certified `1.2.0` compatibility envelope, and passes the repository
 - [x] T-00056 supplies a successful content-addressed thin certification record covering the public API,
       Scheduler, JSend, namespace, dependency, framework-fixture, package, and archive evidence required for
       `1.2.0`.
+- [x] T-00102 supplies the fresh documentation-complete, lean-gate certification candidate at
+      `f2a0d960e19fd9d9ddcf605345220a190374ef96` for final acceptance.
 - [ ] Planning validation and every non-interactive Docker submit gate pass with exact complete statement coverage.
 - [x] Release notes target additive 1.2.0, explain the metadata behavior change, and do not alter existing tags.
 - [ ] The epic, PRDs, tickets, board, documentation, and release surfaces agree on delivered and deferred scope.

@@ -19,16 +19,6 @@ use Symfony\Component\Process\Process as SymfonyProcess;
 #[CoversClass(SymfonyProcessRunner::class)]
 class SymfonyProcessRunnerTest extends UnitTestCase
 {
-    public function test_that_runner_source_has_no_coverage_exclusions(): void
-    {
-        $source = file_get_contents(
-            dirname(__DIR__, 4).'/src/Adapter/Process/Symfony/SymfonyProcessRunner.php'
-        );
-
-        self::assertIsString($source);
-        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
-    }
-
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------

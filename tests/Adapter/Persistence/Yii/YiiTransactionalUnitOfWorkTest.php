@@ -8,14 +8,14 @@ use Fight\Common\Adapter\Persistence\Yii\YiiTransactionalUnitOfWork;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\Common\TestCase\Repository\TransactionalUnitOfWorkConformanceTestCase;
 use Mockery\MockInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use Psr\SimpleCache\CacheInterface;
 use RuntimeException;
 use Yiisoft\Db\Cache\SchemaCache;
 use Yiisoft\Db\Sqlite\Connection;
 use Yiisoft\Db\Sqlite\Driver;
 
-#[CoversClass(YiiTransactionalUnitOfWork::class)]
+#[CoversNothing]
 /**
  * Class YiiTransactionalUnitOfWorkTest
  */

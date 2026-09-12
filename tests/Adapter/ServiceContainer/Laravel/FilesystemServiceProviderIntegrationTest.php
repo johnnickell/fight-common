@@ -14,9 +14,9 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Filesystem\Filesystem as IlluminateFilesystem;
 use Illuminate\Foundation\Application;
 use Mockery\MockInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(FilesystemServiceProvider::class)]
+#[CoversNothing]
 final class FilesystemServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_filesystem_provider_binds_only_the_complete_laravel_adapter_in_a_booted_application(): void

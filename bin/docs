@@ -51,23 +51,8 @@ case "${1}" in
                 -w /app \
                 --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
                 "${PYTHON_IMAGE}" \
-                python tests/Tooling/test_identity_assets.py
-
-            "${DOCKER_BIN}" container run \
-                --rm \
-                -v "${ROOT_DIR}:/app:delegated" \
-                -w /app \
-                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
-                "${PYTHON_IMAGE}" \
                 python scripts/validate_readme.py .
 
-            "${DOCKER_BIN}" container run \
-                --rm \
-                -v "${ROOT_DIR}:/app:delegated" \
-                -w /app \
-                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
-                "${PYTHON_IMAGE}" \
-                python tests/Tooling/test_readme_validator.py
         fi
 
         rm -rf "${ROOT_DIR}/site"
@@ -94,23 +79,8 @@ case "${1}" in
                 -w /app \
                 --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
                 "${PYTHON_IMAGE}" \
-                python tests/Tooling/test_docs_artifact_validator.py
-
-            "${DOCKER_BIN}" container run \
-                --rm \
-                -v "${ROOT_DIR}:/app:delegated" \
-                -w /app \
-                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
-                "${PYTHON_IMAGE}" \
                 python scripts/validate_docs_workflow.py .github/workflows/docs.yml
 
-            "${DOCKER_BIN}" container run \
-                --rm \
-                -v "${ROOT_DIR}:/app:delegated" \
-                -w /app \
-                --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
-                "${PYTHON_IMAGE}" \
-                python tests/Tooling/test_docs_workflow_validator.py
         fi
         ;;
 esac

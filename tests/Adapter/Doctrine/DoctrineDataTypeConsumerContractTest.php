@@ -57,17 +57,6 @@ final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
         );
     }
 
-    public function test_that_consumer_configuration_documents_the_canonical_paths_and_legacy_1_x_identity_policy(): void
-    {
-        $documentation = [file_get_contents(dirname(__DIR__, 3).'/docs/values.md')];
-
-        foreach ($documentation as $guide) {
-            self::assertIsString($guide);
-            self::assertStringContainsString('Fight\\Common\\Adapter\\Persistence\\Doctrine\\Type\\UuidDataType', $guide);
-            self::assertStringContainsString('silent deprecated 1.x identities', preg_replace('/\\s+/', ' ', $guide) ?? '');
-        }
-    }
-
     /**
      * @return iterable<string, array{class-string<Type>, class-string<Type>, string, string}>
      */

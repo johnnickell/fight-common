@@ -25,9 +25,9 @@ use Illuminate\View\Engines\CompilerEngine;
 use Illuminate\View\Engines\EngineResolver;
 use Illuminate\View\FileViewFinder;
 use Illuminate\View\Factory;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(TemplatingServiceProvider::class)]
+#[CoversNothing]
 final class TemplatingServiceProviderIntegrationTest extends UnitTestCase
 {
     private string $templatesDirectory;

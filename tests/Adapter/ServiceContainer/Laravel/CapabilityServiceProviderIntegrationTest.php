@@ -21,28 +21,11 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(MessagingServiceProvider::class)]
-#[CoversClass(PersistenceServiceProvider::class)]
+#[CoversNothing]
 final class CapabilityServiceProviderIntegrationTest extends UnitTestCase
 {
-    public function test_that_laravel_remains_a_composer_optional_production_dependency(): void
-    {
-        $composer = json_decode(
-            (string) file_get_contents(dirname(__DIR__, 4).'/composer.json'),
-            true,
-            flags: JSON_THROW_ON_ERROR,
-        );
-
-        self::assertArrayNotHasKey('laravel/framework', $composer['require']);
-        self::assertSame('^13.0', $composer['require-dev']['laravel/framework'] ?? null);
-        self::assertSame(
-            'Required by the Laravel cache, queue, transaction, security, routing, and capability provider adapters',
-            $composer['suggest']['laravel/framework'] ?? null,
-        );
-    }
-
     public function test_that_messaging_provider_boot_does_not_activate_the_optional_database_capability(): void
     {
         $application = new Application(__DIR__);

@@ -10,7 +10,7 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStoreSchema;
 use Fight\Test\Common\TestCase\EventSourcing\DbalPublicationCursorStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
 /**
@@ -18,8 +18,7 @@ use PHPUnit\Framework\Attributes\Group;
  *
  * MySQL publication cursor conformance tests
  */
-#[CoversClass(DbalPublicationCursorStore::class)]
-#[CoversClass(DbalPublicationCursorStoreSchema::class)]
+#[CoversNothing]
 #[Group('server-database')]
 final class MysqlDbalPublicationCursorStoreTest extends DbalPublicationCursorStoreConformanceTestCase
 {

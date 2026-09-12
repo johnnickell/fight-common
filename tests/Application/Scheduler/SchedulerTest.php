@@ -135,14 +135,6 @@ class SchedulerTest extends UnitTestCase
         self::assertSame("standard output\nstandard error\n", $output);
     }
 
-    public function test_that_scheduler_source_has_no_coverage_exclusions(): void
-    {
-        $source = file_get_contents(dirname(__DIR__, 3).'/src/Application/Scheduler/Scheduler.php');
-
-        self::assertIsString($source);
-        self::assertStringNotContainsString('@codeCoverageIgnore', $source);
-    }
-
     protected function setUp(): void
     {
         LockLifecycleFunctionController::reset();

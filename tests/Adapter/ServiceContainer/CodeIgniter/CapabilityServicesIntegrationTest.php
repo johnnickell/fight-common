@@ -38,19 +38,13 @@ use Fight\Common\Application\Routing\UrlGenerator;
 use Fight\Common\Application\Templating\TemplateEngine;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Container\Container;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RuntimeException;
 use Symfony\Component\Mailer\MailerInterface;
 use Twig\Environment;
 
-#[CoversClass(MessagingServices::class)]
-#[CoversClass(PersistenceServices::class)]
-#[CoversClass(CacheServices::class)]
-#[CoversClass(RoutingServices::class)]
-#[CoversClass(MailServices::class)]
-#[CoversClass(TemplateServices::class)]
-#[CoversClass(FilesystemServices::class)]
+#[CoversNothing]
 final class CapabilityServicesIntegrationTest extends UnitTestCase
 {
     private ?string $project = null;
