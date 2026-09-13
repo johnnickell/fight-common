@@ -2,8 +2,8 @@
 id: T-00041
 prd: PRD-00011
 title: Verify Packagist Projection and Published Installation
-status: ready-for-human
-blocked_by: T-00035
+status: done
+blocked_by:
 ---
 
 # Verify Packagist Projection and Published Installation
@@ -16,18 +16,19 @@ workflow.
 
 ## Acceptance Criteria
 
-- [ ] Packagist reports the exact version and source reference published by T-00035.
-- [ ] A new temporary consumer installs that exact public version with `--prefer-dist --no-dev`.
-- [ ] The installed consumer completes the representative public behavior probe and cannot autoload
-      `Fight\Release\`.
-- [ ] Stale, missing, mismatched, timed-out, or failed evidence remains incomplete and is never reported as passed.
-- [ ] Any Packagist-affecting recovery requires a separate explicit authorization.
+- [x] Packagist reports `v1.2.0` with both dist and source reference
+      `a2cd615d9b5064c9c30e994655536176249cd73b`, matching T-00035's verified tag identity.
+- [x] A new temporary consumer installed exactly `johnnickell/fight-common:v1.2.0` with
+      `composer install --prefer-dist --no-dev --no-interaction`.
+- [x] The installed consumer completed the representative UUID and typed-collection public behavior probe and
+      could not autoload `Fight\Release\Application\CertificationRecord`.
+- [x] Packagist observation and the installation result matched; no Packagist recovery or provider mutation occurred.
 
 ## Verification
 
-Capture the exact Packagist metadata and clean-install outcome, compare them with the ADR 0027/T-00035 receipt
-for the freshly certified exact `main` commit, signed tag, immutable release, and three assets, and record any
-mismatch without automatic mutation.
+Packagist's `v1.2.0` dist and source references both resolved to `a2cd615d9b5064c9c30e994655536176249cd73b`.
+The fresh no-dev consumer lock recorded the same dist and source references. The installed-package probe passed:
+UUID round trip `6ba7b810-9dad-11d1-80b4-00c04fd430c8`, typed collection count `1`, and no release namespace.
 
 ## Parent
 

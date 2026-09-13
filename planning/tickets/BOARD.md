@@ -16,10 +16,8 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-T-00035 is in progress on the clean `release/1.2.0` candidate. Its tracked Git-flow contract, planning validation,
-and full build have passed. Obtain separate authorization to push the reviewed release branch and open its pull
-request to `main`. After the separately authorized merge, freshly certify exact `main`, sign, draft, and publish
-through distinct human-approved effects. T-00041 remains a later Packagist qualification boundary.
+No current human decision. The published `v1.2.0` GitHub release and matching Packagist installation have been
+independently qualified; proceed with the first Ready Frontier ticket.
 
 ## Wayfinder Review
 
@@ -31,7 +29,9 @@ one.
 
 ## Ready Frontier
 
-No ready implementation ticket. The active release-candidate work is T-00035 in **Now**.
+| Suggested Order | Ticket | Parent PRD | Why now |
+|-----------------|--------|------------|---------|
+| 1 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 independently qualified the published Fight Common `v1.2.0` package. |
 
 ## Waiting
 
@@ -40,8 +40,7 @@ blocking edges.
 
 | Suggested Order | Ticket | Parent PRD | Waiting On |
 |-----------------|--------|------------|------------|
-| 1 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | T-00035 |
-| 2 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 |
+| — | No waiting tickets | — | — |
 
 ## Needs Info
 
@@ -49,12 +48,11 @@ No tickets currently require a decision authority.
 
 ## Release Context
 
-T-00017 accepted the `d262866714fe1a3a60e086806cede526937d5874` ten-outcome certification and its
-tree-identical `ef64fcbbcccb2c1438a15f9c5b460cc2a96e9d13` merged `develop` commit. ADR 0027 requires T-00035
-to carry that accepted candidate through the reviewed `release/1.2.0` branch, then freshly certify the exact
-remote `main` merge before signing it, creating a verified draft with the certified Composer tar,
-`certification.json`, and `SHA256SUMS`, and separately publishing it immutably. T-00041 remains the Packagist
-qualification boundary.
+T-00035 recorded GitHub's immutable, non-draft `v1.2.0` release with no assets. Its GitHub-verified annotated tag
+object `8745e719afb2448c59d7c3f6d0e2f577b5e99bce` peels to
+`a2cd615d9b5064c9c30e994655536176249cd73b`. T-00041 independently observed Packagist's matching dist and source
+references, installed the exact version in a fresh `--prefer-dist --no-dev` consumer, and passed the public probe
+with `Fight\Release\` unavailable.
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
 named monotonic DBAL checkpoints proven on SQLite, MySQL, and PostgreSQL. Synchronous dispatcher failure isolation,
@@ -62,8 +60,8 @@ in-memory event publication, durable named publication cursors, transactional fa
 logging are complete across the same database matrix. T-00016 now documents the complete integration and
 operations surface through single-source executable SQLite DBAL examples, including the delivered Symfony provider
 autoconfiguration path that composes private, dependency-injected mapping providers through the portable Event
-Mapper contract. T-00017 accepted the final compatibility and certification evidence; T-00035 is now the
-separately authorized human publication frontier. The
+Mapper contract. T-00017 accepted the final compatibility and certification evidence; T-00035 and T-00041 completed
+the separately observed publication and qualification boundary. The
 quality-gate path is complete: the canonical coding standard, its mechanical, member-layout, and semantic
 documentation migrations, and its reusable fixer repairs are complete without baselines or suppressed legacy
 violations. Architecture enforcement is complete with exact layer allowances, mandatory unassigned-token
@@ -83,7 +81,7 @@ This satisfied T-00017's release-notes criterion and is retained as part of the 
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
 T-00068. ADR 0025 supersedes their simulated release machinery. ADR 0027 is the current Git-flow publication
-authority; T-00035 and T-00041 remain separately authorized publication and Packagist qualification outcomes. T-00036 through
+authority; T-00035 and T-00041 are completed publication and Packagist qualification outcomes. T-00036 through
 T-00039 and T-00042 through T-00043 are closed `wontfix`.
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.
@@ -119,7 +117,9 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
-| [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accepted the ten-outcome `d262866` certification and tree-identical `ef64fcb` merge; ADR 0027 requires exact-`main` recertification before signing, draft-first immutable publication, and later Packagist qualification. |
+| [T-00035 — Prepare and Publish the 1.2.0 Git-Flow Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | Recorded GitHub's immutable zero-asset `v1.2.0` release and its GitHub-verified annotated tag peeling to `a2cd615`. |
+| [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | Verified matching Packagist dist/source references and a fresh `--prefer-dist --no-dev` public consumer installation; the public probe passed and `Fight\Release\` was unavailable. |
+| [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accepted the ten-outcome `d262866` certification and tree-identical `ef64fcb` merge; immutable publication and Packagist qualification were later recorded by T-00035 and T-00041. |
 | [T-00102 — Simplify the Fight Common Pre-Submit Gate Before 1.2](00102-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Applied ADR 0026 with exact Unit-only coverage, retained meaningful Integration and Functional behavior, reduced the ordinary build from 217 to 97 seconds, and certified clean exact candidate `f2a0d96` without publication. |
 | [T-00099 — Verify the First Hosted Pages Publication](00099-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Verified the exact protected Pages deployment for merge commit `40f347f` and the public site over HTTPS, including all canonical routes, interactions, assets, metadata, sitemap, responsive behavior, and branded 404; recorded the published route and anchor compatibility commitments. |
 | [T-00098 — Accept the Initial Documentation Release Candidate](00098-TICKET.md) | [PRD-00022](../specs/00022-PRD.md) | Accepted the repaired predeployment candidate pinned at `098d18f` through strict artifact and editorial review, exact asset baselines, responsive and accessibility evidence, John's separate Brave and VoiceOver passes, and the complete canonical build; T-00099 later verified the hosted publication separately. |

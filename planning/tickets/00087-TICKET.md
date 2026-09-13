@@ -3,7 +3,7 @@ id: T-00087
 prd: PRD-00018
 title: Transfer the Canonical Pre-Submit Quality Gate to Every Starter
 status: ready-for-agent
-blocked_by: T-00041
+blocked_by:
 ---
 
 # Transfer the Canonical Pre-Submit Quality Gate to Every Starter
@@ -59,4 +59,4 @@ contract; each starter owns its framework-specific tooling, implementation, veri
 
 ## Completion Notes
 
-Pending published Fight Common 1.2 verification through T-00041 and repository-local ticket creation.
+Fight Common `v1.2.0` was independently qualified through T-00041; this ticket is now the Ready Frontier.
