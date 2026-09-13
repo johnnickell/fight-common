@@ -11,10 +11,11 @@ The only release command is:
 ./bin/release certify <version>
 ```
 
-Certification requires a clean checkout and binds all evidence to the exact `HEAD` commit. It copies the reviewed
-local lockfile into an exported locked candidate, resolves separate latest-compatible and lowest-compatible
-lockfiles in their own exported candidates, and runs the mode-free complete product gate once for each lane. It
-then creates a Composer archive, resolves and installs that archive with `--no-dev`, exercises one
+Certification requires a clean checkout and binds all evidence to the exact `HEAD` commit. It resolves a baseline
+lockfile in an exported candidate, then resolves separate latest-compatible and lowest-compatible lockfiles in
+their own exported candidates, and runs the mode-free complete product gate once for each lane. The root library
+checkout does not need or retain a `composer.lock`. It then creates a Composer archive, resolves and installs that
+archive with `--no-dev`, exercises one
 installed-consumer behavior probe, and compares the installed package surface with `compatibility/manifest.json`.
 
 On success it writes the archive and `certification.json` beneath

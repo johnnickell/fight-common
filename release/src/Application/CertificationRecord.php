@@ -43,7 +43,8 @@ final readonly class CertificationRecord
         $this->requireSha256($archiveSha256, 'archive digest');
 
         $expectedCommands = [
-            'locked-product-gate',
+            'default-dependency-resolution',
+            'default-product-gate',
             'latest-dependency-resolution',
             'latest-product-gate',
             'lowest-dependency-resolution',
@@ -71,7 +72,7 @@ final readonly class CertificationRecord
         ($consumer['status'] ?? null) === 'passed'
             || throw new RuntimeException('The installed-consumer probe did not pass.');
 
-        array_keys($dependencyVersions) === ['locked', 'latest', 'lowest']
+        array_keys($dependencyVersions) === ['default', 'latest', 'lowest']
             || throw new RuntimeException('The dependency lanes are incomplete or out of order.');
         foreach ($dependencyVersions as $lane => $evidence) {
             $this->requireSha256($evidence['lock_sha256'] ?? null, $lane.' dependency lock digest');

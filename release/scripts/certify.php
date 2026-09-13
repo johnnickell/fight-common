@@ -118,9 +118,9 @@ try {
             $archiveSha256,
             certification_commands($arguments[5]),
             [
-                'locked' => certification_versions($arguments[6]),
-                'latest' => certification_versions($arguments[7]),
-                'lowest' => certification_versions($arguments[8])
+                'default' => certification_versions($arguments[6]),
+                'latest'  => certification_versions($arguments[7]),
+                'lowest'  => certification_versions($arguments[8])
             ],
             certification_json($arguments[9]),
             certification_json($arguments[10]),
