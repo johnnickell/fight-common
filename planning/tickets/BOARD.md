@@ -16,8 +16,8 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-No current human decision. The published `v1.2.0` GitHub release and matching Packagist installation have been
-independently qualified; proceed with the first Ready Frontier ticket.
+No current Fight Common human decision. The published `v1.2.0` GitHub release and matching Packagist installation
+are independently qualified, and T-00087 has handed the lean-gate implementation frontier to the five starters.
 
 ## Wayfinder Review
 
@@ -29,9 +29,8 @@ one.
 
 ## Ready Frontier
 
-| Suggested Order | Ticket | Parent PRD | Why now |
-|-----------------|--------|------------|---------|
-| 1 | [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | T-00041 independently qualified the published Fight Common `v1.2.0` package. |
+No ready Fight Common implementation ticket. T-00087 completed the five repository-local lean-gate handoffs;
+their implementation and evidence are now starter-owned.
 
 ## Waiting
 
@@ -95,7 +94,7 @@ before T-00017 can close release acceptance.
 
 The repository handoff path has completed T-00061 through T-00067. Fight Common's specification and umbrella-ticket
 layer is complete: PRD-00017 produces no detailed Fight Common implementation tickets, while PRD-00018 uses
-T-00087 to transfer ADR 0026's lean pre-submit gate into five repository-local tickets after public 1.2
+T-00087 completed ADR 0026's lean pre-submit gate transfer into five repository-local tickets after public 1.2
 qualification. Fight
 AccessControl and all five starters create their capability tickets locally; T-00067 verified the six authority
 transfers and closed WF-018 without centralizing their builds, local acceptance criteria, visibility decisions, or
@@ -117,6 +116,7 @@ release state in Fight Common.
 
 | Ticket | Parent PRD | Outcome |
 |--------|------------|---------|
+| [T-00087 — Transfer the Canonical Pre-Submit Quality Gate to Every Starter](00087-TICKET.md) | [PRD-00018](../specs/00018-PRD.md) | Created the five unblocked local successor tickets and recorded their lean-gate contracts; no starter implementation or hosted-CI outcome is claimed here. |
 | [T-00035 — Prepare and Publish the 1.2.0 Git-Flow Release](00035-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | Recorded GitHub's immutable zero-asset `v1.2.0` release and its GitHub-verified annotated tag peeling to `a2cd615`. |
 | [T-00041 — Verify Packagist Projection and Published Installation](00041-TICKET.md) | [PRD-00011](../specs/00011-PRD.md) | Verified matching Packagist dist/source references and a fresh `--prefer-dist --no-dev` public consumer installation; the public probe passed and `Fight\Release\` was unavailable. |
 | [T-00017 — Complete 1.2 Compatibility and Release Acceptance](00017-TICKET.md) | [PRD-00006](../specs/00006-PRD.md) | Accepted the ten-outcome `d262866` certification and tree-identical `ef64fcb` merge; immutable publication and Packagist qualification were later recorded by T-00035 and T-00041. |
