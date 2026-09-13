@@ -8,7 +8,7 @@ outcomes remain navigable.
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority and framework support are complete; T-00087 will transfer the lean starter-product gate after public Fight Common 1.2 qualification |
+| [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority, framework support, and T-00087's five lean starter-gate handoffs are complete; each starter owns subsequent implementation and evidence. |
 
 ## Route to 1.2.0
 

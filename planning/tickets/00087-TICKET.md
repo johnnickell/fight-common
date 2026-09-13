@@ -2,7 +2,7 @@
 id: T-00087
 prd: PRD-00018
 title: Transfer the Canonical Pre-Submit Quality Gate to Every Starter
-status: ready-for-agent
+status: done
 blocked_by:
 ---
 
@@ -25,31 +25,10 @@ contract; each starter owns its framework-specific tooling, implementation, veri
 
 ## Acceptance Criteria
 
-- [ ] Symfony, Laravel, Yii, CodeIgniter, and Slim each own one local implementation ticket linked from this
-      tracker and PRD-00018.
-- [ ] Every local ticket makes `./bin/build` the single pre-submit test gate and runs every retained unit,
-      integration, functional, frontend, and browser test exactly once.
-- [ ] Every starter requires Fight Common `^1.2`, imports its installed `FightCommon` PHPCS standard with
-      repository-owned paths and exclusions, and removes copied or divergent Fight coding rules.
-- [ ] Every local gate runs ordinary Composer validation, syntax and formatting checks, PHPStan, Deptrac, Rector
-      dry-run, and direct PHPUnit unit coverage with exact 100% owned production statements and no coverage-ignore
-      directives or baselines that hide failures.
-- [ ] Deptrac enforces the starter's Adapter -> Application -> Domain direction, fails on unclassified production
-      code, and keeps framework types at the Adapter/composition boundary.
-- [ ] Unit tests use `#[CoversClass]` and alone satisfy coverage. Necessary Integration and Functional journeys use
-      `#[CoversNothing]`; tooling and structural tests are absent, including tests of scaffold, planning, cache,
-      configuration, wrappers, or ignore-policy assertions.
-- [ ] Test fixtures and capability probes remain test-only. A starter does not publish global profile aggregates,
-      synthetic Domain events, receipt authorities, or other production services solely to make tests convenient.
-- [ ] Hosted CI delegates to the repository-owned `./bin/build` instead of maintaining a second ordered gate, and
-      local success is never reported as hosted-CI success.
-- [ ] Candidate-warning parsers, lowest/latest lanes, support receipts, auxiliary locks and digests, disposable
-      candidate clones, packed-artifact checks, and production `--no-dev` inspection are absent from the ordinary
-      build. Package release workflows qualify real candidates only when releasing.
-- [ ] Every retained test protects the starter's owned production behavior or a valuable application journey; no
-      starter remains a Fight Common certification harness or evidence generator.
-- [ ] Each starter ticket is planned, approved, implemented, verified, committed, pushed, reviewed, and merged
-      independently; this tracker records links and outcomes without claiming delivery on their behalf.
+- [x] Symfony [T-00007](https://github.com/johnnickell/project-symfony/blob/develop/planning/tickets/00007-TICKET.md), Laravel [T-00006](https://github.com/johnnickell/project-laravel/blob/develop/planning/tickets/00006-TICKET.md), Yii [T-00007](https://github.com/johnnickell/project-yii/blob/develop/planning/tickets/00007-TICKET.md), CodeIgniter [T-00007](https://github.com/johnnickell/project-codeigniter/blob/develop/planning/tickets/00007-TICKET.md), and Slim [T-00006](https://github.com/johnnickell/project-slim/blob/develop/planning/tickets/00006-TICKET.md) each own an unblocked local implementation ticket under PRD-00002.
+- [x] Each successor records the canonical `./bin/build`, package/PHPCS, static-analysis, direct Unit-only exact coverage, retained boundary/journey, CI-delegation, and release-qualification separation contract.
+- [x] Each successor identifies its repository-specific certification cleanup inventory while preserving completed historical tickets as history.
+- [x] This tracker stops at the planning handoff: each starter independently owns implementation, local build, hosted-CI evidence, review, commit, and publication state.
 
 ## Verification
 
@@ -59,4 +38,4 @@ contract; each starter owns its framework-specific tooling, implementation, veri
 
 ## Completion Notes
 
-Fight Common `v1.2.0` was independently qualified through T-00041; this ticket is now the Ready Frontier.
+Fight Common `v1.2.0` was independently qualified through T-00041. The five successor tickets above are the authoritative implementation frontier; no starter gate, local `./bin/build`, or hosted-CI result is claimed here.
