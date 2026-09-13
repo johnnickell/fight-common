@@ -20,9 +20,9 @@ use Illuminate\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Broadcasting\Broadcaster;
 use Illuminate\Contracts\Broadcasting\Factory;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(BroadcastingServiceProvider::class)]
+#[CoversNothing]
 final class BroadcastingServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_broadcasting_provider_binds_public_and_private_publishers_with_the_native_broadcaster(): void

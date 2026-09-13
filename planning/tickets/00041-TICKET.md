@@ -25,8 +25,9 @@ workflow.
 
 ## Verification
 
-Capture the exact Packagist metadata and clean-install outcome, compare them with the T-00035 publication receipt
-and current certification record accepted by T-00017, and record any mismatch without automatic mutation.
+Capture the exact Packagist metadata and clean-install outcome, compare them with the ADR 0027/T-00035 receipt
+for the freshly certified exact `main` commit, signed tag, immutable release, and three assets, and record any
+mismatch without automatic mutation.
 
 ## Parent
 
@@ -34,4 +35,4 @@ PRD-00011 — Release Lifecycle and Publication Recovery.
 
 ## Decision Source
 
-ADR 0025 and the still-applicable Packagist boundary in ADR 0016.
+ADR 0025 and ADR 0027.

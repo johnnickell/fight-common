@@ -15,9 +15,9 @@ use Fight\Common\Application\Cache\MutableCache;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(HttpServiceProvider::class)]
+#[CoversNothing]
 final class HttpServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_http_provider_binds_only_the_jsend_response_capability_in_a_booted_laravel_application(): void

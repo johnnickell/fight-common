@@ -18,9 +18,9 @@ use Illuminate\Foundation\Application;
 use InvalidArgumentException;
 use League\Flysystem\FilesystemOperator;
 use Mockery\MockInterface;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(FileStorageServiceProvider::class)]
+#[CoversNothing]
 final class FileStorageServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_file_storage_provider_binds_only_the_selected_disk_through_the_complete_flysystem_adapter(): void

@@ -10,21 +10,21 @@ atlas_breadcrumb_group: Integration paths
 atlas_component_owner: Adapter and Yii application configuration
 atlas_component_dependencies: Current supported Yii 3 package set
 atlas_article_context: Framework integration · Yii
-atlas_article_lead: Merge only the selected Yii capability groups and keep provider choices explicit, including documented fallbacks.
-atlas_article_requires: PHP 8.5+, yiisoft/config, yiisoft/di
+atlas_article_lead: Register only the selected reusable Yii capability providers and keep application composition explicit, including documented fallbacks.
+atlas_article_requires: PHP 8.5+, yiisoft/di
 atlas_article_optional: Yii DB, Router, View, Symfony Mailer, Twig, Symfony Filesystem
 atlas_article_package: johnnickell/fight-common
 atlas_relationship_source_label: Yii application
-atlas_relationship_source: Configuration groups
+atlas_relationship_source: Application composition root
 atlas_relationship_target_label: Selected Fight seam
 atlas_relationship_target: Capability provider
-atlas_relationship_description: Yii configuration supplies collaborators to one bounded Fight capability provider
+atlas_relationship_description: Application composition supplies collaborators to one bounded Fight capability provider
 atlas_relationship_caption: The application selects native or provider-backed composition without changing portable Application contracts.
 atlas_consequential_label: Queue unavailable
 atlas_consequential_message: Fight Common 1.2 has no stable Yii Queue adapter; experimental starter transport is not a stable support claim.
 atlas_next_steps:
-  - label: Select groups
-    href: "#select-capability-groups"
+  - label: Select providers
+    href: "#select-providers"
   - label: Review unavailable Queue
     href: "#queue-is-not-stable-support"
   - label: Choose fallbacks
@@ -36,8 +36,8 @@ atlas_next_steps:
 atlas_local_contents:
   - label: Installation
     href: "#installation-and-ownership"
-  - label: Capability groups
-    href: "#select-capability-groups"
+  - label: Providers
+    href: "#select-providers"
   - label: Native and provider paths
     href: "#native-and-provider-paths"
   - label: Queue boundary
@@ -48,27 +48,27 @@ atlas_local_contents:
 
 ## Installation and ownership
 
-Install Fight Common, `yiisoft/config`, `yiisoft/di`, and only the Yii/provider packages selected by the
+Install Fight Common, `yiisoft/di`, and only the Yii/provider packages selected by the
 application. The [project-yii starter](https://github.com/johnnickell/project-yii) owns the booted configuration,
 package groups, environment values, and lifecycle.
 
 ```bash
-composer require johnnickell/fight-common yiisoft/config yiisoft/di
+composer require johnnickell/fight-common yiisoft/di
 ```
 
 Yii uses its current package set rather than a framework major-line range. Check the
 [support matrix](../framework-support/index.md) before changing resolved Yii packages.
 
-## Select capability groups
+## Select providers
 
-Use `Fight\Common\Adapter\ServiceContainer\Yii\YiiCapabilityConfiguration` to provide collaborators for the
-selected persistence, routing, messaging, HTTP, mail, view, or filesystem group. Add only the matching bounded
-service provider from the same namespace.
+Register only the matching bounded service provider from
+`Fight\Common\Adapter\ServiceContainer\Yii` for persistence, routing, messaging, HTTP, mail, view, or
+filesystem. The application owns the provider list and supplies each provider's collaborators through its own
+container definitions.
 
-Persistence uses the selected Yii DB connection, cache, and logger. Routing uses Yii's URL generator. Messaging
-configuration supplies the application's synchronous Fight bus and dispatcher; it does not imply stable Queue
-transport. HTTP registers the configured Fight transport. Mail, view, and filesystem make their fallback or
-application policy explicit.
+Persistence uses the selected Yii DB connection. Routing uses Yii's URL generator. Messaging supplies the
+application's synchronous Fight bus and dispatcher; it does not imply stable Queue transport. HTTP registers the
+configured Fight transport. Mail, view, and filesystem make their fallback or application policy explicit.
 
 ## Native and provider paths
 

@@ -9,15 +9,14 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorder;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorderSchema;
 use Fight\Test\Common\TestCase\EventSourcing\DbalPublicationFailureRecorderConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
 /**
  * Class DbalPublicationFailureRecorderTest
  *
  * SQLite publication-failure recorder conformance tests
  */
-#[CoversClass(DbalPublicationFailureRecorder::class)]
-#[CoversClass(DbalPublicationFailureRecorderSchema::class)]
+#[CoversNothing]
 final class DbalPublicationFailureRecorderTest extends DbalPublicationFailureRecorderConformanceTestCase
 {
     private ?string $databasePath = null;

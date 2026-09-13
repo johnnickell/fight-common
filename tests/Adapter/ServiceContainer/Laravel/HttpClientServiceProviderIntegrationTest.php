@@ -13,10 +13,10 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use ReflectionMethod;
 
-#[CoversClass(HttpClientServiceProvider::class)]
+#[CoversNothing]
 final class HttpClientServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_http_provider_uses_guzzle_when_laravel_lacks_psr_request_and_fight_promise_support(): void

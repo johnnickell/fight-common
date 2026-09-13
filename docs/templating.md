@@ -265,9 +265,8 @@ Throws `TemplatingException` if no engine `supports()` the template.
 - Laravel's `ViewServiceProvider` binds `TemplateEngine` to `LaravelBladeTemplateEngine` using the
   configured view factory and consumer-owned template root. It supports only `.blade.php` names,
   verifies the resolved file remains beneath that root, and exposes helpers through Laravel shared data.
-- Yii's `ViewServiceProvider` binds `YiiTemplateEngine` after
-  `YiiCapabilityConfiguration::view()` supplies the native view and template root. It supports PHP
-  templates, clears Yii view state for each render, and sets helpers as view parameters.
+- Yii's `ViewServiceProvider` binds `YiiTemplateEngine` to the native view and application-defined template root.
+  It supports PHP templates, clears Yii view state for each render, and sets helpers as view parameters.
 - CodeIgniter ships a proven Twig fallback through `TemplateServices::templateEngine()`; it does not
   claim native view-format parity.
 - Symfony, Slim, and framework-free applications compose `PhpEngine`, `TwigEngine`, or

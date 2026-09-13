@@ -24,15 +24,17 @@ use Illuminate\Contracts\Events\Dispatcher as EventDispatcherContract;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Events\Dispatcher as EventDispatcher;
 use Illuminate\Queue\Jobs\SyncJob;
-use PHPUnit\Framework\Attributes\CoversClass;
+use Illuminate\Support\Facades\Facade;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use RuntimeException;
 
-#[CoversClass(QueuedEventMessage::class)]
+#[CoversNothing]
 final class QueuedEventMessageIntegrationTest extends UnitTestCase
 {
     public function test_that_sync_queue_preserves_the_complete_event_envelope_and_repeats_ordered_fan_out_on_retry(): void
     {
         $container = new Container();
+        Facade::setFacadeApplication($container);
         $container->instance(ContainerContract::class, $container);
         $container->instance(EventDispatcherContract::class, new EventDispatcher($container));
         $container->instance(DispatcherContract::class, new BusDispatcher($container));

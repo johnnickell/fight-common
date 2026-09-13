@@ -5,31 +5,28 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Standards\Phpcs;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
-use PHPUnit\Framework\TestCase;
+use Fight\Test\Common\TestCase\UnitTestCase;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
-final class DocumentationGrammarTest extends TestCase
+final class DocumentationGrammarTest extends UnitTestCase
 {
     public function test_that_consumers_receive_the_builtin_documentation_conventions(): void
     {
         $result = $this->runPhpcs('BuiltinDocumentation.consumer.inc');
 
         self::assertNotSame(0, $result->getExitCode(), $result->getErrorOutput().$result->getOutput());
-
         $report = json_decode($result->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-        $sources = array_column(array_values($report['files'])[0]['messages'], 'source');
 
-        self::assertContains('Squiz.Commenting.ClassComment.Missing', $sources);
+        self::assertContains('Squiz.Commenting.ClassComment.Missing', array_column(array_values($report['files'])[0]['messages'], 'source'));
     }
 
     public function test_that_consumers_receive_documentation_grammar_from_the_fight_common_standard(): void
     {
-        $process = $this->runPhpcs('DocumentationGrammar.consumer.inc');
+        $result = $this->runPhpcs('DocumentationGrammar.consumer.inc');
 
-        self::assertNotSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());
-
-        $report = json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertNotSame(0, $result->getExitCode(), $result->getErrorOutput().$result->getOutput());
+        $report = json_decode($result->getOutput(), true, flags: JSON_THROW_ON_ERROR);
         $sources = array_column(array_values($report['files'])[0]['messages'], 'source');
 
         self::assertContains('Phpcs.Commenting.RequireTypeDocComment.MissingDocComment', $sources);

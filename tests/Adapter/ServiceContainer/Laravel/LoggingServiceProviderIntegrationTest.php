@@ -10,10 +10,10 @@ use Fight\Common\Application\Observability\MetricsCollector;
 use Fight\Common\Application\Process\ProcessRunner;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use Psr\Log\LoggerInterface;
 
-#[CoversClass(LoggingServiceProvider::class)]
+#[CoversNothing]
 final class LoggingServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_logging_provider_aliases_laravels_existing_psr3_logger_without_a_fight_wrapper(): void

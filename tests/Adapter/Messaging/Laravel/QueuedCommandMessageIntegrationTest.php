@@ -21,14 +21,16 @@ use Illuminate\Contracts\Container\Container as ContainerContract;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcherContract;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Events\Dispatcher as EventDispatcher;
-use PHPUnit\Framework\Attributes\CoversClass;
+use Illuminate\Support\Facades\Facade;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(QueuedCommandMessage::class)]
+#[CoversNothing]
 final class QueuedCommandMessageIntegrationTest extends UnitTestCase
 {
     public function test_that_sync_queue_serializes_the_complete_command_envelope_and_submits_it_after_commit(): void
     {
         $container = new Container();
+        Facade::setFacadeApplication($container);
         $container->instance(ContainerContract::class, $container);
         $container->instance(EventDispatcherContract::class, new EventDispatcher($container));
         $container->instance(DispatcherContract::class, new BusDispatcher($container));

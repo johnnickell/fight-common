@@ -17,9 +17,9 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\Repository;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(CacheServiceProvider::class)]
+#[CoversNothing]
 final class CacheServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_cache_provider_binds_only_the_cache_capability_in_a_booted_laravel_application(): void

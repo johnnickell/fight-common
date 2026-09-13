@@ -17,9 +17,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator as NativeUrlGenerator;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 
-#[CoversClass(RoutingServiceProvider::class)]
+#[CoversNothing]
 final class RoutingServiceProviderIntegrationTest extends UnitTestCase
 {
     public function test_that_routing_provider_binds_only_routing_in_a_booted_real_laravel_application(): void

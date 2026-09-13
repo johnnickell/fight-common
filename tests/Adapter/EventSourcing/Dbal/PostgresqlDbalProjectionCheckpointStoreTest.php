@@ -10,11 +10,10 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStoreSchema;
 use Fight\Test\Common\TestCase\EventSourcing\DbalProjectionCheckpointStoreConformanceTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 
-#[CoversClass(DbalProjectionCheckpointStore::class)]
-#[CoversClass(DbalProjectionCheckpointStoreSchema::class)]
+#[CoversNothing]
 #[Group('server-database')]
 final class PostgresqlDbalProjectionCheckpointStoreTest extends DbalProjectionCheckpointStoreConformanceTestCase
 {

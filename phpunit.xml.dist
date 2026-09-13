@@ -5,11 +5,97 @@
     bootstrap="vendor/autoload.php"
     cacheDirectory="var/cache"
     colors="true"
-    defaultTestSuite="complete"
+    defaultTestSuite="Unit"
     requireCoverageMetadata="true">
     <testsuites>
-        <testsuite name="complete">
+        <testsuite name="Unit">
             <directory>tests</directory>
+            <exclude>tests/Functional</exclude>
+            <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
+            <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/DbalProjectionCheckpointStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalProjectionCheckpointStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalProjectionCheckpointStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/DbalPublicationCursorStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalPublicationCursorStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalPublicationCursorStoreTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/DbalPublicationFailureRecorderTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalPublicationFailureRecorderTest.php</exclude>
+            <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalPublicationFailureRecorderTest.php</exclude>
+            <exclude>tests/Adapter/Messaging/CodeIgniter/QueueCommandBusIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Messaging/CodeIgniter/QueueEventDispatcherIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Messaging/Laravel/QueuedCommandMessageIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Messaging/Laravel/QueuedEventMessageIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Messaging/Symfony/CanonicalMessengerIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWorkTest.php</exclude>
+            <exclude>tests/Adapter/Persistence/Yii/YiiTransactionalUnitOfWorkTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/CodeIgniter/CapabilityServicesIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/BroadcastingServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/CacheServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/CapabilityServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/FileStorageServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/FilesystemServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/HttpClientServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/HttpServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/LoggingServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/MailServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/MetricsServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/ProcessServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/RoutingServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/SecurityServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/ServiceContainer/Laravel/TemplatingServiceProviderIntegrationTest.php</exclude>
+            <exclude>tests/Standards/Phpcs/ConsumerContractTest.php</exclude>
+            <exclude>tests/Standards/Phpcs/DocumentationGrammarTest.php</exclude>
+            <exclude>tests/Standards/Phpcs/MechanicalConventionsTest.php</exclude>
+            <exclude>tests/Standards/Phpcs/MemberLayoutTest.php</exclude>
+        </testsuite>
+        <testsuite name="Integration">
+            <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
+            <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/DbalProjectionCheckpointStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalProjectionCheckpointStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalProjectionCheckpointStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/DbalPublicationCursorStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalPublicationCursorStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalPublicationCursorStoreTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/DbalPublicationFailureRecorderTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalPublicationFailureRecorderTest.php</file>
+            <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalPublicationFailureRecorderTest.php</file>
+            <file>tests/Adapter/Messaging/CodeIgniter/QueueCommandBusIntegrationTest.php</file>
+            <file>tests/Adapter/Messaging/CodeIgniter/QueueEventDispatcherIntegrationTest.php</file>
+            <file>tests/Adapter/Messaging/Laravel/QueuedCommandMessageIntegrationTest.php</file>
+            <file>tests/Adapter/Messaging/Laravel/QueuedEventMessageIntegrationTest.php</file>
+            <file>tests/Adapter/Messaging/Symfony/CanonicalMessengerIntegrationTest.php</file>
+            <file>tests/Adapter/Persistence/CodeIgniter/CodeIgniterTransactionalUnitOfWorkTest.php</file>
+            <file>tests/Adapter/Persistence/Yii/YiiTransactionalUnitOfWorkTest.php</file>
+            <file>tests/Adapter/ServiceContainer/CodeIgniter/CapabilityServicesIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/BroadcastingServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/CacheServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/CapabilityServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/FileStorageServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/FilesystemServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/HttpClientServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/HttpServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/LoggingServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/MailServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/MetricsServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/ProcessServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/RoutingServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/SecurityServiceProviderIntegrationTest.php</file>
+            <file>tests/Adapter/ServiceContainer/Laravel/TemplatingServiceProviderIntegrationTest.php</file>
+            <file>tests/Standards/Phpcs/ConsumerContractTest.php</file>
+            <file>tests/Standards/Phpcs/DocumentationGrammarTest.php</file>
+            <file>tests/Standards/Phpcs/MechanicalConventionsTest.php</file>
+            <file>tests/Standards/Phpcs/MemberLayoutTest.php</file>
+        </testsuite>
+        <testsuite name="Functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
     <php>
