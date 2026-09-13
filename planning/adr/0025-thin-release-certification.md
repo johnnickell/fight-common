@@ -11,7 +11,9 @@ verification-only command for a clean checkout and binds its result to the exact
 preparation, packaging state machines, effect ledgers, fake Git/GitHub/Packagist/signing boundaries, crash controls,
 and fixture-driven simulated outcomes are retired.
 
-Certification runs three independently exported product gates: locked, latest-compatible, and lowest-compatible.
+Certification runs three independently exported product gates: baseline-resolved, latest-compatible, and
+lowest-compatible. The baseline lane resolves its own lockfile from the library's `composer.json`; Fight Common
+does not commit a root `composer.lock`.
 It then creates a Composer archive, resolves and installs that archive in a clean `--no-dev` consumer, executes one
 representative public behavior probe, proves `Fight\Release\` is absent from consumer autoloading, and compares the
 installed package surface with `compatibility/manifest.json`. It cites the five immutable T-00075 starter receipt
