@@ -12,7 +12,7 @@
 | [00008](00008-PRD.md) | Architecture Enforcement | done |
 | [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | done |
 | [00010](00010-PRD.md) | Deterministic Release Foundation | done |
-| [00011](00011-PRD.md) | Thin Certification and Separately Authorized Publication | in-progress |
+| [00011](00011-PRD.md) | Thin Certification and Separately Authorized Publication | done |
 | [00012](00012-PRD.md) | Maintenance-Line and Patch Workflows | wontfix |
 | [00013](00013-PRD.md) | Operator Surfaces and Release Integration | wontfix |
 | [00014](00014-PRD.md) | Fight Common Contract Repair and Compatibility Certification | done |
