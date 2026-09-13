@@ -16,9 +16,10 @@ When `/ask-matt` or a plain “What’s next?” is invoked:
 
 ## Now
 
-T-00035 is the next human decision. Run `bash .runs/handoffs/t00035-publish-1.2.0.sh` to guide the separately
-authorized exact-`main` certification, signing, draft creation, and immutable publication effects. T-00041 remains a later
-Packagist qualification boundary.
+T-00035 is in progress on the clean `release/1.2.0` candidate. Its tracked Git-flow contract, planning validation,
+and full build have passed. Obtain separate authorization to push the reviewed release branch and open its pull
+request to `main`. After the separately authorized merge, freshly certify exact `main`, sign, draft, and publish
+through distinct human-approved effects. T-00041 remains a later Packagist qualification boundary.
 
 ## Wayfinder Review
 
@@ -30,7 +31,7 @@ one.
 
 ## Ready Frontier
 
-No ready implementation ticket. The next work is the separately authorized human publication decision in **Now**.
+No ready implementation ticket. The active release-candidate work is T-00035 in **Now**.
 
 ## Waiting
 
@@ -50,8 +51,9 @@ No tickets currently require a decision authority.
 
 T-00017 accepted the `d262866714fe1a3a60e086806cede526937d5874` ten-outcome certification and its
 tree-identical `ef64fcbbcccb2c1438a15f9c5b460cc2a96e9d13` merged `develop` commit. ADR 0027 requires T-00035
-to freshly certify the exact remote `main` merge before signing it, creating a verified draft with the certified
-Composer tar, `certification.json`, and `SHA256SUMS`, and separately publishing it immutably. T-00041 remains the Packagist
+to carry that accepted candidate through the reviewed `release/1.2.0` branch, then freshly certify the exact
+remote `main` merge before signing it, creating a verified draft with the certified Composer tar,
+`certification.json`, and `SHA256SUMS`, and separately publishing it immutably. T-00041 remains the Packagist
 qualification boundary.
 
 The completed projection path now combines ordered at-least-once handling and fail-stop retry with durable,
@@ -80,8 +82,8 @@ isolation behavior change, and reconciles the typed JSend and canonical Symfony 
 This satisfied T-00017's release-notes criterion and is retained as part of the accepted release evidence.
 
 The release foundation and maintainer-only isolation remain historical outcomes through T-00032, T-00040, and
-T-00068. ADR 0025 supersedes their simulated release machinery. ADR 0027 is the current publication authority;
-T-00035 and T-00041 remain separately authorized publication and Packagist qualification outcomes. T-00036 through
+T-00068. ADR 0025 supersedes their simulated release machinery. ADR 0027 is the current Git-flow publication
+authority; T-00035 and T-00041 remain separately authorized publication and Packagist qualification outcomes. T-00036 through
 T-00039 and T-00042 through T-00043 are closed `wontfix`.
 
 The Fight Common compatibility authority and installed-package consumer harness are complete through T-00047.

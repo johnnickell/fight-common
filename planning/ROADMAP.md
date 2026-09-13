@@ -8,7 +8,7 @@ outcomes remain navigable.
 
 | Epic | Target | Status | Outcome |
 | --- | --- | --- | --- |
-| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00017 accepted `d262866` certification and tree-identical `ef64fcb`; T-00035 must freshly certify exact `main` before separately authorized publication and T-00041 Packagist qualification |
+| [EPIC-00003](epics/00003-EPIC.md) | 1.2.0+ | in-progress | T-00017 accepted `d262866` certification and tree-identical `ef64fcb`; T-00035 validates `release/1.2.0`, then freshly certifies exact `main` before separately authorized publication and T-00041 Packagist qualification |
 | [EPIC-00004](epics/00004-EPIC.md) | 1.2.0+ | in-progress | Public API authority and framework support are complete; T-00087 will transfer the lean starter-product gate after public Fight Common 1.2 qualification |
 
 ## Route to 1.2.0
@@ -28,8 +28,9 @@ outcomes remain navigable.
 6. T-00098 accepted the complete predeployment documentation product, and T-00099 verified the exact protected
    Pages deployment and real public product after separately authorized publication.
 7. T-00017 accepted the ten-outcome `d262866` certification and tree-identical `ef64fcb` merge under ADR 0027.
-8. Separately authorize T-00035 to merge, freshly certify exact `main`, sign, and publish the verified draft immutably;
-   T-00041 then verifies the Packagist qualification. After the public 1.2 package is verified, T-00087 transfers the imported PHPCS standard and lean
+8. T-00035 validates the `release/1.2.0` candidate and separately authorizes its pull request to `main`; it then
+   freshly certifies exact `main`, signs, and publishes the verified draft immutably. T-00041 then verifies the
+   Packagist qualification. After the public 1.2 package is verified, T-00087 transfers the imported PHPCS standard and lean
    starter-product gate into the five independently owned starter repositories.
 
 Additive adapter support discovered after 1.2 may ship in 1.3. Incompatible namespace removal and contract cleanup
