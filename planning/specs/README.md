@@ -1,26 +1,6 @@
 # Product Requirements
 
-| ID | Title | Status |
-| --- | --- | --- |
-| [00001](00001-PRD.md) | Existing-Application Migration Evaluation | done |
-| [00002](00002-PRD.md) | Event-Sourcing Vocabulary and Architecture Contract | done |
-| [00003](00003-PRD.md) | Event-Sourced Aggregate and Stream Core | done |
-| [00004](00004-PRD.md) | Durable Storage and Aggregate Repository | done |
-| [00005](00005-PRD.md) | Checkpointed Projections and Event Publication | done |
-| [00006](00006-PRD.md) | Integration Guide and 1.2 Release Acceptance | done |
-| [00007](00007-PRD.md) | Reusable Fight Coding Standard | done |
-| [00008](00008-PRD.md) | Architecture Enforcement | done |
-| [00009](00009-PRD.md) | Build, Dependency, and Coverage Verification | done |
-| [00010](00010-PRD.md) | Deterministic Release Foundation | done |
-| [00011](00011-PRD.md) | Thin Certification and Separately Authorized Publication | done |
-| [00012](00012-PRD.md) | Maintenance-Line and Patch Workflows | wontfix |
-| [00013](00013-PRD.md) | Operator Surfaces and Release Integration | wontfix |
-| [00014](00014-PRD.md) | Fight Common Contract Repair and Compatibility Certification | done |
-| [00015](00015-PRD.md) | Framework Adapter Support and Capability Composition | done |
-| [00016](00016-PRD.md) | Fight Package and Starter Repository Ownership | ready-for-agent |
-| [00017](00017-PRD.md) | Fight AccessControl Identity and Authentication Lifecycle | ready-for-agent |
-| [00018](00018-PRD.md) | Framework Starter Product and Walking-Slice Acceptance | ready-for-agent |
-| [00019](00019-PRD.md) | Isolate Release Tooling from the Consumer Runtime Surface | done |
-| [00020](00020-PRD.md) | Fight Identity and Repository Entry Surfaces | done |
-| [00021](00021-PRD.md) | Capability-Led Documentation and Information Architecture | done |
-| [00022](00022-PRD.md) | Atlas Deck Presentation and GitHub Pages Delivery | done |
+No live PRDs. Completed and retired requirements are retained in the [archive](archive/README.md).
+
+Create future requirements from [_PRD_TEMPLATE.md](_PRD_TEMPLATE.md) only after their owning epic and planning
+frontier are established.
