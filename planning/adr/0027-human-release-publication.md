@@ -19,11 +19,12 @@ complete and verified before it is published.
 
 ## Decision
 
-- Each merge, immutable-release enablement, signed-tag creation, tag push, draft-release creation, and release
-  publication effect requires a distinct human approval immediately before that effect.
-- T-00035 merges the approved release branch to `main`, fetches the exact remote `main` merge into a clean,
-  isolated release worktree, and freshly runs `./bin/release certify 1.2.0` there. Only then may the operator
-  sign that same commit with the approved signer.
+- The release candidate is cut from freshly fetched `origin/develop` as `release/1.2.0`, reviewed and validated
+  in its isolated worktree, then merged to `main` only through a pull request.
+- Each release-branch push, merge, immutable-release enablement, signed-tag creation, tag push, draft-release
+  creation, and release publication effect requires a distinct human approval immediately before that effect.
+- T-00035 fetches the exact remote `main` merge into a clean, isolated release worktree and freshly runs
+  `./bin/release certify 1.2.0` there. Only then may the operator sign that same commit with the approved signer.
 - The signed annotated tag remains `vX.Y.Z`; signer custody remains with the operator or hardware-backed
   signer and the private key never enters repository automation or CI.
 - The only release assets are the certified Composer tar, `certification.json`, and `SHA256SUMS` covering those
@@ -36,8 +37,9 @@ complete and verified before it is published.
 ## Consequences
 
 Certification, tag identity, GitHub publication, and Packagist projection remain distinct facts. T-00017 can
-accept the tree-identical `develop` merge, while T-00035 must freshly certify the exact `main` merge before
-signing because the certified and tagged commit identities must ultimately match.
+accept the tree-identical `develop` merge, while T-00035 first carries that accepted candidate through the
+`release/1.2.0` review branch and must freshly certify the exact `main` merge before signing because the certified
+and tagged commit identities must ultimately match.
 
 ADR 0016 remains applicable for signer custody, signed annotated tags, draft-first immutable publication,
 independent provider postconditions, and the separate Packagist boundary. Its unused publication-environment,
