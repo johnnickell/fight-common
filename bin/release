@@ -22,6 +22,16 @@ sha256_file() {
     fi
 }
 
+validate_changelog_version() {
+    local version="$1"
+    local escaped_version="${version//./\\.}"
+
+    if ! grep -Eq "^## \\[${escaped_version}\\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" "${ROOT_DIR}/CHANGELOG.md"; then
+        echo "bin/release: CHANGELOG.md must contain a dated [${version}] release heading." >&2
+        exit 3
+    fi
+}
+
 cleanup() {
     local intended_status=$?
 
@@ -126,6 +136,8 @@ if [[ -n "$("${GIT_BIN}" status --porcelain --untracked-files=all)" ]]; then
     echo 'bin/release: certification requires a clean checkout.' >&2
     exit 3
 fi
+
+validate_changelog_version "${VERSION}"
 
 COMMIT="$("${GIT_BIN}" rev-parse --verify HEAD)"
 if [[ ! "${COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then

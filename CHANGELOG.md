@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-12
+
 ### Added
 
 - Framework-neutral Event Sourcing: aggregate recording, replay, and reconstitution; stable stream and stored-event contracts; mapping, schema upcasting, and aggregate repositories; in-memory and Doctrine DBAL event stores for SQLite, MySQL-compatible, and PostgreSQL databases; checkpointed projections; and durable, diagnosable event publication. Symfony applications can autoconfigure `EventMappingProvider` services, and `docs/event-sourcing.md` provides an executable integration and operations guide.
@@ -190,6 +192,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/johnnickell/fight-common/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/johnnickell/fight-common/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/johnnickell/fight-common/releases/tag/v1.0.0
