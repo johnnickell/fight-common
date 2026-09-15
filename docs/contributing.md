@@ -4,6 +4,10 @@ Use this guide when changing Fight Common itself. Consumer installation, compone
 composition belong in their respective guides; this route covers repository workflow, verification, and release
 evidence for maintainers.
 
+Read the repository-local `AGENTS.md`, `planning/agents/project-profile.md`, and the applicable documents in
+`docs/engineering/standards/`. These committed instructions are self-contained; they require no private skills
+or external checkout. `docs/engineering/STANDARDS.md` records the adopted baseline and update policy.
+
 ## Choose the change boundary
 
 Start with the smallest owned boundary that can deliver the requested behavior:
@@ -18,8 +22,8 @@ The enforced dependency direction is `Adapter -> Application -> Domain`. Keep pu
 compatible: a deprecated public API remains supported for at least one released minor and is removed only in the
 next major.
 
-Before editing, read the relevant ticket, its parent PRD, and any accepted ADR named by the ticket. The live
-[Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tickets/BOARD.md) is the execution
+Before editing, read the relevant task, its parent TICKET, and any accepted ADR named by the task. The live
+[Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/BOARD.md) is the execution
 frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates.
 
 ## Create an isolated branch
@@ -76,12 +80,11 @@ The canonical pre-submit gate is:
 ./bin/build
 ```
 
-It installs ordinary dependencies, validates the documentation artifact, provisions disposable MySQL and PostgreSQL
-services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac, Rector's dry run, direct unit tests
-with exact statement coverage, integration tests, functional tests, and planning integrity. Dependency installation
-uses the local `composer.lock` when one exists; because the lockfile is intentionally ignored, an unprepared
-checkout resolves compatible dependencies and creates a local lockfile. A focused or fast run is feedback, not
-completion evidence.
+It resolves and installs dependencies with `composer update`, validates the documentation artifact, provisions
+disposable MySQL and PostgreSQL services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac,
+Rector's dry run, direct unit tests with exact statement coverage, integration tests, functional tests, and planning
+integrity. This library ignores `composer.lock`; every full build resolves its supported dependency constraints
+instead of reusing a stale local lock. A focused run provides iteration feedback; completion requires the full gate.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
 evidence for the checked-out SHA, not a second dependency or quality lane.
@@ -102,10 +105,10 @@ delivery unverified.
 Before the final commit or pull request:
 
 1. Verify every acceptance criterion with current evidence.
-2. Mark the ticket `done` and record its verified outcome.
-3. Move it to **Recently Done** on the Board and recalculate **What's Next?**.
-4. Refresh parent PRD, epic, roadmap, and downstream `blocked_by` state when the completed outcome changes them.
-5. Run `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
+2. Record the TASK's verified outcome and outstanding review honestly; `done` requires complete acceptance.
+3. Update the TASK metadata and PR link, preserving dependency edges as history.
+4. Run `./bin/planning-check --write` to refresh Board, parent, index, and Roadmap tables.
+5. Run the read-only `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
 
 Open the feature pull request against `develop`. The hosted Tests workflow runs the complete pre-submit gate; the
 documentation workflow builds and validates the generated site. A queued, skipped, cancelled, warning-bearing, or
@@ -117,25 +120,17 @@ that have been explicitly authorized.
 ## Certify a release candidate
 
 A successful `./bin/build` proves the checkout's submit gate; it does not certify or publish a release.
-Certification additionally requires a reviewed local `composer.lock`, even though that file is ignored. Prepare
-and verify that ordinary locked lane for the exact clean, committed candidate:
-
-```bash
-./bin/build
-```
-
-With that precondition satisfied, run:
+Certification requires a clean, committed candidate and resolves its own baseline, latest-compatible, and
+lowest-compatible dependency lanes in exported workspaces:
 
 ```bash
 ./bin/release certify <version>
 ```
 
-Certification binds its evidence to the exact `HEAD`, resolves latest-compatible and lowest-compatible lockfiles in
-exported candidate workspaces, then exercises all three dependency lanes, builds the Composer archive, probes an
-installed consumer, and writes the result under
-`.runs/handoffs/`. See the
-[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full
-contract.
+It binds evidence to the exact `HEAD`, runs the complete product gate for those three lanes, builds the Composer
+archive, probes an installed consumer, and writes the result under `.runs/handoffs/`. A pre-existing root lockfile
+is not a certification prerequisite. See the
+[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full contract.
 
 Certification does not merge, tag, push, create a GitHub release, publish to Packagist, or deploy documentation.
 Promotion from `develop` to `main`, tagging, publication, rollback, and maintenance-branch work each require their

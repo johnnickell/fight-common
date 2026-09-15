@@ -1,4 +1,4 @@
-# Synthesize the release implementation epic, PRD, and tickets
+# Synthesize the release implementation epic, TICKET, and tickets
 
 **Labels:** `wayfinder:grilling`, `wayfinder:domain-modeling`
 **Mode:** HITL
@@ -8,7 +8,7 @@
 
 ## Question
 
-How should the resolved release decisions become one canonical Fight Common epic, coherent PRDs,
+How should the resolved release decisions become one canonical Fight Common epic, coherent TICKETs,
 ordered executable tickets, and verification slices for later implementation?
 
 ## Must decide
@@ -28,28 +28,28 @@ normal Fight Common planning gates.
 
 ## Resolution
 
-The handoff is one epic with four PRDs and eight vertical implementation tickets:
+The handoff is one epic with four TICKETs and eight vertical implementation TASKs:
 
 - EPIC-00003 — Deterministic Release Coordination;
-- PRD-00010 — Deterministic Release Foundation;
-- PRD-00011 — Release Lifecycle and Publication Recovery;
-- PRD-00012 — Maintenance-Line and Patch Workflows; and
-- PRD-00013 — Operator Surfaces and Release Integration.
+- TICKET-00010 — Deterministic Release Foundation;
+- TICKET-00011 — Release Lifecycle and Publication Recovery;
+- TICKET-00012 — Maintenance-Line and Patch Workflows; and
+- TICKET-00013 — Operator Surfaces and Release Integration.
 
 The first proving slice is a normal feature targeting `develop`, exercised through plan, package, and
 certify. Git, signing, authorization, GitHub, and Packagist are explicit ports with deterministic fakes,
 effect ledgers, contract tests, and crash points. Real external checks remain separately authorized
 operator work.
 
-Each implementation ticket gets its own branch from `develop`, uses the composed offline verification
+Each implementation TASK gets its own branch from `develop`, uses the composed offline verification
 gate, and does not require real publication for completion. The implementation order is foundation,
 normal release packaging, certification, publication and recovery, maintenance, patching and forward
 ports, then operator skills/catalog and runbook/CI integration.
 
-Accepted decisions are synthesized once into their epic, PRD, or ticket home and linked to the closed
-Wayfinder record. The original eight-ticket handoff was refined after the full PRDs were approved: the
-oversized foundation, publication, patch, and integration slices became twelve tickets, T-00032 through
-T-00043. Their exact blockers, acceptance criteria, and verification commands are canonical in the ticket
+Accepted decisions are synthesized once into their epic, TICKET, or ticket home and linked to the closed
+Wayfinder record. The original eight-ticket handoff was refined after the full TICKETs were approved: the
+oversized foundation, publication, patch, and integration slices became twelve tickets, TASK-00032 through
+TASK-00043. Their exact blockers, acceptance criteria, and verification commands are canonical in the ticket
 files.
 
 The complete handoff gate includes planning validation; Rector, PHPStan, PHPCS, PHPUnit, and exact

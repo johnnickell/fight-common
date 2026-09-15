@@ -23,7 +23,7 @@ assets; that zero-asset state is an accepted release form, not a failed draft-co
   in its isolated worktree, then merged to `main` only through a pull request.
 - Each release-branch push, merge, immutable-release enablement, signed-tag creation, tag push, draft-release
   creation, and release publication effect requires a distinct human approval immediately before that effect.
-- T-00035 fetches the exact remote `main` merge into a clean, isolated release worktree and freshly runs
+- TASK-00035 fetches the exact remote `main` merge into a clean, isolated release worktree and freshly runs
   `./bin/release certify 1.2.0` there. Only then may the operator sign that same commit with the approved signer.
 - The signed annotated tag remains `vX.Y.Z`; signer custody remains with the operator or hardware-backed
   signer and the private key never enters repository automation or CI.
@@ -31,13 +31,13 @@ assets; that zero-asset state is an accepted release form, not a failed draft-co
   record the observed asset inventory, including an empty inventory, as a provider postcondition.
 - Verify the remote tag object and peeled commit, immutable release state, observed asset inventory, and any offered
   attestations independently. Ambiguous state stops for reconciliation rather than retrying an effect.
-- T-00041 remains the separate Packagist projection and installed-consumer qualification boundary. A
+- TASK-00041 remains the separate Packagist projection and installed-consumer qualification boundary. A
   publication receipt identifies the exact commit, tag, release, and observed GitHub asset inventory for that work.
 
 ## Consequences
 
-Certification, tag identity, GitHub publication, and Packagist projection remain distinct facts. T-00017 can
-accept the tree-identical `develop` merge, while T-00035 first carries that accepted candidate through the
+Certification, tag identity, GitHub publication, and Packagist projection remain distinct facts. TASK-00017 can
+accept the tree-identical `develop` merge, while TASK-00035 first carries that accepted candidate through the
 `release/1.2.0` review branch and must freshly certify the exact `main` merge before signing because the certified
 and tagged commit identities must ultimately match.
 

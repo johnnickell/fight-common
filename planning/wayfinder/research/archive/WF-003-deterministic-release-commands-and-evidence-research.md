@@ -60,7 +60,7 @@ Packagist.
   versions only when a lock exists, while update writes newly resolved exact versions.
   [Composer install and update](https://getcomposer.org/doc/03-cli.md#install-i)
 - The current repository has focused interactive wrappers and `bin/planning-check`, but no `bin/build` or
-  complete repository-owned release gate. PRD-00009 and ADRs 0006-0008 describe a future shared gate; they are
+  complete repository-owned release gate. TICKET-00009 and ADRs 0006-0008 describe a future shared gate; they are
   planning evidence, not an executable release precondition today.
 - `CHANGELOG.md` has an `[Unreleased]` section and points its comparisons at lightweight `v1.1.0`. That link
   does not match Packagist's authoritative `1.1.0` source commit and must be treated as detected release-input

@@ -92,26 +92,28 @@ handoffs. The separately governed GitHub-profile adaptation may be planned later
   suites.
 - [Produce the implementation planning handoff](../../tickets/archive/WF-036-produce-implementation-planning-handoff.md)
   creates [Fight Common Documentation Presentation](../../../epics/archive/00005-EPIC.md) as the permanent implementation
-  destination. [PRD-00020](../../../specs/archive/00020-PRD.md) through [PRD-00022](../../../specs/archive/00022-PRD.md) now hold the approved
-  identity, content, presentation, and delivery requirements, while [T-00088](../../../tickets/archive/00088-TICKET.md) through
-  [T-00099](../../../tickets/archive/00099-TICKET.md) form the dependency-ordered implementation graph. The separately governed
+  destination. [TICKET-00020](../../../tickets/archive/00020-TICKET.md) through [TICKET-00022](../../../tickets/archive/00022-TICKET.md) now hold the approved
+  identity, content, presentation, and delivery requirements, while [TASK-00088](../../../tasks/archive/00088-TASK.md) through
+  [TASK-00099](../../../tasks/archive/00099-TASK.md) form the dependency-ordered implementation graph. The separately governed
   profile adaptation remains a later non-blocking follow-up.
 
 ## Tickets
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Establish the presentation destination and ownership](../../tickets/archive/WF-026-establish-presentation-destination-and-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Research documentation references and delivery constraints](../../tickets/archive/WF-027-research-documentation-references-and-delivery-constraints.md) | Research | AFK | **Closed** | Presentation destination |
-| [Define the audience, promise, entry actions, and component taxonomy](../../tickets/archive/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) | Grilling / Domain Modeling | HITL | **Closed** | Destination and research |
-| [Establish the Fight visual system and logo brief](../../tickets/archive/WF-029-establish-visual-system-and-logo-brief.md) | Prototype / Design Consultation | HITL | **Closed** | Audience and promise |
-| [Generate and select reusable logo directions](../../tickets/archive/WF-030-generate-and-select-reusable-logo-directions.md) | Prototype / Taste Design | HITL | **Closed** | Visual system and logo brief |
-| [Compare homepage and article-shell directions](../../tickets/archive/WF-031-compare-homepage-and-article-shell-directions.md) | Prototype / Design Shotgun | HITL | **Closed** | Selected logo direction |
-| [Build and review the selected responsive prototype](../../tickets/archive/WF-032-build-and-review-responsive-prototype.md) | Prototype / Design HTML and Review | HITL | **Closed** | Selected page direction |
-| [Select the documentation delivery architecture](../../tickets/archive/WF-033-select-documentation-delivery-architecture.md) | Grilling / Domain Modeling | HITL | **Closed** | Reviewed prototype |
-| [Design the GitHub-profile adaptation](../../tickets/archive/WF-034-design-github-profile-adaptation.md) | Prototype / Grilling | HITL | **Closed** | Audience and promise |
-| [Define compatibility and presentation quality gates](../../tickets/archive/WF-035-define-compatibility-and-quality-gates.md) | Grilling / Domain Modeling | HITL | **Closed** | Audience and promise |
-| [Produce the implementation planning handoff](../../tickets/archive/WF-036-produce-implementation-planning-handoff.md) | Grilling / Domain Modeling | HITL | **Closed** | Delivery architecture, profile adaptation, and quality gates |
+<!-- planning:decisions -->
+| Decision ID | Title | Type | Mode | Status | Depends on |
+|---|---|---|---|---|---|
+| [WF-026](../../tickets/archive/WF-026-establish-presentation-destination-and-ownership.md) | Establish the presentation destination and ownership | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | — |
+| [WF-027](../../tickets/archive/WF-027-research-documentation-references-and-delivery-constraints.md) | Research documentation references and delivery constraints | wayfinder:research | AFK | Closed | [WF-026](../../tickets/archive/WF-026-establish-presentation-destination-and-ownership.md) |
+| [WF-028](../../tickets/archive/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) | Define the audience, promise, entry actions, and component taxonomy | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-026](../../tickets/archive/WF-026-establish-presentation-destination-and-ownership.md), [WF-027](../../tickets/archive/WF-027-research-documentation-references-and-delivery-constraints.md) |
+| [WF-029](../../tickets/archive/WF-029-establish-visual-system-and-logo-brief.md) | Establish the Fight visual system and logo brief | wayfinder:prototype | HITL | Closed | [WF-028](../../tickets/archive/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) |
+| [WF-030](../../tickets/archive/WF-030-generate-and-select-reusable-logo-directions.md) | Generate and select reusable logo directions | wayfinder:prototype | HITL | Closed | [WF-029](../../tickets/archive/WF-029-establish-visual-system-and-logo-brief.md) |
+| [WF-031](../../tickets/archive/WF-031-compare-homepage-and-article-shell-directions.md) | Compare homepage and article-shell directions | wayfinder:prototype | HITL | Closed | [WF-030](../../tickets/archive/WF-030-generate-and-select-reusable-logo-directions.md) |
+| [WF-032](../../tickets/archive/WF-032-build-and-review-responsive-prototype.md) | Build and review the selected responsive prototype | wayfinder:prototype | HITL | Closed | [WF-031](../../tickets/archive/WF-031-compare-homepage-and-article-shell-directions.md) |
+| [WF-033](../../tickets/archive/WF-033-select-documentation-delivery-architecture.md) | Select the documentation delivery architecture | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-032](../../tickets/archive/WF-032-build-and-review-responsive-prototype.md) |
+| [WF-034](../../tickets/archive/WF-034-design-github-profile-adaptation.md) | Design the GitHub-profile adaptation | wayfinder:prototype, wayfinder:grilling | HITL | Closed | [WF-028](../../tickets/archive/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) |
+| [WF-035](../../tickets/archive/WF-035-define-compatibility-and-quality-gates.md) | Define compatibility and presentation quality gates | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-028](../../tickets/archive/WF-028-define-audience-promise-entry-actions-and-taxonomy.md) |
+| [WF-036](../../tickets/archive/WF-036-produce-implementation-planning-handoff.md) | Produce the implementation planning handoff | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-033](../../tickets/archive/WF-033-select-documentation-delivery-architecture.md), [WF-034](../../tickets/archive/WF-034-design-github-profile-adaptation.md), [WF-035](../../tickets/archive/WF-035-define-compatibility-and-quality-gates.md) |
+<!-- /planning:decisions -->
 
 ## Blocking relationships
 
@@ -126,8 +128,8 @@ Delivery architecture + GitHub-profile adaptation + Compatibility and quality ga
 
 ## Frontier
 
-None. The map is closed. Continue through the Board's implementation frontier, beginning with T-00088 and
-T-00089.
+None. The map is closed. Continue through the Board's implementation frontier, beginning with TASK-00088 and
+TASK-00089.
 
 ## Not yet specified (fog)
 

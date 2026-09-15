@@ -1,176 +1,33 @@
-# AGENTS.md
+# Fight engineering instructions
 
-Agent instructions for `johnnickell/fight-common`.
+**Scope:** these are shared engineering conventions. Read the project-specific instructions alongside them. All referenced guidance must be available in the checkout; no private skill installation is required.
 
-## Work Routing
+**Orient:** read the project's AGENTS.md, `planning/agents/project-profile.md` when present, CONTEXT.md, and the selected work record. Inspect current source, Git state, and project-owned commands before relying on recorded examples. Preserve unrelated work.
 
-**Frontier:** When `/ask-matt` is invoked without a task or additional context, read
-`planning/tickets/BOARD.md` and `planning/CONVENTIONS.md` before responding. Use the board's
-“What's Next?” contract to return the current human decision and first ready implementation ticket,
-and use the conventions to interpret ticket status and ordering.
+**Load:** read only standards relevant to the work; builders, reviewers, and auditors use the same rules.
 
-## Run and Worktree Isolation
+| Work | Read |
+|---|---|
+| Plan or update tracking | [Planning](docs/engineering/standards/Planning.md) and project planning conventions |
+| Design or change business behavior | [Architecture](docs/engineering/standards/Architecture.md) and [Naming](docs/engineering/standards/Naming.md) |
+| Write or review PHP | [PHP](docs/engineering/standards/PHP.md), project PHPCS configuration, and relevant architecture rules |
+| Handle HTTP or present API data | [HTTP](docs/engineering/standards/HTTP.md) |
+| Write or review React/TypeScript | [Frontend](docs/engineering/standards/Frontend.md) |
+| Implement or verify behavior | [Testing](docs/engineering/standards/Testing.md) |
+| Review or assess readiness | [Review](docs/engineering/standards/Review.md) |
+| Worktrees, runtime, PRs, merge, release, deploy | [Delivery](docs/engineering/standards/Delivery.md) and the actual project profile/runbooks |
+| Change these standards or adopt them elsewhere | [Governance](docs/engineering/standards/Governance.md) |
 
-Coordinate-build scratch is gitignored and must never be staged. Keep linked checkouts under
-`.runs/worktrees/<slug>/`, dated investigation and build notes under `.runs/notes/<YYYY-MM-DD>-<slug>/`, reusable
-handoff bundles under `.runs/handoffs/`, and explicitly retired local material under `.runs/archive/`.
+**Build:** one TASK normally owns one PR. Use dependency-ordered SUBTASKs for layer assignments. Features are code-first; bugs start with one failing regression test. Keep domain knowledge with its owner and runtime dependencies behind Domain/Application contracts.
 
-Create any disposable linked worktree required by the approved task beneath the worktree root:
+**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Private repositories use a local build receipt as proof; a hosted CI pass is not required. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
 
-```bash
-git worktree add -b feature/<slug> .runs/worktrees/<slug> develop
-```
+**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. A workflow may explicitly include commit/push/PR; ordinary code edits do not imply merge, release, or deployment permission.
 
-Run all commands from that linked worktree, preserve other worktrees and services, and remove only the
-task-owned worktree after separate cleanup authorization. Durable decisions and outcomes belong in the canonical
-planning artifact, not the ignored run directory.
+**Persist:** records own durable decisions and acceptance. Ignored `.runs` subfolders own coordination, review handoffs, logs, and screenshots. Preserve useful evidence through landing and remove only resources demonstrably owned by the work.
 
-Tooling runs in the isolated `fight-common` PHP container. For focused iteration, run the documented
-noninteractive container command from the target checkout:
+**Resolve:** explicit user decisions govern the work. Apply documented project exceptions within their stated scope; otherwise use these standards. If configuration conflicts with an approved preference, explain and reconcile the conflict rather than weakening the gate or silently inventing an exception.
 
-```bash
-docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
-  php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
-```
+## Fight Common project binding
 
-`./bin/build` is the canonical completion gate.
-
-For a long non-interactive build, run `screen -dmS <ticket>-build /bin/zsh -lc './bin/build > /private/tmp/<ticket>-build.log 2>&1; print -r -- $? > /private/tmp/<ticket>-build.exit'`, then inspect the log and require an exit file containing `0`; never treat foreground timeout output as a build result.
-
-## Architecture
-
-Hexagonal (Ports & Adapters) with strict layer separation:
-
-```
-Adapter → Application → Domain
-```
-
-| Layer | Location | Rules |
-|-------|----------|-------|
-| **Domain** | `src/Domain/` | Pure business logic. No framework or application dependencies. |
-| **Application** | `src/Application/` | Use-case coordination. Depends on Domain, PHP internals, PSR contracts, and the allowlisted scheduler expression contract. Never depends on Adapter. |
-| **Adapter** | `src/Adapter/` | Framework/infrastructure integrations. Depends on Application + Domain. |
-| **Standards** | `src/Standards/` | Orthogonal coding standards. No runtime dependents. |
-
-Enforced by Deptrac (`deptrac.php` / `deptrac.runtime.php`). Violations fail the build.
-
-### Namespaces
-
-| Path | Namespace |
-|------|-----------|
-| `src/` | `Fight\Common\` |
-| `tests/` | `Fight\Test\Common\` |
-| `release/` | `Fight\Release\` |
-
-Test namespaces mirror source: `src/Domain/Specification/AndSpecification.php` → `tests/Domain/Specification/AndSpecificationTest.php`.
-
-## Conventions
-
-- **Value objects**: Immutable, validate on construction, throw `DomainException` on invalid input. Named factories (`fromString()`, `fromArray()`) are the public API.
-- **Specifications**: Extend `CompositeSpecification`, implement `isSatisfiedBy(mixed $candidate): bool`, compose via `and()`/`or()`/`not()`.
-- **Collections**: Typed. Use `ArrayList::of(string $type)` or `HashTable::of(string $keyType, string $valueType)`.
-- **CQRS**: Commands → `CommandBus::execute()`, Queries → `QueryBus::fetch()`, Events → `EventDispatcher::trigger()`. Messages carry `MessageId`, `Meta`, timestamp.
-- **Deprecation**: Deprecated public API stays supported for ≥1 released minor before removal in the next major.
-
-## Tests
-
-### Rules
-
-- **100% statement coverage required** — enforced by the coverage gate (`requireCoverageMetadata` enabled)
-- Every test class extends `Fight\Test\Common\TestCase\UnitTestCase`
-- Every PHPUnit test class carries explicit coverage metadata
-- Direct unit tests use `#[CoversClass(Target::class)]`; qualifying integration and product-journey tests may use `#[CoversNothing]`
-- `#[CoversNothing]` cannot hide missing direct unit-test coverage
-- Tests cover owned production code and meaningful product behavior only. Never add tests for documentation,
-  generated files, shell wrappers, build orchestration, configuration text, tooling validator scripts, or tooling.
-- Method naming: `test_that_<subject>_<condition>()`
-- Assertions: `self::assertTrue`, `self::assertSame`, `self::assertInstanceOf`, etc.
-
-### Stubs vs Mocks
-
-- **Anonymous classes** extending `CompositeSpecification` or implementing interfaces for simple stubs
-- **`$this->mock(ClassName::class)`** (Mockery) for asserting call expectations or stubbing return values
-- **Never mock value objects or domain primitives** — construct them directly
-
-### Template
-
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace Fight\Test\Common\Domain\Specification;
-
-use Fight\Common\Domain\Specification\AndSpecification;
-use Fight\Test\Common\TestCase\UnitTestCase;
-use PHPUnit\Framework\Attributes\CoversClass;
-
-#[CoversClass(AndSpecification::class)]
-class AndSpecificationTest extends UnitTestCase
-{
-    public function test_that_is_satisfied_by_returns_true_when_both_specs_are_satisfied(): void
-    {
-    }
-}
-```
-
-## Pre-Submit Gate
-
-**Always run before committing or creating a PR:**
-
-```bash
-./bin/build
-```
-
-This runs the complete submit gate: PHPCS, Deptrac architecture enforcement, PHPStan static analysis,
-Rector (dry-run), and the full PHPUnit test suite with coverage.
-
-For focused iteration:
-
-```bash
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
-
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpunit --filter test_method_name
-
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/phpstan analyse
-
-docker run --rm -v $(pwd):/app:delegated -w /app fight-common \
-    php vendor/bin/rector process src/ --dry-run
-```
-
-The `./bin/*` wrappers use `-it` and rebuild the image — those are for interactive terminal use only.
-
-### Learning: hooks are non-negotiable gates
-
-If a commit hook runs this package gate, the hook itself must complete successfully before the commit is created.
-Never use `git commit --no-verify`, disable the hook, or otherwise bypass it because a run is slow, interrupted, or
-inconvenient. Diagnose and repair every failure, then rerun the hook to completion. An exception requires the user's
-explicit authorization for that specific commit and must be reported as an unverified delivery state.
-
-## Git Flow
-
-- `main` — production-ready, merges from `develop` only
-- `develop` — integration branch for completed features
-- `feature/<name>` — branched from `develop`, merged back via `--no-ff`
-- Never commit directly to `develop`
-
-## Planning
-
-See `planning/CONVENTIONS.md` for the canonical planning structure: ticket lifecycle, BOARD.md execution frontier,
-Wayfinder maps, PRD and epic conventions, file naming, templates, and explicit-only archive operations. Never
-archive planning records as a completion side effect; run `./bin/archive-planning` only on an explicit request,
-review its dry run, and then apply it.
-
-### Pre-PR Sync Checklist
-
-Before final commit and PR for any feature or bug fix:
-
-1. Mark the ticket `done` with verified acceptance criteria
-2. Move the ticket to **Recently Done** in `planning/tickets/BOARD.md`
-3. Recalculate the "What's Next?" contract if dependencies shifted
-4. Update parent PRD and epic progress sections
-5. Update `ROADMAP.md` if strategic progress changed
-6. Verify no downstream ticket still lists the completed ticket as `blocked_by`
+Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.

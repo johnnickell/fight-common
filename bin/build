@@ -12,6 +12,23 @@ DOCKER_BIN="${DOCKER_BIN:-docker}"
 GIT_BIN="${GIT_BIN:-git}"
 ID_BIN="${ID_BIN:-id}"
 PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+DEPENDENCY_PROFILE="${FIGHT_COMMON_DEPENDENCY_PROFILE:-default}"
+COMPOSER_UPDATE_ARGS=()
+
+case "${DEPENDENCY_PROFILE}" in
+    default) ;;
+    resolved)
+        if [[ ! -f "${ROOT_DIR}/composer.lock" ]]; then
+            echo 'The resolved release profile requires its exported candidate lockfile.' >&2
+            exit 2
+        fi
+        COMPOSER_UPDATE_ARGS=(--lock)
+        ;;
+    *)
+        echo 'Unknown Fight Common dependency profile.' >&2
+        exit 2
+        ;;
+esac
 GIT_METADATA_MOUNT=()
 LINKED_WORKTREE_SOURCE_MOUNT=()
 
@@ -50,7 +67,8 @@ fight_common_start_disposable_databases
     --env "FIGHT_COMMON_MYSQL_DSN=${FIGHT_COMMON_MYSQL_DSN}" \
     --env "FIGHT_COMMON_POSTGRESQL_DSN=${FIGHT_COMMON_POSTGRESQL_DSN}" \
     "${PHP_IMAGE}" \
-    bash -c 'composer install --no-interaction --no-progress --prefer-dist && ./bin/quality'
+    bash -c 'composer update --no-interaction --no-progress --prefer-dist "$@" && ./bin/quality' \
+    fight-common-build ${COMPOSER_UPDATE_ARGS[@]+"${COMPOSER_UPDATE_ARGS[@]}"}
 
 ./bin/docs validate
 ./bin/planning-check

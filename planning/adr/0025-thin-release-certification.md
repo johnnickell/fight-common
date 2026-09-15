@@ -16,7 +16,7 @@ lowest-compatible. The baseline lane resolves its own lockfile from the library'
 does not commit a root `composer.lock`.
 It then creates a Composer archive, resolves and installs that archive in a clean `--no-dev` consumer, executes one
 representative public behavior probe, proves `Fight\Release\` is absent from consumer autoloading, and compares the
-installed package surface with `compatibility/manifest.json`. It cites the five immutable T-00075 starter receipt
+installed package surface with `compatibility/manifest.json`. It cites the five immutable TASK-00075 starter receipt
 identities without rerunning unchanged starter journeys.
 
 One compact JSON record and the certified archive are written beneath
@@ -33,12 +33,12 @@ are prohibited; the release seam is verified by running the real command for an 
 Product behavior remains protected by the normal suite while expensive packaging and compatibility evidence moves
 to the release boundary. A successful local build is not release certification, and certification is not
 publication. Publication and Packagist verification remain separate human-authorized outcomes described by
-T-00035 and T-00041.
+TASK-00035 and TASK-00041.
 
 ADRs 0013 and 0016 remain useful compatibility and publication context where they do not require the retired
-framework. ADR 0014 remains the historical record for T-00032 through T-00034 and T-00040, but this decision is the
-current authority when the two conflict. Maintenance automation and operator-layer tickets T-00036 through T-00039
-and T-00042 through T-00043 close `wontfix`; a future need starts from a fresh decision instead of restoring the
+framework. ADR 0014 remains the historical record for TASK-00032 through TASK-00034 and TASK-00040, but this decision is the
+current authority when the two conflict. Maintenance automation and operator-layer tasks TASK-00036 through TASK-00039
+and TASK-00042 through TASK-00043 close `wontfix`; a future need starts from a fresh decision instead of restoring the
 simulation framework.
 
 ## Rejected Alternatives

@@ -119,7 +119,7 @@ unsupported (see [ADR 0021](../../../adr/0021-framework-default-capability-compo
 This ticket is closed. It produces the decision record ([ADR 0020](../../../adr/0020-supported-framework-lines-and-support-window.md),
 [ADR 0021](../../../adr/0021-framework-default-capability-compositions.md)), the supported-composition
 worksheet with primary-source evidence, and the permanent specification
-([PRD-00015](../../../specs/archive/00015-PRD.md)). It did not install framework packages, create starter repositories,
+([TICKET-00015](../../../tickets/archive/00015-TICKET.md)). It did not install framework packages, create starter repositories,
 or implement adapters. WF-024 and ADR 0024 later superseded its blanket no-new-shared-adapter premise. Fight
-Common implementation now proceeds through T-00057, T-00058, and T-00070 through T-00075; T-00055 remains
-closed `wontfix`, and PRD-00016 and PRD-00018 retain repository ownership of booted starter journeys.
+Common implementation now proceeds through TASK-00057, TASK-00058, and TASK-00070 through TASK-00075; TASK-00055 remains
+closed `wontfix`, and TICKET-00016 and TICKET-00018 retain repository ownership of booted starter journeys.

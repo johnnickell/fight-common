@@ -1,31 +1,39 @@
 ---
-id: T-NNNNN
-prd: PRD-NNNNN
-title: Brief executable outcome
+id: TICKET-NNNNN
+epic: EPIC-NNNNN
+title: Brief requirement
 status: needs-triage
-blocked_by:
 ---
 
-# Brief executable outcome
+# Brief requirement
 
-## Outcome
+## Problem statement
 
-State the independently reviewable vertical slice.
+Describe the user and product problem.
 
-## Scope
+## Solution and boundaries
 
-- In scope:
-- Out of scope:
+Describe the intended outcome, accepted requirements, and exclusions.
 
-## Acceptance Criteria
+## Use cases
 
-- [ ] Observable behavior or artifact.
+| Use case | Commands | Queries | Events | Expected side effects |
+|---|---|---|---|---|
+| Describe the interaction | Name or justified N/A | Name or justified N/A | Name or justified N/A | Describe changes |
 
-## Verification
+## Validation and permissions
 
-- Name direct validation and expected evidence. Tests cover owned production code and behavior only; never require
-  tests for documentation, generated files, wrappers, configuration text, tooling validator scripts, or tooling.
+Describe checks, failure behavior, and justified exclusions.
 
-## Completion Notes
+## Acceptance and evidence
 
-Record the verified outcome only when terminal.
+Define observable outcomes and evidence TASKs must provide.
+
+## TASKs
+
+<!-- planning:children -->
+<!-- /planning:children -->
+
+## Decisions and progress
+
+Link accepted ADRs, Wayfinder decisions, and durable outcomes. Child status is generated above.

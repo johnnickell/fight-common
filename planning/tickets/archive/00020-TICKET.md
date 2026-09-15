@@ -1,49 +1,136 @@
 ---
-id: T-00020
-prd: PRD-00007
-title: Migrate and enable member layout rules
+id: TICKET-00020
+epic: EPIC-00005
+title: Fight Identity and Repository Entry Surfaces
 status: done
-blocked_by: T-00019
 ---
 
-# Migrate and Enable Member Layout Rules
+# Fight Identity and Repository Entry Surfaces
 
-## What to Build
+## Problem Statement
 
-Adopt the standard's member ordering and spacing rules across every named production type as the second green
-migration batch. Preserve public behavior while making the canonical type layout enforceable without legacy
-exceptions.
+Fight Common currently has useful technical material but no durable visual identity that connects the package to
+the broader Fight family or makes its repository entry point feel like a deliberate product. A generated concept
+or documentation-only logo would leave future Fight projects without a reusable source asset, while an elaborate
+brand package would add ceremony without helping a PHP developer evaluate the library.
 
-## Blocked By
+The repository README also has a different job from the full documentation. It must establish trust quickly,
+show the shortest installation path, explain what Fight Common is for, and route readers to deeper guidance
+without attempting to reproduce the entire site or depending on presentation features GitHub does not support.
 
-T-00019 — Migrate and Enable Mechanical Coding Rules.
+## Solution
 
-## Acceptance Criteria
+Implement the approved Inward Port — No Lower Rail direction as the canonical Fight family mark, pair it with a
+Fight Common lockup, and derive a small, practical asset family from deterministic editable vectors. Use the same
+identity in the repository README and documentation so both surfaces clearly belong to one product while
+remaining legible in GitHub, browser, favicon, monochrome, reversed, light-theme, and dark-theme contexts.
 
-- [x] Named production types use the canonical constant, property, constructor, method, and magic-member order.
-- [x] Visibility groups and adjacent members use the canonical spacing.
-- [x] Formatting changes preserve public APIs and behavior.
-- [x] The member-layout rules are enabled with zero baseline or suppressed legacy violations.
-- [x] The complete submit gate remains green with exact complete coverage.
+Reshape the README into a concise repository entry surface for experienced PHP developers and architects. Lead
+with the package purpose, the shortest valid Composer installation, credible architecture and capability proof,
+and direct routes into Quick Start, Architecture, the component atlas, framework guidance, contribution guidance,
+and the license. Keep the full documentation authoritative for detailed adoption and reference material.
 
-## Parent
+## User Stories
 
-PRD-00007 — Reusable Fight Coding Standard.
+1. As a PHP developer encountering Fight Common on GitHub, I want to understand its purpose immediately, so that
+   I can decide whether it belongs in my application.
+2. As an architect, I want the repository entry point to state the framework-neutral promise and show the inward
+   dependency model, so that I can evaluate architectural fit without reading every component guide.
+3. As a prospective adopter, I want the shortest valid Composer command near the top, so that installation does
+   not require hunting through the documentation.
+4. As a prospective adopter, I want direct links to Quick Start, Architecture, and the component atlas, so that I
+   can choose the depth and path appropriate to my task.
+5. As a developer looking for one capability, I want the README to route me to the documentation rather than
+   duplicate stale component instructions, so that I reach the canonical guidance.
+6. As a maintainer, I want one editable source for the Fight family mark, so that later Fight product lockups do
+   not drift into unrelated redrawings.
+7. As a maintainer, I want the Fight Common descriptor separable from the family wordmark and mark, so that the
+   core identity can be reused without baking this package name into its geometry.
+8. As a reader, I want the mark to remain recognizable at favicon size, so that browser and repository contexts
+   retain the identity without visual noise.
+9. As a reader using a light or dark surface, I want an appropriate identity variant, so that the mark and lockup
+   remain clear without depending on filters or effects.
+10. As a downstream maintainer, I want one-color and reversed assets, so that the identity works in constrained
+    environments without being redrawn.
+11. As a contributor, I want clear identity usage guidance, so that minimum size, clear space, colors, and common
+    misuses are understood without a large brand manual.
+12. As a GitHub reader, I want repository imagery and links that render within README constraints, so that the
+    entry experience does not depend on site JavaScript or unsupported styling.
+13. As an accessibility-conscious reader, I want meaningful repository content to remain understandable when
+    images do not load, so that the logo never substitutes for necessary text.
+14. As a project evaluator, I want factual maintenance, contribution, and license routes, so that trust comes
+    from verifiable project information rather than popularity claims.
+15. As John, I want restrained professional presentation, so that the Fight identity feels precise and durable
+    rather than aggressive, cartoonish, or generically developer-themed.
 
-## Outcome
+## Implementation Decisions
 
-Enabled the four canonical member-layout rules across production source and corrected all 273 discovered
-violations: 23 member-order findings across 19 files and 250 visibility-group spacing findings across 47 files.
-The migration preserves every production file's nonblank content while relocating intact member blocks and
-removing only forbidden blank separators. A targeted Rector exclusion assigns the overlapping class-member
-spacing convention to the canonical FightCommon PHPCS rule so the two enforced tools cannot contradict each
-other.
+- The canonical family mark is Inward Port — No Lower Rail: a dark structural `F`, one inbound steel approach
+  rail, a kiln-orange active port, one upper ownership rail, and open lower counterspace.
+- Reconstruct the approved geometry as deterministic, editable SVG. Generated raster exploration is reference
+  evidence only and is not a production source asset.
+- Keep the `FIGHT` wordmark stable and the `COMMON` product descriptor replaceable. Supply family-mark-only and
+  Fight Common lockup compositions.
+- Provide the smallest useful asset family: editable full-color vectors, one-color and reversed vectors,
+  theme-appropriate lockups, favicons, a README-safe export, and one reusable Fight Common social image.
+- The mark must communicate through geometry before color or effects. Kiln orange identifies the active crossing;
+  gradients, shadows, animation, and background effects are not part of the identity's meaning.
+- Preserve the selected open lower counterspace and one upper internal rail. Do not restore the rejected lower
+  rail or reinterpret the mark as a literal weapon, shield, fist, flame, mascot, hexagon, or code bracket.
+- Record practical minimum-size, clear-space, color, background, and misuse rules beside the assets without
+  creating a separate brand-management system.
+- The README is a concise entry surface, not a second documentation corpus. It owns purpose, trust signals,
+  installation, a compact architecture explanation, representative capability discovery, and routes into the
+  authoritative documentation and repository guidance.
+- Use final production documentation URLs in README links. The separately governed GitHub-profile adaptation
+  waits for those URLs and these canonical assets and is not part of this requirement.
+- Preserve existing factual badges only when they remain useful and accurate. Do not introduce popularity
+  badges, inflated claims, or decorative identity clutter.
+- No PHP namespace, class, interface, function, dependency contract, or runtime behavior changes as part of this
+  requirement.
 
-## Verification
+## Testing Decisions
 
-- Focused member-layout scans pass, and a second focused PHPCBF pass makes no changes.
-- Rector dry-run and PHPStan pass across 409 production files; root PHPCS passes with all four rules enabled.
-- The complete disposable-database PHPUnit lifecycle passes 2,988 tests and 5,216 assertions with zero skips.
-- Clover coverage is exact at 8,692/8,692 statements and 1,835/1,835 methods.
-- Planning validation and `git diff --check` pass.
-- Independent Standards and Spec reviews report no findings.
+- The highest seam is the canonical identity as actually consumed by the rendered README and generated
+  documentation, not isolated assertions about SVG implementation details.
+- Review a single identity specimen showing full color, one color, reversed, and 64px, 32px, and 16px outputs.
+  Acceptance is based on recognizable geometry, clean alignment, open counterspace, and legibility without
+  clipping or effect-dependent detail.
+- Validate vector structure, intrinsic dimensions, view boxes, references, and repository links with fast,
+  deterministic checks. Do not add pixel snapshots or a routine visual-regression suite.
+- Render the README through a GitHub-compatible Markdown path and confirm that identity assets, alternative text,
+  installation, architecture summary, capability routes, documentation links, contribution guidance, copyright,
+  and license remain understandable.
+- Confirm theme variants on representative light and dark surfaces and verify applicable text and essential
+  graphical boundaries against the approved WCAG AA contrast targets.
+- Treat human visual review as the authority for mark balance and recognition. Automated checks prove asset and
+  link integrity, not aesthetic quality.
+- Include the identity and README checks in the repository's fast documentation validation path and canonical
+  submit gate once their implementation tasks land.
+
+## Out of Scope
+
+- Publishing or redesigning John's GitHub profile README.
+- Creating lockups for every possible Fight package before one is needed.
+- A comprehensive corporate identity manual, merchandise system, animation package, or per-page social artwork.
+- Replacing Fight Common's PHP public API, runtime behavior, or package dependencies for presentation purposes.
+- Deploying the documentation site, merging `develop` to `main`, or publishing any profile adaptation.
+
+## Progress
+
+Complete through TASK-00089 and TASK-00091. The repository owns the approved Inward Port family mark, stable outlined
+`FIGHT` wordmark, replaceable outlined `COMMON` descriptor, deterministic asset family, usage guidance, and the
+concise Fight Common README entry surface. The README applies the light/dark lockups, factual trust signals,
+shortest installation, inward architecture proof, representative capability discovery, and final documentation
+routes without duplicating the guide corpus. Deterministic source/link validation, GitHub-safe local rendering,
+and focused Brave review cover both themes, narrow and desktop widths, overflow, and unavailable-image fallback.
+
+## Further Notes
+
+- The [presentation Wayfinder map](../../wayfinder/archive/maps/fight-common-documentation-presentation-map.md) is the decision
+  source, especially WF-026, WF-029, WF-030, WF-031, WF-032, and WF-034.
+- TICKET-00021 owns the authoritative documentation content and routes. TICKET-00022 owns the Atlas Deck rendering and
+  Pages delivery that consume these assets.
+- Tasks: [TASK-00089](../../tasks/archive/00089-TASK.md) creates the canonical identity asset family, then
+  [TASK-00091](../../tasks/archive/00091-TASK.md) uses those assets and the final documentation routes to rebuild the
+  repository entry surface.

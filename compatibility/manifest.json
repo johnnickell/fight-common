@@ -31,11 +31,11 @@
             "locator": "Decision paragraph 3: explicit internal classification"
         },
         "fight-common.classification.prd-00014-addition": {
-            "path": "planning/specs/00014-PRD.md",
+            "path": "planning/tickets/archive/00014-TICKET.md",
             "locator": "Implementation Decisions: 59 post-1.1.0 classifications"
         },
         "fight-common.classification.prd-00015-addition": {
-            "path": "planning/specs/00015-PRD.md",
+            "path": "planning/tickets/archive/00015-TICKET.md",
             "locator": "Solution: optional framework adapters and capability-scoped explicit activation"
         },
         "fight-common.operation.abstract-extension-base": {

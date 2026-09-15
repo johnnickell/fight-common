@@ -84,7 +84,7 @@ Queue dispatch is not an atomic outbox. The application must enqueue only after 
 
 ## Prototype gates
 
-Before promoting candidate names into an implementation ticket, prove these behaviors against a fixture requiring `codeigniter4/framework:^4.7` and `codeigniter4/queue:^1.0`:
+Before promoting candidate names into an implementation TASK, prove these behaviors against a fixture requiring `codeigniter4/framework:^4.7` and `codeigniter4/queue:^1.0`:
 
 1. A starter `Config\Services` can delegate each capability independently without service-discovery collisions.
 2. The transaction adapter rejects nesting, detects a failed transaction even when database exceptions are disabled, rolls back on every throwable, and reports terminal closure correctly.

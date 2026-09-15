@@ -102,7 +102,7 @@ implementation. [Slim Doctrine cookbook](https://www.slimframework.com/docs/v4/c
 ## Decisions unblocked for the framework-adapter support matrix
 
 1. Relocate every existing Symfony compiler pass to `Adapter\ServiceContainer\Symfony` with old-path
-   compatibility; revise the current T-00051 and T-00052 destinations.
+   compatibility; revise the current TASK-00051 and TASK-00052 destinations.
 2. Rename the two neutral message handlers additively and let Symfony Messenger and Laravel Jobs delegate to
    them.
 3. Add a PSR HTTP response/middleware lane for Slim and compatible frameworks before creating redundant Slim

@@ -1,3 +1,9 @@
-# Tickets
+# TICKET Index
 
-Ticket files are canonical for status, dependencies, acceptance, and verification. `BOARD.md` ranks executable work. Terminal ticket sets may move to `archive/` after their PRD closes.
+Generated from individual records. Preserve IDs and history; archive only on an explicit request.
+
+<!-- planning:records -->
+| ID | Title | Status | Parent |
+|---|---|---|---|
+| None | — | — | — |
+<!-- /planning:records -->

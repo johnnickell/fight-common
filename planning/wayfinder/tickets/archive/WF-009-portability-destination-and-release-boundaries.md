@@ -4,7 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specifications:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../../specs/archive/00014-PRD.md), [PRD-00015 — Framework Adapter Support and Capability Composition](../../../specs/archive/00015-PRD.md), [PRD-00016 — Fight Package and Starter Repository Ownership](../../../specs/archive/00016-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../specs/archive/00018-PRD.md)
+**Specifications:** [TICKET-00014 — Fight Common Contract Repair and Compatibility Certification](../../../tickets/archive/00014-TICKET.md), [TICKET-00015 — Framework Adapter Support and Capability Composition](../../../tickets/archive/00015-TICKET.md), [TICKET-00016 — Fight Package and Starter Repository Ownership](../../../tickets/archive/00016-TICKET.md), [TICKET-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../tickets/archive/00018-TICKET.md)
 **Depends on:** None
 
 ## Question

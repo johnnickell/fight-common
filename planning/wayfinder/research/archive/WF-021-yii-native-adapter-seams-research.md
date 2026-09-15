@@ -107,7 +107,7 @@ version.
 
 1. Land the namespace move to `Adapter\ServiceContainer\Yii` and add a minimal common provider/config
    convention with loadability tests.
-2. After T-00059 lands, implement `YiiDbTransactionalUnitOfWork` against the shared transaction
+2. After TASK-00059 lands, implement `YiiDbTransactionalUnitOfWork` against the shared transaction
    conformance suite.
 3. Implement `YiiUrlGenerator` and the neutral PSR-7 JSend adapter; wire both from separate providers.
 4. Conformance-test Yii Mailer and Yii View mappings before accepting those adapters. A mapping that drops

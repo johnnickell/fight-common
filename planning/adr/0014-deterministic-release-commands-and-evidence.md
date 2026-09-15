@@ -103,7 +103,7 @@ The manifest and required release reports are retained with the immutable GitHub
 release's lifetime. Detailed logs remain bounded, redacted, digest-linked, and subject to a later
 explicit retention period. The exact release artifact schema, run-state storage lock and projection-replacement
 mechanism, event-chain integrity, signer and key custody, archive normalization, hosted entitlement, and
-Packagist polling/recovery procedure remain implementation decisions for later release-coordination tickets.
+Packagist polling/recovery procedure remain implementation decisions for later release-coordination tasks.
 
 ## Rejected Alternatives
 

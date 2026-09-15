@@ -146,7 +146,7 @@ governance capabilities, including enabling sensitive integrations, also remain 
 Administrative tier belongs to the version-controlled Managed Permission definition, not a database column
 on the Permission aggregate. Every Managed Permission declares `ADMIN_SAFE` or `SUPER_ADMIN_ONLY`;
 reconciliation derives both Managed Roles and rejects missing classification before mutation. Feature
-tickets and pull requests introducing a permission must name its tier, while automated definition
+tasks and pull requests introducing a permission must name its tier, while automated definition
 validation is the enforcing authority. Persistence stores the resulting Permission, Role, and membership
 records only.
 

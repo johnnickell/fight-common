@@ -4,8 +4,8 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specification:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../../specs/archive/00014-PRD.md)
-**Implementation tickets:** T-00047 through T-00056 plus T-00059, T-00060, and T-00069 in the canonical Fight Common
+**Specification:** [TICKET-00014 — Fight Common Contract Repair and Compatibility Certification](../../../tickets/archive/00014-TICKET.md)
+**Implementation tickets:** TASK-00047 through TASK-00056 plus TASK-00059, TASK-00060, and TASK-00069 in the canonical Fight Common
 ticket tracker
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md), [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md), [Define the portable AccessControl and persistence boundaries](WF-012-access-control-and-persistence-boundaries.md), [Define starter product, governance, and documentation standards](WF-013-starter-product-governance-and-documentation.md)
 
@@ -188,8 +188,8 @@ remain normative in documentation because Composer suggestion text is not a cons
 Use one exported-package black-box consumer outside the repository root to prove public installation and
 representative behavior without repository-only files. Do not add five nested framework fixture directories
 or a combined starter project. The five real starter repositories own their framework dependency graphs,
-native composition probes, lowest/latest solves, and immutable clean-clone receipts under PRD-00016 and
-PRD-00018.
+native composition probes, lowest/latest solves, and immutable clean-clone receipts under TICKET-00016 and
+TICKET-00018.
 
 ### Blocking 1.2.0 certification evidence
 

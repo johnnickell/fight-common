@@ -1,49 +1,188 @@
 ---
-id: T-00009
-prd: PRD-00004
-title: Implement EventSourcedRepository
+id: TICKET-00009
+epic: EPIC-00002
+title: Build, Dependency, and Coverage Verification
 status: done
-blocked_by: T-00004,T-00007
 ---
 
-# Implement EventSourcedRepository
+# Build, Dependency, and Coverage Verification
 
-## What to Build
+## Problem Statement
 
-Let an application save a consumer aggregate and later find and reconstitute it through one stable aggregate definition, while keeping storage envelopes, mappings, schemas, and technical metadata outside the domain model.
+Fight Common does not have one authoritative submit gate. Local wrappers rebuild containers independently and
+require a TTY, while CI repeats only part of the intended sequence in workflow configuration. The two paths
+can drift, agents and Git hooks cannot safely invoke the interactive wrappers, and contributors may discover
+ordinary failures only after consuming hosted CI capacity.
 
-## Blocked By
+Dependency verification and coverage also provide weaker evidence than the release requires. Ordinary local
+work needs a reproducible checked-in dependency resolution, but the library must also prove compatibility
+with the latest versions allowed by its constraints. PHPUnit can report an apparently complete percentage
+while production coverage-ignore directives remove statements from measurement, and a stale Clover artifact
+can make a failed or skipped test invocation appear acceptable.
 
-- T-00004 — Implement aggregate lifecycle.
-- T-00007 — Implement the in-memory Event Store.
+## Solution
 
-## Acceptance
+Create one host-neutral executable quality gate that owns the ordered, fail-fast verification sequence. The
+local build constructs the PHP image once and invokes that gate inside one disposable, non-interactive
+container. CI resolves latest compatible dependencies ephemerally and invokes the same gate directly on its
+runner. The execution environments differ, but the authoritative commands and ordering exist in one place.
 
-- [x] Each repository owns one `AggregateDefinition` pairing a stable aggregate name with the current aggregate class and depends on the framework-free aggregate interface.
-- [x] `find(Identifier)` returns null for an empty stream.
-- [x] A non-empty stream is unwrapped into ordered plain event payloads and passed to the aggregate's static `reconstitute()` contract.
-- [x] Save computes expected version as current aggregate version minus the released batch size.
-- [x] Saving an empty released batch is a no-op.
-- [x] A save failure invalidates the released aggregate instance; callers discard and reload rather than retrying that instance.
-- [x] Repository behavior remains unaware of stored aliases, schemas, metadata, and upcasters, which stay inside the Event Store.
-- [x] The complete save/find/reconstitution journey has complete coverage through the public repository seam.
+Make the default local build reproduce the checked-in dependency resolution. An explicit `--latest` mode
+persistently updates the lockfile and verifies that resolution so the result can be reviewed and committed.
+Before activating permanent enforcement, remove every production coverage-ignore directive through tests or
+behavior-preserving boundary repair. The final gate rejects all such directives, deletes stale Clover output
+before testing, fails closed on an invalid report, and accepts coverage only when covered statements exactly
+equal executable statements.
 
-## Outcome
+Track an opt-in pre-commit hook that delegates to the default local build with stdin disconnected. This puts
+the complete local evidence before the commit while leaving Git's explicit bypass available and avoiding a
+second long-running pre-push gate.
 
-Added a validated `AggregateDefinition` and a generic `EventSourcedRepository` over the framework-free
-aggregate and Event Store contracts. Repositories now use stable aggregate names, return `null` for missing
-history, unwrap ordered stored messages to plain current events for aggregate-owned reconstitution, and save
-ordered released batches with the pre-batch expected version. Empty saves are no-ops, append failures preserve
-the destructive release boundary, and repository code remains outside alias, schema, metadata, and upcasting
-concerns.
+## User Stories
 
-## Verification
+1. As a contributor, I want one local build command, so that I know exactly what evidence is required before
+   committing.
+2. As a contributor, I want the local build to be non-interactive, so that it works unchanged in a terminal,
+   an agent, or a Git hook.
+3. As a contributor, I want one image build and one disposable container, so that the complete local gate does
+   not rebuild infrastructure for every tool.
+4. As a contributor, I want visible step names and fail-fast behavior, so that the first broken contract is
+   immediately clear.
+5. As a CI maintainer, I want CI to invoke the same executable gate definition, so that workflow YAML cannot
+   silently diverge from local acceptance.
+6. As a CI maintainer, I want direct host execution on the runner, so that hosted verification does not depend
+   on nested Docker execution.
+7. As a library maintainer, I want CI to resolve the newest compatible dependencies, so that permissive
+   Composer constraints are tested continuously.
+8. As a contributor, I want ordinary local builds to use the checked-in lockfile, so that accepted failures
+   are reproducible.
+9. As a dependency maintainer, I want an explicit latest-dependency mode, so that updating the lockfile is a
+   deliberate operation rather than a side effect.
+10. As a dependency maintainer, I want the updated lockfile to remain after a failed latest build, so that I
+    can inspect and repair the exact failing resolution.
+11. As a contributor, I want generated mounted artifacts owned by my user, so that the build does not leave
+    root-owned lockfiles, caches, or reports.
+12. As a contributor, I want focused interactive wrappers to remain available, so that I can iterate on one
+    tool without running the complete gate.
+13. As a maintainer, I want planning integrity included in the quality gate, so that executable work metadata
+    cannot drift from delivery.
+14. As a maintainer, I want architecture verification included in the quality gate, so that a green test suite
+    cannot hide an invalid dependency direction.
+15. As a maintainer, I want every production coverage-ignore directive removed, so that reported completeness
+    does not exclude maintained statements.
+16. As a test author, I want live services and processes behind deterministic seams, so that previously
+    excluded behavior runs in the normal build.
+17. As a maintainer, I want coverage-tool workarounds reverified against current tooling, so that obsolete
+    exclusions do not become permanent policy.
+18. As a maintainer, I want stale Clover output removed before PHPUnit, so that coverage evidence always comes
+    from the current invocation.
+19. As a maintainer, I want malformed or incomplete Clover reports rejected, so that parser ambiguity cannot
+    turn into a passing build.
+20. As a maintainer, I want exact statement equality rather than rounded percentages, so that 100 percent has
+    one auditable meaning.
+21. As a contributor, I want an opt-in tracked pre-commit hook, so that ordinary failures are caught before
+    using hosted CI capacity.
+22. As a contributor, I want the hook to run the exact default build, so that local enforcement does not create
+    another gate definition.
+23. As a contributor, I want the hook to propagate build failures, so that an invalid commit is blocked.
+24. As a contributor, I want Git's explicit bypass documented, so that emergency or work-in-progress commits
+    remain an intentional human choice.
+25. As a contributor, I want no duplicate full pre-push gate, so that network-sensitive pushes do not repeat a
+    long build.
+26. As a release maintainer, I want successful completion to mean every ordered check ran in one invocation,
+    so that partial evidence cannot be mistaken for release readiness.
+27. As a contributor, I want complete database verification to provision its own disposable MySQL and
+    PostgreSQL services and fail on every skip, so that infrastructure absence cannot masquerade as a green build.
 
-- Rector dry-run: clean across 383 source files.
-- PHPStan: clean across 383 files.
-- PHPCS: clean.
-- PHPUnit: 2,926 tests and 4,641 assertions passed; 26 environment-dependent tests skipped.
-- Coverage: 7,983/7,983 statements and 1,751/1,751 methods.
-- Planning validation: clean with 42 records and 29 active after closure synchronization.
-- Two-axis review: zero blocking Standards findings and zero Spec findings after three targeted refinements;
-  one nonblocking test-local mapper-setup duplication judgment remains.
+## Implementation Decisions
+
+- One host-neutral executable script is the authoritative ordered quality-gate definition for both local and
+  CI execution.
+- The gate emits a visible name before every command, stops on the first failure, and returns that command's
+  non-zero exit status.
+- The ordered gate covers Composer validation, PHP syntax, planning integrity, PHPCS, PHPStan, Deptrac,
+  Rector dry-run, PHPUnit, and exact coverage enforcement.
+- The local `bin/build` entry point builds the PHP image once, mounts the repository, and invokes the shared
+  gate in one disposable container.
+- `bin/build` allocates no TTY, reads no prompts, and uses non-interactive dependency commands. It is the same
+  entry point for humans, agents, and hooks.
+- The local container maps the invoking user and group for artifacts written into the mounted repository.
+- The default local build installs the dependency versions recorded in the checked-in lockfile and does not
+  modify that resolution.
+- `bin/build --latest` performs a complete Composer update, persists the resulting lockfile in the worktree,
+  and verifies that exact resolution. A failed verification does not restore the previous lockfile.
+- CI performs a latest-compatible Composer resolution from the manifest in its ephemeral runner before
+  invoking the shared gate directly. The generated CI lockfile is neither committed nor published.
+- Individual tool wrappers remain interactive focused conveniences. They do not define or orchestrate the
+  complete gate.
+- The repository owns a non-interactive disposable database-test lifecycle using the same MySQL and PostgreSQL
+  versions as CI. The complete suite provisions both services, injects their DSNs, and fails on any skip; a
+  deliberately selected fast workflow excludes server-database tests before discovery and is never submit evidence.
+- Production coverage exclusions are removed before the permanent coverage gate is enabled. Each excluded
+  statement becomes deterministically executable or is removed through a behavior-preserving boundary
+  repair.
+- The migration does not weaken a public API or change runtime behavior solely to improve the metric.
+- The coverage gate rejects every PHPUnit coverage-ignore directive in production source.
+- The shared gate removes the exact Clover artifact it will later inspect before starting PHPUnit.
+- Coverage parsing fails closed when Clover is absent, malformed, lacks required project metrics, or reports
+  fewer covered statements than executable statements.
+- Exact complete coverage means covered statements equal executable statements. Displayed or rounded
+  percentages are not acceptance evidence.
+- A tracked opt-in pre-commit hook resolves the repository root, disconnects stdin, delegates exactly to the
+  default `./bin/build`, and propagates its exit status.
+- Contributors enable the hook through Git's repository hook-path configuration. Documentation explains the
+  explicit `--no-verify` bypass.
+- The complete gate is not duplicated at pre-push. Hosted CI remains an independent latest-compatible
+  verification surface.
+
+## Testing Decisions
+
+- The primary seam is process execution of the shared gate and its entry-point adapters inside controlled
+  fixture repositories with deterministic command substitutes.
+- Shared-gate tests assert the complete command order, visible step announcements, immediate stop after the
+  first failure, exit-code propagation, and successful completion only after every step runs.
+- Local-build tests assert one image build, one non-interactive disposable container invocation, user and
+  group mapping, repository mounting, and delegation to the shared gate.
+- Disposable-database tests assert unique per-run resources, version and health configuration, DSN injection,
+  failure propagation, cleanup after every exit, and zero skipped tests in the complete suite.
+- Dependency-mode tests prove that the default mode performs a locked install without changing the lockfile,
+  while `--latest` performs a complete update and leaves the resulting lockfile visible after success or
+  failure.
+- CI configuration tests or focused workflow assertions prove latest-compatible resolution occurs before
+  direct invocation of the shared gate and that CI does not maintain a second command sequence.
+- Coverage migration tests exercise previously excluded production behavior through owned substitutes or
+  deterministic integration boundaries.
+- Coverage-gate fixtures include forbidden directive variants, a missing report, malformed XML, missing
+  metrics, uncovered statements, exact equality, and a stale preexisting report that PHPUnit does not
+  replace.
+- Coverage assertions use Clover statement counts and never compare formatted percentage strings.
+- Pre-commit tests assert repository-root resolution, disconnected stdin, exact default-build delegation, and
+  status propagation.
+- The complete real `bin/build` remains the acceptance smoke test for the combined local contract. CI proves
+  the direct-host, latest-compatible execution model independently.
+- Tests assert observable commands, artifacts, and exit behavior rather than shell implementation details
+  that do not affect the contract.
+
+## Out of Scope
+
+- Automatically enabling the Git hook in contributor clones.
+- Removing Git's standard `--no-verify` escape hatch.
+- Running the complete gate again at pre-push.
+- Replacing focused interactive tool wrappers with the shared gate.
+- Using Docker to execute the quality gate inside hosted CI.
+- Automatically committing, reverting, or publishing a lockfile produced by `--latest`.
+- Accepting a coverage exclusion manifest, baseline, or grandfathered directive.
+- Persistent or always-running external database services. The complete build provisions its own disposable
+  services; focused workflows may deliberately omit the server-database group.
+
+## Further Notes
+
+- TASK-00023 through TASK-00026 remove existing exclusions in bounded, independently reviewable slices before
+  TASK-00027 enables permanent enforcement, so the final gate never starts life with a baseline.
+- ADR 0006 defines persistent local and ephemeral CI dependency resolution.
+- ADR 0007 defines zero-exclusion exact statement coverage.
+- ADR 0008 defines the shared executable gate and pre-commit delegation contract.
+- TASK-00044 completed the skip-free disposable database lifecycle before TASK-00014 adds more DBAL publication
+  conformance tests; TASK-00029 later composes the completed lifecycle into the canonical local build.
+
+Tasks: TASK-00023, TASK-00024, TASK-00025, TASK-00026, TASK-00027, TASK-00028, TASK-00029, TASK-00030, TASK-00031, TASK-00044.

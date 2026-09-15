@@ -25,7 +25,7 @@ rolled-back or uncommitted records, but it is not an atomic outbox and cannot cl
 database commit and a queue push.
 
 The second high-value implementation is a Laravel `TransactionalUnitOfWork` around one Illuminate database
-connection. It should implement the narrower boundary from T-00059, not fabricate the legacy standalone
+connection. It should implement the narrower boundary from TASK-00059, not fabricate the legacy standalone
 `commit()` operation that exists for Doctrine's persistence context.
 
 ## Package and service-container boundary
@@ -193,7 +193,7 @@ begin/commit/rollback and `transactionLevel()`. Eloquent and the query builder u
 [Database transactions](https://laravel.com/docs/13.x/database#database-transactions) and
 [ConnectionInterface API](https://api.laravel.com/docs/13.x/Illuminate/Database/ConnectionInterface.html)
 
-That is an exact implementation seam for T-00059's narrower `TransactionalUnitOfWork`, with these constraints:
+That is an exact implementation seam for TASK-00059's narrower `TransactionalUnitOfWork`, with these constraints:
 
 - `LaravelTransactionalUnitOfWork` wraps one explicitly selected `ConnectionInterface` and returns the callback
   result from `transaction()`.
@@ -205,7 +205,7 @@ That is an exact implementation seam for T-00059's narrower `TransactionalUnitOf
   or pretending the native connection closed.
 - It does not implement legacy `UnitOfWork::commit()`. Eloquent/query-builder writes are issued immediately and
   have no Doctrine-like pending persistence context to flush. Fabricating a standalone commit would recreate the
-  false abstraction T-00059 is designed to remove.
+  false abstraction TASK-00059 is designed to remove.
 - The callback must use the same connection for every protected mutation and required audit write. Cross-store
   changes and queue submission are outside its atomic boundary.
 
@@ -358,7 +358,7 @@ requirement of the Laravel queue adapter.
    Symfony-named 1.x compatibility paths.
 2. **Laravel queue walking slice:** one command bus/job, one event dispatcher/listener, two opt-in providers,
    a real serializing queue integration test, retry/failure evidence, and after-commit/rollback tests.
-3. **Transactional persistence slice:** T-00059 plus `LaravelTransactionalUnitOfWork` conformance against a real
+3. **Transactional persistence slice:** TASK-00059 plus `LaravelTransactionalUnitOfWork` conformance against a real
    Illuminate connection, including nested rejection and terminal failure state.
 4. **Core convenience adapters:** Laravel cache, hashing, URL generation, JSend response/ErrorController, Blade,
    and capability providers.
@@ -380,7 +380,7 @@ requirement of the Laravel queue adapter.
 - Prove command execution reaches exactly one synchronous Fight handler and event execution preserves Fight
   fan-out/failure semantics.
 - Prove after-commit work is absent before commit and discarded on rollback; document the outbox gap explicitly.
-- Run the T-00059 transaction conformance suite against an Illuminate connection and reject nested entry.
+- Run the TASK-00059 transaction conformance suite against an Illuminate connection and reject nested entry.
 - Use Laravel fakes where they are part of the adapter's value—Mail, Storage, Queue, Event, Process—alongside at
   least one real boundary test for serialization or transport translation.
 - Verify every provider binding through the native Laravel container and an installed-package consumer, then run

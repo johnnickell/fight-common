@@ -206,7 +206,7 @@ The common behavior suite must prove, at minimum:
 - Pin Mercure protocol/integration versions and select the credential delivery mechanism per starter.
 - Decide whether one migration source can remain portable or each native migration system needs equivalent
   project-owned definitions checked by schema receipts.
-- Split the full walking slice into independently reproducible implementation tickets. The research note
+- Split the full walking slice into independently reproducible implementation TASKs. The research note
   does not turn WF-017 into one build ticket.
 
 ## Research boundary
