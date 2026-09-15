@@ -23,14 +23,14 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 |---|---|
 | `AGENTS.md baseline` | `93676d73db6da629a88a4758f8754161617a05cca5ba0a5a7e175395135a6165` |
 | `standards/Architecture.md` | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` |
-| `standards/Delivery.md` | `906262aeed042c56f7574ac78b27fba9acbe067cddc6ed86a3d361f76604d5c1` |
+| `standards/Delivery.md` | `11ff6ac8b1c7a58b5be921ecb0404074f321151a8e3a146809bf626c1eecfdc5` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `54f36212c604615d7c6e2691de41b3b2c843c4f53e59800c9e330eeedf3d3ed5` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `c15df40af05655716afef68d6d3368396e335d673a96af319441a2d896792b2b` |
-| `standards/Review.md` | `752ab5310f15de4ad4905f5112e45fba5e163e06474aef2202e419b8d60fe239` |
+| `standards/Review.md` | `e2490c2948c2e68765a1b698e1a0b2f1ae4d7500f85f8b1f767f0133ab0ceb79` |
 | `standards/Testing.md` | `59ea1b200b9c911849f9cd6acf03479672ddc3120dae0740aa99d6db65b67783` |
 
 ## Project scope and unresolved work

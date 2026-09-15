@@ -33,6 +33,14 @@ PR descriptions explain the final behavior/problem, verification and material li
 
 Before any PR merge, require the current content's independent review with all applicable Spec and Standards criteria passing, or the explicit scoped review-score override defined in [Review](Review.md). The final gate and applicable hosted protections still apply. Release preparation does not waive this requirement. If the change or base has moved, reconcile the evidence before proceeding.
 
+## Delivery chronology
+
+Tracked completion notes describe implementation and verification at an explicit checkpoint, such as “At the pre-publication checkpoint…”. Statements about no commit, PR, merge or deployment must be scoped to that checkpoint when they are historical. Preserve true historical outcomes; correct unqualified claims that misleadingly describe current state. Keep durable implementation facts current rather than treating all stale prose as historical.
+
+Record a verified PR URL in TASK metadata once it exists; never predict a PR number or require publication details before publication. Include an existing PR link before the final gate where possible. When first publication requires a follow-up metadata/view change, verify and deliver that change through normal project gates. This does not require another tracked update to describe the metadata commit itself.
+
+After commit/push/PR creation, record the actual resulting commit, PR, publication outcome and verification references in ignored run/handoff artifacts. Use Git and hosted checks to verify current delivery state. A pre-commit gate identifies the tested tree or content snapshot; after committing, link that evidence to the resulting commit only after confirming the tested content was preserved. A tracked file must never be required to contain its own enclosing commit hash or future CI outcome. Do not create recursive bookkeeping commits merely to restate each new head. Real content changes still require applicable verification and review.
+
 ## Signed library releases
 
 Require John's explicit signoff on the exact version before release mutations. Use `vX.Y.Z` tags. Current-line tags identify the exact release merge commit on main; maintenance tags identify the release commit on that maintenance line. Do not move/recreate a published tag.
