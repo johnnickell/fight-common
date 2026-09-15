@@ -30,8 +30,8 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `c15df40af05655716afef68d6d3368396e335d673a96af319441a2d896792b2b` |
-| `standards/Review.md` | `e2490c2948c2e68765a1b698e1a0b2f1ae4d7500f85f8b1f767f0133ab0ceb79` |
-| `standards/Testing.md` | `cb218f6f726e5a831df5db44f00452a0c814496a86ab62cf1de08616c14fa783` |
+| `standards/Review.md` | `36419ce772dab432a690690bf77d68e2c6f1f385e6c33f2cc93e85406875c35b` |
+| `standards/Testing.md` | `8c38f04f34e7b3bf02faf193c7692d83a45896bfd5054928847f49f06278446d` |
 
 ## Project scope and unresolved work
 
