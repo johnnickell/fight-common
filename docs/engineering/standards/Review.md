@@ -33,9 +33,17 @@ Only apply relevant standards. Missing runtime behavior is not an automatic fail
 
 Each criterion is **Pass**, **Fail**, **Unverified**, or **Not applicable**, with evidence/reason. Fail needs a confirmed violation. Unverified means required proof is absent, remains applicable, and prevents completion; it is not a proven code defect. N/A requires a valid exclusion rather than missing evidence.
 
-For each axis independently: `score = 100 × passed / (passed + failed + unverified)`. Display counts and the score; if no criteria apply, report N/A, not 100. Every applicable criterion must pass before merging, regardless of rounding. Multiple findings keep their criterion failed until all confirmed violations are resolved. Severity orders repairs; it does not change the score or make a mandatory rule optional. Advisory suggestions do not deduct points.
+For each axis independently: `score = 100 × passed / (passed + failed + unverified)`. Display counts and the score; if no criteria apply, report N/A, not 100. Every applicable criterion must pass before merging, regardless of rounding, unless John explicitly authorizes the scoped review-score override below. Multiple findings keep their criterion failed until all confirmed violations are resolved. Severity orders repairs; it does not change the score or make a mandatory rule optional. Advisory suggestions do not deduct points.
 
 A perfect score means complete compliance within this stated scope and evidence. It is not a guarantee of defect-free software. Internal implementation checks use the same criteria as a readiness checklist; formal scoring is the independent review's output.
+
+## Explicit review-score override
+
+John may explicitly authorize landing below 100% on either review axis for a particular PR. First present the current scores, failed/unverified criteria, findings or missing evidence, and practical risks. Bind the authorization to the repository, PR, head/base revisions and accepted exceptions; these may be established by the current conversation rather than requiring John to type hashes. A general request to land, permission to support overrides, or an earlier PR's override is not approval to use one.
+
+Record the authorization, reason if supplied, accepted risks and any agreed follow-up in the ignored review/landing handoff. Preserve actual scores and criterion states; an override does not turn Fail or Unverified into Pass, justify N/A, or imply reviewer approval. Report the outcome as landed with an explicit review-score override. Do not invent follow-up work or a reason on John's behalf.
+
+If head/base content or findings change, reconcile the review and obtain renewed authorization before relying on the override. Reuse authorization already given for the exact reviewed state without asking again. This exception covers the review-score threshold only; it does not waive the full build gate, hosted protections, resource ownership, or separate release/deployment authorization, and does not authorize disabling or bypassing those controls.
 
 ## Adversarial findings
 

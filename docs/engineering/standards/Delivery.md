@@ -31,7 +31,7 @@ Find an existing PR at workflow entry and immediately before PR creation. Establ
 
 PR descriptions explain the final behavior/problem, verification and material limitations, and include the Before/After evidence section required by [Testing](Testing.md). Verify the published evidence, not just local captures. Preserve a history of first failures and later successful gates in evidence. Do not expose private reference identities, local credentials, or private research. Read and honor hosted branch protection; unavailable CI requires the project's explicit policy or a decision, not a fabricated pass.
 
-Before any PR merge, require the current content's independent review with all applicable Spec and Standards criteria passing, the final gate, and applicable hosted protections. Release preparation does not waive this requirement. If the change or base has moved, reconcile the evidence before proceeding.
+Before any PR merge, require the current content's independent review with all applicable Spec and Standards criteria passing, or the explicit scoped review-score override defined in [Review](Review.md). The final gate and applicable hosted protections still apply. Release preparation does not waive this requirement. If the change or base has moved, reconcile the evidence before proceeding.
 
 ## Signed library releases
 
