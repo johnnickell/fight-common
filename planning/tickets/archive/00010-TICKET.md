@@ -1,50 +1,232 @@
 ---
-id: T-00010
-prd: PRD-00005
-title: Run projections with in-memory checkpoints
+id: TICKET-00010
+epic: EPIC-00003
+title: Deterministic Release Foundation
 status: done
-blocked_by: T-00007
 ---
 
-# Run Projections With In-Memory Checkpoints
+# Deterministic Release Foundation
 
-## What to Build
+> Historical outcome: this foundation was completed by TASK-00032 and TASK-00040. ADR 0025 later retired its simulated
+> inspection, plan, run-state, boundary-fake, and recovery machinery in favor of thin release certification.
 
-Let a stably named projector consume already-upcasted stored events in global order, update read state at least once, checkpoint every successful event or skip, and retry the first failed position without processing later events.
+## Problem Statement
 
-## Blocked By
+Fight Common has accepted release policy, compatibility rules, and phase boundaries, but they exist as
+planning contracts rather than an executable coordination system. An operator cannot yet create an immutable
+release plan, identify a resumable run, invoke one bounded release capability, or obtain a machine result that
+distinguishes success from drift, missing authority, failed evidence, conflicts, or uncertain external state.
 
-- T-00007 — Implement the in-memory Event Store.
+Building later packaging and publication behavior directly around shell commands or provider APIs would make
+policy, state, evidence, and failure handling drift across entry points. It would also make realistic tests
+depend on live Git remotes, signing identities, GitHub, or Packagist, which would weaken the approval boundary
+and make crash recovery difficult to prove.
 
-## Acceptance
+## Solution
 
-- [x] Each projector declares a stable name and the current event payload FQCNs it handles.
-- [x] Projectors receive already-upcasted `StoredEvent` values and are documented as requiring idempotent read-state operations.
-- [x] `ProjectionRunner` polls bounded global batches and preserves global order.
-- [x] The checkpoint advances after every successful projection or undeclared-event skip.
-- [x] A projector failure stops immediately, leaves the failed event uncheckpointed, propagates, and prevents later positions from running.
-- [x] In-memory checkpoint saves are monotonic; explicit reset returns only the named projector to zero.
-- [x] Replay, skip, failure, crash-duplicate, and adding-a-type rebuild scenarios have complete coverage.
+Establish one repository-owned `bin/release` command surface backed by a release-coordination core. The core
+owns immutable content-addressed plans, uniquely identified runs, append-only transitions, current-state
+projections, phase handoffs, machine results, evidence manifests, capability enforcement, and
+postcondition-driven resume.
 
-## Outcome
+Put filesystem, Git, hashing, time, signing, authorization, GitHub, and Packagist interactions behind explicit
+ports. Provide deterministic fakes, effect ledgers, and controllable crash points so every later journey can be
+proved offline through the same public command boundary without production credentials or external mutation.
 
-Added framework-free projector and checkpoint contracts, a one-batch `ProjectionRunner`, and the in-memory
-checkpoint reference adapter. Projectors route on already-upcasted current payload classes, declared events
-and undeclared skips advance independently in global order, and failures stop without checkpointing the
-failed position. Checkpoints are isolated and monotonic, while explicit named reset supports consumer-owned
-read-model rebuilds without adding arbitrary rewind or worker policy.
+## User Stories
 
-Tests prove historical upcasting before projection, bounded polling, per-event checkpoint saves, fail-stop
-retry, the crash-after-write duplicate window, reset isolation, and rebuilding history after adding a handled
-type.
+1. As an operator, I want one release command surface, so that release policy and result semantics cannot drift
+   across unrelated scripts.
+2. As an operator, I want every subcommand to declare its capability boundary, so that a read-only or
+   verification phase cannot perform a local or external mutation.
+3. As an operator, I want inspection to recommend the minimum valid SemVer increment, so that I can make the
+   exact version decision with deterministic evidence.
+4. As an authorizer, I want the exact version approved before an authoritative plan exists, so that a
+   recommendation cannot become release authority by itself.
+5. As an operator, I want a release plan derived from canonical versioned data, so that identical inputs have
+   one stable `plan_id`.
+6. As an operator, I want changed bound inputs to produce a new plan identity, so that stale approvals cannot
+   silently carry forward.
+7. As an operator, I want source commits, baselines, support policy, release class, evidence requirements, and
+   approvals bound into the plan, so that moving refs remain descriptive rather than authoritative.
+8. As an operator, I want every execution attempt to have its own `run_id`, so that retry and resume evidence
+   cannot be confused with the immutable plan.
+9. As an operator, I want run transitions preserved in append order, so that the path to the current state is
+   auditable.
+10. As an operator, I want a current-state projection updated atomically, so that readers never observe a
+    partially written state.
+11. As an operator, I want concurrent mutations of one run rejected or serialized, so that two invocations
+    cannot advance the same release inconsistently.
+12. As an operator, I want resume to re-resolve inputs and postconditions, so that a prior state label or zero
+    exit code is never mistaken for current truth.
+13. As an operator, I want already-satisfied postconditions reported as idempotent success, so that safe
+    re-entry does not duplicate effects.
+14. As an operator, I want every command to emit versioned machine-readable JSON, so that skills, CI, and
+    humans share one result contract.
+15. As an operator, I want stable coarse exit classes and detailed finding IDs, so that automation can route
+    outcomes without discarding the specific reason.
+16. As an operator, I want every result to identify the next permitted operation or required human action, so
+    that failures remain resumable rather than becoming dead ends.
+17. As a phase owner, I want one durable handoff shape, so that the next phase can revalidate the plan, run,
+    object IDs, evidence, approvals, and stop state before acting.
+18. As a certifier, I want one compact immutable evidence manifest, so that raw logs or a hosted check cannot
+    substitute for composed release evidence.
+19. As an auditor, I want supporting logs bounded, redacted, and digest-linked, so that diagnostics remain
+    useful without becoming an unbounded or secret-bearing authority.
+20. As an operator, I want explicit progress and stop states, so that drift, policy failure, missing authority,
+    conflict, failed evidence, indeterminate evidence, partial publication, unverifiable state, supersession,
+    and EOL are not collapsed into generic failure.
+21. As a boundary implementer, I want explicit ports for effectful systems, so that provider behavior does not
+    leak into release policy.
+22. As a test author, I want deterministic fakes and effect ledgers for every boundary, so that I can prove
+    intended effects and forbidden effects without credentials.
+23. As a test author, I want controllable failure, uncertainty, and crash points, so that recovery behavior is
+    executable rather than aspirational.
+24. As a security-conscious maintainer, I want production credentials unavailable to the test process, so
+    that a test cannot accidentally mutate a real release system.
+25. As a future phase implementer, I want the foundation to expose stable plan, run, handoff, result, and port
+    contracts, so that packaging, certification, publication, maintenance, and patching compose instead of
+    rebuilding coordination state.
 
-## Verification
+## Implementation Decisions
 
-- Rector dry-run: clean across 387 source files.
-- PHPStan: clean across 387 files.
-- PHPCS: clean.
-- PHPUnit: 2,932 tests and 4,675 assertions passed; 26 environment-dependent tests skipped.
-- Coverage: 8,002/8,002 statements and 1,756/1,756 methods.
-- Planning validation: clean with 59 records and 45 active after closure synchronization.
-- Two-axis review: zero blocking Standards findings and zero Spec findings; one nonblocking test-local
-  duplicated-stub judgment remains.
+- `bin/release` is the stable public dispatcher. Its narrow subcommands cover inspection, planning,
+  preparation, packaging, certification, publication, branch maintenance, patching, forward-porting, and
+  verification; one invocation performs only the capability declared by the selected subcommand.
+- Release coordination is divided into an inward policy and state core, an artifact store, a command adapter,
+  and explicit outer boundary adapters. Provider-specific concerns do not determine release state or policy.
+- A plan is immutable canonical JSON with an explicit schema version. Its `plan_id` is the SHA-256 digest of
+  that canonical representation.
+- A plan binds the exact approved version, inspected minimum release class, derived baseline-relative actual
+  release class, source commit OID, baseline version, tag-object and
+  peeled commit OIDs, support-policy identity, expected effect classes, evidence requirements, compatibility
+  exceptions, and required approvals. Branch and tag names are descriptive references that must be
+  re-resolved.
+- Inspection may recommend the minimum SemVer increment, but authoritative plan creation requires explicit
+  approval of one exact version through a complete typed `release_approval_authority`; a version-only approval
+  string is insufficient. The record binds its approval ID, exact version, candidate OID, canonical baseline tag,
+  tag-object and peeled OIDs, evidence-manifest digest, complete canonical compatibility-exception ID set,
+  inspected minimum class, and derived actual class, and its ID is named by `required_approvals`. Any changed
+  binding invalidates it before hashing or effects. The approved version may equal the minimum or be any higher
+  canonical stable SemVer. A lower version must be the next patch from the bound baseline and requires a matching
+  `patch-exception:<exception-id>:exact-version:<X.Y.Z>` compatibility-exception entry plus one complete
+  `patch_exception_authorities` record. The record binds that lowercase authority ID and exact version to the
+  exact candidate commit, baseline tag-object and peeled commit OIDs, one closed emergency class, positive
+  no-compatible-repair attestation and evidence, the complete canonical compatibility assessment, exactly its
+  non-patch findings, consumer impact, mitigation, test evidence, recovery posture, evidence-manifest digest,
+  and a repository release-authority approval also named by `required_approvals`. The authority has a canonical
+  content digest also bound by the release approval. Missing, incomplete, wildcard, duplicate, ambiguous,
+  unrelated, stale, unreferenced, or mismatched records stop before hashing or writing. A lower-patch plan has
+  exactly one matching reference and one authority record for its approved version, and the authority's complete
+  assessment derives exactly the plan's inspected minimum class. A plan approving the inspected minimum or a
+  higher version has no patch-exception reference or authority record, and its release approval binds an empty
+  patch-exception authority digest set. Set-like evidence
+  normalizes canonically; any material bound-input change creates a new plan rather than editing the old one.
+- Inspection derives that minimum from the complete fourteen-record compatibility evidence schema accepted in
+  ADR 0013. Each record binds one closed category, a category-scoped stable finding ID, a category-scoped stable
+  evidence ID, and its independent `patch`, `minor`, `major`, or `indeterminate` classification. The aggregate is
+  always the maximum independent minimum. Missing, duplicate, unknown, malformed, or indeterminate evidence and
+  caller-declared aggregate, recommendation, or class fields, including legacy `change_class` and result-shaped
+  aliases, stop before Git boundary effects. Inspection accepts only its documented top-level authority fields
+  plus the controlled `boundary` and `git_resolution` fixture controls; other top-level fields fail closed.
+- Each execution attempt receives a unique `run_id` associated with one `plan_id`. Retrying creates a new run;
+  resuming continues a named run only after revalidation.
+- Run history is an append-only transition sequence. A replaceable current-state projection is derived from
+  that history and becomes visible atomically. Mutating one run requires single-writer exclusion; the
+  implementation mechanism may vary as long as concurrent advancement fails closed.
+- Progress states are `planned`, `prepared`, `packaged`, `certified`, explicit publication stages, and
+  `verified`. Stop states are `stale_plan`, `policy_blocked`, `authority_required`, `conflict`,
+  `certification_failed`, `evidence_indeterminate`, `partial_publication`,
+  `external_state_unverifiable`, `superseded`, and `stopped_at_eol`.
+- Every state exposes exactly one resumable next action or one required human action. Generic failure is not a
+  substitute for a classified stop.
+- Resume re-resolves every bound input and verifies every completed postcondition. A state label, prior
+  command completion, dry-run result, or cached remote response is not sufficient evidence.
+- A verified already-satisfied postcondition is idempotent success. An uncertain effect is never treated as
+  idempotent success until reconciliation proves its postcondition.
+- Every normally completed invocation emits a versioned machine result containing the command and capability,
+  plan and run IDs
+  when available, status, stable exit classification, detailed findings, verified postconditions, artifact
+  references, performed or proposed effects, and the next action.
+- Failure to start the canonical release runtime is the sole infrastructure result: exit `70`, status
+  `infrastructure_unavailable`, exit class `failed`, finding `release.runtime.bootstrap_unavailable`, no command
+  success fields or effects, and exactly one `restore_release_runtime_and_retry` action. Its command is normalized
+  to `inspect`, `plan`, supported `prepare`, or `unknown`, with capability `release_inspection`,
+  `release_planning`, `release_preparation`, or `unsupported_command`, respectively.
+- Once the canonical PHP process or release container starts, termination without a valid authenticated normal
+  result uses exit `71`, status `infrastructure_terminated`, exit class `failed`, finding
+  `release.runtime.result_unavailable`, no command success fields, postconditions, or effects, and exactly one
+  `inspect_release_runtime_termination` action. Its command and capability retain the same supported-command
+  normalization as exit `70`. This includes generic fatal errors, resource or signal termination, helper
+  termination, non-governed exits, and missing, malformed, or unauthenticated result sidebands. Governed normal
+  results retain their declared exit, while an authenticated configured crash retains exit `86` without JSON.
+- A configured deterministic fake crash is deliberately abnormal: it records the attempted effect and abruptly
+  interrupts execution without emitting a normal machine result, performing a later effect, or claiming a
+  postcondition. This test-only crash point proves interruption windows; recoverable provider outcomes continue
+  to use the ordinary versioned machine-result contract.
+- Machine results are authoritative over their human-readable rendering. Detailed finding IDs carry policy
+  meaning while a small stable set of process exit codes supports shell and CI routing.
+- A phase handoff contains `plan_id`, `run_id`, phase, status, all bound object IDs and digests, approvals,
+  evidence references, any stop state, and exactly one next action. Missing or stale required data makes the
+  handoff non-resumable.
+- The evidence manifest is immutable, canonical, versioned JSON with a content-derived `manifest_id`. Bounded
+  logs support the manifest but do not replace it.
+- Filesystem, Git, hashing, clock, signing, authorization, GitHub, and Packagist capabilities are explicit
+  ports. Each port has deterministic fakes that record ordered effects, can return success, refusal, failure,
+  ambiguity, or drift, and can throw at a configured crash point.
+- Capability enforcement occurs before a boundary call. A command rejects an effect outside its phase even
+  when the injected adapter could technically perform it.
+- Planning control artifacts may be written under `.runs/` without authorizing tracked-file, dependency, Git
+  ref, branch, credential, or external-system mutation.
+- Test and fake composition never loads production credentials. Live-provider verification remains a
+  separately authorized operator concern.
+
+## Testing Decisions
+
+- The primary seam is process execution of the public release command against a controlled temporary
+  repository and deterministic boundary fakes.
+- Foundation journey tests assert machine results, exit classifications, plans, transition history,
+  projections, handoffs, evidence references, effect ledgers, and absence of forbidden effects.
+- Canonicalization fixtures prove identical semantic inputs produce identical plan and manifest IDs while a
+  change to any bound field produces a different identity.
+- State-store tests prove append ordering, atomic projection visibility, single-writer behavior, crash-safe
+  re-entry, and preservation of the prior valid state after an interrupted write.
+- Resume tests alter source refs, baselines, policy inputs, approvals, evidence, and postconditions between
+  invocations and assert the precise stop or idempotent-success result.
+- Machine-result contract tests cover every progress state, stop state, stable exit class, detailed finding,
+  artifact reference, and next-action requirement.
+- Phase-handoff contract tests reject missing bindings, stale bindings, multiple next actions, and handoffs
+  whose claimed postconditions cannot be reverified.
+- Every effectful port has one reusable conformance suite covering success, refusal, failure, uncertainty,
+  drift, already-satisfied postconditions, and crash behavior where applicable.
+- Public-command crash journeys assert a nonzero abrupt interruption, no normal JSON machine result, and no
+  later effect, artifact, or persisted postcondition.
+- Capability tests deliberately inject permissive fakes and prove the command rejects out-of-phase actions
+  before any effect is recorded.
+- Credential-isolation tests prove offline suites neither require nor read live signing, GitHub, Packagist, or
+  remote Git credentials.
+- Tests assert public command behavior and durable artifacts rather than private class structure, serialization
+  implementation details, or provider SDK calls.
+- All production classes require complete statement coverage, and TASK-00032 and TASK-00040 must pass the repository
+  submit gate plus their deterministic offline journey tests.
+
+## Out of Scope
+
+- Performing a real package, certification, release publication, maintenance transition, patch, or forward
+  port.
+- Provisioning signing keys, signer fingerprints, GitHub environments, branch protection, Packagist access,
+  or any other hosted configuration.
+- Implementing the complete archive, certification-lane, publication-recovery, maintenance, patch, skill,
+  catalog, runbook, or CI journeys owned by later TICKETs.
+- Making a release version recommendation authoritative without explicit human approval.
+- Treating logs, branch names, mutable refs, provider acknowledgements, or hosted check status as release
+  authority.
+- Allowing one command invocation or skill to cross multiple release-phase effect classes.
+
+## Further Notes
+
+- ADR 0014 defines the command, plan, run, state, evidence, authorization, and recovery foundations.
+- TICKET-00011 builds packaging, certification, publication, and recovery on these contracts. TICKET-00012 adds
+  maintenance and patch-line orchestration. TICKET-00013 adds the operator-facing surfaces and CI integration.
+- TASK-00032 proves deterministic inspection and plan creation. TASK-00040 proves resumable run state and phase
+  handoffs. Both must complete without a live external release effect.

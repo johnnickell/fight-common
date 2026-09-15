@@ -2,23 +2,19 @@
 
 This directory is the committed source of truth for Fight Common planning.
 
-- `ROADMAP.md` records strategic progress.
-- `epics/` describes destinations.
-- `specs/` describes coherent product requirements.
-- `tickets/` contains executable work; each ticket is canonical for its own status and dependencies.
-- `tickets/BOARD.md` ranks the current execution frontier.
-- `adr/` records architectural decisions.
-- `agents/` contains focused working instructions.
-- `wayfinder/` contains planning-only investigation maps and decision tickets for efforts whose
-  implementation route is not clear enough for an epic or PRD yet.
+- [Conventions](CONVENTIONS.md): hierarchy, templates, lifecycle, generated views, and archive operations.
+- [TASK Board](tasks/BOARD.md): current work, priority, blockers, and PR links.
+- [Roadmap](ROADMAP.md): strategy and current EPICs.
+- [EPICs](epics/README.md): business destinations.
+- [TICKETs](tickets/README.md): related use cases and requirements.
+- [TASKs](tasks/README.md): bounded executable work, normally one PR each.
+- [Wayfinder maps](wayfinder/README.md): uncertain destinations and decision frontiers.
+- [Migration map](MIGRATION.md): legacy PRD and executable-ticket IDs and paths.
+- `adr/`: architectural decisions; `agents/`: focused working instructions.
 
-Every artifact directory keeps a `_…_TEMPLATE.md` copy-ready starting point. There is no current Fight Common
-planning frontier. Archives remain part of this committed planning record: use `./bin/archive-planning` only when
-explicitly asked, review its dry run, then use `--apply` to move eligible terminal records and repair local
-Markdown links. New 2.0 work begins with fresh planning in the repository that owns the proposed scope.
+Each level has a separate five-digit sequence. Records own their metadata; the Board and indexes derive it.
+Use `./bin/planning-check --write` to refresh marked sections, then `./bin/planning-check` to verify consistency.
+The canonical `./bin/build` includes the read-only check. Copy-ready templates begin with `_` and are not records.
 
-Identifiers are independent five-digit sequences. Ticket identifiers are displayed as `T-NNNNN`. Valid statuses are `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `in-progress`, `done`, and `wontfix`. Blocking is derived from unfinished `blocked_by` edges and is not stored as a status.
-
-`CONVENTIONS.md` is the canonical reference for planning structure, file naming, ticket lifecycle, BOARD.md, wayfinder maps, epics, PRDs, and pre-PR synchronization.
-
-Run `./bin/planning-check` after changing planning files. Coordinate-build scratch belongs in gitignored `.runs/`, never here.
+Archive only when explicitly requested, using `./bin/archive-planning` with a reviewed dry run before `--apply`.
+Run material belongs in ignored `.runs/`; durable requirements and outcomes belong here.

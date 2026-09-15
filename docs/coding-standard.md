@@ -134,7 +134,7 @@ reproduction.
 
 Fight Common owns behavioral fixtures for the published standard:
 
-Fight Common is the canonical implementation after T-00018 is accepted; the listed fixtures preserve the
+Fight Common is the canonical implementation after TASK-00018 is accepted; the listed fixtures preserve the
 accepted standard's behavior without requiring consumers to retain another source repository.
 
 - `MechanicalConventions.*.inc` covers strict types, trailing commas, arrow alignment, blank lines before returns,

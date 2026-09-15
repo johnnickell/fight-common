@@ -1,6 +1,9 @@
-# Epics
+# EPIC Index
 
-No live epics. Completed and retired epics are retained in the [archive](archive/README.md).
+Generated from individual records. Preserve IDs and history; archive only on an explicit request.
 
-Create future epics from [_EPIC_TEMPLATE.md](_EPIC_TEMPLATE.md) after Wayfinder resolves the destination and
-handoff.
+<!-- planning:records -->
+| ID | Title | Status | Parent |
+|---|---|---|---|
+| None | — | — | — |
+<!-- /planning:records -->

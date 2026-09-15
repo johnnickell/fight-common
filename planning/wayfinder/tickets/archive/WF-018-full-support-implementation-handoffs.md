@@ -5,18 +5,18 @@
 **Status:** Closed
 **Planning synthesis:** Complete
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specifications:** [PRD-00016 — Fight Package and Starter Repository Ownership](../../../specs/archive/00016-PRD.md), [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../specs/archive/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../specs/archive/00018-PRD.md)
+**Specifications:** [TICKET-00016 — Fight Package and Starter Repository Ownership](../../../tickets/archive/00016-TICKET.md), [TICKET-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../tickets/archive/00017-TICKET.md), [TICKET-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../tickets/archive/00018-TICKET.md)
 **Depends on:** [Prove persistence, UnitOfWork, and walking-slice portability](WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
 
 ## Question
 
-How should the resolved decisions become Fight Common implementation tickets, a Fight AccessControl
+How should the resolved decisions become Fight Common implementation TASKs, a Fight AccessControl
 repository plan, five starter repository plans, complete documentation work, and coordinated release
 gates without creating one oversized cross-repository build?
 
 ## Must decide
 
-- Fight Common PRDs and vertical tickets for compatibility repair, typed JSend, namespace shims,
+- Fight Common TICKETs and vertical tickets for compatibility repair, typed JSend, namespace shims,
   framework adapters, Composer metadata, documentation, and dependency matrices;
 - bootstrap contract for creating Fight AccessControl and each public-source starter with canonical planning,
   `AGENTS.md`, architecture checks, `./bin/build`, CI, licensing, security policy, and contribution docs;
@@ -50,10 +50,10 @@ gates without creating one oversized cross-repository build?
   foundations may proceed concurrently, but login implementation waits for its required Fight Common
   and Fight AccessControl contracts.
 - Keep only shared prerequisite coordination tickets and one bootstrap/handoff ticket per new repository
-  in Fight Common. After bootstrap, author and track detailed implementation tickets in the repository
+  in Fight Common. After bootstrap, author and track detailed implementation TASKs in the repository
   that owns the work; the umbrella map links those plans without copying their acceptance criteria or status.
 - Fight AccessControl and every `project-*` starter are public source. Fight AccessControl completed its public-
-  surface, licensing, security, documentation, clean-clone, and hosted-build gates during T-00061 under MIT.
+  surface, licensing, security, documentation, clean-clone, and hosted-build gates during TASK-00061 under MIT.
   Public source does not authorize a version tag, Packagist registration, template enablement, or release.
 - Permit starter login implementation once its required Fight Common and Fight AccessControl contracts,
   reusable behavioral conformance tests, and human UAT contract are merged and green at immutable public
@@ -66,7 +66,7 @@ gates without creating one oversized cross-repository build?
 - Carry one user-valued vertical slice through all five starter repositories before beginning the next
   shared use case. A failure pauses that shared frontier while passing repositories remain green.
 - Decompose each ordered AccessControl use case as one repository-owned Domain/Application ticket in Fight
-  AccessControl when shared behavior must change, followed by one implementation ticket in each starter.
+  AccessControl when shared behavior must change, followed by one implementation TASK in each starter.
   Advance only after every required ticket in that six-repository slice packet is green. When the existing
   package already satisfies the use case, omit the shared ticket and record that no package change is needed.
 - Let `project-symfony` satisfy its login ticket by extracting and adapting the existing Symfony behavior.
@@ -109,17 +109,17 @@ gates without creating one oversized cross-repository build?
 
 ## Implementation graph
 
-- [T-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](../../../tickets/archive/00061-TICKET.md)
-  is complete and established the shared package's local PRD-00001 authority, preserving Fight Common
-  PRD-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
-- [T-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](../../../tickets/archive/00062-TICKET.md),
-  [T-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](../../../tickets/archive/00063-TICKET.md),
-  [T-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../../tickets/archive/00064-TICKET.md), and
-  [T-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../../tickets/archive/00065-TICKET.md)
+- [TASK-00061 — Bootstrap the Fight AccessControl Repository and Transfer Authority](../../../tasks/archive/00061-TASK.md)
+  is complete and established the shared package's local TICKET-00001 authority, preserving Fight Common
+  TICKET-00017 only as immutable source provenance, plus its immutable bootstrap receipt.
+- [TASK-00062 — Bootstrap the Public Symfony Starter and Transfer Authority](../../../tasks/archive/00062-TASK.md),
+  [TASK-00063 — Bootstrap the Public Laravel Starter and Transfer Authority](../../../tasks/archive/00063-TASK.md),
+  [TASK-00064 — Bootstrap the Public Yii Starter and Transfer Authority](../../../tasks/archive/00064-TASK.md), and
+  [TASK-00065 — Bootstrap the Public CodeIgniter Starter and Transfer Authority](../../../tasks/archive/00065-TASK.md)
   are complete and each transferred its public-source foundation and repository-local planning authority.
-  [T-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../../tickets/archive/00066-TICKET.md) completed
+  [TASK-00066 — Bootstrap the Public Slim Starter and Transfer Authority](../../../tasks/archive/00066-TASK.md) completed
   the final Slim handoff.
-- [T-00067 — Verify All Six Repository Handoffs and Close WF-018](../../../tickets/archive/00067-TICKET.md) verified the six
+- [TASK-00067 — Verify All Six Repository Handoffs and Close WF-018](../../../tasks/archive/00067-TASK.md) verified the six
   terminal bootstraps, canonical local-plan links, immutable receipts, and dependency order, then closed this
   Wayfinder without centralizing local work.
 - Repository creation, tags, publication, and distribution remain execution-time actions requiring their own
@@ -127,11 +127,11 @@ gates without creating one oversized cross-repository build?
 
 ## Planning synthesis state
 
-The Fight Common planning layer is complete as of 2026-08-17. PRD-00014 through PRD-00016 produced the
-Fight Common implementation and handoff graph through T-00067. Running `/to-tickets` for PRD-00017 or
-PRD-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
-and the five starter repositories after their respective authority transfers. WF-018 is closed: T-00066 completed
-the remaining repository handoff and T-00067 completed the final umbrella verification.
+The Fight Common planning layer is complete as of 2026-08-17. TICKET-00014 through TICKET-00016 produced the
+Fight Common implementation and handoff graph through TASK-00067. Running `/to-tickets` for TICKET-00017 or
+TICKET-00018 in Fight Common is intentionally a no-op: detailed capability tickets belong to Fight AccessControl
+and the five starter repositories after their respective authority transfers. WF-018 is closed: TASK-00066 completed
+the remaining repository handoff and TASK-00067 completed the final umbrella verification.
 
 ## Resolution boundary
 

@@ -1,14 +1,21 @@
 # Roadmap
 
-Fight Common has no active roadmap commitments. Completed and retired planning remains available through the
-[epic archive](epics/archive/README.md), [PRD archive](specs/archive/README.md), and
-[ticket archive](tickets/archive/README.md).
+## Current EPICs
 
-## In Progress
+<!-- planning:epics -->
+| EPIC ID | Title | Target | Status |
+|---|---|---|---|
+| None | — | — | — |
+<!-- /planning:epics -->
 
-No active epics.
+## Strategy and next decisions
 
-## Future Planning
+The immediate planning-surface adoption chore appears on the [TASK Board](tasks/BOARD.md). It does not create a
+new product EPIC. Potential 2.0 work begins with fresh planning in the repository that owns the proposed scope;
+do not reopen archived work as an active commitment.
 
-Potential 2.0 work begins with fresh planning in the repository that owns the proposed scope. It must not reuse
-an archived epic, PRD, or ticket as an active commitment.
+## Completed and retired work
+
+Use the [EPIC archive](epics/archive/README.md), [TICKET archive](tickets/archive/README.md), and
+[TASK archive](tasks/archive/README.md). Historical completion narratives remain in their records; current
+status is generated from metadata.

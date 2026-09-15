@@ -4,7 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specifications:** [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../../specs/archive/00014-PRD.md), [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../specs/archive/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../specs/archive/00018-PRD.md)
+**Specifications:** [TICKET-00014 — Fight Common Contract Repair and Compatibility Certification](../../../tickets/archive/00014-TICKET.md), [TICKET-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../tickets/archive/00017-TICKET.md), [TICKET-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../tickets/archive/00018-TICKET.md)
 **Depends on:** [Select supported framework lines and default capability compositions](WF-015-framework-lines-and-default-capability-compositions.md), [Specify the Fight AccessControl extraction and authentication model](WF-016-access-control-extraction-and-authentication-model.md)
 
 ## Question
@@ -246,7 +246,7 @@ AccessControl Domain and Application walking slice in every framework without un
 - Carry each vertical slice through all five framework projects before beginning the next shared use case.
   No framework project becomes the accidental design authority by racing ahead through the capability set.
 - Keep one canonical use-case contract with the shared AccessControl work. Each framework repository owns
-  an implementation ticket that links to that contract and adds only its framework-specific acceptance and
+  an implementation TASK that links to that contract and adds only its framework-specific acceptance and
   composition details; it does not copy and independently redefine the use case.
 - When one framework cannot implement a shared slice naturally, keep the passing projects green, record the
   failing executable case, and pause advancement to the next shared slice while the common seam is resolved.
@@ -426,7 +426,7 @@ The experiment also records two narrower findings:
   `commit()` in 2.0 rather than forcing a no-op or unsupported method into those adapters;
 - the current `DoctrineUnitOfWork` permits a nested `commitTransactional()` call, while the three disposable
   native adapters reject nesting explicitly. The Doctrine lane therefore fails the accepted nesting policy.
-  Resolve that behavior through the smallest Fight Common implementation ticket before advancing to the next
+  Resolve that behavior through the smallest Fight Common implementation TASK before advancing to the next
   shared walking slice; the nesting correction requires no transaction-port signature change.
 
 A follow-up comparison receipt proves the smallest Doctrine correction shape: a readonly adapter can inspect
@@ -434,7 +434,7 @@ DBAL's active transaction nesting level before delegating to `EntityManagerInter
 The disposable guarded adapter preserves callback results, atomic commit, rollback, exception propagation,
 and Doctrine close-on-rollback behavior while rejecting the nested call with `LogicException`. The production
 adapter remains unchanged on this prototype branch; carry this adapter-local guard and its focused regression
-test into the Fight Common implementation ticket. No mutable guard state, wrapper abstraction, or change to
+test into the Fight Common implementation TASK. No mutable guard state, wrapper abstraction, or change to
 the `TransactionalUnitOfWork` operation signatures is justified. The separate additive port split above is
 required by `commit()` portability, not by Doctrine's nesting behavior.
 
@@ -690,7 +690,7 @@ not reach either transport. An unapproved topic family fails before publication.
 
 This evidence rejects a change to the existing `Publisher` signature and selects the smallest additive port:
 `PrivatePublisher::pushPrivate(string $topic, string $message): void`. Existing public publishers and consumers
-remain source-compatible. A future Fight Common implementation ticket may add the port and Mercure adapter;
+remain source-compatible. A future Fight Common implementation TASK may add the port and Mercure adapter;
 the Laravel implementation remains starter-owned because Reverb is the selected native composition.
 
 The runner invokes the subscriber only after a deterministic commit probe and shows that a later transport

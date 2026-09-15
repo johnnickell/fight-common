@@ -31,7 +31,7 @@ The public integration documentation includes a copy-ready consumer ruleset show
 loading, consumer-owned scan and exclusion patterns, individual sniff inclusion and exclusion, and explicit
 overrides for configurable sniffs. This documented configuration is the supported discovery contract.
 
-T-00018 transfers canonical ownership of the reusable standard from Omphalos's local implementation to
+TASK-00018 transfers canonical ownership of the reusable standard from Omphalos's local implementation to
 Fight Common after behavior parity is proven. Omphalos's copy is temporary after that point. Replacing it
 with the released Fight Common standard is separately planned and delivered in the Omphalos repository and
 does not block Fight Common 1.2 acceptance.

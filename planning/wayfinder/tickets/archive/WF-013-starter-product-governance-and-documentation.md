@@ -4,7 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specification:** [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../specs/archive/00018-PRD.md)
+**Specification:** [TICKET-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../tickets/archive/00018-TICKET.md)
 **Depends on:** [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md)
 
 ## Question

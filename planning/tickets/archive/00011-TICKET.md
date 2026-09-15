@@ -1,56 +1,74 @@
 ---
-id: T-00011
-prd: PRD-00005
-title: Persist projection checkpoints with DBAL
+id: TICKET-00011
+epic: EPIC-00003
+title: Thin Certification and Separately Authorized Publication
 status: done
-blocked_by: T-00008,T-00010
 ---
 
-# Persist Projection Checkpoints With DBAL
+# Thin Certification and Separately Authorized Publication
 
-## What to Build
+## Problem Statement
 
-Persist each projector's monotonic progress and explicit reset-to-zero behavior through DBAL so production projections retain the same recovery guarantees as the in-memory contract.
+Fight Common needs credible evidence that an exact candidate passes supported dependency lanes, produces an
+installable archive, preserves the promised package surface, and works from a production-only consumer. It does not
+need a second release-management product that simulates Git, signing, GitHub, Packagist, failure recovery, or state
+transitions inside the library repository.
 
-## Blocked By
+Certification and publication have different authority. Local verification may create an archive and evidence
+record, but it cannot authorize merging, tagging, pushing, publishing a GitHub Release, changing Packagist, or
+deploying anything.
 
-- T-00008 — Implement the Doctrine DBAL Event Store.
-- T-00010 — Run projections with in-memory checkpoints.
+## Solution
 
-## Acceptance
+TASK-00056 provides one fail-fast `./bin/release certify <version>` operation for a clean exact commit. It resolves a
+baseline lane and runs that, latest-compatible, and lowest-compatible product gates in disposable exports; creates
+a Composer archive; installs
+it in a clean `--no-dev` consumer; executes representative public behavior; checks the compatibility manifest; and
+cites the accepted TASK-00075 starter receipts. The output is one compact local certification record and archive.
 
-- [x] The DBAL checkpoint store independently loads and monotonically saves each stable projector name.
-- [x] Explicit reset sets only the named projector to position zero.
-- [x] Arbitrary backward positions are rejected.
-- [x] SQLite, MySQL-compatible, and PostgreSQL behavior matches the in-memory checkpoint contract under initial, duplicate, forward, backward, reset, and concurrent progress.
-- [x] Operational documentation requires stopping the projector worker and clearing or recreating its read model before reset.
-- [x] Adapter behavior has complete coverage.
+TASK-00035 recorded the published immutable GitHub `v1.2.0` release with no assets and the verified annotated tag
+peeling to `a2cd615d9b5064c9c30e994655536176249cd73b`. TASK-00041 independently observed that Packagist projects the
+same commit, then installed exactly `johnnickell/fight-common:v1.2.0` in a clean `--prefer-dist --no-dev` consumer,
+where the public behavior probe passed and `Fight\Release\` remained unavailable. Each external effect requires
+explicit authority and independent postcondition verification.
 
-## Outcome
+## Requirements
 
-Added an independently installable `DbalProjectionCheckpointStoreSchema` and a durable
-`DbalProjectionCheckpointStore` implementing the existing Application-layer checkpoint port. The adapter uses
-database-enforced conditional advances plus concurrent-insert recovery so independent workers cannot regress a
-stable projector's committed progress. Initial zero, duplicate and forward saves, arbitrary backward rejection,
-stable-name isolation, and idempotent named reset match the in-memory reference contract.
-
-One reusable lifecycle suite now covers the in-memory adapter and all DBAL backends. A shared two-process,
-two-connection conformance test proves monotonic concurrent progress on SQLite, MySQL 8.4.11, and PostgreSQL 17.
-Reset remains an administrative operation: consumers stop the worker and clear or recreate that projector's read
-model before returning only its checkpoint to zero. The local PHP 8.5 image now includes `pdo_pgsql`, matching the
-existing CI runtime without adding a persistent database service.
+- Certification requires a clean checkout and binds the full `HEAD` commit and archive SHA-256.
+- Every required lane must finish successfully; missing, skipped, running, failed, stale, or indeterminate evidence
+  is not a pass.
+- Exact resolved versions and command-output digests are recorded without treating raw logs as certification.
+- `Fight\Release\` remains development-only and unavailable through an installed package's production autoloader.
+- Historical starter receipts are cited by repository, commit, path, and digest and are rerun only when their
+  integration or dependency claim changes.
+- Certification performs no external effect.
+- The release candidate is cut from freshly fetched `origin/develop`, validated in an isolated release worktree,
+  and reaches `main` only through a reviewed release-branch pull request.
+- Release-branch push, merge, tag, GitHub Release, and any Packagist-affecting recovery remain separately
+  authorized actions.
+- Packagist verification compares the exact public version and source, then repeats a clean `--prefer-dist --no-dev`
+  consumer installation and public behavior probe.
 
 ## Verification
 
-- Rector dry-run: clean across 389 source files.
-- PHPStan: clean across 389 source files.
-- PHPCS: clean.
-- Full PHPUnit after the final refinement: 2,938 tests and 4,701 assertions passed; 30 environment-gated server
-  tests skipped in the DSN-free run.
-- Focused in-memory, SQLite, MySQL, and PostgreSQL checkpoint matrix: 7 tests and 84 assertions passed against
-  disposable MySQL 8.4.11 and PostgreSQL 17 services.
-- Coverage: `DbalProjectionCheckpointStore` 51/51 statements and
-  `DbalProjectionCheckpointStoreSchema` 9/9 statements.
-- Disposable ticket database containers were removed after verification.
-- Two-axis review: zero Spec findings and zero hard or blocking Standards findings; one nonblocking test-local
-  DSN-wrapper duplication judgement remains.
+Run the ordinary `./bin/build` gate for product changes. For an explicitly authorized committed candidate, run
+`./bin/release certify <version>` and inspect the generated record. Publication and Packagist verification use
+provider-native evidence against that record; pending, uncertain, or mismatched provider state remains incomplete.
+
+## Out of Scope
+
+Release plan artifacts, run-state machines, effect ledgers, provider fakes, crash injection, automated recovery,
+maintenance-line routing, release skills, CI duplication of certification, and any bundled external publication.
+
+## Tasks
+
+- TASK-00033 and TASK-00034 are completed historical outcomes whose machinery ADR 0025 supersedes.
+- TASK-00056 completed thin certification and produced exact committed-candidate evidence.
+- TASK-00035 recorded the published `v1.2.0` tag and immutable zero-asset GitHub Release.
+- TASK-00041 verified the matching Packagist projection and exact published installation.
+
+## Decision Sources
+
+ADR 0025 is current release-certification authority. ADR 0027 is current publication authority and retains only
+the compatible signer-custody and provider-postcondition portions of ADR 0016. ADRs 0013 and 0014 remain historical
+context for the superseded implementation.

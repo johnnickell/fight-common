@@ -20,7 +20,7 @@ The way is clear when a later implementation effort can build the commands, `.ag
 runbook, CI integration, and policy updates without making another architectural or operational
 release decision.
 
-**Done** = every linked decision ticket is closed, the map links to its epic, PRDs, and executable-ticket
+**Done** = every linked decision ticket is closed, the map links to its epic, TICKETs, and executable-ticket
 handoff, and no Wayfinder decision remains before normal implementation planning resumes.
 
 ## Notes
@@ -67,27 +67,29 @@ handoff, and no Wayfinder decision remains before normal implementation planning
   fixed the single dispatcher and journey-card information architecture, routing precedence,
   operator loop, stop and cancellation handling, bounded troubleshooting, Git-flow examples,
   oldest-supported-line routing, and independent publication recovery.
-- [Synthesize the release implementation epic, PRD, and tickets](../../tickets/archive/WF-008-release-implementation-handoff.md)
-  fixed the four-PRD decomposition, first normal-release vertical slice, deterministic boundary fakes,
+- [Synthesize the release implementation epic, TICKET, and tickets](../../tickets/archive/WF-008-release-implementation-handoff.md)
+  fixed the four-TICKET decomposition, first normal-release vertical slice, deterministic boundary fakes,
   ticket-sized branch and completion rules, implementation order, one-home planning migration,
-  composed acceptance gate, and an initial eight executable implementation slices. After the full PRDs were
+  composed acceptance gate, and an initial eight executable implementation slices. After the full TICKETs were
   approved, the oversized foundation, publication, patch, and integration slices were refined into twelve.
-  The result is [EPIC-00003](../../../epics/archive/00003-EPIC.md), [PRD-00010](../../../specs/archive/00010-PRD.md) through
-  [PRD-00013](../../../specs/archive/00013-PRD.md), and [T-00032](../../../tickets/archive/00032-TICKET.md) through
-  [T-00043](../../../tickets/archive/00043-TICKET.md).
+  The result is [EPIC-00003](../../../epics/archive/00003-EPIC.md), [TICKET-00010](../../../tickets/archive/00010-TICKET.md) through
+  [TICKET-00013](../../../tickets/archive/00013-TICKET.md), and [TASK-00032](../../../tasks/archive/00032-TASK.md) through
+  [TASK-00043](../../../tasks/archive/00043-TASK.md).
 
 ## Tickets
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Establish the release-coordination destination and standing boundaries](../../tickets/archive/WF-001-release-destination-and-boundaries.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Define supported release lines and the compatibility contract](../../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md) | Research / Grilling / Domain Modeling | HITL | **Closed** | Release destination |
-| [Design deterministic release commands and evidence](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md) | Research / Grilling / Prototype / Domain Modeling | AFK -> HITL | **Closed** | Release destination |
-| [Define the plan, package, certify, and publish skill contracts](../../tickets/archive/WF-004-release-skill-contracts.md) | Grilling / Prototype / Domain Modeling | HITL | **Closed** | Supported lines, deterministic commands |
-| [Define patch and maintenance-line workflows](../../tickets/archive/WF-005-patch-and-maintenance-workflows.md) | Grilling / Prototype / Domain Modeling | HITL | **Closed** | Supported lines, deterministic commands |
-| [Define GitHub and Packagist publication and provenance](../../tickets/archive/WF-006-publication-and-provenance.md) | Research / Grilling | AFK -> HITL | **Closed** | Deterministic commands, skill contracts |
-| [Define the release-operations runbook](../../tickets/archive/WF-007-release-operations-runbook.md) | Grilling / Prototype / Domain Modeling | HITL | **Closed** | Skill contracts, maintenance, publication |
-| [Synthesize the release implementation epic, PRD, and tickets](../../tickets/archive/WF-008-release-implementation-handoff.md) | Grilling / Domain Modeling | HITL | **Closed** | All release decisions |
+<!-- planning:decisions -->
+| Decision ID | Title | Type | Mode | Status | Depends on |
+|---|---|---|---|---|---|
+| [WF-001](../../tickets/archive/WF-001-release-destination-and-boundaries.md) | Establish the release-coordination destination and standing boundaries | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | — |
+| [WF-002](../../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md) | Define supported release lines and the compatibility contract | wayfinder:research, wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-001](../../tickets/archive/WF-001-release-destination-and-boundaries.md) |
+| [WF-003](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md) | Design deterministic release commands and evidence | wayfinder:research, wayfinder:grilling, wayfinder:prototype, wayfinder:domain-modeling | AFK -> HITL | Closed | [WF-001](../../tickets/archive/WF-001-release-destination-and-boundaries.md) |
+| [WF-004](../../tickets/archive/WF-004-release-skill-contracts.md) | Define the plan, package, certify, and publish skill contracts | wayfinder:grilling, wayfinder:prototype, wayfinder:domain-modeling | HITL | Closed | [WF-002](../../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md), [WF-003](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md) |
+| [WF-005](../../tickets/archive/WF-005-patch-and-maintenance-workflows.md) | Define patch and maintenance-line workflows | wayfinder:grilling, wayfinder:prototype, wayfinder:domain-modeling | HITL | Closed | [WF-002](../../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md), [WF-003](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md) |
+| [WF-006](../../tickets/archive/WF-006-publication-and-provenance.md) | Define GitHub and Packagist publication and provenance | wayfinder:research, wayfinder:grilling | AFK -> HITL | Closed | [WF-003](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md), [WF-004](../../tickets/archive/WF-004-release-skill-contracts.md) |
+| [WF-007](../../tickets/archive/WF-007-release-operations-runbook.md) | Define the release-operations runbook | wayfinder:grilling, wayfinder:prototype, wayfinder:domain-modeling | HITL | Closed | [WF-004](../../tickets/archive/WF-004-release-skill-contracts.md), [WF-005](../../tickets/archive/WF-005-patch-and-maintenance-workflows.md), [WF-006](../../tickets/archive/WF-006-publication-and-provenance.md) |
+| [WF-008](../../tickets/archive/WF-008-release-implementation-handoff.md) | Synthesize the release implementation epic, TICKET, and tickets | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-002](../../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md), [WF-003](../../tickets/archive/WF-003-deterministic-release-commands-and-evidence.md), [WF-004](../../tickets/archive/WF-004-release-skill-contracts.md), [WF-005](../../tickets/archive/WF-005-patch-and-maintenance-workflows.md), [WF-006](../../tickets/archive/WF-006-publication-and-provenance.md), [WF-007](../../tickets/archive/WF-007-release-operations-runbook.md) |
+<!-- /planning:decisions -->
 
 ## Blocking relationships
 

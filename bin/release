@@ -170,7 +170,7 @@ run_step \
     "${DEFAULT_ROOT}" \
     "${WORKSPACE}/default.log" \
     resolve_default_dependencies "${DEFAULT_ROOT}"
-run_step 'default-product-gate' './bin/build' "${DEFAULT_ROOT}" "${WORKSPACE}/default-product-gate.log" ./bin/build
+run_step 'default-product-gate' 'FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build' "${DEFAULT_ROOT}" "${WORKSPACE}/default-product-gate.log" env FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build
 run_step \
     'latest-dependency-resolution' \
     'composer update' \
@@ -185,10 +185,10 @@ run_step \
         composer update --no-interaction --no-progress --prefer-dist
 run_step \
     'latest-product-gate' \
-    './bin/build' \
+    'FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build' \
     "${LATEST_ROOT}" \
     "${WORKSPACE}/latest-product-gate.log" \
-    ./bin/build
+    env FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build
 run_step \
     'lowest-dependency-resolution' \
     'composer update --prefer-lowest --prefer-stable' \
@@ -197,10 +197,10 @@ run_step \
     resolve_lowest_dependencies "${LOWEST_ROOT}"
 run_step \
     'lowest-product-gate' \
-    './bin/build' \
+    'FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build' \
     "${LOWEST_ROOT}" \
     "${WORKSPACE}/lowest-product-gate.log" \
-    ./bin/build
+    env FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build
 
 ARCHIVE="${ARTIFACT_ROOT}/fight-common-${VERSION}.tar"
 "${DOCKER_BIN}" container run --rm \

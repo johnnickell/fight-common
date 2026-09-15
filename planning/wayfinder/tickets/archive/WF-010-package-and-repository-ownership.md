@@ -4,7 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specification:** [PRD-00016 — Fight Package and Starter Repository Ownership](../../../specs/archive/00016-PRD.md)
+**Specification:** [TICKET-00016 — Fight Package and Starter Repository Ownership](../../../tickets/archive/00016-TICKET.md)
 **Depends on:** [Establish the portability destination and release boundaries](WF-009-portability-destination-and-release-boundaries.md)
 
 ## Question
@@ -57,6 +57,6 @@ stable state to `main` do not themselves authorize or require a version tag.
 ## Resolution boundary
 
 These ownership and authority-transfer decisions are synthesized in
-[PRD-00016 — Fight Package and Starter Repository Ownership](../../../specs/archive/00016-PRD.md). WF-018 owns
+[TICKET-00016 — Fight Package and Starter Repository Ownership](../../../tickets/archive/00016-TICKET.md). WF-018 owns
 repository creation handoffs, local implementation plans, and release gates; this ticket does not create
-repositories, implementation tickets, packages, releases, or public publication.
+repositories, implementation TASKs, packages, releases, or public publication.

@@ -1,61 +1,142 @@
 ---
-id: T-00008
-prd: PRD-00004
-title: Implement the Doctrine DBAL Event Store
+id: TICKET-00008
+epic: EPIC-00002
+title: Architecture Enforcement
 status: done
-blocked_by: T-00007
 ---
 
-# Implement the Doctrine DBAL Event Store
+# Architecture Enforcement
 
-## What to Build
+## Problem Statement
 
-Persist the complete Event Store contract through Doctrine DBAL on supported SQLite, MySQL-compatible, and
-PostgreSQL databases without weakening append atomicity, retry classification, schema evolution, or
-checkpoint-safe global ordering.
+Fight Common documents an inward runtime dependency direction, but the contract is not executable. A future
+change can introduce an outward dependency without failing the build, and the current Scheduler already
+constructs Symfony Process directly from Application despite an Application-owned `ProcessRunner` port and
+an Adapter implementation being available.
 
-## Blocked By
+A simplistic three-layer rule would still be too permissive. Domain, Application, Adapter, and the new
+orthogonal Standards layer have different legitimate external dependencies. A generic third-party bucket
+would hide architectural expansion, while forbidding every external type from Application would reject
+portable PSR contracts and add ceremony around the deterministic `CronExpression` utility.
 
-- T-00007 — Implement the in-memory Event Store.
+## Solution
 
-## Acceptance
+Make the accepted dependency model executable with mandatory Deptrac verification. Every production and
+Standards class belongs to an explicit layer, runtime dependencies point inward, and each layer receives a
+narrow allowlist appropriate to its role. External Adapter integrations are represented by bounded,
+reviewable collectors instead of one unrestricted vendor category.
 
-- [x] SQLite, MySQL-compatible, and PostgreSQL schemas preserve stream uniqueness, message-ID uniqueness, and the complete stored-event envelope.
-- [x] Expected-version validation, exact-batch retry detection, global-position allocation, and append occur in one transaction.
-- [x] MySQL global positions are allocated through transaction-serialized sequence state so visible positions cannot later be preceded by a lower commit.
-- [x] PostgreSQL global positions use the same transaction-serialized sequence lock through commit.
-- [x] SQLite satisfies the same observable prefix-stable visibility contract.
-- [x] Payload and metadata JSON, UTC microsecond timestamps, stable aliases, and original schema versions round-trip portably.
-- [x] DBAL behavior passes the reusable Event Store conformance suite for SQLite, MySQL, and PostgreSQL.
-- [x] Database-specific failure paths and transaction behavior have complete coverage.
+Repair the known Application violation by making Scheduler execute command jobs through the existing
+`ProcessRunner` port while preserving its public scheduling, output, locking, error, and notification
+behavior. Retain `CronExpression` as one exact Application utility allowance. The architecture gate finishes
+with no baseline, skipped violation, or unassigned project namespace.
+
+## User Stories
+
+1. As a Fight Common maintainer, I want dependency direction enforced automatically, so that Clean
+   Architecture does not depend on reviewer memory.
+2. As a domain author, I want Domain isolated from frameworks and service contracts, so that business
+   primitives remain portable.
+3. As an application author, I want Application prevented from constructing infrastructure implementations,
+   so that orchestration remains testable through owned ports.
+4. As an application author, I want neutral PSR contracts allowed at application boundaries, so that portable
+   interfaces do not require redundant wrappers.
+5. As a Scheduler consumer, I want command jobs to preserve their observable behavior, so that architecture
+   repair does not change scheduling semantics.
+6. As a Scheduler consumer, I want command failures handled through the existing error and notification
+   behavior, so that replacing Symfony Process construction does not weaken operational feedback.
+7. As a Scheduler test author, I want command execution behind `ProcessRunner`, so that success, output, and
+   failure behavior can be exercised deterministically.
+8. As a maintainer, I want `CronExpression` retained as an exact utility allowance, so that the architecture
+   does not gain a port that protects no meaningful infrastructure boundary.
+9. As an Adapter author, I want to implement inward-owned ports, so that infrastructure remains replaceable.
+10. As an Adapter author, I want to implement framework extension points or package third-party behavior, so
+    that Adapter retains its intentionally flexible integration role.
+11. As a reviewer, I want each external Adapter integration named explicitly, so that adding a dependency is
+    visible in the architecture diff.
+12. As a Standards author, I want development tooling isolated from runtime layers, so that PHPCS policy does
+    not leak into the shipped application model.
+13. As a library consumer, I want runtime code unable to depend on Standards, so that optional development
+    tools do not become production requirements.
+14. As a maintainer, I want every project class assigned to a layer, so that architectural gaps cannot hide in
+    unclassified namespaces.
+15. As a maintainer, I want architecture failures to block the shared quality gate, so that violations cannot
+    merge while other checks remain green.
+16. As a contributor, I want focused diagnostics identifying the forbidden dependency, so that a failed gate
+    leads to a clear repair.
+17. As a maintainer, I want architecture configuration owned by Fight Common, so that application-specific
+    Omphalos bounded contexts are not copied into a reusable library.
+18. As a release maintainer, I want Deptrac to remain a development tool, so that consumers do not install it
+    at runtime.
+
+## Implementation Decisions
+
+- Deptrac is a mandatory development and quality-gate dependency for Fight Common and an optional suggested
+  tool for consumers.
+- Every production and Standards class is assigned to exactly one explicit architectural layer. Unassigned
+  Fight Common namespaces fail acceptance.
+- Runtime dependencies follow `Adapter -> Application -> Domain`. Domain cannot depend on Application,
+  Adapter, or Standards; Application cannot depend on Adapter or Standards; Adapter cannot depend on
+  Standards.
+- Domain may depend only on Domain and PHP internals. It may not depend on PSRs or other third-party packages.
+- Application may depend on Application, Domain, PHP internals, and explicitly accepted neutral PSR
+  contracts.
+- `Cron\CronExpression` is the only concrete Application utility exception. The allowance targets that type
+  precisely and does not permit the broader Cron namespace or arbitrary utility packages.
+- Application may not depend on Symfony Process. Scheduler receives and uses the existing Application-owned
+  `ProcessRunner` abstraction for command execution.
+- Scheduler's existing public job-registration and execution API remains compatible. The refactor preserves
+  due evaluation, locking, output routing, failure logging, and notifications.
+- Adapter may depend on Adapter, Application, Domain, PHP internals, PSRs, and explicitly configured
+  infrastructure namespaces.
+- Adapter membership does not require implementing an inward port. An Adapter may also implement a framework
+  extension point, translate external and Fight Common types, or expose packaged third-party behavior.
+- Each infrastructure allowance is bounded and named in configuration. There is no general third-party
+  collector.
+- Standards may depend only on Standards, PHP internals, PHP_CodeSniffer, and Slevomat.
+- The accepted graph contains no baseline, skipped violation, or ignored legacy dependency.
+- Fight Common's architecture configuration is repository-specific and does not reproduce Omphalos bounded
+  contexts.
+
+## Testing Decisions
+
+- The primary architecture seam is Deptrac execution against the complete Fight Common production and
+  Standards graph.
+- Focused invalid dependency fixtures prove the important negative contracts: Domain-to-outer-layer,
+  Application-to-Adapter, runtime-to-Standards, Standards-to-runtime, and unassigned project code.
+- Focused valid fixtures prove neutral PSR Application contracts, the exact `CronExpression` allowance,
+  bounded Adapter integrations, and allowed Standards tooling dependencies.
+- A fixture using another type from the Cron namespace proves that the utility exception is exact rather than
+  a namespace-wide loophole.
+- Scheduler behavior is tested through a deterministic `ProcessRunner` substitute at the Application seam.
+  Tests assert command attachment and execution while preserving observable success, output, failure,
+  logging, notification, and lock-release behavior.
+- Architecture tests assert dependencies and public behavior rather than the textual layout of the Deptrac
+  configuration.
+- The complete shared quality gate proves Deptrac runs as a mandatory step and stops the build on a violation.
+
+## Out of Scope
+
+- Enforcing architectural rules in consuming repositories automatically.
+- Copying Omphalos-specific bounded contexts or framework service-discovery rules.
+- Removing the accepted `CronExpression` utility from Application.
+- Replacing existing PSR contracts with Fight Common-owned equivalents.
+- Reclassifying development policy as an Adapter concern.
+- Redesigning Scheduler's public job configuration API.
+
+## Further Notes
+
+- ADR 0005 is the normative dependency allowance matrix.
+- The existing `ProcessRunner` port and Symfony adapter make the Scheduler repair a boundary correction rather
+  than a new abstraction design.
+
+Tasks: TASK-00022.
 
 ## Outcome
 
-Added `DbalEventStore` and `DbalEventStoreSchema` for SQLite, MySQL-compatible, and PostgreSQL databases. The adapter owns
-mapped append and hydration, complete envelope persistence, stream/message/global uniqueness, transactional
-expected-version and exact-retry classification, and prefix-stable global-position allocation. SQLite acquires
-its serialized writer reservation through the singleton sequence row; MySQL and PostgreSQL lock that row with
-`FOR UPDATE` through commit.
-
-The reusable Event Store conformance suite now runs against both database adapters. Focused two-connection
-tests prove bounded lock contention, complete rollback, and contiguous committed positions without asserting
-private SQL order. Unique races are reclassified only after rollback: exact positional retries succeed,
-proven stream/message conflicts become `OptimisticConcurrencyException`, and unrelated DBAL, JSON, and commit
-failures propagate.
-
-CI provisions MySQL 8.4.11 and PostgreSQL 17, installs all three PDO drivers, and supplies both server test
-DSNs. Unsupported DBAL platforms fail explicitly rather than silently weakening the ordering contract. Local
-PostgreSQL verification uses a disposable container; no always-running PostgreSQL service is added.
-
-## Verification
-
-- Rector dry-run: clean across 381 files.
-- PHPStan: clean across 381 files.
-- PHPCS: clean.
-- PHPUnit: 2,914 tests and 4,607 assertions passed; 13 MySQL and 13 PostgreSQL tests skipped only in the
-  DSN-free full local run.
-- MySQL 8.4.11 focused verification: 13 tests and 81 assertions passed against the final code.
-- PostgreSQL 17 focused verification: 13 tests and 81 assertions passed against the final code.
-- Coverage: `DbalEventStore` 152/152 statements; `DbalEventStoreSchema` 36/36 statements.
-- Planning validation: clean with 42 records and 31 active after closure synchronization.
-- Two-axis review: no Spec findings and no documented Standards violations or blocking smells.
+Delivered by TASK-00022 with exact Deptrac allowances for Domain, Application, Adapter, and Standards; mandatory
+violation, uncovered-dependency, and unassigned-token enforcement; focused valid and hostile fixtures; and
+the Scheduler correction through `ProcessBuilder`, the Application `Process`, and required `ProcessRunner`.
+John explicitly approved removing the redundant documented Scheduler `processFactory` constructor seam. That
+intentional constructor break preserves runtime scheduling semantics but requires major-release classification
+before publication.

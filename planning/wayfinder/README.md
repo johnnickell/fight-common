@@ -5,3 +5,9 @@ No active Wayfinder map or decision frontier exists. Completed maps remain avail
 
 Use [_MAP_TEMPLATE.md](_MAP_TEMPLATE.md) and [the decision-ticket template](tickets/_WAYFINDER_TICKET_TEMPLATE.md)
 to chart a new uncertain scope. New planning must not reopen an archived map.
+
+<!-- planning:maps -->
+| Map | Status |
+|---|---|
+| None | — |
+<!-- /planning:maps -->

@@ -170,13 +170,13 @@ References are `src/Application/<path>:<line>`.
 
 No Application declaration is marked `@internal`. Application depends only on Domain, PHP, accepted PSRs,
 and the explicit `CronExpression` exception, matching the accepted layer policy
-(`planning/specs/00008-PRD.md:78-93`).
+(`planning/tickets/00008-TICKET.md:78-93`).
 
 ### Exhaustive Adapter inventory (107 declarations)
 
 References are `src/Adapter/<path>:<line>`. “Port” names in parentheses identify the inward contract where
 one exists; framework extension points and translators are still legitimate adapters under the accepted
-definition (`planning/specs/00008-PRD.md:90-95`).
+definition (`planning/tickets/00008-TICKET.md:90-95`).
 
 - **Auth/Hmac:** `HmacAuthenticator:18` (`Authenticator`), `HmacKeyGenerator:12`, `HmacMethods:12`,
   `HmacRequestService:14` (`RequestService`), `HmacWebhookDispatcher:16` (`WebhookDispatcher`).
@@ -282,8 +282,8 @@ __construct(
 
 Evidence: current signature and use are `src/Application/Scheduler/Scheduler.php:48-55,245-277`; the current
 test explicitly requires non-null argument three (`tests/Application/Scheduler/SchedulerTest.php:33-41`);
-the accepted architecture PRD nevertheless says the existing registration/execution API remains compatible
-(`planning/specs/00008-PRD.md:84-89`).
+the accepted architecture TICKET nevertheless says the existing registration/execution API remains compatible
+(`planning/tickets/00008-TICKET.md:84-89`).
 
 Breaks by consumer style:
 

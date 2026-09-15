@@ -6,6 +6,7 @@ repo_name: johnnickell/fight-common
 edit_uri: edit/main/docs/
 docs_dir: docs
 exclude_docs: |
+  /engineering/
   /overrides/
   /identity.md
   /quickstart.md

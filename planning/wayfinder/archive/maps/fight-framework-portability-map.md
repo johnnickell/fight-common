@@ -29,7 +29,7 @@ The starter-repository handoff route is complete. The Fight Common adapter route
 previous no-new-shared-adapter policy omitted reusable Laravel, Yii, and CodeIgniter integration and grouped
 equivalent framework service-container extension points by the runtime capability they happened to wire.
 
-**Done** = every linked Wayfinder decision is closed, the permanent decisions are linked to their epic, PRDs,
+**Done** = every linked Wayfinder decision is closed, the permanent decisions are linked to their epic, TICKETs,
 and executable-ticket handoff, and no charting question remains before `/ask-matt` returns to normal execution.
 
 ## Notes
@@ -61,32 +61,32 @@ and executable-ticket handoff, and no charting question remains before `/ask-mat
   fixed the public Fight AccessControl package, five public starter repositories, portable shared
   layers, project-owned composition roots, and the transition from umbrella to repository-local
   planning authority. These decisions are synthesized in
-  [PRD-00016 — Fight Package and Starter Repository Ownership](../../../specs/archive/00016-PRD.md); WF-018 owns the
+  [TICKET-00016 — Fight Package and Starter Repository Ownership](../../../tickets/archive/00016-TICKET.md); WF-018 owns the
   repository-local implementation handoffs.
 - [Define the versioned HTTP, JSend, and presentation contracts](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md)
   fixed `/api/v1/{capability}`, adapter-only HTTP versioning, typed JSend payloads, `ResultSet`
   collection data, pure named presentation constructors, and framework-specific response adapters. Fight
-  Common response compatibility is permanent in [PRD-00014](../../../specs/archive/00014-PRD.md); starter HTTP and client
-  delivery are permanent in [PRD-00018](../../../specs/archive/00018-PRD.md).
+  Common response compatibility is permanent in [TICKET-00014](../../../tickets/archive/00014-TICKET.md); starter HTTP and client
+  delivery are permanent in [TICKET-00018](../../../tickets/archive/00018-TICKET.md).
 - [Define the portable AccessControl and persistence boundaries](../../tickets/archive/WF-012-access-control-and-persistence-boundaries.md)
   fixed framework-neutral principals, aggregate-oriented repository contracts, native record
   adapters for Active Record frameworks, Doctrine XML mapping for Symfony and Slim, portable query
   read models, and pragmatic transaction equivalence. Shared behavior is permanent in
-  [PRD-00017](../../../specs/archive/00017-PRD.md); framework-owned persistence acceptance is permanent in
-  [PRD-00018](../../../specs/archive/00018-PRD.md).
+  [TICKET-00017](../../../tickets/archive/00017-TICKET.md); framework-owned persistence acceptance is permanent in
+  [TICKET-00018](../../../tickets/archive/00018-TICKET.md).
 - [Define starter product, governance, and documentation standards](../../tickets/archive/WF-013-starter-product-governance-and-documentation.md)
   fixed the editable `/client`, HTTP-only authentication UI, native SPA host templates, one
   database-portable migration history, safe administrator bootstrap, Managed Role/Permission reconciliation,
   complete documentation, and strict agent-ready quality gates. These decisions are permanent in
-  [PRD-00018](../../../specs/archive/00018-PRD.md).
+  [TICKET-00018](../../../tickets/archive/00018-TICKET.md).
 - [Audit Fight Common contracts and the 1.2 compatibility envelope](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md)
   fixed the authoritative 404-declaration audit, exact Scheduler `1.x` repair, neutral typed JSend
   envelope, honest `Arrayable` and `ResultSet` shapes, capability-first adapter namespaces, 32
   additive namespace migrations, exported-package consumer probes, blocking `1.2.0` certification
   evidence, and the downstream capability worksheet. These decisions are now synthesized in
-  [PRD-00014 — Fight Common Contract Repair and Compatibility Certification](../../../specs/archive/00014-PRD.md)
+  [TICKET-00014 — Fight Common Contract Repair and Compatibility Certification](../../../tickets/archive/00014-TICKET.md)
   under [EPIC-00004 — Framework Portability and Starter Projects](../../../epics/archive/00004-EPIC.md) and split into
-  T-00047 through T-00056, T-00059, T-00060, and T-00069. T-00055 is closed `wontfix`; framework testing stays
+  TASK-00047 through TASK-00056, TASK-00059, TASK-00060, and TASK-00069. TASK-00055 is closed `wontfix`; framework testing stays
   in the real starter repositories rather than nested Fight Common fixtures.
 - [Select supported framework lines and default capability compositions](../../tickets/archive/WF-015-framework-lines-and-default-capability-compositions.md)
   fixed the current-only supported-line window with widen and tighten triggers, the exact Composer
@@ -96,8 +96,8 @@ and executable-ticket handoff, and no charting question remains before `/ask-mat
   every capability (nothing is unsupported). These decisions are recorded in
   [ADR 0020](../../../adr/0020-supported-framework-lines-and-support-window.md) and the portions of
   [ADR 0021](../../../adr/0021-framework-default-capability-compositions.md) not superseded by ADRs 0023 and 0024.
-  [PRD-00015 — Framework Adapter Support and Capability Composition](../../../specs/archive/00015-PRD.md) is implemented in
-  Fight Common through T-00057, T-00058, and T-00070 through T-00075. T-00055 records the rejected nested-fixture
+  [TICKET-00015 — Framework Adapter Support and Capability Composition](../../../tickets/archive/00015-TICKET.md) is implemented in
+  Fight Common through TASK-00057, TASK-00058, and TASK-00070 through TASK-00075. TASK-00055 records the rejected nested-fixture
   plan.
 - [Specify the Fight AccessControl extraction and authentication model](../../tickets/archive/WF-016-access-control-extraction-and-authentication-model.md)
   fixed the Domain/Application-only package boundary, invitation and account-state model, Managed
@@ -106,20 +106,20 @@ and executable-ticket handoff, and no charting question remains before `/ask-mat
   and the complete starter/client security profile. The decisions are recorded in
   [ADR 0022](../../../adr/0022-invited-registration-and-multi-session-jwt-authentication.md) and supported by the
   linked research note. Shared AccessControl behavior is permanent in
-  [PRD-00017](../../../specs/archive/00017-PRD.md), while framework delivery is permanent in
-  [PRD-00018](../../../specs/archive/00018-PRD.md).
+  [TICKET-00017](../../../tickets/archive/00017-TICKET.md), while framework delivery is permanent in
+  [TICKET-00018](../../../tickets/archive/00018-TICKET.md).
 - [Prove persistence, UnitOfWork, and walking-slice portability](../../tickets/archive/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md)
   proved the risky persistence, transaction, composition, principal, HTTP, JWT, refresh, realtime, queue,
   and client-contract seams through bounded disposable evidence. Its decision record and Git evidence ledger
   are retained; nested prototype projects were removed after closure. Booted framework applications and
   browser/runtime acceptance now belong to the real destination repositories through WF-018. Its shared
-  Fight Common consequences are permanent in [PRD-00014](../../../specs/archive/00014-PRD.md), AccessControl consequences in
-  [PRD-00017](../../../specs/archive/00017-PRD.md), and starter acceptance in [PRD-00018](../../../specs/archive/00018-PRD.md).
+  Fight Common consequences are permanent in [TICKET-00014](../../../tickets/archive/00014-TICKET.md), AccessControl consequences in
+  [TICKET-00017](../../../tickets/archive/00017-TICKET.md), and starter acceptance in [TICKET-00018](../../../tickets/archive/00018-TICKET.md).
 - [Synthesize full-support implementation handoffs](../../tickets/archive/WF-018-full-support-implementation-handoffs.md)
-  completed the Fight Common specification and umbrella-ticket layer. PRD-00014 through PRD-00016 own the
-  Fight Common work and T-00047 through T-00067 graph. PRD-00017 and PRD-00018 intentionally produce no
-  detailed Fight Common tickets: Fight AccessControl adopts the former as repository-local PRD-00001, and each
-  starter adopts the relevant latter contract through T-00062 through T-00066 before creating local tickets.
+  completed the Fight Common specification and umbrella-ticket layer. TICKET-00014 through TICKET-00016 own the
+  Fight Common work and TASK-00047 through TASK-00067 graph. TICKET-00017 and TICKET-00018 intentionally produce no
+  detailed Fight Common tickets: Fight AccessControl adopts the former as repository-local TICKET-00001, and each
+  starter adopts the relevant latter contract through TASK-00062 through TASK-00066 before creating local tickets.
   WF-018 is closed after execution and verification of those six authority transfers.
 - [Define the service-container and framework-adapter namespace model](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md)
   reopened the Fight Common adapter route, grouped equivalent framework wiring under `Adapter\ServiceContainer`,
@@ -154,30 +154,32 @@ and executable-ticket handoff, and no charting question remains before `/ask-mat
   conformance policy; async delivery and Yii Queue release boundaries; capability-scoped framework and Fight
   container registration; optional development/suggest dependencies; dual Fight/PSR-18 HTTP-client wiring;
   two-key support evidence; and additive 1.2 with a possible 1.3 before 2.0 cleanup. [ADR 0024](../../../adr/0024-framework-adapter-support-and-delivery-boundaries.md)
-  records the decision. PRD-00014 and PRD-00015 now hold the permanent specification, and T-00050 through
-  T-00054, T-00058, and T-00069 through T-00075 hold the reconciled implementation graph.
+  records the decision. TICKET-00014 and TICKET-00015 now hold the permanent specification, and TASK-00050 through
+  TASK-00054, TASK-00058, and TASK-00069 through TASK-00075 hold the reconciled implementation graph.
 
 ## Tickets
 
-| Ticket | Type | Mode | Status | Depends On |
-|---|---|---|---|---|
-| [Establish the portability destination and release boundaries](../../tickets/archive/WF-009-portability-destination-and-release-boundaries.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Define the package and repository ownership model](../../tickets/archive/WF-010-package-and-repository-ownership.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Define the versioned HTTP, JSend, and presentation contracts](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Define the portable AccessControl and persistence boundaries](../../tickets/archive/WF-012-access-control-and-persistence-boundaries.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Define starter product, governance, and documentation standards](../../tickets/archive/WF-013-starter-product-governance-and-documentation.md) | Grilling / Domain Modeling | HITL | **Closed** | — |
-| [Audit Fight Common contracts and the 1.2 compatibility envelope](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md) | Research / Domain Modeling | HITL | **Closed** | — |
-| [Select supported framework lines and default capability compositions](../../tickets/archive/WF-015-framework-lines-and-default-capability-compositions.md) | Research / Domain Modeling | HITL | **Closed** | Contract audit |
-| [Specify the Fight AccessControl extraction and authentication model](../../tickets/archive/WF-016-access-control-extraction-and-authentication-model.md) | Research / Domain Modeling | HITL | **Closed** | — |
-| [Prove persistence, UnitOfWork, and walking-slice portability](../../tickets/archive/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md) | Research / Domain Modeling | HITL | **Closed** | — |
-| [Synthesize full-support implementation handoffs](../../tickets/archive/WF-018-full-support-implementation-handoffs.md) | Grilling / Domain Modeling | HITL | **Closed** | Prior portability decisions |
-| [Define the service-container and framework-adapter namespace model](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) | Grilling / Domain Modeling | HITL | **Closed** | Contract audit |
-| [Research Laravel-native adapter seams](../../tickets/archive/WF-020-laravel-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
-| [Research Yii-native adapter seams](../../tickets/archive/WF-021-yii-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
-| [Research CodeIgniter-native adapter seams](../../tickets/archive/WF-022-codeigniter-native-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
-| [Research Symfony, Slim, and standalone adapter seams](../../tickets/archive/WF-023-symfony-slim-and-standalone-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
-| [Select the framework-adapter support matrix](../../tickets/archive/WF-024-framework-adapter-support-matrix.md) | Grilling / Domain Modeling | HITL | **Closed** | Framework and PSR research |
-| [Research PSR interoperability and adapter seams](../../tickets/archive/WF-025-psr-interoperability-and-adapter-seams.md) | Research | AFK | **Closed** | Service-container model |
+<!-- planning:decisions -->
+| Decision ID | Title | Type | Mode | Status | Depends on |
+|---|---|---|---|---|---|
+| [WF-009](../../tickets/archive/WF-009-portability-destination-and-release-boundaries.md) | Establish the portability destination and release boundaries | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | — |
+| [WF-010](../../tickets/archive/WF-010-package-and-repository-ownership.md) | Define the package and repository ownership model | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-009](../../tickets/archive/WF-009-portability-destination-and-release-boundaries.md) |
+| [WF-011](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md) | Define the versioned HTTP, JSend, and presentation contracts | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-009](../../tickets/archive/WF-009-portability-destination-and-release-boundaries.md) |
+| [WF-012](../../tickets/archive/WF-012-access-control-and-persistence-boundaries.md) | Define the portable AccessControl and persistence boundaries | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-010](../../tickets/archive/WF-010-package-and-repository-ownership.md), [WF-011](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md) |
+| [WF-013](../../tickets/archive/WF-013-starter-product-governance-and-documentation.md) | Define starter product, governance, and documentation standards | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-010](../../tickets/archive/WF-010-package-and-repository-ownership.md), [WF-011](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md) |
+| [WF-014](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md) | Audit Fight Common contracts and the 1.2 compatibility envelope | wayfinder:research, wayfinder:domain-modeling | HITL | Closed | [WF-009](../../tickets/archive/WF-009-portability-destination-and-release-boundaries.md), [WF-010](../../tickets/archive/WF-010-package-and-repository-ownership.md), [WF-011](../../tickets/archive/WF-011-versioned-http-jsend-and-presentation-contracts.md), [WF-012](../../tickets/archive/WF-012-access-control-and-persistence-boundaries.md), [WF-013](../../tickets/archive/WF-013-starter-product-governance-and-documentation.md) |
+| [WF-015](../../tickets/archive/WF-015-framework-lines-and-default-capability-compositions.md) | Select supported framework lines and default capability compositions | wayfinder:research, wayfinder:domain-modeling | HITL | Closed | [WF-014](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md) |
+| [WF-016](../../tickets/archive/WF-016-access-control-extraction-and-authentication-model.md) | Specify the Fight AccessControl extraction and authentication model | wayfinder:research, wayfinder:domain-modeling | HITL | Closed | [WF-014](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md), [WF-012](../../tickets/archive/WF-012-access-control-and-persistence-boundaries.md) |
+| [WF-017](../../tickets/archive/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md) | Prove persistence, UnitOfWork, and walking-slice portability | wayfinder:research, wayfinder:domain-modeling | HITL | Closed | [WF-015](../../tickets/archive/WF-015-framework-lines-and-default-capability-compositions.md), [WF-016](../../tickets/archive/WF-016-access-control-extraction-and-authentication-model.md) |
+| [WF-018](../../tickets/archive/WF-018-full-support-implementation-handoffs.md) | Synthesize full-support implementation handoffs | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-017](../../tickets/archive/WF-017-persistence-unit-of-work-and-walking-slice-prototypes.md) |
+| [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) | Define the service-container and framework-adapter namespace model | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-014](../../tickets/archive/WF-014-fight-common-contract-and-compatibility-audit.md) |
+| [WF-020](../../tickets/archive/WF-020-laravel-native-adapter-seams.md) | Research Laravel-native adapter seams | wayfinder:research | AFK | Closed | [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) |
+| [WF-021](../../tickets/archive/WF-021-yii-native-adapter-seams.md) | Research Yii-native adapter seams | wayfinder:research | AFK | Closed | [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) |
+| [WF-022](../../tickets/archive/WF-022-codeigniter-native-adapter-seams.md) | Research CodeIgniter-native adapter seams | wayfinder:research | AFK | Closed | [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) |
+| [WF-023](../../tickets/archive/WF-023-symfony-slim-and-standalone-adapter-seams.md) | Research Symfony, Slim, and standalone adapter seams | wayfinder:research | AFK | Closed | [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) |
+| [WF-024](../../tickets/archive/WF-024-framework-adapter-support-matrix.md) | Select the framework-adapter support matrix | wayfinder:grilling, wayfinder:domain-modeling | HITL | Closed | [WF-020](../../tickets/archive/WF-020-laravel-native-adapter-seams.md), [WF-021](../../tickets/archive/WF-021-yii-native-adapter-seams.md), [WF-022](../../tickets/archive/WF-022-codeigniter-native-adapter-seams.md), [WF-023](../../tickets/archive/WF-023-symfony-slim-and-standalone-adapter-seams.md), [WF-025](../../tickets/archive/WF-025-psr-interoperability-and-adapter-seams.md) |
+| [WF-025](../../tickets/archive/WF-025-psr-interoperability-and-adapter-seams.md) | Research PSR interoperability and adapter seams | wayfinder:research | AFK | Closed | [WF-019](../../tickets/archive/WF-019-service-container-and-adapter-namespace-model.md) |
+<!-- /planning:decisions -->
 
 ## Blocking relationships
 
@@ -190,11 +192,11 @@ Destination + ownership + HTTP + persistence + governance + audit + supported li
 
 ## Implementation Handoff
 
-- Fight AccessControl owns capability-ticket creation from its local PRD-00001; T-00061 was accepted on
+- Fight AccessControl owns capability-ticket creation from its local TICKET-00001; TASK-00061 was accepted on
   2026-08-17.
-- Each starter owns its adopted PRD-00018 product plan, executable vertical tickets, hosting, licensing,
-  Packagist metadata, branch protections, release automation, and release state after its T-00062 through
-  T-00066 public-source bootstrap handoff.
+- Each starter owns its adopted TICKET-00018 product plan, executable vertical tickets, hosting, licensing,
+  Packagist metadata, branch protections, release automation, and release state after its TASK-00062 through
+  TASK-00066 public-source bootstrap handoff.
 
 ## Frontier
 

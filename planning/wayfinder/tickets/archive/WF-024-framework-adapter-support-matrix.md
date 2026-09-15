@@ -25,7 +25,7 @@ which configuration remains starter-owned?
 - Composer and documentation corrections required for each standards support claim, including the current
   PSR-6/PSR-20 cache-versus-clock misstatement;
 - whether any capability needs an inward additive contract or a `2.0.0` change; and
-- which existing implementation tickets remain valid, require rewriting, or should be replaced.
+- which existing implementation TASKs remain valid, require rewriting, or should be replaced.
 
 ## Decisions landed during grilling
 
@@ -63,9 +63,9 @@ which configuration remains starter-owned?
 - Every accepted **ship** adapter is part of the 1.2 support claim. A failed native prototype blocks 1.2 only
   when no documented and tested fallback remains. Later additive support may ship in 1.3; stable Yii Queue
   support is a named candidate. Incompatible cleanup remains reserved for 2.0.
-- The planning handoff updates PRD-00014 and PRD-00015 before ticket publication. Implementation is divided into
+- The planning handoff updates TICKET-00014 and TICKET-00015 before ticket publication. Implementation is divided into
   shared, Symfony, two Laravel, one Yii, two CodeIgniter, and final package/documentation/certification vertical
-  slices. T-00049, T-00053, and T-00059 remain valid; T-00050 through T-00052, T-00054, and T-00058 are rewritten.
+  slices. TASK-00049, TASK-00053, and TASK-00059 remain valid; TASK-00050 through TASK-00052, TASK-00054, and TASK-00058 are rewritten.
 
 These decisions are recorded in
 [ADR 0024](../../../adr/0024-framework-adapter-support-and-delivery-boundaries.md).
@@ -76,6 +76,6 @@ The grilling frontier is empty and the complete decision is accepted in
 [ADR 0024](../../../adr/0024-framework-adapter-support-and-delivery-boundaries.md), supported by the five linked
 framework and PSR research notes. The framework catalog, standards-first reuse, native-adapter trials, async
 delivery boundary, service-container activation, optional dependency policy, 1.2/1.3/2.0 release boundaries,
-support evidence, and existing-ticket consequences are reconciled into PRD-00014 and PRD-00015. The approved
-implementation DAG rewrites T-00050 through T-00052, T-00054, and T-00058; preserves T-00049, T-00053, and
-T-00059; and publishes T-00069 through T-00075. The next flow is `/ask-matt` to select the first ready ticket.
+support evidence, and existing-ticket consequences are reconciled into TICKET-00014 and TICKET-00015. The approved
+implementation DAG rewrites TASK-00050 through TASK-00052, TASK-00054, and TASK-00058; preserves TASK-00049, TASK-00053, and
+TASK-00059; and publishes TASK-00069 through TASK-00075. The next flow is `/ask-matt` to select the first ready ticket.

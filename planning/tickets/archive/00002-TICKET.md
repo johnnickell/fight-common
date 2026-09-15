@@ -1,29 +1,64 @@
 ---
-id: T-00002
-prd: PRD-00002
-title: Establish Event Sourcing context and decisions
+id: TICKET-00002
+epic: EPIC-00001
+title: Event-Sourcing Vocabulary and Architecture Contract
 status: done
-blocked_by:
 ---
 
-# Establish Event Sourcing Context and Decisions
+# Event-Sourcing Vocabulary and Architecture Contract
 
-## What to Build
+## Problem Statement
 
-Establish the shared Event Sourcing vocabulary, aggregate and storage boundaries, projection and publication guarantees, and durable planning conventions that every later ticket uses.
+Event Sourcing introduces terms that are easy to overload: an event can mean a domain payload, a live message, or a stored record; projection checkpoints and publication cursors describe different guarantees; and PHP class names can be confused with durable storage identity. Without shared language and explicit architectural boundaries, implementation tasks can be locally reasonable while producing incompatible contracts.
 
-## Blocked By
+Fight Common also needs Event Sourcing to remain an optional extension of its existing CQRS and Hexagonal Architecture model. The design must not pull framework or persistence concerns into the Domain layer, force existing consumers to migrate, or make Event Sourcing the default meaning of an event.
 
-None — can start immediately.
+## Solution
 
-## Acceptance
+Establish the ubiquitous language and accepted architectural decisions for Fight Common 1.2 before implementation. Define aggregate lifecycle, stable stream and event identity, stored-event envelopes, mapping and upcasting, Event Store behavior, projection delivery, event publication, metadata isolation, failure handling, and layer ownership.
 
-- [x] `CONTEXT.md` defines shared vocabulary and boundaries.
-- [x] ADRs record aggregate/storage and projection delivery decisions.
-- [x] Projection and publication are defined as separate processes with different progress and failure guarantees.
-- [x] Tracker and agent guidance distinguish durable planning from `.runs/` scratch.
-- [x] Downstream PRDs and tickets use the accepted terms consistently.
+Record durable decisions in the project context and ADRs, and use the same vocabulary throughout TICKETs, tasks, documentation, tests, and future public APIs.
 
-## Outcome
+## User Stories
 
-Expanded the context from Event Sourcing terminology into the repository's existing ubiquitous language: architecture, domain primitives, CQRS messaging, persistence, validation, and supporting capabilities. Proposed 1.2 terminology is explicitly separated from current production APIs.
+1. As a library maintainer, I want one definition for each Event Sourcing term, so that contracts and documentation do not contradict one another.
+2. As a consumer developer, I want domain events distinguished from event messages and stored events, so that I know which information belongs at each boundary.
+3. As a consumer architect, I want durable aliases distinguished from PHP class names, so that code refactors do not rewrite history.
+4. As an aggregate author, I want explicit lifecycle and reconstitution rules, so that replay and new decisions cannot be confused.
+5. As an adapter author, I want ordering, idempotency, and concurrency guarantees stated independently of a database, so that adapters implement the same behavior.
+6. As a projector author, I want checkpoints and at-least-once delivery defined precisely, so that idempotency requirements are unambiguous.
+7. As a subscriber author, I want publication behavior distinguished from projection behavior, so that subscriber failures do not acquire unintended retry semantics.
+8. As an operator, I want failure records, cursor advancement, and reset behavior named consistently, so that worker recovery is predictable.
+9. As a framework integrator, I want the portable core separated from optional Symfony convenience, so that framework-free consumers remain first-class.
+10. As an existing Fight Common consumer, I want Event Sourcing described as additive, so that my current CQRS usage remains valid.
+
+## Implementation Decisions
+
+- Preserve inward dependencies: framework-free contracts and aggregate behavior remain in Domain or Application as appropriate; DBAL, Symfony, logging, and transport-specific behavior remain adapters.
+- Keep `EventMessage` as the live event-message contract. Durable identity belongs to the stable event alias and schema stored in `StoredEvent`.
+- Use stable aggregate names plus consumer-owned `Identifier` values for stream identity, independently of aggregate PHP classes.
+- Require explicit event application, explicit mapping registration, and fail-closed handling of unsupported history.
+- Define projection as ordered at-least-once read-state processing with successful checkpoints, and publication as post-commit subscriber fan-out with attempted-delivery cursors.
+- Preserve standalone mutable `Meta` while making message envelopes isolate their metadata snapshots.
+- Treat consumer Event Sourcing adoption as optional; existing CQRS dispatch remains supported.
+- Maintain accepted decisions in the project context and ADRs as the source of truth for downstream specifications.
+
+## Testing Decisions
+
+This TICKET is validated through consistency review rather than production code. The project context, ADRs, epic, TICKETs, and tasks must use the same terms and must not assign contradictory guarantees to the same contract.
+
+Downstream executable tests must use these decisions as their behavioral source of truth. Any implementation ambiguity discovered later must be resolved in the durable architecture documents before tests encode a new interpretation.
+
+## Out of Scope
+
+- Implementing Event Sourcing contracts or adapters.
+- Choosing business-specific aggregates, events, or read models for consuming applications.
+- Replacing CQRS with Event Sourcing.
+- Defining snapshots, sagas, event deletion, split or merge upcasting, or worker-daemon infrastructure.
+- Making optional Symfony integration part of the portable architecture.
+
+## Further Notes
+
+This architecture contract is complete and accepted. Later specifications elaborate executable behavior without reopening these decisions unless new evidence exposes a genuine contradiction.
+
+Tasks: TASK-00002.

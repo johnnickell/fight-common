@@ -9,16 +9,18 @@ target: target-version
 
 ## Destination
 
-Describe the durable outcome and the boundary of this epic.
+Describe the business outcome, use cases, and boundaries.
 
-## Decisions so far
+## Decisions and exclusions
 
-- Link accepted decisions and their consequences.
+Link accepted decisions and their consequences, including security and validation expectations.
 
-## PRDs
+## TICKETs
 
-- PRD-NNNNN — Title
+<!-- planning:children -->
+<!-- /planning:children -->
 
 ## Progress
 
-Record completed milestones and the next unresolved planning consequence.
+Record durable outcomes and remaining decisions. Grilling writes this EPIC; TICKET/TASK decomposition follows
+separately, and the table above will reflect the resulting records.

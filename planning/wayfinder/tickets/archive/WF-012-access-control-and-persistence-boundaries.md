@@ -4,7 +4,7 @@
 **Mode:** HITL
 **Status:** Closed
 **Map:** [Fight Framework Portability and Starter Projects](../../archive/maps/fight-framework-portability-map.md)
-**Specifications:** [PRD-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../specs/archive/00017-PRD.md), [PRD-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../specs/archive/00018-PRD.md)
+**Specifications:** [TICKET-00017 — Fight AccessControl Identity and Authentication Lifecycle](../../../tickets/archive/00017-TICKET.md), [TICKET-00018 — Framework Starter Product and Walking-Slice Acceptance](../../../tickets/archive/00018-TICKET.md)
 **Depends on:** [Define the package and repository ownership model](WF-010-package-and-repository-ownership.md), [Define the versioned HTTP, JSend, and presentation contracts](WF-011-versioned-http-jsend-and-presentation-contracts.md)
 
 ## Question
