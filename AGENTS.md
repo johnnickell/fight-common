@@ -20,7 +20,7 @@
 
 **Build:** one TASK normally owns one PR. Use dependency-ordered SUBTASKs for layer assignments. Features are code-first; bugs start with one failing regression test. Keep domain knowledge with its owner and runtime dependencies behind Domain/Application contracts.
 
-**Verify:** use focused checks while iterating, then the complete project gate before a commit. Cover production behavior; keep release/tooling tests separate from default builds and CI. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
+**Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover production behavior; keep release/tooling tests separate from default builds and CI. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
 
 **Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. A workflow may explicitly include commit/push/PR; ordinary code edits do not imply merge, release, or deployment permission.
 
