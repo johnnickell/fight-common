@@ -29,7 +29,7 @@ Libraries do not use hotfix branches. Do not commit directly to protected integr
 
 Find an existing PR at workflow entry and immediately before PR creation. Establish unique ownership using repo, branch, TASK and recorded SUBTASK relationship, base, and remote head. A similar title alone is insufficient. Reuse the matching PR, including review repairs. If ownership is ambiguous, stop publication with the candidates and missing fact. A closed/merged PR is not silently reopened; distinguish follow-up work.
 
-PR descriptions explain the final behavior/problem, verification, screenshots when accessible, and material limitations. Preserve a history of first failures and later successful gates in evidence. Do not expose private reference identities, local credentials, or private research. Read and honor hosted branch protection; unavailable CI requires the project's explicit policy or a decision, not a fabricated pass.
+PR descriptions explain the final behavior/problem, verification and material limitations, and include the Before/After evidence section required by [Testing](Testing.md). Verify the published evidence, not just local captures. Preserve a history of first failures and later successful gates in evidence. Do not expose private reference identities, local credentials, or private research. Read and honor hosted branch protection; unavailable CI requires the project's explicit policy or a decision, not a fabricated pass.
 
 Before any PR merge, require the current content's independent review with all applicable Spec and Standards criteria passing, the final gate, and applicable hosted protections. Release preparation does not waive this requirement. If the change or base has moved, reconcile the evidence before proceeding.
 

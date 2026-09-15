@@ -13,7 +13,7 @@ Before examining findings, derive acceptance checks from the TASK and attach the
 | SP-03 | Permissions and access rejection are accounted for | Authoritative enforcement, consumer ownership, or a justified exclusion |
 | SP-04 | Commands, queries, events, and side effects match the contract | Trace of state changes, response data, dispatch and external effects |
 | SP-05 | Failure, compatibility, and recovery behavior satisfy requirements | Absence/error behavior, existing data/API compatibility, relevant rollback/retry semantics |
-| SP-06 | Completion evidence proves the outcome | Acceptance-linked tests, before/after captures or equivalent proof, actual final gate state |
+| SP-06 | Completion evidence proves the outcome | Acceptance-linked tests, published Before/After evidence or justified alternative, accessible captures/links, actual final gate state |
 
 | ID | Standards criterion | Reference |
 |---|---|---|
@@ -27,7 +27,7 @@ Before examining findings, derive acceptance checks from the TASK and attach the
 | ST-08 | Documentation is created or updated without drift | CONTEXT.md, API docs, planning, runbooks and affected public docs |
 | ST-09 | Verification and delivery hygiene satisfy applicable requirements | Testing; Delivery; exact evidence and owned resources |
 
-Only apply relevant standards. Missing runtime behavior is not an automatic failure in a documentation-only TASK. Conversely, TASK silence about validation or permissions does not waive SP-02/SP-03: inspect the actual boundary and account for the security process. A demonstrated omission fails the criterion. Do not invent a permission policy or claim an exploit merely because the TASK forgot to mention one.
+Only apply relevant standards. Missing runtime behavior is not an automatic failure in a documentation-only TASK. Apply Testing’s planning-only screenshot exclusion without a score deduction; assess SP-06 against the applicable planning verification instead. Explicitly requested screenshots remain required. Conversely, TASK silence about validation or permissions does not waive SP-02/SP-03: inspect the actual boundary and account for the security process. A demonstrated omission fails the criterion. Do not invent a permission policy or claim an exploit merely because the TASK forgot to mention one.
 
 ## Scoring
 
