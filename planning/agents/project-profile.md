@@ -19,7 +19,9 @@ CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::tr
 
 ## Commands and verification
 
-`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it before every commit or PR. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient. An exception requires John's explicit authorization for that commit and truthful unverified reporting.
+Fight Common is a public repository (verified 2026-09-15). John explicitly retained its public-repository hosted-check policy: declared required hosted checks still apply to review/landing; the private-repository exemption does not apply. Builders supply local receipts and do not monitor hosted CI. Recheck visibility if repository policy changes.
+
+`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's repository-visibility policy: private repositories require local proof, not a successful hosted CI run. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
 
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
