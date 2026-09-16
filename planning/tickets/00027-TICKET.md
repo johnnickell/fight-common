@@ -77,11 +77,14 @@ remain additive.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| None | — | — |
+| [TASK-00113](../tasks/00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) and
 [WF-043](../wayfinder/tickets/WF-043-define-reusable-oauth-resource-server-support.md) establish resource-server,
-not authorization-server, ownership. No TASKs have been decomposed yet.
+not authorization-server, ownership. TASK-00113 owns the complete resource-server slice around TASK-00105's
+guarded endpoint: metadata, strict consumer token-validation input, neutral validated claims, compliant HTTP
+authorization outcomes, lossless PSR adaptation, and unchanged HMAC/JWT behavior. Consumer routes, validator/key
+infrastructure, claim-to-principal mapping, and authorization remain outside Common.

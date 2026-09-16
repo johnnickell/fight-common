@@ -15,4 +15,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | needs-info | [TICKET-00025](../tickets/00025-TICKET.md) |
 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |
 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |
+| [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent | [TICKET-00027](../tickets/00027-TICKET.md) |
 <!-- /planning:records -->
