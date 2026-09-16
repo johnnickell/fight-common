@@ -29,8 +29,8 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| `standards/Planning.md` | `c15df40af05655716afef68d6d3368396e335d673a96af319441a2d896792b2b` |
-| `standards/Review.md` | `b11cd4c4598cfd470d940c2172d761b395c914f34e2078918962eefd6db1ef61` |
+| `standards/Planning.md` | `313bf61c904e9442aa38e28d6a60713fcea83a6cd8d83abbb2c6554150b062ad` |
+| `standards/Review.md` | `e85e0e3b67ff34b47583985885501ee58c7456bfeea94ad39d1fc25193f31175` |
 | `standards/Testing.md` | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` |
 
 ## Project scope and unresolved work
@@ -38,3 +38,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 PHP/library, planning, tests, and release guidance apply to this repository. Frontend and production deployment references apply only when such work is actually in scope; this baseline does not add those products. LocalDevelopment enrollment is not asserted. Existing public API compatibility and framework constraints are preserved in the profile. Detailed support-authority reconciliation remains separate release work.
 
 The planning and standards adoption are implemented locally. Behavioral trials of the associated authoring workflows are separate from this content adoption.
+
+## Targeted standards refresh — 2026-09-16
+
+Planning now distinguishes unfinished, executable and attention-needed work, with truthful next-action fallbacks. Review now checks omitted states and cross-view contradictions against independent expected behavior. Only these approved clauses were applied; earlier baseline content, project bindings and exceptions remain unchanged. Installed digests above identify the resulting local documents.
