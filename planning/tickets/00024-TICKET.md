@@ -87,11 +87,15 @@ are the acceptance authority.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| None | — | — |
+| [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | ready-for-agent |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-agent |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) fixes the named tool
 contracts and behavioral constraints while leaving exact PHP registration mechanics to implementation decomposition.
-No TASKs have been decomposed yet.
+[TASK-00106](../tasks/00106-TASK.md) owns explicit registration and truthful availability-filtered discovery;
+[TASK-00107](../tasks/00107-TASK.md) owns validated query/mutation invocation, safe semantic output, optional CQRS
+envelope metadata, and integrated TICKET acceptance. TASK-00106 follows the generic semantic capability foundation
+in TASK-00104 and may proceed in parallel with TASK-00105's guarded HTTP transport; TASK-00107 follows TASK-00106.

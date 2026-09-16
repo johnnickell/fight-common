@@ -26,6 +26,8 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | ready-for-agent | [TASK-00104](00104-TASK.md) | [PR #156](https://github.com/johnnickell/fight-common/pull/156) |
+| 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | ready-for-agent | [TASK-00104](00104-TASK.md) | — |
+| 4 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | ready-for-agent | [TASK-00106](00106-TASK.md) | — |
 
 ## Needs Info
 
