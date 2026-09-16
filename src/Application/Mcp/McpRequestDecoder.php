@@ -70,10 +70,10 @@ final class McpRequestDecoder
      *
      * @param array<string, mixed> $data
      */
-    private function usableRequestId(array $data): int|float|string|null
+    private function usableRequestId(array $data): int|string|null
     {
         $id = $data['id'] ?? null;
 
-        return is_int($id) || is_float($id) || is_string($id) ? $id : null;
+        return is_int($id) || is_string($id) ? $id : null;
     }
 }

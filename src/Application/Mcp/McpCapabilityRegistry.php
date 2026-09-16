@@ -145,6 +145,12 @@ final readonly class McpCapabilityRegistry
     {
         /** @var array<array-key, mixed> $capabilities */
         $capabilities = $capability->capabilities();
+        if ($capabilities === []) {
+            throw new DomainException(
+                'An MCP capability with registered handler methods must advertise at least one capability.'
+            );
+        }
+
         foreach ($capabilities as $name => $definition) {
             if (
                 !is_string($name)

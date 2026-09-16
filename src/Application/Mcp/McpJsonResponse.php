@@ -15,11 +15,11 @@ final readonly class McpJsonResponse implements Arrayable
     /**
      * Constructs McpJsonResponse
      *
-     * @param integer|float|string|null $id
+     * @param integer|string|null       $id
      * @param array<string, mixed>|null $result
      */
     private function __construct(
-        private int|float|string|null $id,
+        private int|string|null $id,
         private ?array $result,
         private ?McpProtocolError $error
     ) {
@@ -28,7 +28,7 @@ final readonly class McpJsonResponse implements Arrayable
     /**
      * Creates a successful JSON-RPC response
      */
-    public static function success(int|float|string $id, McpResult $result): self
+    public static function success(int|string $id, McpResult $result): self
     {
         return new self($id, $result->toArray(), null);
     }
@@ -36,7 +36,7 @@ final readonly class McpJsonResponse implements Arrayable
     /**
      * Creates a JSON-RPC protocol error response
      */
-    public static function error(int|float|string|null $id, McpProtocolError $error): self
+    public static function error(int|string|null $id, McpProtocolError $error): self
     {
         return new self($id, null, $error);
     }

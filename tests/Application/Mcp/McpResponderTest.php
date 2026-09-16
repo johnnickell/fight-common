@@ -65,13 +65,8 @@ final class McpResponderTest extends UnitTestCase
 
     public function test_that_discovery_serializes_empty_capability_maps_and_definitions_as_json_objects(): void
     {
-        $noCapabilities = new FixtureCapability(capabilities: []);
         $emptyDefinition = new FixtureCapability(definition: []);
 
-        self::assertStringContainsString(
-            '"capabilities":{}',
-            (new McpResponder($this->registry($noCapabilities)))->respond($this->request('server/discover', 1))->toJson(),
-        );
         self::assertStringContainsString(
             '"capabilities":{"example":{}}',
             (new McpResponder($this->registry($emptyDefinition)))->respond($this->request('server/discover', 2))->toJson(),
@@ -155,6 +150,24 @@ final class McpResponderTest extends UnitTestCase
         self::assertSame(1, $failing->handleCalls);
     }
 
+    public function test_that_capability_protocol_exceptions_cannot_replace_the_decoded_request_identity(): void
+    {
+        foreach ([999, null] as $exceptionRequestId) {
+            $capability = new FixtureCapability(
+                throwProtocolException: true,
+                exceptionRequestId: $exceptionRequestId,
+            );
+            $responder = new McpResponder($this->registry($capability));
+
+            self::assertSame(
+                ['jsonrpc' => '2.0', 'id' => 3, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+                $responder->respond($this->request('example/echo', 3, ['message' => 'hello']))->toArray(),
+            );
+            self::assertSame(1, $capability->validateCalls);
+            self::assertSame(0, $capability->handleCalls);
+        }
+    }
+
     public function test_that_decoder_keeps_only_bounded_request_metadata(): void
     {
         $request = (new McpRequestDecoder())->decode($this->request(
@@ -163,8 +176,26 @@ final class McpResponderTest extends UnitTestCase
             ['message' => 'hello'],
             metadata: [
                 'io.modelcontextprotocol/protocolVersion'    => '2026-07-28',
-                'io.modelcontextprotocol/clientCapabilities' => (object) ['sampling' => new stdClass()],
-                'io.modelcontextprotocol/clientInfo'         => (object) ['name' => 'client', 'version' => '2.0'],
+                'io.modelcontextprotocol/clientCapabilities' => (object) [
+                    'sampling' => new stdClass(),
+                    'extensions' => (object) [
+                        'com.example/extension' => new stdClass(),
+                        'com.example/' => new stdClass(),
+                    ],
+                ],
+                'io.modelcontextprotocol/clientInfo'         => (object) [
+                    'name'        => 'client',
+                    'version'     => '2.0',
+                    'title'       => 'Example Client',
+                    'description' => 'Example implementation',
+                    'websiteUrl'  => 'https://example.test/client',
+                    'icons'       => [(object) [
+                        'src'      => 'https://example.test/icon.png',
+                        'mimeType' => 'image/png',
+                        'sizes'    => ['any'],
+                        'theme'    => 'light',
+                    ]],
+                ],
                 'progressToken'                              => 'progress-1',
                 'com.example/opaque'                         => ['not' => 'retained'],
             ],
@@ -174,12 +205,36 @@ final class McpResponderTest extends UnitTestCase
         self::assertSame('example/echo', $request->method());
         self::assertSame(['message' => 'hello'], $request->parameters());
         self::assertSame('2026-07-28', $request->metadata()->protocolVersion());
-        self::assertEquals((object) ['sampling' => new stdClass()], $request->metadata()->clientCapabilities());
-        self::assertEquals((object) ['name' => 'client', 'version' => '2.0'], $request->metadata()->clientInfo());
+        self::assertEquals(
+            (object) [
+                'sampling' => new stdClass(),
+                'extensions' => (object) [
+                    'com.example/extension' => new stdClass(),
+                    'com.example/' => new stdClass(),
+                ],
+            ],
+            $request->metadata()->clientCapabilities(),
+        );
+        self::assertEquals(
+            (object) [
+                'name'        => 'client',
+                'version'     => '2.0',
+                'title'       => 'Example Client',
+                'description' => 'Example implementation',
+                'websiteUrl'  => 'https://example.test/client',
+                'icons'       => [(object) [
+                    'src'      => 'https://example.test/icon.png',
+                    'mimeType' => 'image/png',
+                    'sizes'    => ['any'],
+                    'theme'    => 'light',
+                ]],
+            ],
+            $request->metadata()->clientInfo(),
+        );
         self::assertSame('progress-1', $request->metadata()->progressToken());
     }
 
-    public function test_that_metadata_rejects_missing_or_malformed_required_values(): void
+    public function test_that_metadata_rejects_missing_required_values(): void
     {
         $decoder = new McpRequestDecoder();
 
@@ -187,7 +242,25 @@ final class McpResponderTest extends UnitTestCase
         $decoder->decode('{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28"}}}');
     }
 
-    public function test_that_decoder_requires_json_objects_and_well_formed_client_information(): void
+    public function test_that_decoder_accepts_ipvfuture_implementation_urls(): void
+    {
+        $request = (new McpRequestDecoder())->decode($this->request(
+            'example/echo',
+            1,
+            metadata: [
+                'io.modelcontextprotocol/clientInfo' => (object) [
+                    'name'       => 'client',
+                    'version'    => '1.0',
+                    'websiteUrl' => 'urn://[vF.example]/client',
+                    'icons'      => [(object) ['src' => 'urn:icon']],
+                ],
+            ],
+        ));
+
+        self::assertSame('urn://[vF.example]/client', $request->metadata()->clientInfo()?->websiteUrl);
+    }
+
+    public function test_that_decoder_requires_json_objects_and_well_formed_defined_metadata(): void
     {
         $decoder = new McpRequestDecoder();
 
@@ -212,10 +285,62 @@ final class McpResponderTest extends UnitTestCase
             '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
                 . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
                 . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":null}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
                 . '"io.modelcontextprotocol/clientInfo":{"name":"client"}}}}',
             '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
                 . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
-                . '"io.modelcontextprotocol/clientCapabilities":{},"progressToken":true}}}',
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","title":false}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","websiteUrl":"not-a-uri"}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","websiteUrl":"https://"}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","websiteUrl":"http://["}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","icons":{}}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client","version":"1.0","icons":[{"src":"https://"}]}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{"sampling":true}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{"roots":{"listChanged":"yes"}}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{"sampling":{"tools":true}}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{"experimental":{"custom":true}}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{"extensions":{"unprefixed":{}}}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},"progressToken":null}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},"progressToken":1.25}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},"io.modelcontextprotocol/logLevel":true}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},"io.modelcontextprotocol/logLevel":"verbose"}}}',
             '{"jsonrpc":"2.0","method":"example/echo"}',
             '{"jsonrpc":"2.0","id":1,"method":""}',
         ] as $invalidRequest) {
@@ -228,33 +353,54 @@ final class McpResponderTest extends UnitTestCase
         }
     }
 
-    public function test_that_decimal_request_and_progress_tokens_are_preserved(): void
+    public function test_that_decimal_request_ids_and_progress_tokens_are_rejected_without_dispatch(): void
     {
         $capability = new FixtureCapability();
         $responder = new McpResponder($this->registry($capability));
-        $request = $this->request(
-            'example/echo',
-            7.5,
-            ['message' => 'hello'],
-            metadata: ['progressToken' => 1.25],
-        );
 
         self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 7.5, 'result' => ['resultType' => 'complete', 'message' => 'hello']],
-            $responder->respond($request)->toArray(),
+            ['jsonrpc' => '2.0', 'error' => ['code' => -32600, 'message' => 'Invalid request.']],
+            $responder->respond($this->request('example/echo', 7.5, ['message' => 'hello']))->toArray(),
         );
         self::assertSame(
-            7.5,
-            (new McpRequestDecoder())->decode($request)->id(),
+            ['jsonrpc' => '2.0', 'id' => 3, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+            $responder->respond($this->request('example/echo', 3, ['message' => 'hello'], metadata: ['progressToken' => 1.25]))->toArray(),
         );
-        self::assertSame(
-            1.25,
-            (new McpRequestDecoder())->decode($request)->metadata()->progressToken(),
-        );
-        self::assertSame(
-            ['jsonrpc' => '2.0', 'id' => 3.25, 'error' => ['code' => -32600, 'message' => 'Invalid request.']],
-            $responder->respond('{"jsonrpc":"1.0","id":3.25,"method":"example/echo"}')->toArray(),
-        );
+        self::assertSame(0, $capability->validateCalls);
+        self::assertSame(0, $capability->handleCalls);
+    }
+
+    public function test_that_invalid_defined_metadata_returns_invalid_params_without_capability_dispatch(): void
+    {
+        foreach ([
+            ['io.modelcontextprotocol/clientCapabilities' => ['sampling' => true]],
+            ['io.modelcontextprotocol/clientCapabilities' => ['roots' => ['listChanged' => 'yes']]],
+            ['io.modelcontextprotocol/clientInfo' => null],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'title' => false]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://example.test/%ZZ']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:exa|mple']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn://example.test/path[']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn://[::::]/path']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:example#one#two']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:example[path]']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'mimeType' => false]]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'theme' => 'blue']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'sizes' => ['any', false]]]]],
+            ['io.modelcontextprotocol/clientCapabilities' => ['extensions' => ['unprefixed' => new stdClass()]]],
+            ['progressToken' => null],
+            ['io.modelcontextprotocol/logLevel' => true],
+        ] as $metadata) {
+            $capability = new FixtureCapability();
+            $responder = new McpResponder($this->registry($capability));
+
+            self::assertSame(
+                ['jsonrpc' => '2.0', 'id' => 6, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+                $responder->respond($this->request('example/echo', 6, ['message' => 'hello'], metadata: $metadata))->toArray(),
+            );
+            self::assertSame(0, $capability->validateCalls);
+            self::assertSame(0, $capability->handleCalls);
+        }
     }
 
     public function test_that_construction_rejects_invalid_identity_mirror_and_result_declarations(): void
@@ -290,6 +436,16 @@ final class McpResponderTest extends UnitTestCase
         new McpCapabilityRegistry(
             new McpServerInfo('Example', '1.0.0'),
             [new FixtureCapability(methods: [])],
+        );
+    }
+
+    public function test_that_registry_rejects_dispatchable_capabilities_without_advertisement(): void
+    {
+        $this->expectException(DomainException::class);
+
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(capabilities: [])],
         );
     }
 
@@ -445,6 +601,8 @@ final class FixtureCapability implements McpCapability
         private readonly bool $throwOnHandle = false,
         private readonly ?array $methods = null,
         private readonly ?array $capabilities = null,
+        private readonly bool $throwProtocolException = false,
+        private readonly int|string|null $exceptionRequestId = null,
     ) {
     }
 
@@ -466,6 +624,10 @@ final class FixtureCapability implements McpCapability
     public function validate(McpRequest $request): void
     {
         ++$this->validateCalls;
+        if ($this->throwProtocolException) {
+            throw new McpProtocolException(McpProtocolError::invalidParams(), $this->exceptionRequestId);
+        }
+
         if (!isset($request->parameters()['message']) || !is_string($request->parameters()['message'])) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }

@@ -60,7 +60,7 @@ final readonly class McpResponder
 
             return McpJsonResponse::success($request->id(), $capability->handle($request));
         } catch (McpProtocolException $exception) {
-            return McpJsonResponse::error($exception->requestId(), $exception->protocolError());
+            return McpJsonResponse::error($request?->id() ?? $exception->requestId(), $exception->protocolError());
         } catch (Throwable) {
             return McpJsonResponse::error($request?->id(), McpProtocolError::internalError());
         }

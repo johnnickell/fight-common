@@ -43,8 +43,9 @@ contradictory capability metadata, and invalid future transport-mirror declarati
 
 ## Composition
 
-Construct `McpResponder` with a registry. `server/discover` is reserved to the responder. Its result advertises
-only the registry's configured capabilities, `supportedVersions`, and the consumer-supplied server identity under
+Construct `McpResponder` with a registry. `server/discover` is reserved to the responder. Every capability that
+registers a dispatchable method must advertise at least one validated capability definition, so discovery cannot
+hide a callable method. Its result advertises only the registry's configured capabilities, `supportedVersions`, and the consumer-supplied server identity under
 `_meta.io.modelcontextprotocol/serverInfo`. It uses the conservative cache defaults `ttlMs: 0` and
 `cacheScope: private`; consumers do not supply a cache or authorization policy to this foundation.
 
@@ -54,12 +55,14 @@ may encode it with `toJson()` and select its HTTP status/headers without changin
 
 ## Protocol behavior
 
-The decoder requires a JSON-RPC `2.0` request ID, method, object-shaped `params`, and object-shaped `_meta` with
+The decoder requires a JSON-RPC `2.0` string-or-integer request ID, method, object-shaped `params`, and object-shaped `_meta` with
 the `io.modelcontextprotocol/protocolVersion` and
 `io.modelcontextprotocol/clientCapabilities` fields. Client capabilities are an object; optional client information
-is an implementation object with a name and version. It retains only protocol metadata needed by this shared layer:
-protocol version, client capabilities and information, and progress token. It intentionally drops opaque extension
-metadata rather than treating it as credentials or authority.
+is an implementation object with a name and version. A present progress token is likewise a string or integer;
+numeric progress values are a later capability concern. The decoder validates defined metadata before dispatch and
+retains only protocol metadata needed by this shared layer: protocol version, client capabilities and information,
+and progress token. It intentionally drops opaque extension metadata rather than treating it as credentials or
+authority.
 
 Malformed JSON, malformed JSON-RPC, invalid outer parameters, unsupported protocol version, and unknown methods
 produce centralized JSON-RPC protocol errors without selecting a capability. If a usable request ID is available,

@@ -12,12 +12,12 @@ final readonly class McpRequest
     /**
      * Constructs McpRequest
      *
-     * @param integer|float|string $id
+     * @param integer|string       $id
      * @param string               $method
      * @param array<string, mixed> $parameters
      */
     public function __construct(
-        private int|float|string $id,
+        private int|string $id,
         private string $method,
         private array $parameters,
         private McpRequestMetadata $metadata
@@ -27,7 +27,7 @@ final readonly class McpRequest
     /**
      * Returns the JSON-RPC request identifier
      */
-    public function id(): int|float|string
+    public function id(): int|string
     {
         return $this->id;
     }

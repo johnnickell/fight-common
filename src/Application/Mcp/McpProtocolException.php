@@ -18,7 +18,7 @@ final class McpProtocolException extends RuntimeException
      */
     public function __construct(
         private readonly McpProtocolError $protocolError,
-        private readonly int|float|string|null $requestId
+        private readonly int|string|null $requestId
     ) {
         parent::__construct($this->protocolError->toArray()['message']);
     }
@@ -34,7 +34,7 @@ final class McpProtocolException extends RuntimeException
     /**
      * Returns the usable request identifier when one was decoded
      */
-    public function requestId(): int|float|string|null
+    public function requestId(): int|string|null
     {
         return $this->requestId;
     }
