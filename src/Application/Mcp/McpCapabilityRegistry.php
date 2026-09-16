@@ -5,12 +5,25 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Exception\DomainException;
+use stdClass;
 
 /**
  * Class McpCapabilityRegistry
  */
 final readonly class McpCapabilityRegistry
 {
+    /** @var array<string, string> */
+    private const array STANDARD_METHOD_CAPABILITY_NAMES = [
+        'completion/complete'      => 'completions',
+        'prompts/get'              => 'prompts',
+        'prompts/list'             => 'prompts',
+        'resources/list'           => 'resources',
+        'resources/read'           => 'resources',
+        'resources/templates/list' => 'resources',
+        'tools/call'               => 'tools',
+        'tools/list'               => 'tools'
+    ];
+
     /** @var array<string, McpCapability> */
     private array $capabilitiesByMethod;
     /** @var array<string, array<mixed>> */
@@ -44,7 +57,8 @@ final readonly class McpCapabilityRegistry
 
             $methods = $this->methodsFor($capability);
             $this->registerMethods($capability, $methods, $capabilitiesByMethod);
-            $this->registerCapabilities($capability, $advertisedCapabilities);
+            $capabilityNames = $this->registerCapabilities($capability, $advertisedCapabilities);
+            $this->validateStandardMethodCapabilities($methods, $capabilityNames);
             $this->registerMirrorDeclarations($capability, $methods, $mirrorDeclarationsByMethod);
         }
 
@@ -140,8 +154,10 @@ final readonly class McpCapabilityRegistry
      *
      * @param McpCapability               $capability
      * @param array<string, array<mixed>> $advertisedCapabilities
+     *
+     * @return list<string>
      */
-    private function registerCapabilities(McpCapability $capability, array &$advertisedCapabilities): void
+    private function registerCapabilities(McpCapability $capability, array &$advertisedCapabilities): array
     {
         /** @var array<array-key, mixed> $capabilities */
         $capabilities = $capability->capabilities();
@@ -151,6 +167,7 @@ final readonly class McpCapabilityRegistry
             );
         }
 
+        $capabilityNames = [];
         foreach ($capabilities as $name => $definition) {
             if (
                 !is_string($name)
@@ -160,6 +177,12 @@ final readonly class McpCapabilityRegistry
             ) {
                 throw new DomainException(
                     'An MCP capability declaration must have a non-empty name and object definition.'
+                );
+            }
+
+            if (!$this->hasValidStandardCapabilityDefinition($name, $definition)) {
+                throw new DomainException(
+                    sprintf('The MCP capability "%s" has an invalid standard definition.', $name)
                 );
             }
 
@@ -173,7 +196,202 @@ final readonly class McpCapabilityRegistry
             }
 
             $advertisedCapabilities[$name] = $definition;
+            $capabilityNames[] = $name;
         }
+
+        return $capabilityNames;
+    }
+
+    /**
+     * Validates standard capability bodies declared by the dated MCP schema
+     *
+     * @param string $name
+     * @param array  $definition
+     *
+     * @phpstan-param array<mixed> $definition
+     */
+    private function hasValidStandardCapabilityDefinition(string $name, array $definition): bool
+    {
+        return match ($name) {
+            'completions', 'logging' => $this->hasValidJsonObject($definition),
+            'experimental' => $this->hasValidObjectMap($definition),
+            'extensions' => $this->hasValidExtensionMap($definition),
+            'prompts' => $this->hasOnlyBooleanProperties($definition, ['listChanged']),
+            'resources' => $this->hasOnlyBooleanProperties($definition, ['subscribe', 'listChanged']),
+            'tools' => $this->hasOnlyBooleanProperties($definition, ['listChanged']),
+            default => true,
+        };
+    }
+
+    /**
+     * Validates the association between standard request methods and discovery capabilities
+     *
+     * @param array $methods
+     * @param array $capabilityNames
+     *
+     * @phpstan-param array<mixed> $methods
+     * @phpstan-param list<string> $capabilityNames
+     */
+    private function validateStandardMethodCapabilities(array $methods, array $capabilityNames): void
+    {
+        $methodCapabilityNames = [];
+        foreach ($methods as $method) {
+            $capabilityName = self::STANDARD_METHOD_CAPABILITY_NAMES[$method] ?? null;
+            if ($capabilityName !== null && !in_array($capabilityName, $capabilityNames, true)) {
+                throw new DomainException(
+                    sprintf(
+                        'The MCP method "%s" must advertise the "%s" capability.',
+                        $method,
+                        $capabilityName
+                    )
+                );
+            }
+
+            if ($capabilityName !== null) {
+                $methodCapabilityNames[] = $capabilityName;
+            }
+        }
+
+        foreach ($capabilityNames as $capabilityName) {
+            if (
+                in_array($capabilityName, self::STANDARD_METHOD_CAPABILITY_NAMES, true)
+                && !in_array($capabilityName, $methodCapabilityNames, true)
+            ) {
+                throw new DomainException(
+                    sprintf(
+                        'The MCP capability "%s" must own at least one corresponding standard method.',
+                        $capabilityName
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * Returns whether an object permits only defined Boolean properties
+     *
+     * @param array $definition
+     * @param array $properties
+     *
+     * @phpstan-param array<mixed> $definition
+     * @phpstan-param list<string> $properties
+     */
+    private function hasOnlyBooleanProperties(array $definition, array $properties): bool
+    {
+        return array_all(
+            $definition,
+            fn($value, $property): bool => is_string($property)
+                && in_array($property, $properties, true)
+                && is_bool($value)
+        );
+    }
+
+    /**
+     * Returns whether every map value is a JSON object
+     *
+     * @param array<mixed> $definition
+     */
+    private function hasValidObjectMap(array $definition): bool
+    {
+        return array_all(
+            $definition,
+            fn($value, $name): bool => is_string($name) && $this->hasValidJsonObjectValue($value)
+        );
+    }
+
+    /**
+     * Returns whether an extension map has valid identifiers and JSON-object values
+     *
+     * @param array<mixed> $definition
+     */
+    private function hasValidExtensionMap(array $definition): bool
+    {
+        return array_all(
+            $definition,
+            fn($value, $name): bool => is_string($name)
+                && $this->hasValidExtensionName($name)
+                && $this->hasValidJsonObjectValue($value)
+        );
+    }
+
+    /**
+     * Returns whether one extension identifier has the required metadata prefix
+     */
+    private function hasValidExtensionName(string $name): bool
+    {
+        $pattern = implode('', [
+            '/^[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?',
+            '(?:\\.[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\\/',
+            '(?:[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?)?$/'
+        ]);
+
+        return preg_match($pattern, $name) === 1;
+    }
+
+    /**
+     * Returns whether an array is a JSON object with only JSON values
+     *
+     * @param array<mixed> $value
+     */
+    private function hasValidJsonObject(array $value): bool
+    {
+        return !$this->isJsonList($value) && $this->hasOnlyJsonValues($value);
+    }
+
+    /**
+     * Returns whether a value serializes as a JSON object with only JSON values
+     */
+    private function hasValidJsonObjectValue(mixed $value): bool
+    {
+        if ($value instanceof stdClass) {
+            return $this->hasOnlyJsonValues(get_object_vars($value));
+        }
+
+        return is_array($value) && $value !== [] && !array_is_list($value) && $this->hasOnlyJsonValues($value);
+    }
+
+    /**
+     * Returns whether every value can be encoded as JSON
+     *
+     * @param array<mixed> $values
+     */
+    private function hasOnlyJsonValues(array $values): bool
+    {
+        foreach ($values as $value) {
+            if (is_array($value)) {
+                if (!$this->hasOnlyJsonValues($value)) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if ($value instanceof stdClass) {
+                if (!$this->hasOnlyJsonValues(get_object_vars($value))) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (!is_null($value) && !is_bool($value) && !is_int($value) && !is_string($value)) {
+                if (!is_float($value) || !is_finite($value)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether an array represents a JSON list
+     *
+     * @param array<mixed> $value
+     */
+    private function isJsonList(array $value): bool
+    {
+        return $value !== [] && array_is_list($value);
     }
 
     /**

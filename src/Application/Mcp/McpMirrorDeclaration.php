@@ -29,7 +29,7 @@ final readonly class McpMirrorDeclaration
             throw new DomainException('An MCP mirror declaration requires a method.');
         }
 
-        $hasInvalidPathSegment = array_filter(
+        $hasInvalidPathSegment = !array_is_list($this->parameterPath) || array_filter(
             $this->parameterPath,
             static fn (mixed $segment): bool => !is_string($segment) || $segment === ''
         ) !== [];

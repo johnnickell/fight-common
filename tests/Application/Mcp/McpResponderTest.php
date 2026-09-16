@@ -252,7 +252,7 @@ final class McpResponderTest extends UnitTestCase
                     'name'       => 'client',
                     'version'    => '1.0',
                     'websiteUrl' => 'urn://[vF.example]/client',
-                    'icons'      => [(object) ['src' => 'urn:icon']],
+                    'icons'      => [(object) ['src' => 'data:image/png;base64,iVBORw0KGgo=']],
                 ],
             ],
         ));
@@ -319,9 +319,6 @@ final class McpResponderTest extends UnitTestCase
                 . '"io.modelcontextprotocol/clientCapabilities":{"sampling":true}}}}',
             '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
                 . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
-                . '"io.modelcontextprotocol/clientCapabilities":{"roots":{"listChanged":"yes"}}}}}',
-            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
-                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
                 . '"io.modelcontextprotocol/clientCapabilities":{"sampling":{"tools":true}}}}}',
             '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
                 . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
@@ -341,8 +338,10 @@ final class McpResponderTest extends UnitTestCase
             '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
                 . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
                 . '"io.modelcontextprotocol/clientCapabilities":{},"io.modelcontextprotocol/logLevel":"verbose"}}}',
+            '{"jsonrpc":"2.0","id":1,"params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{}}}}',
             '{"jsonrpc":"2.0","method":"example/echo"}',
-            '{"jsonrpc":"2.0","id":1,"method":""}',
         ] as $invalidRequest) {
             try {
                 $decoder->decode($invalidRequest);
@@ -370,11 +369,101 @@ final class McpResponderTest extends UnitTestCase
         self::assertSame(0, $capability->handleCalls);
     }
 
+    public function test_that_schema_permitted_metadata_boundaries_reach_the_protocol_layer(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 8,
+                'error'   => [
+                    'code'    => -32022,
+                    'message' => 'Unsupported protocol version.',
+                    'data'    => ['supported' => ['2026-07-28'], 'requested' => ''],
+                ],
+            ],
+            $responder->respond($this->request('example/echo', 8, [], ''))->toArray(),
+        );
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 9,
+                'error'   => ['code' => -32601, 'message' => 'Method not found.'],
+            ],
+            $responder->respond($this->request('', 9))->toArray(),
+        );
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 10,
+                'error'   => ['code' => -32601, 'message' => 'Method not found.'],
+            ],
+            $responder->respond($this->request('   ', 10))->toArray(),
+        );
+        self::assertSame(0, $capability->validateCalls);
+        self::assertSame(0, $capability->handleCalls);
+    }
+
+    public function test_that_decoder_accepts_schema_permitted_open_metadata_objects(): void
+    {
+        $request = (new McpRequestDecoder())->decode($this->request(
+            'example/echo',
+            11,
+            metadata: [
+                'io.modelcontextprotocol/clientCapabilities' => (object) [
+                    'roots' => (object) ['listChanged' => 'yes'],
+                ],
+                'io.modelcontextprotocol/clientInfo' => (object) ['name' => '', 'version' => ''],
+            ],
+        ));
+
+        self::assertSame('', $request->metadata()->clientInfo()?->name);
+        self::assertSame('', $request->metadata()->clientInfo()?->version);
+        self::assertEquals((object) ['listChanged' => 'yes'], $request->metadata()->clientCapabilities()->roots);
+    }
+
+    public function test_that_decoder_validates_present_w3c_trace_context_before_dispatch(): void
+    {
+        $decoder = new McpRequestDecoder();
+        $valid = $decoder->decode($this->request(
+            'example/echo',
+            12,
+            metadata: [
+                'traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
+                'tracestate'  => 'vendor=value, ,tenant@system=second',
+                'baggage'     => 'key=value%20with%20space;property;other=%ZZ',
+            ],
+        ));
+        self::assertSame('2026-07-28', $valid->metadata()->protocolVersion());
+
+        foreach ([
+            ['traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-02'],
+            ['traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01-extra'],
+            ['tracestate' => '1vendor=value'],
+            ['tracestate' => 'tenant@1system=value'],
+            ['tracestate' => 'tenant@@system=value'],
+            ['tracestate' => 'vendor =value'],
+            ['tracestate' => implode(',', array_fill(0, 33, 'vendor=value'))],
+            ['baggage' => 'key="quoted"'],
+            ['baggage' => 'key'],
+            ['baggage' => implode(',', array_fill(0, 181, 'key=value'))],
+        ] as $metadata) {
+            try {
+                (new McpRequestDecoder())->decode($this->request('example/echo', 12, metadata: $metadata));
+                self::fail('Expected malformed W3C trace context to be rejected.');
+            } catch (McpProtocolException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_that_invalid_defined_metadata_returns_invalid_params_without_capability_dispatch(): void
     {
         foreach ([
             ['io.modelcontextprotocol/clientCapabilities' => ['sampling' => true]],
-            ['io.modelcontextprotocol/clientCapabilities' => ['roots' => ['listChanged' => 'yes']]],
+            ['io.modelcontextprotocol/clientCapabilities' => ['roots' => []]],
             ['io.modelcontextprotocol/clientInfo' => null],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'title' => false]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://']],
@@ -386,10 +475,17 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:example[path]']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'mimeType' => false]]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'theme' => 'blue']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'mimeType' => false]]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'theme' => 'blue']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'sizes' => ['any', false]]]]],
             ['io.modelcontextprotocol/clientCapabilities' => ['extensions' => ['unprefixed' => new stdClass()]]],
             ['progressToken' => null],
             ['io.modelcontextprotocol/logLevel' => true],
+            ['invalid/key/' => 'value'],
+            ['traceparent' => true],
+            ['tracestate' => true],
+            ['baggage' => true],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'javascript:alert(1)']]]],
         ] as $metadata) {
             $capability = new FixtureCapability();
             $responder = new McpResponder($this->registry($capability));
@@ -458,6 +554,84 @@ final class McpResponderTest extends UnitTestCase
         );
     }
 
+    public function test_that_registry_requires_truthful_standard_capability_declarations(): void
+    {
+        $registry = new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(methods: ['tools/list'], capabilities: ['tools' => ['listChanged' => true]])],
+        );
+        self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('tools/list'));
+
+        foreach ([
+            new FixtureCapability(methods: ['tools/list'], capabilities: ['prompts' => []]),
+            new FixtureCapability(methods: ['tools/list'], capabilities: ['tools' => ['listChanged' => 'yes']]),
+            new FixtureCapability(methods: ['example/echo'], capabilities: ['extensions' => ['unprefixed' => []]]),
+        ] as $capability) {
+            try {
+                new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [$capability]);
+                self::fail('Expected invalid MCP capability composition to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+
+        $extensionRegistry = new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(
+                methods: ['rpc.example'],
+                capabilities: ['extensions' => ['com.example/feature' => new stdClass()]],
+            )],
+        );
+        self::assertInstanceOf(McpCapability::class, $extensionRegistry->capabilityFor('rpc.example'));
+
+        foreach ([
+            new FixtureCapability(methods: ['example/echo'], capabilities: ['tools' => []]),
+            new FixtureCapability(methods: ['tools/list'], capabilities: ['tools' => [], 'prompts' => []]),
+        ] as $capability) {
+            try {
+                new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [$capability]);
+                self::fail('Expected unimplemented standard discovery capability to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_that_registry_validates_all_defined_standard_capability_shapes(): void
+    {
+        $registry = new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(
+                methods: ['completion/complete', 'resources/list', 'rpc.example'],
+                capabilities: [
+                    'completions' => ['values' => [null, true, 1, 'one', 1.0, (object) ['nested' => []]]],
+                    'logging' => [],
+                    'resources' => ['subscribe' => true, 'listChanged' => false],
+                    'experimental' => ['feature' => (object) ['nested' => []]],
+                    'extensions' => ['com.example/feature' => ['nested' => []]],
+                ],
+            )],
+        );
+
+        self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('completion/complete'));
+        self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('resources/list'));
+
+        foreach ([
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ['completions' => ['list']]),
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ['experimental' => ['feature' => []]]),
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['value' => NAN]]),
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['nested' => [NAN]]]),
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['nested' => (object) ['value' => NAN]]]),
+        ] as $capability) {
+            try {
+                new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [$capability]);
+                self::fail('Expected invalid standard capability body to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_that_registry_rejects_invalid_capability_method_and_mirror_values(): void
     {
         foreach ([
@@ -495,6 +669,7 @@ final class McpResponderTest extends UnitTestCase
     {
         foreach ([
             ['', ['region'], 'Region'],
+            ['example/echo', ['named' => 'region'], 'Region'],
             ['example/echo', ['region'], 'invalid header'],
         ] as [$method, $path, $header]) {
             try {

@@ -19,6 +19,19 @@ final readonly class McpRequestMetadata
     public const string PROGRESS_TOKEN_KEY = 'progressToken';
 
     private const string LOG_LEVEL_KEY = 'io.modelcontextprotocol/logLevel';
+    private const array TRACE_CONTEXT_KEYS = [
+        'traceparent',
+        'tracestate',
+        'baggage'
+    ];
+    private const array RESERVED_METADATA_KEYS = [
+        self::PROTOCOL_VERSION_KEY,
+        self::CLIENT_CAPABILITIES_KEY,
+        self::CLIENT_INFO_KEY,
+        self::PROGRESS_TOKEN_KEY,
+        self::LOG_LEVEL_KEY,
+        ...self::TRACE_CONTEXT_KEYS
+    ];
     private const array LOG_LEVELS = [
         'debug',
         'info',
@@ -58,9 +71,9 @@ final readonly class McpRequestMetadata
         $clientCapabilities = $metadata->{self::CLIENT_CAPABILITIES_KEY} ?? null;
         if (
             !is_string($protocolVersion)
-            || $protocolVersion === ''
             || !$clientCapabilities instanceof stdClass
             || !self::hasValidClientCapabilities($clientCapabilities)
+            || !self::hasValidMetadataKeys($metadata)
         ) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), null);
         }
@@ -134,7 +147,7 @@ final readonly class McpRequestMetadata
     {
         if (
             property_exists($capabilities, 'roots')
-            && (!$capabilities->roots instanceof stdClass || !self::hasValidRoots($capabilities->roots))
+            && !$capabilities->roots instanceof stdClass
         ) {
             return false;
         }
@@ -179,10 +192,8 @@ final readonly class McpRequestMetadata
         if (
             !isset($clientInfo->name)
             || !is_string($clientInfo->name)
-            || $clientInfo->name === ''
             || !isset($clientInfo->version)
             || !is_string($clientInfo->version)
-            || $clientInfo->version === ''
         ) {
             return false;
         }
@@ -215,14 +226,6 @@ final readonly class McpRequestMetadata
     }
 
     /**
-     * Returns whether the defined roots capability members are well formed
-     */
-    private static function hasValidRoots(stdClass $roots): bool
-    {
-        return !property_exists($roots, 'listChanged') || is_bool($roots->listChanged);
-    }
-
-    /**
      * Returns whether every map value is a JSON object
      */
     private static function hasOnlyObjectValues(stdClass $object): bool
@@ -235,21 +238,203 @@ final readonly class McpRequestMetadata
      */
     private static function hasValidExtensionNames(stdClass $extensions): bool
     {
-        return array_all(array_keys(get_object_vars($extensions)), fn($name): bool => self::hasValidMetadataKey($name));
+        return array_all(
+            array_keys(get_object_vars($extensions)),
+            fn($name): bool => self::hasValidExtensionName($name)
+        );
     }
 
     /**
-     * Returns whether an extension name follows the MCP metadata-key grammar
+     * Returns whether every top-level metadata key and trace context value is well formed
+     */
+    private static function hasValidMetadataKeys(stdClass $metadata): bool
+    {
+        foreach (get_object_vars($metadata) as $name => $value) {
+            if (in_array($name, self::TRACE_CONTEXT_KEYS, true)) {
+                if (!self::hasValidTraceContextValue($name, $value)) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (!in_array($name, self::RESERVED_METADATA_KEYS, true) && !self::hasValidMetadataKey($name)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether a metadata key follows the MCP naming grammar
      */
     private static function hasValidMetadataKey(string $name): bool
     {
         $pattern = implode('', [
-            '/^[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?',
-            '(?:\\.[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\\/',
+            '/^(?:[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?',
+            '(?:\\.[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\\/)?',
             '(?:[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?)?$/'
         ]);
 
-        return preg_match($pattern, $name) === 1;
+        return $name !== '' && preg_match($pattern, $name) === 1;
+    }
+
+    /**
+     * Returns whether an extension identifier uses the required metadata prefix
+     */
+    private static function hasValidExtensionName(string $name): bool
+    {
+        return str_contains($name, '/') && self::hasValidMetadataKey($name);
+    }
+
+    /**
+     * Returns whether a reserved trace context value has its W3C-defined format
+     */
+    private static function hasValidTraceContextValue(string $name, mixed $value): bool
+    {
+        return match ($name) {
+            'traceparent' => self::hasValidTraceparent($value),
+            'tracestate' => self::hasValidTracestate($value),
+            'baggage' => self::hasValidBaggage($value),
+            default => false,
+        };
+    }
+
+    /**
+     * Returns whether a traceparent has a valid W3C trace-context representation
+     */
+    private static function hasValidTraceparent(mixed $value): bool
+    {
+        if (
+            !is_string($value)
+            || preg_match(
+                '/^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})(?:-([\\x21-\\x7e]+))?$/',
+                $value,
+                $matches
+            ) !== 1
+        ) {
+            return false;
+        }
+
+        return $matches[1] !== 'ff'
+            && $matches[2] !== str_repeat('0', 32)
+            && $matches[3] !== str_repeat('0', 16)
+            && ($matches[1] !== '00' || (!isset($matches[5]) && in_array($matches[4], ['00', '01'], true)));
+    }
+
+    /**
+     * Returns whether a tracestate has valid W3C list members
+     */
+    private static function hasValidTracestate(mixed $value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $members = explode(',', $value);
+        if (count($members) > 32) {
+            return false;
+        }
+
+        $standardKey = '[a-z][a-z0-9_\\-*\\/]{0,255}';
+        $tenantKey = '[a-z0-9][a-z0-9_\\-*\\/]{0,240}@[a-z][a-z0-9_\\-*\\/]{0,13}';
+        $keys = [];
+        foreach ($members as $member) {
+            $member = trim($member, " \t");
+            if ($member === '') {
+                continue;
+            }
+
+            if (
+                preg_match(
+                    sprintf('/^((?:%s)|(?:%s))=(.*)$/', $standardKey, $tenantKey),
+                    $member,
+                    $matches
+                ) !== 1
+                || strlen($matches[2]) > 256
+                || preg_match(
+                    '/^[\\x20-\\x2b\\x2d-\\x3c\\x3e-\\x7e]*[\\x21-\\x2b\\x2d-\\x3c\\x3e-\\x7e]$/',
+                    $matches[2]
+                ) !== 1
+                || isset($keys[$matches[1]])
+            ) {
+                return false;
+            }
+
+            $keys[$matches[1]] = true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether baggage has valid W3C members and optional properties
+     */
+    private static function hasValidBaggage(mixed $value): bool
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $members = explode(',', $value);
+        if (count($members) > 180) {
+            return false;
+        }
+
+        return array_all($members, static function (string $member): bool {
+            $parts = explode(';', $member);
+            $entry = array_shift($parts);
+            if (!self::hasValidBaggagePair($entry)) {
+                return false;
+            }
+
+            return array_all($parts, static fn(string $property): bool => self::hasValidBaggageProperty($property));
+        });
+    }
+
+    /**
+     * Returns whether one baggage member is a valid key/value pair
+     */
+    private static function hasValidBaggagePair(string $pair): bool
+    {
+        $separator = strpos($pair, '=');
+        if ($separator === false) {
+            return false;
+        }
+
+        $key = trim(substr($pair, 0, $separator), " \t");
+        $value = trim(substr($pair, $separator + 1), " \t");
+
+        return self::isHttpToken($key) && self::hasValidBaggageValue($value);
+    }
+
+    /**
+     * Returns whether an optional baggage property is valid
+     */
+    private static function hasValidBaggageProperty(string $property): bool
+    {
+        if (!str_contains($property, '=')) {
+            return self::isHttpToken(trim($property, " \t"));
+        }
+
+        return self::hasValidBaggagePair($property);
+    }
+
+    /**
+     * Returns whether a baggage value contains only permitted octets
+     */
+    private static function hasValidBaggageValue(string $value): bool
+    {
+        return preg_match('/^[\\x21\\x23-\\x5b\\x5d-\\x7e]*$/', $value) === 1;
+    }
+
+    /**
+     * Returns whether a value is an HTTP token
+     */
+    private static function isHttpToken(string $value): bool
+    {
+        return preg_match("/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/", $value) === 1;
     }
 
     /**
@@ -269,7 +454,7 @@ final readonly class McpRequestMetadata
      */
     private static function hasValidIcon(stdClass $icon): bool
     {
-        if (!isset($icon->src) || !is_string($icon->src) || !self::isUri($icon->src)) {
+        if (!isset($icon->src) || !is_string($icon->src) || !self::isSafeIconUri($icon->src)) {
             return false;
         }
 
@@ -317,6 +502,28 @@ final readonly class McpRequestMetadata
 
         return !in_array(strtolower($scheme), ['http', 'https'], true)
             || filter_var($value, FILTER_VALIDATE_URL) !== false;
+    }
+
+    /**
+     * Returns whether an icon URI uses a safe MCP-supported source scheme
+     */
+    private static function isSafeIconUri(string $value): bool
+    {
+        if (str_starts_with(strtolower($value), 'https:')) {
+            return self::isUri($value);
+        }
+
+        if (
+            preg_match(
+                '/^data:(image\\/[A-Za-z0-9!#$&^_.+-]+);base64,([A-Za-z0-9+\\/]+={0,2})$/i',
+                $value,
+                $matches
+            ) !== 1
+        ) {
+            return false;
+        }
+
+        return base64_decode($matches[2], true) !== false;
     }
 
     /**

@@ -39,7 +39,7 @@ final class McpRequestDecoder
         }
 
         $method = $data['method'] ?? null;
-        if (!is_string($method) || trim($method) === '') {
+        if (!is_string($method)) {
             throw new McpProtocolException(McpProtocolError::invalidRequest(), $requestId);
         }
 
