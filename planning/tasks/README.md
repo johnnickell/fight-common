@@ -10,4 +10,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | ready-for-agent | [TICKET-00023](../tickets/00023-TICKET.md) |
 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | ready-for-agent | [TICKET-00024](../tickets/00024-TICKET.md) |
 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-agent | [TICKET-00024](../tickets/00024-TICKET.md) |
+| [TASK-00108](00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | ready-for-agent | [TICKET-00025](../tickets/00025-TICKET.md) |
+| [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | ready-for-agent | [TICKET-00025](../tickets/00025-TICKET.md) |
+| [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | needs-info | [TICKET-00025](../tickets/00025-TICKET.md) |
 <!-- /planning:records -->

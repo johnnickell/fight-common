@@ -2,7 +2,7 @@
 id: TICKET-00025
 epic: EPIC-00006
 title: Stream Progress and Cancel a Tool Request Across Supported Compositions
-status: ready-for-agent
+status: needs-info
 ---
 
 # Stream Progress and Cancel a Tool Request Across Supported Compositions
@@ -21,17 +21,18 @@ tool receives a no-op reporter and returns direct JSON. Progress reports monoton
 never carries partial result content. Closing the request stream marks the reporter cancelled; tools check at safe
 points and stop cooperatively where practical.
 
-This behavior must be proven across Symfony, Laravel, Yii, CodeIgniter, Slim, and the framework-free/PSR path.
-Frameworks retain their own routes and composition roots; Common must not invent branded adapters where an existing
-native or PSR seam expresses the full behavior, nor silently fall back to completed or buffered SSE.
+Fight Common must prove the package behavior through a concrete framework-free runtime and package-owned adapter
+conformance. The Symfony, Laravel, Yii, CodeIgniter, and Slim starters must separately prove booted installed-package
+journeys through their owned routes and composition roots. Common must not invent branded adapters where an
+existing native or PSR seam expresses the full behavior, nor silently fall back to completed or buffered SSE.
 
 ## Use cases
 
 | Use case | Commands | Queries | Events | Expected side effects |
 | --- | --- | --- | --- | --- |
-| A client requests progress for `tools/call` | N/A | N/A | `notifications/progress` | Emit timely status notifications before the final JSON-RPC response through SSE. |
+| A client requests progress for `tools/call` | N/A | N/A | N/A - MCP protocol notifications are not Fight Events | Emit timely `notifications/progress` protocol messages before the final JSON-RPC response through SSE. |
 | A client does not request progress for `tools/call` | N/A | N/A | N/A | Supply a no-op reporter and return direct JSON without changing tool behavior. |
-| A tool reports work | N/A | N/A | Progress notifications only | Preserve monotonic ordering; keep partial result content exclusively in final `McpToolOutput`. |
+| A tool reports work | N/A | N/A | N/A - MCP protocol notifications are not Fight Events | Preserve monotonic notification ordering; keep partial result content exclusively in final `McpToolOutput`. |
 | A client closes the stream | N/A | N/A | N/A | Suppress further response messages and let the tool stop cooperatively without claiming rollback. |
 | A framework composes MCP support | N/A | N/A | N/A | Preserve progressive delivery, buffering control, and disconnect semantics across every supported composition. |
 
@@ -69,22 +70,33 @@ adapter for a framework that can use an existing complete seam are excluded.
 ## Acceptance and evidence
 
 Package-owned contract fixtures prove direct JSON/no-op behavior, monotonic progress-before-final ordering,
-progress content separation, disconnect cancellation, and suppression after closure. Framework-native and PSR
-integration evidence proves actual timely multi-event SSE, buffering-control configuration where required, and
-disconnect propagation for Symfony, Laravel, Yii, CodeIgniter, Slim, and the framework-free/PSR composition.
-Each public addition is manifest-classified and behavior evidence proves existing framework contracts remain
-additive. If any composition cannot meet the full contract, its exact limitation and the required explicit decision
-are retained as acceptance evidence rather than hidden.
+progress content separation, safe final failure after progress, disconnect cancellation, and suppression after
+closure. Fight Common adapter conformance and a concrete framework-free server/client journey prove package
+translation and live emission. Separately owned booted installed-package journeys prove native registration,
+buffering, failure, and disconnect behavior in the Symfony, Laravel, Yii, CodeIgniter, and Slim starters. Each
+public addition is manifest-classified and behavior evidence proves existing framework contracts remain additive.
+If any composition cannot meet the full contract, its exact limitation and the required explicit decision are
+retained as acceptance evidence rather than hidden.
 
 ## TASKs
 
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| None | — | — |
+| [TASK-00108](../tasks/00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | ready-for-agent |
+| [TASK-00109](../tasks/00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | ready-for-agent |
+| [TASK-00110](../tasks/00110-TASK.md) | Qualify progressive MCP in every supported framework starter | needs-info |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) records the retained
-streaming feasibility risk and forbids silent scope reduction. No TASKs have been decomposed yet.
+streaming feasibility risk and forbids silent scope reduction. TASK-00108 owns Application reporter/orchestration
+semantics. TASK-00109 owns Fight Common HTTP selection, SSE/live-emitter behavior, package adapter conformance, and
+the concrete framework-free runtime proof. TASK-00110 owns cross-repository qualification and final TICKET evidence.
+
+The TICKET remains `needs-info`: this request did not authorize writes in the five starter repositories, so their
+local TASK IDs, branch/base records, PR dependencies, and exact candidate-consumption references are not yet
+allocated. The recommended decision is to preserve the adopted support policy, create one vertical TASK/PR in each
+starter after TASK-00109 produces a candidate, then return five eligible immutable receipts before closing this
+TICKET. Weakening booted-starter evidence would require a separate explicit governance decision.
