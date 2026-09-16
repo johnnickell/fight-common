@@ -5,7 +5,7 @@
 <!-- planning:epics -->
 | EPIC ID | Title | Target | Status |
 |---|---|---|---|
-| None | — | — | — |
+| [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | ready-for-agent |
 <!-- /planning:epics -->
 
 ## Strategy and next decisions
