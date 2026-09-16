@@ -80,11 +80,16 @@ in the manifest and their observable behavior is covered before acceptance.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| None | — | — |
+| [TASK-00104](../tasks/00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | ready-for-agent |
+| [TASK-00105](../tasks/00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | ready-for-agent |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
 The [MCP-over-HTTP grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) establishes
 the capability-registry direction, consumer-supplied server identity, full transport-mirror requirement, and
-policy-free endpoint boundary. No TASKs have been decomposed yet.
+policy-free endpoint boundary. TASK-00104 owns the framework-neutral protocol semantics, truthful discovery,
+capability dispatch, and centralized errors without exposing an unguarded HTTP endpoint. TASK-00105 then owns the
+first PSR HTTP endpoint, direct JSON, and required Origin, invocation-guard, and complete header/body-mirror
+safeguards, including integrated TICKET acceptance. The dependency keeps each TASK independently reviewable
+without splitting Application and Adapter layers into separate durable work records.
