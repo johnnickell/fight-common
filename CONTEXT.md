@@ -93,6 +93,9 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Transport services** | HTTP clients, mail transports, SMS transports, and socket publishers are outbound ports with concrete adapters. A **null adapter** intentionally performs no external delivery; a **logging adapter** records and delegates or substitutes an operation as documented. |
 | **JSend envelope** | A framework-neutral semantic representation of one JSend `success`, `fail`, or `error` result. It owns JSend data, message, code, and serialization but not HTTP status, headers, or a framework-native response. A controller chooses the HTTP outcome and a native response adapter converts the envelope. |
 | **Registry service** | A service such as `StorageService` or `FileTransferService` that selects a named port implementation. It is not itself the storage or transport backend. |
+| **MCP semantic responder** | An Application-level service that decodes one MCP JSON-RPC request, validates shared protocol rules, runs `server/discover` or one registered capability, and returns one semantic JSON-RPC response. It is not an HTTP endpoint, authenticator, authorizer, or framework response factory. |
+| **MCP capability** | An explicit consumer-registered handler that owns a bounded set of MCP methods, capability advertisement, outer-parameter validation, and semantic result construction. The capability registry derives discovery from these registrations; it does not automatically expose ordinary Actions or CQRS handlers. |
+| **MCP request metadata** | Bounded protocol context supplied under `_meta`: protocol version, client capabilities/information, and progress token. It is neither a credential nor a principal and does not convey authorization policy. |
 
 ## Access control language
 

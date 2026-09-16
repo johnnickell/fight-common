@@ -1,0 +1,483 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Test\Common\Application\Mcp;
+
+use Fight\Common\Application\Mcp\McpCapability;
+use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\McpJsonResponse;
+use Fight\Common\Application\Mcp\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\McpProtocolError;
+use Fight\Common\Application\Mcp\McpProtocolException;
+use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\McpRequestMetadata;
+use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Test\Common\TestCase\UnitTestCase;
+use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
+use stdClass;
+
+#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpJsonResponse::class)]
+#[CoversClass(McpMirrorDeclaration::class)]
+#[CoversClass(McpProtocolError::class)]
+#[CoversClass(McpProtocolException::class)]
+#[CoversClass(McpRequest::class)]
+#[CoversClass(McpRequestDecoder::class)]
+#[CoversClass(McpRequestMetadata::class)]
+#[CoversClass(McpResponder::class)]
+#[CoversClass(McpResult::class)]
+#[CoversClass(McpServerInfo::class)]
+final class McpResponderTest extends UnitTestCase
+{
+    public function test_that_discovery_returns_only_registered_capabilities_and_server_identity_metadata(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+
+        $response = $responder->respond($this->request('server/discover', 7));
+
+        self::assertEquals(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 7,
+                'result'  => [
+                    'resultType'      => 'complete',
+                    'supportedVersions' => ['2026-07-28'],
+                    'capabilities'      => (object) ['example' => (object) ['enabled' => true]],
+                    'ttlMs'             => 0,
+                    'cacheScope'        => 'private',
+                    '_meta'             => [
+                        'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                    ],
+                ],
+            ],
+            $response->toArray(),
+        );
+        self::assertSame(0, $capability->handleCalls);
+        self::assertSame(0, $capability->validateCalls);
+    }
+
+    public function test_that_discovery_serializes_empty_capability_maps_and_definitions_as_json_objects(): void
+    {
+        $noCapabilities = new FixtureCapability(capabilities: []);
+        $emptyDefinition = new FixtureCapability(definition: []);
+
+        self::assertStringContainsString(
+            '"capabilities":{}',
+            (new McpResponder($this->registry($noCapabilities)))->respond($this->request('server/discover', 1))->toJson(),
+        );
+        self::assertStringContainsString(
+            '"capabilities":{"example":{}}',
+            (new McpResponder($this->registry($emptyDefinition)))->respond($this->request('server/discover', 2))->toJson(),
+        );
+    }
+
+    public function test_that_valid_method_dispatches_once_after_outer_parameter_validation(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+
+        $response = $responder->respond($this->request('example/echo', 'request-9', ['message' => 'hello']));
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 'request-9',
+                'result'  => ['resultType' => 'complete', 'message' => 'hello'],
+            ],
+            $response->toArray(),
+        );
+        self::assertSame(1, $capability->validateCalls);
+        self::assertSame(1, $capability->handleCalls);
+    }
+
+    public function test_that_protocol_failures_are_centralized_without_capability_dispatch(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'error' => ['code' => -32700, 'message' => 'Parse error.']],
+            $responder->respond('{')->toArray(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 4, 'error' => ['code' => -32600, 'message' => 'Invalid request.']],
+            $responder->respond('{"jsonrpc":"1.0","id":4,"method":"example/echo"}')->toArray(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 4, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+            $responder->respond('{"jsonrpc":"2.0","id":4,"method":"example/echo","params":[]}')->toArray(),
+        );
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 4,
+                'error'   => [
+                    'code'    => -32022,
+                    'message' => 'Unsupported protocol version.',
+                    'data'    => ['supported' => ['2026-07-28'], 'requested' => '2025-11-25'],
+                ],
+            ],
+            $responder->respond($this->request('example/echo', 4, [], '2025-11-25'))->toArray(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 4, 'error' => ['code' => -32601, 'message' => 'Method not found.']],
+            $responder->respond($this->request('resources/read', 4))->toArray(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 4, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+            $responder->respond($this->request('example/echo', 4, []))->toArray(),
+        );
+        self::assertSame(0, $capability->handleCalls);
+        self::assertSame(1, $capability->validateCalls);
+    }
+
+    public function test_that_invalid_discovery_parameters_and_capability_failures_preserve_request_identity(): void
+    {
+        $failing = new FixtureCapability(throwOnHandle: true);
+        $responder = new McpResponder($this->registry($failing));
+
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 3, 'error' => ['code' => -32602, 'message' => 'Invalid params.']],
+            $responder->respond($this->request('server/discover', 3, ['unexpected' => true]))->toArray(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 3, 'error' => ['code' => -32603, 'message' => 'Internal error.']],
+            $responder->respond($this->request('example/echo', 3, ['message' => 'hello']))->toArray(),
+        );
+        self::assertSame(1, $failing->validateCalls);
+        self::assertSame(1, $failing->handleCalls);
+    }
+
+    public function test_that_decoder_keeps_only_bounded_request_metadata(): void
+    {
+        $request = (new McpRequestDecoder())->decode($this->request(
+            'example/echo',
+            2,
+            ['message' => 'hello'],
+            metadata: [
+                'io.modelcontextprotocol/protocolVersion'    => '2026-07-28',
+                'io.modelcontextprotocol/clientCapabilities' => (object) ['sampling' => new stdClass()],
+                'io.modelcontextprotocol/clientInfo'         => (object) ['name' => 'client', 'version' => '2.0'],
+                'progressToken'                              => 'progress-1',
+                'com.example/opaque'                         => ['not' => 'retained'],
+            ],
+        ));
+
+        self::assertSame(2, $request->id());
+        self::assertSame('example/echo', $request->method());
+        self::assertSame(['message' => 'hello'], $request->parameters());
+        self::assertSame('2026-07-28', $request->metadata()->protocolVersion());
+        self::assertEquals((object) ['sampling' => new stdClass()], $request->metadata()->clientCapabilities());
+        self::assertEquals((object) ['name' => 'client', 'version' => '2.0'], $request->metadata()->clientInfo());
+        self::assertSame('progress-1', $request->metadata()->progressToken());
+    }
+
+    public function test_that_metadata_rejects_missing_or_malformed_required_values(): void
+    {
+        $decoder = new McpRequestDecoder();
+
+        $this->expectException(McpProtocolException::class);
+        $decoder->decode('{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28"}}}');
+    }
+
+    public function test_that_decoder_requires_json_objects_and_well_formed_client_information(): void
+    {
+        $decoder = new McpRequestDecoder();
+
+        $emptyObjects = $decoder->decode(
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+            . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+            . '"io.modelcontextprotocol/clientCapabilities":{}}}}'
+        );
+        self::assertEquals(new stdClass(), $emptyObjects->metadata()->clientCapabilities());
+
+        foreach ([
+            '[]',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":[]}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":[]}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":[]}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":[]}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},'
+                . '"io.modelcontextprotocol/clientInfo":{"name":"client"}}}}',
+            '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":{"_meta":'
+                . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+                . '"io.modelcontextprotocol/clientCapabilities":{},"progressToken":true}}}',
+            '{"jsonrpc":"2.0","method":"example/echo"}',
+            '{"jsonrpc":"2.0","id":1,"method":""}',
+        ] as $invalidRequest) {
+            try {
+                $decoder->decode($invalidRequest);
+                self::fail('Expected invalid request metadata to be rejected.');
+            } catch (McpProtocolException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_that_decimal_request_and_progress_tokens_are_preserved(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+        $request = $this->request(
+            'example/echo',
+            7.5,
+            ['message' => 'hello'],
+            metadata: ['progressToken' => 1.25],
+        );
+
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 7.5, 'result' => ['resultType' => 'complete', 'message' => 'hello']],
+            $responder->respond($request)->toArray(),
+        );
+        self::assertSame(
+            7.5,
+            (new McpRequestDecoder())->decode($request)->id(),
+        );
+        self::assertSame(
+            1.25,
+            (new McpRequestDecoder())->decode($request)->metadata()->progressToken(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 3.25, 'error' => ['code' => -32600, 'message' => 'Invalid request.']],
+            $responder->respond('{"jsonrpc":"1.0","id":3.25,"method":"example/echo"}')->toArray(),
+        );
+    }
+
+    public function test_that_construction_rejects_invalid_identity_mirror_and_result_declarations(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpServerInfo('', '1.0.0');
+    }
+
+    public function test_that_registry_rejects_missing_identity_duplicate_ownership_and_contradictory_metadata(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(null, []);
+    }
+
+    public function test_that_registry_rejects_duplicate_method_ownership(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [new FixtureCapability(), new FixtureCapability()]);
+    }
+
+    public function test_that_registry_rejects_contradictory_capability_metadata(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(), new FixtureCapability(method: 'example/second', definition: ['enabled' => false])],
+        );
+    }
+
+    public function test_that_registry_rejects_capabilities_without_a_handler_method(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(methods: [])],
+        );
+    }
+
+    public function test_that_registry_rejects_nonempty_list_capability_definitions(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(definition: ['not', 'an', 'object'])],
+        );
+    }
+
+    public function test_that_registry_rejects_invalid_capability_method_and_mirror_values(): void
+    {
+        foreach ([
+            [new stdClass()],
+            [new FixtureCapability(methods: [''])],
+            [new FixtureCapability(methods: ['server/discover'])],
+            [new FixtureCapability(mirrors: [new stdClass()])],
+        ] as $invalidCapabilities) {
+            try {
+                new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), $invalidCapabilities);
+                self::fail('Expected invalid capability registration to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_that_registry_and_declaration_accessors_expose_registered_values(): void
+    {
+        $serverInfo = new McpServerInfo('Example', '1.0.0');
+        $declaration = new McpMirrorDeclaration('example/echo', ['region'], 'Region');
+        $registry = new McpCapabilityRegistry(
+            $serverInfo,
+            [new FixtureCapability(mirrors: [$declaration])],
+        );
+
+        self::assertSame('Example', $serverInfo->name());
+        self::assertSame('1.0.0', $serverInfo->version());
+        self::assertSame(['region'], $declaration->parameterPath());
+        self::assertSame([$declaration], $registry->mirrorDeclarationsFor('example/echo'));
+        self::assertSame([], $registry->mirrorDeclarationsFor('unknown/method'));
+    }
+
+    public function test_that_mirror_declaration_rejects_empty_methods_and_invalid_headers(): void
+    {
+        foreach ([
+            ['', ['region'], 'Region'],
+            ['example/echo', ['region'], 'invalid header'],
+        ] as [$method, $path, $header]) {
+            try {
+                new McpMirrorDeclaration($method, $path, $header);
+                self::fail('Expected invalid mirror declaration to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_that_registry_rejects_invalid_and_duplicate_mirror_declarations(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpMirrorDeclaration('example/echo', [], 'Region');
+    }
+
+    public function test_that_registry_rejects_mirrors_for_unowned_methods_and_duplicate_headers(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(mirrors: [new McpMirrorDeclaration('other/method', ['region'], 'Region')])],
+        );
+    }
+
+    public function test_that_registry_rejects_case_insensitive_duplicate_mirror_headers(): void
+    {
+        $this->expectException(DomainException::class);
+        new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(mirrors: [
+                new McpMirrorDeclaration('example/echo', ['region'], 'Region'),
+                new McpMirrorDeclaration('example/echo', ['zone'], 'region'),
+            ])],
+        );
+    }
+
+    public function test_that_response_and_result_validate_and_encode_semantic_data(): void
+    {
+        self::assertSame(
+            '{"jsonrpc":"2.0","id":"id-1","result":{"resultType":"complete","message":"hello"}}',
+            McpJsonResponse::success('id-1', McpResult::complete(['message' => 'hello']))->toJson(),
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'error' => ['code' => -32600, 'message' => 'Invalid request.']],
+            McpJsonResponse::error(null, McpProtocolError::invalidRequest())->toArray(),
+        );
+
+        $this->expectException(DomainException::class);
+        McpResult::complete(['resultType' => 'input_required']);
+    }
+
+    public function test_that_response_encoding_surfaces_json_errors(): void
+    {
+        $this->expectException(JsonException::class);
+        McpJsonResponse::success(1, McpResult::complete(['value' => NAN]))->toJson();
+    }
+
+    private function registry(McpCapability $capability): McpCapabilityRegistry
+    {
+        return new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [$capability]);
+    }
+
+    /**
+     * @param integer|float|string             $id
+     * @param array<string, mixed>             $parameters
+     * @param array<string, mixed>|null        $metadata
+     */
+    private function request(
+        string $method,
+        int|float|string $id,
+        array $parameters = [],
+        string $protocolVersion = '2026-07-28',
+        ?array $metadata = null,
+    ): string {
+        $metadata = array_replace([
+            'io.modelcontextprotocol/protocolVersion'    => $protocolVersion,
+            'io.modelcontextprotocol/clientCapabilities' => new stdClass(),
+        ], $metadata ?? []);
+
+        return json_encode([
+            'jsonrpc' => '2.0',
+            'id'      => $id,
+            'method'  => $method,
+            'params'  => [...$parameters, '_meta' => $metadata],
+        ], JSON_THROW_ON_ERROR);
+    }
+}
+
+final class FixtureCapability implements McpCapability
+{
+    public int $validateCalls = 0;
+    public int $handleCalls = 0;
+
+    /**
+     * @param array<string, mixed>           $definition
+     * @param list<McpMirrorDeclaration>     $mirrors
+     */
+    public function __construct(
+        private readonly string $method = 'example/echo',
+        private readonly array $definition = ['enabled' => true],
+        private readonly array $mirrors = [],
+        private readonly bool $throwOnHandle = false,
+        private readonly ?array $methods = null,
+        private readonly ?array $capabilities = null,
+    ) {
+    }
+
+    public function methods(): array
+    {
+        return $this->methods ?? [$this->method];
+    }
+
+    public function capabilities(): array
+    {
+        return $this->capabilities ?? ['example' => $this->definition];
+    }
+
+    public function mirrorDeclarations(): array
+    {
+        return $this->mirrors;
+    }
+
+    public function validate(McpRequest $request): void
+    {
+        ++$this->validateCalls;
+        if (!isset($request->parameters()['message']) || !is_string($request->parameters()['message'])) {
+            throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+        }
+    }
+
+    public function handle(McpRequest $request): McpResult
+    {
+        ++$this->handleCalls;
+        if ($this->throwOnHandle) {
+            throw new \RuntimeException('Unexpected fixture failure.');
+        }
+
+        return McpResult::complete(['message' => $request->parameters()['message']]);
+    }
+}
