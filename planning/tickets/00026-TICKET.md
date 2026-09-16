@@ -16,14 +16,23 @@ for Bearer-authenticated callers.
 
 ## Solution and boundaries
 
-Support MCP `input_required` results with two protected interaction modes. Ordinary multi-step input uses
-integrity-bound state; destructive confirmation uses a consumer-provided atomic one-time interaction store. Both
-bind neutral caller identity, selected canonical tool, originally validated arguments, and expiry. An interactive
-tool resumes with restored original arguments plus separately validated `inputResponses`; it does not duplicate
-initial metadata or validation declarations.
+Support MCP `input_required` results with two protected interaction modes. Ordinary multi-step input uses stateless,
+versioned-AEAD opaque state; destructive confirmation uses a consumer-provided atomic one-time interaction store.
+Both bind neutral caller identity, selected canonical Tool, originally validated arguments, the requested-input
+contract, and expiry. An interactive Tool resumes with restored original arguments plus separately validated
+`inputResponses`; it does not duplicate initial metadata or validation declarations. Ordinary state has no
+server-side record and is not replay-preventing; destructive or otherwise replay-sensitive work must use confirmation
+mode.
 
-Before emitting an input request, Common verifies that the current request declares the required client interaction
-capability. A tool cannot enter the interaction flow for a client that did not advertise support.
+An interactive Tool statically declares form elicitation as its required client capability. After resolving current
+availability but before initial validation or `handle()`, the selected-Tool invoker gates that declaration against
+the current request. An incapable client never enters the Tool branch: Common emits no input request and calls
+neither `handle()` nor `resume()` or an underlying bus.
+
+Every retry privately authenticates and opens its opaque state only to recover its canonical Tool identity, then
+reevaluates that Tool through the current request-scoped availability/concealment decision before revealing any
+restored-state detail, validating responses, or invoking `resume()`. A Tool revoked between rounds is
+indistinguishable from an unknown Tool and receives no state disclosure, `resume()`, command, query, or event dispatch.
 
 Consumers decide which actions are destructive, supply the neutral caller identity and confirmation store, and own
 their business confirmation policy. Common provides protected state mechanics and MCP representation only.
@@ -32,20 +41,26 @@ their business confirmation policy. Common provides protected state mechanics an
 
 | Use case | Commands | Queries | Events | Expected side effects |
 | --- | --- | --- | --- | --- |
-| A capable client receives a request for ordinary additional input | N/A | N/A | N/A | Verify the declared client capability, then preserve caller, tool, arguments, and expiry for a later retry. |
+| A capable client receives a request for ordinary additional input | N/A | N/A | N/A | Verify the declared client capability, call `handle()` only to yield `input_required`, then preserve caller, Tool, arguments, requested-input contract, and expiry without mapped command/query dispatch. |
 | A capable client receives a destructive confirmation request | N/A | N/A | N/A | Verify the declared client capability and ensure one confirmation cannot be replayed or resumed twice. |
-| A client without the interaction capability reaches an interactive branch | N/A | N/A | N/A | Reject the interaction before emitting an input request or dispatching the resumed use case. |
+| A client without the interaction capability selects an interactive Tool | N/A | N/A | N/A | Reject before initial validation or `handle()`, input request, `resume()`, or bus dispatch. |
 | A client resumes an interaction through `resume()` | Consumer-defined existing Command when the resumed tool mutates state | Consumer-defined existing Query when the resumed tool reads state | Consumer-defined events only | Continue the selected use case without repeating discovery metadata or initial validation declarations. |
 | Invalid interaction state is presented | N/A | N/A | N/A | Return a safe interaction/protocol failure without dispatching the underlying use case. |
 
 ## Validation, permissions, and failures
 
-Common separately validates resumed `inputResponses` against the schema retained with the interaction request.
-Caller mismatch, tool mismatch, original-argument mismatch, expiry, integrity failure, replay, and already-consumed
-confirmation state fail closed. A confirmation state is atomically consumed before resume. HMAC request nonce
-machinery is not reused. Common receives a neutral caller identity for state binding, never a generic principal or
-permission model. Missing client interaction capability also fails closed before any input request or underlying
-use-case dispatch.
+`inputResponses` is a keyed map whose values are `ElicitResult` envelopes with an action of `accept`, `decline`, or
+`cancel`. Common first validates the envelope shape, requested response keys, action values, and the absence of
+accept-only content for `decline`/`cancel`; it validates restricted-schema content only for `accept`. Caller/Tool/
+original-argument mismatch, expiry, AEAD authentication failure, malformed/oversized state, invalid response
+envelope/key/action, unavailable-on-retry state, and already-consumed confirmation state fail closed. A confirmation
+state is atomically consumed before affirmative resume and atomically retired on decline/cancel. Ordinary state
+deliberately cannot offer replay prevention without a server-side record; valid repeated use follows the Tool's
+ordinary retry semantics, while replay-sensitive operations require confirmation mode.
+
+HMAC request nonce machinery is not reused. Common receives a neutral caller identity for state binding, never a
+generic principal or permission model. Missing client interaction capability fails closed before initial Tool or
+underlying use-case dispatch.
 
 ## Dependencies
 
@@ -62,27 +77,39 @@ Every public contract added by this work requires additive public-API-manifest c
 compatibility evidence. Existing HMAC authentication and nonce behavior remain unchanged.
 
 Consumer destructive-action policy, approval language, principal resolution, authorization, persistence selection,
+Common-owned interaction persistence, ordinary replay detection, reversible/plaintext client-visible bound values,
 durable task lifecycle, forced cancellation, and automatic rollback are excluded.
 
 ## Acceptance and evidence
 
-Package-owned interactive fixtures prove ordinary integrity-bound state, confirmation atomic single use, caller/tool/
-argument/expiry binding, separate `inputResponses` validation, safe retry behavior, and rejection of tampered,
-expired, mismatched, replayed, or already-consumed state. Tests prove no HMAC nonce reuse and no dispatch occurs for
-rejected state. Capability fixtures prove input requests are emitted only when the current request advertises the
-required client capability and that unsupported clients receive no input request or use-case dispatch. Every public
-addition is manifest-classified and behavior evidence proves existing authentication and command/query contracts
-are unchanged.
+Package-owned interactive fixtures prove versioned-AEAD opaque ordinary state with no server-side record, active-key
+rotation, retired-key rejection, strict pre-cryptography state-size limits, and no client-visible reversible caller/
+Tool/argument/schema/expiry values. They prove caller/Tool/argument/expiry binding; keyed `ElicitResult` envelope/key/
+action rules; restricted-schema validation only for `accept`; ordinary `decline`/`cancel` typed-resume behavior;
+destructive `decline`/`cancel` terminal retirement without destructive dispatch; and confirmation atomic single use.
+
+Retry fixtures prove current availability is reevaluated before restored-state disclosure or `resume()`, including a
+Tool revoked between rounds that is concealed as unknown. Tests prove no HMAC nonce reuse and distinguish allowed
+registry/availability resolution from prohibited handler/bus dispatch: an incapable request calls no `handle()`,
+`resume()`, or bus; rejected retry calls no `resume()` or bus; an initial capable ordinary request may call `handle()`
+solely to yield `input_required`. A transport-neutral cancellation simulation proves an acquired confirmation remains
+consumed without automatic retry. Every public addition is manifest-classified and behavior evidence proves existing
+authentication and command/query contracts unchanged.
 
 ## TASKs
 
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| None | — | — |
+| [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | ready-for-agent |
+| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent |
 <!-- /planning:children -->
 
 ## Decisions and progress
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) records the ordinary and
-confirmation-state modes and reserves consumer business policy to the consumer. No TASKs have been decomposed yet.
+confirmation-state modes and reserves consumer business policy to the consumer. Decomposition preserves those as
+two complete behavior slices rather than layer slices: TASK-00111 owns stateless versioned-AEAD ordinary additional-
+input retry, and TASK-00112 extends its stable interaction envelope with consumer-provided atomic single-use
+confirmation and owns integrated TICKET acceptance. Ordinary state is intentionally not a one-time token; consumers
+must route destructive or otherwise replay-sensitive actions through confirmation mode.
