@@ -557,10 +557,12 @@ final readonly class McpRequestMetadata
     private static function isImageMediaType(string $mediaType): bool
     {
         $parts = explode('/', $mediaType);
+        $type = $parts[0];
 
         return count($parts) === 2
-            && strcasecmp($parts[0], 'image') === 0
-            && self::hasValidMimeTokenWithEscapes($parts[1]);
+            && self::hasValidMimeToken($type)
+            && strcasecmp(self::decodeDataUriComponent($type) ?? '', 'image') === 0
+            && self::hasValidMimeToken($parts[1]);
     }
 
     /**
@@ -573,20 +575,39 @@ final readonly class McpRequestMetadata
             return false;
         }
 
-        return self::hasValidMimeTokenWithEscapes(substr($parameter, 0, $separator))
-            && self::hasValidMimeTokenWithEscapes(substr($parameter, $separator + 1));
+        return self::hasValidMimeToken(substr($parameter, 0, $separator))
+            && self::hasValidMimeToken(substr($parameter, $separator + 1));
     }
 
     /**
-     * Returns whether a MIME token permits only valid URI percent escapes
+     * Returns whether a data URI component decodes to a valid MIME token
      */
-    private static function hasValidMimeTokenWithEscapes(string $value): bool
+    private static function hasValidMimeToken(string $value): bool
+    {
+        $decoded = self::decodeDataUriComponent($value);
+
+        return $decoded !== null && self::hasValidDecodedMimeToken($decoded);
+    }
+
+    /**
+     * Returns whether a decoded MIME token has valid RFC 2045 characters
+     */
+    private static function hasValidDecodedMimeToken(string $value): bool
+    {
+        return preg_match('/\A[!#$%&\'*+\-.0-9A-Z^_`a-z{|}~]+\z/', $value) === 1;
+    }
+
+    /**
+     * Decodes one RFC 2397 media-type component with valid URL representation
+     */
+    private static function decodeDataUriComponent(string $value): ?string
     {
         if ($value === '') {
-            return false;
+            return null;
         }
 
         $length = strlen($value);
+        $decoded = '';
         for ($index = 0; $index < $length; ++$index) {
             if ($value[$index] === '%') {
                 if (
@@ -594,20 +615,26 @@ final readonly class McpRequestMetadata
                     || !ctype_xdigit($value[$index + 1])
                     || !ctype_xdigit($value[$index + 2])
                 ) {
-                    return false;
+                    return null;
                 }
 
+                $decoded .= chr(hexdec(substr($value, $index + 1, 2)));
                 $index += 2;
 
                 continue;
             }
 
-            if (preg_match("/^[!#$&'*+\-.0-9A-Z^_\`a-z{|}~]$/", $value[$index]) !== 1) {
-                return false;
+            if (
+                !ctype_alnum($value[$index])
+                && !str_contains('!$&\'()*+-._~;/?:@=,', $value[$index])
+            ) {
+                return null;
             }
+
+            $decoded .= $value[$index];
         }
 
-        return true;
+        return $decoded;
     }
 
     /**
