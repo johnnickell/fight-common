@@ -593,7 +593,10 @@ final class McpResponderTest extends UnitTestCase
     {
         $registry = new McpCapabilityRegistry(
             new McpServerInfo('Example', '1.0.0'),
-            [new FixtureCapability(methods: ['tools/list'], capabilities: ['tools' => ['listChanged' => true]])],
+            [new FixtureCapability(
+                methods: ['tools/list', 'subscriptions/listen'],
+                capabilities: ['tools' => ['listChanged' => true]],
+            )],
         );
         self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('tools/list'));
 
@@ -630,12 +633,13 @@ final class McpResponderTest extends UnitTestCase
                 self::addToAssertionCount(1);
             }
         }
+
     }
 
     public function test_that_registry_requires_standard_capability_mandatory_anchor_methods(): void
     {
         $capability = new FixtureCapability(
-            methods: ['tools/call', 'tools/list'],
+            methods: ['tools/call', 'tools/list', 'subscriptions/listen'],
             capabilities: ['tools' => ['listChanged' => true]],
         );
         $responder = new McpResponder($this->registry($capability));
@@ -669,6 +673,36 @@ final class McpResponderTest extends UnitTestCase
                 self::addToAssertionCount(1);
             }
         }
+
+    }
+
+    public function test_that_registry_rejects_subscription_capability_flags_without_a_listener(): void
+    {
+        foreach ([
+            ['prompts/list', 'prompts', ['listChanged' => true]],
+            ['resources/list', 'resources', ['subscribe' => true]],
+            ['resources/list', 'resources', ['listChanged' => true]],
+            ['tools/list', 'tools', ['listChanged' => true]],
+        ] as [$method, $capabilityName, $definition]) {
+            try {
+                new McpCapabilityRegistry(
+                    new McpServerInfo('Example', '1.0.0'),
+                    [new FixtureCapability(methods: [$method], capabilities: [$capabilityName => $definition])],
+                );
+                self::fail('Expected an unsupported subscription capability to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+
+        $registry = new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(
+                methods: ['tools/list', 'subscriptions/listen'],
+                capabilities: ['tools' => ['listChanged' => true]],
+            )],
+        );
+        self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('subscriptions/listen'));
     }
 
     public function test_that_registry_validates_all_defined_standard_capability_shapes(): void
@@ -676,7 +710,7 @@ final class McpResponderTest extends UnitTestCase
         $registry = new McpCapabilityRegistry(
             new McpServerInfo('Example', '1.0.0'),
             [new FixtureCapability(
-                methods: ['completion/complete', 'resources/list', 'rpc.example'],
+                methods: ['completion/complete', 'resources/list', 'rpc.example', 'subscriptions/listen'],
                 capabilities: [
                     'completions' => ['values' => [null, true, 1, 'one', 1.0, (object) ['nested' => []]]],
                     'logging' => [],

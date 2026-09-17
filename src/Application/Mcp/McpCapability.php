@@ -32,6 +32,9 @@ interface McpCapability
 
     /**
      * Validates the outer parameters for a selected method
+     *
+     * Throw McpProtocolException with McpProtocolError::invalidParams() when the request's outer parameters are
+     * invalid. The responder maps every other Throwable from a capability to the generic internal protocol error.
      */
     public function validate(McpRequest $request): void;
 

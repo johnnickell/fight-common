@@ -9,7 +9,7 @@ use RuntimeException;
 /**
  * Class McpProtocolException
  *
- * Internal signal used to preserve a usable JSON-RPC identifier during rejection
+ * Public semantic rejection signal that preserves a usable JSON-RPC identifier for the responder
  */
 final class McpProtocolException extends RuntimeException
 {

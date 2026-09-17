@@ -43,6 +43,12 @@ contradictory metadata, a standard method whose advertised capability family doe
 family without its mandatory anchor method, non-JSON capability definitions, and invalid future transport-mirror
 declarations during composition.
 
+The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
+notifications delivered only through `subscriptions/listen`. This foundation rejects those flags when `true` unless
+a registered capability owns that method, so discovery never claims notification support that its configured
+dispatch cannot reach. TASK-00104 supplies no subscription implementation; a later capability must own
+`subscriptions/listen` before opting into those flags.
+
 ## Composition
 
 Construct `McpResponder` with a registry. `server/discover` is reserved to the responder. Every capability that
@@ -56,6 +62,11 @@ It uses the conservative cache defaults `ttlMs: 0` and
 For any other registered method, the responder validates the outer MCP request once and dispatches exactly that
 capability. The result is `McpJsonResponse`, an `Arrayable` semantic JSON-RPC response. A future transport adapter
 may encode it with `toJson()` and select its HTTP status/headers without changing protocol ownership.
+
+A capability rejects invalid outer parameters by throwing `McpProtocolException` with
+`McpProtocolError::invalidParams()` and the request ID. The responder preserves that semantic rejection as the
+JSON-RPC `invalidParams` error. Any other `Throwable` from a capability becomes the generic `internalError`, with
+no exception details exposed.
 
 ## Protocol behavior
 

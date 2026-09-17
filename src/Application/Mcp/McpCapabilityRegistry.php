@@ -30,6 +30,12 @@ final readonly class McpCapabilityRegistry
         'resources'   => 'resources/list',
         'tools'       => 'tools/list'
     ];
+    /** @var array<string, list<string>> */
+    private const array SUBSCRIPTION_CAPABILITY_PROPERTIES = [
+        'prompts'   => ['listChanged'],
+        'resources' => ['subscribe', 'listChanged'],
+        'tools'     => ['listChanged']
+    ];
 
     /** @var array<string, McpCapability> */
     private array $capabilitiesByMethod;
@@ -70,6 +76,7 @@ final readonly class McpCapabilityRegistry
         }
 
         $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
+        $this->validateSubscriptionCapabilityFlags($capabilitiesByMethod, $advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
@@ -304,6 +311,35 @@ final readonly class McpCapabilityRegistry
                         $method
                     )
                 );
+            }
+        }
+    }
+
+    /**
+     * Rejects notification support declarations without the stream that delivers them
+     *
+     * @param array<string, McpCapability> $capabilitiesByMethod
+     * @param array<string, array<mixed>>  $advertisedCapabilities
+     */
+    private function validateSubscriptionCapabilityFlags(
+        array $capabilitiesByMethod,
+        array $advertisedCapabilities
+    ): void {
+        if (array_key_exists('subscriptions/listen', $capabilitiesByMethod)) {
+            return;
+        }
+
+        foreach (self::SUBSCRIPTION_CAPABILITY_PROPERTIES as $capabilityName => $properties) {
+            foreach ($properties as $property) {
+                if (($advertisedCapabilities[$capabilityName][$property] ?? false) === true) {
+                    throw new DomainException(
+                        sprintf(
+                            'The MCP capability "%s.%s" requires a "subscriptions/listen" handler.',
+                            $capabilityName,
+                            $property
+                        )
+                    );
+                }
             }
         }
     }
