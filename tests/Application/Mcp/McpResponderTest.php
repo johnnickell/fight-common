@@ -288,6 +288,26 @@ final class McpResponderTest extends UnitTestCase
         );
     }
 
+    public function test_that_decoder_accepts_parameterized_image_data_icons(): void
+    {
+        $request = (new McpRequestDecoder())->decode($this->request(
+            'example/echo',
+            1,
+            metadata: [
+                'io.modelcontextprotocol/clientInfo' => (object) [
+                    'name'    => 'client',
+                    'version' => '1.0',
+                    'icons'   => [(object) ['src' => 'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8+']],
+                ],
+            ],
+        ));
+
+        self::assertSame(
+            'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8+',
+            $request->metadata()->clientInfo()?->icons[0]->src,
+        );
+    }
+
     public function test_that_decoder_requires_json_objects_and_well_formed_defined_metadata(): void
     {
         $decoder = new McpRequestDecoder();
@@ -452,6 +472,32 @@ final class McpResponderTest extends UnitTestCase
         self::assertEquals((object) ['listChanged' => 'yes'], $request->metadata()->clientCapabilities()->roots);
     }
 
+    public function test_that_decoder_accepts_an_empty_opaque_metadata_key_without_skipping_dispatch(): void
+    {
+        $capability = new FixtureCapability();
+        $responder = new McpResponder($this->registry($capability));
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 11,
+                'result'  => [
+                    'resultType' => 'complete',
+                    'message'    => 'hello',
+                    '_meta'      => ['io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0']],
+                ],
+            ],
+            $responder->respond($this->request(
+                'example/echo',
+                11,
+                ['message' => 'hello'],
+                metadata: ['' => 'allowed-by-schema'],
+            ))->toArray(),
+        );
+        self::assertSame(1, $capability->validateCalls);
+        self::assertSame(1, $capability->handleCalls);
+    }
+
     public function test_that_decoder_validates_present_w3c_trace_context_before_dispatch(): void
     {
         $decoder = new McpRequestDecoder();
@@ -510,6 +556,8 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'theme' => 'blue']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'mimeType' => false]]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'theme' => 'blue']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8@']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'sizes' => ['any', false]]]]],
             ['io.modelcontextprotocol/clientCapabilities' => ['extensions' => ['unprefixed' => new stdClass()]]],
             ['progressToken' => null],
@@ -591,13 +639,10 @@ final class McpResponderTest extends UnitTestCase
 
     public function test_that_registry_requires_truthful_standard_capability_declarations(): void
     {
-        $registry = new McpCapabilityRegistry(
-            new McpServerInfo('Example', '1.0.0'),
-            [new FixtureCapability(
-                methods: ['tools/list', 'subscriptions/listen'],
-                capabilities: ['tools' => ['listChanged' => true]],
-            )],
-        );
+        $registry = new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [new FixtureCapability(
+            methods: ['tools/list'],
+            capabilities: ['tools' => []],
+        )]);
         self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('tools/list'));
 
         foreach ([
@@ -639,13 +684,13 @@ final class McpResponderTest extends UnitTestCase
     public function test_that_registry_requires_standard_capability_mandatory_anchor_methods(): void
     {
         $capability = new FixtureCapability(
-            methods: ['tools/call', 'tools/list', 'subscriptions/listen'],
-            capabilities: ['tools' => ['listChanged' => true]],
+            methods: ['tools/call', 'tools/list'],
+            capabilities: ['tools' => []],
         );
         $responder = new McpResponder($this->registry($capability));
 
         self::assertEquals(
-            (object) ['tools' => (object) ['listChanged' => true]],
+            (object) ['tools' => new stdClass()],
             $responder->respond($this->request('server/discover', 13))->toArray()['result']['capabilities'],
         );
         self::assertSame(
@@ -676,7 +721,7 @@ final class McpResponderTest extends UnitTestCase
 
     }
 
-    public function test_that_registry_rejects_subscription_capability_flags_without_a_listener(): void
+    public function test_that_registry_rejects_subscription_capability_flags_without_a_subscription_contract(): void
     {
         foreach ([
             ['prompts/list', 'prompts', ['listChanged' => true]],
@@ -695,14 +740,18 @@ final class McpResponderTest extends UnitTestCase
             }
         }
 
-        $registry = new McpCapabilityRegistry(
-            new McpServerInfo('Example', '1.0.0'),
-            [new FixtureCapability(
-                methods: ['tools/list', 'subscriptions/listen'],
-                capabilities: ['tools' => ['listChanged' => true]],
-            )],
-        );
-        self::assertInstanceOf(McpCapability::class, $registry->capabilityFor('subscriptions/listen'));
+        try {
+            new McpCapabilityRegistry(
+                new McpServerInfo('Example', '1.0.0'),
+                [new FixtureCapability(
+                    methods: ['tools/list', 'subscriptions/listen'],
+                    capabilities: ['tools' => ['listChanged' => true]],
+                )],
+            );
+            self::fail('Expected a generic listener to be rejected without a subscription contract.');
+        } catch (DomainException) {
+            self::addToAssertionCount(1);
+        }
     }
 
     public function test_that_registry_validates_all_defined_standard_capability_shapes(): void
@@ -714,7 +763,7 @@ final class McpResponderTest extends UnitTestCase
                 capabilities: [
                     'completions' => ['values' => [null, true, 1, 'one', 1.0, (object) ['nested' => []]]],
                     'logging' => [],
-                    'resources' => ['subscribe' => true, 'listChanged' => false],
+                    'resources' => ['subscribe' => false, 'listChanged' => false],
                     'experimental' => ['feature' => (object) ['nested' => []]],
                     'extensions' => ['com.example/feature' => ['nested' => []]],
                 ],
@@ -730,6 +779,7 @@ final class McpResponderTest extends UnitTestCase
             new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['value' => NAN]]),
             new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['nested' => [NAN]]]),
             new FixtureCapability(methods: ['rpc.example'], capabilities: ['logging' => ['nested' => (object) ['value' => NAN]]]),
+            new FixtureCapability(methods: ['rpc.example'], capabilities: ["\xB1" => []]),
         ] as $capability) {
             try {
                 new McpCapabilityRegistry(new McpServerInfo('Example', '1.0.0'), [$capability]);
@@ -750,6 +800,8 @@ final class McpResponderTest extends UnitTestCase
                 ['nested' => ['number' => NAN]],
                 ['nested' => ['resource' => $resource]],
                 ['nested' => ['object' => new \DateTimeImmutable()]],
+                ["\xB1" => 'invalid UTF-8 key'],
+                ['value' => "\xB1"],
             ] as $definition) {
                 try {
                     new McpCapabilityRegistry(
@@ -818,6 +870,21 @@ final class McpResponderTest extends UnitTestCase
             ],
             $responder->respond($this->request('example/echo', 15, ['message' => 'hello']))->toArray(),
         );
+    }
+
+    public function test_that_server_info_rejects_non_json_unicode_strings(): void
+    {
+        foreach (["\xB1", "\xB1\x31"] as $value) {
+            try {
+                new McpServerInfo($value, '1.0.0');
+                self::fail('Expected a malformed UTF-8 server identity to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+
+        $serverInfo = new McpServerInfo('Exämple', '1.0.0');
+        self::assertSame('Exämple', $serverInfo->name());
     }
 
     public function test_that_responder_normalizes_object_result_metadata_and_rejects_invalid_metadata(): void

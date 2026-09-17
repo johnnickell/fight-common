@@ -277,7 +277,7 @@ final readonly class McpRequestMetadata
             '(?:[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?)?$/'
         ]);
 
-        return $name !== '' && preg_match($pattern, $name) === 1;
+        return preg_match($pattern, $name) === 1;
     }
 
     /**
@@ -520,9 +520,14 @@ final readonly class McpRequestMetadata
             return self::isUri($value);
         }
 
+        $pattern = implode('', [
+            '/^data:(image\\/[A-Za-z0-9!#$&^_.+-]+)',
+            '(?:;[A-Za-z0-9!#$&^_.+-]+=[A-Za-z0-9!#$&^_.+~%-]+)*',
+            ';base64,([A-Za-z0-9+\\/]+={0,2})$/i'
+        ]);
         if (
             preg_match(
-                '/^data:(image\\/[A-Za-z0-9!#$&^_.+-]+);base64,([A-Za-z0-9+\\/]+={0,2})$/i',
+                $pattern,
                 $value,
                 $matches
             ) !== 1

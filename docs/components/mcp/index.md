@@ -44,10 +44,9 @@ family without its mandatory anchor method, non-JSON capability definitions, and
 declarations during composition.
 
 The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
-notifications delivered only through `subscriptions/listen`. This foundation rejects those flags when `true` unless
-a registered capability owns that method, so discovery never claims notification support that its configured
-dispatch cannot reach. TASK-00104 supplies no subscription implementation; a later capability must own
-`subscriptions/listen` before opting into those flags.
+subscription-driven delivery behavior. TASK-00104 supplies neither the subscription contract nor its long-lived
+delivery lifecycle, so this foundation rejects those flags when `true`. A later capability must introduce and prove
+that contract before it may advertise the flags.
 
 ## Composition
 
@@ -77,9 +76,11 @@ is an implementation object with a name and version. A present progress token is
 numeric progress values are a later capability concern. The decoder validates every metadata key's MCP grammar,
 defined field shape, present trace-context format, and schema-permitted HTTP/HTTPS or image-data implementation
 icon source before dispatch, while
-preserving schema-permitted empty strings and open objects. It retains only protocol metadata needed by this shared
-layer: protocol version, client capabilities and information, and progress token. It intentionally drops opaque
-extension metadata rather than treating it as credentials or authority.
+preserving schema-permitted empty strings, an empty opaque metadata key, and open objects. Image data URI sources may
+contain media-type parameters before their Base64 marker. Discovery configuration and server identity must be JSON-safe
+Unicode values during composition. It retains only protocol metadata needed by this shared layer: protocol version,
+client capabilities and information, and progress token. It intentionally drops opaque extension metadata rather than
+treating it as credentials or authority.
 
 Malformed JSON, malformed JSON-RPC, invalid outer parameters, unsupported protocol version, and unknown methods
 produce centralized JSON-RPC protocol errors without selecting a capability. If a usable request ID is available,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Exception\DomainException;
+use JsonException;
 use stdClass;
 
 /**
@@ -76,7 +77,7 @@ final readonly class McpCapabilityRegistry
         }
 
         $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
-        $this->validateSubscriptionCapabilityFlags($capabilitiesByMethod, $advertisedCapabilities);
+        $this->validateSubscriptionCapabilityFlags($advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
@@ -190,6 +191,7 @@ final readonly class McpCapabilityRegistry
                 || trim($name) === ''
                 || !is_array($definition)
                 || ($definition !== [] && array_is_list($definition))
+                || !$this->isJsonEncodable($name)
             ) {
                 throw new DomainException(
                     'An MCP capability declaration must have a non-empty name and object definition.'
@@ -316,25 +318,18 @@ final readonly class McpCapabilityRegistry
     }
 
     /**
-     * Rejects notification support declarations without the stream that delivers them
+     * Rejects notification support declarations outside the foundation's subscription boundary
      *
-     * @param array<string, McpCapability> $capabilitiesByMethod
      * @param array<string, array<mixed>>  $advertisedCapabilities
      */
-    private function validateSubscriptionCapabilityFlags(
-        array $capabilitiesByMethod,
-        array $advertisedCapabilities
-    ): void {
-        if (array_key_exists('subscriptions/listen', $capabilitiesByMethod)) {
-            return;
-        }
-
+    private function validateSubscriptionCapabilityFlags(array $advertisedCapabilities): void
+    {
         foreach (self::SUBSCRIPTION_CAPABILITY_PROPERTIES as $capabilityName => $properties) {
             foreach ($properties as $property) {
                 if (($advertisedCapabilities[$capabilityName][$property] ?? false) === true) {
                     throw new DomainException(
                         sprintf(
-                            'The MCP capability "%s.%s" requires a "subscriptions/listen" handler.',
+                            'The MCP capability "%s.%s" requires a subscription contract outside this foundation.',
                             $capabilityName,
                             $property
                         )
@@ -412,7 +407,9 @@ final readonly class McpCapabilityRegistry
      */
     private function hasValidJsonObject(array $value): bool
     {
-        return !$this->isJsonList($value) && $this->hasOnlyJsonValues($value);
+        return !$this->isJsonList($value)
+            && $this->hasOnlyJsonValues($value)
+            && $this->isJsonEncodable($value);
     }
 
     /**
@@ -421,10 +418,14 @@ final readonly class McpCapabilityRegistry
     private function hasValidJsonObjectValue(mixed $value): bool
     {
         if ($value instanceof stdClass) {
-            return $this->hasOnlyJsonValues(get_object_vars($value));
+            return $this->hasOnlyJsonValues(get_object_vars($value)) && $this->isJsonEncodable($value);
         }
 
-        return is_array($value) && $value !== [] && !array_is_list($value) && $this->hasOnlyJsonValues($value);
+        return is_array($value)
+            && $value !== []
+            && !array_is_list($value)
+            && $this->hasOnlyJsonValues($value)
+            && $this->isJsonEncodable($value);
     }
 
     /**
@@ -456,6 +457,20 @@ final readonly class McpCapabilityRegistry
                     return false;
                 }
             }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether a value can be encoded as a JSON wire value
+     */
+    private function isJsonEncodable(mixed $value): bool
+    {
+        try {
+            json_encode($value, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return false;
         }
 
         return true;
