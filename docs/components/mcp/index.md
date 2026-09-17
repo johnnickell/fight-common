@@ -76,8 +76,9 @@ is an implementation object with a name and version. A present progress token is
 numeric progress values are a later capability concern. The decoder validates every metadata key's MCP grammar,
 defined field shape, present trace-context format, and schema-permitted HTTP/HTTPS or image-data implementation
 icon source before dispatch, while
-preserving schema-permitted empty strings, an empty opaque metadata key, and open objects. Image data URI sources may
-contain media-type parameters before their Base64 marker. Discovery configuration and server identity must be JSON-safe
+preserving schema-permitted empty strings, an empty opaque metadata key, and open objects. Image data URI sources accept
+RFC 2045 token-valued media-type parameters and valid percent escapes before their terminal Base64 marker; malformed
+token syntax or percent escapes reject before dispatch. Discovery configuration and server identity must be JSON-safe
 Unicode values during composition. It retains only protocol metadata needed by this shared layer: protocol version,
 client capabilities and information, and progress token. It intentionally drops opaque extension metadata rather than
 treating it as credentials or authority.

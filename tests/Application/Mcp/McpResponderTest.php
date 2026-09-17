@@ -308,6 +308,28 @@ final class McpResponderTest extends UnitTestCase
         );
     }
 
+    public function test_that_decoder_accepts_rfc2397_token_and_percent_encoded_parameters(): void
+    {
+        foreach ([
+            'data:image/svg+xml;profile=foo*bar;base64,PHN2Zy8+',
+            'data:image/svg+xml;charset=utf%2D8;base64,PHN2Zy8+',
+        ] as $iconSource) {
+            $request = (new McpRequestDecoder())->decode($this->request(
+                'example/echo',
+                1,
+                metadata: [
+                    'io.modelcontextprotocol/clientInfo' => (object) [
+                        'name'    => 'client',
+                        'version' => '1.0',
+                        'icons'   => [(object) ['src' => $iconSource]],
+                    ],
+                ],
+            ));
+
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+        }
+    }
+
     public function test_that_decoder_requires_json_objects_and_well_formed_defined_metadata(): void
     {
         $decoder = new McpRequestDecoder();
@@ -557,6 +579,9 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'mimeType' => false]]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/png;base64,iVBORw0KGgo=', 'theme' => 'blue']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=utf:8;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=%ZZ;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8@']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'sizes' => ['any', false]]]]],
             ['io.modelcontextprotocol/clientCapabilities' => ['extensions' => ['unprefixed' => new stdClass()]]],

@@ -520,22 +520,94 @@ final readonly class McpRequestMetadata
             return self::isUri($value);
         }
 
-        $pattern = implode('', [
-            '/^data:(image\\/[A-Za-z0-9!#$&^_.+-]+)',
-            '(?:;[A-Za-z0-9!#$&^_.+-]+=[A-Za-z0-9!#$&^_.+~%-]+)*',
-            ';base64,([A-Za-z0-9+\\/]+={0,2})$/i'
-        ]);
+        return self::hasSafeImageDataUri($value);
+    }
+
+    /**
+     * Returns whether a data URI contains a safe Base64-encoded image
+     */
+    private static function hasSafeImageDataUri(string $value): bool
+    {
+        $separator = strpos($value, ',');
+        if ($separator === false || strncasecmp($value, 'data:', 5) !== 0) {
+            return false;
+        }
+
+        $segments = explode(';', substr($value, 5, $separator - 5));
+        $mediaType = array_shift($segments);
+        $encoding = array_pop($segments);
         if (
-            preg_match(
-                $pattern,
-                $value,
-                $matches
-            ) !== 1
+            !self::isImageMediaType($mediaType)
+            || $encoding === null
+            || strcasecmp($encoding, 'base64') !== 0
+            || !array_all($segments, static fn(string $parameter): bool => self::hasValidDataUriParameter($parameter))
         ) {
             return false;
         }
 
-        return base64_decode($matches[2], true) !== false;
+        $payload = substr($value, $separator + 1);
+
+        return preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/', $payload) === 1
+            && base64_decode($payload, true) !== false;
+    }
+
+    /**
+     * Returns whether a media type is an image type with a valid MIME subtype
+     */
+    private static function isImageMediaType(string $mediaType): bool
+    {
+        $parts = explode('/', $mediaType);
+
+        return count($parts) === 2
+            && strcasecmp($parts[0], 'image') === 0
+            && self::hasValidMimeTokenWithEscapes($parts[1]);
+    }
+
+    /**
+     * Returns whether a data URI parameter has valid MIME tokens
+     */
+    private static function hasValidDataUriParameter(string $parameter): bool
+    {
+        $separator = strpos($parameter, '=');
+        if ($separator === false) {
+            return false;
+        }
+
+        return self::hasValidMimeTokenWithEscapes(substr($parameter, 0, $separator))
+            && self::hasValidMimeTokenWithEscapes(substr($parameter, $separator + 1));
+    }
+
+    /**
+     * Returns whether a MIME token permits only valid URI percent escapes
+     */
+    private static function hasValidMimeTokenWithEscapes(string $value): bool
+    {
+        if ($value === '') {
+            return false;
+        }
+
+        $length = strlen($value);
+        for ($index = 0; $index < $length; ++$index) {
+            if ($value[$index] === '%') {
+                if (
+                    $index + 2 >= $length
+                    || !ctype_xdigit($value[$index + 1])
+                    || !ctype_xdigit($value[$index + 2])
+                ) {
+                    return false;
+                }
+
+                $index += 2;
+
+                continue;
+            }
+
+            if (preg_match("/^[!#$&'*+\-.0-9A-Z^_\`a-z{|}~]$/", $value[$index]) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
