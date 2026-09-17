@@ -30,8 +30,8 @@ abstract readonly class UniqueId extends ValueObject implements Identifier, Iden
     public static function generate(): static
     {
         /**
- * @phpstan-ignore new.staticInAbstractClassStaticMethod
-*/
+         * @phpstan-ignore new.staticInAbstractClassStaticMethod
+         */
         return new static(Uuid::comb());
     }
 
@@ -41,8 +41,8 @@ abstract readonly class UniqueId extends ValueObject implements Identifier, Iden
     public static function fromString(string $value): static
     {
         /**
- * @phpstan-ignore new.staticInAbstractClassStaticMethod
-*/
+         * @phpstan-ignore new.staticInAbstractClassStaticMethod
+         */
         return new static(Uuid::parse($value));
     }
 

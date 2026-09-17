@@ -38,8 +38,8 @@ final class UuidDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Uuid
     {
         /**
- * @var ?Uuid $converted
-*/
+         * @var ?Uuid $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

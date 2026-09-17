@@ -19,8 +19,8 @@ use Twig\Error\LoaderError;
 final class TwigEngine implements TemplateEngine
 {
     /**
- * @var array<string, TemplateHelper>
-*/
+     * @var array<string, TemplateHelper>
+     */
     private array $helpers = [];
 
     /**

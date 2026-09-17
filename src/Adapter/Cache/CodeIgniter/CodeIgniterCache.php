@@ -24,8 +24,8 @@ final readonly class CodeIgniterCache implements MutableCache
     }
 
     /**
- * @inheritDoc
-*/
+     * @inheritDoc
+     */
     public function read(string $key, callable $loader, int $ttl): mixed
     {
         try {
@@ -54,8 +54,8 @@ final readonly class CodeIgniterCache implements MutableCache
     }
 
     /**
- * @inheritDoc
-*/
+     * @inheritDoc
+     */
     public function delete(string $key): void
     {
         try {
@@ -70,8 +70,8 @@ final readonly class CodeIgniterCache implements MutableCache
     }
 
     /**
- * @inheritDoc
-*/
+     * @inheritDoc
+     */
     public function clear(): void
     {
         try {

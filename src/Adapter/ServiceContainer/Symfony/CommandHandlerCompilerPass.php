@@ -37,8 +37,8 @@ class CommandHandlerCompilerPass implements CompilerPassInterface
             }
 
             /**
- * @var CommandHandler|string $serviceClass
-*/
+             * @var CommandHandler|string $serviceClass
+             */
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 

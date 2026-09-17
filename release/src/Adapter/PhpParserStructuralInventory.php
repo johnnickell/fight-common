@@ -307,8 +307,8 @@ final readonly class PhpParserStructuralInventory
         $traverser->addVisitor(new NameResolver());
 
         /**
- * @var list<Node\Stmt> $resolved
-*/
+         * @var list<Node\Stmt> $resolved
+         */
         $resolved = array_values($traverser->traverse($nodes));
 
         return $resolved;

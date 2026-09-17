@@ -38,8 +38,8 @@ final class StringObjectDataType extends \Fight\Common\Adapter\Persistence\Doctr
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?StringObject
     {
         /**
- * @var ?StringObject $converted
-*/
+         * @var ?StringObject $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

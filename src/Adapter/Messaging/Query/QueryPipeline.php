@@ -17,12 +17,12 @@ use Throwable;
 final class QueryPipeline implements QueryBus, QueryFilter
 {
     /**
- * @var LinkedStack<QueryFilter>
-*/
+     * @var LinkedStack<QueryFilter>
+     */
     private readonly LinkedStack $filters;
     /**
- * @var LinkedStack<object>
-*/
+     * @var LinkedStack<object>
+     */
     private ?LinkedStack $executionStack = null;
     private mixed $results;
 
@@ -71,8 +71,8 @@ final class QueryPipeline implements QueryBus, QueryFilter
     public function process(QueryMessage $queryMessage, callable $next): void
     {
         /**
- * @var Query $query
-*/
+         * @var Query $query
+         */
         $query = $queryMessage->payload();
         $this->results = $this->queryBus->fetch($query);
     }
@@ -85,8 +85,8 @@ final class QueryPipeline implements QueryBus, QueryFilter
     public function pipe(QueryMessage $queryMessage): void
     {
         /**
- * @var QueryFilter $filter
-*/
+         * @var QueryFilter $filter
+         */
         $filter = $this->executionStack->pop();
         $filter->process($queryMessage, $this->pipe(...));
     }

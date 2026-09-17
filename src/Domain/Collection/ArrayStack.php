@@ -22,8 +22,8 @@ final class ArrayStack implements Stack
     use ItemTypeMethods;
 
     /**
- * @var array<T>
-*/
+     * @var array<T>
+     */
     private array $items = [];
     private int $count = 0;
 

@@ -26,8 +26,8 @@ final class LinkedStack implements Stack
     private const REVERSE = SplDoublyLinkedList::IT_MODE_FIFO | SplDoublyLinkedList::IT_MODE_KEEP;
 
     /**
- * @var SplDoublyLinkedList<T>
-*/
+     * @var SplDoublyLinkedList<T>
+     */
     private SplDoublyLinkedList $list;
 
     /**

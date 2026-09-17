@@ -68,8 +68,8 @@ use Fight\Common\Domain\Utility\Validate;
 final class ValidationCoordinator
 {
     /**
- * @var ArrayList<Validator>
-*/
+     * @var ArrayList<Validator>
+     */
     private ArrayList $validators;
 
     /**

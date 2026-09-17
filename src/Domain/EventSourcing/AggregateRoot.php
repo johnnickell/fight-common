@@ -14,8 +14,8 @@ abstract class AggregateRoot implements EventSourcedAggregate
 {
     private int $version = 0;
     /**
- * @var list<Event>
-*/
+     * @var list<Event>
+     */
     private array $pendingEvents = [];
 
     /**

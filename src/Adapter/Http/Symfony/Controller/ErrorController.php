@@ -43,15 +43,15 @@ class ErrorController
     {
         return new readonly class ($errors) implements Arrayable {
             /**
- * @param array<string, mixed> $errors
-*/
+             * @param array<string, mixed> $errors
+             */
             public function __construct(private array $errors)
             {
             }
 
             /**
- * @return array<string, mixed>
-*/
+             * @return array<string, mixed>
+             */
             public function toArray(): array
             {
                 return $this->errors;

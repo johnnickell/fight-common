@@ -29,8 +29,8 @@ readonly class Nonce
         $expiresAt = new DateTimeImmutable(sprintf('+%d seconds', $ttlSeconds));
 
         /**
- * @phpstan-ignore new.static
-*/
+         * @phpstan-ignore new.static
+         */
         return new static($value, $expiresAt);
     }
 

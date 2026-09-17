@@ -35,8 +35,8 @@ final readonly class EventSourcedRepository
 
         foreach ($this->eventStore->readStream($streamId) as $storedEvent) {
             /**
- * @var Event $event
-*/
+             * @var Event $event
+             */
             $event = $storedEvent->message()->payload();
             $events[] = $event;
         }

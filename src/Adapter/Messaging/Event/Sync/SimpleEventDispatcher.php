@@ -21,12 +21,12 @@ use Throwable;
 class SimpleEventDispatcher implements SynchronousEventDispatcher
 {
     /**
- * @var array<string, array<int, array<int, callable>>>
-*/
+     * @var array<string, array<int, array<int, callable>>>
+     */
     protected array $handlers = [];
     /**
- * @var array<string, array<int, callable>>
-*/
+     * @var array<string, array<int, callable>>
+     */
     protected array $sorted = [];
 
     /**

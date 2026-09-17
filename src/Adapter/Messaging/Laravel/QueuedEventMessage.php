@@ -21,8 +21,8 @@ final class QueuedEventMessage implements ShouldQueue
     use Queueable;
 
     /**
- * @var array<string, mixed>
-*/
+     * @var array<string, mixed>
+     */
     private array $message;
 
     /**

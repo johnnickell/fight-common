@@ -21,8 +21,8 @@ use Fight\Common\Domain\Messaging\Meta;
 final class InMemoryEventStore implements EventStore
 {
     /**
- * @var list<InMemoryEventRecord>
-*/
+     * @var list<InMemoryEventRecord>
+     */
     private array $records = [];
 
     /**

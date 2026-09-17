@@ -30,8 +30,8 @@ final class SortedSet implements OrderedSet
     use ItemTypeMethods;
 
     /**
- * @var BinarySearchTree<T, bool>
-*/
+     * @var BinarySearchTree<T, bool>
+     */
     private BinarySearchTree $tree;
 
     /**

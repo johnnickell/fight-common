@@ -21,8 +21,8 @@ use Throwable;
 final class SymfonyMailTransport implements MailTransport
 {
     /**
- * @var array<string, array<int, string>>
-*/
+     * @var array<string, array<int, string>>
+     */
     private array $overrides = [];
 
     /**

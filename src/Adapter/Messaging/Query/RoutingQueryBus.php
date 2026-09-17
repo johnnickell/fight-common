@@ -35,8 +35,8 @@ final readonly class RoutingQueryBus implements QueryBus
     public function dispatch(QueryMessage $queryMessage): mixed
     {
         /**
- * @var Query $query
-*/
+         * @var Query $query
+         */
         $query = $queryMessage->payload();
 
         return $this->queryRouter->match($query)->handle($queryMessage);

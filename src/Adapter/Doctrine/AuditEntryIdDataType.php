@@ -38,8 +38,8 @@ final class AuditEntryIdDataType extends \Fight\Common\Adapter\Persistence\Doctr
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?AuditEntryId
     {
         /**
- * @var ?AuditEntryId $converted
-*/
+         * @var ?AuditEntryId $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

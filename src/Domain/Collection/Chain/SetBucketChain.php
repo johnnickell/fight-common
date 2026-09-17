@@ -173,8 +173,8 @@ final class SetBucketChain implements Countable
         }
 
         /**
- * @var ItemBucket $current
-*/
+         * @var ItemBucket $current
+         */
         $current = $this->current;
 
         return $current->item();
@@ -189,8 +189,8 @@ final class SetBucketChain implements Countable
     {
         for ($this->rewind(); $this->valid(); $this->next()) {
             /**
- * @var ItemBucket $current
-*/
+             * @var ItemBucket $current
+             */
             $current = $this->current;
             if (Validate::areEqual($item, $current->item())) {
                 return $current;

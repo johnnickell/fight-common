@@ -38,8 +38,8 @@ final class TypeDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?SystemType
     {
         /**
- * @var ?SystemType $converted
-*/
+         * @var ?SystemType $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

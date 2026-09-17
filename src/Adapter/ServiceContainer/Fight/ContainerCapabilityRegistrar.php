@@ -49,24 +49,24 @@ final class ContainerCapabilityRegistrar
 
         if ($commandHandlers !== []) {
             /**
- * @var ServiceAwareCommandRouter $router
-*/
+             * @var ServiceAwareCommandRouter $router
+             */
             $router = $container->get($collaborators['command.router']);
             $router->registerHandlers($commandHandlers);
         }
 
         if ($queryHandlers !== []) {
             /**
- * @var ServiceAwareQueryRouter $router
-*/
+             * @var ServiceAwareQueryRouter $router
+             */
             $router = $container->get($collaborators['query.router']);
             $router->registerHandlers($queryHandlers);
         }
 
         if ($eventSubscribers !== []) {
             /**
- * @var ServiceAwareEventDispatcher $dispatcher
-*/
+             * @var ServiceAwareEventDispatcher $dispatcher
+             */
             $dispatcher = $container->get($collaborators['event.dispatcher']);
             foreach ($eventSubscribers as $subscriberClass => $serviceId) {
                 $dispatcher->registerService($subscriberClass, $serviceId);
@@ -106,8 +106,8 @@ final class ContainerCapabilityRegistrar
 
         foreach ($helpers as $engineServiceId => $helperServiceIds) {
             /**
- * @var TemplateEngine $engine
-*/
+             * @var TemplateEngine $engine
+             */
             $engine = $container->get($engineServiceId);
             foreach ($helperServiceIds as $helperServiceId) {
                 $helper = $container->get($helperServiceId);

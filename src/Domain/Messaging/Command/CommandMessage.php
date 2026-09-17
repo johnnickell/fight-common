@@ -76,8 +76,8 @@ final class CommandMessage extends BaseMessage
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
         /**
- * @var class-string<Command> $payloadClass
-*/
+         * @var class-string<Command> $payloadClass
+         */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Command::class));
@@ -93,8 +93,8 @@ final class CommandMessage extends BaseMessage
     public function withMeta(Meta $data): static
     {
         /**
- * @var Command $command
-*/
+         * @var Command $command
+         */
         $command = $this->payload;
 
         return new static(
@@ -114,8 +114,8 @@ final class CommandMessage extends BaseMessage
         $meta->merge($data);
 
         /**
- * @var Command $command
-*/
+         * @var Command $command
+         */
         $command = $this->payload;
 
         return new static(

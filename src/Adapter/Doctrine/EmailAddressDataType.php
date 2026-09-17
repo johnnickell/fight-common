@@ -38,8 +38,8 @@ final class EmailAddressDataType extends \Fight\Common\Adapter\Persistence\Doctr
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?EmailAddress
     {
         /**
- * @var ?EmailAddress $converted
-*/
+         * @var ?EmailAddress $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

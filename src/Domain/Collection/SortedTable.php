@@ -31,8 +31,8 @@ final class SortedTable implements OrderedTable
     use KeyValueTypeMethods;
 
     /**
- * @var BinarySearchTree<K, V>
-*/
+     * @var BinarySearchTree<K, V>
+     */
     private BinarySearchTree $tree;
 
     /**

@@ -14,8 +14,8 @@ use Fight\Common\Domain\Observability\HealthReport;
 final class HealthReporter implements HealthAggregator
 {
     /**
- * @var HealthCheck[]
-*/
+     * @var HealthCheck[]
+     */
     private array $checks = [];
 
     /**

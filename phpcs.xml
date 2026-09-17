@@ -14,4 +14,5 @@
     <rule ref="Generic.Commenting.DocComment.ContentBeforeClose">
         <severity>5</severity>
     </rule>
+    <rule ref="Squiz.Commenting.DocCommentAlignment" />
 </ruleset>

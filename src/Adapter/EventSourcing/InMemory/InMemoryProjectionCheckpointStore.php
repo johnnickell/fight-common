@@ -15,8 +15,8 @@ use InvalidArgumentException;
 final class InMemoryProjectionCheckpointStore implements ProjectionCheckpointStore
 {
     /**
- * @var array<string, int>
-*/
+     * @var array<string, int>
+     */
     private array $checkpoints = [];
 
     /**

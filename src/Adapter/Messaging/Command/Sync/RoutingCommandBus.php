@@ -35,8 +35,8 @@ final readonly class RoutingCommandBus implements SynchronousCommandBus
     public function dispatch(CommandMessage $commandMessage): void
     {
         /**
- * @var Command $command
-*/
+         * @var Command $command
+         */
         $command = $commandMessage->payload();
 
         $this->commandRouter->match($command)->handle($commandMessage);

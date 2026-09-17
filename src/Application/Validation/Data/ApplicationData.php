@@ -18,8 +18,8 @@ use Traversable;
 final readonly class ApplicationData implements Arrayable, Collection
 {
     /**
- * @var HashTable<string, mixed>
-*/
+     * @var HashTable<string, mixed>
+     */
     private HashTable $data;
 
     /**

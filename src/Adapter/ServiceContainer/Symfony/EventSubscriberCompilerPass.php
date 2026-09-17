@@ -37,8 +37,8 @@ class EventSubscriberCompilerPass implements CompilerPassInterface
             }
 
             /**
- * @var EventSubscriber|string $serviceClass
-*/
+             * @var EventSubscriber|string $serviceClass
+             */
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 

@@ -24,8 +24,8 @@ final class ArrayList implements ItemList
     use ItemTypeMethods;
 
     /**
- * @var array<T>
-*/
+     * @var array<T>
+     */
     private array $items = [];
 
     /**

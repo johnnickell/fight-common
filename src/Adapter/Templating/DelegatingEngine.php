@@ -15,12 +15,12 @@ use Fight\Common\Application\Templating\TemplateHelper;
 final class DelegatingEngine implements TemplateEngine
 {
     /**
- * @var TemplateEngine[]
-*/
+     * @var TemplateEngine[]
+     */
     private array $engines = [];
     /**
- * @var array<string, TemplateHelper>
-*/
+     * @var array<string, TemplateHelper>
+     */
     private array $helpers = [];
 
     /**

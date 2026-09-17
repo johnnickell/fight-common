@@ -12,8 +12,8 @@ namespace Fight\Common\Domain\EventSourcing;
 final readonly class EventMapping
 {
     /**
- * @var array<Upcaster>
-*/
+     * @var array<Upcaster>
+     */
     private array $upcasters;
 
     /**

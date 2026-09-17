@@ -16,8 +16,8 @@ use Fight\Common\Domain\Utility\Validate;
 final class InMemoryCommandRouter implements CommandRouter
 {
     /**
- * @var array<string, CommandHandler>
-*/
+     * @var array<string, CommandHandler>
+     */
     private array $handlers = [];
 
     /**

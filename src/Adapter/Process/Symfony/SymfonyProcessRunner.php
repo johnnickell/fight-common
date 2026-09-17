@@ -24,12 +24,12 @@ use Throwable;
 final class SymfonyProcessRunner implements ProcessRunner
 {
     /**
- * @var Queue<Process>
-*/
+     * @var Queue<Process>
+     */
     private Queue $queue;
     /**
- * @var array<int, array{iteration: int, original: Process, process: SymfonyProcess}>
-*/
+     * @var array<int, array{iteration: int, original: Process, process: SymfonyProcess}>
+     */
     private array $processes = [];
     private readonly int $delay;
 
@@ -105,8 +105,8 @@ final class SymfonyProcessRunner implements ProcessRunner
 
         try {
             /**
- * @var Process $process
-*/
+             * @var Process $process
+             */
             $process = $this->queue->dequeue();
             $symfonyProcess = $this->exchangeProcess($process);
 
@@ -147,8 +147,8 @@ final class SymfonyProcessRunner implements ProcessRunner
         try {
             foreach ($this->processes as $pid => $processData) {
                 /**
- * @var SymfonyProcess $symfonyProcess
-*/
+                 * @var SymfonyProcess $symfonyProcess
+                 */
                 $symfonyProcess = $processData['process'];
                 $symfonyProcess->checkTimeout();
 
@@ -166,8 +166,8 @@ final class SymfonyProcessRunner implements ProcessRunner
 
                 if ($errorBehavior === ProcessErrorBehavior::RETRY) {
                     /**
- * @var Process $original
-*/
+                     * @var Process $original
+                     */
                     $original  = $processData['original'];
                     $iteration = $processData['iteration'];
 
@@ -284,8 +284,8 @@ final class SymfonyProcessRunner implements ProcessRunner
     {
         foreach ($this->processes as $processData) {
             /**
- * @var SymfonyProcess $process
-*/
+             * @var SymfonyProcess $process
+             */
             $process = $processData['process'];
             $process->stop(0);
         }

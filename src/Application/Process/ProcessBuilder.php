@@ -13,20 +13,20 @@ use Fight\Common\Domain\Exception\MethodCallException;
 final class ProcessBuilder
 {
     /**
- * @var list<string>
-*/
+     * @var list<string>
+     */
     private array $prefix = [];
     /**
- * @var list<string>
-*/
+     * @var list<string>
+     */
     private array $arguments = [];
     private ?string $shellCommand = null;
     private ?string $directory = null;
     private mixed $input = null;
     private ?float $timeout = 60.0;
     /**
- * @var array<string, string>
-*/
+     * @var array<string, string>
+     */
     private array $environment = [];
     private mixed $stdout = null;
     private mixed $stderr = null;

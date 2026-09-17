@@ -20,8 +20,8 @@ use Throwable;
 final class LaravelBladeTemplateEngine implements TemplateEngine
 {
     /**
- * @var array<string, TemplateHelper>
-*/
+     * @var array<string, TemplateHelper>
+     */
     private array $helpers = [];
 
     /**

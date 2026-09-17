@@ -76,8 +76,8 @@ final class QueryMessage extends BaseMessage
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
         /**
- * @var class-string<Query> $payloadClass
-*/
+         * @var class-string<Query> $payloadClass
+         */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Query::class));
@@ -93,8 +93,8 @@ final class QueryMessage extends BaseMessage
     public function withMeta(Meta $data): static
     {
         /**
- * @var Query $query
-*/
+         * @var Query $query
+         */
         $query = $this->payload;
 
         return new static(
@@ -114,8 +114,8 @@ final class QueryMessage extends BaseMessage
         $meta->merge($data);
 
         /**
- * @var Query $query
-*/
+         * @var Query $query
+         */
         $query = $this->payload;
 
         return new static(

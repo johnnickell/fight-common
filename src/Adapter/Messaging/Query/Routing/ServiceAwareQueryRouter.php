@@ -17,8 +17,8 @@ use Psr\Container\ContainerInterface;
 final class ServiceAwareQueryRouter implements QueryRouter
 {
     /**
- * @var array<string, string>
-*/
+     * @var array<string, string>
+     */
     private array $handlers = [];
 
     /**

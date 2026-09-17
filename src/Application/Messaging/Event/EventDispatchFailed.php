@@ -14,8 +14,8 @@ use RuntimeException;
 final class EventDispatchFailed extends RuntimeException
 {
     /**
- * @var EventHandlerFailure[]
-*/
+     * @var EventHandlerFailure[]
+     */
     private readonly array $failures;
 
     /**
