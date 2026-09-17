@@ -25,7 +25,9 @@ final class HashTable implements Table
 {
     use KeyValueTypeMethods;
 
-    /** @var array<K, V> */
+    /**
+     * @var array<K, V>
+     */
     private array $buckets = [];
     private int $count = 0;
 
@@ -169,7 +171,9 @@ final class HashTable implements Table
     public function keys(): iterable
     {
         return new GeneratorIterator(function (array $buckets) {
-            /** @var TableBucketChain $chain */
+            /**
+             * @var TableBucketChain $chain
+             */
             foreach ($buckets as $chain) {
                 for ($chain->rewind(); $chain->valid(); $chain->next()) {
                     yield $chain->key();

@@ -14,7 +14,9 @@ use Fight\Common\Application\EventSourcing\PublicationFailureRecorder;
  */
 final class InMemoryPublicationFailureRecorder implements PublicationFailureRecorder
 {
-    /** @var array<string, EventPublicationFailure> */
+    /**
+     * @var array<string, EventPublicationFailure>
+     */
     private array $failures = [];
 
     /**

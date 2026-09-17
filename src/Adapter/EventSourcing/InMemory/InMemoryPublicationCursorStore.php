@@ -14,7 +14,9 @@ use InvalidArgumentException;
  */
 final class InMemoryPublicationCursorStore implements PublicationCursorStore
 {
-    /** @var array<string, int> */
+    /**
+     * @var array<string, int>
+     */
     private array $cursors = [];
 
     /**

@@ -37,7 +37,9 @@ final class UrlDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type\
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Url
     {
-        /** @var ?Url $converted */
+        /**
+         * @var ?Url $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

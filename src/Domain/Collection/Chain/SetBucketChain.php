@@ -172,7 +172,9 @@ final class SetBucketChain implements Countable
             return null;
         }
 
-        /** @var ItemBucket $current */
+        /**
+         * @var ItemBucket $current
+         */
         $current = $this->current;
 
         return $current->item();
@@ -186,7 +188,9 @@ final class SetBucketChain implements Countable
     private function locate(mixed $item): ?ItemBucket
     {
         for ($this->rewind(); $this->valid(); $this->next()) {
-            /** @var ItemBucket $current */
+            /**
+             * @var ItemBucket $current
+             */
             $current = $this->current;
             if (Validate::areEqual($item, $current->item())) {
                 return $current;

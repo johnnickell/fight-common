@@ -75,7 +75,9 @@ final class CommandMessage extends BaseMessage
         $timestamp = new DateTimeImmutable('@'.(string) $data['timestamp']);
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
-        /** @var class-string<Command> $payloadClass */
+        /**
+         * @var class-string<Command> $payloadClass
+         */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Command::class));
@@ -90,7 +92,9 @@ final class CommandMessage extends BaseMessage
      */
     public function withMeta(Meta $data): static
     {
-        /** @var Command $command */
+        /**
+         * @var Command $command
+         */
         $command = $this->payload;
 
         return new static(
@@ -109,7 +113,9 @@ final class CommandMessage extends BaseMessage
         $meta = clone $this->meta;
         $meta->merge($data);
 
-        /** @var Command $command */
+        /**
+         * @var Command $command
+         */
         $command = $this->payload;
 
         return new static(

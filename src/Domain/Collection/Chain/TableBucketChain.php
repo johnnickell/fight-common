@@ -177,7 +177,9 @@ final class TableBucketChain implements Countable
             return null;
         }
 
-        /** @var KeyValueBucket $current */
+        /**
+         * @var KeyValueBucket $current
+         */
         $current = $this->current;
 
         return $current->key();
@@ -194,7 +196,9 @@ final class TableBucketChain implements Countable
             return null;
         }
 
-        /** @var KeyValueBucket $current */
+        /**
+         * @var KeyValueBucket $current
+         */
         $current = $this->current;
 
         return $current->value();
@@ -208,7 +212,9 @@ final class TableBucketChain implements Countable
     private function locate(mixed $key): ?KeyValueBucket
     {
         for ($this->rewind(); $this->valid(); $this->next()) {
-            /** @var KeyValueBucket $current */
+            /**
+             * @var KeyValueBucket $current
+             */
             $current = $this->current;
             if (Validate::areEqual($key, $current->key())) {
                 return $current;

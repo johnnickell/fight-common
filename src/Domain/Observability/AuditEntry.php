@@ -35,7 +35,9 @@ readonly class AuditEntry implements JsonSerializable
      */
     public static function record(string $actor, string $action, array $context = []): static
     {
-        /** @phpstan-ignore new.static */
+        /**
+         * @phpstan-ignore new.static
+         */
         return new static(
             AuditEntryId::generate(),
             $actor,
