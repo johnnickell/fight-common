@@ -16,7 +16,9 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareCommandRouter implements CommandRouter
 {
-    /** @var array<string, string> */
+    /**
+ * @var array<string, string>
+*/
     private array $handlers = [];
 
     /**

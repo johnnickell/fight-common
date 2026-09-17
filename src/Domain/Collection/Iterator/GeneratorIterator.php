@@ -21,7 +21,9 @@ use Throwable;
 final class GeneratorIterator implements Iterator
 {
     private readonly Closure $function;
-    /** @var Generator<mixed, mixed, mixed, mixed> */
+    /**
+ * @var Generator<mixed, mixed, mixed, mixed>
+*/
     private ?Generator $generator = null;
 
     /**

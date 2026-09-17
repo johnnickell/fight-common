@@ -38,9 +38,13 @@ use Throwable;
 final class Scheduler
 {
     private ?ProcessRunner $processRunner = null;
-    /** @var list<JobConfig> */
+    /**
+ * @var list<JobConfig>
+*/
     private array $jobs = [];
-    /** @var array<string, resource> */
+    /**
+ * @var array<string, resource>
+*/
     private array $lockHandles = [];
 
     /**
@@ -274,19 +278,25 @@ final class Scheduler
 
         $process = $this->createProcess($job['command']);
 
-        /** @var Closure(callable(string, string): void): int $run */
+        /**
+ * @var Closure(callable(string, string): void): int $run
+*/
         $run = Closure::fromCallable([$process, 'run']);
         $run(function (string $type, string $data) use ($job): void {
             $this->writeLine($data, $job);
         });
 
-        /** @var Closure(): bool $isSuccessful */
+        /**
+ * @var Closure(): bool $isSuccessful
+*/
         $isSuccessful = Closure::fromCallable([$process, 'isSuccessful']);
         if ($isSuccessful()) {
             return;
         }
 
-        /** @var Closure(): (int|null) $getExitCode */
+        /**
+ * @var Closure(): (int|null) $getExitCode
+*/
         $getExitCode = Closure::fromCallable([$process, 'getExitCode']);
         throw new SchedulerException(sprintf(
             'Command exited with non-zero status %d',
@@ -300,7 +310,9 @@ final class Scheduler
     private function createProcess(string $command): object
     {
         if ($this->processFactory instanceof Closure) {
-            /** @var object $process */
+            /**
+ * @var object $process
+*/
             $process = ($this->processFactory)($command);
         } else {
             $processClass = 'Symfony\\Component\\Process\\Process';
@@ -308,7 +320,9 @@ final class Scheduler
                 throw new SchedulerException('Command jobs require symfony/process or a custom processFactory');
             }
 
-            /** @var Closure(string): object $factory */
+            /**
+ * @var Closure(string): object $factory
+*/
             $factory = Closure::fromCallable([$processClass, 'fromShellCommandline']);
             $process = $factory($command);
         }

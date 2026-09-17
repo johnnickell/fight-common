@@ -15,9 +15,13 @@ use Psr\Container\ContainerInterface;
  */
 final class Container implements ArrayAccess, ContainerInterface
 {
-    /** @var array<string, callable> */
+    /**
+ * @var array<string, callable>
+*/
     private array $factories = [];
-    /** @var array<string, mixed> */
+    /**
+ * @var array<string, mixed>
+*/
     private array $parameters = [];
 
     /**

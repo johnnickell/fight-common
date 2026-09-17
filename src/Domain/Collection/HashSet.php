@@ -22,7 +22,9 @@ final class HashSet implements Set
 {
     use ItemTypeMethods;
 
-    /** @var array<T> */
+    /**
+ * @var array<T>
+*/
     private array $buckets = [];
     private int $count = 0;
 
@@ -401,7 +403,9 @@ final class HashSet implements Set
     {
         return new GeneratorIterator(function (array $buckets) {
             $index = 0;
-            /** @var SetBucketChain $chain */
+            /**
+ * @var SetBucketChain $chain
+*/
             foreach ($buckets as $chain) {
                 for ($chain->rewind(); $chain->valid(); $chain->next()) {
                     yield $index => $chain->current();

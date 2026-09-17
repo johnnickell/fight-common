@@ -57,7 +57,9 @@ readonly class SymfonyValidationSubscriber implements EventSubscriberInterface
         $reflectionMethod = $reflection->getMethod($controller[1]);
         $attributes = $reflectionMethod->getAttributes(Validation::class);
         foreach ($attributes as $attribute) {
-            /** @var Validation $validation */
+            /**
+ * @var Validation $validation
+*/
             $validation = $attribute->newInstance();
             $inputData = $request->isMethodSafe() ? $request->query->all() : $request->request->all();
             $this->validationService->validate($inputData, $validation->rules());

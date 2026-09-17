@@ -22,7 +22,9 @@ final class LinkedQueue implements Queue
 {
     use ItemTypeMethods;
 
-    /** @var SplDoublyLinkedList<T> */
+    /**
+ * @var SplDoublyLinkedList<T>
+*/
     private SplDoublyLinkedList $list;
 
     /**

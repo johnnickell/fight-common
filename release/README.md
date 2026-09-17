@@ -33,8 +33,8 @@ The command performs no merge, tag, push, GitHub, Packagist, or deployment actio
 ## Layout and verification
 
 - `src/` contains only code used directly by certification.
-- `scripts/certify.php` is the internal helper used by `bin/release`.
-- `consumer/probe.php` is the single installed-package public behavior probe.
+- `scripts/certify.php` is the internal helper used by `bin/release`; `scripts/functions.php` owns its pure function declarations.
+- `consumer/probe.php` is the single installed-package public behavior probe; `consumer/functions.php` declares its probe function.
 - `starter-receipts.json` records the immutable identities already accepted by T-00075; certification cites them
   without rerunning unchanged starter journeys.
 

@@ -17,7 +17,9 @@ use Yiisoft\View\ViewInterface;
  */
 final class YiiTemplateEngine implements TemplateEngine
 {
-    /** @var array<string, TemplateHelper> */
+    /**
+ * @var array<string, TemplateHelper>
+*/
     private array $helpers = [];
 
     /**

@@ -28,7 +28,9 @@ readonly class SlimUrlGenerator implements UrlGenerator
     ) {
     }
 
-    /** @inheritDoc */
+    /**
+ * @inheritDoc
+*/
     public function generate(string $name, array $parameters = [], array $query = [], bool $absolute = false): string
     {
         try {

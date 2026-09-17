@@ -37,7 +37,9 @@ final class MessageDataType extends \Fight\Common\Adapter\Persistence\Doctrine\T
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Message
     {
-        /** @var ?Message $converted */
+        /**
+ * @var ?Message $converted
+*/
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

@@ -132,6 +132,17 @@ reproduction.
 
 ## Maintainer verification
 
+Fight Common's own `phpcs.xml` opts into multiline docblocks (including inherited documentation and type
+annotations) and ignores source suppression annotations. Maintainers repair violations rather than adding
+exclusions, lowering severity, hiding warnings or narrowing the scan. Warnings fail the style gate.
+The published consumer defaults remain governed by the
+[compatibility contract](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0004-coding-standard-compatibility.md);
+this repository's stricter composition does not silently tighten those defaults.
+
+Run `python3 scripts/qualify_phpcs_enforcement.py` from the checkout with Docker and the `fight-common` PHP
+image available to verify compliant source, rejected inline docblocks and ineffective suppression annotations
+against real PHPCS execution. This explicit maintainer qualification stays outside the default product build.
+
 Fight Common owns behavioral fixtures for the published standard:
 
 Fight Common is the canonical implementation after TASK-00018 is accepted; the listed fixtures preserve the

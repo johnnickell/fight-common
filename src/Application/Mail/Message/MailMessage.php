@@ -14,26 +14,42 @@ final class MailMessage
     public const string CONTENT_TYPE_PLAIN = 'text/plain';
 
     private ?string $subject = null;
-    /** @var array<int, array{address: string, name: ?string}> */
+    /**
+ * @var array<int, array{address: string, name: ?string}>
+*/
     private array $from = [];
-    /** @var array<int, array{address: string, name: ?string}> */
+    /**
+ * @var array<int, array{address: string, name: ?string}>
+*/
     private array $to = [];
-    /** @var array<int, array{address: string, name: ?string}> */
+    /**
+ * @var array<int, array{address: string, name: ?string}>
+*/
     private array $replyTo = [];
-    /** @var array<int, array{address: string, name: ?string}> */
+    /**
+ * @var array<int, array{address: string, name: ?string}>
+*/
     private array $cc = [];
-    /** @var array<int, array{address: string, name: ?string}> */
+    /**
+ * @var array<int, array{address: string, name: ?string}>
+*/
     private array $bcc = [];
-    /** @var array<int, array{content: string, content_type: string, charset: string}> */
+    /**
+ * @var array<int, array{content: string, content_type: string, charset: string}>
+*/
     private array $content = [];
-    /** @var null|array{address: string, name: ?string} */
+    /**
+ * @var null|array{address: string, name: ?string}
+*/
     private ?array $sender = null;
     private ?string $returnPath = null;
     private string $charset = self::DEFAULT_CHARSET;
     private Priority $priority;
     private ?int $timestamp = null;
     private ?int $maxLineLength = null;
-    /** @var array<int, Attachment> */
+    /**
+ * @var array<int, Attachment>
+*/
     private array $attachments = [];
 
     /**

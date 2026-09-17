@@ -14,7 +14,9 @@ use Fight\Common\Domain\Exception\KeyException;
  */
 final readonly class FileTransferService
 {
-    /** @var HashTable<string, FileTransport> */
+    /**
+ * @var HashTable<string, FileTransport>
+*/
     private HashTable $transports;
 
     /**

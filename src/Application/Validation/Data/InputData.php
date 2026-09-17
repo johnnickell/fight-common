@@ -17,7 +17,9 @@ use Traversable;
  */
 final readonly class InputData implements Arrayable, Collection
 {
-    /** @var HashTable<string, mixed> */
+    /**
+ * @var HashTable<string, mixed>
+*/
     private HashTable $data;
 
     /**

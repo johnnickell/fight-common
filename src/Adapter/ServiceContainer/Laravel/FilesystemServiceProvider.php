@@ -25,7 +25,9 @@ final class FilesystemServiceProvider extends ServiceProvider
         $this->app->singleton(
             Filesystem::class,
             static function (Application $application): LaravelFilesystem {
-                /** @var IlluminateFilesystem $native */
+                /**
+            * @var IlluminateFilesystem $native
+            */
                 $native = $application->bound('files') ? $application->make('files') : new IlluminateFilesystem();
 
                 return new LaravelFilesystem($native);

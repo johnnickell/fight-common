@@ -37,7 +37,9 @@ final class JsonObjectDataType extends \Fight\Common\Adapter\Persistence\Doctrin
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?JsonObject
     {
-        /** @var ?JsonObject $converted */
+        /**
+ * @var ?JsonObject $converted
+*/
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

@@ -16,9 +16,13 @@ use Psr\Container\ContainerInterface;
  */
 final class ServiceAwareEventDispatcher extends SimpleEventDispatcher
 {
-    /** @var array<string, array<string, object>> */
+    /**
+ * @var array<string, array<string, object>>
+*/
     private array $services = [];
-    /** @var array<string, array<int, array{string, string, int}>> */
+    /**
+ * @var array<string, array<int, array{string, string, int}>>
+*/
     private array $serviceIds = [];
 
     /**

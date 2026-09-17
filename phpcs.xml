@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ruleset name="FightCommon">
     <description>Fight Common Coding Standard</description>
+    <arg name="ignore-annotations"/>
     <file>src</file>
     <file>release/src</file>
     <file>release/scripts</file>
     <file>release/consumer</file>
     <rule ref="./src/Standards/Phpcs/ruleset.xml">
+    </rule>
+    <rule ref="Generic.Commenting.DocComment.ContentAfterOpen">
+        <severity>5</severity>
+    </rule>
+    <rule ref="Generic.Commenting.DocComment.ContentBeforeClose">
+        <severity>5</severity>
     </rule>
 </ruleset>

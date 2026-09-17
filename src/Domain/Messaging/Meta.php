@@ -20,7 +20,9 @@ use Traversable;
  */
 final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSerializable, Stringable
 {
-    /** @var array<string, mixed> */
+    /**
+ * @var array<string, mixed>
+*/
     private array $data = [];
 
     /**
