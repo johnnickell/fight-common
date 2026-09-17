@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
-use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 
 /**
@@ -17,9 +16,6 @@ final readonly class McpServerInfo implements Arrayable
      */
     public function __construct(private string $name, private string $version)
     {
-        if (trim($this->name) === '' || trim($this->version) === '') {
-            throw new DomainException('An MCP server identity requires a name and version.');
-        }
     }
 
     /**

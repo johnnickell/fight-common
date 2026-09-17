@@ -39,15 +39,18 @@ principal, or make an authorization decision.
 The consumer supplies `McpServerInfo` and one or more explicit `McpCapability` implementations through
 `McpCapabilityRegistry`. Each capability owns its methods, advertised metadata, outer-parameter validation, and
 handling. The registry rejects missing identity, capabilities without owned methods, duplicate method ownership,
-contradictory metadata, a standard method whose advertised capability family does not match, malformed known
-capability definitions, and invalid future transport-mirror declarations during composition.
+contradictory metadata, a standard method whose advertised capability family does not match, an advertised standard
+family without its mandatory anchor method, non-JSON capability definitions, and invalid future transport-mirror
+declarations during composition.
 
 ## Composition
 
 Construct `McpResponder` with a registry. `server/discover` is reserved to the responder. Every capability that
 registers a dispatchable method must advertise at least one validated capability definition, so discovery cannot
 hide a callable method. Its result advertises only the registry's configured capabilities, `supportedVersions`, and the consumer-supplied server identity under
-`_meta.io.modelcontextprotocol/serverInfo`. It uses the conservative cache defaults `ttlMs: 0` and
+`_meta.io.modelcontextprotocol/serverInfo`. Every successful semantic result likewise includes that configured
+identity, preserving other `_meta` values while the responder owns and overrides its reserved server-identity key.
+It uses the conservative cache defaults `ttlMs: 0` and
 `cacheScope: private`; consumers do not supply a cache or authorization policy to this foundation.
 
 For any other registered method, the responder validates the outer MCP request once and dispatches exactly that
@@ -61,7 +64,8 @@ the `io.modelcontextprotocol/protocolVersion` and
 `io.modelcontextprotocol/clientCapabilities` fields. Client capabilities are an object; optional client information
 is an implementation object with a name and version. A present progress token is likewise a string or integer;
 numeric progress values are a later capability concern. The decoder validates every metadata key's MCP grammar,
-defined field shape, present trace-context format, and safe implementation icon source before dispatch, while
+defined field shape, present trace-context format, and schema-permitted HTTP/HTTPS or image-data implementation
+icon source before dispatch, while
 preserving schema-permitted empty strings and open objects. It retains only protocol metadata needed by this shared
 layer: protocol version, client capabilities and information, and progress token. It intentionally drops opaque
 extension metadata rather than treating it as credentials or authority.

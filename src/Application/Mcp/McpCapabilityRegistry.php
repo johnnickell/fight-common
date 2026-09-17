@@ -23,6 +23,13 @@ final readonly class McpCapabilityRegistry
         'tools/call'               => 'tools',
         'tools/list'               => 'tools'
     ];
+    /** @var array<string, string> */
+    private const array STANDARD_CAPABILITY_MANDATORY_METHODS = [
+        'completions' => 'completion/complete',
+        'prompts'     => 'prompts/list',
+        'resources'   => 'resources/list',
+        'tools'       => 'tools/list'
+    ];
 
     /** @var array<string, McpCapability> */
     private array $capabilitiesByMethod;
@@ -61,6 +68,8 @@ final readonly class McpCapabilityRegistry
             $this->validateStandardMethodCapabilities($methods, $capabilityNames);
             $this->registerMirrorDeclarations($capability, $methods, $mirrorDeclarationsByMethod);
         }
+
+        $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
@@ -180,6 +189,12 @@ final readonly class McpCapabilityRegistry
                 );
             }
 
+            if (!$this->hasValidJsonObject($definition)) {
+                throw new DomainException(
+                    sprintf('The MCP capability "%s" must contain only JSON values.', $name)
+                );
+            }
+
             if (!$this->hasValidStandardCapabilityDefinition($name, $definition)) {
                 throw new DomainException(
                     sprintf('The MCP capability "%s" has an invalid standard definition.', $name)
@@ -261,6 +276,32 @@ final readonly class McpCapabilityRegistry
                     sprintf(
                         'The MCP capability "%s" must own at least one corresponding standard method.',
                         $capabilityName
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * Validates the mandatory methods for every advertised standard capability
+     *
+     * @param array<string, McpCapability> $capabilitiesByMethod
+     * @param array<string, array<mixed>>  $advertisedCapabilities
+     */
+    private function validateStandardCapabilityMandatoryMethods(
+        array $capabilitiesByMethod,
+        array $advertisedCapabilities
+    ): void {
+        foreach (self::STANDARD_CAPABILITY_MANDATORY_METHODS as $capabilityName => $method) {
+            if (
+                array_key_exists($capabilityName, $advertisedCapabilities)
+                && !array_key_exists($method, $capabilitiesByMethod)
+            ) {
+                throw new DomainException(
+                    sprintf(
+                        'The MCP capability "%s" must register the "%s" method.',
+                        $capabilityName,
+                        $method
                     )
                 );
             }

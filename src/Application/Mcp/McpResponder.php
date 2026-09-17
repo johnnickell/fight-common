@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Domain\Exception\DomainException;
 use stdClass;
 use Throwable;
 
@@ -48,7 +49,7 @@ final readonly class McpResponder
                     return McpJsonResponse::error($request->id(), McpProtocolError::invalidParams());
                 }
 
-                return McpJsonResponse::success($request->id(), $this->discoveryResult());
+                return $this->success($request->id(), $this->discoveryResult());
             }
 
             $capability = $this->registry->capabilityFor($request->method());
@@ -58,7 +59,7 @@ final readonly class McpResponder
 
             $capability->validate($request);
 
-            return McpJsonResponse::success($request->id(), $capability->handle($request));
+            return $this->success($request->id(), $capability->handle($request));
         } catch (McpProtocolException $exception) {
             return McpJsonResponse::error($request?->id() ?? $exception->requestId(), $exception->protocolError());
         } catch (Throwable) {
@@ -75,11 +76,32 @@ final readonly class McpResponder
             'supportedVersions' => [self::PROTOCOL_VERSION],
             'capabilities'      => $this->discoveryCapabilities(),
             'ttlMs'             => 0,
-            'cacheScope'        => 'private',
-            '_meta'             => [
-                'io.modelcontextprotocol/serverInfo' => $this->registry->serverInfo()->toArray()
-            ]
+            'cacheScope'        => 'private'
         ]);
+    }
+
+    /**
+     * Creates a successful response with configured server identity metadata
+     */
+    private function success(int|string $id, McpResult $result): McpJsonResponse
+    {
+        $data = $result->toArray();
+        $metadata = $data['_meta'] ?? [];
+        if ($metadata instanceof stdClass) {
+            $metadata = get_object_vars($metadata);
+        }
+
+        if (!is_array($metadata) || ($metadata !== [] && array_is_list($metadata))) {
+            throw new DomainException('An MCP result metadata value must be a JSON object.');
+        }
+
+        $data['_meta'] = [
+            ...$metadata,
+            'io.modelcontextprotocol/serverInfo' => $this->registry->serverInfo()->toArray()
+        ];
+        unset($data['resultType']);
+
+        return McpJsonResponse::success($id, McpResult::complete($data));
     }
 
     /**

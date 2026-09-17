@@ -320,7 +320,7 @@ final readonly class McpRequestMetadata
         return $matches[1] !== 'ff'
             && $matches[2] !== str_repeat('0', 32)
             && $matches[3] !== str_repeat('0', 16)
-            && ($matches[1] !== '00' || (!isset($matches[5]) && in_array($matches[4], ['00', '01'], true)));
+            && ($matches[1] !== '00' || !isset($matches[5]));
     }
 
     /**
@@ -426,7 +426,8 @@ final readonly class McpRequestMetadata
      */
     private static function hasValidBaggageValue(string $value): bool
     {
-        return preg_match('/^[\\x21\\x23-\\x5b\\x5d-\\x7e]*$/', $value) === 1;
+        return preg_match('/^[\\x21\\x23-\\x5b\\x5d-\\x7e]*$/', $value) === 1
+            && preg_match('/%(?![0-9A-Fa-f]{2})/', $value) !== 1;
     }
 
     /**
@@ -496,12 +497,18 @@ final readonly class McpRequestMetadata
             return false;
         }
 
+        if (
+            in_array(strtolower($scheme), ['http', 'https'], true)
+            && (!isset($components['host']) || $components['host'] === '')
+        ) {
+            return false;
+        }
+
         if ((str_contains($value, '[') || str_contains($value, ']')) && !self::hasValidIpLiteralHost($components)) {
             return false;
         }
 
-        return !in_array(strtolower($scheme), ['http', 'https'], true)
-            || filter_var($value, FILTER_VALIDATE_URL) !== false;
+        return true;
     }
 
     /**
@@ -509,7 +516,7 @@ final readonly class McpRequestMetadata
      */
     private static function isSafeIconUri(string $value): bool
     {
-        if (str_starts_with(strtolower($value), 'https:')) {
+        if (preg_match('/^https?:/i', $value) === 1) {
             return self::isUri($value);
         }
 
@@ -540,7 +547,7 @@ final readonly class McpRequestMetadata
         $host = $components['host'];
         if (
             preg_match(
-                '/^\\[v[0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&\'()*+,;=:]+\\]$/',
+                '/^\\[v[0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&\'()*+,;=:]+\\]$/i',
                 $host
             ) === 1
         ) {

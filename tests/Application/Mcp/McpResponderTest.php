@@ -80,11 +80,17 @@ final class McpResponderTest extends UnitTestCase
 
         $response = $responder->respond($this->request('example/echo', 'request-9', ['message' => 'hello']));
 
-        self::assertSame(
+        self::assertEquals(
             [
                 'jsonrpc' => '2.0',
                 'id'      => 'request-9',
-                'result'  => ['resultType' => 'complete', 'message' => 'hello'],
+                'result'  => [
+                    'resultType' => 'complete',
+                    'message'    => 'hello',
+                    '_meta'      => [
+                        'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                    ],
+                ],
             ],
             $response->toArray(),
         );
@@ -244,20 +250,42 @@ final class McpResponderTest extends UnitTestCase
 
     public function test_that_decoder_accepts_ipvfuture_implementation_urls(): void
     {
+        foreach (['https://[vF.example]/client', 'https://[VF.example]/client'] as $websiteUrl) {
+            $request = (new McpRequestDecoder())->decode($this->request(
+                'example/echo',
+                1,
+                metadata: [
+                    'io.modelcontextprotocol/clientInfo' => (object) [
+                        'name'       => 'client',
+                        'version'    => '1.0',
+                        'websiteUrl' => $websiteUrl,
+                        'icons'      => [(object) ['src' => 'data:image/png;base64,iVBORw0KGgo=']],
+                    ],
+                ],
+            ));
+
+            self::assertSame($websiteUrl, $request->metadata()->clientInfo()?->websiteUrl);
+        }
+    }
+
+    public function test_that_decoder_accepts_schema_permitted_http_icon_urls(): void
+    {
         $request = (new McpRequestDecoder())->decode($this->request(
             'example/echo',
             1,
             metadata: [
                 'io.modelcontextprotocol/clientInfo' => (object) [
-                    'name'       => 'client',
-                    'version'    => '1.0',
-                    'websiteUrl' => 'urn://[vF.example]/client',
-                    'icons'      => [(object) ['src' => 'data:image/png;base64,iVBORw0KGgo=']],
+                    'name'    => 'client',
+                    'version' => '1.0',
+                    'icons'   => [(object) ['src' => 'http://example.test/icon.png']],
                 ],
             ],
         ));
 
-        self::assertSame('urn://[vF.example]/client', $request->metadata()->clientInfo()?->websiteUrl);
+        self::assertSame(
+            'http://example.test/icon.png',
+            $request->metadata()->clientInfo()?->icons[0]->src,
+        );
     }
 
     public function test_that_decoder_requires_json_objects_and_well_formed_defined_metadata(): void
@@ -431,15 +459,14 @@ final class McpResponderTest extends UnitTestCase
             'example/echo',
             12,
             metadata: [
-                'traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01',
+                'traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-02',
                 'tracestate'  => 'vendor=value, ,tenant@system=second',
-                'baggage'     => 'key=value%20with%20space;property;other=%ZZ',
+                'baggage'     => 'key=value%20with%20space;property;other=%20',
             ],
         ));
         self::assertSame('2026-07-28', $valid->metadata()->protocolVersion());
 
         foreach ([
-            ['traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-02'],
             ['traceparent' => '00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01-extra'],
             ['tracestate' => '1vendor=value'],
             ['tracestate' => 'tenant@1system=value'],
@@ -448,6 +475,8 @@ final class McpResponderTest extends UnitTestCase
             ['tracestate' => implode(',', array_fill(0, 33, 'vendor=value'))],
             ['baggage' => 'key="quoted"'],
             ['baggage' => 'key'],
+            ['baggage' => 'key=%ZZ'],
+            ['baggage' => 'key=%'],
             ['baggage' => implode(',', array_fill(0, 181, 'key=value'))],
         ] as $metadata) {
             try {
@@ -467,10 +496,14 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => null],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'title' => false]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'http:icon']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'https:icon']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'http:/icon']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://example.test/%ZZ']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:exa|mple']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn://example.test/path[']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn://[::::]/path']],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'https://[vF.]/path']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:example#one#two']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'websiteUrl' => 'urn:example[path]']],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'mimeType' => false]]]],
@@ -499,10 +532,12 @@ final class McpResponderTest extends UnitTestCase
         }
     }
 
-    public function test_that_construction_rejects_invalid_identity_mirror_and_result_declarations(): void
+    public function test_that_server_info_accepts_schema_permitted_empty_identity_strings(): void
     {
-        $this->expectException(DomainException::class);
-        new McpServerInfo('', '1.0.0');
+        $serverInfo = new McpServerInfo('', '');
+
+        self::assertSame('', $serverInfo->name());
+        self::assertSame('', $serverInfo->version());
     }
 
     public function test_that_registry_rejects_missing_identity_duplicate_ownership_and_contradictory_metadata(): void
@@ -597,6 +632,45 @@ final class McpResponderTest extends UnitTestCase
         }
     }
 
+    public function test_that_registry_requires_standard_capability_mandatory_anchor_methods(): void
+    {
+        $capability = new FixtureCapability(
+            methods: ['tools/call', 'tools/list'],
+            capabilities: ['tools' => ['listChanged' => true]],
+        );
+        $responder = new McpResponder($this->registry($capability));
+
+        self::assertEquals(
+            (object) ['tools' => (object) ['listChanged' => true]],
+            $responder->respond($this->request('server/discover', 13))->toArray()['result']['capabilities'],
+        );
+        self::assertSame(
+            ['jsonrpc' => '2.0', 'id' => 14, 'result' => [
+                'resultType' => 'complete',
+                'message' => 'hello',
+                '_meta' => ['io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0']],
+            ]],
+            $responder->respond($this->request('tools/list', 14, ['message' => 'hello']))->toArray(),
+        );
+
+        foreach ([
+            ['prompts/get', 'prompts'],
+            ['resources/read', 'resources'],
+            ['resources/templates/list', 'resources'],
+            ['tools/call', 'tools'],
+        ] as [$method, $capabilityName]) {
+            try {
+                new McpCapabilityRegistry(
+                    new McpServerInfo('Example', '1.0.0'),
+                    [new FixtureCapability(methods: [$method], capabilities: [$capabilityName => []])],
+                );
+                self::fail('Expected a standard capability without its mandatory anchor to be rejected.');
+            } catch (DomainException) {
+                self::addToAssertionCount(1);
+            }
+        }
+    }
+
     public function test_that_registry_validates_all_defined_standard_capability_shapes(): void
     {
         $registry = new McpCapabilityRegistry(
@@ -629,6 +703,127 @@ final class McpResponderTest extends UnitTestCase
             } catch (DomainException) {
                 self::addToAssertionCount(1);
             }
+        }
+    }
+
+    public function test_that_registry_rejects_non_json_custom_capability_definitions(): void
+    {
+        $resource = fopen('php://memory', 'r');
+        self::assertIsResource($resource);
+
+        try {
+            foreach ([
+                ['nested' => ['number' => NAN]],
+                ['nested' => ['resource' => $resource]],
+                ['nested' => ['object' => new \DateTimeImmutable()]],
+            ] as $definition) {
+                try {
+                    new McpCapabilityRegistry(
+                        new McpServerInfo('Example', '1.0.0'),
+                        [new FixtureCapability(definition: $definition)],
+                    );
+                    self::fail('Expected a custom capability with a non-JSON value to be rejected.');
+                } catch (DomainException) {
+                    self::addToAssertionCount(1);
+                }
+            }
+        } finally {
+            fclose($resource);
+        }
+
+        $registry = new McpCapabilityRegistry(
+            new McpServerInfo('Example', '1.0.0'),
+            [new FixtureCapability(definition: [
+                'nested' => [
+                    'null'   => null,
+                    'list'   => [true, 1, 'value', 1.5],
+                    'object' => (object) ['value' => false],
+                ],
+            ])],
+        );
+
+        self::assertEquals(
+            [
+                'example' => [
+                    'nested' => [
+                        'null'   => null,
+                        'list'   => [true, 1, 'value', 1.5],
+                        'object' => (object) ['value' => false],
+                    ],
+                ],
+            ],
+            $registry->advertisedCapabilities(),
+        );
+    }
+
+    public function test_that_configured_server_info_overrides_only_its_result_metadata_key(): void
+    {
+        $capability = new FixtureCapability(
+            result: McpResult::complete([
+                'message' => 'hello',
+                '_meta' => [
+                    'example/metadata' => ['retained' => true],
+                    'io.modelcontextprotocol/serverInfo' => ['name' => 'Incorrect', 'version' => '0.0.0'],
+                ],
+            ]),
+        );
+        $responder = new McpResponder($this->registry($capability));
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 15,
+                'result'  => [
+                    'resultType' => 'complete',
+                    'message' => 'hello',
+                    '_meta' => [
+                        'example/metadata' => ['retained' => true],
+                        'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                    ],
+                ],
+            ],
+            $responder->respond($this->request('example/echo', 15, ['message' => 'hello']))->toArray(),
+        );
+    }
+
+    public function test_that_responder_normalizes_object_result_metadata_and_rejects_invalid_metadata(): void
+    {
+        $objectMetadataCapability = new FixtureCapability(
+            result: McpResult::complete([
+                'message' => 'hello',
+                '_meta'   => (object) ['example/metadata' => ['retained' => true]],
+            ]),
+        );
+
+        self::assertSame(
+            [
+                'jsonrpc' => '2.0',
+                'id'      => 16,
+                'result'  => [
+                    'resultType' => 'complete',
+                    'message'    => 'hello',
+                    '_meta'      => [
+                        'example/metadata' => ['retained' => true],
+                        'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                    ],
+                ],
+            ],
+            (new McpResponder($this->registry($objectMetadataCapability)))
+                ->respond($this->request('example/echo', 16, ['message' => 'hello']))
+                ->toArray(),
+        );
+
+        foreach (['not-an-object', ['not-an-object']] as $metadata) {
+            $invalidMetadataCapability = new FixtureCapability(
+                result: McpResult::complete(['message' => 'hello', '_meta' => $metadata]),
+            );
+
+            self::assertSame(
+                ['jsonrpc' => '2.0', 'id' => 17, 'error' => ['code' => -32603, 'message' => 'Internal error.']],
+                (new McpResponder($this->registry($invalidMetadataCapability)))
+                    ->respond($this->request('example/echo', 17, ['message' => 'hello']))
+                    ->toArray(),
+            );
         }
     }
 
@@ -778,6 +973,7 @@ final class FixtureCapability implements McpCapability
         private readonly ?array $capabilities = null,
         private readonly bool $throwProtocolException = false,
         private readonly int|string|null $exceptionRequestId = null,
+        private readonly ?McpResult $result = null,
     ) {
     }
 
@@ -815,6 +1011,6 @@ final class FixtureCapability implements McpCapability
             throw new \RuntimeException('Unexpected fixture failure.');
         }
 
-        return McpResult::complete(['message' => $request->parameters()['message']]);
+        return $this->result ?? McpResult::complete(['message' => $request->parameters()['message']]);
     }
 }
