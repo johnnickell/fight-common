@@ -77,9 +77,10 @@ numeric progress values are a later capability concern. The decoder validates ev
 defined field shape, present trace-context format, and schema-permitted HTTP/HTTPS or image-data implementation
 icon source before dispatch, while
 preserving schema-permitted empty strings, an empty opaque metadata key, and open objects. Image data URI sources accept
-RFC 2045 token-valued media-type parameters only when their raw representation uses RFC 2396 URL characters or valid
-percent escapes, and validate the decoded media subtype and parameter attribute tokens before their terminal Base64
-marker; malformed raw characters, token syntax, or percent escapes reject before dispatch. Discovery configuration and server identity must be JSON-safe
+RFC 2045 token-valued or correctly percent-escaped parameter values when their raw representation uses RFC 2396 URL
+characters or valid percent escapes. The decoder validates decoded media subtype and parameter attribute tokens, plus
+escaped RFC 2045 tspecial and quoted-string parameter-value forms, before their terminal Base64 marker; malformed raw
+characters, token syntax, quoting, or percent escapes reject before dispatch. Discovery configuration and server identity must be JSON-safe
 Unicode values during composition. It retains only protocol metadata needed by this shared layer: protocol version,
 client capabilities and information, and progress token. It intentionally drops opaque extension metadata rather than
 treating it as credentials or authority.

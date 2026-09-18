@@ -566,7 +566,7 @@ final readonly class McpRequestMetadata
     }
 
     /**
-     * Returns whether a data URI parameter has valid MIME tokens
+     * Returns whether a data URI parameter has a valid MIME attribute and value
      */
     private static function hasValidDataUriParameter(string $parameter): bool
     {
@@ -576,7 +576,116 @@ final readonly class McpRequestMetadata
         }
 
         return self::hasValidMimeToken(substr($parameter, 0, $separator))
-            && self::hasValidMimeToken(substr($parameter, $separator + 1));
+            && self::hasValidDataUriParameterValue(substr($parameter, $separator + 1));
+    }
+
+    /**
+     * Returns whether a data URI parameter value uses an RFC 2045-safe representation
+     */
+    private static function hasValidDataUriParameterValue(string $value): bool
+    {
+        $decoded = self::decodeDataUriComponent($value);
+        if ($decoded === null) {
+            return false;
+        }
+
+        if (self::hasValidDecodedMimeToken($decoded)) {
+            return true;
+        }
+
+        if (self::hasValidQuotedMimeString($decoded)) {
+            return self::hasOnlyUrlEscapedMimeTspecials($value);
+        }
+
+        return self::hasValidUrlEscapedMimeTspecialValue($value);
+    }
+
+    /**
+     * Returns whether a quoted MIME value has valid safe quoted-string content
+     */
+    private static function hasValidQuotedMimeString(string $value): bool
+    {
+        $length = strlen($value);
+        if ($length < 2 || $value[0] !== '"' || $value[$length - 1] !== '"') {
+            return false;
+        }
+
+        for ($index = 1; $index < $length - 1; ++$index) {
+            $character = $value[$index];
+            if ((ord($character) < 0x20 && ord($character) !== 0x09) || ord($character) > 0x7E) {
+                return false;
+            }
+
+            if ($character === '\\') {
+                ++$index;
+
+                if (
+                    $index >= $length - 1
+                    || (ord($value[$index]) < 0x20 && ord($value[$index]) !== 0x09)
+                    || ord($value[$index]) > 0x7E
+                ) {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if ($character === '"') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns whether MIME tspecials appear only as URL-escaped data URI bytes
+     */
+    private static function hasOnlyUrlEscapedMimeTspecials(string $value): bool
+    {
+        return array_all(str_split($value), fn(string $character): bool => !self::isMimeTspecial($character));
+    }
+
+    /**
+     * Returns whether a non-token MIME value has URL-escaped tspecials only
+     */
+    private static function hasValidUrlEscapedMimeTspecialValue(string $value): bool
+    {
+        $length = strlen($value);
+        $hasEscapedTspecial = false;
+        for ($index = 0; $index < $length; ++$index) {
+            if ($value[$index] === '%') {
+                $character = chr(hexdec(substr($value, $index + 1, 2)));
+                if (self::hasValidDecodedMimeToken($character)) {
+                    $index += 2;
+
+                    continue;
+                }
+
+                if ($character === '"' || $character === '\\' || !self::isMimeTspecial($character)) {
+                    return false;
+                }
+
+                $hasEscapedTspecial = true;
+                $index += 2;
+
+                continue;
+            }
+
+            if (!self::hasValidDecodedMimeToken($value[$index])) {
+                return false;
+            }
+        }
+
+        return $hasEscapedTspecial;
+    }
+
+    /**
+     * Returns whether a character is an RFC 2045 MIME tspecial
+     */
+    private static function isMimeTspecial(string $value): bool
+    {
+        return str_contains('()<>@,;:\\"/[]?=', $value);
     }
 
     /**

@@ -332,6 +332,48 @@ final class McpResponderTest extends UnitTestCase
         }
     }
 
+    public function test_that_decoder_and_responder_accept_rfc2397_escaped_tspecial_and_quoted_parameters(): void
+    {
+        foreach ([
+            'data:image/svg+xml;profile=foo%2Fbar;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=foo%2Fbar%2Dbaz;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=%22foo%20bar%22;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=%22foo%09bar%22;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=%22foo%5C%22bar%22;base64,PHN2Zy8+',
+        ] as $iconSource) {
+            $metadata = [
+                'io.modelcontextprotocol/clientInfo' => (object) [
+                    'name'    => 'client',
+                    'version' => '1.0',
+                    'icons'   => [(object) ['src' => $iconSource]],
+                ],
+            ];
+
+            $request = (new McpRequestDecoder())->decode($this->request('example/echo', 1, metadata: $metadata));
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+
+            $capability = new FixtureCapability();
+            self::assertSame(
+                [
+                    'jsonrpc' => '2.0',
+                    'id'      => 1,
+                    'result'  => [
+                        'resultType' => 'complete',
+                        'message'    => 'hello',
+                        '_meta'      => [
+                            'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                        ],
+                    ],
+                ],
+                (new McpResponder($this->registry($capability)))
+                    ->respond($this->request('example/echo', 1, ['message' => 'hello'], metadata: $metadata))
+                    ->toArray(),
+            );
+            self::assertSame(1, $capability->validateCalls);
+            self::assertSame(1, $capability->handleCalls);
+        }
+    }
+
     public function test_that_decoder_requires_json_objects_and_well_formed_defined_metadata(): void
     {
         $decoder = new McpRequestDecoder();
@@ -587,6 +629,13 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo^bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo#bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo`bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo/bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo%20bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%20bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%22bar%22;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%5C%22;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%0Abar%22;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo%ZZbar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/p%2Fng;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;char%3Dset=utf-8;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=%ZZ;base64,PHN2Zy8+']]]],
