@@ -597,7 +597,7 @@ final readonly class McpRequestMetadata
             return self::hasOnlyUrlEscapedMimeTspecials($value);
         }
 
-        if (str_starts_with($decoded, '"') || str_ends_with($decoded, '"')) {
+        if (strlen($decoded) > 1 && str_starts_with($decoded, '"') && str_ends_with($decoded, '"')) {
             return false;
         }
 
