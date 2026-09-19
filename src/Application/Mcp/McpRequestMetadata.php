@@ -597,6 +597,10 @@ final readonly class McpRequestMetadata
             return self::hasOnlyUrlEscapedMimeTspecials($value);
         }
 
+        if (str_starts_with($decoded, '"') || str_ends_with($decoded, '"')) {
+            return false;
+        }
+
         return self::hasValidUrlEscapedMimeTspecialValue($value);
     }
 
@@ -662,7 +666,7 @@ final readonly class McpRequestMetadata
                     continue;
                 }
 
-                if ($character === '"' || $character === '\\' || !self::isMimeTspecial($character)) {
+                if (!self::isMimeTspecial($character)) {
                     return false;
                 }
 

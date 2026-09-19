@@ -337,6 +337,8 @@ final class McpResponderTest extends UnitTestCase
         foreach ([
             'data:image/svg+xml;profile=foo%2Fbar;base64,PHN2Zy8+',
             'data:image/svg+xml;profile=foo%2Fbar%2Dbaz;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=foo%22bar;base64,PHN2Zy8+',
+            'data:image/svg+xml;profile=foo%5Cbar;base64,PHN2Zy8+',
             'data:image/svg+xml;profile=%22foo%20bar%22;base64,PHN2Zy8+',
             'data:image/svg+xml;profile=%22foo%09bar%22;base64,PHN2Zy8+',
             'data:image/svg+xml;profile=%22foo%5C%22bar%22;base64,PHN2Zy8+',
@@ -630,6 +632,8 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo#bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo`bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo/bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo"bar;base64,PHN2Zy8+']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo\\bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=foo%20bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%20bar;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;profile=%22foo%22bar%22;base64,PHN2Zy8+']]]],
