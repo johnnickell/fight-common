@@ -57,6 +57,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 1 | [TASK-00103](00103-TASK.md) | Adopt the EPIC, TICKET, and TASK planning surface | — (standalone chore) | done | — | [PR #155](https://github.com/johnnickell/fight-common/pull/155) |
+| — | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | — (standalone chore) | done | — | [PR #159](https://github.com/johnnickell/fight-common/pull/159) |
 <!-- /planning:board -->
 
 ## Wayfinder
