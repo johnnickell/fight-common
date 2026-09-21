@@ -42,6 +42,7 @@ complete dependency policy and enforcement model.
 | [Values](https://johnnickell.github.io/fight-common/components/values/) | [Messaging](https://johnnickell.github.io/fight-common/components/messaging/) | [HTTP Client](https://johnnickell.github.io/fight-common/components/http-client/) | [Observability](https://johnnickell.github.io/fight-common/components/observability/) |
 | [Specifications](https://johnnickell.github.io/fight-common/components/specifications/) | [Validation](https://johnnickell.github.io/fight-common/components/validation/) | [Cache](https://johnnickell.github.io/fight-common/components/cache/) | [Process](https://johnnickell.github.io/fight-common/components/process/) |
 | [Event Sourcing](https://johnnickell.github.io/fight-common/components/event-sourcing/) | [Dependency Injection](https://johnnickell.github.io/fight-common/components/dependency-injection/) | [Mail](https://johnnickell.github.io/fight-common/components/mail/) | [Scheduler](https://johnnickell.github.io/fight-common/components/scheduler/) |
+|  | [MCP Protocol Semantics](https://johnnickell.github.io/fight-common/components/mcp/) |  |  |
 
 The [Repositories guide](https://johnnickell.github.io/fight-common/components/repositories/) and the complete
 [Component Atlas](https://johnnickell.github.io/fight-common/#component-atlas) hold the implementation detail;
