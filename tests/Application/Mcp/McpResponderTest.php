@@ -308,6 +308,46 @@ final class McpResponderTest extends UnitTestCase
         );
     }
 
+    public function test_that_decoder_and_responder_accept_once_escaped_base64_data_uri_payloads(): void
+    {
+        foreach ([
+            'data:image/svg+xml;base64,PHN2Zy8%2B',
+            'data:image/svg+xml;base64,Pz8%2F',
+            'data:image/svg+xml;base64,aA%3D%3D',
+        ] as $iconSource) {
+            $metadata = [
+                'io.modelcontextprotocol/clientInfo' => (object) [
+                    'name'    => 'client',
+                    'version' => '1.0',
+                    'icons'   => [(object) ['src' => $iconSource]],
+                ],
+            ];
+
+            $request = (new McpRequestDecoder())->decode($this->request('example/echo', 1, metadata: $metadata));
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+
+            $capability = new FixtureCapability();
+            self::assertSame(
+                [
+                    'jsonrpc' => '2.0',
+                    'id'      => 1,
+                    'result'  => [
+                        'resultType' => 'complete',
+                        'message'    => 'hello',
+                        '_meta'      => [
+                            'io.modelcontextprotocol/serverInfo' => ['name' => 'Example', 'version' => '1.0.0'],
+                        ],
+                    ],
+                ],
+                (new McpResponder($this->registry($capability)))
+                    ->respond($this->request('example/echo', 1, ['message' => 'hello'], metadata: $metadata))
+                    ->toArray(),
+            );
+            self::assertSame(1, $capability->validateCalls);
+            self::assertSame(1, $capability->handleCalls);
+        }
+    }
+
     public function test_that_decoder_accepts_rfc2397_token_and_percent_encoded_parameters(): void
     {
         foreach ([
@@ -646,6 +686,14 @@ final class McpResponderTest extends UnitTestCase
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;char%3Dset=utf-8;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=%ZZ;base64,PHN2Zy8+']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8@']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,PHN2Zy8%ZZ']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,PHN2Zy8%2']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,aA%40']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,PHN2Zy8%252B']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,aA']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,a%41']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,aB==']]]],
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'data:image/svg+xml;base64,a%42%3D%3D']]]],
             ['io.modelcontextprotocol/clientInfo' => ['name' => 'client', 'version' => '1.0', 'icons' => [['src' => 'urn:icon', 'sizes' => ['any', false]]]]],
             ['io.modelcontextprotocol/clientCapabilities' => ['extensions' => ['unprefixed' => new stdClass()]]],
             ['progressToken' => null],

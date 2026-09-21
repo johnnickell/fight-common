@@ -545,10 +545,14 @@ final readonly class McpRequestMetadata
             return false;
         }
 
-        $payload = substr($value, $separator + 1);
+        $payload = self::decodeDataUriComponent(substr($value, $separator + 1));
+        if ($payload === null || preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/', $payload) !== 1) {
+            return false;
+        }
 
-        return preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/', $payload) === 1
-            && base64_decode($payload, true) !== false;
+        $decoded = base64_decode($payload, true);
+
+        return $decoded !== false && base64_encode($decoded) === $payload;
     }
 
     /**
@@ -707,7 +711,7 @@ final readonly class McpRequestMetadata
     }
 
     /**
-     * Decodes one RFC 2397 media-type component with valid URL representation
+     * Decodes one RFC 2397 component with valid URL representation
      */
     private static function decodeDataUriComponent(string $value): ?string
     {
