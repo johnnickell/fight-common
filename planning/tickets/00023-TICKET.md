@@ -80,7 +80,7 @@ in the manifest and their observable behavior is covered before acceptance.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00104](../tasks/00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | ready-for-agent |
+| [TASK-00104](../tasks/00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | done |
 | [TASK-00105](../tasks/00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | ready-for-agent |
 <!-- /planning:children -->
 

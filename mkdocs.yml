@@ -115,6 +115,7 @@ nav:
       - Utilities: components/utilities/index.md
     - Coordinate Application Behavior:
       - Messaging (CQRS): components/messaging/index.md
+      - MCP Protocol Semantics: components/mcp/index.md
       - Validation: components/validation/index.md
       - Serialization: components/serialization/index.md
       - Dependency Injection: components/dependency-injection/index.md

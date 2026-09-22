@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "0b802c34ea0103619efbb7fa39f351e4c6633626fe063ff19e1dbb70ed6b8e7c",
+    "operation_shapes_sha256": "ed2e4e1224e79ad4bc8f215b99da2a53a145bcc5ce494975d37e3d77f87cec5a",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 173,
+            "declarations": 185,
             "functions": 0
         },
         "Adapter": {
@@ -37,6 +37,10 @@
         "fight-common.classification.prd-00015-addition": {
             "path": "planning/tickets/archive/00015-TICKET.md",
             "locator": "Solution: optional framework adapters and capability-scoped explicit activation"
+        },
+        "fight-common.classification.task-00104-addition": {
+            "path": "planning/tasks/00104-TASK.md",
+            "locator": "Outcome and acceptance criteria: framework-neutral MCP protocol semantics"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -75,6 +79,958 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpCapability",
+            "source": "src/Application/Mcp/McpCapability.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpCapability",
+                "source_locator": "working-tree:src/Application/Mcp/McpCapability.php#Fight\\Common\\Application\\Mcp\\McpCapability"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpCapability is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpCapability.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapability promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapability.php#Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapability is not promised for consumer constructible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapability.php#Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapability is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapability.php#Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.interface-implementation",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapability is an interface promised for consumer implementation.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapability.php#Fight\\Common\\Application\\Mcp\\McpCapability",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+            "source": "src/Application/Mcp/McpCapabilityRegistry.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                "source_locator": "working-tree:src/Application/Mcp/McpCapabilityRegistry.php#Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpCapabilityRegistry.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapabilityRegistry.php#Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapabilityRegistry.php#Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapabilityRegistry.php#Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "source_locator": "working-tree:src/Application/Mcp/McpCapabilityRegistry.php#Fight\\Common\\Application\\Mcp\\McpCapabilityRegistry",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+            "source": "src/Application/Mcp/McpJsonResponse.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                "source_locator": "working-tree:src/Application/Mcp/McpJsonResponse.php#Fight\\Common\\Application\\Mcp\\McpJsonResponse"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpJsonResponse is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpJsonResponse.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpJsonResponse promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "source_locator": "working-tree:src/Application/Mcp/McpJsonResponse.php#Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpJsonResponse promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "source_locator": "working-tree:src/Application/Mcp/McpJsonResponse.php#Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpJsonResponse is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "source_locator": "working-tree:src/Application/Mcp/McpJsonResponse.php#Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpJsonResponse is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "source_locator": "working-tree:src/Application/Mcp/McpJsonResponse.php#Fight\\Common\\Application\\Mcp\\McpJsonResponse",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+            "source": "src/Application/Mcp/McpMirrorDeclaration.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                "source_locator": "working-tree:src/Application/Mcp/McpMirrorDeclaration.php#Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpMirrorDeclaration.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "source_locator": "working-tree:src/Application/Mcp/McpMirrorDeclaration.php#Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "source_locator": "working-tree:src/Application/Mcp/McpMirrorDeclaration.php#Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "source_locator": "working-tree:src/Application/Mcp/McpMirrorDeclaration.php#Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "source_locator": "working-tree:src/Application/Mcp/McpMirrorDeclaration.php#Fight\\Common\\Application\\Mcp\\McpMirrorDeclaration",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+            "source": "src/Application/Mcp/McpProtocolError.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpProtocolError.php."
+            },
+            "members": [
+                {
+                    "name": "constant INTERNAL_ERROR",
+                    "signature": "public const int INTERNAL_ERROR = -32603",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant INTERNAL_ERROR from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant INTERNAL_ERROR"
+                        }
+                    }
+                },
+                {
+                    "name": "constant INVALID_PARAMS",
+                    "signature": "public const int INVALID_PARAMS = -32602",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant INVALID_PARAMS from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant INVALID_PARAMS"
+                        }
+                    }
+                },
+                {
+                    "name": "constant INVALID_REQUEST",
+                    "signature": "public const int INVALID_REQUEST = -32600",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant INVALID_REQUEST from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant INVALID_REQUEST"
+                        }
+                    }
+                },
+                {
+                    "name": "constant METHOD_NOT_FOUND",
+                    "signature": "public const int METHOD_NOT_FOUND = -32601",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant METHOD_NOT_FOUND from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant METHOD_NOT_FOUND"
+                        }
+                    }
+                },
+                {
+                    "name": "constant PARSE_ERROR",
+                    "signature": "public const int PARSE_ERROR = -32700",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant PARSE_ERROR from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant PARSE_ERROR"
+                        }
+                    }
+                },
+                {
+                    "name": "constant UNSUPPORTED_PROTOCOL_VERSION",
+                    "signature": "public const int UNSUPPORTED_PROTOCOL_VERSION = -32022",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError governs constant UNSUPPORTED_PROTOCOL_VERSION from src/Application/Mcp/McpProtocolError.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "member": "constant UNSUPPORTED_PROTOCOL_VERSION"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+            "source": "src/Application/Mcp/McpProtocolException.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                "source_locator": "working-tree:src/Application/Mcp/McpProtocolException.php#Fight\\Common\\Application\\Mcp\\McpProtocolException"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolException is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpProtocolException.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolException promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolException.php#Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolException promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolException.php#Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolException is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolException.php#Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolException is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "source_locator": "working-tree:src/Application/Mcp/McpProtocolException.php#Fight\\Common\\Application\\Mcp\\McpProtocolException",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpRequest",
+            "source": "src/Application/Mcp/McpRequest.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpRequest",
+                "source_locator": "working-tree:src/Application/Mcp/McpRequest.php#Fight\\Common\\Application\\Mcp\\McpRequest"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpRequest is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpRequest.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequest promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequest.php#Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequest promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequest.php#Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequest is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequest.php#Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequest is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequest.php#Fight\\Common\\Application\\Mcp\\McpRequest",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+            "source": "src/Application/Mcp/McpRequestDecoder.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                "source_locator": "working-tree:src/Application/Mcp/McpRequestDecoder.php#Fight\\Common\\Application\\Mcp\\McpRequestDecoder"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpRequestDecoder.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestDecoder.php#Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestDecoder.php#Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestDecoder.php#Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestDecoder.php#Fight\\Common\\Application\\Mcp\\McpRequestDecoder",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+            "source": "src/Application/Mcp/McpRequestMetadata.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpRequestMetadata.php."
+            },
+            "members": [
+                {
+                    "name": "constant CLIENT_CAPABILITIES_KEY",
+                    "signature": "public const string CLIENT_CAPABILITIES_KEY = 'io.modelcontextprotocol/clientCapabilities'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata governs constant CLIENT_CAPABILITIES_KEY from src/Application/Mcp/McpRequestMetadata.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "member": "constant CLIENT_CAPABILITIES_KEY"
+                        }
+                    }
+                },
+                {
+                    "name": "constant CLIENT_INFO_KEY",
+                    "signature": "public const string CLIENT_INFO_KEY = 'io.modelcontextprotocol/clientInfo'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata governs constant CLIENT_INFO_KEY from src/Application/Mcp/McpRequestMetadata.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "member": "constant CLIENT_INFO_KEY"
+                        }
+                    }
+                },
+                {
+                    "name": "constant PROGRESS_TOKEN_KEY",
+                    "signature": "public const string PROGRESS_TOKEN_KEY = 'progressToken'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata governs constant PROGRESS_TOKEN_KEY from src/Application/Mcp/McpRequestMetadata.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "member": "constant PROGRESS_TOKEN_KEY"
+                        }
+                    }
+                },
+                {
+                    "name": "constant PROTOCOL_VERSION_KEY",
+                    "signature": "public const string PROTOCOL_VERSION_KEY = 'io.modelcontextprotocol/protocolVersion'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata governs constant PROTOCOL_VERSION_KEY from src/Application/Mcp/McpRequestMetadata.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "member": "constant PROTOCOL_VERSION_KEY"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "source_locator": "working-tree:src/Application/Mcp/McpRequestMetadata.php#Fight\\Common\\Application\\Mcp\\McpRequestMetadata",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpResponder",
+            "source": "src/Application/Mcp/McpResponder.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpResponder.php."
+            },
+            "members": [
+                {
+                    "name": "constant DISCOVER_METHOD",
+                    "signature": "public const string DISCOVER_METHOD = 'server/discover'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder governs constant DISCOVER_METHOD from src/Application/Mcp/McpResponder.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "member": "constant DISCOVER_METHOD"
+                        }
+                    }
+                },
+                {
+                    "name": "constant PROTOCOL_VERSION",
+                    "signature": "public const string PROTOCOL_VERSION = '2026-07-28'",
+                    "evidence": {
+                        "authority": "fight-common.member.public-declaration",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder governs constant PROTOCOL_VERSION from src/Application/Mcp/McpResponder.php as public declaration-member structural API.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "member": "constant PROTOCOL_VERSION"
+                        }
+                    }
+                }
+            ],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResponder is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResponder.php#Fight\\Common\\Application\\Mcp\\McpResponder",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpResult",
+            "source": "src/Application/Mcp/McpResult.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpResult",
+                "source_locator": "working-tree:src/Application/Mcp/McpResult.php#Fight\\Common\\Application\\Mcp\\McpResult"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpResult is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpResult.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResult promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResult",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResult.php#Fight\\Common\\Application\\Mcp\\McpResult",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResult promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResult",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResult.php#Fight\\Common\\Application\\Mcp\\McpResult",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResult is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResult",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResult.php#Fight\\Common\\Application\\Mcp\\McpResult",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpResult is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpResult",
+                            "source_locator": "working-tree:src/Application/Mcp/McpResult.php#Fight\\Common\\Application\\Mcp\\McpResult",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+            "source": "src/Application/Mcp/McpServerInfo.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {
+                "subject": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                "source_locator": "working-tree:src/Application/Mcp/McpServerInfo.php#Fight\\Common\\Application\\Mcp\\McpServerInfo"
+            },
+            "classification_evidence": {
+                "authority": "fight-common.classification.task-00104-addition",
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpServerInfo is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpServerInfo.php."
+            },
+            "members": [],
+            "operations": {
+                "callable": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-call",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpServerInfo promises its inventoried public callable surface to consumers.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "source_locator": "working-tree:src/Application/Mcp/McpServerInfo.php#Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "operation": "callable"
+                        }
+                    }
+                },
+                "constructible": {
+                    "promised": true,
+                    "evidence": {
+                        "authority": "fight-common.operation.public-construction",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpServerInfo promises construction through its inventoried public constructor or named factory.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "source_locator": "working-tree:src/Application/Mcp/McpServerInfo.php#Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "operation": "constructible"
+                        }
+                    }
+                },
+                "extensible": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpServerInfo is not promised for consumer extensible; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "source_locator": "working-tree:src/Application/Mcp/McpServerInfo.php#Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "operation": "extensible"
+                        }
+                    }
+                },
+                "implementable": {
+                    "promised": false,
+                    "evidence": {
+                        "authority": "fight-common.operation.not-promised",
+                        "rationale": "Fight\\Common\\Application\\Mcp\\McpServerInfo is not promised for consumer implementable; PHP visibility or declaration shape alone is insufficient.",
+                        "binding": {
+                            "subject": "Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "source_locator": "working-tree:src/Application/Mcp/McpServerInfo.php#Fight\\Common\\Application\\Mcp\\McpServerInfo",
+                            "operation": "implementable"
+                        }
+                    }
+                }
+            }
+        }
+,
         {
             "name": "Fight\\Common\\Adapter\\Auth\\Hmac\\HmacAuthenticator",
             "source": "src/Adapter/Auth/Hmac/HmacAuthenticator.php",
