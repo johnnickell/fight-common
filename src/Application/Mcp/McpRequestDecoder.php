@@ -27,7 +27,9 @@ final class McpRequestDecoder
             throw new McpProtocolException(McpProtocolError::invalidRequest(), null);
         }
 
-        /** @var array<string, mixed> $data */
+        /**
+         * @var array<string, mixed> $data
+         */
         $data = get_object_vars($data);
         $requestId = $this->usableRequestId($data);
         if (($data['jsonrpc'] ?? null) !== '2.0') {

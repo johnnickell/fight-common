@@ -37,7 +37,9 @@ final class UriDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type\
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Uri
     {
-        /** @var ?Uri $converted */
+        /**
+         * @var ?Uri $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

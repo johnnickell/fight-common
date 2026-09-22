@@ -28,7 +28,9 @@ readonly class Nonce
         $value = bin2hex(random_bytes($bytes));
         $expiresAt = new DateTimeImmutable(sprintf('+%d seconds', $ttlSeconds));
 
-        /** @phpstan-ignore new.static */
+        /**
+         * @phpstan-ignore new.static
+         */
         return new static($value, $expiresAt);
     }
 

@@ -14,7 +14,9 @@ use Fight\Common\Domain\Exception\KeyException;
  */
 final readonly class ValidationContext
 {
-    /** @var HashTable<string, HashSet<string>> */
+    /**
+     * @var HashTable<string, HashSet<string>>
+     */
     private HashTable $errors;
 
     /**
@@ -52,7 +54,9 @@ final readonly class ValidationContext
             $this->errors->set($name, HashSet::of('string'));
         }
 
-        /** @var HashSet<string> $messages */
+        /**
+         * @var HashSet<string> $messages
+         */
         $messages = $this->errors->get($name);
         $messages->add($message);
     }
@@ -66,7 +70,9 @@ final readonly class ValidationContext
     {
         $errors = [];
 
-        /** @var string $name @var HashSet $messages */
+        /**
+         * @var string $name @var HashSet $messages
+         */
         foreach ($this->errors as $name => $messages) {
             $errors[$name] = [];
             foreach ($messages as $message) {

@@ -13,7 +13,9 @@ use stdClass;
  */
 final readonly class McpCapabilityRegistry
 {
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     */
     private const array STANDARD_METHOD_CAPABILITY_NAMES = [
         'completion/complete'      => 'completions',
         'prompts/get'              => 'prompts',
@@ -24,25 +26,35 @@ final readonly class McpCapabilityRegistry
         'tools/call'               => 'tools',
         'tools/list'               => 'tools'
     ];
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     */
     private const array STANDARD_CAPABILITY_MANDATORY_METHODS = [
         'completions' => 'completion/complete',
         'prompts'     => 'prompts/list',
         'resources'   => 'resources/list',
         'tools'       => 'tools/list'
     ];
-    /** @var array<string, list<string>> */
+    /**
+     * @var array<string, list<string>>
+     */
     private const array SUBSCRIPTION_CAPABILITY_PROPERTIES = [
         'prompts'   => ['listChanged'],
         'resources' => ['subscribe', 'listChanged'],
         'tools'     => ['listChanged']
     ];
 
-    /** @var array<string, McpCapability> */
+    /**
+     * @var array<string, McpCapability>
+     */
     private array $capabilitiesByMethod;
-    /** @var array<string, array<mixed>> */
+    /**
+     * @var array<string, array<mixed>>
+     */
     private array $advertisedCapabilities;
-    /** @var array<string, list<McpMirrorDeclaration>> */
+    /**
+     * @var array<string, list<McpMirrorDeclaration>>
+     */
     private array $mirrorDeclarationsByMethod;
 
     /**
@@ -60,7 +72,9 @@ final readonly class McpCapabilityRegistry
         }
 
         $capabilitiesByMethod = [];
-        /** @var array<string, array<mixed>> $advertisedCapabilities */
+        /**
+         * @var array<string, array<mixed>> $advertisedCapabilities
+         */
         $advertisedCapabilities = [];
         $mirrorDeclarationsByMethod = [];
 
@@ -129,7 +143,9 @@ final readonly class McpCapabilityRegistry
      */
     private function methodsFor(McpCapability $capability): array
     {
-        /** @var array<array-key, mixed> $methods */
+        /**
+         * @var array<array-key, mixed> $methods
+         */
         $methods = $capability->methods();
         if ($methods === []) {
             throw new DomainException('An MCP capability must register at least one handler method.');
@@ -176,7 +192,9 @@ final readonly class McpCapabilityRegistry
      */
     private function registerCapabilities(McpCapability $capability, array &$advertisedCapabilities): array
     {
-        /** @var array<array-key, mixed> $capabilities */
+        /**
+         * @var array<array-key, mixed> $capabilities
+         */
         $capabilities = $capability->capabilities();
         if ($capabilities === []) {
             throw new DomainException(
@@ -500,7 +518,9 @@ final readonly class McpCapabilityRegistry
         array $methods,
         array &$mirrorDeclarationsByMethod
     ): void {
-        /** @var array<array-key, mixed> $mirrorDeclarations */
+        /**
+         * @var array<array-key, mixed> $mirrorDeclarations
+         */
         $mirrorDeclarations = $capability->mirrorDeclarations();
         foreach ($mirrorDeclarations as $declaration) {
             if (!$declaration instanceof McpMirrorDeclaration) {

@@ -21,9 +21,13 @@ final class GuzzlePromise implements Promise
 {
     private readonly PromiseInterface $promise;
     private string $state;
-    /** @phpstan-ignore property.unusedType */
+    /**
+     * @phpstan-ignore property.unusedType
+     */
     private ?ResponseInterface $response;
-    /** @phpstan-ignore property.unusedType */
+    /**
+     * @phpstan-ignore property.unusedType
+     */
     private ?Throwable $exception;
 
     /**
@@ -31,7 +35,9 @@ final class GuzzlePromise implements Promise
      */
     public function __construct(
         PromiseInterface $promise,
-        /** @phpstan-ignore property.onlyWritten */
+        /**
+         * @phpstan-ignore property.onlyWritten
+         */
         private readonly RequestInterface $request
     ) {
         $this->state = Promise::PENDING;

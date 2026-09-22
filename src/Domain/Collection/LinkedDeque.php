@@ -22,7 +22,9 @@ final class LinkedDeque implements Deque
 {
     use ItemTypeMethods;
 
-    /** @var SplDoublyLinkedList<T> */
+    /**
+     * @var SplDoublyLinkedList<T>
+     */
     private SplDoublyLinkedList $list;
 
     /**

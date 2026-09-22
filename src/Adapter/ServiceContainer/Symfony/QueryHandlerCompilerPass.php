@@ -36,7 +36,9 @@ class QueryHandlerCompilerPass implements CompilerPassInterface
                 throw new Exception($message);
             }
 
-            /** @var QueryHandler|string $serviceClass */
+            /**
+             * @var QueryHandler|string $serviceClass
+             */
             $serviceClass = $container->getParameterBag()->resolveValue($serviceDefinition->getClass());
             $reflection = new ReflectionClass($serviceClass);
 
