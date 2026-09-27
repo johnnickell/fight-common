@@ -38,6 +38,20 @@ The coding-standard authority is `src/Standards/Phpcs/ruleset.xml` with the proj
 
 Require exact 100% statement coverage of owned production code. Choose mocks/stubs/reals for the behavior being proved; real value objects and simple anonymous stubs are normally useful, and `$this->mock()` supplies Mockery collaborators. Keep release/tooling tests outside ordinary product CI/default builds. Direct validation of docs/planning is part of the gate, not justification for adding tests of Markdown or shell/configuration text.
 
+### Approved DBAL schema compatibility exception
+
+[TASK-00116](../tasks/00116-TASK.md) records the maintainer's approval to retain DBAL 4.4 support before 2.0
+and permit four exact PHPStan `method.internal` diagnostics for `Doctrine\DBAL\Schema\Schema::__construct()`.
+That constructor remains runtime-compatible in 4.5, but its new public editor replacement does not exist in 4.4.
+The exception is limited to one occurrence in each of the four existing Event Sourcing DBAL schema builders,
+using exact message, identifier and file matches in `phpstan.neon.dist`. Missing matches are allowed for DBAL 4.4,
+where the constructor is public; additional occurrences and other internal calls remain reportable.
+
+This is an explicit compatibility exception, not permission to suppress other findings, narrow scanned paths,
+change PHPCS policy, or raise the dependency floor. Preserve both lower/current runtime evidence and the complete
+ordinary product gate. Reconsider the exception for 2.0 only with an approved support-policy change; remove it when
+the remaining supported range permits the public replacement. No automatic support removal is authorized.
+
 ## Planning and Git
 
 Read [CONVENTIONS.md](../CONVENTIONS.md). EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and ready frontier. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.

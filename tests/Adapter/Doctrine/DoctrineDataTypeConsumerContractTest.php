@@ -9,12 +9,15 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
-use Doctrine\DBAL\Types\TypeRegistry;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 #[CoversNothing]
+#[PreserveGlobalState(false)]
+#[RunTestsInSeparateProcesses]
 final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
 {
     /**
@@ -30,25 +33,29 @@ final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
     ): void {
         $legacyType = new $legacyClass();
         $canonicalType = new $canonicalClass();
-        $legacyRegistry = new TypeRegistry();
-        $canonicalRegistry = new TypeRegistry();
+        $registry = Type::getTypeRegistry();
         $platform = new SQLitePlatform();
-        $schema = new Schema([
+
+        // DBAL 4.5 resolves a column's type through the global registry. Consumers
+        // choose either identity for one type name, not both at the same time.
+        $registry->register($typeName, $legacyType);
+        $legacySchema = new Schema([
             new Table('consumer_legacy', [new Column('value', $legacyType)]),
+        ]);
+
+        self::assertSame($legacyType, $registry->get($typeName));
+        self::assertSame($typeName, $registry->lookupName($legacyType));
+        self::assertSame($legacyClass, $legacySchema->getTable('consumer_legacy')->getColumn('value')->getType()::class);
+        $legacyValue = $legacyType->convertToPHPValue($storedValue, $platform);
+
+        $registry->override($typeName, $canonicalType);
+        $canonicalSchema = new Schema([
             new Table('consumer_canonical', [new Column('value', $canonicalType)]),
         ]);
 
-        $legacyRegistry->register($typeName, $legacyType);
-        $canonicalRegistry->register($typeName, $canonicalType);
-
-        self::assertSame($legacyType, $legacyRegistry->get($typeName));
-        self::assertSame($canonicalType, $canonicalRegistry->get($typeName));
-        self::assertSame($typeName, $legacyRegistry->lookupName($legacyType));
-        self::assertSame($typeName, $canonicalRegistry->lookupName($canonicalType));
-        self::assertSame($legacyClass, $schema->getTable('consumer_legacy')->getColumn('value')->getType()::class);
-        self::assertSame($canonicalClass, $schema->getTable('consumer_canonical')->getColumn('value')->getType()::class);
-
-        $legacyValue = $legacyType->convertToPHPValue($storedValue, $platform);
+        self::assertSame($canonicalType, $registry->get($typeName));
+        self::assertSame($typeName, $registry->lookupName($canonicalType));
+        self::assertSame($canonicalClass, $canonicalSchema->getTable('consumer_canonical')->getColumn('value')->getType()::class);
         $canonicalValue = $canonicalType->convertToPHPValue($storedValue, $platform);
 
         self::assertSame(

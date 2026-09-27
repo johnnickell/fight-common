@@ -12,6 +12,34 @@ parameters:
         - vendor/squizlabs/php_codesniffer/autoload.php
         - vendor/squizlabs/php_codesniffer/src/Util/Tokens.php
     ignoreErrors:
+        # TASK-00116: Keep DBAL 4.4 support until 2.0; its public Schema constructor
+        # became @internal in 4.5, whose replacement editor API is absent in 4.4.
+        # Exact constructor diagnostics only, at most one per existing schema builder.
+        # Absence is valid on 4.4; review removal when the support floor changes.
+        -
+            identifier: method.internal
+            message: '#^Call to internal method Doctrine\\DBAL\\Schema\\Schema::__construct\(\) from outside its root namespace Doctrine\.$#'
+            path: src/Adapter/EventSourcing/Dbal/DbalEventStoreSchema.php
+            count: 1
+            reportUnmatched: false
+        -
+            identifier: method.internal
+            message: '#^Call to internal method Doctrine\\DBAL\\Schema\\Schema::__construct\(\) from outside its root namespace Doctrine\.$#'
+            path: src/Adapter/EventSourcing/Dbal/DbalProjectionCheckpointStoreSchema.php
+            count: 1
+            reportUnmatched: false
+        -
+            identifier: method.internal
+            message: '#^Call to internal method Doctrine\\DBAL\\Schema\\Schema::__construct\(\) from outside its root namespace Doctrine\.$#'
+            path: src/Adapter/EventSourcing/Dbal/DbalPublicationCursorStoreSchema.php
+            count: 1
+            reportUnmatched: false
+        -
+            identifier: method.internal
+            message: '#^Call to internal method Doctrine\\DBAL\\Schema\\Schema::__construct\(\) from outside its root namespace Doctrine\.$#'
+            path: src/Adapter/EventSourcing/Dbal/DbalPublicationFailureRecorderSchema.php
+            count: 1
+            reportUnmatched: false
         -
             identifier: classConstant.internalClass
             path: src/Standards/Phpcs/Sniffs/*/*Sniff.php
