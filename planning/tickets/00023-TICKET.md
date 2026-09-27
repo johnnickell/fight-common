@@ -2,7 +2,7 @@
 id: TICKET-00023
 epic: EPIC-00006
 title: Serve a Safe Stateless MCP Endpoint
-status: ready-for-agent
+status: in-progress
 ---
 
 # Serve a Safe Stateless MCP Endpoint
@@ -81,7 +81,7 @@ in the manifest and their observable behavior is covered before acceptance.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00104](../tasks/00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | done |
-| [TASK-00105](../tasks/00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | ready-for-agent |
+| [TASK-00105](../tasks/00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -93,3 +93,9 @@ capability dispatch, and centralized errors without exposing an unguarded HTTP e
 first PSR HTTP endpoint, direct JSON, and required Origin, invocation-guard, and complete header/body-mirror
 safeguards, including integrated TICKET acceptance. The dependency keeps each TASK independently reviewable
 without splitting Application and Adapter layers into separate durable work records.
+
+At TASK-00105's 2026-09-27 builder checkpoint, the guarded PSR endpoint, consumer composition guidance, manifest
+classifications and integrated route journey are implemented and the complete local gate passes. Independent
+review is still required; this TICKET is not yet accepted. John approved Common-defined JSON-RPC code `429`,
+message `Invocation limit exceeded.`, and no diagnostic data for HTTP 429 guard denial because MCP assigns no
+rate-limit code. The TASK owns the decision, exact verification counts, caveats and review handoff.

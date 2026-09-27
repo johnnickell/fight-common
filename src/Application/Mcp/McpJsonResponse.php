@@ -65,6 +65,14 @@ final readonly class McpJsonResponse implements Arrayable
     }
 
     /**
+     * Returns the protocol error code for transport mapping
+     */
+    public function errorCode(): ?int
+    {
+        return $this->error?->toArray()['code'];
+    }
+
+    /**
      * Encodes the semantic JSON-RPC response
      *
      * @throws JsonException When the response cannot be encoded
