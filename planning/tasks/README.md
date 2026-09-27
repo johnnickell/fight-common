@@ -18,5 +18,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent | [TICKET-00027](../tickets/00027-TICKET.md) |
 | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | done | — |
 | [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | ready-for-agent | — |
-| [TASK-00116](00116-TASK.md) | Restore DBAL schema-builder compatibility with supported dependencies | in-progress | — |
+| [TASK-00116](00116-TASK.md) | Restore DBAL schema-builder compatibility with supported dependencies | done | — |
 <!-- /planning:records -->
