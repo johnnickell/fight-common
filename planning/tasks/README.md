@@ -17,4 +17,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |
 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent | [TICKET-00027](../tickets/00027-TICKET.md) |
 | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | done | — |
+| [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | ready-for-agent | — |
 <!-- /planning:records -->
