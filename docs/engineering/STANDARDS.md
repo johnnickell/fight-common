@@ -42,3 +42,12 @@ The planning and standards adoption are implemented locally. Behavioral trials o
 ## Targeted standards refresh — 2026-09-16
 
 Planning now distinguishes unfinished, executable and attention-needed work, with truthful next-action fallbacks. Review now checks omitted states and cross-view contradictions against independent expected behavior. Only these approved clauses were applied; earlier baseline content, project bindings and exceptions remain unchanged. Installed digests above identify the resulting local documents.
+
+## Scoped compatibility exception — 2026-09-27
+
+For [TASK-00116](../../planning/tasks/00116-TASK.md), the maintainer explicitly retained DBAL 4.4 support before
+2.0 and separately approved the four-site constructor diagnostic exception documented in the
+[project profile](../../planning/agents/project-profile.md#approved-dbal-schema-compatibility-exception).
+This reconciles DBAL 4.5's new `@internal` annotation with the still-supported 4.4 public API. It does not change
+shared standard digests, production behavior, dependency constraints, PHPCS policy, or unrelated diagnostics.
+The profile owns the exact limits and removal conditions.

@@ -13,7 +13,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00116](00116-TASK.md) | Restore DBAL schema-builder compatibility with supported dependencies | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 
