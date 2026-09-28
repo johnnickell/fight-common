@@ -178,9 +178,18 @@ annotation values. Construction snapshots mutable objects, and accessors return 
 object/list distinctions. No consumer serializer executes.
 This is data-shape safety, not automatic redaction: consumers must explicitly project public-safe schemas and data.
 
-`McpToolOutput::structured($publicData)` carries one complete JSON value, exposed by `structuredContent()` and its
-matching JSON `text()`. It creates no JSON-RPC response, error envelope, HTTP response, or partial result. The caller
-owns safe projection; the later invoker owns output-schema conformance and expected-failure presentation.
+`McpToolInfo::inputSchema()` and `outputSchema()` return `Fight\Common\Domain\Value\Basic\JsonObject` values,
+not raw `stdClass` objects. Attribute declarations remain PHP arrays. Each accessor wraps a freshly decoded,
+validated snapshot; mutating objects obtained through its `toData()` cannot change the metadata. Use `toString()`
+for JSON text or serialize the value directly. `toArray()` retains the raw discovery definition representation,
+so discovery output and cursor hashing are unchanged.
+
+`McpToolOutput::structured($publicData)` carries one complete JSON value. `structuredContent()` returns an isolated
+`JsonObject`, whose `toString()` matches `text()`, including zero-fraction numbers such as `1.0`. Despite its name,
+this existing value type can represent any JSON root: object, list, string, number, Boolean or null. Raw data is
+available through `toData()`; this is not schema-specific field typing. The factory still validates plain data,
+not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
+The caller owns safe projection; the later invoker owns output-schema conformance and expected-failure presentation.
 
 `McpProgressReporter` is only the stable `report(float $progress, ?float $total, ?string $message)` and
 `isCancelled(): bool` port required by the Tool signature. Its implementation contract calls for finite nonnegative,

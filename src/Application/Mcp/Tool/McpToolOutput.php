@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool;
 
+use Fight\Common\Domain\Value\Basic\JsonObject;
+
 /**
  * Class McpToolOutput
  */
@@ -29,11 +31,14 @@ final readonly class McpToolOutput
     }
 
     /**
-     * Returns an isolated structured-content value
+     * Returns an isolated JSON value for the complete structured content
      */
-    public function structuredContent(): mixed
+    public function structuredContent(): JsonObject
     {
-        return json_decode($this->json, false, 512, JSON_THROW_ON_ERROR);
+        return JsonObject::fromData(
+            json_decode($this->json, false, 512, JSON_THROW_ON_ERROR),
+            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
+        );
     }
 
     /**

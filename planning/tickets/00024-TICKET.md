@@ -87,7 +87,7 @@ are the acceptance authority.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
+| [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | in-progress |
 | [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-agent |
 <!-- /planning:children -->
 

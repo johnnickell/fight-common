@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Mcp\Tool;
 
 use Attribute;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\JsonObject;
 use stdClass;
 
 /**
@@ -63,19 +64,25 @@ final readonly class McpToolInfo
     }
 
     /**
-     * Returns an isolated copy of the declared input schema
+     * Returns an isolated JSON value for the declared input schema
      */
-    public function inputSchema(): stdClass
+    public function inputSchema(): JsonObject
     {
-        return json_decode($this->inputSchemaJson, false, 512, JSON_THROW_ON_ERROR);
+        return JsonObject::fromData(
+            json_decode($this->inputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
+            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
+        );
     }
 
     /**
-     * Returns an isolated copy of the declared output schema
+     * Returns an isolated JSON value for the declared output schema
      */
-    public function outputSchema(): stdClass
+    public function outputSchema(): JsonObject
     {
-        return json_decode($this->outputSchemaJson, false, 512, JSON_THROW_ON_ERROR);
+        return JsonObject::fromData(
+            json_decode($this->outputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
+            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
+        );
     }
 
     /**
@@ -88,8 +95,8 @@ final readonly class McpToolInfo
         return [
             'name'         => $this->name,
             'description'  => $this->description,
-            'inputSchema'  => $this->inputSchema(),
-            'outputSchema' => $this->outputSchema()
+            'inputSchema'  => $this->inputSchema()->toData(),
+            'outputSchema' => $this->outputSchema()->toData()
         ];
     }
 }
