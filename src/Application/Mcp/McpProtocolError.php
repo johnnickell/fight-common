@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Type\Arrayable;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpProtocolError
@@ -16,6 +17,7 @@ final readonly class McpProtocolError implements Arrayable
     public const int METHOD_NOT_FOUND = -32601;
     public const int INVALID_PARAMS = -32602;
     public const int INTERNAL_ERROR = -32603;
+    public const int MISSING_REQUIRED_CLIENT_CAPABILITY = -32021;
     public const int UNSUPPORTED_PROTOCOL_VERSION = -32022;
     public const int HEADER_MISMATCH = -32020;
     public const int INVOCATION_LIMIT = 429;
@@ -69,6 +71,18 @@ final readonly class McpProtocolError implements Arrayable
     public static function unknownTool(): self
     {
         return new self(self::INVALID_PARAMS, 'Unknown or unavailable tool.');
+    }
+
+    /**
+     * Creates the missing form-elicitation capability error without consumer context
+     */
+    public static function missingFormElicitation(): self
+    {
+        return new self(
+            self::MISSING_REQUIRED_CLIENT_CAPABILITY,
+            'Missing required client capability.',
+            ['requiredCapabilities' => ['elicitation' => ['form' => StrictJson::fromObject()]]]
+        );
     }
 
     /**

@@ -124,9 +124,8 @@ final readonly class McpResponder
             ...$metadata,
             'io.modelcontextprotocol/serverInfo' => $this->registry->serverInfo()->toArray()
         ];
-        unset($data['resultType']);
 
-        return McpJsonResponse::success($id, McpResult::complete($data));
+        return McpJsonResponse::success($id, $result->withMetadata($data['_meta']));
     }
 
     /**

@@ -29,7 +29,8 @@ final readonly class McpToolInfo
         private string $name,
         private string $description,
         array $inputSchema,
-        array $outputSchema
+        array $outputSchema,
+        private bool $requiresFormElicitation = false
     ) {
         if (preg_match('/\A[A-Za-z0-9_.-]{1,128}\z/D', $name) !== 1) {
             throw new DomainException(
@@ -76,6 +77,14 @@ final readonly class McpToolInfo
     public function outputSchema(): StrictJson
     {
         return $this->outputSchema;
+    }
+
+    /**
+     * Returns whether invocation requires the current client to support form elicitation
+     */
+    public function requiresFormElicitation(): bool
+    {
+        return $this->requiresFormElicitation;
     }
 
     /**
