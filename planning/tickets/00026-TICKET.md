@@ -102,7 +102,7 @@ authentication and command/query contracts unchanged.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | done |
-| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | in-progress |
+| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
