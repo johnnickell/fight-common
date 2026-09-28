@@ -2,7 +2,7 @@
 id: TICKET-00024
 epic: EPIC-00006
 title: Discover and Invoke Explicitly Opted-In CQRS Tools
-status: in-progress
+status: done
 ---
 
 # Discover and Invoke Explicitly Opted-In CQRS Tools
@@ -88,10 +88,17 @@ are the acceptance authority.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
-| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-human |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+Independent re-review accepted TASK-00107 candidate `05e6aba43c8e50cd383b247cb1adeb58827b6340`, resolving
+StrictJson boundary finding R1. All twelve TASK criteria pass with Spec/Standards 100%; TASK-00106's accepted
+discovery and the revised invocation evidence complete this TICKET without Access Control adoption. `done`
+records accepted implementation, not final publication, hosted delivery checks, approval or merge. John authorized
+updating PR #166; final-head delivery and cleanup remain governed by the ignored landing handoff. The following
+paragraphs retain the earlier revision/build and original acceptance chronology.
 
 Reopened for John's pre-merge TASK-00107 revision: introduce `Domain/Value/Basic/StrictJson` and remove generic
 object representation from MCP consumers. Earlier acceptance below is historical; revised implementation needs
