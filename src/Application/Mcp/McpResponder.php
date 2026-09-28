@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Tool\McpToolExecution;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
@@ -54,8 +56,9 @@ final readonly class McpResponder
      * Dispatches an already-decoded request after caller-owned safeguards
      *
      * Propagates capability failures to the transport's diagnostic and error boundary.
+     * The optional execution is an internal request binding, not a consumer authorization or transport API.
      */
-    public function dispatch(McpRequest $request): McpJsonResponse
+    public function dispatch(McpRequest $request, ?McpToolExecution $execution = null): McpJsonResponse
     {
         if ($request->metadata()->protocolVersion() !== self::PROTOCOL_VERSION) {
             return McpJsonResponse::error(
@@ -78,6 +81,10 @@ final readonly class McpResponder
         $capability = $this->registry->capabilityFor($request->method());
         if ($capability === null) {
             return McpJsonResponse::error($request->id(), McpProtocolError::methodNotFound());
+        }
+
+        if ($execution !== null && $capability instanceof McpToolInvocation) {
+            $capability = $capability->withExecution($execution);
         }
 
         $capability->validate($request);

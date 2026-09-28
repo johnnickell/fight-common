@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "38ead02ee01716195bbb449a2d9054f0150828432fb5909d5962df1546cf54ef",
+    "operation_shapes_sha256": "575e5905056f2af5a397ebdce2e6d5e86da213923778d26137bf0069cc4befed",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -17,7 +17,7 @@
             "functions": 0
         },
         "Adapter": {
-            "declarations": 217,
+            "declarations": 221,
             "functions": 0
         }
     },
@@ -53,6 +53,10 @@
         "fight-common.classification.task-00107-addition": {
             "path": "planning/tasks/00107-TASK.md",
             "locator": "Scope and acceptance: validated Tool invocation, StrictJson representation, safe errors, selected mirrors and opt-in envelope metadata"
+        },
+        "fight-common.classification.task-00109-addition": {
+            "path": "planning/tasks/00109-TASK.md",
+            "locator": "Scope and acceptance: progressive HTTP, concrete emitter and native response translations"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -210,7 +214,7 @@
             "kind": "class",
             "classification": "internal",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolExecution", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolExecution.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolExecution"},
-            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "TASK-00108 request-scoped semantic progress and cancellation state; provisional package composition pending TASK-00109 adapter proof, not a public transport API."},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Request-scoped semantic progress and cancellation state used by TASK-00109 HTTP adapters; remains an internal execution/binding seam, not a public transport API."},
             "members": [],
             "operations": {
                 "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolExecution", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolExecution.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolExecution", "operation": "callable"}}},
@@ -457,6 +461,70 @@
                 "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers construct with a capability registry.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "constructible"}}},
                 "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final validator; subclasses cannot weaken the rules.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "extensible"}}},
                 "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream",
+            "source": "src/Adapter/Http/Mcp/McpEventStream.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpEventStream.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Internal single-use PSR body implementing the emitter's request-owned pull lifecycle; consumers compose the handler and emitter."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal body implementation.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpEventStream.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal body implementation.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpEventStream.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpEventStream.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpEventStream.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpEventStream", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter",
+            "source": "src/Adapter/Http/Mcp/McpResponseEmitter.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseEmitter.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00109-addition", "rationale": "Concrete consumer-selected PHP-SAPI emission, flush and observed-disconnect boundary."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers prepare and emit guarded responses at their send boundary.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseEmitter.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers explicitly select the PHP emitter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseEmitter.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final concrete emitter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseEmitter.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseEmitter.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseEmitter", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory",
+            "source": "src/Adapter/Http/Symfony/McpResponseFactory.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Symfony/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00109-addition", "rationale": "Native Symfony/Laravel response translation preserves progressive emission instead of collecting a PSR body."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Convert guarded PSR responses to native direct or streamed responses.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Symfony/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit native response composition.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Symfony/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final concrete factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Symfony/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Symfony/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Symfony\\McpResponseFactory", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse",
+            "source": "src/Adapter/Http/CodeIgniter/McpResponse.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/McpResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00109-addition", "rationale": "Native send-phase translation fills CodeIgniter's demonstrated stored-string response gap."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Native runtime sends the original guarded body once.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/McpResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumer controller passes its guarded PSR response.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/McpResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final capability-scoped native response.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/McpResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "source_locator": "working-tree:src/Adapter/Http/CodeIgniter/McpResponse.php#Fight\\Common\\Adapter\\Http\\CodeIgniter\\McpResponse", "operation": "implementable"}}}
             }
         },
         {
@@ -36826,6 +36894,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-progressive-http",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Progressive HTTP delivery"},
+            "fixture": {"path": "tests/Functional/McpStreamingJourneyTest.php"}
+        },
         {
             "id": "fight-common.behavior.strict-json",
             "normative": {"path": "docs/values.md", "section": "StrictJson"},
