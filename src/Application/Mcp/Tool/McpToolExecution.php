@@ -134,26 +134,15 @@ final class McpToolExecution implements McpProgressReporter
     /**
      * @inheritDoc
      */
-    public function report(float $progress, ?float $total = null, ?string $message = null): void
+    public function report(mixed $progress, mixed $total = null, mixed $message = null): void
     {
         if ($this->cancelled) {
             return;
         }
 
         try {
-            $this->validateReport($progress, $total, $message);
-            $parameters = ['progressToken' => $this->request->metadata()->progressToken(), 'progress' => $progress];
-            if ($total !== null) {
-                $parameters['total'] = $total;
-            }
-
-            if ($message !== null) {
-                $parameters['message'] = $message;
-            }
-
-            $this->previous = $progress;
-            $this->delivering = true;
-            ($this->deliver)(['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => $parameters]);
+            // Check the stable argument types inside the retained-failure boundary, not before entering it.
+            $this->deliverProgress($progress, $total, $message);
         } catch (Throwable $throwable) {
             // Retain violations even when Tool code catches them or maps their exception class.
             $this->failure ??= new DomainException('Tool progress failed.', 0, $throwable);
@@ -170,6 +159,26 @@ final class McpToolExecution implements McpProgressReporter
     public function isCancelled(): bool
     {
         return $this->cancelled;
+    }
+
+    /**
+     * Sends typed status only after validating the open request
+     */
+    private function deliverProgress(float $progress, ?float $total, ?string $message): void
+    {
+        $this->validateReport($progress, $total, $message);
+        $parameters = ['progressToken' => $this->request->metadata()->progressToken(), 'progress' => $progress];
+        if ($total !== null) {
+            $parameters['total'] = $total;
+        }
+
+        if ($message !== null) {
+            $parameters['message'] = $message;
+        }
+
+        $this->previous = $progress;
+        $this->delivering = true;
+        ($this->deliver)(['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => $parameters]);
     }
 
     /**

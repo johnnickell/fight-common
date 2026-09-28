@@ -347,7 +347,9 @@ Unclassified failures, output-schema violations, reporter violations and respons
 one generic JSON-RPC internal error while delivery is open. The execution is the central diagnostic boundary
 around `McpResponder::dispatch()`: unexpected failures are recorded at most once, and diagnostic sink failures
 cannot escape to the client. A Tool cannot turn a reporter violation into success by catching it or by mapping its
-exception class. Earlier progress never means partial success.
+exception class, including malformed argument types. The internal live implementation checks those types inside
+its retained-failure boundary; this does not broaden the stable reporter interface or the no-op reporter's contract.
+Earlier progress never means partial success.
 
 The outer adapter calls `cancel()` when it observes client closure. The live reporter then returns true from
 `isCancelled()` and suppresses all later progress and final messages, including errors; diagnostics remain

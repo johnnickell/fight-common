@@ -40,6 +40,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Throwable;
+use TypeError;
 
 #[CoversClass(McpToolExecution::class)]
 #[CoversClass(McpToolInvocation::class)]
@@ -228,6 +229,54 @@ final class McpToolExecutionTest extends UnitTestCase
         self::assertSame(-32603, $messages[1]['error']['code']);
     }
 
+    #[DataProvider('malformedReports')]
+    public function test_that_malformed_report_types_remain_terminal_when_caught_or_mapped(array $arguments, bool $caught): void
+    {
+        $tool = new ProgressTool(static function (McpProgressReporter $progress) use ($arguments, $caught): McpToolOutput {
+            $progress->report(1);
+            try {
+                $progress->report(...$arguments);
+            } catch (Throwable $failure) {
+                if (!$caught) { throw $failure; }
+            }
+            try { $progress->report(3); } catch (Throwable) {}
+            return McpToolOutput::structured('not success');
+        });
+        $messages = [];
+        $diagnostics = $this->mock(McpDiagnostics::class);
+        $diagnostics->shouldReceive('record')->once();
+        $execution = new McpToolExecution($this->request('live'), static function (array $message) use (&$messages): void { $messages[] = $message; }, $diagnostics);
+        $execution->run($this->responder($tool, $execution, new McpToolFailureMap([
+            TypeError::class => 'Do not map type violations.',
+            DomainException::class => 'Do not map retained violations.',
+        ])));
+        self::assertSame(1, $tool->calls);
+        self::assertSame([
+            ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'live', 'progress' => 1.0]],
+            ['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']],
+        ], $messages);
+    }
+
+    public static function malformedReports(): iterable
+    {
+        foreach ([false, true] as $caught) {
+            foreach ([
+                'structured-progress' => [['partial' => 'result'], null, null],
+                'null-progress' => [null, null, null],
+                'boolean-progress' => [true, null, null],
+                'string-progress' => ['2', null, null],
+                'structured-total' => [2, ['partial' => 'result'], null],
+                'boolean-total' => [2, false, null],
+                'string-total' => [2, '3', null],
+                'structured-status' => [2, null, ['partial' => 'result']],
+                'object-status' => [2, null, (object) ['partial' => 'result']],
+                'numeric-status' => [2, null, 3],
+            ] as $name => $arguments) {
+                yield $name.($caught ? '-caught' : '-mapped') => [$arguments, $caught];
+            }
+        }
+    }
+
     public function test_that_structured_progress_content_cannot_enter_the_status_contract(): void
     {
         $tool = new ProgressTool(static function (McpProgressReporter $progress): McpToolOutput {
@@ -240,6 +289,43 @@ final class McpToolExecutionTest extends UnitTestCase
         $execution->run($this->responder($tool, $execution));
         self::assertCount(2, $messages);
         self::assertSame(-32603, $messages[1]['error']['code']);
+    }
+
+    public function test_that_cancellation_after_a_caught_type_violation_suppresses_all_later_output(): void
+    {
+        $messages = [];
+        $diagnostics = $this->mock(McpDiagnostics::class);
+        $diagnostics->shouldReceive('record')->once();
+        $execution = new McpToolExecution($this->request('live'), static function (array $message) use (&$messages): void { $messages[] = $message; }, $diagnostics);
+        $tool = new ProgressTool(static function (McpProgressReporter $progress) use ($execution): McpToolOutput {
+            $progress->report(1);
+            try { $progress->report(2, null, ['partial' => 'result']); } catch (Throwable) {}
+            $execution->cancel();
+            $progress->report(['partial' => 'result'], false, (object) []);
+            $progress->report(3);
+            return McpToolOutput::structured('not delivered');
+        });
+        $execution->run($this->responder($tool, $execution));
+        self::assertTrue($tool->reporter->isCancelled());
+        self::assertSame([
+            ['jsonrpc' => '2.0', 'method' => 'notifications/progress', 'params' => ['progressToken' => 'live', 'progress' => 1.0]],
+        ], $messages);
+    }
+
+    public function test_that_no_token_retains_noop_type_rejection_without_a_live_failure_lifecycle(): void
+    {
+        $tool = new ProgressTool(static function (McpProgressReporter $progress): McpToolOutput {
+            $progress->report(1);
+            try { $progress->report(2, null, ['partial' => 'result']); } catch (TypeError) {}
+            $progress->report(3);
+            return McpToolOutput::structured('finished');
+        });
+        $messages = [];
+        $execution = new McpToolExecution($this->request(), static function (array $message) use (&$messages): void { $messages[] = $message; }, $this->mock(McpDiagnostics::class));
+        $execution->run($this->responder($tool, $execution));
+        self::assertInstanceOf(NullMcpProgressReporter::class, $tool->reporter);
+        self::assertCount(1, $messages);
+        self::assertSame('finished', $messages[0]['result']['structuredContent']);
     }
 
     public function test_that_early_cancellation_stops_mutation_at_its_safe_point_and_suppresses_final(): void
