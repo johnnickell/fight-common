@@ -10,4 +10,5 @@ to chart a new uncertain scope. New planning must not reopen an archived map.
 | Map | Status |
 |---|---|
 | [fight-common-mcp-http-support-map](fight-common-mcp-http-support-map.md) | Closed |
+| [fight-common-mcp-resources-skills-map](fight-common-mcp-resources-skills-map.md) | Closed |
 <!-- /planning:maps -->
