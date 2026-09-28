@@ -34,7 +34,8 @@ final readonly class McpRequestHandler implements RequestHandlerInterface
         private McpOriginPolicy $originPolicy,
         private McpInvocationGuard $guard,
         private McpResponseFactory $responses,
-        private McpRequestDecoder $decoder = new McpRequestDecoder()
+        private McpRequestDecoder $decoder = new McpRequestDecoder(),
+        private bool $progressive = false
     ) {
         $this->headers = new McpHeaderValidator($registry);
         $this->responder = new McpResponder($registry);
@@ -80,6 +81,13 @@ final readonly class McpRequestHandler implements RequestHandlerInterface
                     $message->id(),
                     McpProtocolError::invocationLimit()
                 ));
+            }
+
+            if (
+                $this->progressive && $message->method() === 'tools/call'
+                && $message->metadata()->progressToken() !== null
+            ) {
+                return $this->responses->stream($message, $this->responder);
             }
 
             return $this->responses->fromResponse($this->responder->dispatch($message));

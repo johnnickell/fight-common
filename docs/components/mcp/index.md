@@ -39,6 +39,8 @@ atlas_local_contents:
     href: "#protocol-behavior"
   - label: Guarded HTTP
     href: "#guarded-http"
+  - label: Progressive HTTP
+    href: "#progressive-http-delivery"
   - label: Consumer wiring
     href: "#consumer-wiring"
 ---
@@ -222,8 +224,8 @@ or contradictory text representation. Shape checks cannot determine whether an o
 monotonic progress, an optional total not below progress, public-safe status text, and no emission after cancellation.
 It carries no Tool result content. `NullMcpProgressReporter` validates monotonic finite progress but emits nothing and
 never reports cancellation. Invocation supplies a fresh instance per Tool call by default. The request-scoped
-semantic execution below supplies live progress without broadening this interface. HTTP/SSE delivery and disconnect
-detection remain later adapter work; rollback is never implied.
+semantic execution below supplies live progress without broadening this interface. The opt-in HTTP composition
+below supplies SSE and observed-disconnect cancellation; rollback is never implied.
 
 ## Validated Tool invocation
 
@@ -320,11 +322,11 @@ its fresh `NullMcpProgressReporter` default and existing validation, availabilit
 The Tool signature and reporter interface are unchanged; progress never enters Tool arguments or CQRS payloads.
 Tools continue to return one complete `McpToolOutput`, not a generator, callback, partial result or response object.
 
-TASK-00108 implements Application-level ordered execution in internal `Tool\McpToolExecution`. This is a **package
-implementation seam**, not a consumer transport API: its optional binding in `McpToolInvocation` and synchronous
-semantic delivery callback remain provisional until TASK-00109 proves the HTTP adapters. Do not expose it directly
-on a route or claim that a collected transcript establishes live streaming. The ordinary guarded HTTP endpoint
-remains direct JSON and rejects progress tokens in its default Tool composition.
+Internal `Tool\McpToolExecution` supplies ordered execution. Its invocation binding, including
+`McpResponder::dispatch()`'s optional execution parameter and `McpToolInvocation::withExecution()`, remains a
+package implementation seam, not a consumer transport API. The HTTP adapter binds an isolated invocation.
+The default guarded endpoint remains direct JSON; enable `progressive: true` only with the live emitter below.
+This preserves existing buffered consumers instead of silently accepting progress-token requests.
 
 One execution binds the exact decoded `tools/call` request and is shared only with that request's invocation
 capability. Its `run()` dispatches through the existing semantic responder; an absent token selects exactly the
@@ -360,14 +362,16 @@ attempting the final delivery, so late/reentrant reports and duplicate final att
 
 These guarantees assume serialized, synchronous delivery for each request, including cooperative PHP Fiber
 interleaving. Each concurrent request needs a separate execution and any request-scoped metadata filters. Delivery
-must not defer messages; the outer adapter owns byte writes, flushing, closure detection and buffering. Once final
+must not run ahead of emission; the HTTP adapter pauses at each frame until the emitter flushes it, and owns
+byte writes, closure detection and buffering. Once final
 delivery begins it is never retried, since a failing sink may have already written it. A terminal sink failure is
 diagnosed at most once and propagates as infrastructure failure rather than attempting another response.
 
 `McpToolExecutionTest` proves controlled ordering, equivalent query/mutation output, validation and late failure,
 once-only completion, cancellation before/after command dispatch, Fiber interleaving and cross-request isolation.
 It does **not** prove HTTP/SSE framing, real disconnect observation, threads, native framework emission or starter
-support. TASK-00109 owns package transport proof; TASK-00110 owns the five booted installed-package journeys.
+support. `McpStreamingJourneyTest` separately proves package transport; TASK-00110 still owns the five booted
+installed-package journeys.
 
 ## Tool envelope metadata
 
@@ -457,11 +461,12 @@ explicit Common convention approved in TASK-00105, not a code assigned by MCP. I
 range. No threshold, caller-key format, retry time, quota store, exemption, or authorization policy is implied.
 
 POST must explicitly list both `application/json` and `text/event-stream` in `Accept`, with a nonzero weight;
-wildcards alone are insufficient. This endpoint always selects direct JSON. Content type is `application/json`,
+wildcards alone are insufficient. The default endpoint selects direct JSON; opt-in progressive delivery selects
+SSE for a guarded `tools/call` with a progress token. Request content type is `application/json`,
 optionally with `charset=utf-8`. Consumer ingress owns body-size limits, TLS, trusted proxies and authentication.
 Legacy session and Last-Event-ID headers are ignored and never echoed; no session, GET stream, or DELETE lifecycle
-is created. Notification dispatch, SSE/progress and OAuth remain later work. Explicit Tool registration, discovery
-and non-streaming invocation use this endpoint through the composition above.
+is created. Incoming notification dispatch and OAuth remain later work. Tool registration, discovery and
+invocation use this endpoint; outgoing progress uses the additive SSE composition below.
 
 ### Origins, guards, and diagnostics
 
@@ -531,6 +536,57 @@ The conformance authority is MCP `2026-07-28`, inspected at upstream commit
 failure fixtures. The journey boots a consumer-owned Slim route with authentication middleware and verifies direct
 JSON, discovery, denied Origin, complete mirrors, invocation denial, and sanitized diagnostics end to end.
 
+## Progressive HTTP delivery
+
+Enable `McpRequestHandler(..., progressive: true)` only with `Adapter\Http\Mcp\McpResponseEmitter` or the
+native translations below. A string/integer token on `tools/call` selects one lazy SSE response **after** Origin,
+negotiation, decode, mirrors, version and invocation-guard validation. Zero and empty-string tokens are preserved.
+No-token calls still execute immediately with a fresh no-op reporter and unchanged complete JSON; other methods
+remain direct JSON. Consumers retain authentication, authorization and request-scope ownership.
+
+The progressive response is HTTP 200 with `Content-Type: text/event-stream`,
+`Cache-Control: no-store, no-cache, must-revalidate`, `X-Accel-Buffering: no`, and no Content-Length.
+Each frame is `data: <one JSON-RPC object>\n\n`. Progress notifications precede exactly one final JSON-RPC
+response. No event names, event IDs, retry hints, session, resumability or terminal sentinel is added.
+A late selected-Tool failure remains a complete `isError` result. An unexpected late failure produces one
+sanitized `-32603` error and one diagnostic. HTTP status cannot change after headers. Pre-stream transport and
+guard rejections retain their direct-JSON/empty-body status mappings.
+
+The internal `McpEventStream` PSR body is single-use and non-seekable. A PHP Fiber pauses the synchronous Tool at
+each frame until the emitter requests the next fragment. Reads never assemble a complete transcript ahead of
+emission. Closing the body cancels only that request and resumes suspended Tool work, discarding later output;
+it does not forcibly kill execution. Availability is reevaluated when invocation starts. Keep the response and
+its collaborators inside the consumer-owned request/security scope; use separate collaborators for concurrent work.
+
+`McpResponseEmitter::emit()` sends PSR headers and body through PHP's SAPI. `prepare()` checks streaming conditions
+before native headers; `emitBody()` supplies the native send callback. Every read is written and flushed before
+the next read. During streaming, the emitter enables `ignore_user_abort(true)`, checks `connection_aborted()` before
+each read, closes the body on exit and restores the prior abort setting. PHP typically observes disconnect on a
+write; this is not immediate detection of remote/proxy closure. After observation no later progress/error/final
+bytes are attempted. Tools check `isCancelled()` at safe points; already-dispatched commands are not reversed.
+A Tool ignoring cancellation can still run to completion.
+
+### Runtime conditions and package evidence
+
+`McpStreamingJourneyTest` uses PHP's built-in `cli-server`, output buffering **0**, zlib compression **0**, direct
+loopback HTTP without proxies, and a raw socket client. Its six lanes execute framework-free/PSR, Symfony native
+StreamedResponse, Laravel `ResponseFactory::stream`, Yii Router plus the shared emitter, CodeIgniter native send,
+and Slim App plus the shared emitter. Each proves two separately read progress events before Tool completion,
+success, expected/unexpected failure after progress, direct JSON, early disconnect/cooperative stop, buffered
+emission rejection and legacy opt-out. Native APIs are executed, not merely inspected.
+
+The emitter rejects an active output buffer, zlib compression, Content-Length or Content-Encoding on a progressive
+response before Tool execution. It does not discard consumer buffers or change compression configuration. Disable
+buffering, compression, response-body collectors and debug middleware for this route. Never cache, replay, pre-read
+or log its body. String conversion and `getContents()` explicitly collect bytes and are **not** streaming support;
+an ordinary PSR emitter or complete-body bridge does not establish live delivery.
+
+No PHP-FPM, Apache, worker-server or reverse-proxy guarantee follows from this harness. `X-Accel-Buffering: no`
+is not proof that every intermediary honors it. Consumers must qualify their actual SAPI, buffer stack, proxy,
+timeouts, compression and disconnect propagation. Package conformance is **not** a booted installed-package
+starter receipt; TASK-00110 must still qualify all five starters before parent TICKET acceptance. No persistent
+package server, route, deployment configuration or new framework dependency is introduced.
+
 ## Consumer wiring
 
 All examples leave path selection, authentication, authorization, request scope, and runtime emission to the consumer.
@@ -559,7 +615,8 @@ $endpoint = new McpRequestHandler(
 
 // Only after consumer authentication/authorization succeeds:
 $response = $endpoint->handle($serverRequest);
-// Consumer's PSR emitter sends $response. Common creates no router or listener.
+// Default direct JSON can use the consumer's ordinary PSR emitter.
+// For progressive: true, use the concrete emitter below.
 ```
 
 For native-only access, explicitly replace `ExactMcpOriginPolicy` with `DenyAllMcpOriginPolicy`.
@@ -585,6 +642,20 @@ Import `Yiisoft\Router\Route` and `Psr\Http\Message\ServerRequestInterface` in t
 router must itself return 405/Allow for other methods, or explicitly route them to the handler. Consumer middleware
 owns authentication and authorization in either framework.
 
+For `progressive: true`, use the shared emitter at the consumer-owned send boundary:
+
+```php
+use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
+
+// Framework-free, or Yii's consumer-owned emitter integration:
+(new McpResponseEmitter())->emit($endpoint->handle($serverRequest));
+// Slim: use App::handle(), not App::run() with its ordinary non-flushing emitter.
+(new McpResponseEmitter())->emit($app->handle($serverRequest));
+```
+
+Yii's application runner needs a consumer-owned integration invoking this same `emit()` method. The package
+harness proves Router plus emitter, not an unmodified runner. Neither Yii nor Slim needs a branded adapter copy.
+
 ### Symfony and Laravel
 
 Use the optional `symfony/psr-http-message-bridge` compatible with the consumer's framework and a PSR-17 factory.
@@ -603,6 +674,22 @@ return (new HttpFoundationFactory())->createResponse($response);
 Construct `$endpoint` with explicit server identity/capabilities/policies/diagnostics as above in the consumer's
 service configuration. Register a consumer-owned route and run its firewall/authentication/authorization before
 this delegation. No framework-specific mirror checks are needed or permitted as a substitute.
+
+The generic response bridge is for **direct JSON only**. With `progressive: true`, replace response conversion
+with the Common native factory, which also handles ordinary JSON:
+
+```php
+use Fight\Common\Adapter\Http\Symfony\McpResponseFactory as NativeMcpResponses;
+
+return (new NativeMcpResponses())->fromResponse($endpoint->handle($psrRequest));
+```
+
+Laravel accepts the same native Symfony Response/StreamedResponse; no branded wrapper is needed. Alternatively,
+after `$emitter->prepare($response)`, Laravel's
+`response()->stream(fn () => $emitter->emitBody($response), $response->getStatusCode(), $response->getHeaders())`
+is the callback boundary exercised by the package fixture. Do not use `eventStream()` with its default event
+naming and `</stream>` sentinel. Native middleware must not collect content, add compression, replace streaming
+headers or outlive the request-scoped collaborators.
 
 ### CodeIgniter
 
@@ -627,4 +714,19 @@ return $this->response->setBody((string) $psrResponse->getBody());
 
 Place the route, filters, identity resolution, and request-scoped policies in the consuming application. If its SAPI
 or bridge has already collapsed repeated request fields, reject ambiguous input at ingress instead of claiming
-that lost multiplicity was validated. These direct-JSON conversions make no SSE or disconnect-support claim.
+that lost multiplicity was validated. The string-body conversion above is **direct JSON only**.
+
+For progressive delivery replace that native conversion with:
+
+```php
+use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
+
+return new McpResponse($endpoint->handle($psrRequest));
+```
+
+This narrow native Response subclass retains the guarded PSR body until CodeIgniter calls `sendHeaders()` and
+`sendBody()`. It emits once, using the shared emitter instead of CodeIgniter's stored-string body. Normal
+CodeIgniter configuration/services must already be booted. Disable response caching, compression and toolbar
+filters; finish the framework's output buffer before sending. Framework-generated body appendages are not part
+of MCP output. Consumers retain routes, filters and kernel/runtime wiring. The native send-phase fixture does
+not establish a booted installed-package CodeIgniter starter journey.

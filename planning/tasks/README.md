@@ -11,7 +11,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done | [TICKET-00024](../tickets/00024-TICKET.md) |
 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | done | [TICKET-00024](../tickets/00024-TICKET.md) |
 | [TASK-00108](00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | done | [TICKET-00025](../tickets/00025-TICKET.md) |
-| [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | ready-for-agent | [TICKET-00025](../tickets/00025-TICKET.md) |
+| [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | done | [TICKET-00025](../tickets/00025-TICKET.md) |
 | [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | needs-info | [TICKET-00025](../tickets/00025-TICKET.md) |
 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |
 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |

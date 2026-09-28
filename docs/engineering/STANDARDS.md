@@ -23,15 +23,15 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
 | `standards/Architecture.md` | `3937a128e280f93bb9eece8dea9f612f02a63fdd79bd0f7d63b41a167e190980` |
-| `standards/Delivery.md` | `f846b7dbb8977d7ef195cdbd339ce91a1632691a7664455ebdd2067de4ad925e` |
+| `standards/Delivery.md` | `ebe0a57b86376f4149da20c19755752287ce22a13590141b6d497881b84318e3` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `54f36212c604615d7c6e2691de41b3b2c843c4f53e59800c9e330eeedf3d3ed5` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `313bf61c904e9442aa38e28d6a60713fcea83a6cd8d83abbb2c6554150b062ad` |
-| `standards/Review.md` | `e85e0e3b67ff34b47583985885501ee58c7456bfeea94ad39d1fc25193f31175` |
-| `standards/Testing.md` | `fdab5a64ba92f406d63c28d48d6fdf800397c079c29932372746caf31f2c432f` |
+| `standards/Review.md` | `34ce203218e514b3b528966e7020c9e41f1326fb755335c8ced195a676ff5c2c` |
+| `standards/Testing.md` | `46866255ea2f1da422576488a857110eaf95ec828ca6e33f4bc50c72c75cc63e` |
 
 ## Project scope and unresolved work
 
@@ -51,3 +51,18 @@ For [TASK-00116](../../planning/tasks/00116-TASK.md), the maintainer explicitly 
 This reconciles DBAL 4.5's new `@internal` annotation with the still-supported 4.4 public API. It does not change
 shared standard digests, production behavior, dependency constraints, PHPCS policy, or unrelated diagnostics.
 The profile owns the exact limits and removal conditions.
+
+## Local-first workflow amendment — 2026-09-28
+
+During TASK-00109's hosted-only review follow-up, John explicitly confirmed that work and independent review
+complete using local evidence before land pushes and creates a PR, and requested standards alignment. The
+[project profile](../../planning/agents/project-profile.md#local-first-acceptance-and-publication) owns the
+approved Fight Common decision and retained post-publication delivery checks. This supersedes the former
+public-repository hosted-review exception and clarifies ADR 0008 without claiming any missing run passed.
+
+Updated the local Testing, Review and Delivery standards, root instructions and contributor guidance together.
+The table above records the installed standard digests; the original AGENTS baseline digest remains historical.
+The amended installed `AGENTS.md` digest is
+`d701a94d530cd6ca4e5a6e705560b73b785e88b2ddeaa1ec114f47e9ac55641c`.
+This is an explicit local amendment, not an automatic baseline synchronization or a change to other repositories,
+installed skill files, hosted workflows, branch protections, release certification or deployment authority.

@@ -20,7 +20,7 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
     /**
      * Constructs McpToolInvocation
      *
-     * The optional execution is a package-internal request binding, pending progressive adapter proof.
+     * The optional execution is a package-internal request binding used by progressive HTTP delivery.
      */
     public function __construct(private McpToolInvoker $invoker, private ?McpToolExecution $execution = null)
     {
@@ -55,7 +55,7 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
      */
     public function mirrorsFor(McpRequest $request): array
     {
-        $this->validate($request);
+        $this->validateParameters($request);
 
         return $this->invoker->mirrorsFor($request->parameters()['name']);
     }
@@ -65,16 +65,23 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
      */
     public function validate(McpRequest $request): void
     {
-        $parameters = $request->parameters();
+        $this->validateParameters($request);
         if (
-            $request->method() !== 'tools/call'
-            || ($this->execution !== null && !$this->execution->accepts($request))
+            ($this->execution !== null && !$this->execution->accepts($request))
             || ($request->metadata()->progressToken() !== null && $this->execution === null)
-            || array_diff(array_keys($parameters), ['name', 'arguments']) !== []
-            || !is_string($parameters['name'] ?? null)
         ) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }
+    }
+
+    /**
+     * Creates an isolated invocation binding without mutating the registered capability
+     *
+     * @internal Used only by the request execution and semantic responder
+     */
+    public function withExecution(McpToolExecution $execution): self
+    {
+        return new self($this->invoker, $this->execution ?? $execution);
     }
 
     /**
@@ -87,5 +94,20 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
         $arguments = array_key_exists('arguments', $parameters) ? $parameters['arguments'] : StrictJson::fromObject();
 
         return $this->invoker->invoke($parameters['name'], $arguments, $this->execution?->reporterFor($request));
+    }
+
+    /**
+     * Validates outer parameters independently of the later delivery binding
+     */
+    private function validateParameters(McpRequest $request): void
+    {
+        $parameters = $request->parameters();
+        if (
+            $request->method() !== 'tools/call'
+            || array_diff(array_keys($parameters), ['name', 'arguments']) !== []
+            || !is_string($parameters['name'] ?? null)
+        ) {
+            throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+        }
     }
 }

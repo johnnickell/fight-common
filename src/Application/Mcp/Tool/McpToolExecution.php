@@ -18,7 +18,7 @@ use Throwable;
 /**
  * Class McpToolExecution
  *
- * @internal Request-scoped semantic delivery pending HTTP adapter proof; not a transport API
+ * @internal Request-scoped semantic delivery used by HTTP adapters; not a consumer transport API
  */
 final class McpToolExecution implements McpProgressReporter
 {
@@ -93,7 +93,7 @@ final class McpToolExecution implements McpProgressReporter
         }
 
         try {
-            $response = $responder->dispatch($this->request);
+            $response = $responder->dispatch($this->request, $this);
             if ($this->failure !== null) {
                 throw $this->failure;
             }

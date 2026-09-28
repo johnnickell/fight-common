@@ -87,7 +87,9 @@ integrity. This library ignores `composer.lock`; every full build resolves its s
 instead of reusing a stale local lock. A focused run provides iteration feedback; completion requires the full gate.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
-evidence for the checked-out SHA, not a second dependency or quality lane.
+delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
+verification → independent review → land**: local evidence permits technical acceptance without a PR or hosted run,
+including in this public repository. Authorized land owns the later push and PR creation.
 
 To enable the tracked pre-commit gate:
 
@@ -110,9 +112,12 @@ Before the final commit or pull request:
 4. Run `./bin/planning-check --write` to refresh Board, parent, index, and Roadmap tables.
 5. Run the read-only `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
 
-Open the feature pull request against `develop`. The hosted Tests workflow runs the complete pre-submit gate; the
-documentation workflow builds and validates the generated site. A queued, skipped, cancelled, warning-bearing, or
-no-step job is not passing evidence.
+After independent acceptance, authorized land opens the feature pull request against `develop`. The hosted Tests
+workflow runs the complete pre-submit gate; the documentation workflow builds and validates the generated site.
+Both are required delivery checks on the final published head, not pre-publication review prerequisites. A queued,
+skipped, cancelled, warning-bearing, or no-step job is not passing evidence. Pending delivery does not invalidate
+local acceptance; record it honestly and retain required resources. The repository's
+`planning/agents/project-profile.md` owns these delivery requirements.
 
 Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
 that have been explicitly authorized.

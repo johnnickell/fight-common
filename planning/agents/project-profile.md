@@ -19,9 +19,27 @@ CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::tr
 
 ## Commands and verification
 
-Fight Common is a public repository (verified 2026-09-15). John explicitly retained its public-repository hosted-check policy: declared required hosted checks still apply to review/landing; the private-repository exemption does not apply. Builders supply local receipts and do not monitor hosted CI. Recheck visibility if repository policy changes.
+### Local-first acceptance and publication
 
-`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's repository-visibility policy: private repositories require local proof, not a successful hosted CI run. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
+John confirmed this workflow on 2026-09-28: **work → local verification → independent review → land**.
+Fight Common is public, but visibility does not add a pre-publication acceptance gate. A valid local build receipt
+and sufficient behavior evidence permit independent acceptance without a hosted run or PR. Work and review do
+not push or create PRs to obtain CI; publication belongs to an explicitly authorized land operation.
+
+This decision supersedes the former public-repository hosted requirement for review, including that interpretation
+of ADR 0008's “both workflows must pass.” Hosted checks are **post-publication delivery** evidence: land obtains
+Tests / Complete pre-submit gate and Deploy Docs / build for the final published head before declaring delivery
+complete. The main-only Docs deploy job is not a feature-PR gate. Missing hosted evidence before land is not a
+review blocker or a reason for a draft-publication acceptance loop. Host protections, merge authorization, release
+certification and deployment remain separate and unchanged.
+
+Land may record an independently accepted candidate as done and then publish administrative completion/PR metadata;
+required hosted delivery checks cover that final head. Preserve candidate acceptance separately from delivery
+results under [Delivery](../../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout).
+This is a policy amendment, not a claim that an absent hosted run passed. The decision also applies to TASK-00109's
+hosted-only review finding; its existing local evidence remains usable subject to normal content-equivalence checks.
+
+`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's local-acceptance boundary regardless of repository visibility; required hosted delivery checks occur only after land publishes. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
 
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 

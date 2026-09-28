@@ -2,6 +2,10 @@
 
 - Status: accepted
 - Date: 2026-08-01
+- Amended 2026-09-28: the maintainer-approved [local-first workflow](../agents/project-profile.md#local-first-acceptance-and-publication)
+  makes the hosted requirements below post-publication delivery gates only. They are not prerequisites for work,
+  independent technical acceptance, or land's initial push/PR creation. Historical runner mechanics below are
+  superseded by ADR 0026 and the actual project commands.
 
 ## Decision
 
@@ -43,8 +47,9 @@ are discovered.
 Hosted evidence is intentionally split. The `Tests` workflow resolves latest-compatible dependencies
 ephemerally and runs `bin/quality` directly on the hosted runner with disposable database services. The
 documentation workflow runs `bin/docs validate`, uploads the resulting Pages artifact, and deploys it only
-after its build job succeeds on a protected push to `main`. Both workflows must pass; neither is evidence for
-the other. Hosted workflows deliberately do not execute `bin/build` or claim to run one host-neutral script:
+after its build job succeeds on a protected push to `main`. Both workflows must pass for post-publication delivery completion; neither is evidence for
+the other. Under the 2026-09-28 amendment, the local gate and independent review precede land's publication;
+missing hosted runs do not block that technical acceptance. Hosted workflows deliberately do not execute `bin/build` or claim to run one host-neutral script:
 they provide independent evidence for their respective component gate and deployment boundary.
 
 ## Failure Contract
