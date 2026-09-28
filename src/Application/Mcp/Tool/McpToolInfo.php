@@ -1,0 +1,102 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Fight\Common\Application\Mcp\Tool;
+
+use Attribute;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\JsonObject;
+use stdClass;
+
+/**
+ * Class McpToolInfo
+ */
+#[Attribute(Attribute::TARGET_METHOD)]
+final readonly class McpToolInfo
+{
+    private string $inputSchemaJson;
+    private string $outputSchemaJson;
+
+    /**
+     * Constructs McpToolInfo
+     *
+     * @param string               $name
+     * @param string               $description
+     * @param array<string, mixed> $inputSchema
+     * @param array<string, mixed> $outputSchema
+     */
+    public function __construct(
+        private string $name,
+        private string $description,
+        array $inputSchema,
+        array $outputSchema
+    ) {
+        if (preg_match('/\A[A-Za-z0-9_.-]{1,128}\z/D', $name) !== 1) {
+            throw new DomainException(
+                'A Tool name must contain 1-128 ASCII letters, digits, underscores, dots or hyphens.'
+            );
+        }
+
+        if (trim($description) === '') {
+            throw new DomainException('A Tool description must not be empty.');
+        }
+
+        McpToolJson::encode($description);
+        $this->inputSchemaJson = McpToolSchema::encode($inputSchema, true);
+        $this->outputSchemaJson = McpToolSchema::encode($outputSchema, false);
+    }
+
+    /**
+     * Returns the canonical case-sensitive Tool name
+     */
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Returns the consumer-declared public description
+     */
+    public function description(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * Returns an isolated JSON value for the declared input schema
+     */
+    public function inputSchema(): JsonObject
+    {
+        return JsonObject::fromData(
+            json_decode($this->inputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
+            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
+        );
+    }
+
+    /**
+     * Returns an isolated JSON value for the declared output schema
+     */
+    public function outputSchema(): JsonObject
+    {
+        return JsonObject::fromData(
+            json_decode($this->outputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
+            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
+        );
+    }
+
+    /**
+     * Returns the safe discovery definition without a Tool instance or consumer context
+     *
+     * @return array{name: string, description: string, inputSchema: stdClass, outputSchema: stdClass}
+     */
+    public function toArray(): array
+    {
+        return [
+            'name'         => $this->name,
+            'description'  => $this->description,
+            'inputSchema'  => $this->inputSchema()->toData(),
+            'outputSchema' => $this->outputSchema()->toData()
+        ];
+    }
+}
