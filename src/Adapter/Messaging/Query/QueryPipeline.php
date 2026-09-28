@@ -70,11 +70,7 @@ final class QueryPipeline implements QueryBus, QueryFilter
      */
     public function process(QueryMessage $queryMessage, callable $next): void
     {
-        /**
-         * @var Query $query
-         */
-        $query = $queryMessage->payload();
-        $this->results = $this->queryBus->fetch($query);
+        $this->results = $this->queryBus->dispatch($queryMessage);
     }
 
     /**

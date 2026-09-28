@@ -29,6 +29,10 @@ atlas_local_contents:
     href: "#available-tool-discovery"
   - label: Schema and output
     href: "#schema-declarations-and-semantic-output"
+  - label: Tool invocation
+    href: "#validated-tool-invocation"
+  - label: Tool metadata
+    href: "#tool-envelope-metadata"
   - label: Protocol behavior
     href: "#protocol-behavior"
   - label: Guarded HTTP
@@ -75,11 +79,14 @@ failures itself. `McpRequestHandler` uses this seam only after HTTP safeguards, 
 A capability rejects invalid outer parameters by throwing `McpProtocolException` with
 `McpProtocolError::invalidParams()` and the request ID. The responder preserves that semantic rejection as the
 JSON-RPC `invalidParams` error. Any other `Throwable` from a capability becomes the generic `internalError`, with
-no exception details exposed.
+no exception details exposed. Direct semantic consumers must supply `McpResponder(..., diagnostics: $diagnostics)`
+to record unexpected failures through their redaction-aware `McpDiagnostics`. The optional constructor argument
+preserves existing compositions; omitting it supplies no logging. `dispatch()` never logs: its HTTP/caller boundary
+owns the one diagnostic, preventing duplicate records.
 
 ## Explicit Tool registration
 
-`Application\Mcp\Tool` provides explicit registration and discovery, not invocation. A consumer Tool implements
+`Application\Mcp\Tool` provides explicit registration, discovery and validated invocation. A consumer Tool implements
 `McpTool` and declares exactly one `#[McpToolInfo(name:, description:, inputSchema:, outputSchema:)]` on its
 `handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput` method. `ApplicationData` is
 `Application\Validation\Data\ApplicationData`; the reporter lives directly in `Application\Mcp`.
@@ -87,13 +94,14 @@ no exception details exposed.
 Construct `McpToolRegistry` with the complete array of opted-in Tool objects. Registration examines only those
 objects' `handle()` metadata. It never scans a container, discovers HTTP Actions or CQRS handlers, hydrates a
 payload, or invokes the Tool. Missing/duplicate method metadata, non-Tool registrations, malformed metadata,
-unsupported schema declarations, and duplicate canonical names fail composition with `DomainException`.
+unsupported schema declarations, invalid input-schema mirror annotations, and duplicate canonical names fail
+composition with `DomainException`.
 Names are case-sensitive, 1–128 ASCII letters, digits, underscores, dots or hyphens. Descriptions must be nonblank
 UTF-8. Input and output schemas are required by the Common convention even though MCP makes output schemas optional.
 
-`McpToolInfo` exposes only name, description and isolated schema snapshots. `McpToolRegistry::find()` is an
-unprivileged composition lookup, **not** an authorization or invocation API. Later invocation must apply the same
-request-scoped availability decision as discovery before executing a Tool. Existing business authorization
+`McpToolInfo` exposes only name, description and isolated schema snapshots. `McpToolRegistry::find()`, `definition()`
+and `mirrorsFor()` are unprivileged composition lookups, **not** authorization or invocation APIs. Invocation applies
+the same request-scoped availability decision as discovery before inspecting arguments or executing a Tool. Existing business authorization
 remains the consumer use case's responsibility on every entry path.
 
 ```php
@@ -119,7 +127,7 @@ example key. Rotating it invalidates outstanding cursors. This composition needs
 
 `McpToolDiscovery` registers only `tools/list` and advertises `tools: {listChanged: false}`. An empty registry
 is valid and returns an empty list. Tool calls, subscriptions and list-change notifications are not implemented
-by this capability; `tools/call` remains unregistered. Conflicting Tool metadata from another capability fails
+by this capability; `tools/call` requires the separate `McpToolInvocation` capability below. Conflicting Tool metadata from another capability fails
 in the existing `McpCapabilityRegistry`, rather than permitting contradictory discovery.
 
 `McpToolAvailability::isAvailable(McpToolInfo)` is mandatory. Its consumer implementation may privately retain
@@ -145,7 +153,8 @@ become a partially returned list or an exposed policy reason.
 
 ## Schema declarations and semantic output
 
-This release validates a **bounded declaration profile**, not the full JSON Schema language or Tool arguments.
+Registration validates a **bounded declaration profile**; invocation evaluates that same profile against arguments
+and successful structured output. Neither is a full JSON Schema implementation.
 Both schemas are PHP arrays representing JSON objects. The input root must contain `type: object`; output schemas
 may describe any JSON value, including scalar, array or null output. An empty output declaration means `{}`.
 Without `$schema`, the dialect is JSON Schema 2020-12. If supplied, it must be exactly
@@ -158,13 +167,17 @@ Without `$schema`, the dialect is JSON Schema 2020-12. If supplied, it must be e
 - `title`, `description`: strings; `readOnly`, `writeOnly`, `deprecated`, `uniqueItems`: Booleans.
 - `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, `maxProperties`: nonnegative PHP integers.
 - `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`: finite numbers; `multipleOf`: positive numbers.
-- `x-mcp-header`: a nonempty ASCII alphanumeric/hyphen suffix starting with an alphanumeric character. It is
-  preserved as metadata only here, not extracted into invocation mirror declarations.
+- `x-mcp-header`: a nonempty ASCII alphanumeric/hyphen suffix starting with an alphanumeric character. Input-schema
+  annotations are compiled into per-Tool mirrors during registration, with the reachability/type rules below.
 
 Other keywords and dialects fail closed. In particular, references, formats, patterns and conditional schemas are
 not currently supported. No remote schema is fetched. This profile is deliberately narrower than MCP permits;
-it is not a claim of full JSON Schema conformance. Schema/validation-rule consistency and runtime argument/output
-conformance belong to TASK-00107, not discovery. `$defs` declarations are validated, but references are not enabled.
+it is not a claim of full JSON Schema conformance. `$defs` declarations are validated, but references are not enabled.
+At runtime, annotations (`default`, `examples`, descriptions, read/write flags and header names) do not transform or
+validate data. Assertions apply only to their JSON type; strings count Unicode code points, objects compare without
+property-order significance, lists retain order, and numeric equality does not coerce strings or Booleans.
+Numeric bounds and `multipleOf` use exact decimal arithmetic over PHP's JSON-encoded numeric values, without epsilon
+rounding or optional math extensions. This cannot recover precision already lost when PHP decoded a JSON number.
 PHP arrays at `properties`/`$defs` map positions may use `[]` for `{}`; otherwise nested empty schemas use
 `new stdClass()`. Lists, objects, numeric/Boolean/null values and annotations retain their JSON meaning.
 
@@ -189,13 +202,132 @@ so discovery output and cursor hashing are unchanged.
 this existing value type can represent any JSON root: object, list, string, number, Boolean or null. Raw data is
 available through `toData()`; this is not schema-specific field typing. The factory still validates plain data,
 not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
-The caller owns safe projection; the later invoker owns output-schema conformance and expected-failure presentation.
+The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success. The
+final output class derives compatible text from the identical snapshot, so a Tool cannot supply a separate unsafe
+or contradictory text representation. Shape checks cannot determine whether an otherwise valid scalar is secret.
 
 `McpProgressReporter` is only the stable `report(float $progress, ?float $total, ?string $message)` and
 `isCancelled(): bool` port required by the Tool signature. Its implementation contract calls for finite nonnegative,
 monotonic progress, an optional total not below progress, public-safe status text, and no emission after cancellation.
-It carries no Tool result content. No reporter implementation, live progress, SSE, disconnect handling, cooperative
-execution orchestration, or rollback guarantee is supplied by discovery.
+It carries no Tool result content. `NullMcpProgressReporter` validates monotonic finite progress but emits nothing and
+never reports cancellation. Invocation supplies a fresh instance per Tool call. Live progress, SSE, disconnect
+handling and rollback remain outside this implementation.
+
+## Validated Tool invocation
+
+Compose `McpToolInvocation(new McpToolInvoker($tools, $availability, ...))` alongside `McpToolDiscovery` in the same
+capability registry. Both advertise `tools: {listChanged: false}`; discovery remains the required anchor method.
+Use the same request-scoped availability implementation for both. The invoker is a semantic boundary, not a bus,
+authorizer or transaction owner.
+
+```php
+use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
+use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
+
+$invocation = new McpToolInvocation(new McpToolInvoker(
+    $tools,
+    $availability,
+    failures: new McpToolFailureMap([
+        OrderAlreadyClosed::class => 'The order is already closed.'
+    ])
+));
+$registry = new McpCapabilityRegistry($serverInfo, [$discovery, $invocation]);
+$responder = new McpResponder($registry, diagnostics: $diagnostics);
+```
+
+`tools/call` accepts only `name` and optional `arguments`. Omitted arguments mean `{}`; present non-object arguments
+are a selected-Tool validation failure. Unknown outer parameters and a progress token reject as invalid params.
+This non-streaming capability does not silently accept a request for the future progressive response path.
+
+Invocation selects an explicitly registered Tool, asks availability about its immutable metadata, then checks the
+arguments against the input schema. Unknown and unavailable Tools produce identical `-32602`, `Unknown or
+unavailable tool.` errors without argument/rule validation, invocation, metadata enrichment or diagnostics.
+For an available Tool, reflection reads method-level `#[Validation]`; absent attributes or empty rules mean no
+additional rules. `ValidationService` receives exactly the arguments' top-level field array and produces the
+`ApplicationData` passed to `handle()`. Nested objects/lists retain their types, and input is snapshotted without
+executing serializers. Numeric top-level property names reject because PHP arrays cannot retain them as the string
+keys required by `ValidationService`. Plain-JSON depth/Unicode/key restrictions above apply to arguments too.
+
+Declare rules beside `McpToolInfo`, for example:
+
+```php
+#[McpToolInfo(
+    name: 'orders.find',
+    description: 'Find one public order',
+    inputSchema: [
+        'type' => 'object',
+        'properties' => ['id' => ['type' => 'string', 'minLength' => 1]],
+        'required' => ['id'],
+        'additionalProperties' => false
+    ],
+    outputSchema: [
+        'type' => 'object',
+        'properties' => ['id' => ['type' => 'string']],
+        'required' => ['id'],
+        'additionalProperties' => false
+    ]
+)]
+#[Validation(rules: [['field' => 'id', 'label' => 'Order', 'rules' => 'required|not_blank']])]
+public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
+{
+    $order = $this->queries->fetch(new GetOrder($input->get('id')));
+
+    return McpToolOutput::structured((object) ['id' => $order->id]);
+}
+```
+
+Import the attributes/types from `Application\Mcp\Tool`, `Application\Attribute\Validation`,
+`Application\Mcp\McpProgressReporter`, and `Application\Validation\Data\ApplicationData`. The consumer owns the
+existing `GetOrder` Query and safe projection. For a mutation, explicitly construct the existing Command, call void
+`CommandBus::execute()` once, then acknowledge only known data such as its caller-generated identifier. Do not
+invent a command result, reflectively hydrate messages, or perform a read solely to manufacture a result.
+Consumer handlers retain authorization, transaction, retry and idempotency policy; this layer adds none.
+
+Schema checks and runtime rules are separate. The package fixtures prove shared required/string/length boundaries,
+an additional runtime `not_blank` rejection, empty-rule pass-through, one query/write, and public projection. The
+consumer must keep its own schema and rules consistent; registration does not infer one from the other.
+
+| Outcome | Semantic result |
+| --- | --- |
+| Input schema, plain-JSON or runtime validation rejection after selection | Complete `isError: true`, fixed safe text, no input/labels reflected |
+| Exact failure class registered in `McpToolFailureMap` during Tool execution | Complete `isError: true`, consumer-authored constant text |
+| Unregistered failure, availability/metadata/validator failure, invalid successful output | Generic `-32603`, recorded once at the central boundary |
+| Successful conformant output | Complete text plus identical `structuredContent` |
+
+Failure mappings use exact classes, not inheritance or automatic Domain/Application classification. Messages must
+be nonblank valid UTF-8, at most 4096 bytes, without control characters. They are deliberate public projections,
+never exception messages. A mapped error omits structured success content and need not satisfy the success schema.
+A Tool-thrown `McpProtocolException` cannot bypass this boundary: it is unexpected unless explicitly mapped to safe
+Tool-error text. Output validation and metadata failures cannot be mistaken for mapped business failures.
+
+## Tool envelope metadata
+
+`Tool\Messaging\McpToolMetadataFilter` optionally implements both existing `CommandFilter` and `QueryFilter`.
+Share one request-scoped instance between the invoker's `metadata:` argument and the normal command/query pipelines.
+It enriches envelopes only while a validated available Tool executes, preserving payload, message identity,
+timestamp and existing unrelated metadata. Outside that scope it forwards the original message untouched.
+`QueryPipeline` forwards the filtered envelope through its inner bus's `dispatch()` rather than recreating it.
+
+The reserved baseline is `fight.mcp/tool` (canonical name) and `fight.mcp/correlation` (fresh random 128-bit identity,
+shared across that invocation's envelopes). Neither JSON-RPC IDs nor raw protocol metadata enter the bus. An
+optional `McpToolAuditMetadata::fieldsFor(McpToolInfo)` implementation may close over consumer-owned context and
+project explicitly allowlisted namespaced scalar fields:
+
+```php
+$metadata = new McpToolMetadataFilter($auditProjection, ['orders/actorId', 'orders/traceId']);
+$commands->addFilter($metadata);
+$queries->addFilter($metadata);
+$invoker = new McpToolInvoker($tools, $availability, metadata: $metadata);
+```
+
+Field declarations reject unnamespaced names, the reserved `fight.mcp/` namespace, and credential/password/secret/
+token/authorization/permission/argument/header/payload names. Returned undeclared keys, arrays, objects, null,
+nonfinite floats, malformed Unicode, control-bearing strings and strings over 256 bytes reject before Tool/bus
+execution. The consumer must project genuinely non-secret values: no syntactic check can detect a credential
+mislabelled as an actor ID. The hook receives no arguments, headers or principal from Common and conveys no policy.
+Scopes clear on success and every failure; nested/concurrent reuse rejects. Use separate instances for concurrent
+requests/fibers. No global state, payload changes, durable audit guarantee, or cross-request correlation is added.
 
 ## Protocol behavior
 
@@ -232,8 +364,10 @@ Origin policy or invocation guard.
 
 The handler checks a supplied Origin before reading the body, on every method. Next it checks POST, `Accept`,
 and JSON content type; decodes the body; validates the complete mirror set; checks the supported version; asks
-the invocation guard; and only then selects, validates, and invokes a capability. Mirror declarations are
-registration data, not capability execution. `server/discover` passes through the same safeguards.
+the invocation guard; and only then invokes a capability. Tool mirror selection performs only metadata lookup and
+availability before custom-header comparison; it does not validate arguments or execute the Tool. Invocation
+reevaluates current availability after the guard rather than caching an earlier authorization decision.
+`server/discover` passes through the same safeguards.
 
 | Outcome | HTTP status | Representation |
 | --- | --- | --- |
@@ -258,8 +392,8 @@ POST must explicitly list both `application/json` and `text/event-stream` in `Ac
 wildcards alone are insufficient. This endpoint always selects direct JSON. Content type is `application/json`,
 optionally with `charset=utf-8`. Consumer ingress owns body-size limits, TLS, trusted proxies and authentication.
 Legacy session and Last-Event-ID headers are ignored and never echoed; no session, GET stream, or DELETE lifecycle
-is created. Notification dispatch, SSE/progress, Tool invocation/runtime schema conformance, and OAuth remain later
-work. Explicit Tool registration and discovery can use this endpoint through the composition above.
+is created. Notification dispatch, SSE/progress and OAuth remain later work. Explicit Tool registration, discovery
+and non-streaming invocation use this endpoint through the composition above.
 
 ### Origins, guards, and diagnostics
 
@@ -304,10 +438,21 @@ cannot be repaired by the package. Values and JSON property names remain case-se
 - Unannotated body properties do not create mirrors. Unrecognized custom headers have no authority and are ignored;
   capability parameter/schema validation remains responsible for unknown or invalid body properties.
 
-The HTTP foundation consumes explicit registration data; it does not extract annotations from Tool schemas.
-Tool discovery preserves schema annotations but makes no invocation claim. The current mirror registration is
-method-scoped. Future Tool invocation support must reconcile per-tool declarations before claiming
-complete multi-tool schema support; it must not reuse one tool's declarations for every `tools/call` request.
+### Request-selected Tool mirrors
+
+`McpToolRegistry` compiles input-schema annotations at composition. Only chains of `properties` from the root may
+contain mirrored properties, with explicit string/integer/Boolean types (optionally unioned with null). Root,
+array-item, `$defs`, additional-property and combinator annotations reject. Case-insensitive header collisions
+within one Tool reject; other Tools have independent declarations. Defaults/examples are data, not schema nodes.
+
+`McpToolInvocation` implements `McpRequestMirrors`: the HTTP validator asks for the currently available named Tool's
+declarations after standard mirrors agree, without inspecting arguments or invoking it. Unknown and unavailable
+Tools reject identically before custom mirrors, preventing header requirements from exposing hidden registration.
+The normal invoker rechecks current availability before argument validation; consumers must use a stable
+request-scoped policy, and no stale selection is cached. The header validator merges these declarations with any
+method-wide declarations and rejects cross-set collisions or wrong-method declarations. It never applies another
+Tool's schema to the selected name. Standalone semantic callers do not handle HTTP headers; use the guarded endpoint
+for HTTP rather than exposing `respond()` directly on a route.
 
 The conformance authority is MCP `2026-07-28`, inspected at upstream commit
 [`ab3a39c13bd23be691c2760e1c6c5c15a64582e1`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/ab3a39c13bd23be691c2760e1c6c5c15a64582e1):

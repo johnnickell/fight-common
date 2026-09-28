@@ -8,6 +8,8 @@ use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\McpRequestMirrors;
+use Fight\Common\Domain\Exception\DomainException;
 use stdClass;
 
 /**
@@ -55,7 +57,22 @@ final readonly class McpHeaderValidator
         }
 
         $this->match($normalized, 'mcp-name', $name);
-        foreach ($this->registry->mirrorDeclarationsFor($request->method()) as $declaration) {
+        $declarations = $this->registry->mirrorDeclarationsFor($request->method());
+        $capability = $this->registry->capabilityFor($request->method());
+        if ($capability instanceof McpRequestMirrors) {
+            $declarations = [...$declarations, ...$capability->mirrorsFor($request)];
+        }
+
+        $seen = [];
+        foreach ($declarations as $declaration) {
+            $header = strtolower($declaration->headerName());
+            if ($declaration->method() !== $request->method() || isset($seen[$header])) {
+                throw new DomainException(
+                    'Request mirrors must have unique headers and belong to the selected method.'
+                );
+            }
+
+            $seen[$header] = true;
             $value = (object) $request->parameters();
             foreach ($declaration->parameterPath() as $segment) {
                 $value = $value instanceof stdClass ? ($value->{$segment} ?? null) : null;

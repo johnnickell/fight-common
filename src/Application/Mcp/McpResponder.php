@@ -21,7 +21,8 @@ final readonly class McpResponder
      */
     public function __construct(
         private McpCapabilityRegistry $registry,
-        private McpRequestDecoder $decoder = new McpRequestDecoder()
+        private McpRequestDecoder $decoder = new McpRequestDecoder(),
+        private ?McpDiagnostics $diagnostics = null
     ) {
     }
 
@@ -38,7 +39,13 @@ final readonly class McpResponder
             return $this->dispatch($request);
         } catch (McpProtocolException $exception) {
             return McpJsonResponse::error($request?->id() ?? $exception->requestId(), $exception->protocolError());
-        } catch (Throwable) {
+        } catch (Throwable $failure) {
+            try {
+                $this->diagnostics?->record($failure);
+            } catch (Throwable) {
+                // A broken diagnostic sink must not expose its own failure to the client.
+            }
+
             return McpJsonResponse::error($request?->id(), McpProtocolError::internalError());
         }
     }

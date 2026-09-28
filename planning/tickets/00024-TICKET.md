@@ -2,7 +2,7 @@
 id: TICKET-00024
 epic: EPIC-00006
 title: Discover and Invoke Explicitly Opted-In CQRS Tools
-status: ready-for-agent
+status: in-progress
 ---
 
 # Discover and Invoke Explicitly Opted-In CQRS Tools
@@ -88,7 +88,7 @@ are the acceptance authority.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
-| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-agent |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -99,3 +99,9 @@ contracts and behavioral constraints while leaving exact PHP registration mechan
 [TASK-00107](../tasks/00107-TASK.md) owns validated query/mutation invocation, safe semantic output, optional CQRS
 envelope metadata, and integrated TICKET acceptance. TASK-00106 follows the generic semantic capability foundation
 in TASK-00104 and may proceed in parallel with TASK-00105's guarded HTTP transport; TASK-00107 follows TASK-00106.
+
+TASK-00107 now has builder-verified semantic invocation, optional envelope metadata, selected Tool mirrors, safe
+failure/output handling, package-owned CQRS fixtures and a guarded write/read journey. Its recorded full product
+gate passes; independent implementation review remains outstanding. TASK-00106's accepted discovery and this
+invocation evidence cover the integrated TICKET matrix without an Access Control dependency. Do not mark this
+TICKET done or infer publication/merge until the remaining independent acceptance is recorded.
