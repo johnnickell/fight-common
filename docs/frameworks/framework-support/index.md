@@ -21,7 +21,7 @@ atlas_relationship_target: Capability adapter
 atlas_relationship_description: A consumer activates one selected framework capability at a time
 atlas_relationship_caption: Portable Domain and Application behavior stays unchanged while the composition root selects only the adapters and providers it needs.
 atlas_consequential_label: Support boundary
-atlas_consequential_message: A framework constraint or autoloadable class is not a support claim; shipped adapters require conformance and a booted starter receipt.
+atlas_consequential_message: A framework constraint or autoloadable class is not a support claim; conformance and starter receipts are the default, with a scoped progressive MCP exception below.
 atlas_next_steps:
   - label: Choose a path
     href: "#choose-an-integration-path"
