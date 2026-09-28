@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "ff76b3a06e9832b652e207474a4343f9b4674f42773aeaa71f75eb7069c7a035",
+    "operation_shapes_sha256": "1a7226c0ff5f2606f17df686c8bcb91d3f328c622292b93ac27e4c327d9a2dce",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 188,
+            "declarations": 197,
             "functions": 0
         },
         "Adapter": {
@@ -45,6 +45,10 @@
         "fight-common.classification.task-00105-addition": {
             "path": "planning/tasks/00105-TASK.md",
             "locator": "Scope and acceptance: guarded PSR HTTP endpoint and approved invocation-limit convention"
+        },
+        "fight-common.classification.task-00106-addition": {
+            "path": "planning/tasks/00106-TASK.md",
+            "locator": "Scope and acceptance: explicit Tool registration, safe discovery, output and reporter contracts"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -83,6 +87,150 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpProgressReporter",
+            "source": "src/Application/Mcp/McpProgressReporter.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProgressReporter", "source_locator": "working-tree:src/Application/Mcp/McpProgressReporter.php#Fight\\Common\\Application\\Mcp\\McpProgressReporter"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "The accepted Tool signature requires a public status and cancellation observation port, not a streaming implementation."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Tools report status and observe cancellation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProgressReporter", "source_locator": "working-tree:src/Application/Mcp/McpProgressReporter.php#Fight\\Common\\Application\\Mcp\\McpProgressReporter", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProgressReporter", "source_locator": "working-tree:src/Application/Mcp/McpProgressReporter.php#Fight\\Common\\Application\\Mcp\\McpProgressReporter", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProgressReporter", "source_locator": "working-tree:src/Application/Mcp/McpProgressReporter.php#Fight\\Common\\Application\\Mcp\\McpProgressReporter", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumer or later package runtime supplies reporting and cancellation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProgressReporter", "source_locator": "working-tree:src/Application/Mcp/McpProgressReporter.php#Fight\\Common\\Application\\Mcp\\McpProgressReporter", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool",
+            "source": "src/Application/Mcp/Tool/McpTool.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Explicit consumer opt-in contract with validated input and safe semantic output."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "The inventoried handle signature is public; discovery never calls it.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement explicitly selected Tools.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability",
+            "source": "src/Application/Mcp/Tool/McpToolAvailability.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolAvailability.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Neutral request-scoped availability receives metadata only."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Discovery and later invocation share the availability decision.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolAvailability.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolAvailability.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolAvailability.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers retain authenticated context and policy privately.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolAvailability.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolAvailability", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery",
+            "source": "src/Application/Mcp/Tool/McpToolDiscovery.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolDiscovery.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Consumer-composed tools/list capability with truthful advertisement, filtered pagination and explicit cache configuration."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Public capability methods implement Tool discovery.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolDiscovery.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers explicitly compose registry, availability, cursor key and optional page/cache policy.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolDiscovery.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolDiscovery.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolDiscovery.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolDiscovery", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo",
+            "source": "src/Application/Mcp/Tool/McpToolInfo.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolInfo.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Required method-level immutable metadata with validated declaration snapshots."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers inspect safe metadata and isolated schema copies.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolInfo.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers declare the method attribute or construct metadata explicitly.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolInfo.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable metadata.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolInfo.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolInfo.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolInfo", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput",
+            "source": "src/Application/Mcp/Tool/McpToolOutput.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolOutput.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Complete semantic structured output and compatible text, without a protocol envelope."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers access complete structured output and matching JSON text.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolOutput.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "The structured named factory constructs JSON-safe output.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolOutput.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable output.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolOutput.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolOutput.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolOutput", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry",
+            "source": "src/Application/Mcp/Tool/McpToolRegistry.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolRegistry.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Explicit Tool composition and availability-filtered metadata enumeration."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers enumerate available metadata or find an explicit Tool without invoking or authorizing it.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolRegistry.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers supply the complete explicit Tool set.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolRegistry.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final registry implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolRegistry.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolRegistry.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolRegistry", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson",
+            "source": "src/Application/Mcp/Tool/McpToolJson.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Explicit @internal Tool snapshot implementation, not a consumer JSON utility."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema",
+            "source": "src/Application/Mcp/Tool/McpToolSchema.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Explicit @internal declaration validation implementation, not a general JSON Schema validator."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolSchema", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy",
             "source": "src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php",
@@ -36514,6 +36662,21 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-tool-registration",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Explicit Tool registration"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/McpToolRegistryTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-tool-discovery",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Available Tool discovery"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/McpToolDiscoveryTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-tool-metadata-output",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Schema declarations and semantic output"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/McpToolInfoTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-guarded-http",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Enforcement and errors"},

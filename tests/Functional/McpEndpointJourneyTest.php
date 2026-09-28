@@ -12,6 +12,11 @@ use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
+use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
+use Fight\Common\Application\Mcp\Tool\McpToolInfo;
+use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+use Fight\Test\Common\Fixture\Mcp\DiscoveryTool;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -124,6 +129,81 @@ final class McpEndpointJourneyTest extends TestCase
         ]], json_decode((string) $failure->getBody(), true, flags: JSON_THROW_ON_ERROR));
         self::assertSame([['event' => 'mcp_failure']], $diagnostics->records);
         self::assertSame(2, $capability->handleCalls);
+    }
+
+    public function test_that_explicit_tool_discovery_runs_only_after_transport_guards_and_conceals_unavailable_tools(): void
+    {
+        $availability = new class implements McpToolAvailability {
+            public bool $available = true;
+            public bool $fail = false;
+            public int $calls = 0;
+            public function isAvailable(McpToolInfo $tool): bool
+            {
+                ++$this->calls;
+                if ($this->fail) {
+                    throw new RuntimeException('private policy detail');
+                }
+                return $this->available;
+            }
+        };
+        $guard = new class implements McpInvocationGuard {
+            public bool $allowed = true;
+            public function allows(string $method, ?string $name): bool
+            {
+                return $this->allowed;
+            }
+        };
+        $diagnostics = new class implements McpDiagnostics {
+            public int $calls = 0;
+            public function record(Throwable $failure): void
+            {
+                ++$this->calls;
+            }
+        };
+        $factory = new HttpFactory();
+        $discovery = new McpToolDiscovery(
+            new McpToolRegistry([new DiscoveryTool()]), $availability, 'test-only-cursor-secret-00106-32-bytes',
+        );
+        $endpoint = new McpRequestHandler(
+            new McpCapabilityRegistry(new McpServerInfo('Tool journey', '1'), [$discovery]),
+            new ExactMcpOriginPolicy(['https://client.test']),
+            $guard,
+            new McpResponseFactory($factory, $factory, $diagnostics),
+        );
+        $app = new App($factory);
+        $app->post('/consumer/mcp', fn (ServerRequestInterface $request) => $endpoint->handle($request));
+        $request = $this->request('tools/list');
+        self::assertSame(403, $app->handle($request->withHeader('Origin', 'https://evil.test'))->getStatusCode());
+        self::assertSame(400, $app->handle($request->withoutHeader('Mcp-Method'))->getStatusCode());
+        $guard->allowed = false;
+        self::assertSame(429, $app->handle($request)->getStatusCode());
+        self::assertSame(0, $availability->calls);
+
+        $guard->allowed = true;
+        $response = $app->handle($request);
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+        $result = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR)['result'];
+        self::assertSame(['alpha.find'], array_column($result['tools'], 'name'));
+        self::assertSame(['id' => ['type' => 'string']], $result['tools'][0]['inputSchema']['properties']);
+        self::assertSame('private', $result['cacheScope']);
+        self::assertSame(0, $result['ttlMs']);
+        self::assertArrayNotHasKey('nextCursor', $result);
+
+        $availability->available = false;
+        $concealed = $app->handle($request);
+        self::assertSame([], json_decode((string) $concealed->getBody(), true, flags: JSON_THROW_ON_ERROR)['result']['tools']);
+        self::assertStringNotContainsString('alpha.find', (string) $concealed->getBody());
+        self::assertSame(2, $availability->calls);
+        self::assertSame(0, $diagnostics->calls);
+
+        $availability->fail = true;
+        $failure = $app->handle($request);
+        self::assertSame(500, $failure->getStatusCode());
+        self::assertSame(['jsonrpc' => '2.0', 'id' => 'journey', 'error' => [
+            'code' => -32603, 'message' => 'Internal error.',
+        ]], json_decode((string) $failure->getBody(), true, flags: JSON_THROW_ON_ERROR));
+        self::assertSame(1, $diagnostics->calls);
     }
 
     private function request(string $method, array $params = []): ServerRequestInterface

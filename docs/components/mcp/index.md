@@ -23,6 +23,12 @@ atlas_local_contents:
     href: "#ownership"
   - label: Composition
     href: "#composition"
+  - label: Tool registration
+    href: "#explicit-tool-registration"
+  - label: Tool discovery
+    href: "#available-tool-discovery"
+  - label: Schema and output
+    href: "#schema-declarations-and-semantic-output"
   - label: Protocol behavior
     href: "#protocol-behavior"
   - label: Guarded HTTP
@@ -70,6 +76,112 @@ A capability rejects invalid outer parameters by throwing `McpProtocolException`
 `McpProtocolError::invalidParams()` and the request ID. The responder preserves that semantic rejection as the
 JSON-RPC `invalidParams` error. Any other `Throwable` from a capability becomes the generic `internalError`, with
 no exception details exposed.
+
+## Explicit Tool registration
+
+`Application\Mcp\Tool` provides explicit registration and discovery, not invocation. A consumer Tool implements
+`McpTool` and declares exactly one `#[McpToolInfo(name:, description:, inputSchema:, outputSchema:)]` on its
+`handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput` method. `ApplicationData` is
+`Application\Validation\Data\ApplicationData`; the reporter lives directly in `Application\Mcp`.
+
+Construct `McpToolRegistry` with the complete array of opted-in Tool objects. Registration examines only those
+objects' `handle()` metadata. It never scans a container, discovers HTTP Actions or CQRS handlers, hydrates a
+payload, or invokes the Tool. Missing/duplicate method metadata, non-Tool registrations, malformed metadata,
+unsupported schema declarations, and duplicate canonical names fail composition with `DomainException`.
+Names are case-sensitive, 1–128 ASCII letters, digits, underscores, dots or hyphens. Descriptions must be nonblank
+UTF-8. Input and output schemas are required by the Common convention even though MCP makes output schemas optional.
+
+`McpToolInfo` exposes only name, description and isolated schema snapshots. `McpToolRegistry::find()` is an
+unprivileged composition lookup, **not** an authorization or invocation API. Later invocation must apply the same
+request-scoped availability decision as discovery before executing a Tool. Existing business authorization
+remains the consumer use case's responsibility on every entry path.
+
+```php
+use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
+use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+
+// Explicit consumer-owned Tool objects and request-scoped McpToolAvailability.
+$tools = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
+$discovery = new McpToolDiscovery($tools, $availability, $cursorSigningKey);
+$registry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$discovery]);
+$responder = new McpResponder($registry);
+// The same registry can be supplied to the guarded PSR endpoint below.
+```
+
+The required cursor key is a consumer-generated secret of at least 32 bytes, stable across serving processes and
+requests. Keep it in consumer secret configuration; do not use an access token, user identifier, or source-code
+example key. Rotating it invalidates outstanding cursors. This composition needs no framework integration.
+
+## Available Tool discovery
+
+`McpToolDiscovery` registers only `tools/list` and advertises `tools: {listChanged: false}`. An empty registry
+is valid and returns an empty list. Tool calls, subscriptions and list-change notifications are not implemented
+by this capability; `tools/call` remains unregistered. Conflicting Tool metadata from another capability fails
+in the existing `McpCapabilityRegistry`, rather than permitting contradictory discovery.
+
+`McpToolAvailability::isAvailable(McpToolInfo)` is mandatory. Its consumer implementation may privately retain
+current authentication and policy collaborators but receives no principal, credential, headers, raw arguments,
+or authorization reason from Common. For every request the registry asks availability about each registered
+metadata definition, filters unavailable definitions, then sorts the visible sequence by bytewise canonical name.
+Pagination operates only on that sequence. No availability result is cached in Common.
+
+The default page size is 100; an explicit size must be 1–1000. A small/final page omits `nextCursor`. Continuations
+are opaque, authenticated tokens bound to the current visible definitions and page size. They contain no Tool name,
+concealed definition, or unfiltered count. Changing hidden registrations alone does not change the token. Changing
+visible metadata or availability invalidates an affected continuation; the client restarts without a cursor.
+Every continuation reevaluates current availability. Tampered, out-of-range, wrong-key, or malformed cursors return
+the same `-32602` invalid-params error with no definitions or diagnostic detail. Tokens are not credentials and
+provide no authorization. Unknown outer parameters, including client-supplied page sizes, reject.
+
+Lists default to `ttlMs: 0` and `cacheScope: private`. Constructor overrides require a nonnegative JavaScript-safe
+integer TTL and exactly `private` or `public`. Selecting public caching is an explicit consumer assertion that the
+catalog is safe to share across authorization contexts; Common cannot prove that policy. Positive TTL also means
+the consumer accepts cached discovery being stale. These overrides do not alter `server/discover` cache defaults.
+Availability failures propagate to the existing guarded endpoint's diagnostics/sanitization boundary; they never
+become a partially returned list or an exposed policy reason.
+
+## Schema declarations and semantic output
+
+This release validates a **bounded declaration profile**, not the full JSON Schema language or Tool arguments.
+Both schemas are PHP arrays representing JSON objects. The input root must contain `type: object`; output schemas
+may describe any JSON value, including scalar, array or null output. An empty output declaration means `{}`.
+Without `$schema`, the dialect is JSON Schema 2020-12. If supplied, it must be exactly
+`https://json-schema.org/draft/2020-12/schema`. This implementation currently supports:
+
+- `type`: one JSON type or a nonempty unique type list; nested schemas may also be Booleans or objects.
+- `properties`, `$defs`: maps of schemas; `items`, `additionalProperties`, `not`: one schema.
+- `allOf`, `anyOf`, `oneOf`: nonempty arrays of schemas; `required`: unique string arrays.
+- `enum`: nonempty arrays of JSON values; `const`, `default`: JSON values; `examples`: arrays.
+- `title`, `description`: strings; `readOnly`, `writeOnly`, `deprecated`, `uniqueItems`: Booleans.
+- `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, `maxProperties`: nonnegative PHP integers.
+- `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`: finite numbers; `multipleOf`: positive numbers.
+- `x-mcp-header`: a nonempty ASCII alphanumeric/hyphen suffix starting with an alphanumeric character. It is
+  preserved as metadata only here, not extracted into invocation mirror declarations.
+
+Other keywords and dialects fail closed. In particular, references, formats, patterns and conditional schemas are
+not currently supported. No remote schema is fetched. This profile is deliberately narrower than MCP permits;
+it is not a claim of full JSON Schema conformance. Schema/validation-rule consistency and runtime argument/output
+conformance belong to TASK-00107, not discovery. `$defs` declarations are validated, but references are not enabled.
+PHP arrays at `properties`/`$defs` map positions may use `[]` for `{}`; otherwise nested empty schemas use
+`new stdClass()`. Lists, objects, numeric/Boolean/null values and annotations retain their JSON meaning.
+
+Metadata and output accept only plain JSON values (including exact `stdClass` objects), bounded to 64 nested
+container levels; malformed Unicode, nonfinite numbers, resources, arbitrary objects/serializers and cycles reject.
+Construction snapshots mutable objects, and accessors return fresh copies. No consumer serializer executes.
+This is data-shape safety, not automatic redaction: consumers must explicitly project public-safe schemas and data.
+
+`McpToolOutput::structured($publicData)` carries one complete JSON value, exposed by `structuredContent()` and its
+matching JSON `text()`. It creates no JSON-RPC response, error envelope, HTTP response, or partial result. The caller
+owns safe projection; the later invoker owns output-schema conformance and expected-failure presentation.
+
+`McpProgressReporter` is only the stable `report(float $progress, ?float $total, ?string $message)` and
+`isCancelled(): bool` port required by the Tool signature. Its implementation contract calls for finite nonnegative,
+monotonic progress, an optional total not below progress, public-safe status text, and no emission after cancellation.
+It carries no Tool result content. No reporter implementation, live progress, SSE, disconnect handling, cooperative
+execution orchestration, or rollback guarantee is supplied by discovery.
 
 ## Protocol behavior
 
@@ -132,7 +244,8 @@ POST must explicitly list both `application/json` and `text/event-stream` in `Ac
 wildcards alone are insufficient. This endpoint always selects direct JSON. Content type is `application/json`,
 optionally with `charset=utf-8`. Consumer ingress owns body-size limits, TLS, trusted proxies and authentication.
 Legacy session and Last-Event-ID headers are ignored and never echoed; no session, GET stream, or DELETE lifecycle
-is created. Notification dispatch, SSE/progress, Tool discovery/schema/invocation, and OAuth remain later work.
+is created. Notification dispatch, SSE/progress, Tool invocation/runtime schema conformance, and OAuth remain later
+work. Explicit Tool registration and discovery can use this endpoint through the composition above.
 
 ### Origins, guards, and diagnostics
 
@@ -177,8 +290,9 @@ cannot be repaired by the package. Values and JSON property names remain case-se
 - Unannotated body properties do not create mirrors. Unrecognized custom headers have no authority and are ignored;
   capability parameter/schema validation remains responsible for unknown or invalid body properties.
 
-This TASK consumes explicit registration data; it does not extract annotations from Tool schemas or register Tools.
-The current registration is method-scoped. Future Tool support must reconcile per-tool declarations before claiming
+The HTTP foundation consumes explicit registration data; it does not extract annotations from Tool schemas.
+Tool discovery preserves schema annotations but makes no invocation claim. The current mirror registration is
+method-scoped. Future Tool invocation support must reconcile per-tool declarations before claiming
 complete multi-tool schema support; it must not reuse one tool's declarations for every `tools/call` request.
 
 The conformance authority is MCP `2026-07-28`, inspected at upstream commit
