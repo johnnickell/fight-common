@@ -8,7 +8,9 @@ use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
-use stdClass;
+use Fight\Common\Application\Mcp\McpRequestMirrors;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpHeaderValidator
@@ -55,10 +57,25 @@ final readonly class McpHeaderValidator
         }
 
         $this->match($normalized, 'mcp-name', $name);
-        foreach ($this->registry->mirrorDeclarationsFor($request->method()) as $declaration) {
-            $value = (object) $request->parameters();
+        $declarations = $this->registry->mirrorDeclarationsFor($request->method());
+        $capability = $this->registry->capabilityFor($request->method());
+        if ($capability instanceof McpRequestMirrors) {
+            $declarations = [...$declarations, ...$capability->mirrorsFor($request)];
+        }
+
+        $seen = [];
+        foreach ($declarations as $declaration) {
+            $header = strtolower($declaration->headerName());
+            if ($declaration->method() !== $request->method() || isset($seen[$header])) {
+                throw new DomainException(
+                    'Request mirrors must have unique headers and belong to the selected method.'
+                );
+            }
+
+            $seen[$header] = true;
+            $value = StrictJson::fromObject($request->parameters(), maxDepth: 511);
             foreach ($declaration->parameterPath() as $segment) {
-                $value = $value instanceof stdClass ? ($value->{$segment} ?? null) : null;
+                $value = $value instanceof StrictJson ? $value->get($segment) : null;
             }
 
             $this->match($normalized, 'mcp-param-'.strtolower($declaration->headerName()), $value);

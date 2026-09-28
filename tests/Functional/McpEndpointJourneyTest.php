@@ -7,6 +7,8 @@ namespace Fight\Test\Common\Functional;
 use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
 use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
+use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpInvocationGuard;
@@ -14,12 +16,26 @@ use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
+use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
+use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+use Fight\Common\Application\Mcp\Tool\Messaging\McpToolMetadataFilter;
+use Fight\Common\Application\Messaging\Command\SynchronousCommandBus;
+use Fight\Common\Application\Messaging\Query\QueryBus;
+use Fight\Common\Domain\Messaging\Command\Command;
+use Fight\Common\Domain\Messaging\Command\CommandMessage;
+use Fight\Common\Domain\Messaging\Query\Query;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\Common\Fixture\Mcp\DiscoveryTool;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
+use Fight\Test\Common\Fixture\Mcp\MirroredTool;
+use Fight\Test\Common\Fixture\Mcp\ReadValueTool;
+use Fight\Test\Common\Fixture\Mcp\WriteValueTool;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -204,6 +220,108 @@ final class McpEndpointJourneyTest extends TestCase
             'code' => -32603, 'message' => 'Internal error.',
         ]], json_decode((string) $failure->getBody(), true, flags: JSON_THROW_ON_ERROR));
         self::assertSame(1, $diagnostics->calls);
+    }
+
+    public function test_that_registered_cqrs_tools_complete_the_guarded_write_read_and_failure_journey(): void
+    {
+        $commands = new class implements SynchronousCommandBus {
+            public array $records = [];
+            public array $messages = [];
+            public function execute(Command $command): void { $this->dispatch(CommandMessage::create($command)); }
+            public function dispatch(CommandMessage $message): void
+            {
+                $this->messages[] = $message;
+                $this->records[$message->payload()->toArray()['value']] = ['value' => 'recorded', 'private' => 'credential-not-for-output'];
+            }
+        };
+        $queries = new class ($commands) implements QueryBus {
+            public array $messages = [];
+            public function __construct(private object $commands) {}
+            public function fetch(Query $query): mixed { return $this->dispatch(QueryMessage::create($query)); }
+            public function dispatch(QueryMessage $message): mixed
+            {
+                $this->messages[] = $message;
+                $id = $message->payload()->toArray()['value'];
+                if ($id === 'unexpected') { throw new LogicException('credential /private/path'); }
+                return $this->commands->records[$id] ?? throw new RuntimeException('private missing-record details');
+            }
+        };
+        $metadata = new McpToolMetadataFilter();
+        $commandPipeline = new CommandPipeline($commands);
+        $queryPipeline = new QueryPipeline($queries);
+        $commandPipeline->addFilter($metadata);
+        $queryPipeline->addFilter($metadata);
+        $availability = new class implements McpToolAvailability {
+            public bool $mirroredAvailable = true;
+            public function isAvailable(McpToolInfo $tool): bool
+            {
+                return $tool->name() !== 'mirrored' || $this->mirroredAvailable;
+            }
+        };
+        $guard = new class implements McpInvocationGuard {
+            public function allows(string $method, ?string $name): bool { return true; }
+        };
+        $diagnostics = new class implements McpDiagnostics {
+            public int $calls = 0;
+            public function record(Throwable $failure): void { ++$this->calls; }
+        };
+        $mirrored = new MirroredTool();
+        $registry = new McpToolRegistry([new WriteValueTool($commandPipeline), new ReadValueTool($queryPipeline), $mirrored]);
+        $factory = new HttpFactory();
+        $endpoint = new McpRequestHandler(
+            new McpCapabilityRegistry(new McpServerInfo('CQRS journey', '1'), [
+                new McpToolDiscovery($registry, $availability, str_repeat('x', 32)),
+                new McpToolInvocation(new McpToolInvoker($registry, $availability,
+                    failures: new McpToolFailureMap([RuntimeException::class => 'The item is unavailable.']), metadata: $metadata)),
+            ]),
+            new ExactMcpOriginPolicy(['https://client.test']), $guard,
+            new McpResponseFactory($factory, $factory, $diagnostics),
+        );
+        $app = new App($factory);
+        $app->post('/consumer/mcp', fn(ServerRequestInterface $request) => $endpoint->handle($request));
+        $call = fn(string $name, mixed $arguments) => $this->request('tools/call', ['name' => $name, 'arguments' => $arguments])->withHeader('Mcp-Name', $name);
+        foreach ([['value.write', ['id' => 'item-1'], ['id' => 'item-1']], ['value.read', ['id' => 'item-1'], ['value' => 'recorded']]] as [$name, $arguments, $expected]) {
+            $response = $app->handle($call($name, (object) $arguments));
+            self::assertSame(200, $response->getStatusCode());
+            $result = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR)['result'];
+            self::assertSame($expected, $result['structuredContent']);
+            self::assertSame(json_encode($expected), $result['content'][0]['text']);
+            self::assertSame('complete', $result['resultType']);
+            self::assertStringNotContainsString('credential', (string) $response->getBody());
+        }
+        self::assertCount(1, $commands->messages);
+        self::assertCount(1, $queries->messages);
+        self::assertSame('value.write', $commands->messages[0]->meta()->get('fight.mcp/tool'));
+        self::assertSame('value.read', $queries->messages[0]->meta()->get('fight.mcp/tool'));
+        self::assertArrayHasKey('item-1', $commands->records);
+
+        foreach ([['value.write', '', 'Tool arguments do not match the input schema.'], ['value.read', 'missing', 'The item is unavailable.']] as [$name, $id, $message]) {
+            $response = $app->handle($call($name, (object) ['id' => $id]));
+            self::assertSame(200, $response->getStatusCode());
+            $result = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR)['result'];
+            self::assertTrue($result['isError']);
+            self::assertSame($message, $result['content'][0]['text']);
+        }
+        self::assertCount(1, $commands->messages);
+        self::assertSame(0, $diagnostics->calls);
+        $unexpected = $app->handle($call('value.read', (object) ['id' => 'unexpected']));
+        self::assertSame(500, $unexpected->getStatusCode());
+        self::assertSame(['code' => -32603, 'message' => 'Internal error.'], json_decode((string) $unexpected->getBody(), true)['error']);
+        self::assertSame(1, $diagnostics->calls);
+
+        $mirrorRequest = $call('mirrored', (object) ['account' => (object) ['region' => 'west']]);
+        self::assertSame(400, $app->handle($mirrorRequest)->getStatusCode());
+        self::assertSame(0, $mirrored->calls);
+        self::assertSame(200, $app->handle($mirrorRequest->withHeader('Mcp-Param-Region', 'west'))->getStatusCode());
+        self::assertSame(1, $mirrored->calls);
+        $availability->mirroredAvailable = false;
+        $hidden = $app->handle($mirrorRequest);
+        $unknown = $app->handle($call('unknown', (object) ['account' => (object) ['region' => 'west']]));
+        self::assertSame((string) $hidden->getBody(), (string) $unknown->getBody());
+        self::assertSame(-32602, json_decode((string) $hidden->getBody(), true)['error']['code']);
+        self::assertSame(1, $diagnostics->calls);
+        self::assertSame(1, $mirrored->calls);
+        self::assertCount(3, $queries->messages);
     }
 
     private function request(string $method, array $params = []): ServerRequestInterface

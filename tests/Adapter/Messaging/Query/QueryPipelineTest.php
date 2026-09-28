@@ -7,22 +7,43 @@ namespace Fight\Test\Common\Adapter\Messaging\Query;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Messaging\Query\QueryFilter;
+use Fight\Common\Domain\Messaging\Meta;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(QueryPipeline::class)]
 class QueryPipelineTest extends UnitTestCase
 {
+    public function test_that_filtered_envelope_identity_and_metadata_reach_the_inner_bus(): void
+    {
+        $original = QueryMessage::create(new SamplePipelineQuery());
+        $enriched = $original->mergeMeta(new Meta(['consumer/trace' => 'trace-00107']));
+        $bus = $this->mock(QueryBus::class);
+        $bus->shouldReceive('dispatch')->once()->with($enriched)->andReturn('safe result');
+        $filter = $this->mock(QueryFilter::class);
+        $filter->shouldReceive('process')->once()->with($original, Mockery::type('callable'))
+            ->andReturnUsing(static fn(QueryMessage $message, callable $next) => $next($enriched));
+        $pipeline = new QueryPipeline($bus);
+        $pipeline->addFilter($filter);
+
+        self::assertSame('safe result', $pipeline->dispatch($original));
+        self::assertSame($original->id(), $enriched->id());
+        self::assertSame($original->timestamp(), $enriched->timestamp());
+        self::assertSame($original->payload(), $enriched->payload());
+        self::assertTrue($original->meta()->isEmpty());
+    }
+
     public function test_that_fetch_wraps_query_and_dispatches(): void
     {
         $result = ['data' => 'value'];
 
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')->andReturn($result);
+        $bus->shouldReceive('dispatch')->andReturn($result);
 
         $pipeline = new QueryPipeline($bus);
 
@@ -35,7 +56,7 @@ class QueryPipelineTest extends UnitTestCase
 
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')->andReturn($result);
+        $bus->shouldReceive('dispatch')->andReturn($result);
 
         $pipeline = new QueryPipeline($bus);
         $actual = $pipeline->dispatch(QueryMessage::create(new SamplePipelineQuery()));
@@ -47,7 +68,7 @@ class QueryPipelineTest extends UnitTestCase
     {
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')->andReturn('result');
+        $bus->shouldReceive('dispatch')->andReturn('result');
 
         $pipeline = new QueryPipeline($bus);
         $pipeline->dispatch(QueryMessage::create(new SamplePipelineQuery()));
@@ -57,15 +78,15 @@ class QueryPipelineTest extends UnitTestCase
         self::assertSame('result', $second);
     }
 
-    public function test_that_process_calls_inner_bus_fetch(): void
+    public function test_that_process_dispatches_the_original_envelope_to_the_inner_bus(): void
     {
         $result = 'fetched';
 
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')
+        $bus->shouldReceive('dispatch')
             ->once()
-            ->withArgs(fn(Query $q): bool => $q instanceof SamplePipelineQuery)
+            ->withArgs(fn(QueryMessage $message): bool => $message->payload() instanceof SamplePipelineQuery)
             ->andReturn($result);
 
         $pipeline = new QueryPipeline($bus);
@@ -80,7 +101,7 @@ class QueryPipelineTest extends UnitTestCase
 
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')->andReturnUsing(function () use (&$calls): string {
+        $bus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): string {
             $calls[] = 'bus';
             return 'result';
         });
@@ -108,7 +129,7 @@ class QueryPipelineTest extends UnitTestCase
 
         /** @var MockInterface|QueryBus $bus */
         $bus = $this->mock(QueryBus::class);
-        $bus->shouldReceive('fetch')->andReturnUsing(function () use (&$calls): string {
+        $bus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): string {
             $calls[] = 'bus';
             return 'result';
         });

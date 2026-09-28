@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
-use JsonException;
-use stdClass;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpRequestDecoder
@@ -18,19 +18,17 @@ final class McpRequestDecoder
     public function decode(string $json): McpRequest
     {
         try {
-            $data = json_decode($json, flags: JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+            // Preserve the protocol decoder's 512-level JSON limit; Tool data is bounded separately.
+            $data = StrictJson::fromString($json, maxDepth: 511);
+        } catch (DomainException) {
             throw new McpProtocolException(McpProtocolError::parseError(), null);
         }
 
-        if (!$data instanceof stdClass) {
+        if (!$data->isObject()) {
             throw new McpProtocolException(McpProtocolError::invalidRequest(), null);
         }
 
-        /**
-         * @var array<string, mixed> $data
-         */
-        $data = get_object_vars($data);
+        $data = $data->properties();
         $requestId = $this->usableRequestId($data);
         if (($data['jsonrpc'] ?? null) !== '2.0') {
             throw new McpProtocolException(McpProtocolError::invalidRequest(), $requestId);
@@ -46,12 +44,12 @@ final class McpRequestDecoder
         }
 
         $params = $data['params'] ?? null;
-        if (!$params instanceof stdClass) {
+        if (!$params instanceof StrictJson) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $requestId);
         }
 
-        $metadata = $params->_meta ?? null;
-        if (!$metadata instanceof stdClass) {
+        $metadata = $params->get('_meta');
+        if (!$metadata instanceof StrictJson) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $requestId);
         }
 
@@ -61,7 +59,7 @@ final class McpRequestDecoder
             throw new McpProtocolException($mcpProtocolException->protocolError(), $requestId);
         }
 
-        $parameters = get_object_vars($params);
+        $parameters = $params->properties();
         unset($parameters['_meta']);
 
         return new McpRequest($requestId, $method, $parameters, $requestMetadata);

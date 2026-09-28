@@ -20,6 +20,7 @@ use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\Fixture\Mcp\DeepSchemaTool;
 use Fight\Test\Common\Fixture\Mcp\DiscoveryTool;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -140,10 +141,10 @@ final class McpToolDiscoveryTest extends UnitTestCase
         self::assertEquals([
             'name' => 'alpha.find',
             'description' => 'Find public data',
-            'inputSchema' => (object) [
-                'type' => 'object', 'properties' => (object) ['id' => (object) ['type' => 'string']], 'required' => ['id'],
-            ],
-            'outputSchema' => (object) ['type' => 'object', 'properties' => (object) ['id' => (object) ['type' => 'string']]],
+            'inputSchema' => StrictJson::fromObject([
+                'type' => 'object', 'properties' => ['id' => ['type' => 'string']], 'required' => ['id'],
+            ]),
+            'outputSchema' => StrictJson::fromObject(['type' => 'object', 'properties' => ['id' => ['type' => 'string']]]),
         ], $result['tools'][0]);
         self::assertSame(['name' => 'Consumer', 'version' => '1.0'], $result['_meta']['io.modelcontextprotocol/serverInfo']);
     }

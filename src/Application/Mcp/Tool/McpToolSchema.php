@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Domain\Exception\DomainException;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolSchema
@@ -20,50 +20,77 @@ final class McpToolSchema
     private const array TYPES = ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'];
 
     /**
-     * Creates a validated declaration snapshot for the supported JSON Schema 2020-12 profile
+     * Creates a validated declaration for the supported JSON Schema 2020-12 profile
      *
      * @param array<mixed> $schema
      */
-    public static function encode(array $schema, bool $input): string
+    public static function create(array $schema, bool $input): StrictJson
     {
         if ($schema !== [] && array_is_list($schema)) {
             throw new DomainException('A Tool schema must be an object declaration.');
         }
 
-        // Snapshot first: validation must neither retain consumer objects nor execute their serializers.
-        $value = json_decode(McpToolJson::encode((object) $schema), false, 512, JSON_THROW_ON_ERROR);
-        if ($input && ($value->type ?? null) !== 'object') {
+        $value = StrictJson::fromObject($schema);
+        if ($input && $value->get('type') !== 'object') {
             throw new DomainException('A Tool input schema must declare type object.');
         }
 
-        self::validate($value);
-
-        return McpToolJson::encode($value);
+        return self::validateObject($value);
     }
 
     /**
-     * Validates a schema node without evaluating data or resolving external references
+     * Validates and normalizes a schema object without mutating consumer data
      */
-    private static function validate(mixed $schema): void
+    private static function validateObject(StrictJson $schema): StrictJson
     {
-        if (is_bool($schema)) {
-            return;
-        }
-
-        if (!$schema instanceof stdClass) {
-            throw new DomainException('A nested Tool schema must be a JSON object or Boolean.');
-        }
-
-        foreach (get_object_vars($schema) as $keyword => $value) {
+        $properties = [];
+        foreach ($schema->properties() as $keyword => $value) {
+            $value = match ($keyword) {
+                'properties', '$defs' => self::schemaMap($value),
+                'items', 'additionalProperties', 'not' => self::validate($value),
+                'allOf', 'anyOf', 'oneOf' => is_array($value) ? array_map(self::validate(...), $value) : $value,
+                default => $value,
+            };
             if (!self::validKeyword((string) $keyword, $value)) {
                 throw new DomainException('A Tool schema contains an unsupported keyword or invalid declaration.');
             }
 
-            // Empty PHP arrays at object-schema positions are the convenient spelling of an empty JSON object.
-            if (in_array($keyword, ['properties', '$defs'], true) && $value === []) {
-                $schema->{$keyword} = new stdClass();
-            }
+            $properties[$keyword] = $value;
         }
+
+        return StrictJson::fromObject($properties);
+    }
+
+    /**
+     * Validates a nested schema node without resolving external references
+     */
+    private static function validate(mixed $schema): StrictJson|bool
+    {
+        if (is_bool($schema)) {
+            return $schema;
+        }
+
+        if (!$schema instanceof StrictJson) {
+            throw new DomainException('A nested Tool schema must be a JSON object or Boolean.');
+        }
+
+        return self::validateObject($schema);
+    }
+
+    /**
+     * Creates an object map of validated schemas including the empty PHP-array shorthand
+     */
+    private static function schemaMap(mixed $value): StrictJson
+    {
+        if ($value === []) {
+            return StrictJson::fromObject();
+        }
+
+        if (!$value instanceof StrictJson) {
+            throw new DomainException('A Tool schema map must be a JSON object.');
+        }
+
+        return StrictJson::fromObject(array_map(self::validate(...), $value->properties()));
     }
 
     /**
@@ -74,10 +101,8 @@ final class McpToolSchema
         return match ($keyword) {
             '$schema' => $value === 'https://json-schema.org/draft/2020-12/schema',
             'type' => self::validTypes($value),
-            'properties', '$defs' => self::validSchemaMap($value),
-            'items', 'additionalProperties', 'not' => self::validSchema($value),
-            'allOf', 'anyOf', 'oneOf' => is_array($value) && $value !== []
-                && array_all($value, self::validSchema(...)),
+            'properties', '$defs', 'items', 'additionalProperties', 'not' => true,
+            'allOf', 'anyOf', 'oneOf' => is_array($value) && $value !== [],
             'required' => self::validStringList($value),
             'enum' => is_array($value) && $value !== [],
             'const', 'default' => true,
@@ -91,32 +116,6 @@ final class McpToolSchema
             'x-mcp-header' => is_string($value) && preg_match('/\A[A-Za-z0-9][A-Za-z0-9-]*\z/D', $value) === 1,
             default => false,
         };
-    }
-
-    /**
-     * Returns whether a schema node is valid
-     */
-    private static function validSchema(mixed $value): bool
-    {
-        self::validate($value);
-
-        return true;
-    }
-
-    /**
-     * Returns whether a map contains only valid schema nodes
-     */
-    private static function validSchemaMap(mixed $value): bool
-    {
-        if ($value === []) {
-            return true;
-        }
-
-        if (!$value instanceof stdClass) {
-            return false;
-        }
-
-        return array_all(get_object_vars($value), self::validSchema(...));
     }
 
     /**

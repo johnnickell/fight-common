@@ -6,8 +6,7 @@ namespace Fight\Common\Application\Mcp\Tool;
 
 use Attribute;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Value\Basic\JsonObject;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolInfo
@@ -15,8 +14,8 @@ use stdClass;
 #[Attribute(Attribute::TARGET_METHOD)]
 final readonly class McpToolInfo
 {
-    private string $inputSchemaJson;
-    private string $outputSchemaJson;
+    private StrictJson $inputSchema;
+    private StrictJson $outputSchema;
 
     /**
      * Constructs McpToolInfo
@@ -42,9 +41,9 @@ final readonly class McpToolInfo
             throw new DomainException('A Tool description must not be empty.');
         }
 
-        McpToolJson::encode($description);
-        $this->inputSchemaJson = McpToolSchema::encode($inputSchema, true);
-        $this->outputSchemaJson = McpToolSchema::encode($outputSchema, false);
+        StrictJson::fromData($description);
+        $this->inputSchema = McpToolSchema::create($inputSchema, true);
+        $this->outputSchema = McpToolSchema::create($outputSchema, false);
     }
 
     /**
@@ -66,37 +65,31 @@ final readonly class McpToolInfo
     /**
      * Returns an isolated JSON value for the declared input schema
      */
-    public function inputSchema(): JsonObject
+    public function inputSchema(): StrictJson
     {
-        return JsonObject::fromData(
-            json_decode($this->inputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
-            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
-        );
+        return $this->inputSchema;
     }
 
     /**
      * Returns an isolated JSON value for the declared output schema
      */
-    public function outputSchema(): JsonObject
+    public function outputSchema(): StrictJson
     {
-        return JsonObject::fromData(
-            json_decode($this->outputSchemaJson, false, 512, JSON_THROW_ON_ERROR),
-            JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION
-        );
+        return $this->outputSchema;
     }
 
     /**
      * Returns the safe discovery definition without a Tool instance or consumer context
      *
-     * @return array{name: string, description: string, inputSchema: stdClass, outputSchema: stdClass}
+     * @return array{name: string, description: string, inputSchema: StrictJson, outputSchema: StrictJson}
      */
     public function toArray(): array
     {
         return [
             'name'         => $this->name,
             'description'  => $this->description,
-            'inputSchema'  => $this->inputSchema()->toData(),
-            'outputSchema' => $this->outputSchema()->toData()
+            'inputSchema'  => $this->inputSchema,
+            'outputSchema' => $this->outputSchema
         ];
     }
 }

@@ -2,7 +2,7 @@
 id: TICKET-00024
 epic: EPIC-00006
 title: Discover and Invoke Explicitly Opted-In CQRS Tools
-status: ready-for-agent
+status: done
 ---
 
 # Discover and Invoke Explicitly Opted-In CQRS Tools
@@ -88,10 +88,26 @@ are the acceptance authority.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
-| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-agent |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+Independent re-review accepted TASK-00107 candidate `05e6aba43c8e50cd383b247cb1adeb58827b6340`, resolving
+StrictJson boundary finding R1. All twelve TASK criteria pass with Spec/Standards 100%; TASK-00106's accepted
+discovery and the revised invocation evidence complete this TICKET without Access Control adoption. `done`
+records accepted implementation, not final publication, hosted delivery checks, approval or merge. John authorized
+updating PR #166; final-head delivery and cleanup remain governed by the ignored landing handoff. The following
+paragraphs retain the earlier revision/build and original acceptance chronology.
+
+Reopened for John's pre-merge TASK-00107 revision: introduce `Domain/Value/Basic/StrictJson` and remove generic
+object representation from MCP consumers. Earlier acceptance below is historical; revised implementation needs
+fresh verification and John's re-review. This changes unreleased MCP representation contracts, not CQRS behavior.
+The first revision passed its complete local gate, but independent review of `ddfa096` found R1: accepted
+maximum-depth empty containers could not reconstruct from their emitted JSON. TASK-00107 has now corrected that
+boundary without widening MCP ingress or changing the Tool-data budget. Its fresh complete local gate and boundary
+regressions pass, with exact coverage and unchanged semantic transcripts; independent re-review is next. No revision
+publication or renewed independent acceptance is claimed.
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) fixes the named tool
 contracts and behavioral constraints while leaving exact PHP registration mechanics to implementation decomposition.
@@ -99,3 +115,11 @@ contracts and behavioral constraints while leaving exact PHP registration mechan
 [TASK-00107](../tasks/00107-TASK.md) owns validated query/mutation invocation, safe semantic output, optional CQRS
 envelope metadata, and integrated TICKET acceptance. TASK-00106 follows the generic semantic capability foundation
 in TASK-00104 and may proceed in parallel with TASK-00105's guarded HTTP transport; TASK-00107 follows TASK-00106.
+
+At the original acceptance checkpoint, TASK-00107 delivered semantic invocation, optional envelope metadata, selected Tool mirrors, safe failure/output
+handling, package-owned CQRS fixtures and a guarded write/read journey. Independent review accepted its exact
+implementation at `e97cf901f38a952f75ee40b3e8beaf4ff3857dfb`, with all criteria passing and no code findings;
+`.runs/reviews/TASK-00107/review.md` retains the canonical evidence. TASK-00106's accepted discovery and this
+invocation evidence complete the integrated TICKET matrix without an Access Control dependency. Both TASKs have
+verified full product gates. `done` records accepted behavior, not PR approval, merge, release or downstream
+adoption. TASK-00107's landing handoff owns publication and verification provenance.

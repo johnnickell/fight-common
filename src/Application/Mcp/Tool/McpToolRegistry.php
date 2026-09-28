@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool;
 
+use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Domain\Exception\DomainException;
 use ReflectionMethod;
 use Throwable;
@@ -18,9 +19,13 @@ final readonly class McpToolRegistry
      */
     private array $tools;
     /**
-     * @var list<McpToolInfo>
+     * @var array<string, McpToolInfo>
      */
     private array $definitions;
+    /**
+     * @var array<string, list<McpMirrorDeclaration>>
+     */
+    private array $mirrors;
 
     /**
      * Constructs McpToolRegistry
@@ -31,6 +36,7 @@ final readonly class McpToolRegistry
     {
         $registered = [];
         $definitions = [];
+        $mirrors = [];
         foreach ($tools as $tool) {
             if (!$tool instanceof McpTool) {
                 throw new DomainException('Only explicitly supplied McpTool implementations can be registered.');
@@ -53,11 +59,13 @@ final readonly class McpToolRegistry
             }
 
             $registered[$key] = $tool;
-            $definitions[] = $info;
+            $definitions[$key] = $info;
+            $mirrors[$key] = McpToolMirrors::declarations($info->inputSchema());
         }
 
         $this->tools = $registered;
         $this->definitions = $definitions;
+        $this->mirrors = $mirrors;
     }
 
     /**
@@ -66,6 +74,24 @@ final readonly class McpToolRegistry
     public function find(string $name): ?McpTool
     {
         return $this->tools['tool:'.$name] ?? null;
+    }
+
+    /**
+     * Returns immutable registered metadata without making an availability decision
+     */
+    public function definition(string $name): ?McpToolInfo
+    {
+        return $this->definitions['tool:'.$name] ?? null;
+    }
+
+    /**
+     * Returns composition-validated mirrors without authorizing the named Tool
+     *
+     * @return list<McpMirrorDeclaration>
+     */
+    public function mirrorsFor(string $name): array
+    {
+        return $this->mirrors['tool:'.$name] ?? [];
     }
 
     /**

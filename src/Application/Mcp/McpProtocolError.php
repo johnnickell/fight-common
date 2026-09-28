@@ -64,6 +64,14 @@ final readonly class McpProtocolError implements Arrayable
     }
 
     /**
+     * Creates an indistinguishable rejection for absent and concealed Tools
+     */
+    public static function unknownTool(): self
+    {
+        return new self(self::INVALID_PARAMS, 'Unknown or unavailable tool.');
+    }
+
+    /**
      * Creates a generic internal error
      */
     public static function internalError(): self
