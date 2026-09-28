@@ -27,7 +27,12 @@ final readonly class WriteValueTool implements McpTool
     public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
         $id = $input->get('id');
+        $progress->report(0, 1, 'Writing');
+        if ($progress->isCancelled()) {
+            return McpToolOutput::structured((object) ['id' => $id]);
+        }
         $this->commands->execute(new SampleCommand($id));
+        $progress->report(1, 1, 'Written');
 
         return McpToolOutput::structured((object) ['id' => $id]);
     }

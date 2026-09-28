@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Attribute\Validation;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpResult;
@@ -36,12 +37,12 @@ final readonly class McpToolInvoker
     }
 
     /**
-     * Invokes one available Tool with validated arguments and a non-streaming reporter
+     * Invokes one available Tool with validated arguments and an optional request-scoped reporter
      *
      * Availability precedes argument inspection. Unexpected Tool exceptions cannot impersonate
      * protocol failures. The caller's central diagnostic boundary records them exactly once.
      */
-    public function invoke(string $name, mixed $arguments): McpResult
+    public function invoke(string $name, mixed $arguments, ?McpProgressReporter $progress = null): McpResult
     {
         [$tool, $info] = $this->select($name);
 
@@ -76,7 +77,8 @@ final readonly class McpToolInvoker
             throw new DomainException('Tool validation failed unexpectedly.', 0, $throwable);
         }
 
-        $invoke = fn(): McpResult => $this->execute($tool, $validated, $info);
+        $reporter = $progress ?? new NullMcpProgressReporter();
+        $invoke = fn(): McpResult => $this->execute($tool, $validated, $info, $reporter);
         try {
             return $this->metadata === null ? $invoke() : $this->metadata->invoke($info, $invoke);
         } catch (Throwable $throwable) {
@@ -127,10 +129,14 @@ final readonly class McpToolInvoker
     /**
      * Executes only the selected Tool inside the explicit safe-failure boundary
      */
-    private function execute(McpTool $tool, ApplicationData $validated, McpToolInfo $info): McpResult
-    {
+    private function execute(
+        McpTool $tool,
+        ApplicationData $validated,
+        McpToolInfo $info,
+        McpProgressReporter $progress
+    ): McpResult {
         try {
-            $output = $tool->handle($validated, new NullMcpProgressReporter());
+            $output = $tool->handle($validated, $progress);
         } catch (Throwable $throwable) {
             $message = $this->failures->messageFor($throwable);
             if ($message !== null) {

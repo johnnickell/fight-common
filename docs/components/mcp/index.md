@@ -31,6 +31,8 @@ atlas_local_contents:
     href: "#schema-declarations-and-semantic-output"
   - label: Tool invocation
     href: "#validated-tool-invocation"
+  - label: Progress and cancellation
+    href: "#request-scoped-progress-and-cancellation"
   - label: Tool metadata
     href: "#tool-envelope-metadata"
   - label: Protocol behavior
@@ -219,8 +221,9 @@ or contradictory text representation. Shape checks cannot determine whether an o
 `isCancelled(): bool` port required by the Tool signature. Its implementation contract calls for finite nonnegative,
 monotonic progress, an optional total not below progress, public-safe status text, and no emission after cancellation.
 It carries no Tool result content. `NullMcpProgressReporter` validates monotonic finite progress but emits nothing and
-never reports cancellation. Invocation supplies a fresh instance per Tool call. Live progress, SSE, disconnect
-handling and rollback remain outside this implementation.
+never reports cancellation. Invocation supplies a fresh instance per Tool call by default. The request-scoped
+semantic execution below supplies live progress without broadening this interface. HTTP/SSE delivery and disconnect
+detection remain later adapter work; rollback is never implied.
 
 ## Validated Tool invocation
 
@@ -246,8 +249,8 @@ $responder = new McpResponder($registry, diagnostics: $diagnostics);
 ```
 
 `tools/call` accepts only `name` and optional `arguments`. Omitted arguments mean `{}`; present non-object arguments
-are a selected-Tool validation failure. Unknown outer parameters and a progress token reject as invalid params.
-This non-streaming capability does not silently accept a request for the future progressive response path.
+are a selected-Tool validation failure. Unknown outer parameters reject as invalid params. The default composition
+also rejects a progress token: it must not silently accept progress without a bound execution and delivery path.
 
 Invocation selects an explicitly registered Tool, asks availability about its immutable metadata, then checks the
 arguments against the input schema. Unknown and unavailable Tools produce identical `-32602`, `Unknown or
@@ -310,6 +313,60 @@ never exception messages. A mapped error omits structured success content and ne
 A Tool-thrown `McpProtocolException` cannot bypass this boundary: it is unexpected unless explicitly mapped to safe
 Tool-error text. Output validation and metadata failures cannot be mistaken for mapped business failures.
 
+## Request-scoped progress and cancellation
+
+`McpToolInvoker::invoke($name, $arguments, $progress)` accepts an optional `McpProgressReporter`. Omission preserves
+its fresh `NullMcpProgressReporter` default and existing validation, availability, metadata and safe-output behavior.
+The Tool signature and reporter interface are unchanged; progress never enters Tool arguments or CQRS payloads.
+Tools continue to return one complete `McpToolOutput`, not a generator, callback, partial result or response object.
+
+TASK-00108 implements Application-level ordered execution in internal `Tool\McpToolExecution`. This is a **package
+implementation seam**, not a consumer transport API: its optional binding in `McpToolInvocation` and synchronous
+semantic delivery callback remain provisional until TASK-00109 proves the HTTP adapters. Do not expose it directly
+on a route or claim that a collected transcript establishes live streaming. The ordinary guarded HTTP endpoint
+remains direct JSON and rejects progress tokens in its default Tool composition.
+
+One execution binds the exact decoded `tools/call` request and is shared only with that request's invocation
+capability. Its `run()` dispatches through the existing semantic responder; an absent token selects exactly the
+no-op reporter, while a string or integer token selects the live reporter. Empty strings, zero and integer signs
+are preserved without coercion. Present null, Boolean, array, object or floating-point tokens reject during decode;
+a token misplaced in outer Tool parameters rejects before invocation. Tokens are not globally indexed: clients
+own uniqueness, and even equal tokens on independent request objects share neither reporter nor cancellation state.
+
+The live reporter accepts finite nonnegative work, strictly increasing after the first report (which may be zero).
+Optional total must be finite and at least progress; optional message is UTF-8 public-safe human-readable status.
+Each report delivers exactly `{jsonrpc: "2.0", method: "notifications/progress", params: {progressToken, progress,
+...optional total/message}}` before the final semantic response. Notifications have no response ID or content field.
+Structured result content cannot enter the typed status API. Text can still contain sensitive or result data:
+Tools own safe status wording; Common cannot detect secrets or reinterpret arbitrary text as a partial result.
+The no-op reporter retains its compatible nondecreasing validation and emits nothing.
+
+Input schema/rule validation completes before Tool execution and progress; rejection is one complete `isError`
+Tool result. Expected mapped business failure after progress likewise produces one complete safe Tool error.
+Unclassified failures, output-schema violations, reporter violations and response-preparation failures produce
+one generic JSON-RPC internal error while delivery is open. The execution is the central diagnostic boundary
+around `McpResponder::dispatch()`: unexpected failures are recorded at most once, and diagnostic sink failures
+cannot escape to the client. A Tool cannot turn a reporter violation into success by catching it or by mapping its
+exception class. Earlier progress never means partial success.
+
+The outer adapter calls `cancel()` when it observes client closure. The live reporter then returns true from
+`isCancelled()` and suppresses all later progress and final messages, including errors; diagnostics remain
+server-side. Tools must check cancellation at business-safe points. Cancellation neither interrupts execution
+nor reverses a dispatched command, and it emits no `notifications/cancelled`. No-token reporters remain no-op
+and never report cancellation. Reuse of an execution or invocation rejects. Completion closes reporting before
+attempting the final delivery, so late/reentrant reports and duplicate final attempts cannot escape.
+
+These guarantees assume serialized, synchronous delivery for each request, including cooperative PHP Fiber
+interleaving. Each concurrent request needs a separate execution and any request-scoped metadata filters. Delivery
+must not defer messages; the outer adapter owns byte writes, flushing, closure detection and buffering. Once final
+delivery begins it is never retried, since a failing sink may have already written it. A terminal sink failure is
+diagnosed at most once and propagates as infrastructure failure rather than attempting another response.
+
+`McpToolExecutionTest` proves controlled ordering, equivalent query/mutation output, validation and late failure,
+once-only completion, cancellation before/after command dispatch, Fiber interleaving and cross-request isolation.
+It does **not** prove HTTP/SSE framing, real disconnect observation, threads, native framework emission or starter
+support. TASK-00109 owns package transport proof; TASK-00110 owns the five booted installed-package journeys.
+
 ## Tool envelope metadata
 
 `Tool\Messaging\McpToolMetadataFilter` optionally implements both existing `CommandFilter` and `QueryFilter`.
@@ -344,7 +401,7 @@ The decoder requires a JSON-RPC `2.0` string-or-integer request ID, string metho
 the `io.modelcontextprotocol/protocolVersion` and
 `io.modelcontextprotocol/clientCapabilities` fields. Client capabilities are an object; optional client information
 is an implementation object with a name and version. A present progress token is likewise a string or integer;
-numeric progress values are a later capability concern. The decoder validates every metadata key's MCP grammar,
+numeric progress values are validated by the selected reporter. The decoder validates every metadata key's MCP grammar,
 defined field shape, present trace-context format, and schema-permitted HTTP/HTTPS or image-data implementation
 icon source before dispatch, while
 preserving schema-permitted empty strings, an empty opaque metadata key, and open objects. Image data URI sources accept
