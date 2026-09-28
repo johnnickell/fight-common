@@ -157,6 +157,71 @@ final class StrictJsonTest extends UnitTestCase
         StrictJson::fromData([null], maxDepth: 0);
     }
 
+    #[DataProvider('codecBoundaryValues')]
+    public function test_that_accepted_codec_boundary_values_round_trip_through_factories_and_replacement(
+        string $leaf,
+        int $limit
+    ): void {
+        $value = StrictJson::fromString($leaf);
+        $depth = $limit === 511 && $leaf !== 'null' ? 510 : $limit;
+        for ($level = 1; $level < $depth; ++$level) {
+            $value = [$value];
+        }
+        $list = StrictJson::fromData([$value], maxDepth: $limit);
+        $object = StrictJson::fromObject(['value' => $value], maxDepth: $limit);
+        $replacement = StrictJson::fromObject()->with('value', $value, maxDepth: $limit);
+        foreach ([$list, $object, $replacement] as $json) {
+            self::assertSame($json->toString(), StrictJson::fromString($json->toString(), maxDepth: $limit)->toString());
+            self::assertSame($json->toString(), StrictJson::fromData($json, maxDepth: $limit)->toString());
+        }
+        self::assertTrue($object->equals($replacement));
+    }
+
+    public static function codecBoundaryValues(): iterable
+    {
+        foreach ([64, 510, 511] as $limit) {
+            foreach (['null', '[]', '{}'] as $leaf) {
+                yield $limit.' '.$leaf => [$leaf, $limit];
+            }
+        }
+    }
+
+    #[DataProvider('unsupportedCodecContainers')]
+    public function test_that_containers_beyond_the_decoder_budget_reject_at_every_construction_boundary(
+        string $leaf,
+        string $factory
+    ): void {
+        $value = StrictJson::fromString($leaf);
+        for ($level = 1; $level < 511; ++$level) {
+            $value = [$value];
+        }
+        $original = StrictJson::fromObject();
+        try {
+            match ($factory) {
+                'fromData' => StrictJson::fromData([$value], maxDepth: 511),
+                'fromObject' => StrictJson::fromObject(['value' => $value], maxDepth: 511),
+                'with' => $original->with('value', $value, maxDepth: 511),
+                'fromString' => StrictJson::fromString(str_repeat('[', 511).$leaf.str_repeat(']', 511), maxDepth: 511)
+            };
+            self::fail('A container beyond the decoder budget was accepted.');
+        } catch (DomainException $exception) {
+            self::assertSame(
+                $factory === 'fromString' ? 'Invalid JSON text.' : 'JSON data exceeds the supported nesting depth.',
+                $exception->getMessage()
+            );
+            self::assertSame('{}', $original->toString());
+        }
+    }
+
+    public static function unsupportedCodecContainers(): iterable
+    {
+        foreach (['[]', '{}'] as $leaf) {
+            foreach (['fromData', 'fromObject', 'with', 'fromString'] as $factory) {
+                yield $factory.' '.$leaf => [$leaf, $factory];
+            }
+        }
+    }
+
     #[DataProvider('invalidLimits')]
     public function test_that_invalid_nesting_limits_reject(int $limit): void
     {

@@ -174,6 +174,11 @@ final readonly class StrictJson extends ValueObject
         }
 
         if (is_array($value)) {
+            // The 512-depth decoder accepts at most 511 containers, including an empty leaf.
+            if ($depth >= 511) {
+                throw new DomainException('JSON data exceeds the supported nesting depth.');
+            }
+
             $object = $object || !array_is_list($value);
             $items = [];
             foreach ($value as $key => $item) {

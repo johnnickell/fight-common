@@ -28,7 +28,7 @@ This file records how terms are used inside this library. Public APIs, documenta
 | --- | --- |
 | **Value** | An immutable description or measurement compared by value rather than identity. Values validate themselves and are replaced rather than mutated. |
 | **Value object** | The base implementation of `Value`, providing value equality, hashing, string conversion, and JSON representation. |
-| **Strict JSON** | `Domain\Value\Basic\StrictJson` is a bounded immutable JSON value. Object nodes remain typed values, lists remain arrays, and scalars preserve their types; named factories own plain-data/Unicode/depth safety, property navigation and replacement do not expose mutable generic objects. JSON encoding alone emits fresh PHP object representations. Existing `JsonObject` remains unchanged. |
+| **Strict JSON** | `Domain\Value\Basic\StrictJson` is a bounded immutable JSON value. Object nodes remain typed values, lists remain arrays, and scalars preserve their types; named factories own plain-data/Unicode/depth safety, including the shared codec ceiling of 511 nested containers (scalar node depth 511, container node depth 510), and property navigation and replacement do not expose mutable generic objects. JSON encoding alone emits fresh PHP object representations. Existing `JsonObject` remains unchanged. |
 | **Identifier** | A value that identifies a domain concept and can be compared and ordered. |
 | **Unique ID** | A UUID-backed `Identifier` with named generation and reconstruction methods. `MessageId` and `AuditEntryId` are examples. |
 | **Specification** | A composable business rule evaluated with `isSatisfiedBy()`. Specifications combine through `and()`, `or()`, and `not()`. |

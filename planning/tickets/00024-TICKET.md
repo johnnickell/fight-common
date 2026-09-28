@@ -96,8 +96,11 @@ are the acceptance authority.
 Reopened for John's pre-merge TASK-00107 revision: introduce `Domain/Value/Basic/StrictJson` and remove generic
 object representation from MCP consumers. Earlier acceptance below is historical; revised implementation needs
 fresh verification and John's re-review. This changes unreleased MCP representation contracts, not CQRS behavior.
-The revision now has a passing complete local gate with exact coverage and unchanged semantic transcript outcomes;
-TASK-00107 is ready for John's review. No revision publication or renewed independent acceptance is claimed.
+The first revision passed its complete local gate, but independent review of `ddfa096` found R1: accepted
+maximum-depth empty containers could not reconstruct from their emitted JSON. TASK-00107 has now corrected that
+boundary without widening MCP ingress or changing the Tool-data budget. Its fresh complete local gate and boundary
+regressions pass, with exact coverage and unchanged semantic transcripts; independent re-review is next. No revision
+publication or renewed independent acceptance is claimed.
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) fixes the named tool
 contracts and behavioral constraints while leaving exact PHP registration mechanics to implementation decomposition.

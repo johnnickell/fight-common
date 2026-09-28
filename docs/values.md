@@ -237,8 +237,11 @@ any generic object it emits is a fresh representation, never retained mutable st
 
 Construction rejects malformed JSON/Unicode, non-finite numbers, cycles and nesting beyond `maxDepth` (default 64,
 root depth zero), including depth introduced by composing existing values. All factories and `with()` accept this
-optional limit from 0 through 511; parsing/encoding also retain PHP's 512-level codec bound. MCP uses 511 for the
-protocol envelope and 64 separately for Tool arguments, schemas and output, so wrappers do not consume the Tool budget. Property names beginning with U+0000 reject because PHP's
+optional limit from 0 through 511. The retained PHP decoder depth of 512 permits at most 511 nested containers:
+scalars may occupy node depth 511, but objects and lists (including empty ones) must stop at depth 510. Construction
+and replacement enforce that codec ceiling as well as `maxDepth`, so accepted values reconstruct from their emitted
+JSON under the same limit. MCP uses 511 for the protocol envelope and 64 separately for Tool arguments, schemas and
+output, so wrappers do not consume the Tool budget. Property names beginning with U+0000 reject because PHP's
 object-mode decoder cannot represent them; empty names and embedded non-leading U+0000 are supported. Exceptions use
 fixed messages without reflecting data. PHP-decoded number precision is not recovered. Encoding preserves zero-fraction
 floats. Equality/hash follow the existing ValueObject string-representation contract: property order and `1` versus

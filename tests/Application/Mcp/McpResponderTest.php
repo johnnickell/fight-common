@@ -175,6 +175,27 @@ final class McpResponderTest extends UnitTestCase
         }
     }
 
+    public function test_that_decoder_retains_its_existing_codec_boundary_for_scalars_and_empty_containers(): void
+    {
+        $prefix = '{"jsonrpc":"2.0","id":1,"method":"example/echo","params":'
+            .'{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
+            .'"io.modelcontextprotocol/clientCapabilities":{}},"value":';
+        $decoder = new McpRequestDecoder();
+        foreach (['null', '[]', '{}'] as $leaf) {
+            $levels = $leaf === 'null' ? 509 : 508;
+            $value = str_repeat('[', $levels).$leaf.str_repeat(']', $levels);
+            $request = $decoder->decode($prefix.$value.'}}');
+            self::assertSame(1, $request->id());
+            self::assertSame($value, StrictJson::fromData($request->parameters()['value'], maxDepth: 511)->toString());
+            try {
+                $decoder->decode($prefix.'['.$value.']}}');
+                self::fail('The protocol decoder accepted an extra nesting level.');
+            } catch (McpProtocolException $exception) {
+                self::assertSame(['code' => -32700, 'message' => 'Parse error.'], $exception->protocolError()->toArray());
+            }
+        }
+    }
+
     public function test_that_decoder_keeps_only_bounded_request_metadata(): void
     {
         $request = (new McpRequestDecoder())->decode($this->request(
