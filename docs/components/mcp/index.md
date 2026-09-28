@@ -370,8 +370,8 @@ diagnosed at most once and propagates as infrastructure failure rather than atte
 `McpToolExecutionTest` proves controlled ordering, equivalent query/mutation output, validation and late failure,
 once-only completion, cancellation before/after command dispatch, Fiber interleaving and cross-request isolation.
 It does **not** prove HTTP/SSE framing, real disconnect observation, threads, native framework emission or starter
-support. `McpStreamingJourneyTest` separately proves package transport; TASK-00110 still owns the five booted
-installed-package journeys.
+support. `McpStreamingJourneyTest` separately proves package transport. Consumer adoption is independently
+owned; TASK-00110's five-starter confirmation plan was explicitly closed without implementation.
 
 ## Tool envelope metadata
 
@@ -584,14 +584,18 @@ an ordinary PSR emitter or complete-body bridge does not establish live delivery
 No PHP-FPM, Apache, worker-server or reverse-proxy guarantee follows from this harness. `X-Accel-Buffering: no`
 is not proof that every intermediary honors it. Consumers must qualify their actual SAPI, buffer stack, proxy,
 timeouts, compression and disconnect propagation. Package conformance is **not** a booted installed-package
-starter receipt; TASK-00110 must still qualify all five starters before parent TICKET acceptance. No persistent
-package server, route, deployment configuration or new framework dependency is introduced.
+starter receipt. Under the approved TASK-00110 closeout, the accepted package evidence completes TICKET-00025
+without waiting for five starter receipts or consumer adoption. Fight Agent OS owns its implementation and
+runtime qualification and reports demonstrated Common defects upstream as bug-fix TASKs. This scoped evidence
+amendment does not claim any consumer journey passed. No persistent package server, route, deployment
+configuration or new framework dependency is introduced.
 
 ## Consumer wiring
 
 All examples leave path selection, authentication, authorization, request scope, and runtime emission to the consumer.
-They are composition examples, not package-owned routes or proof of five installed starter journeys. Those progressive
-runtime journeys belong to TASK-00110. Never reproduce only part of mirror validation in a framework Action.
+They are composition examples, not package-owned routes or proof of five installed starter journeys. Actual runtime
+qualification belongs to the consuming application and does not require a Common confirmation TASK. Never
+reproduce only part of mirror validation in a framework Action.
 
 ### Shared composition and framework-free PSR
 

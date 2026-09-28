@@ -81,6 +81,23 @@ journey in the corresponding starter repository. This rule is intentionally revi
 its cost proves disproportionate; changing it requires an explicit planning decision rather than silently
 weakening a support claim.
 
+### Progressive MCP adoption amendment — 2026-09-28
+
+John explicitly closed [TASK-00110](../tasks/00110-TASK.md) as `wontfix`: Fight Agent OS will implement and qualify
+its consumer MCP features and report demonstrated Common defects upstream as bug-fix TASKs. Common does not
+allocate five starter qualification TASKs, collect new progressive-MCP starter receipts, or retain a confirmation
+TASK as a prerequisite for TICKET-00025 completion or subsequent work. Consumer adoption is not a Common
+planning, implementation, or release gate for this capability.
+
+For progressive MCP only, the independently accepted TASK-00108 semantics and TASK-00109 package adapter
+conformance/live-runtime evidence complete the Common requirement. This explicitly amends the initial
+support-evidence rule for that capability; it does not assert that any starter or Agent OS journey passed.
+Package runtime limits remain documented, and consumers own verification of their actual SAPI, buffering, proxy,
+and disconnect behavior. No public behavior is removed or buffered fallback permitted.
+
+All other framework-support, historical receipt, compatibility and release-certification requirements remain
+unchanged. The amendment creates no new cross-repository allocation or publication authority.
+
 ## Accepted Framework Catalog
 
 The catalog uses three delivery states: **ship** for a clear adapter contract, **prototype** when the native API

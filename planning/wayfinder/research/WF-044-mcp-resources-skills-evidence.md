@@ -19,6 +19,13 @@ preparation later fast-forwarded the planning branch to `52ff756`, without chang
 The accepted destination and completion evidence now live in [EPIC-00007](../../epics/00007-EPIC.md); no new
 runtime/conformance run is claimed.
 
+**Progress/cancellation closeout update — 2026-09-28:** TASK-00108 and TASK-00109 are now accepted package work.
+John explicitly closed [TASK-00110](../../tasks/00110-TASK.md) as `wontfix`, removing five-starter confirmation
+as a Common gate. Fight Agent OS owns consumer implementation and reports Common defects upstream as bug-fix
+TASKs. The inspection table below remains historical; its former no-waiver instruction is superseded by this
+explicit decision and the [ADR 0024 amendment](../../adr/0024-framework-adapter-support-and-delivery-boundaries.md#progressive-mcp-adoption-amendment--2026-09-28).
+No consumer journey is claimed passed, and no Resources/Skills dependency is added.
+
 ## Short answer
 
 Retain Common's approved **MCP `2026-07-28`** target. The official stable
