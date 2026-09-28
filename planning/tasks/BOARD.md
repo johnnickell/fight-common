@@ -22,6 +22,8 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | ready-for-agent | — | — |
 | 10 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | [TICKET-00027 — Protect MCP Endpoints with Reusable OAuth Resource-Server Support](../tickets/00027-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | — (standalone chore) | ready-for-agent | — | — |
+| — | [TASK-00117](00117-TASK.md) | Discover Authorized Resources Through the Guarded Endpoint | [TICKET-00028 — Discover and Read Authorized Resources](../tickets/00028-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
@@ -32,6 +34,10 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | 6 | [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | ready-for-agent | [TASK-00108](00108-TASK.md) | — |
 | 8 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | ready-for-agent | [TASK-00107](00107-TASK.md) | — |
 | 9 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | ready-for-agent | [TASK-00111](00111-TASK.md) | — |
+| — | [TASK-00118](00118-TASK.md) | Read Exact Authorized Resource Content | [TICKET-00028 — Discover and Read Authorized Resources](../tickets/00028-TICKET.md) | ready-for-agent | [TASK-00117](00117-TASK.md) | — |
+| — | [TASK-00119](00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | [TICKET-00029 — Discover Structured Skills and Retrieve Revision Files Lazily](../tickets/00029-TICKET.md) | ready-for-agent | [TASK-00118](00118-TASK.md) | — |
+| — | [TASK-00120](00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | [TICKET-00029 — Discover Structured Skills and Retrieve Revision Files Lazily](../tickets/00029-TICKET.md) | ready-for-agent | [TASK-00119](00119-TASK.md) | — |
+| — | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | ready-for-agent | [TASK-00107](00107-TASK.md), [TASK-00120](00120-TASK.md), [TASK-00121](00121-TASK.md) | — |
 
 ## Needs Info
 
