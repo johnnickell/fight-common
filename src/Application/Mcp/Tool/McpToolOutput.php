@@ -20,7 +20,8 @@ final readonly class McpToolOutput
      * Creates complete public-safe structured output without constructing a protocol response
      *
      * The consumer explicitly projects safe data. This type validates JSON, not authorization
-     * or output-schema conformance.
+     * or output-schema conformance. Object keys beginning with U+0000 reject at construction
+     * because PHP cannot decode them into the isolated object representation.
      */
     public static function structured(mixed $content): self
     {

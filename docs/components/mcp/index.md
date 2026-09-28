@@ -168,9 +168,14 @@ conformance belong to TASK-00107, not discovery. `$defs` declarations are valida
 PHP arrays at `properties`/`$defs` map positions may use `[]` for `{}`; otherwise nested empty schemas use
 `new stdClass()`. Lists, objects, numeric/Boolean/null values and annotations retain their JSON meaning.
 
-Metadata and output accept only plain JSON values (including exact `stdClass` objects), bounded to 64 nested
-container levels; malformed Unicode, nonfinite numbers, resources, arbitrary objects/serializers and cycles reject.
-Construction snapshots mutable objects, and accessors return fresh copies. No consumer serializer executes.
+Metadata and output accept only plain JSON values (including exact `stdClass` objects), bounded to depth 64:
+the schema/output root is depth zero and each member or element adds one. Discovery's definition, catalog and
+protocol wrappers do not consume a schema's depth budget. Malformed Unicode, nonfinite numbers, resources,
+arbitrary objects/serializers and cycles reject. Object keys beginning with U+0000 also reject at construction
+with `DomainException`, because PHP's object-mode JSON decoder cannot represent them; empty keys and keys with
+non-leading U+0000 remain supported. This representation limit applies at every nesting level, including schema
+annotation values. Construction snapshots mutable objects, and accessors return fresh copies preserving JSON
+object/list distinctions. No consumer serializer executes.
 This is data-shape safety, not automatic redaction: consumers must explicitly project public-safe schemas and data.
 
 `McpToolOutput::structured($publicData)` carries one complete JSON value, exposed by `structuredContent()` and its

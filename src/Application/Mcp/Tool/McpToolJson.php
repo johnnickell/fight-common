@@ -42,7 +42,12 @@ final class McpToolJson
         }
 
         if (is_array($value)) {
-            foreach ($value as $item) {
+            foreach ($value as $key => $item) {
+                // Object-mode decoding cannot represent a member name beginning with NUL.
+                if (is_string($key) && str_starts_with($key, "\0")) {
+                    throw new DomainException('Tool object keys must not begin with U+0000.');
+                }
+
                 self::validate($item, $depth + 1);
             }
 

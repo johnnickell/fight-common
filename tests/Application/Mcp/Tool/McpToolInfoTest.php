@@ -152,6 +152,8 @@ final class McpToolInfoTest extends UnitTestCase
         yield 'invalid composition child' => [['anyOf' => [1]]];
         yield 'invalid header' => [['x-mcp-header' => 'bad value']];
         yield 'invalid unicode key' => [["\xFF" => true]];
+        yield 'unrepresentable property name' => [['properties' => ["\0public" => true]]];
+        yield 'unrepresentable annotation key' => [['default' => ['nested' => ["\0public" => true]]]];
     }
 
     #[DataProvider('invalidInputSchemas')]
@@ -181,6 +183,74 @@ final class McpToolInfoTest extends UnitTestCase
         $content->nested->id = 'changed';
         $output->structuredContent()->nested->id = 'also changed';
         self::assertSame('{"nested":{"id":"public"}}', $output->text());
+    }
+
+    #[DataProvider('unsupportedObjectKeys')]
+    public function test_that_output_rejects_unrepresentable_object_keys_during_construction(array $content): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Tool object keys must not begin with U+0000.');
+        McpToolOutput::structured($content);
+    }
+
+    public static function unsupportedObjectKeys(): iterable
+    {
+        yield 'root object' => [["\0public" => 'public value']];
+        yield 'nested object' => [['nested' => ["\0public" => 'public value']]];
+        yield 'object in list' => [[["\0public" => 'public value']]];
+    }
+
+    public function test_that_output_preserves_supported_object_keys_and_list_distinctions_in_isolated_copies(): void
+    {
+        $content = (object) [
+            '' => 'empty key',
+            "nested\0public" => 'embedded NUL',
+            'list' => [new stdClass(), [], (object) ['0' => 'numeric property']],
+        ];
+        $output = McpToolOutput::structured($content);
+        $expected = json_encode($content, JSON_THROW_ON_ERROR);
+        $copy = $output->structuredContent();
+        self::assertInstanceOf(stdClass::class, $copy->list[0]);
+        self::assertSame([], $copy->list[1]);
+        self::assertInstanceOf(stdClass::class, $copy->list[2]);
+        self::assertSame($expected, json_encode($copy, JSON_THROW_ON_ERROR));
+        $content->list[2]->{'0'} = 'changed source';
+        $copy->list[2]->{'0'} = 'changed copy';
+        self::assertSame($expected, $output->text());
+        self::assertSame($expected, json_encode($output->structuredContent(), JSON_THROW_ON_ERROR));
+    }
+
+    #[DataProvider('schemaDepths')]
+    public function test_that_schema_depth_is_bounded_at_composition(int $depth, bool $deepInput): void
+    {
+        $schema = true;
+        for ($level = 0; $level < $depth; ++$level) {
+            $schema = ['not' => $schema];
+        }
+        if ($depth > 64) {
+            $this->expectException(DomainException::class);
+            $this->expectExceptionMessage('nesting depth');
+        }
+        $input = ['type' => 'object'];
+        if ($deepInput) {
+            $input += $schema;
+        }
+        $info = new McpToolInfo('deep.schema', 'Deep declaration', $input, $schema);
+        self::assertSame(json_encode($schema, JSON_THROW_ON_ERROR), json_encode($info->outputSchema(), JSON_THROW_ON_ERROR));
+        self::assertSame(
+            json_encode($input, JSON_THROW_ON_ERROR),
+            json_encode($info->inputSchema(), JSON_THROW_ON_ERROR),
+        );
+    }
+
+    public static function schemaDepths(): iterable
+    {
+        yield 'input 63' => [63, true];
+        yield 'input 64' => [64, true];
+        yield 'input 65' => [65, true];
+        yield 'output 63' => [63, false];
+        yield 'output 64' => [64, false];
+        yield 'output 65' => [65, false];
     }
 
     public function test_that_non_json_data_and_consumer_serializers_are_rejected_without_execution(): void

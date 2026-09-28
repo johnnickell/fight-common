@@ -20,6 +20,7 @@ use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Test\Common\Fixture\Mcp\DeepSchemaTool;
 use Fight\Test\Common\Fixture\Mcp\DiscoveryTool;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
@@ -56,6 +57,33 @@ final class McpToolDiscoveryTest extends UnitTestCase
         )->toArray();
         self::assertSame(['zulu.read'], array_column($second['tools'], 'name'));
         self::assertArrayNotHasKey('nextCursor', $second);
+    }
+
+    public function test_that_maximum_depth_schemas_survive_registration_listing_and_continuation(): void
+    {
+        $registry = new McpToolRegistry([new DeepSchemaTool(), new DiscoveryTool()]);
+        $discovery = new McpToolDiscovery($registry, new DiscoveryAvailability(), self::KEY, 1);
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Consumer', '1.0'), [$discovery]));
+        $first = $responder->respond($this->wire('tools/list'))->toArray();
+        self::assertArrayNotHasKey('error', $first);
+        self::assertSame(['alpha.find'], array_column($first['result']['tools'], 'name'));
+
+        $second = $responder->respond($this->wire('tools/list', ['cursor' => $first['result']['nextCursor']]))->toArray();
+        self::assertArrayNotHasKey('error', $second);
+        self::assertArrayNotHasKey('nextCursor', $second['result']);
+        $definition = $second['result']['tools'][0];
+        self::assertSame('deep.schema', $definition['name']);
+        $schema = true;
+        for ($depth = 0; $depth < 64; ++$depth) {
+            $schema = ['not' => $schema];
+        }
+        self::assertSame(json_encode($schema, JSON_THROW_ON_ERROR), json_encode($definition['outputSchema'], JSON_THROW_ON_ERROR));
+        self::assertSame(
+            json_encode(['type' => 'object', ...$schema], JSON_THROW_ON_ERROR),
+            json_encode($definition['inputSchema'], JSON_THROW_ON_ERROR),
+        );
+        $wire = json_decode(json_encode($second, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame($schema, $wire['result']['tools'][0]['outputSchema']);
     }
 
     public function test_that_hidden_registry_changes_do_not_influence_cursors_or_available_results(): void

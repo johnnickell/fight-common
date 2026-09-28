@@ -96,7 +96,8 @@ final readonly class McpToolDiscovery implements McpCapability
             fn(McpToolInfo $info): array => $info->toArray(),
             $this->registry->available($this->availability)
         );
-        $snapshot = hash('sha256', McpToolJson::encode($definitions));
+        // Metadata already bounds each schema; catalog wrappers must not consume that schema depth budget.
+        $snapshot = hash('sha256', json_encode($definitions, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
         $offset = $this->offset($request, $snapshot, count($definitions));
         $result = [
             'tools'      => array_slice($definitions, $offset, $this->pageSize),
