@@ -28,7 +28,8 @@ final readonly class McpToolInteraction
     public function __construct(
         private McpStateProtector $protector,
         #[SensitiveParameter] private string $caller,
-        private int $ttl = 300
+        private int $ttl = 300,
+        private ?McpConfirmationStore $confirmations = null
     ) {
         if ($caller === '' || strlen($caller) > 1024 || $ttl < 1 || $ttl > 900) {
             throw new DomainException('Interactions require a bounded caller identity and a TTL of 1-900 seconds.');
@@ -38,15 +39,19 @@ final readonly class McpToolInteraction
     }
 
     /**
-     * Creates a stateless ordinary input result with protected original validated arguments
+     * Creates protected input state and registers consumer-designated one-time confirmations
      *
      * @internal Used only after capability gating and selected Tool execution
      */
     public function issue(McpInputRequired $input, ApplicationData $validated, McpRequest $request): McpResult
     {
+        if ($input->requiresConfirmation() && $this->confirmations === null) {
+            throw new DomainException('Confirmation requires an atomic interaction store.');
+        }
+
         $contracts = array_map(static fn(McpInputRequest $form): StrictJson => $form->state(), $input->requests());
         $state = StrictJson::fromObject([
-            'mode'      => 'ordinary',
+            'mode'      => $input->requiresConfirmation() ? 'confirmation' : 'ordinary',
             'method'    => 'tools/call',
             'caller'    => $this->caller,
             'tool'      => $request->parameters()['name'],
@@ -56,10 +61,23 @@ final readonly class McpToolInteraction
             'expires'   => time() + $this->ttl,
             'id'        => $request->id()
         ], 70);
-        $token = $this->protector->seal(self::canonical($state));
-        $requests = array_map(static fn(McpInputRequest $form): StrictJson => $form->request(), $input->requests());
+        if ($input->requiresConfirmation()) {
+            $state = $state->with('confirmation', bin2hex(random_bytes(32)), 70);
+        }
 
-        return McpResult::inputRequired(StrictJson::fromObject($requests), $token);
+        $plaintext = self::canonical($state);
+        $token = $this->protector->seal($plaintext);
+        $requests = array_map(static fn(McpInputRequest $form): StrictJson => $form->request(), $input->requests());
+        $result = McpResult::inputRequired(StrictJson::fromObject($requests), $token);
+        if ($input->requiresConfirmation()) {
+            $this->confirmations->issue(
+                $state->get('confirmation'),
+                hash('sha256', $plaintext),
+                $state->get('expires')
+            );
+        }
+
+        return $result;
     }
 
     /**
@@ -96,7 +114,12 @@ final readonly class McpToolInteraction
     {
         try {
             if (
-                $state->get('mode') !== 'ordinary' || $state->get('method') !== 'tools/call'
+                !in_array($state->get('mode'), ['ordinary', 'confirmation'], true)
+                || ($state->get('mode') === 'confirmation' && (
+                    $this->confirmations === null || !is_string($state->get('confirmation'))
+                    || preg_match('/^[a-f0-9]{64}$/D', $state->get('confirmation')) !== 1
+                ))
+                || $state->get('method') !== 'tools/call'
                 || $state->get('caller') !== $this->caller || $state->get('tool') !== $request->parameters()['name']
                 || !is_int($state->get('expires')) || $state->get('expires') <= time()
                 || $state->get('id') === $request->id()
@@ -118,6 +141,44 @@ final readonly class McpToolInteraction
             // State and response details share one public rejection; never reflect protected values or rule errors.
             throw new McpProtocolException(McpProtocolError::invalidParams(), null);
         }
+    }
+
+    /**
+     * Acquires validated confirmation state before any resume or terminal refusal
+     *
+     * @internal Called only after restore and current availability; ordinary state never touches the store
+     */
+    public function consume(StrictJson $state, McpInputResponses $responses): ?McpResult
+    {
+        if ($state->get('mode') !== 'confirmation') {
+            return null;
+        }
+
+        try {
+            $outcome = $this->confirmations?->consume(
+                $state->get('confirmation'),
+                hash('sha256', self::canonical($state)),
+                $state->get('expires')
+            );
+            if ($outcome !== McpConfirmationOutcome::CONSUMED) {
+                throw new DomainException('Confirmation could not be acquired.');
+            }
+        } catch (Throwable) {
+            // An uncertain write is terminal: never retry or restore potentially consumed state.
+            throw new McpProtocolException(McpProtocolError::invalidParams(), null);
+        }
+
+        $refused = array_any(
+            $responses->toArray(),
+            static fn(McpInputResponse $value): bool => $value->action() !== 'accept'
+        );
+        if ($refused) {
+            return McpResult::complete([
+                'content' => [['type' => 'text', 'text' => 'Confirmation not accepted.']]
+            ]);
+        }
+
+        return null;
     }
 
     /**

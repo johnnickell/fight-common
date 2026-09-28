@@ -155,7 +155,20 @@ final readonly class McpToolInvoker
         $this->requireCapability($info, $request);
         [$validated, $responses] = $this->interaction->restore($state, $request);
 
-        return $this->run($tool, $validated, $info, $progress, $request, $responses);
+        $terminal = $this->interaction->consume($state, $responses);
+        if ($terminal !== null) {
+            return $terminal;
+        }
+
+        return $this->run(
+            $tool,
+            $validated,
+            $info,
+            $progress,
+            $request,
+            $responses,
+            $state->get('mode') === 'confirmation'
+        );
     }
 
     /**
@@ -186,10 +199,19 @@ final readonly class McpToolInvoker
         McpToolInfo $info,
         ?McpProgressReporter $progress,
         ?McpRequest $request,
-        ?McpInputResponses $responses = null
+        ?McpInputResponses $responses = null,
+        bool $confirmation = false
     ): McpResult {
         $reporter = $progress ?? new NullMcpProgressReporter();
-        $invoke = fn(): McpResult => $this->execute($tool, $validated, $info, $reporter, $request, $responses);
+        $invoke = fn(): McpResult => $this->execute(
+            $tool,
+            $validated,
+            $info,
+            $reporter,
+            $request,
+            $responses,
+            $confirmation
+        );
         try {
             return $this->metadata === null ? $invoke() : $this->metadata->invoke($info, $invoke);
         } catch (Throwable $throwable) {
@@ -232,8 +254,13 @@ final readonly class McpToolInvoker
         McpToolInfo $info,
         McpProgressReporter $progress,
         ?McpRequest $request,
-        ?McpInputResponses $responses
+        ?McpInputResponses $responses,
+        bool $confirmation
     ): McpResult {
+        if ($confirmation && $progress->isCancelled()) {
+            return $this->error('Tool confirmation cancelled.');
+        }
+
         try {
             if ($responses !== null && $tool instanceof McpInteractiveTool) {
                 $output = $tool->resume($validated, $responses, $progress);
@@ -251,7 +278,7 @@ final readonly class McpToolInvoker
 
         if ($output instanceof McpInputRequired) {
             if (!$tool instanceof McpInteractiveTool || $request === null || $this->interaction === null) {
-                throw new DomainException('Only a configured interactive Tool can request ordinary input.');
+                throw new DomainException('Only a configured interactive Tool can request input.');
             }
 
             return $this->interaction->issue($output, $validated, $request);
