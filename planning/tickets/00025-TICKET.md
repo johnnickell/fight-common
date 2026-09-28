@@ -84,7 +84,7 @@ retained as acceptance evidence rather than hidden.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00108](../tasks/00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | done |
-| [TASK-00109](../tasks/00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | in-progress |
+| [TASK-00109](../tasks/00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | done |
 | [TASK-00110](../tasks/00110-TASK.md) | Qualify progressive MCP in every supported framework starter | needs-info |
 <!-- /planning:children -->
 
