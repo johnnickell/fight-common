@@ -34,37 +34,48 @@ final readonly class McpResponder
 
         try {
             $request = $this->decoder->decode($json);
-            if ($request->metadata()->protocolVersion() !== self::PROTOCOL_VERSION) {
-                return McpJsonResponse::error(
-                    $request->id(),
-                    McpProtocolError::unsupportedProtocolVersion(
-                        [self::PROTOCOL_VERSION],
-                        $request->metadata()->protocolVersion()
-                    )
-                );
-            }
 
-            if ($request->method() === self::DISCOVER_METHOD) {
-                if ($request->parameters() !== []) {
-                    return McpJsonResponse::error($request->id(), McpProtocolError::invalidParams());
-                }
-
-                return $this->success($request->id(), $this->discoveryResult());
-            }
-
-            $capability = $this->registry->capabilityFor($request->method());
-            if ($capability === null) {
-                return McpJsonResponse::error($request->id(), McpProtocolError::methodNotFound());
-            }
-
-            $capability->validate($request);
-
-            return $this->success($request->id(), $capability->handle($request));
+            return $this->dispatch($request);
         } catch (McpProtocolException $exception) {
             return McpJsonResponse::error($request?->id() ?? $exception->requestId(), $exception->protocolError());
         } catch (Throwable) {
             return McpJsonResponse::error($request?->id(), McpProtocolError::internalError());
         }
+    }
+
+    /**
+     * Dispatches an already-decoded request after caller-owned safeguards
+     *
+     * Propagates capability failures to the transport's diagnostic and error boundary.
+     */
+    public function dispatch(McpRequest $request): McpJsonResponse
+    {
+        if ($request->metadata()->protocolVersion() !== self::PROTOCOL_VERSION) {
+            return McpJsonResponse::error(
+                $request->id(),
+                McpProtocolError::unsupportedProtocolVersion(
+                    [self::PROTOCOL_VERSION],
+                    $request->metadata()->protocolVersion()
+                )
+            );
+        }
+
+        if ($request->method() === self::DISCOVER_METHOD) {
+            if ($request->parameters() !== []) {
+                return McpJsonResponse::error($request->id(), McpProtocolError::invalidParams());
+            }
+
+            return $this->success($request->id(), $this->discoveryResult());
+        }
+
+        $capability = $this->registry->capabilityFor($request->method());
+        if ($capability === null) {
+            return McpJsonResponse::error($request->id(), McpProtocolError::methodNotFound());
+        }
+
+        $capability->validate($request);
+
+        return $this->success($request->id(), $capability->handle($request));
     }
 
     /**

@@ -17,6 +17,8 @@ final readonly class McpProtocolError implements Arrayable
     public const int INVALID_PARAMS = -32602;
     public const int INTERNAL_ERROR = -32603;
     public const int UNSUPPORTED_PROTOCOL_VERSION = -32022;
+    public const int HEADER_MISMATCH = -32020;
+    public const int INVOCATION_LIMIT = 429;
 
     /**
      * Constructs McpProtocolError
@@ -83,6 +85,22 @@ final readonly class McpProtocolError implements Arrayable
             'Unsupported protocol version.',
             ['supported' => $supportedVersions, 'requested' => $requestedVersion]
         );
+    }
+
+    /**
+     * Creates a transport mirror validation error without reflecting supplied values
+     */
+    public static function headerMismatch(): self
+    {
+        return new self(self::HEADER_MISMATCH, 'Header mismatch.');
+    }
+
+    /**
+     * Creates the Common-defined invocation-limit error
+     */
+    public static function invocationLimit(): self
+    {
+        return new self(self::INVOCATION_LIMIT, 'Invocation limit exceeded.');
     }
 
     /**

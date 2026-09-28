@@ -505,7 +505,7 @@ final readonly class McpCapabilityRegistry
     }
 
     /**
-     * Registers future transport-owned mirror declarations without validating headers
+     * Registers transport-owned mirror declarations without validating request headers
      *
      * @param McpCapability                              $capability
      * @param array                                       $methods

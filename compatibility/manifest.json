@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "ed2e4e1224e79ad4bc8f215b99da2a53a145bcc5ce494975d37e3d77f87cec5a",
+    "operation_shapes_sha256": "ff76b3a06e9832b652e207474a4343f9b4674f42773aeaa71f75eb7069c7a035",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,11 +13,11 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 185,
+            "declarations": 188,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 211,
+            "declarations": 217,
             "functions": 0
         }
     },
@@ -41,6 +41,10 @@
         "fight-common.classification.task-00104-addition": {
             "path": "planning/tasks/00104-TASK.md",
             "locator": "Outcome and acceptance criteria: framework-neutral MCP protocol semantics"
+        },
+        "fight-common.classification.task-00105-addition": {
+            "path": "planning/tasks/00105-TASK.md",
+            "locator": "Scope and acceptance: guarded PSR HTTP endpoint and approved invocation-limit convention"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -79,6 +83,150 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy",
+            "source": "src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Explicit native-only Origin composition is a public TASK-00105 capability."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers call the Origin policy.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers explicitly construct native-only policy.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final implementation, not an extension base.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/DenyAllMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\DenyAllMcpOriginPolicy", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy",
+            "source": "src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Explicit exact-origin allow-list composition is a public TASK-00105 capability."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers call the Origin policy.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers configure explicit allowed origins.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final implementation, not an extension base.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "source_locator": "working-tree:src/Adapter/Http/Mcp/ExactMcpOriginPolicy.php#Fight\\Common\\Adapter\\Http\\Mcp\\ExactMcpOriginPolicy", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin",
+            "source": "src/Adapter/Http/Mcp/McpOrigin.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpOrigin.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "The canonical validated HTTP origin is a public transport value."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers serialize canonical origins.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpOrigin.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers construct through the validated named factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpOrigin.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpOrigin.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpOrigin.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpOrigin", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator",
+            "source": "src/Adapter/Http/Mcp/McpHeaderValidator.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "One complete reusable transport mirror validator is a public TASK-00105 seam."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Adapters call the complete validation contract.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers construct with a capability registry.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final validator; subclasses cannot weaken the rules.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpHeaderValidator.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpHeaderValidator", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler",
+            "source": "src/Adapter/Http/Mcp/McpRequestHandler.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "The guarded PSR-15 endpoint is the public TASK-00105 delivery boundary."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumer routes delegate PSR requests.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers explicitly supply registry, policies and response factory.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final endpoint; runtime safeguards are not subclass hooks.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory",
+            "source": "src/Adapter/Http/Mcp/McpResponseFactory.php",
+            "layer": "Adapter",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Centralized PSR response mapping and diagnostics are a public TASK-00105 seam."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Adapters map semantic responses and failures.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers supply PSR-17 factories and redaction-aware diagnostics.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final response mapper.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpResponseFactory.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpResponseFactory", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpDiagnostics",
+            "source": "src/Application/Mcp/McpDiagnostics.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpDiagnostics", "source_locator": "working-tree:src/Application/Mcp/McpDiagnostics.php#Fight\\Common\\Application\\Mcp\\McpDiagnostics"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Consumer-owned redaction-aware diagnostics require an explicit public contract."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "The endpoint reports unexpected failures.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpDiagnostics", "source_locator": "working-tree:src/Application/Mcp/McpDiagnostics.php#Fight\\Common\\Application\\Mcp\\McpDiagnostics", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface has no constructor.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpDiagnostics", "source_locator": "working-tree:src/Application/Mcp/McpDiagnostics.php#Fight\\Common\\Application\\Mcp\\McpDiagnostics", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface implementation is promised separately.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpDiagnostics", "source_locator": "working-tree:src/Application/Mcp/McpDiagnostics.php#Fight\\Common\\Application\\Mcp\\McpDiagnostics", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement redaction and log delivery.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpDiagnostics", "source_locator": "working-tree:src/Application/Mcp/McpDiagnostics.php#Fight\\Common\\Application\\Mcp\\McpDiagnostics", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard",
+            "source": "src/Application/Mcp/McpInvocationGuard.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "source_locator": "working-tree:src/Application/Mcp/McpInvocationGuard.php#Fight\\Common\\Application\\Mcp\\McpInvocationGuard"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Neutral consumer-owned invocation policy requires an explicit public contract."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "The endpoint asks the guard before capability selection.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "source_locator": "working-tree:src/Application/Mcp/McpInvocationGuard.php#Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface has no constructor.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "source_locator": "working-tree:src/Application/Mcp/McpInvocationGuard.php#Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface implementation is promised separately.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "source_locator": "working-tree:src/Application/Mcp/McpInvocationGuard.php#Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement caller keys, limits, exemptions and storage.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "source_locator": "working-tree:src/Application/Mcp/McpInvocationGuard.php#Fight\\Common\\Application\\Mcp\\McpInvocationGuard", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy",
+            "source": "src/Application/Mcp/McpOriginPolicy.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "source_locator": "working-tree:src/Application/Mcp/McpOriginPolicy.php#Fight\\Common\\Application\\Mcp\\McpOriginPolicy"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "Explicit canonical-origin policy requires a public consumer contract."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "The endpoint asks about validated supplied origins.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "source_locator": "working-tree:src/Application/Mcp/McpOriginPolicy.php#Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface has no constructor.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "source_locator": "working-tree:src/Application/Mcp/McpOriginPolicy.php#Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface implementation is promised separately.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "source_locator": "working-tree:src/Application/Mcp/McpOriginPolicy.php#Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers may implement an explicit origin decision.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "source_locator": "working-tree:src/Application/Mcp/McpOriginPolicy.php#Fight\\Common\\Application\\Mcp\\McpOriginPolicy", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\McpCapability",
             "source": "src/Application/Mcp/McpCapability.php",
@@ -358,6 +506,16 @@
                 "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpProtocolError.php."
             },
             "members": [
+                {
+                    "name": "constant HEADER_MISMATCH",
+                    "signature": "public const int HEADER_MISMATCH = -32020",
+                    "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "MCP-defined header mismatch code added by TASK-00105.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError", "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError", "member": "constant HEADER_MISMATCH"}}
+                },
+                {
+                    "name": "constant INVOCATION_LIMIT",
+                    "signature": "public const int INVOCATION_LIMIT = 429",
+                    "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Common-defined invocation-limit code explicitly approved in TASK-00105.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError", "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError", "member": "constant INVOCATION_LIMIT"}}
+                },
                 {
                     "name": "constant INTERNAL_ERROR",
                     "signature": "public const int INTERNAL_ERROR = -32603",
@@ -36356,6 +36514,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-guarded-http",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Enforcement and errors"},
+            "fixture": {"path": "tests/Functional/McpEndpointJourneyTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-complete-mirrors",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Complete transport mirrors"},
+            "fixture": {"path": "tests/Adapter/Http/Mcp/McpHeaderValidatorTest.php"}
+        },
         {
             "id": "fight-common.behavior.event-dispatch-complete-fanout",
             "normative": {

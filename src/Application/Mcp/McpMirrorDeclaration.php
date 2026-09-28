@@ -51,7 +51,7 @@ final readonly class McpMirrorDeclaration
     }
 
     /**
-     * Returns the property path mirrored by a future HTTP adapter
+     * Returns the exact parameter property path mirrored by HTTP adapters
      *
      * @return list<string>
      */
