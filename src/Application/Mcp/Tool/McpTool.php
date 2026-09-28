@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 
 /**
@@ -19,5 +20,5 @@ interface McpTool
      * Discovery never invokes this method. Invocation and output-schema conformance belong
      * to the selected-Tool invoker.
      */
-    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput;
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput|McpInputRequired;
 }

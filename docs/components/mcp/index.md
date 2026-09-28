@@ -31,6 +31,8 @@ atlas_local_contents:
     href: "#schema-declarations-and-semantic-output"
   - label: Tool invocation
     href: "#validated-tool-invocation"
+  - label: Protected ordinary input
+    href: "#protected-ordinary-input"
   - label: Progress and cancellation
     href: "#request-scoped-progress-and-cancellation"
   - label: Tool metadata
@@ -250,7 +252,8 @@ $registry = new McpCapabilityRegistry($serverInfo, [$discovery, $invocation]);
 $responder = new McpResponder($registry, diagnostics: $diagnostics);
 ```
 
-`tools/call` accepts only `name` and optional `arguments`. Omitted arguments mean `{}`; present non-object arguments
+Initial `tools/call` accepts `name` and optional `arguments`; protected interactive retries additionally carry
+`requestState` and `inputResponses` as described below. Omitted arguments mean `{}`; present non-object arguments
 are a selected-Tool validation failure. Unknown outer parameters reject as invalid params. The default composition
 also rejects a progress token: it must not silently accept progress without a bound execution and delivery path.
 
@@ -315,12 +318,170 @@ never exception messages. A mapped error omits structured success content and ne
 A Tool-thrown `McpProtocolException` cannot bypass this boundary: it is unexpected unless explicitly mapped to safe
 Tool-error text. Output validation and metadata failures cannot be mistaken for mapped business failures.
 
+## Protected ordinary input
+
+An ordinary additional-input interaction is an opt-in Tool result, not a confirmation, authentication mechanism,
+transaction or durable workflow. `Application\Mcp\Tool\Interaction\McpInteractiveTool` extends `McpTool` with:
+
+```php
+public function resume(
+    ApplicationData $input,
+    McpInputResponses $responses,
+    McpProgressReporter $progress
+): McpToolOutput|McpInputRequired;
+```
+
+**Approved pre-release API change:** `McpTool::handle()` now returns `McpToolOutput|McpInputRequired`. Existing
+non-interactive implementations retain their narrower `McpToolOutput` return and unchanged behavior. Callers of the
+base interface must handle both variants; this is not signature-compatible with an assumption of complete output.
+`McpToolOutput` itself remains final, immutable and complete-only. All new interaction types below belong to
+`Application\Mcp\Tool\Interaction` unless otherwise qualified.
+
+Declare `requiresFormElicitation: true` in `#[McpToolInfo(...)]` on an interactive Tool's `handle()`. Registration
+rejects a mismatch between that flag and the interactive interface. Keep initial `#[Validation]` and all Tool
+metadata on `handle()` only; do not duplicate them on `resume()`. Current availability is checked first, then the
+current request must declare `_meta.io.modelcontextprotocol/clientCapabilities.elicitation.form: {}` before initial
+schema/rule validation or `handle()`. Missing form support returns `-32021` with safe
+`data.requiredCapabilities: {elicitation: {form: {}}}` and invokes no Tool or bus. An empty `elicitation: {}`, a URL-only
+capability, a prior request, server advertisement, or endpoint configuration does not substitute for form support.
+Direct `McpToolInvoker::invoke()` has no request capability evidence and rejects interactive Tools. The registered
+`McpToolInvocation` uses `invokeRequest()` with the current semantic request instead.
+
+A Tool may complete normally, or return ordinary additional input without dispatching its mapped use case:
+
+```php
+return McpInputRequired::fromRequests([
+    'details' => McpInputRequest::form(
+        message: 'Provide a public label',
+        schema: [
+            'type' => 'object',
+            'properties' => ['label' => ['type' => 'string', 'minLength' => 1]],
+            'required' => ['label']
+        ],
+        rules: [['field' => 'label', 'label' => 'Label', 'rules' => 'not_blank']]
+    )
+]);
+```
+
+Each response key is a nonempty, non-numeric UTF-8 string. A request contains at least one form. Messages must be
+nonblank UTF-8. Forms must never solicit passwords, API keys, payment authorizations or other secrets. Consumers
+own that content policy; shape validation is not secret detection. The selected invoker turns this value into
+`resultType: input_required`, keyed `inputRequests` containing `elicitation/create` form requests, and opaque
+`requestState`. The responder preserves this result kind and adds its normal server identity. Runtime rule labels
+and declarations are inside encrypted state only, never inside the public elicitation schema.
+
+### State protection and composition
+
+Compose the existing invoker with an explicit request-scoped interaction service:
+
+```php
+use Fight\Common\Adapter\Mcp\Sodium\SodiumMcpStateProtector;
+use Fight\Common\Application\Mcp\Tool\Interaction\McpToolInteraction;
+
+$protector = new SodiumMcpStateProtector(
+    activeVersion: 2,
+    keys: [1 => $previousRandom32ByteKey, 2 => $activeRandom32ByteKey]
+);
+$invoker = new McpToolInvoker(
+    $tools,
+    $availability,
+    interaction: new McpToolInteraction($protector, $neutralCallerBinding)
+);
+```
+
+The optional Sodium adapter requires `ext-sodium` and uses XChaCha20-Poly1305 AEAD with a fresh random 24-byte nonce,
+a 16-byte authentication tag and domain-separated associated data including the version prefix. Tokens have the
+form `1.<key-version>.<unpadded-base64url nonce-and-ciphertext>`. Only format/key versions are readable; caller,
+Tool, arguments, requested contracts/runtime rules, expiry and prior request ID remain encrypted. Base64 alone is
+not state protection. Encryption and validation use a dedicated key ring, never Bearer/HMAC credentials or
+`NonceRepository`. At most four keys are accepted, each exactly 32 random bytes and indexed by an integer version
+from 1 through 999999999. Issue only with the active version; retain older keys only for the desired grace period.
+Removing a key retires its tokens immediately. Unknown/retired versions, modified headers/nonces/ciphertexts/tags,
+and noncanonical token encodings fail closed. Keep all keys outside source control, requests, logs and fixtures
+except explicitly nonproduction test keys.
+
+`McpStateProtector::MAX_STATE_BYTES` is **65536 bytes**, enforced before token parsing/decryption in both the
+Application boundary and Sodium adapter. The adapter also rejects an oversized projected token before encryption.
+A custom `McpStateProtector` must preserve these confidentiality, size, key-rotation and failure guarantees; it is
+not permission to substitute plaintext or integrity-only state. Oversized server-authored interaction output is an
+unexpected internal error, not a truncated or partially protected token. There is no interaction table or in-memory
+session: another instance with the same keys and caller binding can resume.
+
+The consumer supplies a stable neutral caller-binding string (1–1024 UTF-8 bytes), not a principal, credential,
+permission or raw request. Use separate key rings per endpoint audience, or explicitly qualify the binding with the
+audience. Default TTL is 300 seconds; composition accepts 1–900 seconds. Workers must have synchronized clocks.
+The state binds ordinary mode, `tools/call`, canonical Tool name, original request arguments, the original validated
+`ApplicationData`, requested forms/rules/keys, caller, expiry, and issuing JSON-RPC ID. Objects are canonicalized by
+bytewise sorted keys; lists retain order, object/list distinctions and scalar types (including `1` versus `1.0`).
+No serializer is run. State wrapper depth permits the existing 64-level Tool argument bound.
+
+### Retry ordering and outcomes
+
+Retry `tools/call` with a **fresh JSON-RPC ID**, the same `name` and original `arguments`, echoed `requestState`, and
+`inputResponses: {details: {action: "accept", content: {label: "Approved label"}}}`. Object key ordering may differ;
+replacement values or types reject. An originally omitted argument object may remain omitted or be explicit `{}`.
+
+1. Bound and authenticate/open the token privately only far enough to locate its candidate Tool.
+2. Reevaluate that Tool's **current** availability. Unknown or revoked Tools return the identical unknown/unavailable
+   error before restored-state disclosure, binding details, response validation, `resume()` or bus dispatch.
+3. Require current form capability; check mode/method, caller, Tool/name, arguments, expiry and fresh request ID.
+4. Validate the complete keyed response map and every envelope/action before any accept-only content. Missing or
+   extra keys, unknown envelope fields/actions and malformed envelopes reject. This deliberately uses the TASK's
+   stricter exact-key/fail-closed policy rather than MCP's advisory ignore-extra/reprompt behavior.
+5. For `accept`, require an object and validate it against the retained form schema and runtime rules with a fresh
+   `ValidationService` per response. `decline` and `cancel` prohibit `content`, including explicit null, and skip
+   accept-only validation. Restore original validated arguments without rerunning initial schema or `#[Validation]`.
+6. Call `resume()` once with restored `ApplicationData`, typed `McpInputResponses`, and the existing reporter.
+   `$responses->get('details')->action()` returns `accept`, `decline` or `cancel`; `content()` returns validated
+   `ApplicationData` only for accept, otherwise null. `toArray()` returns the keyed typed map.
+
+Ordinary decline/cancel reaches the Tool for its safe terminal decision; it is not a destructive confirmation.
+`resume()` owns mapping an accepted response to the existing query/command and projecting public-safe output.
+Complete output still passes the declared output schema and existing failure/metadata boundaries. Further
+additional-input results are supported without reentering initial `handle()`; each new result binds its issuing ID.
+Invalid state and invalid response content share generic `-32602 Invalid params.` with no private diagnostic text.
+Unexpected Tool/output/protection failures are sanitized and diagnosed at the existing central boundary; exact
+mapped consumer failures retain their authored public text.
+
+**Ordinary tokens are replayable until expiry or key retirement.** A fresh ID does not make them single-use.
+Destructive or otherwise replay-sensitive operations require the distinct atomic confirmation mode owned by
+TASK-00112, which is not implemented here. Do not use ordinary input as an authorization approval token. Consumers
+retain current business authorization, idempotency and dispatch policy on every `resume()`. Availability is not a
+substitute for authorization inside the consumer use case.
+
+### Elicitation schema profile and evidence
+
+Forms require a root `type: object`, `properties`, optional declared `required` names, and optional exact JSON Schema
+2020-12 `$schema`. Properties are non-numeric string names. Supported fields are strings with length bounds,
+number/integer bounds, Booleans, string enums, titled single-select `oneOf` const/title choices, and string-array
+multi-selects (`items` type/string-enum or `items.anyOf` const/title choices) with item-count bounds. Fields may have
+string title/description and a conformant typed default. No defaults are inserted into responses. Only declared
+content properties are accepted. Runtime rules use the existing `field`/`label`/`rules` string declarations and must
+name declared form fields.
+
+This is a bounded subset of MCP's restricted form vocabulary: `format`, legacy `enumNames`, nested objects,
+arbitrary arrays, references, patterns and other keywords reject at declaration rather than being silently ignored.
+Use explicit runtime rules for additional supported server-side checks. Client UI constraints never replace server
+validation. This does not claim full JSON Schema or every optional MCP elicitation feature; URL mode, sampling,
+roots, durable Tasks and confirmation storage remain outside this ordinary-form slice.
+
+Pinned authority: MCP commit
+[`ab3a39c13bd23be691c2760e1c6c5c15a64582e1`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/ab3a39c13bd23be691c2760e1c6c5c15a64582e1),
+[Tools](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/ab3a39c13bd23be691c2760e1c6c5c15a64582e1/docs/specification/2026-07-28/server/tools.mdx),
+[MRTR](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/ab3a39c13bd23be691c2760e1c6c5c15a64582e1/docs/specification/2026-07-28/basic/patterns/mrtr.mdx), and
+[elicitation](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/ab3a39c13bd23be691c2760e1c6c5c15a64582e1/docs/specification/2026-07-28/client/elicitation.mdx).
+`McpToolInteractionTest` exercises real semantic responder round trips with query/command spies and a fresh retry
+instance; `McpInputRequestTest` proves schema, envelope, typed response and runtime validation behavior;
+`SodiumMcpStateProtectorTest` proves AEAD round trips, tampering, limits and rotation. These are package fixtures,
+not external SDK certification, a consumer authorization receipt or framework-starter qualification.
+
 ## Request-scoped progress and cancellation
 
 `McpToolInvoker::invoke($name, $arguments, $progress)` accepts an optional `McpProgressReporter`. Omission preserves
 its fresh `NullMcpProgressReporter` default and existing validation, availability, metadata and safe-output behavior.
-The Tool signature and reporter interface are unchanged; progress never enters Tool arguments or CQRS payloads.
-Tools continue to return one complete `McpToolOutput`, not a generator, callback, partial result or response object.
+The reporter interface is unchanged; progress never enters Tool arguments or CQRS payloads. Non-interactive Tools
+return complete `McpToolOutput`; opted-in interactive Tools may instead request ordinary input as described above.
+Neither result is a generator, callback, partial result or response object.
 
 Internal `Tool\McpToolExecution` supplies ordered execution. Its invocation binding, including
 `McpResponder::dispatch()`'s optional execution parameter and `McpToolInvocation::withExecution()`, remains a

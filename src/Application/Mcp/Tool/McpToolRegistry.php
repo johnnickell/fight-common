@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
 use Fight\Common\Domain\Exception\DomainException;
 use ReflectionMethod;
 use Throwable;
@@ -51,6 +52,10 @@ final readonly class McpToolRegistry
                 $info = $attributes[0]->newInstance();
             } catch (Throwable $exception) {
                 throw new DomainException('A Tool has invalid McpToolInfo metadata.', 0, $exception);
+            }
+
+            if (($tool instanceof McpInteractiveTool) !== $info->requiresFormElicitation()) {
+                throw new DomainException('Interactive Tools must explicitly require form elicitation in metadata.');
             }
 
             $key = 'tool:'.$info->name();

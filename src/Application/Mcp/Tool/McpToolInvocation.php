@@ -10,7 +10,6 @@ use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpRequestMirrors;
 use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolInvocation
@@ -90,10 +89,8 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
     public function handle(McpRequest $request): McpResult
     {
         $this->validate($request);
-        $parameters = $request->parameters();
-        $arguments = array_key_exists('arguments', $parameters) ? $parameters['arguments'] : StrictJson::fromObject();
 
-        return $this->invoker->invoke($parameters['name'], $arguments, $this->execution?->reporterFor($request));
+        return $this->invoker->invokeRequest($request, $this->execution?->reporterFor($request));
     }
 
     /**
@@ -104,7 +101,7 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
         $parameters = $request->parameters();
         if (
             $request->method() !== 'tools/call'
-            || array_diff(array_keys($parameters), ['name', 'arguments']) !== []
+            || array_diff(array_keys($parameters), ['name', 'arguments', 'requestState', 'inputResponses']) !== []
             || !is_string($parameters['name'] ?? null)
         ) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());

@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "575e5905056f2af5a397ebdce2e6d5e86da213923778d26137bf0069cc4befed",
+    "operation_shapes_sha256": "e42d4071fa148d0bb1d16517763d84518b342e76f7b12ca6cffc18070eb80c0d",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,11 +13,11 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 206,
+            "declarations": 214,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 221,
+            "declarations": 222,
             "functions": 0
         }
     },
@@ -58,6 +58,10 @@
             "path": "planning/tasks/00109-TASK.md",
             "locator": "Scope and acceptance: progressive HTTP, concrete emitter and native response translations"
         },
+        "fight-common.classification.task-00111-addition": {
+            "path": "planning/tasks/00111-TASK.md",
+            "locator": "Outcome, acceptance and approved pre-release Tool return widening: protected ordinary input interactions"
+        },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
             "locator": "Decision: abstract base designed for consumer specialization",
@@ -95,6 +99,132 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool",
+            "source": "src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Opt-in Tool subtype resumes restored validated arguments and typed ordinary responses."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Typed handle and resume entry points.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the consumer promise.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement interactive Tools without transport or principal parameters.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired",
+            "source": "src/Application/Mcp/Tool/Interaction/McpInputRequired.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Explicit ordinary additional-input result with keyed forms, not complete Tool output."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Read typed request contracts.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromRequests factory.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest",
+            "source": "src/Application/Mcp/Tool/Interaction/McpInputRequest.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequest.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Public-safe form declaration with privately retained runtime rules; restoration/state/validation are internal mechanics."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Obtain the safe form request.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequest.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named form factory validates bounded declarations.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequest.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequest.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequest.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequest", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse",
+            "source": "src/Application/Mcp/Tool/Interaction/McpInputResponse.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponse.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Typed ordinary accept/decline/cancel response and accept-only ApplicationData."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Read action and validated content.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponse.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Constructed by internal response validation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponse.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponse.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponse.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponse", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses",
+            "source": "src/Application/Mcp/Tool/Interaction/McpInputResponses.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponses.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Typed keyed responses passed to resume after exact envelope, schema and runtime validation."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Read known response keys or the typed map.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponses.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Constructed by internal response validation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponses.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final map.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponses.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete map.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputResponses.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputResponses", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector",
+            "source": "src/Application/Mcp/Tool/Interaction/McpStateProtector.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Bounded versioned-AEAD protection contract keeps encryption infrastructure behind an Application port."},
+            "members": [{"name": "constant MAX_STATE_BYTES", "signature": "public const int MAX_STATE_BYTES = 65536", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Pre-cryptography token byte bound.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "member": "constant MAX_STATE_BYTES"}}}],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Seal and authenticate confidential ordinary state within the fixed byte limit.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the consumer promise.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Alternate adapters must preserve AEAD, bounds and key-rotation guarantees.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpStateProtector.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpStateProtector", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction",
+            "source": "src/Application/Mcp/Tool/Interaction/McpToolInteraction.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Consumer composition binds dedicated protection, neutral caller and bounded expiry; issue/open/restore are internal ordered invoker seams."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Ordered execution methods are explicitly internal.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit request-scoped interaction composition.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final service.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete service.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema",
+            "source": "src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php",
+            "layer": "Application", "kind": "class", "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Bounded form schema implementation, not a general JSON Schema API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpElicitationSchema.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpElicitationSchema", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector",
+            "source": "src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php",
+            "layer": "Adapter", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "source_locator": "working-tree:src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php#Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00111-addition", "rationale": "Optional stateless XChaCha20-Poly1305 adapter with dedicated bounded versioned keys and pre-crypto byte limits."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Seal and open authenticated confidential ordinary state.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "source_locator": "working-tree:src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php#Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit active version and bounded dedicated key ring.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "source_locator": "working-tree:src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php#Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "source_locator": "working-tree:src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php#Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "source_locator": "working-tree:src/Adapter/Mcp/Sodium/SodiumMcpStateProtector.php#Fight\\Common\\Adapter\\Mcp\\Sodium\\SodiumMcpStateProtector", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\McpRequestMirrors",
             "source": "src/Application/Mcp/McpRequestMirrors.php",
@@ -281,7 +411,7 @@
             "classification_evidence": {"authority": "fight-common.classification.task-00106-addition", "rationale": "Explicit consumer opt-in contract with validated input and safe semantic output."},
             "members": [],
             "operations": {
-                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "The inventoried handle signature is public; discovery never calls it.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "callable"}}},
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "TASK-00111 explicitly approves the pre-release handle return widening to McpToolOutput|McpInputRequired. Existing complete-output implementations remain valid; callers must accommodate the additional result. Discovery never calls it.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "callable"}}},
                 "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "constructible"}}},
                 "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "extensible"}}},
                 "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement explicitly selected Tools.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "source_locator": "working-tree:src/Application/Mcp/Tool/McpTool.php#Fight\\Common\\Application\\Mcp\\Tool\\McpTool", "operation": "implementable"}}}
@@ -886,6 +1016,11 @@
                 "rationale": "Fight\\Common\\Application\\Mcp\\McpProtocolError is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpProtocolError.php."
             },
             "members": [
+                {
+                    "name": "constant MISSING_REQUIRED_CLIENT_CAPABILITY",
+                    "signature": "public const int MISSING_REQUIRED_CLIENT_CAPABILITY = -32021",
+                    "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "MCP-defined capability rejection used by interactive Tools.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpProtocolError", "source_locator": "working-tree:src/Application/Mcp/McpProtocolError.php#Fight\\Common\\Application\\Mcp\\McpProtocolError", "member": "constant MISSING_REQUIRED_CLIENT_CAPABILITY"}}
+                },
                 {
                     "name": "constant HEADER_MISMATCH",
                     "signature": "public const int HEADER_MISMATCH = -32020",
@@ -36908,6 +37043,21 @@
             "id": "fight-common.behavior.mcp-request-progress",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Request-scoped progress and cancellation"},
             "fixture": {"path": "tests/Application/Mcp/Tool/McpToolExecutionTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-ordinary-input",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Protected ordinary input"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/Interaction/McpToolInteractionTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-elicitation-input-validation",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Elicitation schema profile and evidence"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/Interaction/McpInputRequestTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-ordinary-state-protection",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "State protection and composition"},
+            "fixture": {"path": "tests/Adapter/Mcp/Sodium/SodiumMcpStateProtectorTest.php"}
         },
         {
             "id": "fight-common.behavior.mcp-tool-invocation",

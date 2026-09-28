@@ -101,7 +101,7 @@ authentication and command/query contracts unchanged.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | ready-for-agent |
+| [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | in-progress |
 | [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent |
 <!-- /planning:children -->
 
