@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\Tool\McpToolSchema;
 use Fight\Common\Application\Mcp\Tool\McpToolSchemaValidator;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,8 +17,8 @@ final class McpToolSchemaValidatorTest extends UnitTestCase
     #[DataProvider('conformance')]
     public function test_that_supported_schema_assertions_validate_json_values(array $schema, string $json, bool $valid): void
     {
-        $declaration = json_decode(McpToolSchema::encode($schema, false), false, 512, JSON_THROW_ON_ERROR);
-        $value = json_decode($json, false, 512, JSON_THROW_ON_ERROR);
+        $declaration = McpToolSchema::create($schema, false);
+        $value = StrictJson::fromString($json)->toData();
         self::assertSame($valid, McpToolSchemaValidator::matches($value, $declaration));
     }
 

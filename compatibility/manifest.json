@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "dfacb982c7fbcecb5962935a66ad930d2a92ff1533044b20e200bcccaec75062",
+    "operation_shapes_sha256": "d415d2ecd4304e1fe6af68eaf59694a6ae00d44a6f2543a0b6b973e19e72de53",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,11 +9,11 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 131,
+            "declarations": 132,
             "functions": 13
         },
         "Application": {
-            "declarations": 206,
+            "declarations": 205,
             "functions": 0
         },
         "Adapter": {
@@ -52,7 +52,7 @@
         },
         "fight-common.classification.task-00107-addition": {
             "path": "planning/tasks/00107-TASK.md",
-            "locator": "Scope and acceptance: validated Tool invocation, safe errors, selected mirrors and opt-in envelope metadata"
+            "locator": "Scope and acceptance: validated Tool invocation, StrictJson representation, safe errors, selected mirrors and opt-in envelope metadata"
         },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
@@ -348,19 +348,19 @@
             }
         },
         {
-            "name": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson",
-            "source": "src/Application/Mcp/Tool/McpToolJson.php",
-            "layer": "Application",
+            "name": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson",
+            "source": "src/Domain/Value/Basic/StrictJson.php",
+            "layer": "Domain",
             "kind": "class",
-            "classification": "internal",
-            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson"},
-            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Explicit @internal Tool snapshot implementation, not a consumer JSON utility."},
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "source_locator": "working-tree:src/Domain/Value/Basic/StrictJson.php#Fight\\Common\\Domain\\Value\\Basic\\StrictJson"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00107-addition", "rationale": "Maintainer-requested immutable bounded JSON value with typed object navigation and object/list preservation."},
             "members": [],
             "operations": {
-                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "callable"}}},
-                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "constructible"}}},
-                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "extensible"}}},
-                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "source_locator": "working-tree:src/Application/Mcp/Tool/McpToolJson.php#Fight\\Common\\Application\\Mcp\\Tool\\McpToolJson", "operation": "implementable"}}}
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumers inspect immutable object properties, derive replacements and serialize strict JSON values.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "source_locator": "working-tree:src/Domain/Value/Basic/StrictJson.php#Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories validate JSON text, plain data and explicit object properties.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "source_locator": "working-tree:src/Domain/Value/Basic/StrictJson.php#Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "source_locator": "working-tree:src/Domain/Value/Basic/StrictJson.php#Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value class.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "source_locator": "working-tree:src/Domain/Value/Basic/StrictJson.php#Fight\\Common\\Domain\\Value\\Basic\\StrictJson", "operation": "implementable"}}}
             }
         },
         {
@@ -36810,6 +36810,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.strict-json",
+            "normative": {"path": "docs/values.md", "section": "StrictJson"},
+            "fixture": {"path": "tests/Domain/Value/Basic/StrictJsonTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-tool-invocation",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Validated Tool invocation"},

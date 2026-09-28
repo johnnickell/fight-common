@@ -17,6 +17,7 @@ use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\McpResult;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use JsonException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -49,7 +50,7 @@ final class McpResponderTest extends UnitTestCase
                 'result'  => [
                     'resultType'      => 'complete',
                     'supportedVersions' => ['2026-07-28'],
-                    'capabilities'      => (object) ['example' => (object) ['enabled' => true]],
+                    'capabilities'      => StrictJson::fromObject(['example' => ['enabled' => true]]),
                     'ttlMs'             => 0,
                     'cacheScope'        => 'private',
                     '_meta'             => [
@@ -212,32 +213,38 @@ final class McpResponderTest extends UnitTestCase
         self::assertSame(['message' => 'hello'], $request->parameters());
         self::assertSame('2026-07-28', $request->metadata()->protocolVersion());
         self::assertEquals(
-            (object) [
-                'sampling' => new stdClass(),
-                'extensions' => (object) [
-                    'com.example/extension' => new stdClass(),
-                    'com.example/' => new stdClass(),
+            StrictJson::fromObject([
+                'sampling' => StrictJson::fromObject(),
+                'extensions' => [
+                    'com.example/extension' => StrictJson::fromObject(),
+                    'com.example/' => StrictJson::fromObject(),
                 ],
-            ],
+            ]),
             $request->metadata()->clientCapabilities(),
         );
         self::assertEquals(
-            (object) [
+            StrictJson::fromObject([
                 'name'        => 'client',
                 'version'     => '2.0',
                 'title'       => 'Example Client',
                 'description' => 'Example implementation',
                 'websiteUrl'  => 'https://example.test/client',
-                'icons'       => [(object) [
+                'icons'       => [[
                     'src'      => 'https://example.test/icon.png',
                     'mimeType' => 'image/png',
                     'sizes'    => ['any'],
                     'theme'    => 'light',
                 ]],
-            ],
+            ]),
             $request->metadata()->clientInfo(),
         );
         self::assertSame('progress-1', $request->metadata()->progressToken());
+    }
+
+    public function test_that_metadata_requires_a_typed_object_root(): void
+    {
+        $this->expectException(McpProtocolException::class);
+        McpRequestMetadata::fromObject(StrictJson::fromData([]));
     }
 
     public function test_that_metadata_rejects_missing_required_values(): void
@@ -264,7 +271,7 @@ final class McpResponderTest extends UnitTestCase
                 ],
             ));
 
-            self::assertSame($websiteUrl, $request->metadata()->clientInfo()?->websiteUrl);
+            self::assertSame($websiteUrl, $request->metadata()->clientInfo()?->get('websiteUrl'));
         }
     }
 
@@ -284,7 +291,7 @@ final class McpResponderTest extends UnitTestCase
 
         self::assertSame(
             'http://example.test/icon.png',
-            $request->metadata()->clientInfo()?->icons[0]->src,
+            $request->metadata()->clientInfo()?->get('icons')[0]->get('src'),
         );
     }
 
@@ -304,7 +311,7 @@ final class McpResponderTest extends UnitTestCase
 
         self::assertSame(
             'data:image/svg+xml;charset=utf-8;base64,PHN2Zy8+',
-            $request->metadata()->clientInfo()?->icons[0]->src,
+            $request->metadata()->clientInfo()?->get('icons')[0]->get('src'),
         );
     }
 
@@ -324,7 +331,7 @@ final class McpResponderTest extends UnitTestCase
             ];
 
             $request = (new McpRequestDecoder())->decode($this->request('example/echo', 1, metadata: $metadata));
-            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->get('icons')[0]->get('src'));
 
             $capability = new FixtureCapability();
             self::assertSame(
@@ -368,7 +375,7 @@ final class McpResponderTest extends UnitTestCase
                 ],
             ));
 
-            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->get('icons')[0]->get('src'));
         }
     }
 
@@ -396,7 +403,7 @@ final class McpResponderTest extends UnitTestCase
             ];
 
             $request = (new McpRequestDecoder())->decode($this->request('example/echo', 1, metadata: $metadata));
-            self::assertSame($iconSource, $request->metadata()->clientInfo()?->icons[0]->src);
+            self::assertSame($iconSource, $request->metadata()->clientInfo()?->get('icons')[0]->get('src'));
 
             $capability = new FixtureCapability();
             self::assertSame(
@@ -429,7 +436,7 @@ final class McpResponderTest extends UnitTestCase
             . '{"io.modelcontextprotocol/protocolVersion":"2026-07-28",'
             . '"io.modelcontextprotocol/clientCapabilities":{}}}}'
         );
-        self::assertEquals(new stdClass(), $emptyObjects->metadata()->clientCapabilities());
+        self::assertEquals(StrictJson::fromObject(), $emptyObjects->metadata()->clientCapabilities());
 
         foreach ([
             '[]',
@@ -579,9 +586,9 @@ final class McpResponderTest extends UnitTestCase
             ],
         ));
 
-        self::assertSame('', $request->metadata()->clientInfo()?->name);
-        self::assertSame('', $request->metadata()->clientInfo()?->version);
-        self::assertEquals((object) ['listChanged' => 'yes'], $request->metadata()->clientCapabilities()->roots);
+        self::assertSame('', $request->metadata()->clientInfo()?->get('name'));
+        self::assertSame('', $request->metadata()->clientInfo()?->get('version'));
+        self::assertEquals(StrictJson::fromObject(['listChanged' => 'yes']), $request->metadata()->clientCapabilities()->get('roots'));
     }
 
     public function test_that_decoder_accepts_an_empty_opaque_metadata_key_without_skipping_dispatch(): void
@@ -826,7 +833,7 @@ final class McpResponderTest extends UnitTestCase
         $responder = new McpResponder($this->registry($capability));
 
         self::assertEquals(
-            (object) ['tools' => new stdClass()],
+            StrictJson::fromObject(['tools' => StrictJson::fromObject()]),
             $responder->respond($this->request('server/discover', 13))->toArray()['result']['capabilities'],
         );
         self::assertSame(
@@ -967,11 +974,11 @@ final class McpResponderTest extends UnitTestCase
         self::assertEquals(
             [
                 'example' => [
-                    'nested' => [
+                    'nested' => StrictJson::fromObject([
                         'null'   => null,
                         'list'   => [true, 1, 'value', 1.5],
-                        'object' => (object) ['value' => false],
-                    ],
+                        'object' => ['value' => false],
+                    ]),
                 ],
             ],
             $registry->advertisedCapabilities(),
@@ -1028,11 +1035,11 @@ final class McpResponderTest extends UnitTestCase
         $objectMetadataCapability = new FixtureCapability(
             result: McpResult::complete([
                 'message' => 'hello',
-                '_meta'   => (object) ['example/metadata' => ['retained' => true]],
+                '_meta'   => StrictJson::fromObject(['example/metadata' => ['retained' => true]]),
             ]),
         );
 
-        self::assertSame(
+        self::assertEquals(
             [
                 'jsonrpc' => '2.0',
                 'id'      => 16,
@@ -1045,9 +1052,9 @@ final class McpResponderTest extends UnitTestCase
                     ],
                 ],
             ],
-            (new McpResponder($this->registry($objectMetadataCapability)))
+            json_decode((new McpResponder($this->registry($objectMetadataCapability)))
                 ->respond($this->request('example/echo', 16, ['message' => 'hello']))
-                ->toArray(),
+                ->toJson(), true, 512, JSON_THROW_ON_ERROR),
         );
 
         foreach (['not-an-object', ['not-an-object']] as $metadata) {

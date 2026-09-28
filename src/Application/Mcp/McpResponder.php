@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Exception\DomainException;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
 
 /**
@@ -105,8 +105,8 @@ final readonly class McpResponder
     {
         $data = $result->toArray();
         $metadata = $data['_meta'] ?? [];
-        if ($metadata instanceof stdClass) {
-            $metadata = get_object_vars($metadata);
+        if ($metadata instanceof StrictJson && $metadata->isObject()) {
+            $metadata = $metadata->properties();
         }
 
         if (!is_array($metadata) || ($metadata !== [] && array_is_list($metadata))) {
@@ -125,13 +125,13 @@ final readonly class McpResponder
     /**
      * Creates JSON-object capability values for the discovery wire representation
      */
-    private function discoveryCapabilities(): stdClass
+    private function discoveryCapabilities(): StrictJson
     {
         $capabilities = [];
         foreach ($this->registry->advertisedCapabilities() as $name => $definition) {
-            $capabilities[$name] = (object) $definition;
+            $capabilities[$name] = StrictJson::fromObject($definition, maxDepth: 511);
         }
 
-        return (object) $capabilities;
+        return StrictJson::fromObject($capabilities, maxDepth: 511);
     }
 }

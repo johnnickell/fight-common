@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Exception\DomainException;
-use JsonException;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpCapabilityRegistry
@@ -222,6 +221,7 @@ final readonly class McpCapabilityRegistry
                 );
             }
 
+            $definition = StrictJson::fromObject($definition, maxDepth: 511)->properties();
             if (!$this->hasValidStandardCapabilityDefinition($name, $definition)) {
                 throw new DomainException(
                     sprintf('The MCP capability "%s" has an invalid standard definition.', $name)
@@ -230,7 +230,8 @@ final readonly class McpCapabilityRegistry
 
             if (
                 array_key_exists($name, $advertisedCapabilities)
-                && $advertisedCapabilities[$name] !== $definition
+                && !StrictJson::fromObject($advertisedCapabilities[$name], maxDepth: 511)
+                    ->equals(StrictJson::fromObject($definition, maxDepth: 511))
             ) {
                 throw new DomainException(
                     sprintf('The MCP capability "%s" has contradictory advertised metadata.', $name)
@@ -425,9 +426,7 @@ final readonly class McpCapabilityRegistry
      */
     private function hasValidJsonObject(array $value): bool
     {
-        return !$this->isJsonList($value)
-            && $this->hasOnlyJsonValues($value)
-            && $this->isJsonEncodable($value);
+        return !$this->isJsonList($value) && $this->isJsonEncodable($value);
     }
 
     /**
@@ -435,49 +434,7 @@ final readonly class McpCapabilityRegistry
      */
     private function hasValidJsonObjectValue(mixed $value): bool
     {
-        if ($value instanceof stdClass) {
-            return $this->hasOnlyJsonValues(get_object_vars($value)) && $this->isJsonEncodable($value);
-        }
-
-        return is_array($value)
-            && $value !== []
-            && !array_is_list($value)
-            && $this->hasOnlyJsonValues($value)
-            && $this->isJsonEncodable($value);
-    }
-
-    /**
-     * Returns whether every value can be encoded as JSON
-     *
-     * @param array<mixed> $values
-     */
-    private function hasOnlyJsonValues(array $values): bool
-    {
-        foreach ($values as $value) {
-            if (is_array($value)) {
-                if (!$this->hasOnlyJsonValues($value)) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if ($value instanceof stdClass) {
-                if (!$this->hasOnlyJsonValues(get_object_vars($value))) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (!is_null($value) && !is_bool($value) && !is_int($value) && !is_string($value)) {
-                if (!is_float($value) || !is_finite($value)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return $value instanceof StrictJson;
     }
 
     /**
@@ -486,8 +443,8 @@ final readonly class McpCapabilityRegistry
     private function isJsonEncodable(mixed $value): bool
     {
         try {
-            json_encode($value, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
+            StrictJson::fromData($value, maxDepth: 511);
+        } catch (DomainException) {
             return false;
         }
 

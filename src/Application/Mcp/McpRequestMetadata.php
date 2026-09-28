@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpRequestMetadata
@@ -45,15 +45,11 @@ final readonly class McpRequestMetadata
 
     /**
      * Constructs McpRequestMetadata
-     *
-     * @param string        $protocolVersion
-     * @param stdClass      $clientCapabilities
-     * @param stdClass|null $clientInfo
      */
     private function __construct(
         private string $protocolVersion,
-        private stdClass $clientCapabilities,
-        private ?stdClass $clientInfo,
+        private StrictJson $clientCapabilities,
+        private ?StrictJson $clientInfo,
         private int|string|null $progressToken
     ) {
     }
@@ -61,17 +57,19 @@ final readonly class McpRequestMetadata
     /**
      * Creates bounded metadata from a request _meta object
      *
-     * JSON objects remain stdClass so an empty object is not conflated with a JSON list.
-     *
-     * @param stdClass $metadata
+     * JSON objects retain their immutable typed representation throughout validation.
      */
-    public static function fromObject(stdClass $metadata): self
+    public static function fromObject(StrictJson $metadata): self
     {
-        $protocolVersion = $metadata->{self::PROTOCOL_VERSION_KEY} ?? null;
-        $clientCapabilities = $metadata->{self::CLIENT_CAPABILITIES_KEY} ?? null;
+        if (!$metadata->isObject()) {
+            throw new McpProtocolException(McpProtocolError::invalidParams(), null);
+        }
+
+        $protocolVersion = $metadata->get(self::PROTOCOL_VERSION_KEY);
+        $clientCapabilities = $metadata->get(self::CLIENT_CAPABILITIES_KEY);
         if (
             !is_string($protocolVersion)
-            || !$clientCapabilities instanceof stdClass
+            || !$clientCapabilities instanceof StrictJson
             || !self::hasValidClientCapabilities($clientCapabilities)
             || !self::hasValidMetadataKeys($metadata)
         ) {
@@ -79,23 +77,23 @@ final readonly class McpRequestMetadata
         }
 
         $clientInfo = null;
-        if (property_exists($metadata, self::CLIENT_INFO_KEY)) {
-            $clientInfo = $metadata->{self::CLIENT_INFO_KEY};
-            if (!$clientInfo instanceof stdClass || !self::hasValidClientInfo($clientInfo)) {
+        if ($metadata->has(self::CLIENT_INFO_KEY)) {
+            $clientInfo = $metadata->get(self::CLIENT_INFO_KEY);
+            if (!$clientInfo instanceof StrictJson || !self::hasValidClientInfo($clientInfo)) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), null);
             }
         }
 
         $progressToken = null;
-        if (property_exists($metadata, self::PROGRESS_TOKEN_KEY)) {
-            $progressToken = $metadata->{self::PROGRESS_TOKEN_KEY};
+        if ($metadata->has(self::PROGRESS_TOKEN_KEY)) {
+            $progressToken = $metadata->get(self::PROGRESS_TOKEN_KEY);
             if (!is_int($progressToken) && !is_string($progressToken)) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), null);
             }
         }
 
-        if (property_exists($metadata, self::LOG_LEVEL_KEY)) {
-            $logLevel = $metadata->{self::LOG_LEVEL_KEY};
+        if ($metadata->has(self::LOG_LEVEL_KEY)) {
+            $logLevel = $metadata->get(self::LOG_LEVEL_KEY);
             if (!is_string($logLevel) || !in_array($logLevel, self::LOG_LEVELS, true)) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), null);
             }
@@ -114,20 +112,16 @@ final readonly class McpRequestMetadata
 
     /**
      * Returns client-declared capabilities
-     *
-     * @return stdClass
      */
-    public function clientCapabilities(): stdClass
+    public function clientCapabilities(): StrictJson
     {
         return $this->clientCapabilities;
     }
 
     /**
      * Returns the optional client implementation identity
-     *
-     * @return stdClass|null
      */
-    public function clientInfo(): ?stdClass
+    public function clientInfo(): ?StrictJson
     {
         return $this->clientInfo;
     }
@@ -143,23 +137,20 @@ final readonly class McpRequestMetadata
     /**
      * Validates the known client capability definitions
      */
-    private static function hasValidClientCapabilities(stdClass $capabilities): bool
+    private static function hasValidClientCapabilities(StrictJson $capabilities): bool
     {
-        if (
-            property_exists($capabilities, 'roots')
-            && !$capabilities->roots instanceof stdClass
-        ) {
+        if ($capabilities->has('roots') && !$capabilities->get('roots') instanceof StrictJson) {
             return false;
         }
 
         foreach (['sampling' => ['context', 'tools'], 'elicitation' => ['form', 'url']] as $name => $members) {
-            if (!property_exists($capabilities, $name)) {
+            if (!$capabilities->has($name)) {
                 continue;
             }
 
-            $capability = $capabilities->{$name};
+            $capability = $capabilities->get($name);
             if (
-                !$capability instanceof stdClass
+                !$capability instanceof StrictJson
                 || !self::hasObjectValuesForKnownProperties($capability, $members)
             ) {
                 return false;
@@ -167,13 +158,13 @@ final readonly class McpRequestMetadata
         }
 
         foreach (['experimental', 'extensions'] as $name) {
-            if (!property_exists($capabilities, $name)) {
+            if (!$capabilities->has($name)) {
                 continue;
             }
 
-            $capability = $capabilities->{$name};
+            $capability = $capabilities->get($name);
             if (
-                !$capability instanceof stdClass
+                !$capability instanceof StrictJson
                 || !self::hasOnlyObjectValues($capability)
                 || ($name === 'extensions' && !self::hasValidExtensionNames($capability))
             ) {
@@ -187,40 +178,35 @@ final readonly class McpRequestMetadata
     /**
      * Validates the optional client implementation identity
      */
-    private static function hasValidClientInfo(stdClass $clientInfo): bool
+    private static function hasValidClientInfo(StrictJson $clientInfo): bool
     {
-        if (
-            !isset($clientInfo->name)
-            || !is_string($clientInfo->name)
-            || !isset($clientInfo->version)
-            || !is_string($clientInfo->version)
-        ) {
+        if (!is_string($clientInfo->get('name')) || !is_string($clientInfo->get('version'))) {
             return false;
         }
 
         foreach (['title', 'description'] as $property) {
-            if (property_exists($clientInfo, $property) && !is_string($clientInfo->{$property})) {
+            if ($clientInfo->has($property) && !is_string($clientInfo->get($property))) {
                 return false;
             }
         }
 
         if (
-            property_exists($clientInfo, 'websiteUrl')
-            && (!is_string($clientInfo->websiteUrl) || !self::isUri($clientInfo->websiteUrl))
+            $clientInfo->has('websiteUrl')
+            && (!is_string($clientInfo->get('websiteUrl')) || !self::isUri($clientInfo->get('websiteUrl')))
         ) {
             return false;
         }
 
-        return !property_exists($clientInfo, 'icons') || self::hasValidIcons($clientInfo->icons);
+        return !$clientInfo->has('icons') || self::hasValidIcons($clientInfo->get('icons'));
     }
 
     /**
      * Returns whether known object members have JSON-object values when present
      *
-     * @param stdClass           $object
-     * @param array<string>      $properties
+     * @param StrictJson    $object
+     * @param array<string> $properties
      */
-    private static function hasObjectValuesForKnownProperties(stdClass $object, array $properties): bool
+    private static function hasObjectValuesForKnownProperties(StrictJson $object, array $properties): bool
     {
         return array_all($properties, fn($property): bool => self::propertyIsObjectWhenPresent($object, $property));
     }
@@ -228,18 +214,18 @@ final readonly class McpRequestMetadata
     /**
      * Returns whether every map value is a JSON object
      */
-    private static function hasOnlyObjectValues(stdClass $object): bool
+    private static function hasOnlyObjectValues(StrictJson $object): bool
     {
-        return array_all(get_object_vars($object), fn($value): bool => $value instanceof stdClass);
+        return array_all($object->properties(), fn($value): bool => $value instanceof StrictJson);
     }
 
     /**
      * Returns whether client extension names use a prefixed metadata key
      */
-    private static function hasValidExtensionNames(stdClass $extensions): bool
+    private static function hasValidExtensionNames(StrictJson $extensions): bool
     {
         return array_all(
-            array_keys(get_object_vars($extensions)),
+            array_keys($extensions->properties()),
             fn($name): bool => self::hasValidExtensionName($name)
         );
     }
@@ -247,9 +233,9 @@ final readonly class McpRequestMetadata
     /**
      * Returns whether every top-level metadata key and trace context value is well formed
      */
-    private static function hasValidMetadataKeys(stdClass $metadata): bool
+    private static function hasValidMetadataKeys(StrictJson $metadata): bool
     {
-        foreach (get_object_vars($metadata) as $name => $value) {
+        foreach ($metadata->properties() as $name => $value) {
             if (in_array($name, self::TRACE_CONTEXT_KEYS, true)) {
                 if (!self::hasValidTraceContextValue($name, $value)) {
                     return false;
@@ -447,33 +433,32 @@ final readonly class McpRequestMetadata
             return false;
         }
 
-        return array_all($icons, fn($icon): bool => !(!$icon instanceof stdClass || !self::hasValidIcon($icon)));
+        return array_all($icons, fn($icon): bool => $icon instanceof StrictJson && self::hasValidIcon($icon));
     }
 
     /**
      * Returns whether one implementation icon has valid defined properties
      */
-    private static function hasValidIcon(stdClass $icon): bool
+    private static function hasValidIcon(StrictJson $icon): bool
     {
-        if (!isset($icon->src) || !is_string($icon->src) || !self::isSafeIconUri($icon->src)) {
+        if (!is_string($icon->get('src')) || !self::isSafeIconUri($icon->get('src'))) {
             return false;
         }
 
-        if (property_exists($icon, 'mimeType') && !is_string($icon->mimeType)) {
+        if ($icon->has('mimeType') && !is_string($icon->get('mimeType'))) {
             return false;
         }
 
-        if (property_exists($icon, 'theme') && !in_array($icon->theme, ['light', 'dark'], true)) {
+        if ($icon->has('theme') && !in_array($icon->get('theme'), ['light', 'dark'], true)) {
             return false;
         }
 
-        if (!property_exists($icon, 'sizes')) {
+        if (!$icon->has('sizes')) {
             return true;
         }
 
-        return is_array($icon->sizes)
-            && array_is_list($icon->sizes)
-            && array_all($icon->sizes, static fn (mixed $size): bool => is_string($size));
+        return is_array($icon->get('sizes'))
+            && array_all($icon->get('sizes'), static fn (mixed $size): bool => is_string($size));
     }
 
     /**
@@ -779,8 +764,8 @@ final readonly class McpRequestMetadata
     /**
      * Returns whether an optional member is a JSON object when present
      */
-    private static function propertyIsObjectWhenPresent(stdClass $object, string $property): bool
+    private static function propertyIsObjectWhenPresent(StrictJson $object, string $property): bool
     {
-        return !property_exists($object, $property) || $object->{$property} instanceof stdClass;
+        return !$object->has($property) || $object->get($property) instanceof StrictJson;
     }
 }

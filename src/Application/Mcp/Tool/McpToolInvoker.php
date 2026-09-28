@@ -14,8 +14,8 @@ use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Application\Validation\Exception\ValidationException;
 use Fight\Common\Application\Validation\ValidationService;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use ReflectionMethod;
-use stdClass;
 use Throwable;
 
 /**
@@ -45,22 +45,22 @@ final readonly class McpToolInvoker
     {
         [$tool, $info] = $this->select($name);
 
-        if (!$arguments instanceof stdClass || $arguments::class !== stdClass::class) {
-            return $this->error('Tool arguments must be an object.');
-        }
-
         try {
-            $arguments = json_decode(McpToolJson::encode($arguments), false, 512, JSON_THROW_ON_ERROR);
+            $arguments = StrictJson::fromData($arguments);
         } catch (DomainException) {
             return $this->error('Tool arguments must contain supported JSON values.');
         }
 
-        if (!McpToolSchemaValidator::matches($arguments, $info->inputSchema()->toData())) {
+        if (!$arguments->isObject()) {
+            return $this->error('Tool arguments must be an object.');
+        }
+
+        if (!McpToolSchemaValidator::matches($arguments, $info->inputSchema())) {
             return $this->error('Tool arguments do not match the input schema.');
         }
 
         // PHP arrays cannot preserve numeric object keys as strings, which ValidationService requires.
-        $input = get_object_vars($arguments);
+        $input = $arguments->properties();
         if (array_any(array_keys($input), fn(int|string $key): bool => is_int($key))) {
             return $this->error('Tool argument names must be non-numeric strings.');
         }
@@ -141,7 +141,7 @@ final readonly class McpToolInvoker
         }
 
         $content = $output->structuredContent()->toData();
-        if (!McpToolSchemaValidator::matches($content, $info->outputSchema()->toData())) {
+        if (!McpToolSchemaValidator::matches($content, $info->outputSchema())) {
             throw new DomainException('Tool output does not match its declared schema.');
         }
 

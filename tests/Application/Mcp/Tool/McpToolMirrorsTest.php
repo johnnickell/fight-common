@@ -25,7 +25,7 @@ final class McpToolMirrorsTest extends UnitTestCase
             'unannotated' => true,
         ], '$defs' => ['valid' => true], 'items' => false, 'not' => false, 'anyOf' => [true],
             'default' => ['x-mcp-header' => 'NotASchemaAnnotation']];
-        $declarations = McpToolMirrors::declarations(json_decode(McpToolSchema::encode($schema, true)));
+        $declarations = McpToolMirrors::declarations(McpToolSchema::create($schema, true));
         self::assertSame(['Region', 'Count', 'Enabled'], array_map(fn($declaration) => $declaration->headerName(), $declarations));
         foreach ($declarations as $index => $declaration) {
             self::assertSame('tools/call', $declaration->method());
@@ -37,7 +37,7 @@ final class McpToolMirrorsTest extends UnitTestCase
     public function test_that_invalid_mirror_annotations_fail_composition(array $schema): void
     {
         $this->expectException(DomainException::class);
-        McpToolMirrors::declarations(json_decode(McpToolSchema::encode(['type' => 'object', ...$schema], true)));
+        McpToolMirrors::declarations(McpToolSchema::create(['type' => 'object', ...$schema], true));
     }
 
     public static function invalidAnnotations(): iterable

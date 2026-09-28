@@ -178,31 +178,40 @@ validate data. Assertions apply only to their JSON type; strings count Unicode c
 property-order significance, lists retain order, and numeric equality does not coerce strings or Booleans.
 Numeric bounds and `multipleOf` use exact decimal arithmetic over PHP's JSON-encoded numeric values, without epsilon
 rounding or optional math extensions. This cannot recover precision already lost when PHP decoded a JSON number.
-PHP arrays at `properties`/`$defs` map positions may use `[]` for `{}`; otherwise nested empty schemas use
-`new stdClass()`. Lists, objects, numeric/Boolean/null values and annotations retain their JSON meaning.
+PHP arrays at `properties`/`$defs` map positions may use `[]` for `{}`. The Boolean schema `true` permits any value;
+programmatic declarations can use `StrictJson::fromObject()` for an empty schema object. Lists, objects,
+numeric/Boolean/null values and annotations retain their JSON meaning.
 
-Metadata and output accept only plain JSON values (including exact `stdClass` objects), bounded to depth 64:
+Schemas, request metadata and output use `Domain\Value\Basic\StrictJson`, accepting only plain JSON values
+and existing immutable StrictJson nodes. Tool schemas, arguments and output are bounded to depth 64:
 the schema/output root is depth zero and each member or element adds one. Discovery's definition, catalog and
 protocol wrappers do not consume a schema's depth budget. Malformed Unicode, nonfinite numbers, resources,
 arbitrary objects/serializers and cycles reject. Object keys beginning with U+0000 also reject at construction
 with `DomainException`, because PHP's object-mode JSON decoder cannot represent them; empty keys and keys with
 non-leading U+0000 remain supported. This representation limit applies at every nesting level, including schema
-annotation values. Construction snapshots mutable objects, and accessors return fresh copies preserving JSON
+annotation values. Construction snapshots mutable input, and accessors retain immutable typed object nodes preserving JSON
 object/list distinctions. No consumer serializer executes.
 This is data-shape safety, not automatic redaction: consumers must explicitly project public-safe schemas and data.
 
-`McpToolInfo::inputSchema()` and `outputSchema()` return `Fight\Common\Domain\Value\Basic\JsonObject` values,
-not raw `stdClass` objects. Attribute declarations remain PHP arrays. Each accessor wraps a freshly decoded,
-validated snapshot; mutating objects obtained through its `toData()` cannot change the metadata. Use `toString()`
-for JSON text or serialize the value directly. `toArray()` retains the raw discovery definition representation,
-so discovery output and cursor hashing are unchanged.
+`McpToolInfo::inputSchema()` and `outputSchema()` return `Fight\Common\Domain\Value\Basic\StrictJson` values.
+Attribute declarations remain PHP arrays. Accessors and `toArray()` share immutable schema values, not mutable
+decoder objects. Use `get('properties')->get('id')->get('type')` for object navigation, `properties()` for a property
+map, and `toString()` or direct JSON serialization for wire output. Discovery JSON and cursor hashing are unchanged.
 
-`McpToolOutput::structured($publicData)` carries one complete JSON value. `structuredContent()` returns an isolated
-`JsonObject`, whose `toString()` matches `text()`, including zero-fraction numbers such as `1.0`. Despite its name,
-this existing value type can represent any JSON root: object, list, string, number, Boolean or null. Raw data is
-available through `toData()`; this is not schema-specific field typing. The factory still validates plain data,
+`McpToolOutput::structured($publicData)` carries one complete JSON value. `structuredContent()` returns immutable
+`StrictJson`, whose `toString()` matches `text()`, including zero-fraction numbers such as `1.0`. It represents any
+JSON root: object, list, string, number, Boolean or null. `toData()` returns an immutable StrictJson node for an
+object, a PHP list with typed object children for an array, or the scalar itself. The factory validates plain data,
 not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
-The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success. The
+The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success.
+
+This pre-release revision replaces the earlier MCP JsonObject/raw-object accessors with StrictJson. Request decoding,
+client capability/info accessors, nested validated Tool arguments, discovery definitions, mirror traversal and semantic
+structured output now use the same typed object representation; HTTP JSON remains compatible. Missing Tool arguments
+become `StrictJson::fromObject()`. `McpRequestMetadata::fromObject()` takes StrictJson, not a generic PHP object.
+The Domain type owns bounded JSON safety; MCP retains protocol/schema policy, including the original 512-level
+protocol codec limit separately from the 64-level Tool-data bound. Legacy `JsonObject`, JSend and cache
+sentinels are unchanged. See [StrictJson](../values/index.md#strictjson) for construction, navigation and equality. The
 final output class derives compatible text from the identical snapshot, so a Tool cannot supply a separate unsafe
 or contradictory text representation. Shape checks cannot determine whether an otherwise valid scalar is secret.
 

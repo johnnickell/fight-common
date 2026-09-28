@@ -2,7 +2,7 @@
 id: TICKET-00024
 epic: EPIC-00006
 title: Discover and Invoke Explicitly Opted-In CQRS Tools
-status: done
+status: in-progress
 ---
 
 # Discover and Invoke Explicitly Opted-In CQRS Tools
@@ -88,10 +88,16 @@ are the acceptance authority.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
-| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | done |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | ready-for-human |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+Reopened for John's pre-merge TASK-00107 revision: introduce `Domain/Value/Basic/StrictJson` and remove generic
+object representation from MCP consumers. Earlier acceptance below is historical; revised implementation needs
+fresh verification and John's re-review. This changes unreleased MCP representation contracts, not CQRS behavior.
+The revision now has a passing complete local gate with exact coverage and unchanged semantic transcript outcomes;
+TASK-00107 is ready for John's review. No revision publication or renewed independent acceptance is claimed.
 
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) fixes the named tool
 contracts and behavioral constraints while leaving exact PHP registration mechanics to implementation decomposition.
@@ -100,7 +106,7 @@ contracts and behavioral constraints while leaving exact PHP registration mechan
 envelope metadata, and integrated TICKET acceptance. TASK-00106 follows the generic semantic capability foundation
 in TASK-00104 and may proceed in parallel with TASK-00105's guarded HTTP transport; TASK-00107 follows TASK-00106.
 
-TASK-00107 delivers semantic invocation, optional envelope metadata, selected Tool mirrors, safe failure/output
+At the original acceptance checkpoint, TASK-00107 delivered semantic invocation, optional envelope metadata, selected Tool mirrors, safe failure/output
 handling, package-owned CQRS fixtures and a guarded write/read journey. Independent review accepted its exact
 implementation at `e97cf901f38a952f75ee40b3e8beaf4ff3857dfb`, with all criteria passing and no code findings;
 `.runs/reviews/TASK-00107/review.md` retains the canonical evidence. TASK-00106's accepted discovery and this

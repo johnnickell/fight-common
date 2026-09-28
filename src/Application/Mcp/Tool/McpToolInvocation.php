@@ -10,7 +10,7 @@ use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpRequestMirrors;
 use Fight\Common\Application\Mcp\McpResult;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolInvocation
@@ -81,7 +81,7 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
     {
         $this->validate($request);
         $parameters = $request->parameters();
-        $arguments = array_key_exists('arguments', $parameters) ? $parameters['arguments'] : new stdClass();
+        $arguments = array_key_exists('arguments', $parameters) ? $parameters['arguments'] : StrictJson::fromObject();
 
         return $this->invoker->invoke($parameters['name'], $arguments);
     }

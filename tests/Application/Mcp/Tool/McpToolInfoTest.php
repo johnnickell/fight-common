@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
-use Fight\Common\Application\Mcp\Tool\McpToolJson;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Mcp\Tool\McpToolSchema;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Value\Basic\JsonObject;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use JsonSerializable;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -18,7 +17,6 @@ use stdClass;
 
 #[CoversClass(McpToolInfo::class)]
 #[CoversClass(McpToolSchema::class)]
-#[CoversClass(McpToolJson::class)]
 #[CoversClass(McpToolOutput::class)]
 final class McpToolInfoTest extends UnitTestCase
 {
@@ -31,23 +29,23 @@ final class McpToolInfoTest extends UnitTestCase
         $property->description = 'Changed';
         $inputValue = $info->inputSchema();
         $outputValue = $info->outputSchema();
-        self::assertInstanceOf(JsonObject::class, $inputValue);
-        self::assertInstanceOf(JsonObject::class, $outputValue);
-        $inputValue->toData()->properties->id->type = 'number';
-        $outputValue->toData()->type = 'boolean';
-        $definition = $info->toArray();
-        $definition['inputSchema']->properties->id->description = 'Changed discovery copy';
+        self::assertInstanceOf(StrictJson::class, $inputValue);
+        self::assertInstanceOf(StrictJson::class, $outputValue);
+        $changedProperty = $inputValue->get('properties')->get('id')->with('type', 'number');
+        $changedOutput = $outputValue->with('type', 'boolean');
+        self::assertSame('number', $changedProperty->get('type'));
+        self::assertSame('boolean', $changedOutput->get('type'));
 
         self::assertSame('orders.find', $info->name());
         self::assertSame('Find an order', $info->description());
-        self::assertSame('string', $info->inputSchema()->toData()->properties->id->type);
-        self::assertSame('A public identifier', $info->inputSchema()->toData()->properties->id->description);
-        self::assertEquals((object) $output, $info->outputSchema()->toData());
+        self::assertSame('string', $info->inputSchema()->get('properties')->get('id')->get('type'));
+        self::assertSame('A public identifier', $info->inputSchema()->get('properties')->get('id')->get('description'));
+        self::assertEquals(StrictJson::fromObject($output), $info->outputSchema());
         self::assertEquals([
             'name' => 'orders.find',
             'description' => 'Find an order',
             'inputSchema' => $info->inputSchema()->toData(),
-            'outputSchema' => (object) $output,
+            'outputSchema' => StrictJson::fromObject($output),
         ], $info->toArray());
     }
 
@@ -87,8 +85,8 @@ final class McpToolInfoTest extends UnitTestCase
         $expected->properties->open->properties = new stdClass();
         $expected->properties->open->{'$defs'} = new stdClass();
 
-        self::assertEquals($expected, $info->inputSchema()->toData());
-        self::assertEquals(new stdClass(), $info->outputSchema()->toData());
+        self::assertEquals(StrictJson::fromData($expected), $info->inputSchema());
+        self::assertEquals(StrictJson::fromObject(), $info->outputSchema());
         self::assertSame('{}', $info->outputSchema()->toString());
         self::assertSame('{}', json_encode($info->outputSchema(), JSON_THROW_ON_ERROR));
     }
@@ -105,7 +103,7 @@ final class McpToolInfoTest extends UnitTestCase
         $info = new McpToolInfo('typed.schemas', 'Typed schemas', $schema, $schema);
 
         foreach ([$info->inputSchema(), $info->outputSchema()] as $value) {
-            self::assertInstanceOf(JsonObject::class, $value);
+            self::assertInstanceOf(StrictJson::class, $value);
             self::assertSame($expected, $value->toString());
             self::assertSame($expected, json_encode($value, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
         }
@@ -208,8 +206,8 @@ final class McpToolInfoTest extends UnitTestCase
         $output = McpToolOutput::structured($content);
         $value = $output->structuredContent();
 
-        self::assertInstanceOf(JsonObject::class, $value);
-        self::assertEquals($content, $value->toData());
+        self::assertInstanceOf(StrictJson::class, $value);
+        self::assertEquals(StrictJson::fromData($content), $value);
         self::assertSame($output->text(), $value->toString());
         self::assertSame($output->text(), json_encode($value, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
         self::assertEquals($content, json_decode($output->text(), false, 512, JSON_THROW_ON_ERROR));
@@ -235,7 +233,8 @@ final class McpToolInfoTest extends UnitTestCase
         $content = (object) ['nested' => (object) ['id' => 'public']];
         $output = McpToolOutput::structured($content);
         $content->nested->id = 'changed';
-        $output->structuredContent()->toData()->nested->id = 'also changed';
+        $changed = $output->structuredContent()->get('nested')->with('id', 'also changed');
+        self::assertSame('also changed', $changed->get('id'));
         self::assertSame('{"nested":{"id":"public"}}', $output->text());
         self::assertSame($output->text(), $output->structuredContent()->toString());
     }
@@ -244,7 +243,7 @@ final class McpToolInfoTest extends UnitTestCase
     public function test_that_output_rejects_unrepresentable_object_keys_during_construction(array $content): void
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Tool object keys must not begin with U+0000.');
+        $this->expectExceptionMessage('JSON object keys must not begin with U+0000.');
         McpToolOutput::structured($content);
     }
 
@@ -265,14 +264,15 @@ final class McpToolInfoTest extends UnitTestCase
         $output = McpToolOutput::structured($content);
         $expected = json_encode($content, JSON_THROW_ON_ERROR);
         $copy = $output->structuredContent();
-        self::assertInstanceOf(JsonObject::class, $copy);
-        self::assertInstanceOf(stdClass::class, $copy->toData()->list[0]);
-        self::assertSame([], $copy->toData()->list[1]);
-        self::assertInstanceOf(stdClass::class, $copy->toData()->list[2]);
+        self::assertInstanceOf(StrictJson::class, $copy);
+        self::assertInstanceOf(StrictJson::class, $copy->get('list')[0]);
+        self::assertSame([], $copy->get('list')[1]);
+        self::assertInstanceOf(StrictJson::class, $copy->get('list')[2]);
         self::assertSame($expected, $copy->toString());
         self::assertSame($expected, json_encode($copy, JSON_THROW_ON_ERROR));
         $content->list[2]->{'0'} = 'changed source';
-        $copy->toData()->list[2]->{'0'} = 'changed copy';
+        $changed = $copy->get('list')[2]->with('0', 'changed copy');
+        self::assertSame('changed copy', $changed->get('0'));
         self::assertSame($expected, $output->text());
         self::assertSame($expected, $output->structuredContent()->toString());
         self::assertSame($expected, json_encode($output->structuredContent(), JSON_THROW_ON_ERROR));

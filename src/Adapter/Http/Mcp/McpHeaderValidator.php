@@ -10,7 +10,7 @@ use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpRequestMirrors;
 use Fight\Common\Domain\Exception\DomainException;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpHeaderValidator
@@ -73,9 +73,9 @@ final readonly class McpHeaderValidator
             }
 
             $seen[$header] = true;
-            $value = (object) $request->parameters();
+            $value = StrictJson::fromObject($request->parameters(), maxDepth: 511);
             foreach ($declaration->parameterPath() as $segment) {
-                $value = $value instanceof stdClass ? ($value->{$segment} ?? null) : null;
+                $value = $value instanceof StrictJson ? $value->get($segment) : null;
             }
 
             $this->match($normalized, 'mcp-param-'.strtolower($declaration->headerName()), $value);

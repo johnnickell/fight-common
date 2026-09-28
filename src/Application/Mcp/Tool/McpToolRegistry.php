@@ -60,7 +60,7 @@ final readonly class McpToolRegistry
 
             $registered[$key] = $tool;
             $definitions[$key] = $info;
-            $mirrors[$key] = McpToolMirrors::declarations($info->inputSchema()->toData());
+            $mirrors[$key] = McpToolMirrors::declarations($info->inputSchema());
         }
 
         $this->tools = $registered;

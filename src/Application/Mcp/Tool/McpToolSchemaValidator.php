@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool;
 
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolSchemaValidator
@@ -16,13 +16,13 @@ final class McpToolSchemaValidator
     /**
      * Returns whether plain JSON data satisfies an already validated Tool schema
      */
-    public static function matches(mixed $value, stdClass|bool $schema): bool
+    public static function matches(mixed $value, StrictJson|bool $schema): bool
     {
         if (is_bool($schema)) {
             return $schema;
         }
 
-        foreach (get_object_vars($schema) as $keyword => $constraint) {
+        foreach ($schema->properties() as $keyword => $constraint) {
             $valid = match ($keyword) {
                 'type' => array_any((array) $constraint, fn(string $type): bool => self::hasType($value, $type)),
                 'const' => self::equal($value, $constraint),
@@ -32,7 +32,8 @@ final class McpToolSchemaValidator
                 'oneOf' => count(array_filter($constraint, fn($item): bool => self::matches($value, $item))) === 1,
                 'not' => !self::matches($value, $constraint),
                 'properties', 'additionalProperties', 'required', 'minProperties', 'maxProperties' =>
-                    !$value instanceof stdClass || self::objectMatches($value, $schema, (string) $keyword, $constraint),
+                    !$value instanceof StrictJson
+                    || self::objectMatches($value, $schema, (string) $keyword, $constraint),
                 'items', 'minItems', 'maxItems', 'uniqueItems' =>
                     !is_array($value) || self::arrayMatches($value, (string) $keyword, $constraint),
                 'minLength' => !is_string($value) || preg_match_all('/./us', $value) >= $constraint,
@@ -56,7 +57,7 @@ final class McpToolSchemaValidator
     private static function hasType(mixed $value, string $type): bool
     {
         return match ($type) {
-            'object' => $value instanceof stdClass,
+            'object' => $value instanceof StrictJson,
             'array' => is_array($value),
             'string' => is_string($value),
             'number' => is_int($value) || is_float($value),
@@ -69,9 +70,13 @@ final class McpToolSchemaValidator
     /**
      * Returns whether an object satisfies a property constraint without mutating it
      */
-    private static function objectMatches(stdClass $value, stdClass $schema, string $keyword, mixed $constraint): bool
-    {
-        $properties = get_object_vars($value);
+    private static function objectMatches(
+        StrictJson $value,
+        StrictJson $schema,
+        string $keyword,
+        mixed $constraint
+    ): bool {
+        $properties = $value->properties();
         if ($keyword === 'required') {
             return array_all($constraint, fn(string $key): bool => array_key_exists($key, $properties));
         }
@@ -80,7 +85,7 @@ final class McpToolSchemaValidator
             return $keyword === 'minProperties' ? count($properties) >= $constraint : count($properties) <= $constraint;
         }
 
-        $declared = get_object_vars($schema->properties ?? new stdClass());
+        $declared = ($schema->get('properties') ?? StrictJson::fromObject())->properties();
         foreach ($properties as $key => $item) {
             if (
                 $keyword === 'properties' && array_key_exists($key, $declared)
@@ -141,9 +146,9 @@ final class McpToolSchemaValidator
             return self::compare($left, $right) === 0;
         }
 
-        if ($left instanceof stdClass && $right instanceof stdClass) {
-            $left = get_object_vars($left);
-            $right = get_object_vars($right);
+        if ($left instanceof StrictJson && $right instanceof StrictJson) {
+            $left = $left->properties();
+            $right = $right->properties();
         } elseif (get_debug_type($left) !== get_debug_type($right)) {
             return false;
         }

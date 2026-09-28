@@ -33,6 +33,8 @@ atlas_local_contents:
     href: "#stringobject"
   - label: Structured JSON
     href: "#jsonobject"
+  - label: Strict JSON
+    href: "#strictjson"
   - label: Email and URIs
     href: "#emailaddress"
   - label: UUIDs and identities

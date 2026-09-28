@@ -6,7 +6,7 @@ namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Domain\Exception\DomainException;
-use stdClass;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
  * Class McpToolMirrors
@@ -20,7 +20,7 @@ final class McpToolMirrors
      *
      * @return list<McpMirrorDeclaration>
      */
-    public static function declarations(stdClass $schema): array
+    public static function declarations(StrictJson $schema): array
     {
         $declarations = [];
         self::collect($schema, ['arguments'], true, $declarations);
@@ -34,15 +34,15 @@ final class McpToolMirrors
      * @phpstan-param list<string> $path
      * @phpstan-param array<string, McpMirrorDeclaration> $declarations
      */
-    private static function collect(stdClass|bool $schema, array $path, bool $reachable, array &$declarations): void
+    private static function collect(StrictJson|bool $schema, array $path, bool $reachable, array &$declarations): void
     {
         if (is_bool($schema)) {
             return;
         }
 
-        if (isset($schema->{'x-mcp-header'})) {
-            $header = $schema->{'x-mcp-header'};
-            $types = (array) ($schema->type ?? []);
+        if ($schema->has('x-mcp-header')) {
+            $header = $schema->get('x-mcp-header');
+            $types = (array) ($schema->get('type') ?? []);
             if (
                 !$reachable || count($path) < 2 || $types === []
                 || array_diff($types, ['string', 'integer', 'boolean', 'null']) !== []
@@ -55,9 +55,9 @@ final class McpToolMirrors
             $declarations[strtolower($header)] = new McpMirrorDeclaration('tools/call', $path, $header);
         }
 
-        foreach (get_object_vars($schema) as $keyword => $value) {
+        foreach ($schema->properties() as $keyword => $value) {
             if ($keyword === 'properties' || $keyword === '$defs') {
-                foreach (get_object_vars($value) as $property => $child) {
+                foreach ($value->properties() as $property => $child) {
                     self::collect(
                         $child,
                         [...$path, (string) $property],

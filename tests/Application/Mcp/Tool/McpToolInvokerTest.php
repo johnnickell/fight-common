@@ -31,6 +31,7 @@ use Fight\Common\Application\Validation\ValidationContext;
 use Fight\Common\Application\Validation\ValidationService;
 use Fight\Common\Application\Validation\Validator;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\Domain\Serialization\SampleCommand;
 use Fight\Test\Common\Domain\Serialization\SampleQuery;
 use Fight\Test\Common\Fixture\Mcp\EchoTool;
@@ -59,14 +60,31 @@ final class McpToolInvokerTest extends UnitTestCase
         $wire = $responder->respond($this->wire(['name' => 'echo', 'arguments' => $arguments]))->toArray();
         self::assertSame(1, $tool->calls);
         self::assertSame(['echo'], $availability->seen);
-        self::assertEquals(get_object_vars($arguments), $tool->input->toArray());
+        self::assertEquals(StrictJson::fromData($arguments)->properties(), $tool->input->toArray());
         self::assertInstanceOf(NullMcpProgressReporter::class, $tool->reporter);
         self::assertFalse($tool->reporter->isCancelled());
-        self::assertEquals($arguments, $wire['result']['structuredContent']);
+        self::assertEquals(StrictJson::fromData($arguments), $wire['result']['structuredContent']);
         self::assertSame(json_encode($arguments), $wire['result']['content'][0]['text']);
         self::assertArrayNotHasKey('isError', $wire['result']);
         self::assertSame('complete', $wire['result']['resultType']);
         self::assertArrayNotHasKey('_meta', $tool->input->toArray());
+    }
+
+    public function test_that_protocol_wrappers_do_not_consume_the_tool_argument_depth_budget(): void
+    {
+        $responder = $this->responder([new EchoTool()]);
+        $nested = null;
+        for ($level = 0; $level < 63; ++$level) {
+            $nested = [$nested];
+        }
+        $allowed = $responder->respond($this->wire(['name' => 'echo', 'arguments' => ['nested' => $nested]]))->toArray();
+        self::assertArrayNotHasKey('error', $allowed);
+        self::assertArrayNotHasKey('isError', $allowed['result']);
+        self::assertSame(json_encode(['nested' => $nested]), $allowed['result']['content'][0]['text']);
+        $rejected = $responder->respond($this->wire(['name' => 'echo', 'arguments' => ['nested' => [$nested]]]))->toArray();
+        self::assertArrayNotHasKey('error', $rejected);
+        self::assertTrue($rejected['result']['isError']);
+        self::assertSame('Tool arguments must contain supported JSON values.', $rejected['result']['content'][0]['text']);
     }
 
     public function test_that_omitted_arguments_and_missing_validation_attribute_are_supported(): void
@@ -93,7 +111,7 @@ final class McpToolInvokerTest extends UnitTestCase
             ->andReturn(['value' => 'public', 'secret' => 'must not leave the consumer']);
         $result = $this->responder([new ReadValueTool($queries)])
             ->respond($this->wire(['name' => 'value.read', 'arguments' => (object) ['id' => 'item-1']]))->toArray()['result'];
-        self::assertEquals((object) ['value' => 'public'], $result['structuredContent']);
+        self::assertEquals(StrictJson::fromObject(['value' => 'public']), $result['structuredContent']);
         self::assertSame('{"value":"public"}', $result['content'][0]['text']);
         self::assertStringNotContainsString('secret', json_encode($result));
     }
@@ -104,7 +122,7 @@ final class McpToolInvokerTest extends UnitTestCase
         $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'caller-id']);
         $result = $this->responder([new WriteValueTool($commands)])
             ->respond($this->wire(['name' => 'value.write', 'arguments' => (object) ['id' => 'caller-id']]))->toArray()['result'];
-        self::assertEquals((object) ['id' => 'caller-id'], $result['structuredContent']);
+        self::assertEquals(StrictJson::fromObject(['id' => 'caller-id']), $result['structuredContent']);
         self::assertSame('{"id":"caller-id"}', $result['content'][0]['text']);
     }
 
