@@ -97,3 +97,8 @@ has not been performed. Actual consumer cryptographic validation and deployment 
 The first independent TASK review requested R1, omission of empty `scopes_supported` metadata under RFC 9728.
 TASK-00113's same-day regression-first repair and fresh complete local gate are recorded in its completion notes;
 independent re-review remains pending. This does not close the parent or qualify a deployed consumer.
+
+At the subsequent 2026-09-29 landing checkpoint, independent TASK review accepted candidate `c5b6542` with R1
+resolved and all Spec/Standards criteria passing. Authorized publication and final-head delivery verification
+remain separate from that technical acceptance. This TICKET's explicit parent closeout is still pending;
+consumer cryptographic validation and deployment qualification are not implied.
