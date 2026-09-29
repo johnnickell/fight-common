@@ -19,6 +19,7 @@ count. No row changes authored status automatically. Execution remains on the [T
 | Parent ID | Title | Status | Planning action |
 |---|---|---|---|
 | [TICKET-00026](tickets/00026-TICKET.md) | Resume Protected input_required Interactions | ready-for-agent | Review parent closeout |
+| [TICKET-00027](tickets/00027-TICKET.md) | Protect MCP Endpoints with Reusable OAuth Resource-Server Support | ready-for-agent | Review parent closeout |
 <!-- /planning:frontier -->
 
 ## Strategy and next decisions

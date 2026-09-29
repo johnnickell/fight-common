@@ -77,7 +77,7 @@ remain additive.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00113](../tasks/00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent |
+| [TASK-00113](../tasks/00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -88,3 +88,17 @@ not authorization-server, ownership. TASK-00113 owns the complete resource-serve
 guarded endpoint: metadata, strict consumer token-validation input, neutral validated claims, compliant HTTP
 authorization outcomes, lossless PSR adaptation, and unchanged HMAC/JWT behavior. Consumer routes, validator/key
 infrastructure, claim-to-principal mapping, and authorization remain outside Common.
+
+At TASK-00113's 2026-09-29 pre-publication checkpoint, the complete package slice is implemented and locally
+verified, including PSR adapters, metadata and failure/handoff journeys, unchanged HMAC behavior and additive
+manifest classification. Independent TASK review is pending; this TICKET's explicit parent acceptance/closeout
+has not been performed. Actual consumer cryptographic validation and deployment remain separate qualification.
+
+The first independent TASK review requested R1, omission of empty `scopes_supported` metadata under RFC 9728.
+TASK-00113's same-day regression-first repair and fresh complete local gate are recorded in its completion notes;
+independent re-review remains pending. This does not close the parent or qualify a deployed consumer.
+
+At the subsequent 2026-09-29 landing checkpoint, independent TASK review accepted candidate `c5b6542` with R1
+resolved and all Spec/Standards criteria passing. Authorized publication and final-head delivery verification
+remain separate from that technical acceptance. This TICKET's explicit parent closeout is still pending;
+consumer cryptographic validation and deployment qualification are not implied.

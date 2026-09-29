@@ -724,7 +724,10 @@ wildcards alone are insufficient. The default endpoint selects direct JSON; opt-
 SSE for a guarded `tools/call` with a progress token. Request content type is `application/json`,
 optionally with `charset=utf-8`. Consumer ingress owns body-size limits, TLS, trusted proxies and authentication.
 Legacy session and Last-Event-ID headers are ignored and never echoed; no session, GET stream, or DELETE lifecycle
-is created. Incoming notification dispatch and OAuth remain later work. Tool registration, discovery and
+is created. Incoming notification dispatch remains later work. Optional
+[OAuth resource-server protection](../auth/index.md#oauth-resource-server) now composes outside this endpoint:
+consumer validation and claims handoff precede capability selection, with distinct empty 400/401/403 responses.
+Consumer-selected HMAC remains a separate compatible composition. Tool registration, discovery and
 invocation use this endpoint; outgoing progress uses the additive SSE composition below.
 
 ### Origins, guards, and diagnostics
