@@ -34,6 +34,17 @@ final class OAuthConfigurationTest extends UnitTestCase
         self::assertFalse($requirements->accepts(OAuthFixture::claims(['iss' => 'https://second.test/tenant']), time()));
     }
 
+    public function test_that_metadata_omits_empty_advertised_scopes(): void
+    {
+        $issuers = ['https://second.test/tenant', OAuthFixture::ISSUER];
+        $metadata = OAuthResourceMetadata::fromConfiguration(OAuthFixture::RESOURCE, $issuers, OAuthScopeSet::fromArray([]));
+        self::assertSame([
+            'resource' => OAuthFixture::RESOURCE,
+            'authorization_servers' => $issuers,
+            'bearer_methods_supported' => ['header']
+        ], json_decode($metadata->toJson(), true));
+    }
+
     #[DataProvider('metadataLocations')]
     public function test_that_well_known_path_insertion_preserves_resource_identity(string $resource, string $expected): void
     {

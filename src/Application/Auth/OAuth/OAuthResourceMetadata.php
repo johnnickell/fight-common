@@ -72,12 +72,17 @@ final readonly class OAuthResourceMetadata
      */
     public function toJson(): string
     {
-        return StrictJson::fromObject([
-            'resource'                 => $this->resource,
-            'authorization_servers'    => $this->authorizationServers,
-            'scopes_supported'         => $this->scopesSupported->values,
-            'bearer_methods_supported' => ['header']
-        ])->toString();
+        $metadata = [
+            'resource'              => $this->resource,
+            'authorization_servers' => $this->authorizationServers
+        ];
+        if ($this->scopesSupported->values !== []) {
+            $metadata['scopes_supported'] = $this->scopesSupported->values;
+        }
+
+        $metadata['bearer_methods_supported'] = ['header'];
+
+        return StrictJson::fromObject($metadata)->toString();
     }
 
     /**

@@ -77,8 +77,9 @@ terminating slash and preserving its query. An optional explicit HTTPS metadata 
 publication elsewhere. Consumers must publish the configured document there and preserve the exact resource
 identity on any well-known route. Common never selects an issuer or discovers its endpoints.
 
-Metadata JSON contains `resource`, all `authorization_servers` in configured order, `scopes_supported` and
-`bearer_methods_supported: ["header"]`. `OAuthMetadataHandler` returns it on GET as HTTP 200
+Metadata JSON contains `resource`, all `authorization_servers` in configured order and
+`bearer_methods_supported: ["header"]`. Nonempty advertised scopes appear in `scopes_supported`; an empty set
+omits that parameter, as RFC 9728 §3.2 requires for zero-valued metadata. `OAuthMetadataHandler` returns it on GET as HTTP 200
 `application/json`; other methods return an empty 405 with `Allow: GET`. Consumers own TLS, trusted ingress,
 routing, route-to-resource identity and public access to this metadata route.
 

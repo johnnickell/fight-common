@@ -10,6 +10,7 @@ use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;
 use Fight\Common\Application\Auth\OAuth\OAuthClaimsHandoff;
 use Fight\Common\Application\Auth\OAuth\OAuthDiagnostics;
 use Fight\Common\Application\Auth\OAuth\OAuthFailure;
+use Fight\Common\Application\Auth\OAuth\OAuthResourceMetadata;
 use Fight\Common\Application\Auth\OAuth\OAuthResourceServer;
 use Fight\Common\Application\Auth\OAuth\OAuthScopeSet;
 use Fight\Common\Application\Auth\OAuth\OAuthTokenRejected;
@@ -47,6 +48,22 @@ final class OAuthHttpTest extends UnitTestCase
             self::assertSame('GET', $response->getHeaderLine('Allow'));
             self::assertSame('', (string) $response->getBody());
         }
+    }
+
+    public function test_that_metadata_get_omits_empty_advertised_scopes(): void
+    {
+        $factory = new HttpFactory();
+        $issuers = ['https://second.test/tenant', OAuthFixture::ISSUER];
+        $metadata = OAuthResourceMetadata::fromConfiguration(OAuthFixture::RESOURCE, $issuers, OAuthScopeSet::fromArray([]));
+        $handler = new OAuthMetadataHandler($metadata, new OAuthResponseFactory($factory, $factory));
+        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl));
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+        self::assertSame([
+            'resource' => OAuthFixture::RESOURCE,
+            'authorization_servers' => $issuers,
+            'bearer_methods_supported' => ['header']
+        ], json_decode((string) $response->getBody(), true));
     }
 
     #[DataProvider('failures')]
