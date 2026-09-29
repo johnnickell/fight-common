@@ -55,8 +55,8 @@ final readonly class McpResourceInfo implements Arrayable
             throw new DomainException('Resource size must be a non-negative safe integer.');
         }
 
-        if ($data->has('_meta') && !$data->get('_meta') instanceof StrictJson) {
-            throw new DomainException('Resource metadata extensions must be an object.');
+        if ($data->has('_meta') && !self::validMetadataExtensions($data->get('_meta'))) {
+            throw new DomainException('Resource metadata extensions must be an object with valid keys.');
         }
 
         if ($data->has('annotations') && !self::validAnnotations($data->get('annotations'))) {
@@ -114,6 +114,24 @@ final readonly class McpResourceInfo implements Arrayable
     private static function isUri(string $value): bool
     {
         return Uri::parse($value)?->getScheme() !== null;
+    }
+
+    /**
+     * Returns whether immediate extension keys follow the MCP grammar without restricting their values
+     */
+    private static function validMetadataExtensions(mixed $value): bool
+    {
+        if (!$value instanceof StrictJson) {
+            return false;
+        }
+
+        $pattern = implode('', [
+            '/\A(?:[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?',
+            '(?:\.[A-Za-z](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\/)?',
+            '(?:[A-Za-z0-9](?:[A-Za-z0-9_.-]*[A-Za-z0-9])?)?\z/'
+        ]);
+
+        return array_all(array_keys($value->properties()), fn($key): bool => preg_match($pattern, (string) $key) === 1);
     }
 
     /**
@@ -179,6 +197,12 @@ final readonly class McpResourceInfo implements Arrayable
      */
     private static function validImageData(string $source): bool
     {
+        // Match McpRequestMetadata's RFC 2397 raw URL grammar before interpreting MIME or Base64.
+        // In particular, a raw hash starts a fragment, never a MIME token or image payload.
+        if (preg_match('/[^A-Za-z0-9!$&\'()*+\-._~;\/?:@=,%]|%(?![0-9A-Fa-f]{2})/', substr($source, 5)) !== 0) {
+            return false;
+        }
+
         $parts = explode(',', substr($source, 5), 2);
         $header = explode(';', $parts[0]);
         if (count($parts) !== 2 || strtolower(array_pop($header)) !== 'base64') {

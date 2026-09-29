@@ -116,9 +116,13 @@ normalization, decoding, path lookup, directory scan, redirect or fetch is suppl
 Create metadata with `McpResourceInfo::fromArray($fields, $limits)`. Required fields are an absolute RFC 3986
 `uri` and string `name`. Optional `title`, `description` and `mimeType` remain protocol strings (including empty
 strings); `size` is a non-negative safe integer byte count. Icons validate their supported HTTP(S)/Base64-image
-URI and defined fields. Annotations validate audience, priority and string last-modified values. `_meta` must be
-an object. Unknown top-level fields, invalid JSON/Unicode, excessive nesting (32 levels), invalid identities and
-byte-limit violations are rejected, not silently repaired or truncated. Common validates representations, not
+URI and defined fields. Image data URIs require RFC 2397 URL characters or valid percent escapes before MIME
+and Base64 decoding: a raw `#` is not image data; an escaped `%23` may appear in a MIME token. Escaped MIME
+special characters and quoted-string parameter values remain supported. Annotations validate audience, priority
+and string last-modified values. `_meta` must be an object whose immediate keys follow MCP's optional dotted-prefix
+and name grammar. Empty names and unknown reserved keys are legal; extension values remain open JSON, without
+recursive metadata-key rules. Unknown top-level fields, invalid JSON/Unicode, excessive nesting (32 levels), invalid
+identities and byte-limit violations are rejected, not silently repaired or truncated. Common validates representations, not
 whether a supplied MIME label describes actual bytes; content validation belongs to the read slice.
 
 Nested objects are immutable `StrictJson` values; `toArray()` retains those typed objects and lists. Use

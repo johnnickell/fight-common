@@ -19,6 +19,7 @@ use Fight\Common\Application\Mcp\Resource\McpResourceProvider;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -135,6 +136,52 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
         }
         self::assertSame(['resource_failure', 'resource_failure'], $diagnostics->events);
         self::assertSame(0, $provider->contentReads);
+    }
+
+    #[DataProvider('malformedProviderMetadata')]
+    public function test_that_malformed_provider_metadata_never_becomes_a_successful_page(array $metadata): void
+    {
+        $provider = new class ($metadata) implements McpResourceProvider {
+            public int $enumerations = 0;
+            public function __construct(private readonly array $metadata) {}
+            public function resources(): iterable {
+                ++$this->enumerations;
+                yield McpResourceInfo::fromArray(['uri' => 'context:/a', 'name' => 'Valid first descriptor']);
+                yield McpResourceInfo::fromArray(['uri' => 'context:/secret', 'name' => 'Private descriptor', ...$this->metadata]);
+            }
+        };
+        $availability = new class implements McpResourceAvailability {
+            public function isAvailable(McpResourceInfo $resource): bool { return true; }
+        };
+        $guard = new class implements McpInvocationGuard {
+            public function allows(string $method, ?string $name): bool { return true; }
+        };
+        $diagnostics = new class implements McpDiagnostics {
+            public array $events = [];
+            public function record(Throwable $failure): void { $this->events[] = 'resource_failure'; }
+        };
+        $factory = new HttpFactory();
+        $endpoint = new McpRequestHandler(
+            new McpCapabilityRegistry(new McpServerInfo('Resource validation', '1'), [new McpResourceDiscovery(
+                [$provider], $availability, 'fixture-only-resource-cursor-key-00117', 'validation', new McpResourceLimits(pageSize: 1),
+            )]),
+            new ExactMcpOriginPolicy([]), $guard, new McpResponseFactory($factory, $factory, $diagnostics),
+        );
+        $response = $endpoint->handle($this->request('resources/list'));
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], json_decode((string) $response->getBody(), true));
+        self::assertSame(1, $provider->enumerations);
+        self::assertSame(['resource_failure'], $diagnostics->events);
+    }
+
+    public static function malformedProviderMetadata(): iterable
+    {
+        foreach (['bad key', '1bad.example/name', 'org.example/-bad'] as $key) {
+            yield 'R1 '.$key => [['_meta' => [$key => 'private extension value']]];
+        }
+        foreach (['data:image/p#ng;base64,YQ==', 'data:image/png;x=a#b;base64,YQ=='] as $source) {
+            yield 'R2 '.$source => [['icons' => [['src' => $source]]]];
+        }
     }
 
     private function request(string $method, array $parameters = []): ServerRequestInterface

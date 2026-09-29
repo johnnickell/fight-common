@@ -47,9 +47,14 @@ final class McpResourceInfoTest extends UnitTestCase
         yield [['annotations' => ['audience' => [], 'priority' => 0]]];
         yield [['annotations' => ['priority' => 1]]];
         yield [['size' => 9007199254740991]];
+        foreach (['', '0', 'a', 'a_b.c-9', 'org.example/', 'org.example/name', 'a-b.c9/name', 'io.modelcontextprotocol/unknown'] as $key) {
+            yield 'metadata key '.$key => [['_meta' => StrictJson::fromObject([$key => ['bad nested key' => ['-open' => null]]])]];
+        }
         foreach (['http://example.test/icon', 'data:image/png;base64,YQ==', 'DATA:image/svg+xml;title=%22a%20b%22;base64,YQ%3D%3D',
             'data:image/png;charset=utf-8;base64,YQ==', 'data:image/png;x=a%2Fb;base64,YQ==',
-            'data:image/png;x=%22a%5C%22b%22;base64,YQ=='] as $src) {
+            'data:image/png;x=%22a%5C%22b%22;base64,YQ==', 'data:image/p%23ng;base64,YQ==',
+            'data:image/png;x=a%23b;base64,YQ==', 'data:image/png;x%23y=abc;base64,YQ==',
+            'data:image/png;x=%22a%09b%22;base64,YQ=='] as $src) {
             yield [['icons' => [['src' => $src]]]];
         }
     }
@@ -63,6 +68,15 @@ final class McpResourceInfoTest extends UnitTestCase
 
     public static function invalidMetadata(): iterable
     {
+        foreach (['bad key', '1bad.example/name', 'org.example/-bad', "name\n", 'org..example/name',
+            'org-.example/name', 'org.example/name/', 'org.example/name_', 'é'] as $key) {
+            yield 'R1 metadata key '.$key => [['_meta' => [$key => 'private extension value']]];
+        }
+        foreach (['data:image/p#ng;base64,YQ==', 'data:image/png;x=a#b;base64,YQ==',
+            'data:image/png;x#y=abc;base64,YQ==', 'data:image/png;x=[abc];base64,YQ==',
+            'data:image/png;base64,YQ==#fragment'] as $src) {
+            yield 'R2 icon '.$src => [['icons' => [['src' => $src]]]];
+        }
         foreach (['uri' => [null, '', 'relative', 'http://[bad]', 'test:/a b', 'test:/%zz', 'test:/é'],
             'name' => [null, 1, "\xff"], 'title' => [null], 'description' => [false], 'mimeType' => [12],
             'size' => [-1, 1.5, 9007199254740992, '1'], '_meta' => [[], false],
