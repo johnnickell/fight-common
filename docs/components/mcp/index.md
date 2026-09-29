@@ -33,6 +33,8 @@ atlas_local_contents:
     href: "#validated-tool-invocation"
   - label: Protected ordinary input
     href: "#protected-ordinary-input"
+  - label: Atomic destructive confirmation
+    href: "#atomic-destructive-confirmation"
   - label: Progress and cancellation
     href: "#request-scoped-progress-and-cancellation"
   - label: Tool metadata
@@ -444,10 +446,106 @@ Unexpected Tool/output/protection failures are sanitized and diagnosed at the ex
 mapped consumer failures retain their authored public text.
 
 **Ordinary tokens are replayable until expiry or key retirement.** A fresh ID does not make them single-use.
-Destructive or otherwise replay-sensitive operations require the distinct atomic confirmation mode owned by
-TASK-00112, which is not implemented here. Do not use ordinary input as an authorization approval token. Consumers
+Destructive or otherwise replay-sensitive operations require the distinct [atomic confirmation mode](#atomic-destructive-confirmation).
+Do not use ordinary input as an authorization approval token. Consumers
 retain current business authorization, idempotency and dispatch policy on every `resume()`. Availability is not a
 substitute for authorization inside the consumer use case.
+
+## Atomic destructive confirmation
+
+A consumer-designated replay-sensitive Tool uses the same `McpInteractiveTool`, static form-capability gate,
+form schemas, validation, protected state, current-availability checks and `resume()` contract. It opts in by
+returning `McpInputRequired::confirmation($forms)` instead of `fromRequests($forms)`. Common never infers
+which actions are destructive or what an affirmative form value means. The Tool must not dispatch its mutation
+while requesting confirmation; it owns current business authorization and content policy when resumed.
+
+```php
+// Inside the consumer's interactive Tool; the form content and destructive policy belong to that consumer.
+return McpInputRequired::confirmation([
+    'approval' => McpInputRequest::form(
+        'Confirm removal of this fixture value',
+        [
+            'type' => 'object',
+            'properties' => ['confirm' => ['type' => 'boolean']],
+            'required' => ['confirm']
+        ]
+    )
+]);
+
+// At the composition root; $confirmationStore implements McpConfirmationStore.
+$interaction = new McpToolInteraction(
+    $protector,
+    $neutralCallerBinding,
+    confirmations: $confirmationStore
+);
+```
+
+Confirmation state adds a dedicated cryptographically random 256-bit identity and `confirmation` mode to the
+same encrypted bindings. It contains no authentication credential or HMAC request nonce. Before exposing the
+`input_required` result, Common seals the bounded state and calls `McpConfirmationStore::issue($id, $binding,
+$expires)`. The store receives only a 64-character lowercase hexadecimal identity, the SHA-256 digest of the
+**complete canonical protected state**, and its exclusive Unix-second expiry. No raw caller, original arguments,
+forms or approval language cross this storage port. An unavailable store, collision or issue failure emits no
+usable confirmation result and reaches the existing sanitized internal-error boundary. Each issue creates a new
+identity; it never renews a consumed confirmation.
+
+### Atomic store contract
+
+Consumers implement `Application\Mcp\Tool\Interaction\McpConfirmationStore` against shared durable storage:
+
+- `issue()` persists one unused identity before returning and must never overwrite an existing or consumed entry.
+- `consume()` compares the identity, full-state binding and exact expiry, checks expiry against the current time,
+  and durably transitions unused to consumed **atomically**. Only one contender can return `CONSUMED`. An exclusive
+  transaction/conditional update or equivalent atomic mechanism is required; separate get/delete operations are not.
+- `McpConfirmationOutcome` distinguishes `CONSUMED`, `ABSENT`, `EXPIRED`, `MISMATCHED`, `ALREADY_CONSUMED` and
+  `CONTENDED` internally. A consumer may reject lock contention instead of waiting. Preserve consumed identity
+  until expiry; absent/expired records cannot be acquired. Consumers own retention, backend access controls,
+  synchronized clocks and operational recovery, not Common.
+- Throw on infrastructure failure. An ambiguous acknowledgement must never restore potentially consumed state.
+  Common does not retry, release, renew, roll back or reinstate confirmations. `NonceRepository`, `MutableCache`,
+  a process-local flag, or a read-then-delete pair cannot substitute for this contract.
+
+No production store adapter is supplied. The package's `LockedConfirmationStore` **test fixture** demonstrates
+cross-process mutual exclusion over one file; it is not qualified for production, distributed filesystems, database
+failover or crash recovery. Consumers must prove the same contract for their chosen storage technology.
+
+### Confirmation retry and terminal outcomes
+
+Retry uses the same fresh-ID, original-arguments and keyed `ElicitResult` rules as ordinary input. Common first
+checks current Tool availability before restored-state disclosure or response validation, then current form
+capability and every protected binding. It validates all envelopes/keys/actions and accept-only schema/rule content
+**before** store acquisition. An unavailable Tool remains indistinguishable from an unknown Tool and never touches
+the store. Invalid responses do not consume the confirmation or a different identity.
+
+After successful validation, exactly one atomic consume occurs:
+
+- If every action is `accept`, Common checks the current reporter for cancellation and then calls `resume()` once.
+  An `accept` action means the client supplied form content, not that Common approves the business action. For
+  example, a schema-valid `confirm: false` still reaches the consumer, which must interpret it before dispatch.
+- If **any** keyed action is `decline` or `cancel`, Common retires the whole confirmation and returns a complete
+  text-only result, `Confirmation not accepted.` It calls neither `resume()` nor any underlying bus. Refusals
+  prohibit even null `content`; they do not validate accept-only content. Mixed maps still validate the content
+  of their accepted responses before retirement.
+- A reporter cancelled after acquisition but before `resume()` prevents Tool/bus dispatch and returns a safe
+  cancelled Tool result; an outer cancelled stream suppresses final delivery. During `resume()`, cancellation
+  remains cooperative: the Tool must observe its reporter. Common never interrupts work or rolls back a command.
+- Consumption is permanent after success, mapped rejection, unexpected `Throwable`, invalid final output,
+  metadata/response failure, cancellation or disconnect. Any later attempt fails closed before `resume()` or
+  command/query/event dispatch. This is at-most-once admission, **not** a transaction with the business mutation:
+  a crash after consumption may leave the action unperformed, and a failed response may follow a committed action.
+  Recovery and any newly issued confirmation are explicit consumer decisions, never automatic replay.
+
+Store rejections (including contention) and consumption failures all expose only `-32602 Invalid params.`;
+no store, caller, Tool, arguments or internal rejection reason is reflected. Existing exact Tool failure mappings,
+central unexpected-failure diagnostics, command/query envelopes, HMAC nonces and Bearer composition are unchanged.
+Ordinary input remains stateless and replayable even when a confirmation store is configured.
+
+`tests/Application/Mcp/Tool/Interaction/McpConfirmationTest.php` proves protected state, ordering, rejection,
+refusal, consumption after each outcome, cancellation before/during resume, and simulated stream closure through
+the semantic responder. `tests/Functional/McpConfirmationJourneyTest.php` checks a concrete store contract and
+releases two independent processes from one start barrier: exactly one complete retry, one safe loser, and one
+command plus event side effect through the real routing bus/event dispatcher. This is package evidence, not a
+consumer persistence certification, live HTTP cancellation receipt or business-authorization guarantee.
 
 ### Elicitation schema profile and evidence
 
@@ -463,7 +561,7 @@ This is a bounded subset of MCP's restricted form vocabulary: `format`, legacy `
 arbitrary arrays, references, patterns and other keywords reject at declaration rather than being silently ignored.
 Use explicit runtime rules for additional supported server-side checks. Client UI constraints never replace server
 validation. This does not claim full JSON Schema or every optional MCP elicitation feature; URL mode, sampling,
-roots, durable Tasks and confirmation storage remain outside this ordinary-form slice.
+roots and durable Tasks remain outside this form slice; concrete confirmation persistence remains consumer-owned.
 
 Pinned authority: MCP commit
 [`ab3a39c13bd23be691c2760e1c6c5c15a64582e1`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/ab3a39c13bd23be691c2760e1c6c5c15a64582e1),

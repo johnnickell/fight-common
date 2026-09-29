@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "e42d4071fa148d0bb1d16517763d84518b342e76f7b12ca6cffc18070eb80c0d",
+    "operation_shapes_sha256": "49173290205b2fffb7b7610c3474dbb2a09334d33cf096b6e55e4fdbed71f7d8",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 214,
+            "declarations": 216,
             "functions": 0
         },
         "Adapter": {
@@ -62,6 +62,10 @@
             "path": "planning/tasks/00111-TASK.md",
             "locator": "Outcome, acceptance and approved pre-release Tool return widening: protected ordinary input interactions"
         },
+        "fight-common.classification.task-00112-addition": {
+            "path": "planning/tasks/00112-TASK.md",
+            "locator": "Scope and acceptance: consumer-provided atomic confirmation store and single-use destructive retries"
+        },
         "fight-common.operation.abstract-extension-base": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
             "locator": "Decision: abstract base designed for consumer specialization",
@@ -100,6 +104,41 @@
     },
     "declarations": [
         {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore",
+            "source": "src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00112-addition", "rationale": "Consumer persistence port issues without overwrite and atomically consumes one exact unexpired confirmation."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Issue and consume exact confirmation state with explicit acquisition outcomes.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Consumer implementation is the supported operation.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers supply shared durable atomic stores preserving the documented contract.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome",
+            "source": "src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php",
+            "layer": "Application", "kind": "enum", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00112-addition", "rationale": "Store acquisition distinguishes consumption, absence, expiry, binding mismatch, replay and contention without exposing reasons publicly."},
+            "members": [
+                {"name": "case ABSENT", "signature": "case ABSENT", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "No stored identity.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case ABSENT"}}},
+                {"name": "case ALREADY_CONSUMED", "signature": "case ALREADY_CONSUMED", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Prior acquisition cannot be replayed.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case ALREADY_CONSUMED"}}},
+                {"name": "case CONSUMED", "signature": "case CONSUMED", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "The exact unexpired identity was durably consumed by this caller.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case CONSUMED"}}},
+                {"name": "case CONTENDED", "signature": "case CONTENDED", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Busy acquisition failed closed.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case CONTENDED"}}},
+                {"name": "case EXPIRED", "signature": "case EXPIRED", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "The exclusive expiry boundary has passed.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case EXPIRED"}}},
+                {"name": "case MISMATCHED", "signature": "case MISMATCHED", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "The complete state binding or expiry does not match.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "member": "case MISMATCHED"}}}
+            ],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Unit enum exposes cases, no authored methods.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Use enum cases.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpConfirmationOutcome.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationOutcome", "operation": "implementable"}}}
+            }
+        },
+        {
             "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInteractiveTool",
             "source": "src/Application/Mcp/Tool/Interaction/McpInteractiveTool.php",
             "layer": "Application", "kind": "interface", "classification": "public",
@@ -122,7 +161,7 @@
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Read typed request contracts.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromRequests factory.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "constructible"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromRequests ordinary factory and additive TASK-00112 confirmation factory; requiresConfirmation reads the selected mode.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "constructible"}}},
                 "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "extensible"}}},
                 "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpInputRequired.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpInputRequired", "operation": "implementable"}}}
             }
@@ -192,7 +231,7 @@
             "members": [],
             "operations": {
                 "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Ordered execution methods are explicitly internal.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "callable"}}},
-                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit request-scoped interaction composition.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "constructible"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit request-scoped interaction composition; TASK-00112 adds an optional trailing consumer atomic confirmation store without changing ordinary behavior.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "constructible"}}},
                 "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final service.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "extensible"}}},
                 "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete service.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "source_locator": "working-tree:src/Application/Mcp/Tool/Interaction/McpToolInteraction.php#Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpToolInteraction", "operation": "implementable"}}}
             }
@@ -37043,6 +37082,16 @@
             "id": "fight-common.behavior.mcp-request-progress",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Request-scoped progress and cancellation"},
             "fixture": {"path": "tests/Application/Mcp/Tool/McpToolExecutionTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-destructive-confirmation",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Atomic destructive confirmation"},
+            "fixture": {"path": "tests/Application/Mcp/Tool/Interaction/McpConfirmationTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-confirmation-atomic-store",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Atomic store contract"},
+            "fixture": {"path": "tests/Functional/McpConfirmationJourneyTest.php"}
         },
         {
             "id": "fight-common.behavior.mcp-ordinary-input",

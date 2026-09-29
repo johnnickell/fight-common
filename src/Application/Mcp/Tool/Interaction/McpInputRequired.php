@@ -17,7 +17,7 @@ final readonly class McpInputRequired
      *
      * @param array<string, McpInputRequest> $requests
      */
-    private function __construct(private array $requests)
+    private function __construct(private array $requests, private bool $confirmation = false)
     {
     }
 
@@ -41,6 +41,27 @@ final readonly class McpInputRequired
         StrictJson::fromObject(array_fill_keys(array_keys($requests), null));
 
         return new self($requests);
+    }
+
+    /**
+     * Creates consumer-designated confirmation forms requiring atomic single-use state
+     *
+     * Common does not decide destructiveness or interpret confirmation content as business approval.
+     * All keyed responses must accept before resume; any decline or cancel retires the whole interaction.
+     *
+     * @param array<mixed> $requests
+     */
+    public static function confirmation(array $requests): self
+    {
+        return new self(self::fromRequests($requests)->requests, true);
+    }
+
+    /**
+     * Returns whether these forms require consumer-provided atomic confirmation storage
+     */
+    public function requiresConfirmation(): bool
+    {
+        return $this->confirmation;
     }
 
     /**

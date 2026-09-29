@@ -12,10 +12,10 @@ interface McpStateProtector
     public const int MAX_STATE_BYTES = 65536;
 
     /**
-     * Encrypts ordinary interaction state with versioned authenticated confidentiality
+     * Encrypts interaction state with versioned authenticated confidentiality
      *
      * Fail closed before encryption when the resulting token would exceed MAX_STATE_BYTES.
-     * Tokens disclose only protocol and key versions; no server-side interaction record is retained.
+     * Tokens disclose only protocol and key versions; this protector retains no server-side interaction record.
      */
     public function seal(string $plaintext): string;
 

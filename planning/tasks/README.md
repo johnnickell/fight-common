@@ -14,7 +14,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | done | [TICKET-00025](../tickets/00025-TICKET.md) |
 | [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | wontfix | [TICKET-00025](../tickets/00025-TICKET.md) |
 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | done | [TICKET-00026](../tickets/00026-TICKET.md) |
-| [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent | [TICKET-00026](../tickets/00026-TICKET.md) |
+| [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | done | [TICKET-00026](../tickets/00026-TICKET.md) |
 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | ready-for-agent | [TICKET-00027](../tickets/00027-TICKET.md) |
 | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | done | — |
 | [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | ready-for-agent | — |

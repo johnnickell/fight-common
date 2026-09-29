@@ -102,7 +102,7 @@ authentication and command/query contracts unchanged.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | done |
-| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | ready-for-agent |
+| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -113,3 +113,19 @@ two complete behavior slices rather than layer slices: TASK-00111 owns stateless
 input retry, and TASK-00112 extends its stable interaction envelope with consumer-provided atomic single-use
 confirmation and owns integrated TICKET acceptance. Ordinary state is intentionally not a one-time token; consumers
 must route destructive or otherwise replay-sensitive actions through confirmation mode.
+
+### Integrated implementation evidence (TASK-00112; independent review pending)
+
+| Requirement | Package-owned evidence |
+|---|---|
+| Ordinary opaque AEAD state, bounded processing, active-key rotation and retired-key rejection | TASK-00111's `McpToolInteractionTest` and `SodiumMcpStateProtectorTest` remain unchanged. Ordinary retries remain replayable even with a confirmation store configured (`McpConfirmationTest`). |
+| Static capability gate, current retry availability/concealment and original validated arguments | Both interaction test classes prove no handle/resume/bus entry for incapable requests and no store acquisition for revoked confirmation retries. |
+| Keyed ElicitResult envelope/action validation, accept-only schema/rules | Shared `McpInputResponses`/`McpInputRequest` mechanics remain unchanged; confirmation tests add missing/extra keys, refusal content, invalid actions, schema/rules and mixed refusal maps. |
+| Atomic confirmation and terminal refusal | `McpConfirmationStore` issues without overwrite and consumes one exact unexpired full-state binding; `McpConfirmationOutcome` retains private reasons. `McpConfirmationJourneyTest` qualifies the test consumer store and races independent processes through the semantic responder and real command/event dispatch. |
+| Consumption survives every acquired outcome | `McpConfirmationTest` covers success, mapped rejection, unexpected Throwable, output failure, uncertain store acknowledgement, cancellation before/during resume and simulated stream closure, followed by rejected replay. |
+| Neutral mechanics and unchanged authentication/CQRS | Only MCP interaction/invoker runtime files change. No HMAC/nonce/Bearer or messaging implementation is modified. A consumer Tool interprets accepted content and chooses the mutation. |
+| Public compatibility and documentation | `compatibility/manifest.json` classifies the store/outcome, additive confirmation factory/composition and two behavioral contracts; `docs/components/mcp/index.md` documents the contract, terminal outcomes and consumer obligations. |
+
+This reconciles implementation coverage across both TASKs, not independent acceptance or a production persistence
+certification. TASK-00112 owns current complete-gate evidence and review handoff. No Common persistence adapter,
+consumer policy, new principal model, distributed transaction or automatic rollback is introduced.
