@@ -11,6 +11,7 @@ This file records how terms are used inside this library. Public APIs, documenta
 | **Domain** | Framework-free business concepts and reusable domain primitives. Domain code does not depend on Application or Adapter code. |
 | **Application** | Use-case coordination and ports. It may depend on Domain contracts, PHP internals, neutral PSR contracts, and the documented `CronExpression` utility exception, but not on concrete adapters or framework implementations. |
 | **Port** | An interface owned by an inward layer that describes a capability required from the outside. Examples include `CommandBus`, `UnitOfWork`, `HttpClient`, and `FileStorage`. |
+| **Package/consumer ownership** | Common owns reusable capabilities and their promised behavior; consumers own application policy, permissions, routes, use-case composition and operations unless an explicit package contract says otherwise. Required public compatibility aliases and reusable framework integrations remain supported. |
 | **Adapter** | An outer runtime integration that makes a third-party library, framework extension point, or infrastructure capability convenient for consumers. An Adapter often implements an inward-owned port, but it may instead translate a framework-facing contract or package external behavior behind a Fight Common API. |
 | **Service container** | A registry and composition mechanism that constructs and connects application services. Fight Common's portable PSR-11 implementation belongs to Application; framework compiler passes, providers, and service factories are Adapter integrations for the same capability. |
 | **Interoperability standard adapter** | A provider-neutral Adapter that translates between a Fight capability and an accepted external standard without losing observable behavior. Direct use of a standard interface needs no wrapper, and a semantic mismatch is documented rather than disguised as support. |
@@ -338,7 +339,15 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 
 ## Durable and ephemeral work
 
-Committed planning state lives in `planning/`. Coordinate-build artifacts live under `.runs/<date>-<slug>/`; `.runs/` is gitignored and is never canonical project history. Important results and deviations from a run must be copied back to its ticket.
+Committed planning state lives in `planning/`. The TASK Board displays executable work; the Roadmap planning
+frontier displays decomposition and explicit parent closeout actions, counting live and archived children without
+automatically changing parent state. TASK `done` means implementation acceptance and required local verification
+are complete, before publication; pending independent review and delivery outcomes are recorded separately.
+
+Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
+current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained
+under the [Review contract](docs/engineering/standards/Review.md). Important outcomes and deviations belong in the
+TASK; a report's accept/revise verdict is distinct from implementation completion and delivery authority.
 
 ## Decisions
 

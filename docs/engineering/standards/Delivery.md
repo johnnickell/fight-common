@@ -6,7 +6,7 @@ Read the current project profile, Git state, runbooks, and owning commands. Trea
 
 Before implementation, ask John to choose the main checkout or an isolated worktree with extra runtime resources; reuse a choice already made for this TASK. Main checkout still uses the appropriate feature/patch branch. Do not overwrite unrelated dirty work. If the selected checkout cannot safely host the work, explain the conflict and resolve the affected choice.
 
-Use ignored `.runs/worktrees/<slug>/`, `.runs/notes/<date>-<task>/`, `.runs/handoffs/<task>/`, and `.runs/archive/`. Keep reusable handoffs/evidence when cleaning environments. Durable requirements and outcomes belong in planning records.
+Use ignored `.runs/worktrees/<slug>/`, `.runs/notes/<date>-<task>/`, `.runs/handoffs/<task>/`, `.runs/reviews/<TASK-ID>/`, and `.runs/archive/`. The metadata-resolved base worktree owns the [canonical review report](Review.md#canonical-durable-handoff). Keep reusable handoffs/evidence when cleaning environments. Durable requirements and outcomes belong in planning records.
 
 Record TASK, repo, branch/base/PR, checkout path, owned containers/volumes/routes, URLs, creation evidence, cleanup commands, and retention requests before allocating resources. Libraries may need no persistent HTTP runtime. Do not provision one just to satisfy a checklist.
 
@@ -20,10 +20,12 @@ Use merge commits, never squash/rebase merges. Prefer GitFlow:
 
 | Work | Source → destination |
 |---|---|
-| Feature/unreleased fix | `feature/*` from `develop` → `develop` |
+| New TASK feature/unreleased fix | `feature/task-NNNNN-<slug>` from `develop` → `develop` |
 | Current-line release | `release/*` from `develop` → `main`, then merge `main` → `develop` |
 | Application emergency repair | `hotfix/*` from `main`; complete according to the project's approved hotfix flow |
 | Released library repair | `patch/<version>-<slug>` from the oldest affected supported line, with separately reviewed forward ports |
+
+New TASK PR titles use `TASK-NNNNN — <TASK title>`; set and verify the actual title, not just the body. Preserve established branch/PR identities without retrospective renaming. These prospective conventions do not replace release/patch naming.
 
 Libraries do not use hotfix branches. Do not commit directly to protected integration/release branches. Check branch existence and project policy before creating missing GitFlow structure.
 
@@ -33,9 +35,35 @@ Find an existing PR at landing intake and immediately before PR creation. Establ
 
 PR descriptions explain the final behavior/problem, verification and material limitations, and include the Before/After evidence section required by [Testing](Testing.md). Verify the published evidence, not just local captures. Preserve a history of first failures and later successful gates in evidence. Do not expose private reference identities, local credentials, or private research. Honor hosted branch protection when landing. Follow [Testing](Testing.md#local-acceptance-and-hosted-delivery): work and review use local proof in public and private repositories alike. After publication, land obtains explicitly required hosted delivery evidence from the project profile. If it is pending or unavailable, report delivery incomplete and retain required resources; do not rescind local acceptance solely for missing CI, fabricate a pass or send the builder through an empty repair cycle.
 
-Before any PR merge, require the current content's independent review with all applicable Spec and Standards criteria passing, or the explicit scoped review-score override defined in [Review](Review.md). Local verification must satisfy [Testing](Testing.md#gate-boundaries), including its documented evidence-reuse rule. Technical acceptance and successful hosted delivery are separate checkpoints. Satisfy any declared delivery and host-enforced merge checks before the effect they guard; missing delivery evidence is not a technical-review failure. Release preparation does not waive this requirement. If the change or base has moved, reconcile the evidence before proceeding.
+Before any PR merge, require current-content independent acceptance under [Review](Review.md), with every applicable Spec and Standards criterion passing and no blockers. Human delivery decisions remain separately recorded authority, never a score override or reviewer acceptance. Local verification must satisfy [Testing](Testing.md#gate-boundaries), including its documented evidence-reuse rule. Technical acceptance and successful hosted delivery are separate checkpoints. Satisfy any declared delivery and host-enforced merge checks before the effect they guard; missing delivery evidence is not a technical-review failure. Release preparation does not waive verification or review. If head/base moved, reconcile evidence as below.
+
+## Reconciling reviewed revisions
+
+A changed commit ID alone neither demonstrates a defect nor requires another independent review. The original
+report anchors reviewed content, not a frozen base. Within separately authorized integration scope:
+
+1. Record the accepted report and old/new full base and head OIDs. Establish a clean target and inspect branch
+   ancestry, publication and directly affected base changes. Preserve Common's merge-commit GitFlow and published
+   history; this rule does not authorize rebasing, force pushes, cleanup, publication or merge.
+2. Inspect the old reviewed effective diff and the new-base effective diff, conflict resolutions and affected
+   dependency interactions. Regenerate planning views from preserved authoritative records; do not silently pick
+   a side. An identical patch is not proof that changed dependencies preserve behavior.
+3. Save a provenance bridge in the ignored TASK handoff: report identity, old/new OIDs, effective differences,
+   every conflict resolution, dependency-interaction evidence, and required fresh focused/full-gate results.
+   Apply Testing's input-equivalence rule only where its conditions hold. Verify the final status and content.
+4. Retain independent acceptance only when this proves mechanical reconciliation with unchanged accepted behavior.
+   Semantic changes (including requirements or authority prose), uncertain integration, unexpected scope changes,
+   or failed checks require renewed independent review. Preserve the original report unchanged; link the bridge
+   rather than pretending the old reviewer examined new OIDs. Stop delivery when proof is incomplete.
+
+Independent planning-view conflicts can be mechanical after regeneration and inspection; they are not a reason
+alone for another review. This is evidence reconciliation, not adoption of a different landing workflow.
 
 ## Delivery chronology
+
+Mark TASK implementation `done` once implementation acceptance and required local verification are complete,
+before PR publication. Keep pending independent review explicit; a green build alone does not prove acceptance.
+Record review, publication, merge, release and deployment separately. Done grants none of those authorities.
 
 Tracked completion notes describe implementation and verification at an explicit checkpoint, such as “At the pre-publication checkpoint…”. Statements about no commit, PR, merge or deployment must be scoped to that checkpoint when they are historical. Preserve true historical outcomes; correct unqualified claims that misleadingly describe current state. Keep durable implementation facts current rather than treating all stale prose as historical.
 
@@ -45,7 +73,7 @@ After commit/push/PR creation, record the actual resulting commit, PR, publicati
 
 ### Acceptance and administrative closeout
 
-An independently accepted implementation candidate may be recorded as `done` during land before hosted delivery checks finish. `done` means accepted implementation, not successful publication or merge. A later closeout commit may update only truthful completion/review/PR metadata and generated planning views; preserve the accepted candidate's identity and verify that administrative-only difference. Required hosted delivery checks cover the final published head, including closeout. Record their result in the ignored handoff rather than creating another tracked status commit. Pending delivery retains resources and does not require toggling `done`; substantive changes or a demonstrated defect require renewed implementation verification and independent review.
+Implementation `done` is recorded before independent review as described above; it is not independent acceptance or successful delivery. After independent acceptance, land preserves that candidate's review identity separately from any later administrative closeout commit. That commit may update only truthful completion/review/PR metadata and generated planning views; verify the administrative-only difference. Required hosted delivery checks cover the final published head, including closeout. Record their result in the ignored handoff rather than creating another tracked status commit. Pending delivery retains resources and does not require toggling `done`; substantive changes or a demonstrated defect require renewed implementation verification and independent review.
 
 ## Signed library releases
 

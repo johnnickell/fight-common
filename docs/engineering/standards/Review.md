@@ -1,82 +1,163 @@
-# Review contract
+# Independent review contract
 
-Assess the exact TASK, change, revision, and declared scope against two independent axes. Review new code and meaningfully changed methods/components for a feature/bug; include easy nearby cleanup. Report larger unrelated debt as advisory. A chore explicitly cleaning named classes/files requires those complete files to comply. Do not hide in-scope debt behind a diff-only interpretation.
+Review is an independent attempt to disprove the exact TASK's acceptance claims. It reports findings and evidence;
+implementation acceptance, independent review, publication, and merge are separate states. This document is the
+single current criterion catalog. [Delivery](Delivery.md) owns reconciliation and effect authority.
 
-## Stable criterion catalog
+## Target and independence
 
-Before examining findings, derive acceptance checks from the TASK and attach them to the Spec criteria below. Keep these cohesive criteria as the scoring denominator; do not pad it with easy subchecks. Determine applicability explicitly and retain IDs through follow-ups.
+Read the TASK, accepted parents/decisions, exclusions, effective diff against an identified base, current Git
+status, directly affected consumers, claimed checks, and prior findings. Include staged, unstaged, and untracked
+target changes; prefer a clean committed target for delivery. Disclose authorship, direction, repairs, and material
+evidence contributions. A material contributor cannot independently accept the work. One independent reviewer
+may perform both named **Spec** and **Standards** passes; no fixed model or two-agent requirement applies. Builder
+self-checks use these criteria for completeness but never issue independent acceptance.
 
-| ID | Spec criterion | Required evidence |
-|---|---|---|
-| SP-01 | Intended use cases and acceptance are complete | Actor/trigger/outcome mapped to behavior, including relevant UI/API paths |
-| SP-02 | Validation and input rejection are accounted for | Boundary checks, failure responses, and tests or justified exclusions |
-| SP-03 | Permissions and access rejection are accounted for | Authoritative enforcement, consumer ownership, or a justified exclusion |
-| SP-04 | Commands, queries, events, and side effects match the contract | Trace of state changes, response data, dispatch and external effects |
-| SP-05 | Failure, compatibility, and recovery behavior satisfy requirements | Absence/error behavior, existing data/API compatibility, relevant rollback/retry semantics |
-| SP-06 | Completion evidence proves the outcome | Acceptance-linked tests, published Before/After evidence or justified alternative, accessible captures/links, actual final gate state |
+Review new and meaningfully changed behavior and its interactions, not unrelated debt. A chore explicitly cleaning
+named files requires those files to comply; do not hide in-scope debt behind a diff-only reading. Countercheck
+claims at the narrowest useful boundary. A green build does not substitute for semantic review.
 
-| ID | Standards criterion | Reference |
-|---|---|---|
-| ST-01 | Domain knowledge and responsibilities are well placed | Architecture; CONTEXT.md |
-| ST-02 | Dependencies and use-case coordination follow project architecture | Architecture; dependency rules; DI and contracts |
-| ST-03 | General naming conventions are followed | Naming |
-| ST-04 | PHP code and documentation style comply | PHP; actual coding standard |
-| ST-05 | Adapters and presentation preserve boundaries and safe output | HTTP; project-specific transport contracts |
-| ST-06 | Frontend responsibilities, data, state, and shared services comply | Frontend |
-| ST-07 | Tests meaningfully verify production behavior | Testing; coverage and collaborator suitability |
-| ST-08 | Documentation is created or updated without drift | CONTEXT.md, API docs, planning, runbooks and affected public docs |
-| ST-09 | Verification and delivery hygiene satisfy applicable requirements | Testing; Delivery; exact evidence and owned resources |
+## Current criterion catalog
 
-Only apply relevant standards. Missing runtime behavior is not an automatic failure in a documentation-only TASK. Apply Testing’s planning-only screenshot exclusion without a score deduction; assess SP-06 against the applicable planning verification instead. Explicitly requested screenshots remain required. Conversely, TASK silence about validation or permissions does not waive SP-02/SP-03: inspect the actual boundary and account for the security process. A demonstrated omission fails the criterion. Do not invent a permission policy or claim an exploit merely because the TASK forgot to mention one.
+Map every TASK acceptance criterion to at least one applicable ID and traceable evidence. Preserve these IDs
+across rounds under this catalog; historical reports retain their original catalog and meaning (see below).
 
-## Scoring
+| Spec ID | Question to disprove |
+|---|---|
+| SP-01 | Does the delivered outcome satisfy each accepted use case and stay within scope? |
+| SP-02 | Are validation, rejection, and authorization accounted for at all exposed entry paths, including target and ownership checks where applicable? |
+| SP-03 | Do messages, queries, events, state changes, response data, and external side effects match the contract? |
+| SP-04 | Are failure, compatibility, recovery, and security/secret-safety requirements met where applicable? |
+| SP-05 | Do tests, direct checks, and required verification establish every acceptance claim and its limitations? |
 
-When changed behavior selects work, summarizes state, or supplies a fallback, inspect the relevant states omitted from the happy path and the meaning of empty results. Check summary claims against authoritative records and related views; a generated file matching its generator proves freshness, not correctness. For planning-tool adoption or changes, examine the focused qualification of empty/completed-only, information-needed, triage, dependency-blocked and mixed-priority portfolios. Derive expected outcomes from the contract independently of the selector under review. Map confirmed defects or missing required evidence to the existing criteria without adding scoring categories, requiring literal wording, or expanding into unrelated states and tooling.
+| Standards ID | Question to disprove |
+|---|---|
+| ST-01 | Are Domain knowledge, package/consumer ownership, Application coordination, dependency direction, and injection correctly placed? |
+| ST-02 | Do adapters preserve transport boundaries, safe output, mapping, and server authority rather than recreate policy? |
+| ST-03 | Do naming, PHP style, documentation, and applicable local conventions comply? |
+| ST-04 | Do tests prove meaningful owned behavior and important product integration contracts at appropriate boundaries? |
+| ST-05 | Are planning, delivery, verification, warnings, resource hygiene, and authority boundaries accurate? |
 
-Each criterion is **Pass**, **Fail**, **Unverified**, or **Not applicable**, with evidence/reason. Fail needs a confirmed violation. Unverified means required proof is absent, remains applicable, and prevents completion; it is not a proven code defect. N/A requires a valid exclusion rather than missing evidence.
+For **each** ID record `Pass`, `Fail`, `Unverified`, or justified `N/A`, with exact locations, commands/results,
+or other traceable evidence and limitations. Fail requires a demonstrated violation. Unverified means necessary
+proof is missing, not that a defect is demonstrated. N/A needs a scope-grounded exclusion, never missing evidence.
+Account for every TASK criterion even when one catalog ID covers several requirements.
 
-For each axis independently: `score = 100 × passed / (passed + failed + unverified)`. Display counts and the score; if no criteria apply, report N/A, not 100. Every applicable criterion must pass before merging, regardless of rounding, unless John explicitly authorizes the scoped review-score override below. Multiple findings keep their criterion failed until all confirmed violations are resolved. Severity orders repairs; it does not change the score or make a mandatory rule optional. Advisory suggestions do not deduct points.
+Apply only relevant standards. Documentation/planning work need not invent runtime routes, permission policy,
+or product tests. Follow [Testing](Testing.md) for direct checks, screenshots and justified nonvisual alternatives.
+Conversely, silence in a TASK does not waive entry-path validation, permissions or security where exposed behavior
+requires them. Inspect the actual boundary; do not invent an exploit or policy merely because planning omitted it.
 
-A perfect score means complete compliance within this stated scope and evidence. It is not a guarantee of defect-free software. Internal implementation checks use the same criteria as a readiness checklist; formal scoring is the independent review's output.
+When behavior selects work, summarizes state, or supplies a fallback, inspect omitted states and empty results.
+Check summaries against authoritative records and related views: freshness is not correctness. For planning-tool
+changes, inspect direct qualification of empty/completed-only portfolios, undecomposed parents, live and archived
+terminal children, mixed child states, information-needed, triage, dependency-blocked and mixed-priority work.
+Derive expectations independently of the generator. Do not expand into unrelated tooling or insist on literal prose.
 
-## Explicit review-score override
+## Findings and verdict
 
-John may explicitly authorize landing below 100% on either review axis for a particular PR. First present the current scores, failed/unverified criteria, findings or missing evidence, and practical risks. Bind the authorization to the repository, PR, head/base revisions and accepted exceptions; these may be established by the current conversation rather than requiring John to type hashes. A general request to land, permission to support overrides, or an earlier PR's override is not approval to use one.
+Countercheck each finding against current source and contrary evidence before reporting it. Record:
 
-Record the authorization, reason if supplied, accepted risks and any agreed follow-up in the ignored review/landing handoff. Preserve actual scores and criterion states; an override does not turn Fail or Unverified into Pass, justify N/A, or imply reviewer approval. Report the outcome as landed with an explicit review-score override. Do not invent follow-up work or a reason on John's behalf.
+- Stable finding ID, pass/criterion, TASK criterion, severity (`critical`, `high`, `medium`, `low`), revision and location.
+- Violated requirement, expected versus observed behavior, and practical consequence.
+- Reproduction or traced evidence and counterevidence considered.
+- Bounded correction and verification that would close it; do not apply the repair.
+- Disposition: confirmed, resolved, rebutted/disproved, stale, decision needed, or advisory.
 
-If head/base content or findings change, reconcile the review and obtain renewed authorization before relying on the override. Reuse authorization already given for the exact reviewed state without asking again. This exception covers the review-score threshold only; it does not waive the full build gate, hosted protections, resource ownership, or separate release/deployment authorization, and does not authorize disabling or bypassing those controls.
+Separate demonstrated defects, missing evidence, advisory improvements, and residual risks. Architectural and
+instruction defects may use traced evidence without executable reproduction. Incomplete policy becomes a decision
+request, not invented implementation. Severity orders repairs; it never makes a mandatory criterion optional.
+
+`accept` requires Pass on every applicable Spec and Standards criterion, every TASK acceptance criterion accounted
+for, and no blockers. Any Fail or Unverified requires `revise`. There is no percentage averaging or score override.
+Acceptance is bounded by the target and evidence, not a guarantee of defect-free software. Explicit human delivery
+decisions remain separate: record exact authority, target, risks and limitations without changing criterion states
+or converting revise to accept. Such decisions cannot bypass verification, hosted protections, or separate release
+and deployment authorization.
 
 ## Prior rounds and evidence
 
-Local ignored review handoffs are the default history for this workflow; GitHub reviews/comments are supplementary. Start with the supplied handoff and any review pasted into the current conversation. Then inspect the matching TASK's `.runs/handoffs/<task>/` and referenced `.runs/notes/` records. Because `.runs` is ignored and is not copied into a fresh worktree, check the known primary checkout's matching handoff/archive location when needed. Search by verified TASK/PR ownership, and confirm repository, head/base and round identity before treating an artifact as relevant; do not select by modification time alone.
+Start with the canonical report below, supplied handoffs, and relevant conversation. Inspect the matching legacy
+`.runs/handoffs/<task>/`, referenced `.runs/notes/`, and archive locations in the metadata-resolved base checkout.
+Ignored evidence is not copied to a new worktree. Search by verified TASK/PR ownership, repository and target
+identity, not modification time. No GitHub review is not proof that no prior review exists. If a known report is
+missing, name locations checked and request it; continue useful review but report reconciliation as incomplete.
 
-Read earlier findings, criterion states, rebuttals and the implementing agent's repair/evidence handoff before reviewing changes. Pass this history to both reviewers. Preserve finding IDs and classify each as resolved, still confirmed, rebutted/disproved, stale or decision needed at the current head. Distinguish newly introduced findings from previously present but missed findings. A new commit invalidates reuse of old scores as current approval; it does not erase the prior round's history.
+Preserve finding IDs and dispositions; distinguish previously reported findings, revision-introduced findings,
+and previously present but missed findings. Revalidate against the current head, accept checked rebuttals, and
+explain a confirmed earlier blind spot. Promote reusable learnings only through [Governance](Governance.md).
 
-Record the prior artifact paths and reviewed revisions in the new handoff. No GitHub reviews/comments does not establish that no previous review exists. If an earlier round is known but its artifact cannot be found, name the locations checked and request its path or pasted content; continue independent review where possible, but report reconciliation as incomplete rather than inventing a fresh initial round or claiming there is nothing to reconcile.
+Pre-adoption Common reports used six Spec and nine Standards criteria and numeric scores. Preserve their original
+IDs, definitions, scores, decisions and snapshots; do not silently relabel an old SP-03, for example, as current
+SP-03. Cite the report/catalog alongside historical IDs and explicitly map unresolved findings to current criteria
+when reviewing again. Historical acceptance is evidence for its recorded content only, not automatic proof of the
+new catalog. The report schema version does not by itself identify which criterion catalog was used.
 
-The implementing agent owns execution of the full local pre-submit gate. The reviewer verifies the saved gate result, complete log and tested content/revision mapping under [Testing’s local-acceptance boundary](Testing.md#local-acceptance-and-hosted-delivery). A public repository has the same pre-publication review gate as a private one. Missing hosted CI or a PR does not make a criterion Unverified or lower scores when local proof and acceptance evidence are sufficient. An accepted review hands off to authorized `land` for push/PR creation; any required hosted checks are post-publication delivery obligations, not a reason to withhold technical acceptance. Do not rerun the full build merely because a review starts, a new review round begins, or the reviewer has a different environment. A verified engineer-run gate is valid review evidence; reviewer execution is not a separate requirement. Apply [Testing’s evidence-reuse rule](Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups) before declaring an older receipt stale: an earlier full pass plus verified input equivalence and current targeted checks may satisfy the current review. A different head hash alone is not a finding or score deduction.
+A changed commit ID alone neither proves a defect nor requires another independent review. Retain acceptance only
+with the provenance bridge in [Delivery](Delivery.md#reconciling-reviewed-revisions); semantic changes, uncertain
+integration or failed checks require renewed independent review. Never rewrite the old report as if it reviewed
+new OIDs. For chronology findings distinguish historical checkpoints from current claims under
+[Delivery](Delivery.md#delivery-chronology); a tracked file need not contain its own commit or future PR details.
 
-If evidence is missing, stale or inconsistent, name the precise gap and request the missing receipt or a needed rerun from the implementing agent in the handoff; continue other review work. Do not launch another full gate unless John explicitly requests it. Focused checks needed to reproduce or disprove a finding remain appropriate within the read-only review scope. Keep incomplete runs distinct from earlier completed evidence and hosted results; never promote a partial log to a pass or let a hosted success silently replace required local evidence.
+Verify the builder's complete gate log, actual exit and tested-content mapping. Apply
+[Testing's input-equivalence rule](Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups) before
+calling earlier evidence stale. A verified builder receipt remains usable; do not rerun gates merely because a
+review starts or to accumulate receipts. If proof is missing, stale or contradictory, name the precise gap and
+request it or run the canonical gate when necessary to establish acceptance. Focused checks remain appropriate.
+Report counts, warnings, skips, incomplete runs and limitations. Never treat a partial log as a pass. Apply the
+[local-acceptance boundary](Testing.md#local-acceptance-and-hosted-delivery) in public and private repositories
+alike: missing hosted CI or a PR does not make a criterion Unverified when local proof and acceptance evidence
+suffice. Accepted review routes to authorized `land`; required hosted checks are post-publication delivery
+obligations. Do not silently replace required local proof with hosted success.
 
-## Adversarial findings
+## Canonical durable handoff
 
-Before reporting or scoring a finding, attempt to disprove it against current code. Record:
+The current report is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`. Resolve the base using
+`git rev-parse --path-format=absolute --git-common-dir` and `git worktree list --porcelain`; confirm the registered
+base worktree matches that metadata rather than assuming the working directory is the base. Ambiguous or bare
+layouts require a resolved base before writing. Check `.runs` is ignored and verify every report-directory path
+component remains within that base without following symlinks. Refuse symlinked directories or report targets.
 
-- Stable finding ID, criterion, severity, current revision and exact location.
-- Violated requirement and practical consequence.
-- Reproduction or traced evidence; counterevidence considered.
-- Feasible correction within scope and verification that would close it.
-- Status: confirmed, resolved, rebutted/disproved, stale, decision needed, or advisory.
+For a first implementation a missing report is normal. Revision requires the canonical `revise` report with a
+matching TASK, branch, base/head and recorded snapshot. Trace intervening changes if the branch moved; request a
+fresh report when identity/applicability cannot be established. An accepted implementation routes to the separately
+authorized delivery operation, not implementation work solely to move its base.
 
-For chronology findings, apply [Delivery](Delivery.md#delivery-chronology): distinguish explicitly historical checkpoints from claims about current state. Do not deduct points because a pre-publication note lacks future commit/PR details, because a tracked file does not identify its own enclosing commit, or because later publication makes a true historical statement no longer current. Verify current state through TASK metadata, Git, hosted checks and ignored handoffs. A misleading unqualified current-state claim or stale implementation fact can still be a documentation defect; propose the smallest clarification, not a requirement to rewrite history after each push.
+Retain existing reports/history, including legacy Common handoffs and numbered siblings. Reconcile a legacy report
+by identifying its exact target and catalog, linking it and carrying forward checked finding dispositions in the
+canonical report; never delete history or claim the old verdict accepted different content. Before replacing an
+existing canonical report, retain its exact bytes in an identified immutable history artifact in the ignored TASK
+report directory. Do not create a new numbered review sequence. Write the new report to a temporary regular file
+in that same directory, atomically rename it over only `review.md`, then read it back. Unwritable/unreadable output
+is an incomplete handoff, not an actionable chat-only verdict. Chat only points to the verified durable report.
 
-Architectural and documentation defects can use traced evidence without executable reproduction. Unproven suspicions remain questions; missing required evidence makes the criterion Unverified where appropriate. Incomplete product policy becomes a decision request with a recommendation, not invented implementation.
+New reports use this header:
 
-Revalidate each finding at the new head. Accept evidence-backed rebuttals after checking them; escalate actual policy disagreements to John. On follow-up, label findings previously reported, introduced by revision, or previously present but missed. Scrutinize new discoveries especially closely. For a confirmed miss, explain the earlier blind spot and propose a reusable learning when warranted. A learning becomes a rule only after John's approval, through standards governance.
+```yaml
+---
+review_handoff_version: 3
+task: TASK-NNNNN
+target_branch: feature/task-NNNNN-example
+base_commit: <full Git OID>
+head_commit: <full Git OID>
+target_status: clean
+verdict: accept
+---
+```
 
-## Reviewers and handoff
+`target_status` is `clean` or the complete `git status --porcelain=v1 --untracked-files=all` snapshot, using a YAML
+block scalar for multiple lines. For dirty reviews retain each reviewed file's path, state and digest or patch
+(including untracked contents); record deletions and staged/unstaged versions so later sessions detect drift.
+Identify selected ignored evidence and its content identity even when Git status is clean.
 
-Use independent Spec and Standards reviewers with **GPT-5.6 Sol, high**. Each gets the exact TASK, revision/scope, relevant standards, and evidence; read-only source access, no fixes or further delegation. The coordinator adjudicates overlaps and contradictory findings against evidence. If that profile is unavailable, report it and ask for an explicit alternative; do not silently use the generic router's weaker fallback.
+The body names reviewer relationship, current catalog, exact target/base, separate Spec and Standards tables with
+all IDs, TASK-criterion-to-evidence mapping, findings (or None), prior reports/dispositions, fresh commands/results,
+limitations, risks and verdict. For revise include a copyable bounded builder prompt. Existing version-2 canonical
+reports remain readable: verify identity and snapshot, preserve their original catalog, and apply any required
+provenance reconciliation. Only canonical `review.md` supplies the current verdict; older siblings cannot override it.
 
-The review produces two score tables, confirmed findings, verified rebuttals, evidence gaps, advisories, and a copyable implementing-agent prompt. Keep artifacts in ignored run/handoff folders. A reviewer does not modify source or tracked planning records, regenerate tracked views, post external comments, commit, push, merge, or silently begin another build. Review verification may run checks within the declared read-only scope; it does not include applying repairs. Approval to exit Plan Mode or write/finish a handoff retains this boundary. A review plan must list only the review artifact files to write and verify, with repair instructions labeled as content for a future builder. Generic “Implement the plan” or “proceed” approves that artifact-writing scope, not the repairs quoted in the artifact. Re-read the active review workflow and approved scope on resumption, save the artifacts and return control. Only a specific request to fix findings/change code or invoke the build workflow changes the role; the repair prompt inside a handoff is output, not authorization to execute it. Leaving repairs uncommitted does not make them read-only review work.
+Review does not repair source, change planning status, regenerate tracked views, commit, publish, approve a PR,
+merge or clean resources. Verification may run checks but not apply repairs. A review plan lists only ignored
+report/evidence artifacts to write. Generic permission to proceed or finish that plan authorizes those artifacts,
+not repairs quoted in them. Re-read role and scope on resumption; an explicit implementation request is required
+to switch roles. Leaving repairs uncommitted does not make them independent review.

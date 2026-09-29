@@ -4,7 +4,7 @@ This directory is the committed source of truth for Fight Common planning.
 
 - [Conventions](CONVENTIONS.md): hierarchy, templates, lifecycle, generated views, and archive operations.
 - [TASK Board](tasks/BOARD.md): current work, priority, blockers, and PR links.
-- [Roadmap](ROADMAP.md): strategy and current EPICs.
+- [Roadmap](ROADMAP.md): strategy, current EPICs, and a separate planning frontier for decomposition/parent closeout.
 - [EPICs](epics/README.md): business destinations.
 - [TICKETs](tickets/README.md): related use cases and requirements.
 - [TASKs](tasks/README.md): bounded executable work, normally one PR each.
