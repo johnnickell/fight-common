@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "0c570366268d0d17a972afb2872b5cac8a5e108f02b0af2449227f7b37022e03",
+    "operation_shapes_sha256": "7c088651967a45c2a145fd70db09963dee1008587381b5b5de13bad3b74ce74a",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 226,
+            "declarations": 231,
             "functions": 0
         },
         "Adapter": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00117-addition": {
+            "path": "planning/tasks/00117-TASK.md",
+            "locator": "Scope and acceptance: explicit Resource providers, current availability, bounded guarded discovery and metadata"
+        },
         "fight-common.classification.task-00113-addition": {
             "path": "planning/tasks/00113-TASK.md",
             "locator": "Outcome and acceptance: policy-free OAuth resource-server metadata, validation, handoff and HTTP protection"
@@ -107,6 +111,86 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability",
+            "source": "src/Application/Mcp/Resource/McpResourceAvailability.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceAvailability.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "Consumers supply current visibility decisions over neutral immutable metadata."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Discovery checks current availability before disclosure and pagination.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceAvailability.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceAvailability.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceAvailability.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumer retains identity and permission policy privately.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceAvailability.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceAvailability", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider",
+            "source": "src/Application/Mcp/Resource/McpResourceProvider.php",
+            "layer": "Application",
+            "kind": "interface",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "Explicit metadata-only provider port with bytewise URI ordering and no content-loading requirement."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Fresh ordered metadata enumeration supports bounded composition.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers implement metadata streaming without automatic discovery or storage assumptions.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceProvider", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo",
+            "source": "src/Application/Mcp/Resource/McpResourceInfo.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceInfo.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "Immutable validated Resource metadata with exact URI identity and typed nested JSON."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Accessors, serialization and limit validation expose safe protocol metadata.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceInfo.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromArray factory validates construction; private constructor is not callable.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceInfo.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceInfo.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceInfo.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceInfo", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits",
+            "source": "src/Application/Mcp/Resource/McpResourceLimits.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceLimits.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "Validated immutable discovery budgets with documented finite defaults and relationships."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Public readonly budgets are serving configuration.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceLimits.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers choose validated optional overrides.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceLimits.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceLimits.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceLimits.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceLimits", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery",
+            "source": "src/Application/Mcp/Resource/McpResourceDiscovery.php",
+            "layer": "Application",
+            "kind": "class",
+            "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One explicitly composed capability owns bounded Resource list and empty template discovery, without a fake read handler."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Capability methods validate and handle discovery with safe pagination and current availability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers compose providers, availability, cursor key/scope, limits and cache overrides.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final capability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet",
             "source": "src/Application/Auth/OAuth/OAuthScopeSet.php",
@@ -1814,7 +1898,7 @@
             },
             "classification_evidence": {
                 "authority": "fight-common.classification.task-00104-addition",
-                "rationale": "Fight\\Common\\Application\\Mcp\\McpResult is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpResult.php."
+                "rationale": "Fight\\Common\\Application\\Mcp\\McpResult is deliberately classified public as a TASK-00104 MCP protocol addition. TASK-00117 adds an explicitly internal boundedComplete factory that retains Resource result bounds through metadata enrichment; existing complete/inputRequired consumers remain unchanged."
             },
             "members": [],
             "operations": {
@@ -37260,6 +37344,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-resource-discovery",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Authorization, pagination and caching"},
+            "fixture": {"path": "tests/Functional/McpResourceDiscoveryJourneyTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-resource-discovery-bounds",
+            "normative": {"path": "docs/components/mcp/index.md", "section": "Finite discovery budgets"},
+            "fixture": {"path": "tests/Application/Mcp/Resource/McpResourceDiscoveryTest.php"}
+        },
         {
             "id": "fight-common.behavior.oauth-resource-server",
             "normative": {"path": "docs/auth.md", "section": "OAuth Resource Server"},

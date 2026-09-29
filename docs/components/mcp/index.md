@@ -23,6 +23,8 @@ atlas_local_contents:
     href: "#ownership"
   - label: Composition
     href: "#composition"
+  - label: Resource discovery
+    href: "#authorized-resource-discovery"
   - label: Tool registration
     href: "#explicit-tool-registration"
   - label: Tool discovery
@@ -91,6 +93,145 @@ no exception details exposed. Direct semantic consumers must supply `McpResponde
 to record unexpected failures through their redaction-aware `McpDiagnostics`. The optional constructor argument
 preserves existing compositions; omitting it supplies no logging. `dispatch()` never logs: its HTTP/caller boundary
 owns the one diagnostic, preventing duplicate records.
+
+## Authorized Resource discovery
+
+`Application\Mcp\Resource` supplies **discovery only** in this slice: `resources/list` and an empty complete
+`resources/templates/list`. It registers no `resources/read`, template resolution or subscription handler.
+`server/discover` advertises `resources` with `subscribe: false` and `listChanged: false`. This is not complete
+Resources conformance; exact authorized reads are the next delivery slice. A listed URI is metadata, not proof
+that this partial endpoint can already return its content.
+
+### Metadata and provider ownership
+
+`McpResourceProvider::resources(): iterable` yields immutable `McpResourceInfo` values in **strictly increasing
+bytewise order of the exact URI**. Use a lazy metadata query or an existing sorted catalog, not file reads or
+hashing. Every call starts a fresh enumeration; provider output must remain stable within that enumeration.
+Common merges multiple providers without materializing the corpus. Duplicate URIs (including concealed ones),
+repeated provider instances, unsorted output, invalid descriptors and excessive work fail rather than select
+whichever provider happened to register first. Composition does not enumerate providers; dynamic ownership
+conflicts are detected on listing before any result is returned. No filesystem/network adapter or implicit URI
+normalization, decoding, path lookup, directory scan, redirect or fetch is supplied.
+
+Create metadata with `McpResourceInfo::fromArray($fields, $limits)`. Required fields are an absolute RFC 3986
+`uri` and string `name`. Optional `title`, `description` and `mimeType` remain protocol strings (including empty
+strings); `size` is a non-negative safe integer byte count. Icons validate their supported HTTP(S)/Base64-image
+URI and defined fields. Annotations validate audience, priority and string last-modified values. `_meta` must be
+an object. Unknown top-level fields, invalid JSON/Unicode, excessive nesting (32 levels), invalid identities and
+byte-limit violations are rejected, not silently repaired or truncated. Common validates representations, not
+whether a supplied MIME label describes actual bytes; content validation belongs to the read slice.
+
+Nested objects are immutable `StrictJson` values; `toArray()` retains those typed objects and lists. Use
+`StrictJson::fromObject([])` for an empty object, distinct from an empty list. `uri()` returns the exact input
+identity; `validateLimits()` can check the descriptor against another serving composition's bounds. The capability
+always rechecks its own bounds even if a provider constructed metadata with more generous limits.
+
+```php
+use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
+use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
+use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
+use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
+use Fight\Common\Application\Mcp\Resource\McpResourceProvider;
+
+$documents = new class implements McpResourceProvider {
+    public function resources(): iterable
+    {
+        // A real provider can stream already ordered metadata rows, without reading document bytes.
+        yield McpResourceInfo::fromArray([
+            'uri' => 'context://revision-42/guide',
+            'name' => 'Guide',
+            'mimeType' => 'text/markdown',
+        ]);
+    }
+};
+
+// Consumer-provided, request-scoped collaborator; it keeps identity and permissions privately.
+/** @var McpResourceAvailability $visibility */
+$limits = new McpResourceLimits(pageSize: 50);
+$resources = new McpResourceDiscovery(
+    [$documents],
+    $visibility,
+    $dedicatedCursorSecret, // Stable across serving processes; at least 32 bytes, never an access token.
+    'planning-documents',   // Distinct catalog/endpoint scope; not a principal.
+    $limits,
+);
+
+// Add $resources to the existing McpCapabilityRegistry and McpRequestHandler composition.
+// Do not register a second owner for either Resource discovery method.
+```
+
+The discovery-only provider port intentionally has no content method. Consumers can later implement a separate
+exact-lookup/read contract on the same provider without changing this metadata enumeration contract.
+
+### Authorization, pagination and caching
+
+**Contract `fight-common.behavior.mcp-resource-discovery`:** Discovery reevaluates
+`McpResourceAvailability::isAvailable(McpResourceInfo): bool` on every request, before pagination or disclosure.
+Common never receives a principal, credentials or permission names. Authentication stays in the consumer's route
+composition. Provider and availability failures use the existing generic internal-error/diagnostic boundary,
+including a collaborator that attempts to throw a protocol error. They never become partial pages or Tool
+`isError` results. Origin, standard/custom mirrors and invocation rejection retain the existing handler ordering;
+no Resource provider is enumerated until dispatch. No capability cache bypasses availability.
+
+Successful list/template results include `resultType: complete`, `ttlMs: 0`, and `cacheScope: private` by default.
+Optional constructor overrides allow a non-negative safe-integer TTL and `private`/`public` scope. Public is an
+explicit consumer assertion that this catalog is genuinely caller-independent; immutable bytes or known URIs do
+not make it public. A client must not share private cached pages across authorization contexts, and freshness is
+not permission. Template discovery returns `resourceTemplates: []`, never a continuation or a template engine.
+
+Pages use deterministic bytewise URI ordering. Continuation is a fixed 48-byte opaque authenticated string bound
+to catalog scope, page size and the **currently visible** descriptor sequence. It contains no concealed URI,
+provider identity or hidden count. Only the available catalog is hashed; hidden changes do not alter successful
+cursor bytes. All metadata is streamed on each page to revalidate ownership/current visibility and authenticate
+continuation. Providers must not eagerly materialize content or the full corpus to meet this contract.
+
+Omitted or empty `cursor` starts enumeration. Only absence of `nextCursor` marks completion. A malformed,
+tampered, wrong-scope/key/page-size or stale cursor fails with safe `-32602` invalid parameters; clients discard
+saved pages and restart without human approval. A visible change may invalidate continuation, and cursors are
+never authority. Identical visible catalogs may continue across separately composed requests with the same key
+and scope. There is no connection-dependent permission or cross-request snapshot guarantee. Template discovery
+accepts omitted/empty cursor only, since it never issues a continuation.
+
+### Finite discovery budgets
+
+**Contract `fight-common.behavior.mcp-resource-discovery-bounds`:** `McpResourceLimits` has these defaults and
+validated override ceilings. Invalid relationships fail at construction; excessive provider output fails safely
+without a truncated successful descriptor/page.
+
+| Setting | Default | Maximum |
+| --- | ---: | ---: |
+| `maxUriBytes` | 4,096 | 1,048,576 |
+| `maxDescriptorBytes` (JSON-encoded) | 16,384 | 16,777,216 |
+| `pageSize` | 100 | 1,000 |
+| `maxDescriptors` (per-request merged scan) | 10,000 | 1,000,000 |
+| `maxProviders` | 32 | 256 |
+| `maxResultBytes` (complete semantic result) | 1,048,576 | 67,108,864 |
+
+All are positive. Descriptor budget must be at least URI budget + 32; scan budget must be at least page size;
+result budget must be at least descriptor budget + 256. A multi-descriptor page can still exceed the result
+budget: Common rejects it, never silently shortens it or returns false completion. Lower page size or raise the
+validated budget. Encoded sizes include JSON escaping. The result bound includes `resultType`, cache hints,
+continuation and centrally added server-identity metadata; configure enough room for all of them. Resource
+results use `McpResult::boundedComplete()`, which retains and rechecks its budget when metadata is added.
+Existing `McpResult::complete()` consumers remain unbounded and compatible. The outer JSON-RPC envelope is not
+part of this result budget, nor is it a claim of bounded HTTP ingress (owned by the shared ingress slice).
+
+The scan cap is a work budget, not a protocol limit on lifetime catalog size. Providers may yield incrementally;
+Common retains only one lookahead descriptor per provider plus the page. It may inspect up to one lookahead per
+provider beyond the merged scan cap to detect overflow. Consumer implementations remain responsible for their own
+query cost, memory and deadlines. Exceeding the configured scan cap is an internal configuration/provider failure,
+not a successful partial catalog. Descriptor depth and cursor encoding have fixed finite bounds, not tunable
+parser engines. The cursor key is 32–4,096 bytes and catalog scope is 1–128 bytes.
+
+### Discovery verification boundary
+
+Pinned official conformance source `modelcontextprotocol/conformance` at
+`7169291ec0b68eb370fddcd9947313ab0d5e4156` (`0.2.0-alpha.11`) supplies discovery/schema and cache-hint checks.
+TASK-00117 records the exact runs and gaps. Its caching scenario also calls uncomposed Tools/Prompts and the
+not-yet-implemented read method; those failures are not relabeled passing. Read/content checks are deferred to
+TASK-00118. Owned tests supplement the harness's gaps in current authorization, empty-string names/cursors,
+pagination, ownership, budgets, failures and empty template discovery. No full Resources, Skills or downstream
+client conformance is claimed.
 
 ## Explicit Tool registration
 
