@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "49173290205b2fffb7b7610c3474dbb2a09334d33cf096b6e55e4fdbed71f7d8",
+    "operation_shapes_sha256": "0c570366268d0d17a972afb2872b5cac8a5e108f02b0af2449227f7b37022e03",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,15 +13,19 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 216,
+            "declarations": 226,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 222,
+            "declarations": 225,
             "functions": 0
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00113-addition": {
+            "path": "planning/tasks/00113-TASK.md",
+            "locator": "Outcome and acceptance: policy-free OAuth resource-server metadata, validation, handoff and HTTP protection"
+        },
         "fight-common.classification.baseline-grandfathered": {
             "path": "planning/adr/0009-public-api-manifest-baseline.md",
             "locator": "Decision paragraphs 1-2: authoritative 1.1.0 grandfathering"
@@ -103,6 +107,194 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet",
+            "source": "src/Application/Auth/OAuth/OAuthScopeSet.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthScopeSet.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Immutable canonical scope set with RFC token validation and exact membership comparison."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Create and compare case-sensitive scope sets.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthScopeSet.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromArray factory.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthScopeSet.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthScopeSet.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthScopeSet.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthScopeSet", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata",
+            "source": "src/Application/Auth/OAuth/OAuthResourceMetadata.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceMetadata.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Configured RFC 9728 resource identity, ordered issuers and header-only metadata without route ownership."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Validated configuration and public JSON metadata.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceMetadata.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named configuration factory.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceMetadata.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceMetadata.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceMetadata.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceMetadata", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements",
+            "source": "src/Application/Auth/OAuth/OAuthTokenRequirements.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRequirements.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Explicit immutable token requirements and independent normalized issuer/audience/time/purpose/algorithm/key/shape checks."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Configure and check mandatory validation requirements.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRequirements.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named configuration factory.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRequirements.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRequirements.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRequirements.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRequirements", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims",
+            "source": "src/Application/Auth/OAuth/OAuthValidatedClaims.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthValidatedClaims.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Immutable neutral claims attested by the trusted consumer validator; construction is not cryptographic proof."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Create immutable verified-token snapshots.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthValidatedClaims.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromVerifiedToken factory.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthValidatedClaims.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthValidatedClaims.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete value.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthValidatedClaims.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthValidatedClaims", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator",
+            "source": "src/Application/Auth/OAuth/OAuthTokenValidator.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenValidator.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Strict consumer token validation port requiring complete verification, never signature-only decoding."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Validate a credential against explicit requirements and time.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenValidator.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenValidator.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the supported operation.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenValidator.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers own cryptography, trusted keys, complete validation and scope hierarchy expansion.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenValidator.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenValidator", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff",
+            "source": "src/Application/Auth/OAuth/OAuthClaimsHandoff.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthClaimsHandoff.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Claims-only request-scoped handoff to consumer authentication and authoritative identity resolution."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Hand off validated claims before downstream dispatch.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthClaimsHandoff.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthClaimsHandoff.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the supported operation.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthClaimsHandoff.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers own principal mapping, request isolation and authorization.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthClaimsHandoff.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthClaimsHandoff", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics",
+            "source": "src/Application/Auth/OAuth/OAuthDiagnostics.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthDiagnostics.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Consumer redaction-aware failure diagnostics with one owner per OAuth rejection."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Record a safe failure classification and optional unexpected Throwable.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthDiagnostics.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthDiagnostics.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the supported operation.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthDiagnostics.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers redact every environment's messages, arguments, context and traces before persistence.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthDiagnostics.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthDiagnostics", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer",
+            "source": "src/Application/Auth/OAuth/OAuthResourceServer.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceServer.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Reusable header-only extraction, strict validation, scope comparison, handoff ordering and failure diagnostics."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Authorize one consumer-configured resource operation before dispatch.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceServer.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit injected requirements and consumer capabilities.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceServer.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final coordinator.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceServer.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete coordinator.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthResourceServer.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthResourceServer", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected",
+            "source": "src/Application/Auth/OAuth/OAuthTokenRejected.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRejected.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Fixed secret-free consumer signal for intrinsically invalid tokens."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Standard exception accessors preserve the fixed public failure.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRejected.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "No-argument rejection construction.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRejected.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final fixed-classification exception.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRejected.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete exception.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthTokenRejected.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthTokenRejected", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure",
+            "source": "src/Application/Auth/OAuth/OAuthFailure.php",
+            "layer": "Application", "kind": "enum", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Safe failure categories preserve missing credential, transport, intrinsic token, scope and unexpected distinctions."},
+            "members": [
+                {"name": "case INSUFFICIENT_SCOPE", "signature": "case INSUFFICIENT_SCOPE", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Valid token lacks operation scopes.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "member": "case INSUFFICIENT_SCOPE"}}},
+                {"name": "case INTERNAL_ERROR", "signature": "case INTERNAL_ERROR", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Unexpected validation or handoff failure.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "member": "case INTERNAL_ERROR"}}},
+                {"name": "case INVALID_REQUEST", "signature": "case INVALID_REQUEST", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Malformed or unsupported credential transport.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "member": "case INVALID_REQUEST"}}},
+                {"name": "case INVALID_TOKEN", "signature": "case INVALID_TOKEN", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Intrinsic validation failure.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "member": "case INVALID_TOKEN"}}},
+                {"name": "case MISSING_CREDENTIALS", "signature": "case MISSING_CREDENTIALS", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "No supported authentication credentials.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "member": "case MISSING_CREDENTIALS"}}}
+            ],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Unit enum exposes cases rather than authored methods.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Use enum cases.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum.", "binding": {"subject": "Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "source_locator": "working-tree:src/Application/Auth/OAuth/OAuthFailure.php#Fight\\Common\\Application\\Auth\\OAuth\\OAuthFailure", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory",
+            "source": "src/Adapter/Http/OAuth/OAuthResponseFactory.php",
+            "layer": "Adapter", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthResponseFactory.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "PSR response construction preserves metadata and exact safe Bearer failure statuses and challenges."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Create metadata, rejection and method responses.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthResponseFactory.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Injected PSR-17 factories and optional safe realm.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthResponseFactory.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthResponseFactory.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthResponseFactory.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthResponseFactory", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler",
+            "source": "src/Adapter/Http/OAuth/OAuthMetadataHandler.php",
+            "layer": "Adapter", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMetadataHandler.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "PSR GET handler renders configured metadata on a consumer-owned route."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Handle a metadata request.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMetadataHandler.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Configured metadata and response adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMetadataHandler.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMetadataHandler.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMetadataHandler.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMetadataHandler", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware",
+            "source": "src/Adapter/Http/OAuth/OAuthMiddleware.php",
+            "layer": "Adapter", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMiddleware.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00113-addition", "rationale": "Lossless PSR resource-server protection before the existing guarded endpoint without principal or route ownership."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Process one request and dispatch only after successful handoff.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMiddleware.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumer resource operation, required scopes and response composition.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMiddleware.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMiddleware.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "source_locator": "working-tree:src/Adapter/Http/OAuth/OAuthMiddleware.php#Fight\\Common\\Adapter\\Http\\OAuth\\OAuthMiddleware", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\Tool\\Interaction\\McpConfirmationStore",
             "source": "src/Application/Mcp/Tool/Interaction/McpConfirmationStore.php",
@@ -37068,6 +37260,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.oauth-resource-server",
+            "normative": {"path": "docs/auth.md", "section": "OAuth Resource Server"},
+            "fixture": {"path": "tests/Functional/OAuthMcpJourneyTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.oauth-validation-requirements",
+            "normative": {"path": "docs/auth.md", "section": "Strict validation and claims handoff"},
+            "fixture": {"path": "tests/Application/Auth/OAuth/OAuthConfigurationTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-progressive-http",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Progressive HTTP delivery"},

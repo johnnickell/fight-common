@@ -1,8 +1,9 @@
 # Auth
 
-Two authentication subsystems: **HMAC** for signing and validating HTTP requests, and
-**Security** for password hashing and JWT token management. The Application layer defines
-ports; the Adapter layer provides concrete implementations.
+Three authentication capabilities: **HMAC** for signing and validating HTTP requests,
+**Security** for password hashing and JWT token management, and **OAuth** for policy-free resource-server
+protection using a strict consumer validator. The Application layer defines reusable contracts and protocol
+semantics; adapters provide concrete HTTP integrations. OAuth does not issue tokens or define principals.
 
 ```
 Application\Auth
@@ -55,8 +56,167 @@ repository is process-local; the Doctrine repository provides a durable shared b
 12. [Installation](#installation)
 13. [Symfony Configuration](#symfony-configuration)
 14. [Usage Examples](#usage-examples)
+15. [OAuth Resource Server](#oauth-resource-server)
 
 ---
+
+## OAuth Resource Server
+
+`Application\Auth\OAuth` supplies metadata, normalized scope/claim values, explicit validation requirements,
+consumer ports and resource-server orchestration. `Adapter\Http\OAuth` supplies optional PSR-15/PSR-17 adapters.
+There is no OAuth authorization server, key fetcher, JWT validator, route, identity model or permission policy.
+
+### Resource metadata and composition
+
+`OAuthResourceMetadata::fromConfiguration()` requires an exact HTTPS resource identifier, a nonempty ordered
+list of unique HTTPS authorization-server issuer identifiers, and an `OAuthScopeSet` of advertised scopes.
+Identifiers cannot contain user information or fragments; issuers cannot contain queries. Resource queries are
+preserved when deliberately configured. No normalization changes resource or issuer equality. Default metadata
+URLs follow RFC 9728: insert `/.well-known/oauth-protected-resource` before the resource path, removing its
+terminating slash and preserving its query. An optional explicit HTTPS metadata URL supports challenge-based
+publication elsewhere. Consumers must publish the configured document there and preserve the exact resource
+identity on any well-known route. Common never selects an issuer or discovers its endpoints.
+
+Metadata JSON contains `resource`, all `authorization_servers` in configured order, `scopes_supported` and
+`bearer_methods_supported: ["header"]`. `OAuthMetadataHandler` returns it on GET as HTTP 200
+`application/json`; other methods return an empty 405 with `Allow: GET`. Consumers own TLS, trusted ingress,
+routing, route-to-resource identity and public access to this metadata route.
+
+```php
+use Fight\Common\Adapter\Http\OAuth\OAuthMetadataHandler;
+use Fight\Common\Adapter\Http\OAuth\OAuthMiddleware;
+use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;
+use Fight\Common\Application\Auth\OAuth\OAuthResourceMetadata;
+use Fight\Common\Application\Auth\OAuth\OAuthResourceServer;
+use Fight\Common\Application\Auth\OAuth\OAuthScopeSet;
+use Fight\Common\Application\Auth\OAuth\OAuthTokenRequirements;
+
+$metadata = OAuthResourceMetadata::fromConfiguration(
+    'https://api.example.com/mcp',
+    ['https://auth.example.com'],
+    OAuthScopeSet::fromArray(['mcp:read'])
+);
+$requirements = OAuthTokenRequirements::fromConfiguration(
+    $metadata,
+    'at+jwt',
+    ['RS256'],
+    ['https://auth.example.com' => ['current-key', 'rotation-overlap-key']],
+    ['sub' => 'string'],
+    clockSkewSeconds: 0
+);
+// Consumer-supplied PSR factories, complete validator, request-scoped handoff and redacting diagnostics.
+$responses = new OAuthResponseFactory($responseFactory, $streamFactory);
+$metadataHandler = new OAuthMetadataHandler($metadata, $responses);
+$resourceServer = new OAuthResourceServer($requirements, $validator, $handoff, $diagnostics);
+$protection = new OAuthMiddleware($resourceServer, OAuthScopeSet::fromArray(['mcp:read']), $responses);
+// The consumer routes metadata GETs to $metadataHandler, and protected MCP requests through:
+$response = $protection->process($request, $guardedMcpEndpoint);
+```
+
+Required scopes belong to the current **consumer-composed resource operation**, not a Tool selected by parsing
+untrusted JSON. Construct the protection boundary before semantic dispatch. Advertised scopes need not equal
+operation requirements; the complete challenged set is authoritative for that operation.
+
+### Strict validation and claims handoff
+
+Implement `OAuthTokenValidator::validate(string $credential, OAuthTokenRequirements $requirements, int $now)`.
+The credential is one opaque Bearer value; no request, principal or permission is supplied. Before returning,
+validate **every** intrinsic requirement: authenticity/signature with trusted issuer-bound keys; exact accepted
+issuer; the configured resource among intended audiences; expiration and not-before; purpose/type; allowed
+algorithm; active key identity/rotation; and required claim shape. Key IDs are allowlisted separately for each
+issuer, permitting an explicit rotation overlap; they are not URLs to fetch from untrusted token headers.
+Consumers own key retrieval, revocation, cryptographic correctness and refreshing request composition when policy
+or keys change. `none` is rejected as an allowed algorithm. Expiration and not-before checks cannot be disabled;
+clock skew is an explicit integer from 0 through 300 seconds.
+
+Return `OAuthValidatedClaims::fromVerifiedToken($claims, $algorithm, $keyId, $tokenType, $grantedScopes)` **only
+after verification**. `$claims` is an immutable `StrictJson` object, normalized to contain `iss` (string), `aud`
+(nonempty audience string or list of nonempty strings), `exp` and `nbf` (integer Unix seconds). This bounded
+profile requires both timestamps with `nbf < exp`. Additional configured required claims support `string`,
+`integer`, `boolean`, `number`, `object` and `list`; absent/null values fail every type. Keep raw tokens and keys
+out of claims. This normalized representation also permits consumer-verified opaque credentials; Common does
+not parse JWTs or call introspection endpoints.
+
+`OAuthScopeSet::fromArray()` rejects malformed or duplicate RFC 6749 scope tokens and sorts them bytewise.
+The validator returns a trusted **effective** scope set: expand issuer-defined scope hierarchies there when a
+broader scope implies narrower scopes. Common checks exact, case-sensitive membership without inventing scope
+hierarchies or mapping scopes to business permissions. Empty sets are allowed.
+
+The server independently rechecks all normalized issuer, audience, time, purpose, algorithm, active-key and
+claim-shape requirements before comparing scopes. It then calls `OAuthClaimsHandoff::accept()` with only the
+immutable validated value. The consumer resolves authoritative identity and establishes its authentication
+context before returning. No raw header/credential or Common principal enters MCP, Tools, commands or queries.
+Use request-scoped composition; consumers own context isolation and cleanup on all exits, including streamed
+response lifetimes. A handoff failure denies dispatch with a generic empty 500, not a forged OAuth token failure.
+The existing guarded endpoint, Tool availability and business authorization remain in force after handoff.
+
+**Trust boundary:** a public PHP value cannot prove that a consumer performed cryptography. A dishonest or
+incomplete validator is not made safe by constructing `OAuthValidatedClaims`. Package evidence proves rejection
+propagation, mandatory inputs and independent normalized checks, not qualification of a deployed validator or
+issuer. `TokenDecoder`/`JwtDecoder` signature-only decoding is explicitly insufficient and is not accepted as an
+`OAuthTokenValidator`. Each consumer must qualify its actual validator and key infrastructure.
+
+### Bearer failures and diagnostics
+
+`OAuthResourceServer::authorize()` accepts a list of Authorization values, current required scopes and an
+unsupported-transport indicator. It returns `null` only after successful handoff; an `OAuthFailure` means no
+consumer operation may run. Non-PSR consumers must preserve distinct header values, detect unsupported token
+transports, honor every result and adapt it through the same response mapping below. An empty list/value or an
+unsupported authentication scheme produces a missing-credentials challenge. One case-insensitive `Bearer`
+scheme, one or more spaces and one RFC 6750 `b64token` are accepted. Duplicate, coalesced, malformed or ambiguous
+Bearer transport is rejected before validation. A syntactically valid but intrinsically malformed token is a
+validator rejection, not a transport parse failure.
+
+`OAuthMiddleware` checks raw URI query names as well as parsed query parameters for `access_token` (including
+encoded names and bracket forms), rejecting them even alongside a valid header. Form-encoded transport is
+unsupported wholesale on this MCP-oriented adapter; it is rejected without reading the potentially unbounded
+body. JSON fields are never token sources. Other MCP content-type, Origin, mirror, invocation-guard and protocol
+validation remains the existing endpoint's responsibility. Preserve duplicate headers at ingress; irreversibly
+collapsed duplicates cannot be recovered by Common.
+
+| Outcome | HTTP | Challenge error | Dispatch |
+| --- | --- | --- | --- |
+| Missing credentials or unsupported scheme, including HMAC | 401 | Omitted | Never |
+| Malformed/ambiguous/unsupported token transport | 400 | `invalid_request` | Never |
+| Invalid intrinsic token or incomplete claim evidence | 401 | `invalid_token` | Never |
+| Fully validated token lacking current-operation scopes | 403 | `insufficient_scope` | Never |
+| Unexpected validation or handoff failure | 500 | No challenge | Never |
+| Complete validation, scope comparison and handoff | Downstream | Downstream | Guarded endpoint |
+
+Every OAuth rejection body is empty with `Cache-Control: no-store`, never JSON-RPC or a selected-Tool result.
+Every 400/401/403 has one Bearer challenge with `resource_metadata`, all nonempty current-operation scopes and an
+optional safely escaped ASCII `realm`. Invalid URLs, unsafe realms or scope configuration fail at composition.
+Missing credentials disclose no error code or description. No exception message, token, claim, key, internal
+validation reason or consumer permission policy is exposed. `OAuthTokenRejected` is the consumer's fixed,
+secret-free intrinsic-failure signal; do not wrap raw validation errors in its public message.
+
+`OAuthDiagnostics::record(OAuthFailure, ?Throwable)` is called once per OAuth rejection. Classified failures
+carry no Throwable. Unexpected failures carry the original Throwable to a required consumer-supplied
+redaction-aware sink, which must redact messages, argument values, previous exceptions, context and traces
+before storage in **every** environment. `SensitiveParameter` helps guard boundary arguments, but cannot redact
+arbitrary downstream exception messages or replace that sink. A broken sink is contained to preserve denial
+and public safety; it cannot guarantee persisted diagnostics. Failures inside the guarded endpoint remain owned
+by `McpDiagnostics`, without a second OAuth diagnostic. PSR request/response infrastructure that cannot read a
+request or construct a response remains a consumer runtime failure.
+
+### HMAC coexistence and evidence
+
+Use separate consumer-selected HMAC and Bearer routes by default; Common does not require particular paths.
+Other topology is consumer-owned and must keep scheme selection unambiguous. No failed scheme retries the other;
+no Bearer path calls `HmacAuthenticator`, consumes an HMAC nonce or uses its key store. On an HMAC route the consumer
+retains its existing authenticator and nonce guarantees. Explicitly enforce the selected route's scheme: the
+legacy HMAC validator validates its established required headers and signature rather than choosing a scheme.
+`Authenticator`, `TokenDecoder`, `JwtDecoder`, HMAC signing and nonce behavior are unchanged.
+
+Direct unit tests cover configuration, extraction, independent claim checks, ordering, immutable values,
+challenges, adapter equivalence and diagnostics. `tests/Functional/OAuthMcpJourneyTest.php` exercises a real guarded
+MCP endpoint with consumer-validator fakes and handoff/guard/capability spies, metadata, 400/401/403, sanitized 500s,
+one diagnostic owner and the separate real HMAC signing/nonce path. This is package conformance evidence, not an
+authorization-server, deployment or real-consumer qualification claim.
+
+Authorities: [MCP 2026-07-28 authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization),
+[RFC 9728](https://www.rfc-editor.org/rfc/rfc9728), [RFC 6750](https://www.rfc-editor.org/rfc/rfc6750), and
+[RFC 8707](https://www.rfc-editor.org/rfc/rfc8707).
 
 ## Authenticator (Interface)
 

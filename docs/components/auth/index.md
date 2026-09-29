@@ -33,6 +33,8 @@ atlas_next_steps:
   - label: Configure framework support
     href: "../../frameworks/framework-support/"
 atlas_local_contents:
+  - label: OAuth resource server
+    href: "#oauth-resource-server"
   - label: Authenticator
     href: "#authenticator-interface"
   - label: Request signing
@@ -53,8 +55,9 @@ atlas_local_contents:
     href: "#usage-examples"
 ---
 
-Authentication supplies separate contracts for HMAC request verification, password hashing, and token
-encoding. These prove identity evidence; they do not decide what the authenticated actor may do.
+Authentication supplies separate contracts for HMAC request verification, password hashing, token encoding,
+and OAuth resource-server protection through a complete consumer token validator. These prove identity evidence;
+they do not decide what the authenticated actor may do.
 
 Keep private HMAC keys and token signing material outside source control, compare signatures through the
 shipped verifier, rotate credentials deliberately, and treat decoded JWT claims as untrusted until issuer,
