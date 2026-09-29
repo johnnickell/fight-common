@@ -181,6 +181,21 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
             if identifier.startswith("EPIC-") and "archive" not in path.parts]
     views[roadmap, "epics"] = table(["EPIC ID", "Title", "Target", "Status"], rows)
 
+    frontier = []
+    for identifier, (path, data) in sorted(records.items()):
+        if identifier.startswith("TASK-") or data["status"] in TERMINAL:
+            continue
+        parent_key = "epic" if identifier.startswith("EPIC-") else "ticket"
+        children = [meta for _, meta in records.values() if meta.get(parent_key) == identifier]
+        if not children:
+            action = "Decompose into TICKETs" if parent_key == "epic" else "Decompose into TASKs"
+        elif all(child["status"] in TERMINAL for child in children):
+            action = "Review parent closeout"
+        else:
+            continue
+        frontier.append([linked(roadmap, path, identifier), cell(data["title"]), cell(data["status"]), action])
+    views[roadmap, "frontier"] = table(["Parent ID", "Title", "Status", "Planning action"], frontier)
+
     for identifier, (path, data) in records.items():
         if "archive" in path.parts or identifier.startswith("TASK-"):
             continue
@@ -237,7 +252,7 @@ def main() -> int:
             if not path.is_file():
                 errors.append(f"missing view: {path.relative_to(ROOT)}")
                 continue
-            text = path.read_text()
+            text = pending.get(path, path.read_text())
             matches = [match for match in BLOCK.finditer(text) if match[1] == name]
             if len(matches) != 1:
                 errors.append(f"{path.relative_to(ROOT)}: requires one planning:{name} block")

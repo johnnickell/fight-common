@@ -1,7 +1,7 @@
 # Planning Conventions
 
 Individual Markdown records own requirements, status, dependencies, and execution priority. Boards, indexes,
-and Roadmap status tables are generated views. Authored strategy and decision narratives remain editable.
+and Roadmap status/frontier tables are generated views. Authored strategy and decision narratives remain editable.
 
 ## Hierarchy and paths
 
@@ -55,11 +55,14 @@ only for deterministic display. `pr` is an optional full PR URL, not an assertio
 | `ready-for-agent` | Decision-complete and executable when dependencies permit |
 | `ready-for-human` | Human judgment or an external action is next |
 | `in-progress` | Implementation or revision is underway |
-| `done` | Acceptance and required verification are complete |
+| `done` | Implementation acceptance and required local verification are complete for a TASK; parent acceptance is explicitly reviewed |
 | `wontfix` | Intentionally closed without implementation |
 
-Blocking is derived, not a stored status. `done` does not assert merge or deployment: record those effects and
-evidence explicitly. Do not mark work done solely because a build passed while acceptance or review is pending.
+Blocking is derived, not a stored status. Mark TASK implementation `done` before PR publication once implementation
+acceptance and required local verification are complete. A green build alone does not establish acceptance.
+Independent review may still be pending: state that explicitly in completion notes/handoffs and record its outcome,
+publication, merge, release and deployment separately. Done grants none of those authorities. Preserve truthful
+historical records rather than inventing review approval or rewriting prior outcomes.
 
 ## Board and generated views
 
@@ -71,8 +74,12 @@ For "What's next?" or `/ask-matt`, return the current human decision/question an
 the first executable TASK in Ready Frontier. Do not start a second TASK merely because its ID is lower. If there
 is no executable work, say so. Execution priority is authored in record metadata rather than generated rows.
 
-`ROADMAP.md` retains strategy and milestone narrative; its EPIC status table is generated. Standalone chores
-appear on the Board without inventing an EPIC. Live EPICs and TICKETs have generated child tables. Archived
+`ROADMAP.md` retains strategy and milestone narrative; its EPIC status table and separate Planning frontier are
+generated. The frontier shows non-terminal EPICs without TICKETs and TICKETs without TASKs for decomposition,
+and parents with at least one child and all children terminal for explicit closeout review. Count live and archived
+children. Never close parents automatically or put these planning actions in executable TASK Board rows. Parent
+readiness and unresolved decisions still govern decomposition. Standalone chores appear on the Board without
+inventing an EPIC. Live EPICs and TICKETs have generated child tables. Archived
 progress prose remains historical completion evidence, not a live status source.
 
 Generated sections use `<!-- planning:NAME -->` and `<!-- /planning:NAME -->`. After editing source records:
@@ -120,10 +127,14 @@ handoff. Archive moves preserve records, repair local Markdown references, and r
 
 ## Branches and completion
 
-Use `feature/<description>` from `develop`; never commit directly to `develop` or `main`. Choose the main checkout
-or an isolated worktree with the user. Ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, and
-`.runs/archive/` hold local execution material. Durable requirements and outcomes belong in planning records.
+New TASK branches use `feature/task-NNNNN-<slug>` from `develop`, and PR titles use
+`TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities without retrospective renaming; release and
+patch conventions remain unchanged. Never commit directly to `develop` or `main`. Choose the main checkout or an
+isolated worktree with the user. Ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and
+`.runs/archive/` hold local execution material. [Review](../docs/engineering/standards/Review.md) owns the canonical
+base-worktree report, independence, criteria and accept/revise contract. Durable requirements and outcomes belong in planning records.
 
 Before a commit or PR, record verified acceptance and outstanding review honestly, update the PR link if known,
-refresh views, and run the full canonical `./bin/build`. Use focused checks during iteration. Surface warnings,
+refresh views, and satisfy the canonical `./bin/build` gate (or the verified documentation-only reuse rule in
+[Testing](../docs/engineering/standards/Testing.md#reusing-a-full-gate-result-after-documentation-only-follow-ups)). Use focused checks during iteration. Surface warnings,
 notices, and deprecations. Release certification, deployment, and runtime enrollment remain separate operations.

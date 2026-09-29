@@ -20,6 +20,22 @@ if (!$this->uniqueEmailSpecification->isSatisfiedBy($emailAddress)) {
 
 Prefer capability interfaces and dependency injection for testable business coordination. Apply SOLID to concrete responsibilities: cohesive reasons to change, substitutable contract behavior, interfaces limited to consumer needs, and dependencies pointing inward. Add abstractions for demonstrated variation or boundaries, not speculative extensibility. Fowler-style refactoring should reduce duplication and misplaced knowledge while preserving behavior; principle names alone are not review findings.
 
+## Package and consumer ownership
+
+Fight Common owns reusable capabilities and their explicit public behavior/compatibility promises. Consumers own
+application policy, permissions, routes, use-case composition and operational choices unless an explicit package
+contract says otherwise. Use the owning package's public contracts directly; avoid aliases and forwarding wrappers
+without demonstrated behavior. Consumer Application orchestration needs actual owned policy or coordination, not
+just a second name for a package call. State-based policy stays with its Domain owner; handlers coordinate it and
+adapters translate it. These preferences do not authorize removing Common's required compatibility aliases,
+intentional extension points or reusable framework integrations.
+
+Preserve the [project profile's](../../../planning/agents/project-profile.md#identity-and-architecture) accepted
+boundaries: Application protocol semantics (including MCP and JSend envelopes), the portable PSR-11 container,
+capability-first adapters, and the exact `Cron\CronExpression` allowance. Framework-native HTTP status/headers and
+responses remain adapter concerns. Do not transplant application-only namespaces or move accepted protocol
+semantics merely to fit another project's diagram. Dependency enforcement and public compatibility remain binding.
+
 ## CQRS and persistence
 
 Commands express intent; queries return data without business mutation; events express facts. Follow the project's message identity, metadata, bus, and dispatch contracts. Keep transport information out of domain messages unless it is meaningful use-case context. Application handlers orchestrate; adapters do not become alternate business workflows.

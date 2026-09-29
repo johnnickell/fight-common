@@ -11,6 +11,13 @@ Library: `johnnickell/fight-common`. Read the root AGENTS.md and local engineeri
 | Adapter | `src/Adapter/` | Framework/infrastructure implementations, depending inward |
 | Standards | `src/Standards/` | Orthogonal coding standard with no runtime dependents |
 
+Common owns reusable capabilities and promised package behavior; consumers own application policy, permissions,
+routes, composition and operations unless an explicit package contract assigns them to Common. Apply
+[Architecture's ownership rule](../../docs/engineering/standards/Architecture.md#package-and-consumer-ownership)
+without removing public compatibility aliases or framework integrations. Preserve Application-owned MCP/JSend
+semantics, the portable container, capability-first adapters, the exact `Cron\CronExpression` allowance, and current
+transaction contracts; no application-only namespace or blanket external-effect transaction rule is adopted.
+
 `deptrac.php` and `deptrac.runtime.php` enforce these boundaries. Source namespace is `Fight\Common\`, tests `Fight\Test\Common\`, and release tooling `Fight\Release\`. Tests mirror the source paths. Inspect Composer's actual autoload configuration for release tooling locations.
 
 Value objects are immutable, validate construction, and use named public factories such as `fromString()`/`fromArray()`; invalid values use DomainException as appropriate to their contract. Specifications extend CompositeSpecification and implement `isSatisfiedBy(mixed $candidate): bool`, composing with `and()`/`or()`/`not()`. Typed collections use `ArrayList::of()` and `HashTable::of()` according to their actual signatures.
@@ -33,7 +40,8 @@ complete. The main-only Docs deploy job is not a feature-PR gate. Missing hosted
 review blocker or a reason for a draft-publication acceptance loop. Host protections, merge authorization, release
 certification and deployment remain separate and unchanged.
 
-Land may record an independently accepted candidate as done and then publish administrative completion/PR metadata;
+TASK-00115's completion convention records implementation done before independent review, with that review pending
+explicitly. Land requires independent acceptance and may then publish administrative completion/PR metadata;
 required hosted delivery checks cover that final head. Preserve candidate acceptance separately from delivery
 results under [Delivery](../../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout).
 This is a policy amendment, not a claim that an absent hosted run passed. The decision also applies to TASK-00109's
@@ -54,7 +62,26 @@ Use the same container pattern for PHPStan/Rector when appropriate. Inspect `./b
 
 The coding-standard authority is `src/Standards/Phpcs/ruleset.xml` with the project's PHPCS composition. Fight Common must demonstrate its own strict conventions: root `phpcs.xml` enables multiline docblocks, checks declaration docblock alignment and ignores PHPCS suppression annotations. Repair violations instead of adding exclusions, lowering diagnostic severity, suppressing warnings or narrowing the scanned paths to make a gate pass. Changes to the published consumer defaults remain subject to [ADR 0004](../adr/0004-coding-standard-compatibility.md). Unit tests use the established UnitTestCase and Mockery helpers. Test methods follow `test_that_<subject>_<condition>()`, with `self::assert...`. Direct unit tests have `#[CoversClass(Target::class)]`; qualifying integration/journey tests may use `#[CoversNothing]`, never to hide missing direct coverage. Every PHPUnit test class carries explicit coverage metadata. Follow each suite's actual base-class contract.
 
-Require exact 100% statement coverage of owned production code. Choose mocks/stubs/reals for the behavior being proved; real value objects and simple anonymous stubs are normally useful, and `$this->mock()` supplies Mockery collaborators. Keep release/tooling tests outside ordinary product CI/default builds. Direct validation of docs/planning is part of the gate, not justification for adding tests of Markdown or shell/configuration text.
+Require exact 100% statement coverage of owned production code. Choose mocks/stubs/reals for the behavior being proved; real value objects and simple anonymous stubs are normally useful, and `$this->mock()` supplies Mockery collaborators. Preserve existing release tests/probes without adding packaging or release-process tests in any suite or harness; see the retained inventory below. Runtime, shipped coding-standard and framework-integration contract tests remain product verification. Direct validation of docs/planning is part of the gate, not justification for adding tests of Markdown or shell/configuration text.
+
+### Retained release verification
+
+The current checkout has no tracked release-process PHPUnit suite; do not resurrect historical suites. Retain:
+
+- `bin/release` and `release/scripts/{certify,functions}.php`: clean candidate/version checks, baseline/latest/lowest
+  dependency lanes with the complete product gate, archive generation and installed-consumer qualification.
+- `release/consumer/{probe,functions}.php`: the installed-package public behavior probe invoked by certification.
+- `release/src/Adapter/{PackageSurfaceInspector,PhpParserStructuralInventory}.php` and
+  `release/src/Application/CertificationRecord.php`: installed public-surface/autoload checks and bound evidence.
+- `release/fixtures/ComposerConsumer/composer.json` and `release/fixtures/PublicApiConsumer/public-api-probe.php`:
+  retained consumer fixtures; the latter is a legacy representative probe, not an active standalone PHPUnit suite
+  or the current certifier's probe.
+- `release/starter-receipts.json`: retained historical starter evidence cited by certification, not rerun implicitly.
+
+The complete product gate still checks release PHP syntax/style/static architecture without executing certification.
+Existing Unit/Integration/Functional product suites remain intact. [Release certification](../../release/README.md)
+is separately authorized, uses its actual owning command, and is not required for planning/standards adoption.
+This inventory is not authority to expand packaging/release tests under another name.
 
 ### Approved DBAL schema compatibility exception
 
@@ -72,15 +99,21 @@ the remaining supported range permits the public replacement. No automatic suppo
 
 ## Planning and Git
 
-Read [CONVENTIONS.md](../CONVENTIONS.md). EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and ready frontier. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
+Read [CONVENTIONS.md](../CONVENTIONS.md). EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition and explicit parent closeout actions from live and archived children, without changing parent status. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
 After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
 
-Use `feature/*` from develop to develop with merge commits. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
+New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
+
+TASK `done` records implementation acceptance and required local verification before publication; record pending
+independent review and all delivery outcomes separately. Use the single [Review catalog and canonical handoff](../../docs/engineering/standards/Review.md).
+One independent reviewer may conduct both passes; material contributors cannot accept their work. Preserve legacy
+report history and use [Delivery's provenance bridge](../../docs/engineering/standards/Delivery.md#reconciling-reviewed-revisions)
+for proven mechanical reconciliation, not semantic drift.
 
 ## Runtime, runs and delivery
 
-Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/` and `.runs/archive/`. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
+Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical review reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
 
 No persistent HTTP runtime or LocalDevelopment enrollment is asserted by this adoption. Library-focused checks need no feature URL. Any later HTTP runtime/worktree integration must use the shared operator's documented enrollment procedure; record the actual portable operator contract when adopted.
 

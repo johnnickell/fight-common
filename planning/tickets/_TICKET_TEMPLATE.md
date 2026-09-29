@@ -36,4 +36,6 @@ Define observable outcomes and evidence TASKs must provide.
 
 ## Decisions and progress
 
-Link accepted ADRs, Wayfinder decisions, and durable outcomes. Child status is generated above.
+Link accepted ADRs, Wayfinder decisions, and durable outcomes. Child status is generated above. The Roadmap
+planning frontier exposes missing decomposition and all-terminal-child closeout work, counting archived children.
+Review parent acceptance explicitly; terminal TASKs never close this TICKET automatically.

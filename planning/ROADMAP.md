@@ -9,6 +9,18 @@
 | [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
+## Planning frontier
+
+These are planning actions, not executable TASKs. Inspect the parent requirements and any missing decisions
+before decomposition; review acceptance explicitly before closing a parent. Live and archived children both
+count. No row changes authored status automatically. Execution remains on the [TASK Board](tasks/BOARD.md).
+
+<!-- planning:frontier -->
+| Parent ID | Title | Status | Planning action |
+|---|---|---|---|
+| [TICKET-00026](tickets/00026-TICKET.md) | Resume Protected input_required Interactions | ready-for-agent | Review parent closeout |
+<!-- /planning:frontier -->
+
 ## Strategy and next decisions
 
 The immediate planning-surface adoption chore appears on the [TASK Board](tasks/BOARD.md). It does not create a

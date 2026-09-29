@@ -23,4 +23,6 @@ Link accepted decisions and their consequences, including security and validatio
 ## Progress
 
 Record durable outcomes and remaining decisions. Grilling writes this EPIC; TICKET/TASK decomposition follows
-separately, and the table above will reflect the resulting records.
+separately, and the table above will reflect the resulting records. The Roadmap planning frontier exposes missing
+decomposition and all-terminal-child closeout work, counting archived children. Review parent acceptance explicitly;
+terminal children never close this EPIC automatically.

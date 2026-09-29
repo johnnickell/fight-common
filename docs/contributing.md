@@ -24,27 +24,34 @@ next major.
 
 Before editing, read the relevant task, its parent TICKET, and any accepted ADR named by the task. The live
 [Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/BOARD.md) is the execution
-frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates.
+frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates. The Roadmap has a separate
+planning frontier for undecomposed parents and explicit closeout review, counting live and archived children.
+Common owns reusable package promises; consumer applications own policy, permissions, routes and composition
+unless an explicit package contract says otherwise. Use public package contracts directly without behaviorless
+wrappers; preserve required compatibility aliases and framework integrations.
 
 ## Create an isolated branch
 
-Feature work starts from `develop`, never from `main`; do not commit directly to either protected branch.
+Choose the main checkout or an isolated worktree with the maintainer. New TASK branches use
+`feature/task-NNNNN-<slug>` from `develop`, never from `main`; do not commit directly to either protected branch.
+Preserve established branch/PR identities and existing release/patch conventions.
 
 ```bash
 git switch develop
 git pull --ff-only
-git switch -c feature/short-description
+git switch -c feature/task-NNNNN-short-description
 ```
 
 For coordinated or concurrent work, use a linked checkout under the repository's ignored run area:
 
 ```bash
-git worktree add -b feature/short-description \
+git worktree add -b feature/task-NNNNN-short-description \
   .runs/worktrees/short-description develop
 ```
 
 Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
-in `.runs/handoffs/`, and retired scratch in `.runs/archive/`. Those paths are local evidence and must not be
+in `.runs/handoffs/`, canonical independent reports in the base worktree's `.runs/reviews/<TASK-ID>/review.md`,
+and retired scratch in `.runs/archive/`. Those paths are local evidence and must not be
 staged. Removing a worktree or other run material is a separate cleanup action.
 
 ## Implement and verify
@@ -55,7 +62,10 @@ Production tests cover owned production code and meaningful behavior. Every PHPU
 hide missing direct coverage.
 
 Documentation, generated files, wrappers, build orchestration, configuration text, and tooling are checked with
-their owning commands and human inspection. Do not add tests that merely inspect those surfaces.
+their owning commands and human inspection. Do not add tests that merely inspect those surfaces. Preserve existing
+release tests and probes without adding packaging or release-process tests in any suite or renamed harness. The
+project profile inventories retained checks; do not recreate a removed suite. Meaningful runtime, shipped coding
+standard and framework integration tests remain product contracts.
 
 Use a non-interactive container command for focused feedback:
 
@@ -84,7 +94,9 @@ It resolves and installs dependencies with `composer update`, validates the docu
 disposable MySQL and PostgreSQL services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac,
 Rector's dry run, direct unit tests with exact statement coverage, integration tests, functional tests, and planning
 integrity. This library ignores `composer.lock`; every full build resolves its supported dependency constraints
-instead of reusing a stale local lock. A focused run provides iteration feedback; completion requires the full gate.
+instead of reusing a stale local lock. A focused run provides iteration feedback; implementation completion requires
+the full gate. Documentation-only follow-ups may retain a verified earlier full pass with input-equivalence evidence
+and current targeted checks under `docs/engineering/standards/Testing.md`.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
 delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
@@ -107,17 +119,27 @@ delivery unverified.
 Before the final commit or pull request:
 
 1. Verify every acceptance criterion with current evidence.
-2. Record the TASK's verified outcome and outstanding review honestly; `done` requires complete acceptance.
+2. Mark TASK implementation `done` once all implementation acceptance and required local verification are complete,
+   before publication. A green build alone is insufficient. Keep pending independent review explicit and record
+   review, publication, merge, release and deployment separately.
 3. Update the TASK metadata and PR link, preserving dependency edges as history.
 4. Run `./bin/planning-check --write` to refresh Board, parent, index, and Roadmap tables.
-5. Run the read-only `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
+5. Run the read-only `./bin/planning-check`, inspect the complete diff, and satisfy `./bin/build` or Testing's
+   documented input-equivalence rule for documentation-only follow-ups.
 
-After independent acceptance, authorized land opens the feature pull request against `develop`. The hosted Tests
-workflow runs the complete pre-submit gate; the documentation workflow builds and validates the generated site.
-Both are required delivery checks on the final published head, not pre-publication review prerequisites. A queued,
-skipped, cancelled, warning-bearing, or no-step job is not passing evidence. Pending delivery does not invalidate
-local acceptance; record it honestly and retain required resources. The repository's
-`planning/agents/project-profile.md` owns these delivery requirements.
+Independent review follows the Spec/Standards accept/revise contract in `docs/engineering/standards/Review.md`:
+one independent reviewer may do both passes, material contributors cannot accept, and any failed or unverified
+criterion requires revise. Review does not repair, change status, publish or merge. Moving revisions retain
+acceptance only through the proven mechanical-reconciliation bridge in Delivery; semantic or uncertain changes
+need renewed independent review.
+
+After independent acceptance, authorized land opens the feature pull request against `develop` with title
+`TASK-NNNNN — <TASK title>`; preserve an established PR identity. The hosted Tests workflow runs the complete
+pre-submit gate; the documentation workflow builds and validates the generated site. Both are required delivery
+checks on the final published head, not pre-publication review prerequisites. A queued, skipped, cancelled,
+warning-bearing, or no-step job is not passing evidence. Pending delivery does not invalidate local acceptance;
+record it honestly and retain required resources. The repository's `planning/agents/project-profile.md` owns
+these delivery requirements.
 
 Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
 that have been explicitly authorized.

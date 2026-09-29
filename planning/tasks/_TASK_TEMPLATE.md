@@ -44,9 +44,16 @@ and tooling directly without adding tooling tests to the product suite.
 ## Coordination
 
 Hand off dependency-ordered SUBTASKs under `.runs/`. Record deliberately separate SUBTASK PRs and their order.
-The parent TASK retains responsibility for the complete outcome.
+The parent TASK retains responsibility for the complete outcome. For new work use `feature/task-NNNNN-<slug>`
+and PR title `TASK-NNNNN — <TASK title>`; preserve established identities and release/patch conventions.
 
 ## Completion notes
 
-Record actual verification, review state, PR, and remaining decisions. Do not imply merge or deployment from
-completed implementation. Refresh the generated views after updating metadata.
+At the implementation checkpoint, account for every acceptance criterion and required local verification before
+marking `done`, before PR publication. A green build alone is insufficient. Record actual counts, warnings,
+limitations, files changed and remaining risks. State pending independent review explicitly; record review,
+publication, merge, release and deployment separately without implying approval or effect authority.
+
+Link the ignored builder receipt and handoff; independent review uses the base-worktree canonical report and the
+[Review contract](../../docs/engineering/standards/Review.md), not builder self-approval. Refresh generated views
+after metadata changes. Preserve truthful historical outcomes rather than rewriting prior completion evidence.
