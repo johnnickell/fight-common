@@ -103,7 +103,8 @@ results and gaps honestly. Supplement harness gaps with owned behavioral evidenc
 not a pass. Classify all new public APIs and observable behavior in the compatibility manifest and prove existing
 MCP/HTTP consumers remain compatible. Document composition, authorization injection, errors, cache behavior,
 limits/overrides and deferred templates. Each implementation change requires the project full gate, including
-exact production coverage; this is not deferred to TICKET-00030. No runtime evidence is claimed by this record.
+exact production coverage; this is not deferred to TICKET-00030. Slice evidence is recorded below and in the owning
+TASKs; this TICKET does not yet claim complete Resource acceptance.
 
 ## Exclusions
 
@@ -117,7 +118,7 @@ SSE, cancellation and authentication work retains its current ownership.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00117](../tasks/00117-TASK.md) | Discover Authorized Resources Through the Guarded Endpoint | ready-for-agent |
+| [TASK-00117](../tasks/00117-TASK.md) | Discover Authorized Resources Through the Guarded Endpoint | done |
 | [TASK-00118](../tasks/00118-TASK.md) | Read Exact Authorized Resource Content | ready-for-agent |
 <!-- /planning:children -->
 
@@ -137,5 +138,9 @@ TASK-00117 retains TASK-00105 as an already-completed foundation dependency; TAS
 Both remain unranked to preserve existing global priorities. The isolated planning copy of TASK-00105 was refreshed
 verbatim from current `develop` solely to report its completed status/evidence, without importing runtime code.
 
-TASK decomposition for this TICKET is complete. No implementation or runtime verification has begun; execution
-requires a separate request, an explicit worktree choice and the reviewed current foundation.
+TASK decomposition is complete. John subsequently authorized TASK-00117 in the main checkout; its discovery
+implementation and local verification are complete at the 2026-09-29 pre-publication checkpoint, with independent
+review pending. It supplies metadata-only providers, current visibility, bounded list/empty-template discovery,
+real guarded-handler proof and applicable pinned conformance evidence. The broader caching scenario retains its
+uncomposed/deferred-method failures; no full Resources conformance is claimed. TASK-00118's exact authorized reads
+and complete Resource acceptance remain future work, requiring a separate implementation request.
