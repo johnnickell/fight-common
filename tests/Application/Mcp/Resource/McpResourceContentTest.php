@@ -38,6 +38,29 @@ final class McpResourceContentTest extends UnitTestCase
         yield ['', false];
     }
 
+    #[DataProvider('validContent')]
+    public function test_that_optional_integrity_verifies_original_bytes_before_text_or_binary_encoding(string $bytes, bool $text): void
+    {
+        $info = $this->info(['size' => strlen($bytes)]);
+        $digest = 'sha256:'.hash('sha256', $bytes);
+        $stream = Utils::streamFor($bytes);
+        $content = $text ? McpResourceContent::text($info, $stream, $digest) : McpResourceContent::binary($info, $stream, $digest);
+        $result = $content->consume($info, new McpResourceReadLimits());
+        self::assertSame($bytes, $result['text'] ?? base64_decode($result['blob'], true));
+        self::assertFalse($stream->isReadable());
+        $mutated = Utils::streamFor(str_repeat('x', strlen($bytes)));
+        try {
+            McpResourceContent::binary($info, $mutated, 'sha256:'.str_repeat('0', 64))->consume($info, new McpResourceReadLimits());
+            self::fail('Mismatched digest accepted.');
+        } catch (DomainException) { self::assertFalse($mutated->isReadable()); }
+    }
+
+    public function test_that_noncanonical_integrity_assertions_are_rejected_at_construction(): void
+    {
+        $this->expectException(DomainException::class);
+        McpResourceContent::text($this->info(), Utils::streamFor(''), 'SHA256:'.str_repeat('0', 64));
+    }
+
     public function test_that_unknown_mime_and_size_are_optional_and_metadata_order_is_irrelevant(): void
     {
         $info = McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => 'A']);

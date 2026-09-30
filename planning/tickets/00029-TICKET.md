@@ -133,7 +133,7 @@ files remain supported content despite those exclusions.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00119](../tasks/00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | ready-for-agent |
+| [TASK-00119](../tasks/00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | done |
 | [TASK-00120](../tasks/00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | ready-for-agent |
 <!-- /planning:children -->
 
@@ -153,5 +153,24 @@ verification, compatibility, documentation and full gate, rather than deferring 
 
 TASK-00119 depends on [TASK-00118](../tasks/00118-TASK.md); TASK-00120 depends on TASK-00119. Both stay unranked,
 preserving existing global priorities. No Tools/Pi/TICKET-00030 blocker is introduced. This TICKET's decomposition
-is complete, but no implementation or runtime verification has begun. Execution requires a separate request and
-an explicit isolated-worktree choice using the reviewed current foundation.
+is complete, and John subsequently authorized TASK-00119 in the isolated worktree. At its 2026-09-30 pre-publication checkpoint,
+validated immutable revision snapshots, bounded safe YAML parsing and whole-Skill-protected file Resources are
+implemented and locally verified; independent review remains pending. Full gate: Unit 4,742/10,840, Integration
+150/1,024, Functional 48/1,847 and exact 12,387/12,387 unit statements. Its TASK record and ignored handoff retain
+scenario-specific Resource conformance results/gaps, compatibility classification and 38 actual HTTP observations.
+No Skills extension conformance is claimed. Independent review subsequently returned R1 for lossy YAML merge and
+duplicate-key handling. The authorized correction is implemented with failing-then-passing parser/revision
+regressions and a fresh full gate (Unit 4,824/10,999; exact 12,467/12,467 statements; Integration 150/1,024;
+Functional 48/1,847), repeated Resource checks and 38 HTTP observations. Renewed review still found R1's
+comment-separated duplicate keys and multiword-key truncation. A second authorized correction adds explicit flow
+key/value/separator validation, 18 failing-before-repair regressions and a fresh full gate (Unit 4,871/11,070;
+exact 12,498/12,498 statements; Integration 150/1,024; Functional 48/1,847). The reviewer reproducer now rejects
+all unsafe constructions; repeated Resource checks and 38 HTTP observations retain their documented outcomes.
+Independent re-review remains pending; the TASK owns detailed evidence and limitations. TASK-00120 remains separately authorized future work
+for complete list/get and advertisement; this TICKET is not accepted or closed by the first slice.
+
+At the subsequent 2026-09-30 landing checkpoint, independent review accepted TASK-00119 candidate `9d631d8`
+with R1 resolved, and independent QA passed 66 HTTP requests plus 478 tests / 1,017 assertions at that exact
+head. The TASK records canonical review/QA evidence and limitations. Administrative publication and final-head
+hosted delivery verification are pending at this checkpoint; human merge and this TICKET's acceptance remain
+separate. TASK-00120 is still future work.

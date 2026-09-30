@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "ed150cb4b232fa34e6eed3ae71c3eddcfc333f26e97212108aa76302eea52b68",
+    "operation_shapes_sha256": "1d7499c2ed5b6c2be5826a8a1493e31d4f37b5fdb45359e4edec615861b6add5",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,15 +13,19 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 234,
+            "declarations": 241,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 225,
+            "declarations": 226,
             "functions": 0
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00119-addition": {
+            "path": "planning/tasks/00119-TASK.md",
+            "locator": "Scope and acceptance: bounded immutable Skill revisions, safe frontmatter and whole-Skill Resource availability"
+        },
         "fight-common.classification.task-00118-addition": {
             "path": "planning/tasks/00118-TASK.md",
             "locator": "Scope and acceptance: compatible opt-in exact Resource reads, bounded content streams and fresh availability"
@@ -115,6 +119,118 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile",
+            "source": "src/Application/Mcp/Skill/McpSkillFile.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFile.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Explicit immutable raw file bytes, relative member identity and optional integrity assertions; validatePath is internal."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Expose immutable member bytes, digest and encoded relative URI path.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFile.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromBytes factory validates explicit inputs.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFile.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFile.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFile.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision",
+            "source": "src/Application/Mcp/Skill/McpSkillRevision.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillRevision.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Validated complete snapshot with immutable frontmatter, manifest, descriptors and exact file lookup; consumer retains publication ownership."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Read complete metadata and exact owned members without rehashing discovery.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillRevision.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named fromFiles factory validates bounded publication input.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillRevision.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable snapshot.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillRevision.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillRevision.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillRevision", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits",
+            "source": "src/Application/Mcp/Skill/McpSkillLimits.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Finite validated member, raw, parser, nesting and encoded-entry publication budgets."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Readonly budgets expose explicit validated limits.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers choose finite defaults or bounded overrides.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillLimits", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources",
+            "source": "src/Application/Mcp/Skill/McpSkillResources.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Protected Resource provider over immutable Skill revisions, enforcing fresh whole-Skill policy without new method ownership."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Enumerate and find metadata, apply whole-Skill decisions and open only selected exact bytes.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers compose bounded snapshots, availability and a PSR stream factory.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final provider.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability",
+            "source": "src/Application/Mcp/Skill/McpSkillAvailability.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillAvailability.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Consumer-owned fresh whole-Skill authority over neutral complete immutable metadata."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Evaluate one complete revision without credentials or file content.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillAvailability.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillAvailability.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillAvailability.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers retain caller resolution and policy.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillAvailability.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillAvailability", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser",
+            "source": "src/Application/Mcp/Skill/McpSkillFrontmatterParser.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFrontmatterParser.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Inward-owned safe bounded YAML-to-JSON contract preserving complete frontmatter without concrete parser dependencies."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Parse bounded safe YAML and reject ambiguous or unsupported input.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFrontmatterParser.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFrontmatterParser.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFrontmatterParser.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Alternative adapters must preserve the same safe, lossless bounded parsing contract.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillFrontmatterParser.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFrontmatterParser", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider",
+            "source": "src/Application/Mcp/Resource/McpProtectedResourceProvider.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpProtectedResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Optional readable-provider subtype enforces provider-owned availability in addition to general Resource policy without changing existing implementations."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Inherited exact lookup, lazy opening and current availability operations.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpProtectedResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface without construction.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpProtectedResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Not an extension base.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpProtectedResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Providers may require coherent group-level policy while exposing concealed metadata for ownership checks.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "source_locator": "working-tree:src/Application/Mcp/Resource/McpProtectedResourceProvider.php#Fight\\Common\\Application\\Mcp\\Resource\\McpProtectedResourceProvider", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser",
+            "source": "src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php",
+            "layer": "Adapter", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "source_locator": "working-tree:src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php#Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Optional Symfony YAML 8.1 adapter rejecting aliases, executable types, duplicates and excessive parsing before safe JSON conversion."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Parse complete bounded frontmatter through the inward-owned contract.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "source_locator": "working-tree:src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php#Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit optional stateless parser composition.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "source_locator": "working-tree:src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php#Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final adapter.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "source_locator": "working-tree:src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php#Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "source_locator": "working-tree:src/Adapter/Mcp/Symfony/SymfonyMcpSkillFrontmatterParser.php#Fight\\Common\\Adapter\\Mcp\\Symfony\\SymfonyMcpSkillFrontmatterParser", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\Resource\\McpReadableResourceProvider",
             "source": "src/Application/Mcp/Resource/McpReadableResourceProvider.php",
@@ -37390,6 +37506,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-skill-revisions",
+            "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Snapshot and integrity contract; Safe frontmatter parsing; Limits and recovery"},
+            "fixture": {"path": "tests/Application/Mcp/Skill/McpSkillRevisionTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-skill-resource-authorization",
+            "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Whole-Skill authorization and composition"},
+            "fixture": {"path": "tests/Functional/McpSkillResourceJourneyTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-resource-reads",
             "normative": {"path": "docs/components/mcp/index.md", "section": "Exact authorized Resource reads"},
