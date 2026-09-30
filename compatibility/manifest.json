@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "f67e9ef41ead9732c4c35ecb074fcfdbd1e640d265c5a28e373f42b8169c5b11",
+    "operation_shapes_sha256": "ed150cb4b232fa34e6eed3ae71c3eddcfc333f26e97212108aa76302eea52b68",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -228,7 +228,7 @@
             "kind": "class",
             "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults. R1 adds the explicitly internal handleWithMetadata responder seam to validate complete read budgets before advertisement or opening; it is not a consumer metadata or authorization API."},
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Capability methods validate and handle discovery with safe pagination and current availability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "callable"}}},

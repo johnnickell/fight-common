@@ -27,6 +27,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversClass(McpResourceDiscovery::class)]
+#[CoversClass(McpResponder::class)]
 final class McpResourceReadTest extends UnitTestCase
 {
     public function test_that_opt_in_reads_share_one_owner_and_do_not_break_metadata_only_composition(): void
@@ -164,32 +165,58 @@ final class McpResourceReadTest extends UnitTestCase
         $this->capability([$provider], limits: new McpResourceLimits(32, 64, 1))->handle($this->request('test:/a'));
     }
 
-    public function test_that_central_metadata_still_enforces_the_final_read_result_budget(): void
+    public function test_that_unservable_central_metadata_rejects_listing_and_reading_before_content_opens(): void
     {
         $provider = new ReadProvider(['test:/a' => 'a']);
         $resources = $this->capability([$provider], readLimits: new McpResourceReadLimits(1, 400));
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', 500), '1'), [$resources]));
+        self::assertSame(-32603, $responder->respond($this->wire('resources/list', []))->errorCode());
         self::assertSame(-32603, $responder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
+        self::assertSame([], $provider->opened);
     }
 
-    public function test_that_encoded_read_results_fit_exactly_or_fail_after_central_metadata_is_added(): void
+    public function test_that_complete_read_budget_accepts_the_exact_bound_and_rejects_one_over_before_io(): void
     {
         foreach ([str_repeat("\0", 8), str_repeat("\xff", 8)] as $bytes) {
             $provider = $this->mock(McpReadableResourceProvider::class);
             $info = McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => 'A', 'size' => 8]);
+            $provider->shouldReceive('resources')->andReturn([$info]);
             $provider->shouldReceive('find')->andReturn($info);
-            $provider->shouldReceive('open')->andReturnUsing(fn() => $bytes[0] === "\0" ? McpResourceContent::text($info, Utils::streamFor($bytes)) : McpResourceContent::binary($info, Utils::streamFor($bytes)));
-            $resources = $this->capability([$provider], readLimits: new McpResourceReadLimits(8, 400));
+            $provider->shouldReceive('open')->once()->andReturnUsing(fn() => $bytes[0] === "\0" ? McpResourceContent::text($info, Utils::streamFor($bytes)) : McpResourceContent::binary($info, Utils::streamFor($bytes)));
+            $resources = new McpResourceDiscovery([$provider], new ReadAvailability(), str_repeat('k', 32), 'scope', ttlMs: 9007199254740991, cacheScope: 'public', readLimits: new McpResourceReadLimits(8, 400));
             $wire = $this->wire('resources/read', ['uri' => 'test:/a']);
-            $base = (new McpResponder(new McpCapabilityRegistry(new McpServerInfo('s', '1'), [$resources])))->respond($wire)->toArray()['result'];
-            $padding = 400 - strlen(json_encode($base, JSON_THROW_ON_ERROR));
-            $exact = (new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', $padding + 1), '1'), [$resources])))->respond($wire)->toArray()['result'];
-            self::assertSame(400, strlen(json_encode($exact, JSON_THROW_ON_ERROR)));
+            $expected = ['resultType' => 'complete', 'contents' => [['uri' => 'test:/a', 'text' => str_repeat("\0", 8)]], 'ttlMs' => 9007199254740991, 'cacheScope' => 'public', '_meta' => ['io.modelcontextprotocol/serverInfo' => ['name' => 's', 'version' => '1']]];
+            $padding = 400 - strlen(json_encode($expected, JSON_THROW_ON_ERROR));
+            $identity = new McpServerInfo(str_repeat('s', $padding + 1), '1');
+            $responder = new McpResponder(new McpCapabilityRegistry($identity, [$resources]));
+            self::assertSame('test:/a', $responder->respond($this->wire('resources/list', []))->toArray()['result']['resources'][0]['uri']);
+            $exact = $responder->respond($wire)->toArray()['result'];
+            $encodedBytes = strlen(json_encode($exact, JSON_THROW_ON_ERROR));
+            self::assertLessThanOrEqual(400, $encodedBytes);
+            if ($bytes[0] === "\0") { self::assertSame(400, $encodedBytes); }
             $item = $exact['contents'][0];
             self::assertSame($bytes, $item['text'] ?? base64_decode($item['blob'], true));
             $overflow = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', $padding + 2), '1'), [$resources]));
+            self::assertSame(-32603, $overflow->respond($this->wire('resources/list', []))->errorCode());
             self::assertSame(-32603, $overflow->respond($wire)->errorCode());
+            // A different responder must not poison the shared capability with its larger identity.
+            self::assertNull($responder->respond($this->wire('resources/list', []))->errorCode());
         }
+    }
+
+    public function test_that_escaped_server_metadata_is_budgeted_without_changing_discovery_only_consumers(): void
+    {
+        $provider = new ReadProvider(['test:/a' => 'a']);
+        $identity = new McpServerInfo('雪', str_repeat("\0", 40));
+        $readable = $this->capability([$provider], readLimits: new McpResourceReadLimits(1, 400));
+        $readResponder = new McpResponder(new McpCapabilityRegistry($identity, [$readable]));
+        self::assertSame(-32603, $readResponder->respond($this->wire('resources/list', []))->errorCode());
+        self::assertSame(-32603, $readResponder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
+        self::assertSame([], $provider->opened);
+        $legacy = new McpResourceDiscovery([$provider], new ReadAvailability(), str_repeat('k', 32), 'scope');
+        $legacyResponder = new McpResponder(new McpCapabilityRegistry($identity, [$legacy]));
+        self::assertSame('test:/a', $legacyResponder->respond($this->wire('resources/list', []))->toArray()['result']['resources'][0]['uri']);
+        self::assertSame(-32601, $legacyResponder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
     }
 
     public function test_that_provider_and_policy_failures_including_protocol_injection_are_internal(): void

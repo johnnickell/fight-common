@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolExecution;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Domain\Exception\DomainException;
@@ -88,6 +89,12 @@ final readonly class McpResponder
         }
 
         $capability->validate($request);
+        if ($capability instanceof McpResourceDiscovery) {
+            return $this->success(
+                $request->id(),
+                $capability->handleWithMetadata($request, $this->resultMetadata())
+            );
+        }
 
         return $this->success($request->id(), $capability->handle($request));
     }
@@ -120,12 +127,19 @@ final readonly class McpResponder
             throw new DomainException('An MCP result metadata value must be a JSON object.');
         }
 
-        $data['_meta'] = [
-            ...$metadata,
-            'io.modelcontextprotocol/serverInfo' => $this->registry->serverInfo()->toArray()
-        ];
+        $data['_meta'] = [...$metadata, ...$this->resultMetadata()];
 
         return McpJsonResponse::success($id, $result->withMetadata($data['_meta']));
+    }
+
+    /**
+     * Returns central metadata shared by serving-budget validation and final response construction
+     *
+     * @return array<string, mixed>
+     */
+    private function resultMetadata(): array
+    {
+        return ['io.modelcontextprotocol/serverInfo' => $this->registry->serverInfo()->toArray()];
     }
 
     /**

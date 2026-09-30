@@ -351,9 +351,14 @@ an unsafe override at construction, even for a binary-only provider.
 
 Before listing or opening in read-enabled composition, declared size must fit the raw limit, and the encoded
 budget must additionally fit the actual JSON-encoded URI/MIME fields. Hidden descriptors obey these same rules.
-The 256-byte reserve covers the ordinary result/cache wrapper; leave further room for the configured server
-identity. The **actual final** encoded result is checked after central metadata is added, and an oversized identity
-still fails safely rather than escaping the bound. Discovery keeps its separate `McpResourceLimits` page budget.
+The 256-byte reserve is only the constructor/descriptor minimum. Before advertising any readable descriptor or
+opening content, the responder also supplies its actual server metadata to Resource dispatch. Common checks the
+exact JSON-encoded URI/MIME, result/cache wrapper and central metadata plus `6 * maxContentBytes`. An incompatible
+combination fails safely before a successful listing or content I/O, even when the separate discovery page budget
+would fit. Identity strings are measured after JSON escaping, not by raw length. No identity is retained between
+requests or shared responders. The **actual final** encoded result is independently checked after central metadata
+is added as defense in depth. Discovery-only composition remains unchanged and retains its separate
+`McpResourceLimits` page budget.
 Neither limit changes shared HTTP request reading; that belongs to the ingress slice.
 
 Common requests chunks no larger than 8,192 bytes, up to the remaining raw budget plus **one overflow byte**.

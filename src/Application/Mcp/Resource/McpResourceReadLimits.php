@@ -15,8 +15,9 @@ final readonly class McpResourceReadLimits
      * Constructs McpResourceReadLimits
      *
      * Reserve worst-case JSON text expansion (six bytes per raw byte), which also covers Base64 expansion.
-     * Descriptor-specific URI/MIME overhead is checked before listing or opening; central metadata is checked
-     * against the final result budget by McpResult. Consumers must leave room for their server identity.
+     * Descriptor-specific URI/MIME overhead is checked before listing or opening. Resource dispatch additionally
+     * validates the exact result/cache wrapper and actual central metadata before advertisement or content I/O;
+     * McpResult retains an independent final encoded-result guard.
      */
     public function __construct(public int $maxContentBytes = 1048576, public int $maxResultBytes = 8388608)
     {
