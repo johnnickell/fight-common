@@ -141,7 +141,7 @@ implementation slicing.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00121](../tasks/00121-TASK.md) | Bound MCP Request Reading and Decoding | ready-for-agent |
+| [TASK-00121](../tasks/00121-TASK.md) | Bound MCP Request Reading and Decoding | done |
 | [TASK-00122](../tasks/00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | ready-for-agent |
 <!-- /planning:children -->
 
@@ -163,6 +163,14 @@ full gate; earlier capability evidence is not deferred to final integration.
 TASK-00121 retains already-completed TASK-00105 as its foundation dependency and can proceed independently of
 Resources/Skills/Tools. TASK-00122 depends on TASK-00107, TASK-00120 and TASK-00121. Any required additive Resource-link
 output support belongs to TASK-00122 after coordination with the Tool owner; TASK-00107 is not silently expanded.
-Both new TASKs remain unranked, preserving existing global priorities. This TICKET's decomposition is complete.
-No implementation, conformance result, release or completed EPIC acceptance is claimed; execution requires a
-separate request and an explicit isolated-worktree choice using the reviewed current foundation.
+At decomposition, both new TASKs were unranked; John later assigned orders 11 and 12 in their owning records.
+This TICKET's decomposition is complete. That planning checkpoint claimed no implementation or conformance result.
+
+At the 2026-09-30 TASK-00121 builder checkpoint, John selected the main checkout. Bounded actual-byte ingestion,
+validated shared byte/parser-depth configuration, safe rejection and the unchanged guarded dispatch ordering are
+implemented. Direct boundary tests and an authenticated Slim-route journey passed, together with the full local
+gate: 5,019 Unit tests, exact 12,682/12,682 statements, 150 Integration and 50 Functional tests. TASK-00121 owns
+configuration, compatibility, diagnostics, upstream-I/O limits and retained evidence. Independent technical
+acceptance and applicable QA remain pending; its `done` is the implementation checkpoint, not a reviewer verdict.
+TASK-00122's combined Tools/Resources/Skills journey remains future work. This TICKET and EPIC-00007 are not
+closed; no release, publication, downstream acceptance or broader conformance result is implied.

@@ -6,21 +6,41 @@ namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use JsonException;
 
 /**
  * Class McpRequestDecoder
  */
-final class McpRequestDecoder
+final readonly class McpRequestDecoder
 {
     /**
-     * Decodes and validates one MCP JSON-RPC request
+     * Constructs McpRequestDecoder
+     */
+    public function __construct(private McpRequestLimits $limits = new McpRequestLimits())
+    {
+    }
+
+    /**
+     * Returns the shared ingress and decoding limits
+     */
+    public function limits(): McpRequestLimits
+    {
+        return $this->limits;
+    }
+
+    /**
+     * Decodes and validates one MCP JSON-RPC request within finite byte and parsing budgets
      */
     public function decode(string $json): McpRequest
     {
+        if (strlen($json) > $this->limits->maxBytes) {
+            throw new McpProtocolException(McpProtocolError::invalidRequest(), null);
+        }
+
         try {
-            // Preserve the protocol decoder's 512-level JSON limit; Tool data is bounded separately.
-            $data = StrictJson::fromString($json, maxDepth: 511);
-        } catch (DomainException) {
+            $decoded = json_decode($json, false, $this->limits->maxDepth, JSON_THROW_ON_ERROR);
+            $data = StrictJson::fromData($decoded, maxDepth: 511);
+        } catch (DomainException | JsonException) {
             throw new McpProtocolException(McpProtocolError::parseError(), null);
         }
 

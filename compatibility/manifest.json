@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "c5576fdc6d206b52992193ecab0eae2e8058741195e66de163006bfcf15653ff",
+    "operation_shapes_sha256": "70971dff50fad21472d44504c1d65959d1f26e26686607821a6246353830f8f3",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,15 +13,19 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 243,
+            "declarations": 244,
             "functions": 0
         },
         "Adapter": {
-            "declarations": 226,
+            "declarations": 227,
             "functions": 0
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00121-addition": {
+            "path": "planning/tasks/00121-TASK.md",
+            "locator": "Scope and acceptance: bounded request ingestion and parsing, compatible calls and intentional rejection of excess input"
+        },
         "fight-common.classification.task-00120-addition": {
             "path": "planning/tasks/00120-TASK.md",
             "locator": "Scope and acceptance: complete authorized Skills list/get, atomic bounded pagination and shared Resources composition"
@@ -123,6 +127,34 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpRequestLimits",
+            "source": "src/Application/Mcp/McpRequestLimits.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpRequestLimits", "source_locator": "working-tree:src/Application/Mcp/McpRequestLimits.php#Fight\\Common\\Application\\Mcp\\McpRequestLimits"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00121-addition", "rationale": "Finite encoded-request byte and parsing-depth limits, shared by semantic decoding and guarded HTTP ingestion; deliberate new oversized-input rejection boundary."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Readonly validated byte and depth configuration.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpRequestLimits", "source_locator": "working-tree:src/Application/Mcp/McpRequestLimits.php#Fight\\Common\\Application\\Mcp\\McpRequestLimits", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Default limits or validated bounded overrides.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpRequestLimits", "source_locator": "working-tree:src/Application/Mcp/McpRequestLimits.php#Fight\\Common\\Application\\Mcp\\McpRequestLimits", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable configuration.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpRequestLimits", "source_locator": "working-tree:src/Application/Mcp/McpRequestLimits.php#Fight\\Common\\Application\\Mcp\\McpRequestLimits", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpRequestLimits", "source_locator": "working-tree:src/Application/Mcp/McpRequestLimits.php#Fight\\Common\\Application\\Mcp\\McpRequestLimits", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader",
+            "source": "src/Adapter/Http/Mcp/McpRequestBodyReader.php",
+            "layer": "Adapter", "kind": "class", "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestBodyReader.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Bounded MCP handler ingestion implementation, not a general HTTP stream or middleware API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal reader.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestBodyReader.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal reader.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestBodyReader.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal reader.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestBodyReader.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete internal class.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestBodyReader.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestBodyReader", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery",
             "source": "src/Application/Mcp/Skill/McpSkillDiscovery.php",
@@ -1177,7 +1209,7 @@
             "kind": "class",
             "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "The guarded PSR-15 endpoint is the public TASK-00105 delivery boundary."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00105-addition", "rationale": "The guarded PSR-15 endpoint is the public TASK-00105 delivery boundary. TASK-00121 preserves constructor/call shapes and replaces unrestricted conversion with bounded ingestion; oversized bodies intentionally reject with empty HTTP 413 before decoding."},
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Consumer routes delegate PSR requests.", "binding": {"subject": "Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "source_locator": "working-tree:src/Adapter/Http/Mcp/McpRequestHandler.php#Fight\\Common\\Adapter\\Http\\Mcp\\McpRequestHandler", "operation": "callable"}}},
@@ -1818,7 +1850,7 @@
             },
             "classification_evidence": {
                 "authority": "fight-common.classification.task-00104-addition",
-                "rationale": "Fight\\Common\\Application\\Mcp\\McpRequestDecoder is deliberately classified public as a TASK-00104 MCP protocol addition from src/Application/Mcp/McpRequestDecoder.php."
+                "rationale": "Public TASK-00104 decoder. TASK-00121 adds optional validated limits and a limits accessor without changing zero-argument construction or decode(string). Length is checked before parsing; oversized direct inputs now deliberately reject as invalid request without an ID, while the configured parser depth retains safe parse errors."
             },
             "members": [],
             "operations": {
@@ -37542,6 +37574,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-request-bounds",
+            "normative": {"path": "docs/components/mcp/index.md", "locator": "Bounded request ingress"},
+            "fixture": {"path": "tests/Functional/McpRequestBoundsJourneyTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-skill-discovery",
             "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Complete Skills discovery and exact get"},

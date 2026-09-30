@@ -49,6 +49,8 @@ atlas_local_contents:
     href: "#protocol-behavior"
   - label: Guarded HTTP
     href: "#guarded-http"
+  - label: Request limits
+    href: "#bounded-request-ingress"
   - label: Progressive HTTP
     href: "#progressive-http-delivery"
   - label: Consumer wiring
@@ -998,7 +1000,7 @@ Origin policy or invocation guard.
 ### Enforcement and errors
 
 The handler checks a supplied Origin before reading the body, on every method. Next it checks POST, `Accept`,
-and JSON content type; decodes the body; validates the complete mirror set; checks the supported version; asks
+and JSON content type; reads and decodes within finite budgets; validates the complete mirror set; checks the supported version; asks
 the invocation guard; and only then invokes a capability. Tool mirror selection performs only metadata lookup and
 availability before custom-header comparison; it does not validate arguments or execute the Tool. Invocation
 reevaluates current availability after the guard rather than caching an earlier authorization decision.
@@ -1010,7 +1012,8 @@ reevaluates current availability after the guard rather than caching an earlier 
 | Non-POST, including GET/DELETE | 405 | Empty body and `Allow: POST` |
 | Missing/incomplete/invalid `Accept` | 406 | Empty body |
 | Missing/non-JSON/unsupported-charset content type | 415 | Empty body |
-| Malformed JSON / request / outer parameters | 400 | JSON-RPC `-32700` / `-32600` / `-32602` |
+| Request body exceeds the byte budget | 413 | Empty body; no partial request ID or dispatch |
+| Malformed or overly deep JSON / request / outer parameters | 400 | JSON-RPC `-32700` / `-32600` / `-32602` |
 | Missing, ambiguous, malformed, or mismatched mirror | 400 | JSON-RPC `-32020`, `Header mismatch.` |
 | Unsupported version with agreeing mirrors | 400 | JSON-RPC `-32022` with supported/requested versions |
 | Invocation denied | 429 | Common-defined JSON-RPC `429`, `Invocation limit exceeded.`, no diagnostic data |
@@ -1026,13 +1029,75 @@ range. No threshold, caller-key format, retry time, quota store, exemption, or a
 POST must explicitly list both `application/json` and `text/event-stream` in `Accept`, with a nonzero weight;
 wildcards alone are insufficient. The default endpoint selects direct JSON; opt-in progressive delivery selects
 SSE for a guarded `tools/call` with a progress token. Request content type is `application/json`,
-optionally with `charset=utf-8`. Consumer ingress owns body-size limits, TLS, trusted proxies and authentication.
+optionally with `charset=utf-8`. Common bounds its own request reading/decoding as described below. Consumer
+ingress still owns upstream body-size limits, timeouts, TLS, trusted proxies and authentication.
 Legacy session and Last-Event-ID headers are ignored and never echoed; no session, GET stream, or DELETE lifecycle
 is created. Incoming notification dispatch remains later work. Optional
 [OAuth resource-server protection](../auth/index.md#oauth-resource-server) now composes outside this endpoint:
 consumer validation and claims handoff precede capability selection, with distinct empty 400/401/403 responses.
 Consumer-selected HMAC remains a separate compatible composition. Tool registration, discovery and
 invocation use this endpoint; outgoing progress uses the additive SSE composition below.
+
+### Bounded request ingress
+
+**Contract `fight-common.behavior.mcp-request-bounds`:** `McpRequestLimits` supplies validated immutable budgets
+shared by `McpRequestDecoder` and the existing guarded handler. Defaults are **1,048,576 encoded bytes (1 MiB)**
+and JSON decoder depth **512**. Optional integer overrides accept 1–67,108,864 bytes (64 MiB) and depth 1–512;
+other values throw `DomainException` during composition. There is no unlimited setting. The byte count includes
+the whole JSON-RPC envelope, whitespace and UTF-8 bytes, not characters, unescaped string sizes or PHP object size.
+A body exactly at the byte limit is accepted if otherwise valid. Depth uses PHP `json_decode` semantics: at most
+`maxDepth - 1` nested containers, counting the root and empty arrays/objects. A normal request with empty client
+capabilities needs depth 5; smaller valid settings intentionally cannot admit that request shape. The default
+retains the prior 511-container ceiling. Capability-specific metadata/Tool limits remain independent.
+
+```php
+use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\McpRequestLimits;
+
+$decoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
+// Supply decoder: $decoder to the existing McpRequestHandler constructor.
+// Its limits() value is also used for bounded HTTP reading; there is no second HTTP budget to synchronize.
+```
+
+Existing `new McpRequestDecoder()`, `decode(string)` and all handler constructor/call shapes remain supported.
+The optional decoder argument already available on `McpResponder` also accepts this configured instance.
+**Compatibility:** the new byte rejection is an intentional behavioral restriction approved in TASK-00121,
+not a claim that all previously accepted oversized requests remain accepted. Existing valid in-budget calls retain
+their protocol behavior. Depth overrides may intentionally narrow acceptance; no new MCP error code is invented.
+
+After Origin and negotiation checks, Common requests chunks of at most 8 KiB, never more than the remaining
+budget plus one byte. It stops on the first excess byte without appending it, draining the body, parsing a valid
+prefix or searching for an ID. It never uses unrestricted string conversion, `getContents()`, `Content-Length` or
+stream-size metadata to establish acceptance. Missing, false or oversized declared lengths cannot bypass actual
+byte accounting. It does not eagerly allocate the configured maximum. Seekable bodies are rewound to preserve
+previous PSR string-conversion behavior; non-seekable bodies are read from their current position. Consumers must
+supply the complete request body at that position. Common neither closes nor restores the caller-owned stream.
+
+Excess HTTP input returns an empty **413**. Malformed JSON and excessive parsing depth return **400 / -32700**
+without an ID. Stream exceptions (including rewind/EOF failures), an oversized read return, or an empty read before
+EOF fail through the central **500 / -32603** response and one redaction-aware diagnostic, with no ID or dispatch.
+An empty read establishing EOF is valid. No-progress streams must not require retries from this synchronous
+handler. A stream collaborator cannot inject a public protocol error or unvalidated request ID through an exception.
+After a successful bounded decode, normal metadata, mirror, protocol-version and invocation-guard checks still apply.
+
+Direct `decode(string)` checks encoded length **before** JSON parsing and passes the configured depth to the
+parser itself, before creating immutable JSON nodes. An oversized direct input raises the existing
+`McpProtocolException` with `-32600` invalid request and no ID; `McpResponder::respond()` renders that semantic error.
+A caller has already allocated that string: this check does not retrospectively bound acquisition or allocation.
+HTTP callers should use the guarded handler, not expose the semantic responder directly as an endpoint.
+
+For recovery, reduce the request size/nesting or deliberately configure a supported larger budget based on measured
+consumer needs; do not retry unchanged excess input or silently truncate it. Stream failures need consumer I/O
+recovery, not weaker limits. Upstream reverse proxies, PHP/server input, PSR factories and authentication middleware
+(including any HMAC body hashing) may already have read/buffered content. Common cannot undo that work or constrain
+an arbitrary stream implementation's internal allocation, read-ahead, lying EOF or blocking I/O. Consumers retain
+ingress admission, timeouts, concurrency/memory budgets and authenticated complete-body composition. Invocation
+quotas do not replace byte/depth bounds; none of these mechanics grants authorization or changes authentication.
+
+`McpRequestBodyReaderTest` and `McpRequestDecoderTest` prove consumption and parsing boundaries directly.
+`McpRequestBoundsJourneyTest` exercises the real guarded handler through an authenticated consumer-owned Slim route,
+including no-read early rejection, exactly-at-limit Unicode input, excess bodies, partial-read failure and unchanged
+mirror/guard enforcement. These are package-owned scenarios, not a new blanket MCP conformance or upstream-I/O claim.
 
 ### Origins, guards, and diagnostics
 
