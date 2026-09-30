@@ -197,3 +197,11 @@ The same-name and inherited Resource descriptor SHOULD advisories are explicit i
 applicable MUST checks pass, without a blanket badge. Directory/subscriptions/execution, production publication
 storage, Pi/host trust and cache behavior remain excluded/downstream. No evidence or documentation for this TICKET
 is deferred to the combined Tools journey. Explicit parent acceptance/closeout remains separate.
+
+Independent TASK-00120 review subsequently identified R1: float-valued frontmatter could make tight encoded pages
+empty with an unusable cursor. The authorized repair aligns page sizing with result encoding, preserving existing
+limits and metadata fingerprints. Two regressions failed before repair and now pass, including complete three-page
+traversal. Fresh full gate: Unit **4,941 / 11,330**, exact **12,640/12,640 statements**, Integration **150 / 1,024**,
+Functional **49 / 1,999**, exit 0; repeated pinned Skills conformance retains the same documented outcomes/advisories.
+TASK-00120 owns detailed red/green and gate evidence. Independent re-review and applicable QA are pending; this
+repair checkpoint neither accepts nor closes the TICKET.

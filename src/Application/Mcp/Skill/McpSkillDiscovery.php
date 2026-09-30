@@ -227,7 +227,9 @@ final readonly class McpSkillDiscovery implements McpCapability
             $encoded = $entry->toString();
             hash_update($hash, strlen($encoded).':'.$encoded);
             if ($visible >= $offset && !$full) {
-                $bytes = strlen($encoded) + (count($page) === 0 ? 0 : 1);
+                // Match McpResult's encoder, not StrictJson's fraction-preserving catalog fingerprint.
+                // Catalog validation guarantees one entry plus this metadata/cursor wrapper always fits.
+                $bytes = strlen(json_encode($entry, JSON_THROW_ON_ERROR)) + (count($page) === 0 ? 0 : 1);
                 if (count($page) >= $this->limits->pageSize || $pageBytes + $bytes > $this->limits->maxResultBytes) {
                     $full = true;
                 } else {

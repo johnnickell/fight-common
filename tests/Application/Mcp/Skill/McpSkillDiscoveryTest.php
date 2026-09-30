@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Skill;
 
+use Fight\Common\Adapter\Mcp\Symfony\SymfonyMcpSkillFrontmatterParser;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpProtocolError;
@@ -21,7 +22,9 @@ use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Fight\Common\Application\Mcp\Skill\McpSkillAvailability;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
+use Fight\Common\Application\Mcp\Skill\McpSkillFile;
 use Fight\Common\Application\Mcp\Skill\McpSkillResources;
+use Fight\Common\Application\Mcp\Skill\McpSkillRevision;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\Fixture\Mcp\ReadableResources;
@@ -198,6 +201,63 @@ final class McpSkillDiscoveryTest extends UnitTestCase
             if ($index < 2) { $params = ['cursor' => $page['nextCursor']]; }
             else { self::assertArrayNotHasKey('nextCursor', $page); }
         }
+    }
+
+    #[DataProvider('floatCatalogSizes')]
+    public function test_that_float_entries_traverse_tight_encoded_pages_with_actual_metadata(int $count): void
+    {
+        $bytes = "---\nname: work\ndescription: Float metadata\nvalues: ["
+            .implode(', ', array_fill(0, 200, '1.0'))."]\n---\n";
+        $revisions = [];
+        for ($index = 1; $index <= $count; ++$index) {
+            $revisions[] = McpSkillRevision::fromFiles('skill://catalog/v'.$index.'/work/SKILL.md', [
+                McpSkillFile::fromBytes('SKILL.md', $bytes)
+            ], new SymfonyMcpSkillFrontmatterParser());
+        }
+        $streams = $this->mock(StreamFactoryInterface::class);
+        $streams->shouldNotReceive('createStream');
+        $provider = new McpSkillResources($revisions, new DiscoveryAvailability(), $streams);
+        $size = strlen($revisions[0]->entry()->toString());
+        $limits = new McpSkillDiscoveryLimits(pageSize: 100, maxEntryBytes: $size, maxResultBytes: $size + 256);
+        [, $responder] = $this->composition($provider, $limits, server: new McpServerInfo(str_repeat('s', 300), '1'));
+        $params = [];
+        $cursors = [];
+        foreach ($revisions as $index => $revision) {
+            self::assertSame(array_fill(0, 200, 1.0), $revision->entry()->get('frontmatter')->get('values'));
+            $get = $this->response($responder, 'skills/get', ['uri' => $revision->entry()->get('uri')]);
+            self::assertArrayHasKey('result', $get);
+            $expected = json_decode(json_encode($revision->entry(), JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame($expected, $get['result']['skill']);
+            // Independently establish that a complete entry plus a continuation fits the actual result budget.
+            $permitted = $get['result'];
+            unset($permitted['skill']);
+            $permitted['skills'] = [$expected];
+            $permitted['nextCursor'] = str_repeat('x', 48);
+            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($permitted, JSON_THROW_ON_ERROR)));
+            $response = $this->response($responder, 'skills/list', $params);
+            self::assertArrayHasKey('result', $response);
+            $page = $response['result'];
+            self::assertSame([$expected], $page['skills']);
+            self::assertSame($get['result']['_meta'], $page['_meta']);
+            self::assertSame('complete', $page['resultType']);
+            self::assertSame('private', $page['cacheScope']);
+            self::assertSame(0, $page['ttlMs']);
+            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($page, JSON_THROW_ON_ERROR)));
+            if ($index + 1 < $count) {
+                self::assertArrayHasKey('nextCursor', $page);
+                self::assertNotContains($page['nextCursor'], $cursors);
+                $cursors[] = $page['nextCursor'];
+                $params = ['cursor' => $page['nextCursor']];
+            } else {
+                self::assertArrayNotHasKey('nextCursor', $page);
+            }
+        }
+    }
+
+    public static function floatCatalogSizes(): iterable
+    {
+        yield 'single entry terminates' => [1];
+        yield 'byte-limited continuation traverses every entry' => [3];
     }
 
     public function test_that_actual_central_metadata_is_checked_before_disclosing_any_entry(): void
