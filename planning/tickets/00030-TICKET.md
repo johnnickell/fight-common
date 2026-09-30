@@ -142,7 +142,7 @@ implementation slicing.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00121](../tasks/00121-TASK.md) | Bound MCP Request Reading and Decoding | done |
-| [TASK-00122](../tasks/00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | ready-for-agent |
+| [TASK-00122](../tasks/00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -174,3 +174,13 @@ configuration, compatibility, diagnostics, upstream-I/O limits and retained evid
 acceptance and applicable QA remain pending; its `done` is the implementation checkpoint, not a reviewer verdict.
 TASK-00122's combined Tools/Resources/Skills journey remains future work. This TICKET and EPIC-00007 are not
 closed; no release, publication, downstream acceptance or broader conformance result is implied.
+
+At the later TASK-00122 implementation checkpoint, one real guarded endpoint composes the Tool, document
+Resources and complete Skills providers. Its query-backed Tool returns a validated standard Resource link; the
+same endpoint reads the exact document revision and selected Skill files with independent current decisions.
+TASK-00121 supplies bounded request ingress; TASK-00117/00118 supply Resource discovery, reads and budgets;
+TASK-00119/00120 supply immutable Skill revisions and complete list/get; TASK-00107 supplies Tool invocation.
+TASK-00122 adds combined HTTP evidence, the narrow link API, compatible behavior classification, documentation,
+applicable pinned scenario-specific Resources/Skills checks and a new complete local gate. Its TASK record and
+`.runs/TASK-00122/receipt.md` retain outcomes and limitations. This is builder evidence only: independent technical
+review and behavioral QA are pending, and neither this TICKET nor EPIC-00007 is accepted or closed automatically.

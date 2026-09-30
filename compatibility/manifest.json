@@ -37575,6 +37575,11 @@
     ],
     "behavioral_contracts": [
         {
+            "id": "fight-common.behavior.mcp-combined-resource-links",
+            "normative": {"path": "docs/components/mcp/index.md", "locator": "Combined Tool, Resource and Skill journey"},
+            "fixture": {"path": "tests/Functional/McpCombinedJourneyTest.php"}
+        },
+        {
             "id": "fight-common.behavior.mcp-request-bounds",
             "normative": {"path": "docs/components/mcp/index.md", "locator": "Bounded request ingress"},
             "fixture": {"path": "tests/Functional/McpRequestBoundsJourneyTest.php"}
