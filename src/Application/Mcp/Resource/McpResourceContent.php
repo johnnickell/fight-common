@@ -15,24 +15,35 @@ final readonly class McpResourceContent
     /**
      * Constructs McpResourceContent
      */
-    private function __construct(private McpResourceInfo $resource, private StreamInterface $body, private bool $text)
-    {
+    private function __construct(
+        private McpResourceInfo $resource,
+        private StreamInterface $body,
+        private bool $text,
+        private ?string $digest = null
+    ) {
+        if ($digest !== null && preg_match('/\Asha256:[a-f0-9]{64}\z/D', $digest) !== 1) {
+            throw new DomainException('Resource integrity requires a canonical SHA-256 digest.');
+        }
     }
 
     /**
      * Creates a single-use text read whose original UTF-8 bytes must remain unchanged
+     *
+     * An optional canonical sha256: digest verifies consumed raw bytes before any successful result.
      */
-    public static function text(McpResourceInfo $resource, StreamInterface $body): self
+    public static function text(McpResourceInfo $resource, StreamInterface $body, ?string $digest = null): self
     {
-        return new self($resource, $body, true);
+        return new self($resource, $body, true, $digest);
     }
 
     /**
      * Creates a single-use binary read to encode as Base64 without conversion
+     *
+     * An optional canonical sha256: digest covers raw bytes, never their Base64 representation.
      */
-    public static function binary(McpResourceInfo $resource, StreamInterface $body): self
+    public static function binary(McpResourceInfo $resource, StreamInterface $body, ?string $digest = null): self
     {
-        return new self($resource, $body, false);
+        return new self($resource, $body, false, $digest);
     }
 
     /**
@@ -78,8 +89,9 @@ final readonly class McpResourceContent
             if (
                 (isset($metadata['size']) && $metadata['size'] !== strlen($bytes))
                 || ($this->text && !mb_check_encoding($bytes, 'UTF-8'))
+                || ($this->digest !== null && !hash_equals($this->digest, 'sha256:'.hash('sha256', $bytes)))
             ) {
-                throw new DomainException('Resource content has inconsistent size or invalid UTF-8 text.');
+                throw new DomainException('Resource content has inconsistent size, digest or invalid UTF-8 text.');
             }
 
             $item = array_intersect_key($metadata, array_flip(['uri', 'mimeType']));

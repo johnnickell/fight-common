@@ -178,8 +178,11 @@ final readonly class McpResourceDiscovery implements McpCapability
         $page = [];
         $pageBytes = 0;
         try {
-            foreach ($this->resources($metadata) as $info) {
-                if (!$this->availability->isAvailable($info)) {
+            foreach ($this->resources($metadata) as [$provider, $info]) {
+                if (
+                    ($provider instanceof McpProtectedResourceProvider && !$provider->isAvailable($info))
+                    || !$this->availability->isAvailable($info)
+                ) {
                     continue;
                 }
 
@@ -232,7 +235,7 @@ final readonly class McpResourceDiscovery implements McpCapability
      *
      * @param array<string, mixed> $metadata
      *
-     * @return Generator<int, McpResourceInfo>
+     * @return Generator<int, array{McpResourceProvider, McpResourceInfo}>
      */
     private function resources(array $metadata): Generator
     {
@@ -267,7 +270,7 @@ final readonly class McpResourceDiscovery implements McpCapability
             }
 
             $previous = $info->uri();
-            yield $info;
+            yield [$this->providers[$selected], $info];
             $streams[$selected]->next();
         }
     }
@@ -330,7 +333,11 @@ final readonly class McpResourceDiscovery implements McpCapability
                 }
             }
 
-            if ($resource !== null && $this->availability->isAvailable($resource)) {
+            if (
+                $resource !== null
+                && (!$selected instanceof McpProtectedResourceProvider || $selected->isAvailable($resource))
+                && $this->availability->isAvailable($resource)
+            ) {
                 $content = $selected->open($resource)->consume($resource, $limits);
 
                 return McpResult::boundedComplete(

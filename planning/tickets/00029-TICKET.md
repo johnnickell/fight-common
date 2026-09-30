@@ -133,7 +133,7 @@ files remain supported content despite those exclusions.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00119](../tasks/00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | ready-for-agent |
+| [TASK-00119](../tasks/00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | done |
 | [TASK-00120](../tasks/00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | ready-for-agent |
 <!-- /planning:children -->
 
@@ -153,5 +153,10 @@ verification, compatibility, documentation and full gate, rather than deferring 
 
 TASK-00119 depends on [TASK-00118](../tasks/00118-TASK.md); TASK-00120 depends on TASK-00119. Both stay unranked,
 preserving existing global priorities. No Tools/Pi/TICKET-00030 blocker is introduced. This TICKET's decomposition
-is complete, but no implementation or runtime verification has begun. Execution requires a separate request and
-an explicit isolated-worktree choice using the reviewed current foundation.
+is complete, and John subsequently authorized TASK-00119 in the isolated worktree. At its 2026-09-30 pre-publication checkpoint,
+validated immutable revision snapshots, bounded safe YAML parsing and whole-Skill-protected file Resources are
+implemented and locally verified; independent review remains pending. Full gate: Unit 4,742/10,840, Integration
+150/1,024, Functional 48/1,847 and exact 12,387/12,387 unit statements. Its TASK record and ignored handoff retain
+scenario-specific Resource conformance results/gaps, compatibility classification and 38 actual HTTP observations.
+No Skills extension conformance is claimed. TASK-00120 remains separately authorized future work for complete
+list/get and advertisement; this TICKET is not accepted or closed by the first slice.

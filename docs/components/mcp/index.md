@@ -27,6 +27,8 @@ atlas_local_contents:
     href: "#authorized-resource-discovery"
   - label: Resource reads
     href: "#exact-authorized-resource-reads"
+  - label: Skill files
+    href: "#immutable-skill-files"
   - label: Tool registration
     href: "#explicit-tool-registration"
   - label: Tool discovery
@@ -372,6 +374,13 @@ Providers must return fresh streams rather than shared handles, not eagerly buff
 returning, and clean up themselves if opening fails before ownership transfers. Consumers retain bounded query/I/O
 time, storage deadlines and immutable-version guarantees. Common bounds its own buffering (raw content plus finite
 encoded copies), not arbitrary work inside a supplied collaborator or a blocking stream implementation.
+
+## Immutable Skill files
+
+Validated immutable Skill revisions can contribute their root instructions and every supporting file to the
+same Resource provider composition. See [Skill revisions as Resources](skill-revisions.md) for safe YAML parsing,
+complete manifests, whole-Skill availability, lazy reads and limits. This slice does not advertise or implement
+`skills/list`, `skills/get` or the Skills extension.
 
 ## Explicit Tool registration
 
