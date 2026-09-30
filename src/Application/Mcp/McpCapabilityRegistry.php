@@ -263,7 +263,7 @@ final readonly class McpCapabilityRegistry
     private function mergeExtensions(array $registered, array $incoming): array
     {
         foreach ($incoming as $name => $settings) {
-            if (isset($registered[$name]) && !$registered[$name]->equals($settings)) {
+            if (isset($registered[$name]) && !$this->hasEqualExtensionValues($registered[$name], $settings)) {
                 throw new DomainException(sprintf('The MCP extension "%s" has contradictory settings.', $name));
             }
 
@@ -271,6 +271,28 @@ final readonly class McpCapabilityRegistry
         }
 
         return $registered;
+    }
+
+    /**
+     * Returns whether extension values match with unordered objects and ordered lists
+     */
+    private function hasEqualExtensionValues(mixed $left, mixed $right): bool
+    {
+        if ($left instanceof StrictJson && $right instanceof StrictJson) {
+            $left = $left->properties();
+            $right = $right->properties();
+            ksort($left, SORT_STRING);
+            ksort($right, SORT_STRING);
+        } elseif ($left instanceof StrictJson || $right instanceof StrictJson) {
+            return false;
+        }
+
+        if (is_array($left) && is_array($right)) {
+            return array_keys($left) === array_keys($right)
+                && array_all($left, fn($value, $key): bool => $this->hasEqualExtensionValues($value, $right[$key]));
+        }
+
+        return $left === $right;
     }
 
     /**

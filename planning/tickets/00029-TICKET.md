@@ -205,3 +205,12 @@ traversal. Fresh full gate: Unit **4,941 / 11,330**, exact **12,640/12,640 state
 Functional **49 / 1,999**, exit 0; repeated pinned Skills conformance retains the same documented outcomes/advisories.
 TASK-00120 owns detailed red/green and gate evidence. Independent re-review and applicable QA are pending; this
 repair checkpoint neither accepts nor closes the TICKET.
+
+Independent re-review then accepted `e60a66b`, but subsequent exact-head QA failed **QA-01**: reordered equivalent
+extension-setting objects rejected composition. The authorized repair now compares extension values with unordered
+object members while preserving ordered lists, types, member presence and other capability families. Five product
+cases failed before repair; the final composition suite passes **46 / 132**, and the unchanged QA probe passes
+all 12 controls. Fresh full gate: Unit **4,972 / 11,428**, exact **12,651/12,651 statements**, Integration
+**150 / 1,024**, Functional **49 / 1,999**, exit 0. Repeated pinned Skills conformance retains the documented
+outcomes/advisories. TASK-00120 owns detailed evidence and pending renewed independent review/affected QA;
+prior reports remain unchanged, and this builder checkpoint neither accepts nor closes the TICKET.

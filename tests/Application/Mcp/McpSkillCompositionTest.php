@@ -41,6 +41,80 @@ final class McpSkillCompositionTest extends UnitTestCase
         }
     }
 
+    #[DataProvider('equivalentExtensionSettings')]
+    public function test_that_extension_object_member_order_does_not_prevent_coalescing(string $left, string $right): void
+    {
+        $a = new ExtensionCapability(['example/a'], ['extensions' => ['com.example/shared' => StrictJson::fromString($left)]]);
+        $b = new ExtensionCapability(['example/b'], ['extensions' => ['com.example/shared' => StrictJson::fromString($right)]]);
+        foreach ([[$a, $b], [$b, $a]] as $capabilities) {
+            $registry = $this->registry($capabilities);
+            self::assertSame($a, $registry->capabilityFor('example/a'));
+            self::assertSame($b, $registry->capabilityFor('example/b'));
+            $extensions = $registry->advertisedCapabilities()['extensions'];
+            self::assertCount(1, $extensions);
+            self::assertContains($extensions['com.example/shared']->toString(), [$left, $right]);
+        }
+    }
+
+    public static function equivalentExtensionSettings(): iterable
+    {
+        yield 'top-level object' => ['{"a":1,"b":2}', '{"b":2,"a":1}'];
+        yield 'nested object' => ['{"nested":{"a":1,"b":2}}', '{"nested":{"b":2,"a":1}}'];
+        yield 'objects within ordered lists' => [
+            '{"items":[{"a":1,"b":2},[null,{"c":true,"d":"x"}]]}',
+            '{"items":[{"b":2,"a":1},[null,{"d":"x","c":true}]]}'
+        ];
+        yield 'numeric object names' => ['{"0":null,"1":false}', '{"1":false,"0":null}'];
+        yield 'numeric-looking names stay distinct' => ['{"1":true,"01":false}', '{"01":false,"1":true}'];
+        yield 'empty containers and scalars' => [
+            '{"object":{},"list":[],"value":1.5,"text":"x","flag":false,"null":null}',
+            '{"null":null,"flag":false,"text":"x","value":1.5,"list":[],"object":{}}'
+        ];
+    }
+
+    #[DataProvider('conflictingExtensionSettings')]
+    public function test_that_extension_setting_conflicts_preserve_types_members_and_list_order(string $left, string $right): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('contradictory settings');
+        $this->registry([
+            new ExtensionCapability(['example/a'], ['extensions' => ['com.example/shared' => StrictJson::fromString($left)]]),
+            new ExtensionCapability(['example/b'], ['extensions' => ['com.example/shared' => StrictJson::fromString($right)]])
+        ]);
+    }
+
+    public static function conflictingExtensionSettings(): iterable
+    {
+        $cases = [
+            'scalar value' => ['{"a":1}', '{"a":2}'],
+            'string versus number' => ['{"a":1}', '{"a":"1"}'],
+            'boolean versus number' => ['{"a":0}', '{"a":false}'],
+            'null versus absent' => ['{"a":null}', '{}'],
+            'different null member' => ['{"a":null}', '{"b":null}'],
+            'empty object versus list' => ['{"a":{}}', '{"a":[]}'],
+            'numeric object versus list' => ['{"a":{"0":"x"}}', '{"a":["x"]}'],
+            'list order' => ['{"a":[1,2]}', '{"a":[2,1]}'],
+            'list length' => ['{"a":[1]}', '{"a":[1,2]}'],
+            'list versus scalar' => ['{"a":[]}', '{"a":null}'],
+            'nested value' => ['{"a":{"b":1,"c":2}}', '{"a":{"c":3,"b":1}}'],
+            'ordered objects' => ['{"a":[{"x":1},{"x":2}]}', '{"a":[{"x":2},{"x":1}]}']
+        ];
+        foreach ($cases as $name => [$left, $right]) {
+            yield $name => [$left, $right];
+            yield $name.' reversed' => [$right, $left];
+        }
+    }
+
+    public function test_that_non_extension_capability_equality_remains_unchanged(): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('contradictory advertised metadata');
+        $this->registry([
+            new ExtensionCapability(['example/a'], ['custom' => ['a' => 1, 'b' => 2]]),
+            new ExtensionCapability(['example/b'], ['custom' => ['b' => 2, 'a' => 1]])
+        ]);
+    }
+
     public function test_that_conflicting_same_id_settings_are_not_recursively_merged(): void
     {
         $this->expectException(DomainException::class);

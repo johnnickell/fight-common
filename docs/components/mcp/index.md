@@ -102,7 +102,9 @@ owns the one diagnostic, preventing duplicate records.
 
 **Contract `fight-common.behavior.mcp-extension-composition`:** The registry combines distinct identifiers under
 `extensions` without recursively merging their settings. Identical settings for the same ID coalesce; conflicting
-settings and duplicate method ownership still fail. Other capability families retain their prior equality rules.
+settings and duplicate method ownership still fail. Object member order is ignored at every depth, including
+objects inside lists; list order, member presence and scalar types remain significant. Object and list values
+remain distinct, including empty containers. Other capability families retain their prior equality rules.
 The static `io.modelcontextprotocol/skills` extension requires `skills/list`, `skills/get` and readable Resources;
 its settings may be empty or explicitly `directoryRead: false`. Directory/notification claims are not supported.
 Skills methods without their extension declaration fail composition. The built-in `McpSkillDiscovery` additionally
