@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "1d7499c2ed5b6c2be5826a8a1493e31d4f37b5fdb45359e4edec615861b6add5",
+    "operation_shapes_sha256": "c5576fdc6d206b52992193ecab0eae2e8058741195e66de163006bfcf15653ff",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 241,
+            "declarations": 243,
             "functions": 0
         },
         "Adapter": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00120-addition": {
+            "path": "planning/tasks/00120-TASK.md",
+            "locator": "Scope and acceptance: complete authorized Skills list/get, atomic bounded pagination and shared Resources composition"
+        },
         "fight-common.classification.task-00119-addition": {
             "path": "planning/tasks/00119-TASK.md",
             "locator": "Scope and acceptance: bounded immutable Skill revisions, safe frontmatter and whole-Skill Resource availability"
@@ -120,6 +124,38 @@
     },
     "declarations": [
         {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery",
+            "source": "src/Application/Mcp/Skill/McpSkillDiscovery.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00120-addition", "rationale": "Complete Skills list/get over the same immutable Resource provider and fresh authorization; resourceDiscovery and handleWithMetadata are internal composition/dispatch seams, not consumer policy APIs."},
+            "members": [{
+                "name": "constant EXTENSION",
+                "signature": "public const string EXTENSION = 'io.modelcontextprotocol/skills'",
+                "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "Stable Skills extension identifier used in explicit capability composition.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "member": "constant EXTENSION"}}
+            }],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Serve complete bounded entries through the capability contract.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Explicit consumer composition with shared readable Resources, cursor scope/key and validated limits/cache hints.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final capability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits",
+            "source": "src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php",
+            "layer": "Application", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00120-addition", "rationale": "Finite validated catalog, entry, page, encoded result and exact request URI budgets."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Readonly properties expose the validated discovery limits.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Consumers choose safe defaults or bounded overrides.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscoveryLimits.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscoveryLimits", "operation": "implementable"}}}
+            }
+        },
+        {
             "name": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillFile",
             "source": "src/Application/Mcp/Skill/McpSkillFile.php",
             "layer": "Application", "kind": "class", "classification": "public",
@@ -166,7 +202,7 @@
             "source": "src/Application/Mcp/Skill/McpSkillResources.php",
             "layer": "Application", "kind": "class", "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Protected Resource provider over immutable Skill revisions, enforcing fresh whole-Skill policy without new method ownership."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00119-addition", "rationale": "Protected Resource provider over immutable Skill revisions, enforcing fresh whole-Skill policy without new method ownership. TASK-00120 adds public neutral entries and findEntry metadata access; callers still apply fresh availability before disclosure."},
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Enumerate and find metadata, apply whole-Skill decisions and open only selected exact bytes.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillResources.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillResources", "operation": "callable"}}},
@@ -344,7 +380,7 @@
             "kind": "class",
             "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults. R1 adds the explicitly internal handleWithMetadata responder seam to validate complete read budgets before advertisement or opening; it is not a consumer metadata or authorization API."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults. R1 adds the explicitly internal handleWithMetadata responder seam to validate complete read budgets before advertisement or opening; it is not a consumer metadata or authorization API. TASK-00120 adds internal serves, permits and validateCatalog seams for Skills composition, general-policy intersection and shared read-budget/ownership checks."},
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Capability methods validate and handle discovery with safe pagination and current availability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "callable"}}},
@@ -37506,6 +37542,21 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.mcp-skill-discovery",
+            "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Complete Skills discovery and exact get"},
+            "fixture": {"path": "tests/Functional/McpSkillDiscoveryJourneyTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-skill-discovery-bounds",
+            "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Atomic pages, bounds and recovery"},
+            "fixture": {"path": "tests/Application/Mcp/Skill/McpSkillDiscoveryTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.mcp-extension-composition",
+            "normative": {"path": "docs/components/mcp/index.md", "locator": "Extension composition"},
+            "fixture": {"path": "tests/Application/Mcp/McpSkillCompositionTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-skill-revisions",
             "normative": {"path": "docs/components/mcp/skill-revisions.md", "locator": "Snapshot and integrity contract; Safe frontmatter parsing; Limits and recovery"},

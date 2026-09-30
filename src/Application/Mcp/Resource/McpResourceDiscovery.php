@@ -75,6 +75,44 @@ final readonly class McpResourceDiscovery implements McpCapability
     }
 
     /**
+     * Returns whether this read-enabled capability serves the exact provider instance
+     *
+     * @internal
+     */
+    public function serves(McpReadableResourceProvider $provider): bool
+    {
+        return $this->readLimits !== null && in_array($provider, $this->providers, true);
+    }
+
+    /**
+     * Returns the current general Resource decision for an already validated descriptor
+     *
+     * Skills combines this with its provider-owned whole-Skill decision before disclosing a complete manifest.
+     *
+     * @internal
+     */
+    public function permits(McpResourceInfo $resource): bool
+    {
+        return $this->availability->isAvailable($resource);
+    }
+
+    /**
+     * Validates complete catalog ownership and serving budgets without opening content or caching authority
+     *
+     * Skills uses this before advertising complete entries, including files absent from the current Resource page.
+     *
+     * @phpstan-param array<string, mixed> $metadata
+     *
+     * @internal
+     */
+    public function validateCatalog(array $metadata): void
+    {
+        foreach ($this->resources($metadata) as $resource) {
+            // Exhaust validation, including concealed descriptors and collisions beyond the current page.
+        }
+    }
+
+    /**
      * @inheritDoc
      */
     public function methods(): array

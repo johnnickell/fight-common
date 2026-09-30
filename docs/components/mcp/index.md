@@ -98,6 +98,17 @@ to record unexpected failures through their redaction-aware `McpDiagnostics`. Th
 preserves existing compositions; omitting it supplies no logging. `dispatch()` never logs: its HTTP/caller boundary
 owns the one diagnostic, preventing duplicate records.
 
+### Extension composition
+
+**Contract `fight-common.behavior.mcp-extension-composition`:** The registry combines distinct identifiers under
+`extensions` without recursively merging their settings. Identical settings for the same ID coalesce; conflicting
+settings and duplicate method ownership still fail. Other capability families retain their prior equality rules.
+The static `io.modelcontextprotocol/skills` extension requires `skills/list`, `skills/get` and readable Resources;
+its settings may be empty or explicitly `directoryRead: false`. Directory/notification claims are not supported.
+Skills methods without their extension declaration fail composition. The built-in `McpSkillDiscovery` additionally
+requires its exact shared Resource capability to own `resources/read`, not another nominally readable handler.
+This is bounded extension-ID composition, not a plugin framework.
+
 ## Authorized Resource discovery
 
 `Application\Mcp\Resource` supplies `resources/list`, an empty complete `resources/templates/list`, and
@@ -379,8 +390,9 @@ encoded copies), not arbitrary work inside a supplied collaborator or a blocking
 
 Validated immutable Skill revisions can contribute their root instructions and every supporting file to the
 same Resource provider composition. See [Skill revisions as Resources](skill-revisions.md) for safe YAML parsing,
-complete manifests, whole-Skill availability, lazy reads and limits. This slice does not advertise or implement
-`skills/list`, `skills/get` or the Skills extension.
+complete manifests, whole-Skill availability, lazy reads and limits. Resource-only compositions remain unchanged.
+Explicitly add `McpSkillDiscovery` to serve [complete Skills list/get](skill-revisions.md#complete-skills-discovery-and-exact-get)
+and advertise the static Skills extension through that same guarded endpoint.
 
 ## Explicit Tool registration
 

@@ -1,10 +1,10 @@
 # Immutable Skill revisions as Resources
 
 Common can validate a complete static Skill revision and serve its files through the existing
-[guarded Resources endpoint](index.md#exact-authorized-resource-reads). This is **Resource support only**:
-`skills/list`, `skills/get`, `io.modelcontextprotocol/skills` advertisement and extension composition are not yet
-provided. Do not advertise the extension yourself without implementing its complete contract. Directory RPC,
-subscriptions, rendering, execution, catalog storage and host activation are not provided.
+[guarded Resources endpoint](index.md#exact-authorized-resource-reads). Resource-only compositions remain supported.
+Explicitly compose `McpSkillDiscovery` for complete `skills/list`, exact `skills/get` and
+`io.modelcontextprotocol/skills` advertisement. Directory RPC, subscriptions, rendering, execution, catalog storage
+and host activation are not provided.
 
 ## Snapshot and integrity contract
 
@@ -33,8 +33,7 @@ and Unicode; each segment is encoded once. `%`, backslash, colon, `?`, `#`, cont
 over 2 KiB are rejected. Incoming reads use exact registered URIs, never decoded or normalized alternatives.
 
 `entry()` returns immutable `StrictJson` containing `uri`, complete `frontmatter` and complete `resources`
-(`uri`, `digest`, `size` per member). This is neutral metadata suitable for later Skills discovery, not a current
-wire method. `resources()` returns descriptors in bytewise URI order without reading/re-hashing content;
+(`uri`, `digest`, `size` per member). This is the same complete metadata exposed by Skills list/get when composed. `resources()` returns descriptors in bytewise URI order without reading/re-hashing content;
 `file($uri)` returns only the exact immutable member, or null. These composition APIs are not authorization APIs.
 
 Consumers own bounded acquisition before supplying strings, completeness of their source export, atomic catalog
@@ -162,16 +161,124 @@ checks the actual encoded result again. Nothing truncates or splits a complete e
 
 Repair invalid publication input and construct a new complete snapshot, or tune validated budgets within these
 ceilings. Use new revision addresses for changed content. Unknown/denied clients must obtain legitimate current
-authority, not try encoded paths; stale Resource cursors restart the listing. Skills list/get pagination and
-extension prerequisite validation remain the next slice, not a hidden promise of this provider.
+authority, not try encoded paths; stale Resource cursors restart the listing. Resource-only composition does not
+advertise partial Skills support; add both methods together through the capability below.
+
+## Complete Skills discovery and exact get
+
+**Contract: `fight-common.behavior.mcp-skill-discovery`**
+
+One `McpSkillDiscovery` owns `skills/list` and `skills/get` together. It consumes the **same** `McpSkillResources`
+instance already serving revision files through one read-enabled `McpResourceDiscovery`. Construction rejects a
+missing/read-disabled provider composition and inconsistent budgets. Registry construction rejects substituting a
+different Resource capability, missing methods or unsupported optional feature claims. Independent Resources still
+works without Skills. No Tool registration, new endpoint, route or framework adapter is required.
+
+Continue the preceding composition:
+
+```php
+use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
+use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
+
+$skills = new McpSkillDiscovery(
+    $skillFiles,
+    $resources,
+    $dedicatedSkillsCursorSecret, // Stable secret of 32–4096 bytes, not an access credential.
+    'consumer-skills',            // Nonempty catalog scope, at most 128 bytes.
+    new McpSkillDiscoveryLimits(pageSize: 25)
+);
+$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$resources, $skills]);
+// Supply this registry to the existing guarded McpRequestHandler; retain all HTTP safeguards.
+```
+
+1. `server/discover` advertises `extensions: {"io.modelcontextprotocol/skills": {}}` alongside `resources`.
+2. Send `skills/list` with omitted parameters or an optional cursor. Each returned `skills[]` entry contains all
+   authored frontmatter and the entire static manifest. No file reads are needed to complete an entry.
+3. Send `skills/get` with `{"uri":"skill://catalog/revision-42/work/SKILL.md"}`. The `skill` result has exactly the
+   list-entry shape, with no cursor. Get works **before any listing** and for a URI absent from a page. File URIs,
+   encoded aliases, unknown revisions and unavailable roots do not become alternate lookup mechanisms.
+4. Read only that root through `resources/read`, then a selected nested file when needed. Manifest sizes and
+   digests describe exactly these bytes. Reading a template, script or nested Skill does not execute/activate it.
+
+All requests still carry mandatory MCP `_meta`, protocol and method mirrors. `skills/get` has **no `Mcp-Name`
+requirement**; `resources/read` retains its URI mirror. Authentication remains consumer composition, with Origin
+and invocation guard checks before dispatch. No protected content is opened by discovery/get. Construction checks
+neutral metadata/ownership before serving; unlike standalone Resource discovery it enumerates the shared catalog
+at composition. Do not perform provider content reads during metadata enumeration.
+
+Availability is reevaluated for every list/get and historical file read. The injected `McpSkillAvailability` owns
+the whole revision; additionally, discovery/get checks the shared general Resource policy for every member. If
+that policy conceals any member, the **whole entry** is concealed, not redacted. Consumers should normally place
+Skill permission in the whole-Skill collaborator and let the general policy permit its files. Resource reads
+still apply both existing decisions individually; use whole-Skill denial to revoke all file access together.
+Policy answers must remain coherent within a request; concurrent changes across requests require fresh checks.
+
+Provider `entries()` and `findEntry($uri)` expose neutral immutable metadata to composition code, not authorized
+wire results. The capability applies current decisions before disclosure, hashing or pagination. Same-name entries
+are not collapsed: exact root URI is identity. Stored snapshots retain original bytes and no routine list/get
+reopens or rehashes file content. Consumer catalogs remain responsible for publication, retention and bounded
+acquisition; replacing an immutable provider is an explicit composition operation, not a Common catalog write.
+
+List/get use `resultType: complete`, `ttlMs: 0`, `cacheScope: private`. Constructor overrides accept a safe integer
+TTL (0–9,007,199,254,740,991) and `private`/`public`. Public is a consumer assertion of caller-independent visibility,
+not an inference from immutable content. Private reuse must remain within its authorization context; hints, URIs,
+manifest hashes and cursors never grant authority. Unknown/denied get is the same sanitized `-32602`. Unexpected
+provider/policy/budget failures use `-32603` with consumer diagnostics and no partial entry or Tool `isError`.
+
+### Atomic pages, bounds and recovery
+
+**Contract: `fight-common.behavior.mcp-skill-discovery-bounds`**
+
+`McpSkillDiscoveryLimits` supplies finite validated bounds:
+
+| Bound | Default | Valid override |
+| --- | --- | --- |
+| Maximum entries per page | 100 | 1–1,000 |
+| Catalog entries including concealed revisions | 10,000 | 1–1,000,000 |
+| Complete encoded entry | 4 MiB | 1 byte–16 MiB |
+| Complete encoded result | 8 MiB | At least entry budget + 256 bytes, at most 64 MiB |
+| Request/served root URI | 8 KiB | 1 byte–64 KiB |
+
+The provider's file budget and snapshot/Resource limits remain independently enforced. Actual complete entries
+must fit **both** list and get, including cache fields, a possible 48-character continuation, and the current
+responder's actual central metadata. All entries, including concealed entries, are checked. Shared Resource
+ownership, scan/descriptor budgets and worst-case encoded read budgets are checked without opening content at
+composition and on each operation. An oversized server identity or inconsistent provider output cannot yield an
+entry whose files the configured reader cannot represent. `handleWithMetadata`, `resourceDiscovery` and the Resource
+`serves`/`permits`/`validateCatalog` methods are internal coordination seams, not consumer authorization APIs.
+
+A page stops at its count **or byte** bound; entries remain atomic and no bytes/members are truncated. Results
+retain an independent final encoded guard. Like Resource budgets, the result bound covers the JSON-encoded
+`result`, not the outer JSON-RPC envelope. URI/cursor shape and length are bounded here; shared pre-decode HTTP
+body limits remain TASK-00121, not a guarantee of this capability.
+
+After current availability filtering, entries are ordered bytewise by exact root URI. A fixed 48-character opaque
+cursor authenticates offset, endpoint/catalog scope, page-size/result budget and only the currently visible complete
+entries. Concealed catalog changes do not change valid continuation. Byte-limited pages may contain fewer than the
+configured count. Omitted/empty cursor restarts; **absence**, not truthiness, of `nextCursor` ends enumeration.
+Malformed, forged, wrong-key/scope/budget or stale continuations return `-32602`: discard saved pages and restart,
+without another human approval. Pagination is not a cross-request catalog snapshot or authorization cache.
 
 ## Evidence boundary
 
 Owned direct tests cover structural/frontmatter rejection, bounds, exact 512-member/16-MiB snapshots, original-byte
-hashing, retained revisions and changed availability. The real guarded-handler journey covers Resource coexistence,
-selective root/nested reads, binary/empty content, safe errors, authentication/mirrors/Origin/guard rejection, and
-no Skills advertisement. Official Resource scenarios provide scenario-specific wire checks; they do not prove
-Skills extension conformance, a real Pi client, production storage, cached-content safety or consumer permissions.
+hashing, retained revisions, current policy, atomic byte/count pages, safe failure and registry composition.
+`McpSkillDiscoveryJourneyTest` drives the real guarded handler through discovery/list, direct get outside the first
+page and selected root/nested reads, then changes availability and rejects every historical file URI. It preserves
+unknown frontmatter, Unicode/CRLF, binary/empty files and consumer authentication/mirror/Origin/guard behavior.
+The earlier Resource-only journey still proves that uncomposed Skills is not advertised.
+
+Pinned official server Skills enumeration and manifest checks supplement this proof. Same-name revisions are
+intentional adversarial fixtures, producing a name-uniqueness advisory. Existing Resource descriptors preserve
+relative file names, omitted descriptions and caller-supplied MIME labels rather than rewriting TASK-00119's
+metadata; the fixture's default text/plain root therefore produces three manifest SHOULD advisories (MIME, name,
+description). Every applicable MUST check is exercised. Directory checks are genuinely not applicable because
+`directoryRead` is not advertised. Wire checks cannot prove complete consumer source acquisition, arbitrary
+provider immutability or safe client caches. No blanket conformance badge, Pi client qualification, production
+storage/permissions, host origin trust, client no-prefetch/integrity enforcement or activation approval is claimed.
+Tools coexistence/Resource-link acceptance and shared bounded ingress remain separately owned by TASK-00122/00121.
 
 Authorities: MCP `2026-07-28`; the static Skills contract at
 [`ext-skills@b0b3272`](https://github.com/modelcontextprotocol/ext-skills/blob/b0b3272f1d4c01a79c8171252c70b06dcada18bf/specification/stable/skills.mdx)
