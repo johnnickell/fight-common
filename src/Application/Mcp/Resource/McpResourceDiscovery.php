@@ -11,6 +11,7 @@ use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResult;
 use Fight\Common\Domain\Exception\DomainException;
 use Generator;
+use Uri\Rfc3986\Uri;
 
 /**
  * Class McpResourceDiscovery
@@ -27,7 +28,9 @@ final readonly class McpResourceDiscovery implements McpCapability
      *
      * Supply a stable secret shared across serving processes and a distinct catalog scope per endpoint.
      * Neither is a credential or principal. Public caching is an explicit consumer assertion that the complete
-     * catalog is caller-independent. Providers are inspected only when a guarded request dispatches discovery.
+     * catalog and any readable content are caller-independent. Providers are inspected only after dispatch.
+     * Supplying readLimits opts in to exact reads and requires the readable subtype on every provider;
+     * omitting it preserves the original discovery-only composition and provider contract.
      *
      * @param array<array-key, mixed> $providers
      */
@@ -38,7 +41,8 @@ final readonly class McpResourceDiscovery implements McpCapability
         private string $cursorScope,
         private McpResourceLimits $limits = new McpResourceLimits(),
         private int $ttlMs = 0,
-        private string $cacheScope = 'private'
+        private string $cacheScope = 'private',
+        private ?McpResourceReadLimits $readLimits = null
     ) {
         if (strlen($cursorKey) < 32 || strlen($cursorKey) > 4096 || $cursorScope === '' || strlen($cursorScope) > 128) {
             throw new DomainException('Resource cursors require a bounded secret and a non-empty catalog scope.');
@@ -59,6 +63,10 @@ final readonly class McpResourceDiscovery implements McpCapability
                 throw new DomainException('Resource providers must be distinct McpResourceProvider instances.');
             }
 
+            if ($readLimits !== null && !$provider instanceof McpReadableResourceProvider) {
+                throw new DomainException('Resource reads require every provider to support exact lookup and opening.');
+            }
+
             $seen[spl_object_id($provider)] = true;
             $registered[] = $provider;
         }
@@ -71,7 +79,12 @@ final readonly class McpResourceDiscovery implements McpCapability
      */
     public function methods(): array
     {
-        return ['resources/list', 'resources/templates/list'];
+        $methods = ['resources/list', 'resources/templates/list'];
+        if ($this->readLimits !== null) {
+            $methods[] = 'resources/read';
+        }
+
+        return $methods;
     }
 
     /**
@@ -96,6 +109,19 @@ final readonly class McpResourceDiscovery implements McpCapability
     public function validate(McpRequest $request): void
     {
         $parameters = $request->parameters();
+        if ($request->method() === 'resources/read' && $this->readLimits !== null) {
+            if (
+                array_diff(array_keys($parameters), ['uri']) !== []
+                || !is_string($parameters['uri'] ?? null)
+                || strlen($parameters['uri']) > $this->limits->maxUriBytes
+                || Uri::parse($parameters['uri'])?->getScheme() === null
+            ) {
+                throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+            }
+
+            return;
+        }
+
         if (
             !in_array($request->method(), $this->methods(), true)
             || array_diff(array_keys($parameters), ['cursor']) !== []
@@ -115,6 +141,10 @@ final readonly class McpResourceDiscovery implements McpCapability
     public function handle(McpRequest $request): McpResult
     {
         $this->validate($request);
+        if ($request->method() === 'resources/read' && $this->readLimits !== null) {
+            return $this->read($request, $this->readLimits);
+        }
+
         if ($request->method() === 'resources/templates/list') {
             return McpResult::boundedComplete(
                 ['resourceTemplates' => [], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
@@ -241,9 +271,52 @@ final readonly class McpResourceDiscovery implements McpCapability
             }
 
             $info->validateLimits($this->limits);
+            $this->readLimits?->validate($info);
             $previous = $info->uri();
             yield $info;
         }
+    }
+
+    /**
+     * Returns exact authorized content without using listing membership or cached authority
+     */
+    private function read(McpRequest $request, McpResourceReadLimits $limits): McpResult
+    {
+        $selected = null;
+        $resource = null;
+        try {
+            foreach ($this->providers as $provider) {
+                // Construction guarantees the subtype when reads are enabled; old discovery ports remain valid.
+                if ($provider instanceof McpReadableResourceProvider) {
+                    $found = $provider->find($request->parameters()['uri']);
+                    if ($found === null) {
+                        continue;
+                    }
+
+                    $found->validateLimits($this->limits);
+                    $limits->validate($found);
+                    if ($resource !== null || $found->uri() !== $request->parameters()['uri']) {
+                        throw new DomainException('Resource lookup must have exactly one matching URI owner.');
+                    }
+
+                    $selected = $provider;
+                    $resource = $found;
+                }
+            }
+
+            if ($resource !== null && $this->availability->isAvailable($resource)) {
+                $content = $selected->open($resource)->consume($resource, $limits);
+
+                return McpResult::boundedComplete(
+                    ['contents' => [$content], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
+                    $limits->maxResultBytes
+                );
+            }
+        } catch (McpProtocolException $mcpProtocolException) {
+            throw new DomainException('Resource reading failed.', previous: $mcpProtocolException);
+        }
+
+        throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
     }
 
     /**
