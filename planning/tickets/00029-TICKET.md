@@ -214,3 +214,10 @@ all 12 controls. Fresh full gate: Unit **4,972 / 11,428**, exact **12,651/12,651
 **150 / 1,024**, Functional **49 / 1,999**, exit 0. Repeated pinned Skills conformance retains the documented
 outcomes/advisories. TASK-00120 owns detailed evidence and pending renewed independent review/affected QA;
 prior reports remain unchanged, and this builder checkpoint neither accepts nor closes the TICKET.
+
+At the subsequent TASK-00120 landing checkpoint, independent technical review accepted `f9079be` with R1 and
+QA-01 resolved; exact-head independent QA passed nine behavioral scenarios, with visual evidence N/A. The TASK
+owns canonical reports, 124 fresh HTTP observations, semantic/composition probes and inherited pinned conformance
+provenance. John authorized publication; final-head hosted delivery checks and independent continuation remain
+pending at this checkpoint. Both TASKs now have independent implementation acceptance and applicable QA; this
+progress update does not perform the TICKET's separate acceptance/closeout or authorize merge.
