@@ -168,3 +168,9 @@ exact 12,498/12,498 statements; Integration 150/1,024; Functional 48/1,847). The
 all unsafe constructions; repeated Resource checks and 38 HTTP observations retain their documented outcomes.
 Independent re-review remains pending; the TASK owns detailed evidence and limitations. TASK-00120 remains separately authorized future work
 for complete list/get and advertisement; this TICKET is not accepted or closed by the first slice.
+
+At the subsequent 2026-09-30 landing checkpoint, independent review accepted TASK-00119 candidate `9d631d8`
+with R1 resolved, and independent QA passed 66 HTTP requests plus 478 tests / 1,017 assertions at that exact
+head. The TASK records canonical review/QA evidence and limitations. Administrative publication and final-head
+hosted delivery verification are pending at this checkpoint; human merge and this TICKET's acceptance remain
+separate. TASK-00120 is still future work.
