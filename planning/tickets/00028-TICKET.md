@@ -2,7 +2,7 @@
 id: TICKET-00028
 epic: EPIC-00007
 title: Discover and Read Authorized Resources
-status: ready-for-agent
+status: done
 ---
 
 # Discover and Read Authorized Resources
@@ -104,7 +104,7 @@ not a pass. Classify all new public APIs and observable behavior in the compatib
 MCP/HTTP consumers remain compatible. Document composition, authorization injection, errors, cache behavior,
 limits/overrides and deferred templates. Each implementation change requires the project full gate, including
 exact production coverage; this is not deferred to TICKET-00030. Slice evidence is recorded below and in the owning
-TASKs; this TICKET does not yet claim complete Resource acceptance.
+TASKs. Explicit parent acceptance is recorded in the closeout section below.
 
 ## Exclusions
 
@@ -123,6 +123,9 @@ SSE, cancellation and authentication work retains its current ownership.
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+The implementation checkpoints below retain their historical review and delivery states. The final parent
+acceptance section records the current closeout disposition; earlier pending statements are not current blockers.
 
 John approved the three-TICKET decomposition of EPIC-00007. This record owns reusable Resource behavior;
 [WF-045](../wayfinder/tickets/WF-045-select-the-first-resources-and-skills-delivery.md) and the
@@ -160,3 +163,40 @@ remain pending; this parent is not automatically marked done.
 See TASK-00118 for exact counts, warnings, retained local receipt/transcripts, compatible read opt-in, consumer
 storage/authorization boundaries and remaining downstream exclusions. No release, publication, Pi, Skills or
 combined Tool/Resource-link acceptance is inferred.
+
+## Parent acceptance and closeout
+
+John authorized this tracked closeout after the independent parent assessment of `develop` at
+`5d8ca58341695f9e4498aefc6fca205569475854`. That assessment explicitly accepted this bounded Resource parent,
+not merely its completed child table. TICKET-00028 is **done**: discovery and exact reads satisfy the parent
+outcomes above, both children have independent technical acceptance and applicable behavioral QA PASS, and the
+required local verification is complete. Historical checkpoints and original reports remain unchanged.
+
+- [TASK-00117](../tasks/00117-TASK.md) supplies authorized metadata-only discovery, bounded deterministic pages,
+  authenticated cursors and empty templates; [TASK-00118](../tasks/00118-TASK.md) supplies exact authorized
+  listed/unlisted reads, text/binary/empty-file fidelity, complete pre-disclosure read budgets and guarded endpoint
+  integration. Independent re-review resolved TASK-00118 R1; neither its old pending checkpoint nor builder proof
+  substitutes for that verdict. Canonical reports are `.runs/reviews/TASK-00117/review.md` and
+  `.runs/reviews/TASK-00118/review.md`; behavioral dispositions are `.runs/qa/TASK-00117/qa.md` and
+  `.runs/qa/TASK-00118/qa.md`.
+- The assessment inspected later accepted Skill/provider integration rather than assuming ancestry meant unchanged
+  Resource code. Across the Resource/Skill parent assessment, 1,507 focused tests / 4,363 assertions and six
+  journeys totaling 32 tests / 898 assertions passed at the assessed head. All 209 indexed artifacts for the four
+  child QA reports verified without missing files or digest mismatches. These checks are assessment evidence,
+  not new QA or official-harness executions.
+- The retained TASK-00120 complete gate has exit 0: Unit 4,972 / 11,428, exact 12,651/12,651 owned statements,
+  Integration 150 / 1,024 and Functional 49 / 1,999. Its tested snapshot matches `d9cce23`; intervening changes
+  through the assessed head are planning-only. Documentation and planning validation passed. This administrative
+  closeout changes no product inputs; its own targeted checks and content mapping belong in the local handoff.
+- Pinned official evidence remains scenario-specific: source `7169291ec0b68eb370fddcd9947313ab0d5e4156`,
+  version `0.2.0-alpha.11`, protocol `2026-07-28`. Resource list/text/binary each have two SUCCESS results;
+  missing-resource has three SUCCESS / one optional URI-data WARNING. Aggregate caching has six SUCCESS /
+  two FAILURE for uncomposed Tools/Prompts only. No blanket MCP/caching qualification is claimed. Existing
+  Material/MkDocs compatibility and guide-outside-navigation advisories remain disclosed.
+
+The complete outcome mapping, provenance and limitations are retained locally in
+`.runs/reviews/parent-closeout-5d8ca583/report.md`; the administrative handoff is
+`.runs/handoffs/ticket-00028-00029-closeout/receipt.md`. Consumer storage, identity, authorization/cache policy
+and real Pi qualification remain outside this acceptance. TICKET-00030 still owns shared ingress bounds and
+combined Tools/Resources/Skills acceptance; EPIC-00007 remains open. This closeout neither archives records nor
+authorizes publication, merge, release or deployment. TICKET-00026/00027 and their outstanding QA are unchanged.

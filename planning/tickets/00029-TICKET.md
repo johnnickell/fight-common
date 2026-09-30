@@ -2,7 +2,7 @@
 id: TICKET-00029
 epic: EPIC-00007
 title: Discover Structured Skills and Retrieve Revision Files Lazily
-status: ready-for-agent
+status: done
 ---
 
 # Discover Structured Skills and Retrieve Revision Files Lazily
@@ -118,7 +118,8 @@ from server fixtures.
 Classify new public APIs and behavioral promises in the compatibility manifest; document structured revision
 composition, validation, authorization injection, lazy retrieval, limits and failure/recovery. Preserve existing
 Resources/Tools/HTTP consumers. Each implementation change runs the complete project gate with exact coverage;
-TICKET-00030 does not defer this TICKET's evidence or documentation. No runtime verification is claimed here.
+TICKET-00030 does not defer this TICKET's evidence or documentation. Verified implementation checkpoints and
+explicit parent acceptance are recorded below.
 
 ## Exclusions
 
@@ -138,6 +139,9 @@ files remain supported content despite those exclusions.
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+The implementation checkpoints below retain their historical review and delivery states. The final parent
+acceptance section records the current closeout disposition; earlier pending statements are not current blockers.
 
 John approved this requirement area in the three-TICKET split. [WF-045](../wayfinder/tickets/WF-045-select-the-first-resources-and-skills-delivery.md)
 records the complete-manifest/lazy-read and whole-Skill authorization decisions; the EPIC owns scope and acceptance.
@@ -221,3 +225,42 @@ owns canonical reports, 124 fresh HTTP observations, semantic/composition probes
 provenance. John authorized publication; final-head hosted delivery checks and independent continuation remain
 pending at this checkpoint. Both TASKs now have independent implementation acceptance and applicable QA; this
 progress update does not perform the TICKET's separate acceptance/closeout or authorize merge.
+
+## Parent acceptance and closeout
+
+John authorized this tracked closeout after the independent parent assessment of `develop` at
+`5d8ca58341695f9e4498aefc6fca205569475854`. That assessment explicitly accepted this bounded Skills parent,
+including the complete immutable-revision and list/get journey. TICKET-00029 is **done**: both children have
+independent technical acceptance and applicable behavioral QA PASS, the parent outcomes above are satisfied,
+and required local verification is complete. Historical checkpoints and original reports remain unchanged.
+
+- [TASK-00119](../tasks/00119-TASK.md) supplies complete immutable snapshots, safe bounded frontmatter parsing,
+  original-byte manifests and whole-Skill-protected Resource files. Its parser R1 corrections received independent
+  acceptance and QA PASS. [TASK-00120](../tasks/00120-TASK.md) supplies complete atomic list/get, direct lookup,
+  current whole-Skill/general Resource availability, lazy selected-file reads and truthful extension composition.
+  Independent technical review accepted `f9079be` with R1 and QA-01 resolved; subsequent exact-head QA PASS
+  superseded the earlier failure and the technical report's then-pending QA checkpoint. Canonical evidence is
+  `.runs/reviews/TASK-00119/review.md`, `.runs/reviews/TASK-00120/review.md`,
+  `.runs/qa/TASK-00119/qa.md` and `.runs/qa/TASK-00120/qa.md`.
+- The assessment verified current-content applicability, all four Resource/Skill QA artifact manifests and the
+  complete outcome mapping, including every-member denial, historical-byte retention and inert supporting files.
+  Fresh assessment checks passed 1,507 focused tests / 4,363 assertions plus six journeys totaling 32 tests /
+  898 assertions. The accepted `f9079be` product inputs are unchanged at the assessed head; only planning differs.
+  These checks do not relabel inherited QA or conformance evidence as newly executed.
+- The retained TASK-00120 complete gate has exit 0: Unit 4,972 / 11,428, exact 12,651/12,651 owned statements,
+  Integration 150 / 1,024 and Functional 49 / 1,999. Its tested snapshot matches `d9cce23`; documentation and
+  planning checks passed at the assessed head. This administrative closeout changes no product inputs; its own
+  targeted verification and content mapping belong in the local handoff.
+- Inherited official evidence remains pinned to `7169291ec0b68eb370fddcd9947313ab0d5e4156`, version
+  `0.2.0-alpha.11`, protocol `2026-07-28`: enumeration 31 SUCCESS / one same-name WARNING; manifest three
+  SUCCESS / three SHOULD warnings for root MIME, relative name and omitted description; unadvertised directory
+  six SKIPPED N/A / one schema SUCCESS. Applicable exercised MUST checks pass, not a blanket Skills/client badge.
+  Resource subset qualifications and existing documentation advisories remain as recorded in TICKET-00028.
+
+The complete assessment is retained locally at `.runs/reviews/parent-closeout-5d8ca583/report.md`; administrative
+verification belongs in `.runs/handoffs/ticket-00028-00029-closeout/receipt.md`. TICKET-00030 still owns ingress
+bounds and the combined Tools journey; EPIC-00007 remains open. TASK-00123/00124 are separate approved follow-ups,
+not unfinished children: current Skills construction still enumerates shared dynamic Resource metadata, and this
+acceptance does not claim TASK-00124's future no-constructor-I/O behavior. Consumer publication/retention, real
+identity/cache policy, client integrity/no-prefetch and Pi/host activation remain downstream. This closeout grants
+no archive, publication, merge, release or deployment authority and leaves TICKET-00026/00027 and their QA unchanged.

@@ -2,7 +2,7 @@
 id: TICKET-00026
 epic: EPIC-00006
 title: Resume Protected input_required Interactions
-status: ready-for-agent
+status: done
 ---
 
 # Resume Protected input_required Interactions
@@ -107,6 +107,9 @@ authentication and command/query contracts unchanged.
 
 ## Decisions and progress
 
+The implementation checkpoint below retains its historical review state. The parent acceptance section records
+current closeout; earlier pending-review wording is not a current blocker.
+
 The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) records the ordinary and
 confirmation-state modes and reserves consumer business policy to the consumer. Decomposition preserves those as
 two complete behavior slices rather than layer slices: TASK-00111 owns stateless versioned-AEAD ordinary additional-
@@ -129,3 +132,39 @@ must route destructive or otherwise replay-sensitive actions through confirmatio
 This reconciles implementation coverage across both TASKs, not independent acceptance or a production persistence
 certification. TASK-00112 owns current complete-gate evidence and review handoff. No Common persistence adapter,
 consumer policy, new principal model, distributed transaction or automatic rollback is introduced.
+
+## Parent acceptance and closeout
+
+John authorized this tracked closeout after the parent reassessment at
+`3d92010c22f0f81ab1d84d7932cd67b5055d4e73` explicitly accepted the complete bounded interaction outcome.
+TICKET-00026 is **done**: both children have applicable independent technical acceptance and behavioral QA PASS,
+all parent outcomes above are satisfied, and required local verification is complete. The earlier PC-01 hold
+concerned missing independent QA, not an implementation defect; the new dispositions resolve it without rewriting
+historical checkpoints or reports.
+
+- [TASK-00111](../tasks/00111-TASK.md) supplies protected ordinary input, capability gating, stateless restoration,
+  current retry availability, exact keyed response validation, AEAD bounds/rotation and deliberately replayable
+  ordinary state. Its independent QA exercised 89 semantic requests / 957 assertions with real Sodium and routed
+  synthetic command/query/event effects; supporting checks passed 966 tests / 1,968 assertions.
+- [TASK-00112](../tasks/00112-TASK.md) supplies atomic confirmation admission, terminal refusal, full-state binding
+  and consumed-state retention across failure/cancellation. Its independent QA exercised 148 semantic requests /
+  1,462 parent-process assertions, including five four-process races, plus direct cancellation/delivery cases.
+  Supporting checks passed 1,091 tests / 2,391 assertions. The concrete locked-store fixture proves process
+  contention and forbidden duplicate effects, not production or distributed storage durability.
+- Both canonical QA reports PASS at the exact reassessed head, with no confirmed product defects and visual
+  evidence N/A only. Canonical technical reviews are `.runs/reviews/TASK-00111/review.md` and
+  `.runs/reviews/TASK-00112/review.md`; QA is `.runs/qa/TASK-00111/qa.md` and `.runs/qa/TASK-00112/qa.md`.
+  Accepted confirmation and later shared MCP integration are explicitly reconciled rather than assumed unchanged.
+- Across this and the OAuth parent reassessment, all 123 indexed child QA artifacts verified without mismatch;
+  each QA snapshot matched all 1,573 tracked paths and current dependencies/runtime. Overlapping suites and
+  reruns are not summed as unique coverage. The retained complete gate has exit 0: Unit 4,972 / 11,428, exact
+  12,651/12,651 statements, Integration 150 / 1,024 and Functional 49 / 1,999. Its tested snapshot matches
+  `d9cce23`; subsequent changes through reassessment are planning-only. Existing documentation advisories remain.
+  This administrative closeout changes no product inputs; targeted checks and content mapping belong in its handoff.
+
+Outcome mapping and evidence are retained in `.runs/reviews/parent-closeout-00026-00027-3d92010c/report.md`;
+local closeout verification belongs in `.runs/handoffs/ticket-00026-00027-closeout/receipt.md`. Consumers retain
+caller identity, key custody, authorization, approval language and durable atomic storage qualification. Admission
+is at most once, not exactly-once business completion or a transaction with mutation; cancellation is cooperative,
+not forced rollback. Semantic closure probes do not qualify live HTTP/proxy deployments. This acceptance does not
+close an EPIC, archive records, reopen child PRs, or authorize publication, merge, release or deployment.
