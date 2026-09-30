@@ -64,7 +64,12 @@ final readonly class McpRequestHandler implements RequestHandlerInterface
                 return $this->responses->rejection(415);
             }
 
-            $message = $this->decoder->decode((string) $request->getBody());
+            $json = new McpRequestBodyReader()->read($request->getBody(), $this->decoder->limits());
+            if ($json === null) {
+                return $this->responses->rejection(413);
+            }
+
+            $message = $this->decoder->decode($json);
             $name = $this->headers->validate($message, $request->getHeaders());
             if ($message->metadata()->protocolVersion() !== McpResponder::PROTOCOL_VERSION) {
                 return $this->responses->fromResponse(McpJsonResponse::error(

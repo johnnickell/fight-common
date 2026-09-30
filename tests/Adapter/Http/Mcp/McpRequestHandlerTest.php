@@ -16,6 +16,8 @@ use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpOriginPolicy;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
+use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\McpRequestLimits;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -25,6 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 use TypeError;
 
@@ -260,9 +263,94 @@ final class McpRequestHandlerTest extends UnitTestCase
         self::assertSame(['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $this->body($response));
     }
 
-    private function handler(EndpointCapability $capability, McpInvocationGuard $guard, ?McpOriginPolicy $policy = null, ?McpDiagnostics $diagnostics = null): McpRequestHandler
+    #[DataProvider('lengthHeaders')]
+    public function test_that_excess_body_is_rejected_without_truncation_or_trusting_length_metadata(?string $length): void
     {
-        return new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [$capability]), $policy ?? new DenyAllMcpOriginPolicy(), $guard, $this->responses($diagnostics));
+        $capability = new EndpointCapability();
+        $guard = $this->createMock(McpInvocationGuard::class);
+        $guard->expects(self::never())->method('allows');
+        $request = $this->request();
+        $json = (string) $request->getBody();
+        $budget = strlen($json);
+        // The prefix is a complete valid request: accepting it would dispatch a truncated body.
+        $request = $request->withBody((new HttpFactory())->createStream($json.' '.str_repeat('x', 10000)));
+        $request = $length === null ? $request->withoutHeader('Content-Length') : $request->withHeader('Content-Length', $length);
+        $handler = $this->handler($capability, $guard, decoder: new McpRequestDecoder(new McpRequestLimits(maxBytes: $budget)));
+        $response = $handler->handle($request);
+        self::assertSame(413, $response->getStatusCode());
+        self::assertSame('', (string) $response->getBody());
+        self::assertSame($budget + 1, $request->getBody()->tell());
+        self::assertSame(0, $capability->handleCalls);
+        self::assertSame(0, $capability->validateCalls);
+    }
+
+    public static function lengthHeaders(): iterable
+    {
+        yield [null];
+        yield ['0'];
+        yield ['1'];
+        yield ['999999999999999999999999'];
+        yield ['not-a-length'];
+    }
+
+    public function test_that_exact_byte_and_depth_limits_allow_dispatch_and_later_guards_remain_effective(): void
+    {
+        $capability = new EndpointCapability();
+        $guard = $this->createMock(McpInvocationGuard::class);
+        $guard->expects(self::exactly(2))->method('allows')->willReturnOnConsecutiveCalls(true, false);
+        $request = $this->request();
+        $decoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: strlen((string) $request->getBody()), maxDepth: 5));
+        $handler = $this->handler($capability, $guard, decoder: $decoder);
+        self::assertSame(200, $handler->handle($request)->getStatusCode());
+        self::assertSame(429, $handler->handle($request)->getStatusCode());
+        self::assertSame(400, $handler->handle($request->withoutHeader('Mcp-Method'))->getStatusCode());
+        self::assertSame(1, $capability->handleCalls);
+    }
+
+    public function test_that_depth_rejection_has_no_unvalidated_request_identity_or_dispatch(): void
+    {
+        $capability = new EndpointCapability();
+        $guard = $this->createMock(McpInvocationGuard::class);
+        $guard->expects(self::never())->method('allows');
+        $handler = $this->handler($capability, $guard, decoder: new McpRequestDecoder(new McpRequestLimits(maxDepth: 4)));
+        $response = $handler->handle($this->request());
+        self::assertSame(400, $response->getStatusCode());
+        self::assertSame(['jsonrpc' => '2.0', 'error' => ['code' => -32700, 'message' => 'Parse error.']], $this->body($response));
+        self::assertSame(0, $capability->handleCalls);
+    }
+
+    #[DataProvider('streamFailures')]
+    public function test_that_ingress_failures_are_diagnosed_once_without_dispatch_or_untrusted_identity(bool $throws): void
+    {
+        $capability = new EndpointCapability();
+        $guard = $this->createMock(McpInvocationGuard::class);
+        $guard->expects(self::never())->method('allows');
+        $diagnostics = $this->mock(McpDiagnostics::class);
+        $diagnostics->shouldReceive('record')->once()->withArgs(fn ($failure) => $failure instanceof RuntimeException);
+        $stream = $this->mock(StreamInterface::class);
+        $stream->shouldReceive('isSeekable')->once()->andReturn(false);
+        $stream->shouldReceive('eof')->andReturn(false);
+        $read = $stream->shouldReceive('read')->once()->with(8192);
+        if ($throws) {
+            $read->andThrow(new McpProtocolException(McpProtocolError::unsupportedProtocolVersion(['secret'], 'private'), 'untrusted-id'));
+        } else {
+            $read->andReturn('');
+        }
+        $response = $this->handler($capability, $guard, diagnostics: $diagnostics)->handle($this->request()->withBody($stream));
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame(['jsonrpc' => '2.0', 'error' => ['code' => -32603, 'message' => 'Internal error.']], $this->body($response));
+        self::assertSame(0, $capability->handleCalls);
+    }
+
+    public static function streamFailures(): iterable
+    {
+        yield [true];
+        yield [false];
+    }
+
+    private function handler(EndpointCapability $capability, McpInvocationGuard $guard, ?McpOriginPolicy $policy = null, ?McpDiagnostics $diagnostics = null, ?McpRequestDecoder $decoder = null): McpRequestHandler
+    {
+        return new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [$capability]), $policy ?? new DenyAllMcpOriginPolicy(), $guard, $this->responses($diagnostics), $decoder ?? new McpRequestDecoder());
     }
 
     private function responses(?McpDiagnostics $diagnostics = null): McpResponseFactory
