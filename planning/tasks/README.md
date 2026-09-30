@@ -22,7 +22,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00117](00117-TASK.md) | Discover Authorized Resources Through the Guarded Endpoint | done | [TICKET-00028](../tickets/00028-TICKET.md) |
 | [TASK-00118](00118-TASK.md) | Read Exact Authorized Resource Content | done | [TICKET-00028](../tickets/00028-TICKET.md) |
 | [TASK-00119](00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | done | [TICKET-00029](../tickets/00029-TICKET.md) |
-| [TASK-00120](00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | ready-for-agent | [TICKET-00029](../tickets/00029-TICKET.md) |
+| [TASK-00120](00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | done | [TICKET-00029](../tickets/00029-TICKET.md) |
 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | ready-for-agent | [TICKET-00030](../tickets/00030-TICKET.md) |
 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | ready-for-agent | [TICKET-00030](../tickets/00030-TICKET.md) |
 <!-- /planning:records -->

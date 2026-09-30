@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
@@ -91,6 +92,7 @@ final readonly class McpCapabilityRegistry
 
         $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
         $this->validateSubscriptionCapabilityFlags($advertisedCapabilities);
+        $this->validateSkills($capabilitiesByMethod, $advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
@@ -228,8 +230,13 @@ final readonly class McpCapabilityRegistry
                 );
             }
 
+            if ($name === 'extensions') {
+                $definition = $this->mergeExtensions($advertisedCapabilities[$name] ?? [], $definition);
+            }
+
             if (
-                array_key_exists($name, $advertisedCapabilities)
+                $name !== 'extensions'
+                && array_key_exists($name, $advertisedCapabilities)
                 && !StrictJson::fromObject($advertisedCapabilities[$name], maxDepth: 511)
                     ->equals(StrictJson::fromObject($definition, maxDepth: 511))
             ) {
@@ -243,6 +250,88 @@ final readonly class McpCapabilityRegistry
         }
 
         return $capabilityNames;
+    }
+
+    /**
+     * Returns merged extension identifiers while rejecting conflicting settings for the same identifier
+     *
+     * @phpstan-param array<mixed> $registered
+     * @phpstan-param array<mixed> $incoming
+     *
+     * @return array<mixed>
+     */
+    private function mergeExtensions(array $registered, array $incoming): array
+    {
+        foreach ($incoming as $name => $settings) {
+            if (isset($registered[$name]) && !$this->hasEqualExtensionValues($registered[$name], $settings)) {
+                throw new DomainException(sprintf('The MCP extension "%s" has contradictory settings.', $name));
+            }
+
+            $registered[$name] = $settings;
+        }
+
+        return $registered;
+    }
+
+    /**
+     * Returns whether extension values match with unordered objects and ordered lists
+     */
+    private function hasEqualExtensionValues(mixed $left, mixed $right): bool
+    {
+        if ($left instanceof StrictJson && $right instanceof StrictJson) {
+            $left = $left->properties();
+            $right = $right->properties();
+            ksort($left, SORT_STRING);
+            ksort($right, SORT_STRING);
+        } elseif ($left instanceof StrictJson || $right instanceof StrictJson) {
+            return false;
+        }
+
+        if (is_array($left) && is_array($right)) {
+            return array_keys($left) === array_keys($right)
+                && array_all($left, fn($value, $key): bool => $this->hasEqualExtensionValues($value, $right[$key]));
+        }
+
+        return $left === $right;
+    }
+
+    /**
+     * Validates complete Skills advertisement and the built-in provider's shared read composition
+     *
+     * @phpstan-param array<string, McpCapability> $methods
+     * @phpstan-param array<string, array<mixed>> $capabilities
+     */
+    private function validateSkills(array $methods, array $capabilities): void
+    {
+        $settings = $capabilities['extensions'][McpSkillDiscovery::EXTENSION] ?? null;
+        if ($settings === null) {
+            if (isset($methods['skills/list']) || isset($methods['skills/get'])) {
+                throw new DomainException('Skills methods require the stable Skills extension declaration.');
+            }
+
+            return;
+        }
+
+        if (
+            !isset($methods['skills/list'], $methods['skills/get'], $methods['resources/read'])
+            || !isset($capabilities['resources'])
+            || !$this->hasOnlyBooleanProperties($settings->properties(), ['directoryRead'])
+            || $settings->get('directoryRead') === true
+        ) {
+            throw new DomainException(
+                'Static Skills requires list, get and readable Resources without optional feature claims.'
+            );
+        }
+
+        foreach (['skills/list', 'skills/get'] as $method) {
+            $capability = $methods[$method];
+            if (
+                $capability instanceof McpSkillDiscovery
+                && $capability->resourceDiscovery() !== $methods['resources/read']
+            ) {
+                throw new DomainException('Skills and file reads must share the configured Resources capability.');
+            }
+        }
     }
 
     /**

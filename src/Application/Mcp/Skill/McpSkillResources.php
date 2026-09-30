@@ -8,6 +8,7 @@ use Fight\Common\Application\Mcp\Resource\McpProtectedResourceProvider;
 use Fight\Common\Application\Mcp\Resource\McpResourceContent;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Basic\StrictJson;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
@@ -15,6 +16,10 @@ use Psr\Http\Message\StreamFactoryInterface;
  */
 final readonly class McpSkillResources implements McpProtectedResourceProvider
 {
+    /**
+     * @var array<string, StrictJson>
+     */
+    private array $entries;
     /**
      * @var array<string, McpSkillRevision>
      */
@@ -43,6 +48,7 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
             throw new DomainException('Skill Resource catalogs require a finite positive file budget.');
         }
 
+        $entries = [];
         $owners = [];
         $resources = [];
         foreach ($revisions as $revision) {
@@ -50,6 +56,7 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
                 throw new DomainException('Skill Resource providers require validated immutable revisions.');
             }
 
+            $entries[$revision->entry()->get('uri')] = $revision->entry();
             foreach ($revision->resources() as $uri => $info) {
                 if (isset($owners[$uri]) || count($owners) >= $maxResources) {
                     throw new DomainException('Skill Resource ownership is duplicated or exceeds its catalog budget.');
@@ -60,9 +67,33 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
             }
         }
 
+        ksort($entries, SORT_STRING);
         ksort($resources, SORT_STRING);
+        $this->entries = $entries;
         $this->owners = $owners;
         $this->resources = $resources;
+    }
+
+    /**
+     * Returns complete immutable entries in bytewise root-URI order without opening content
+     *
+     * Availability must be checked afresh before disclosure; this is neutral catalog metadata.
+     *
+     * @return array<string, StrictJson>
+     */
+    public function entries(): array
+    {
+        return $this->entries;
+    }
+
+    /**
+     * Returns an exact served root entry independently of listing membership
+     *
+     * Availability must be checked afresh before disclosure, as with Resource find.
+     */
+    public function findEntry(string $uri): ?StrictJson
+    {
+        return $this->entries[$uri] ?? null;
     }
 
     /**

@@ -134,7 +134,7 @@ files remain supported content despite those exclusions.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00119](../tasks/00119-TASK.md) | Serve Validated Immutable Skill Revisions as Resources | done |
-| [TASK-00120](../tasks/00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | ready-for-agent |
+| [TASK-00120](../tasks/00120-TASK.md) | Discover and Get Complete Authorized Skill Entries | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -173,4 +173,51 @@ At the subsequent 2026-09-30 landing checkpoint, independent review accepted TAS
 with R1 resolved, and independent QA passed 66 HTTP requests plus 478 tests / 1,017 assertions at that exact
 head. The TASK records canonical review/QA evidence and limitations. Administrative publication and final-head
 hosted delivery verification are pending at this checkpoint; human merge and this TICKET's acceptance remain
-separate. TASK-00120 is still future work.
+separate. TASK-00120 was still future work at that checkpoint.
+
+### Complete Skills implementation checkpoint — 2026-09-30
+
+John subsequently authorized TASK-00120 in the main checkout over merged TASK-00119. Complete list/get, same-provider
+readable composition, extension-ID conflict handling, atomic bounded pages, fresh whole-Skill/general Resource
+availability and the guarded entry/selected-file journey are implemented and locally verified. TASK-00120 owns the
+current full gate: 4,939 Unit / 11,270 assertions, exact 12,640/12,640 statements, 150 Integration / 1,024 and
+49 Functional / 1,999, exit 0. New API/behavior classifications, consumer docs and CONTEXT accompany the code.
+
+| TICKET outcome | Integrated evidence |
+|---|---|
+| Complete immutable revisions, safe frontmatter/path/manifest input and original-byte integrity | Accepted TASK-00119 production contracts and parser/revision/resource tests remain unchanged and run in the current full gate. |
+| Whole-Skill denial, retained historical bytes and lazy individual-file retrieval | Existing Resource-only journey plus TASK-00120's guarded Skills discovery/get/root/nested-file journey and all-member byte/digest/denial assertions. |
+| Complete list/get, direct URI lookup independent of listing, atomic bounded pages and safe cache/cursor/error semantics | `McpSkillDiscoveryTest`, `McpSkillCompositionTest` and `McpSkillDiscoveryJourneyTest`; changing availability and general Resource-policy intersection conceal whole entries, never redact manifests. |
+| Truthful extension/read prerequisites, compatible registry composition, preserved HTTP guards | Registry composition tests and real Slim/PSR handler journey; independent Resources remains supported; no invented Skills name mirror. |
+| Pinned server Skills evidence | TASK-00120 records enumeration 31 SUCCESS/1 WARNING, manifest 3 SUCCESS/3 WARNING, unadvertised directory 6 SKIPPED N/A/1 schema SUCCESS, all process exits 0; 45 additional actual HTTP observations. |
+| Compatibility, documentation and local verification | Two public additions, three behavior contracts, full structural surface check, consumer walkthrough and complete gate; exact logs/content mapping in the TASK handoff. |
+| Independent acceptance and QA | Pending for TASK-00120; this builder mapping does not close the TICKET or supply either independent verdict. |
+
+The same-name and inherited Resource descriptor SHOULD advisories are explicit in TASK-00120; all exercised
+applicable MUST checks pass, without a blanket badge. Directory/subscriptions/execution, production publication
+storage, Pi/host trust and cache behavior remain excluded/downstream. No evidence or documentation for this TICKET
+is deferred to the combined Tools journey. Explicit parent acceptance/closeout remains separate.
+
+Independent TASK-00120 review subsequently identified R1: float-valued frontmatter could make tight encoded pages
+empty with an unusable cursor. The authorized repair aligns page sizing with result encoding, preserving existing
+limits and metadata fingerprints. Two regressions failed before repair and now pass, including complete three-page
+traversal. Fresh full gate: Unit **4,941 / 11,330**, exact **12,640/12,640 statements**, Integration **150 / 1,024**,
+Functional **49 / 1,999**, exit 0; repeated pinned Skills conformance retains the same documented outcomes/advisories.
+TASK-00120 owns detailed red/green and gate evidence. Independent re-review and applicable QA are pending; this
+repair checkpoint neither accepts nor closes the TICKET.
+
+Independent re-review then accepted `e60a66b`, but subsequent exact-head QA failed **QA-01**: reordered equivalent
+extension-setting objects rejected composition. The authorized repair now compares extension values with unordered
+object members while preserving ordered lists, types, member presence and other capability families. Five product
+cases failed before repair; the final composition suite passes **46 / 132**, and the unchanged QA probe passes
+all 12 controls. Fresh full gate: Unit **4,972 / 11,428**, exact **12,651/12,651 statements**, Integration
+**150 / 1,024**, Functional **49 / 1,999**, exit 0. Repeated pinned Skills conformance retains the documented
+outcomes/advisories. TASK-00120 owns detailed evidence and pending renewed independent review/affected QA;
+prior reports remain unchanged, and this builder checkpoint neither accepts nor closes the TICKET.
+
+At the subsequent TASK-00120 landing checkpoint, independent technical review accepted `f9079be` with R1 and
+QA-01 resolved; exact-head independent QA passed nine behavioral scenarios, with visual evidence N/A. The TASK
+owns canonical reports, 124 fresh HTTP observations, semantic/composition probes and inherited pinned conformance
+provenance. John authorized publication; final-head hosted delivery checks and independent continuation remain
+pending at this checkpoint. Both TASKs now have independent implementation acceptance and applicable QA; this
+progress update does not perform the TICKET's separate acceptance/closeout or authorize merge.

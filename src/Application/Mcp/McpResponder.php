@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
+use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolExecution;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Domain\Exception\DomainException;
@@ -89,7 +90,7 @@ final readonly class McpResponder
         }
 
         $capability->validate($request);
-        if ($capability instanceof McpResourceDiscovery) {
+        if ($capability instanceof McpResourceDiscovery || $capability instanceof McpSkillDiscovery) {
             return $this->success(
                 $request->id(),
                 $capability->handleWithMetadata($request, $this->resultMetadata())
