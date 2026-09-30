@@ -52,6 +52,19 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
         }
     }
 
+    public function test_that_wide_flow_mapping_preserves_every_null_field_within_budget(): void
+    {
+        $fields = [];
+        $expected = [];
+        for ($index = 0; $index < 2000; ++$index) {
+            $fields[] = 'field-'.$index.': null';
+            $expected['field-'.$index] = null;
+        }
+        $yaml = 'unknown: {'.implode(', ', $fields).'}';
+        $data = (new SymfonyMcpSkillFrontmatterParser())->parse($yaml, new McpSkillLimits());
+        self::assertSame(['unknown' => $expected], json_decode($data->toString(), true));
+    }
+
     #[DataProvider('invalidYaml')]
     public function test_that_parser_rejects_ambiguous_executable_non_json_or_excessive_input(string $yaml, ?McpSkillLimits $limits = null): void
     {
@@ -90,6 +103,13 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
 
     public static function literalFields(): iterable
     {
+        yield 'comments after flow values' => ["unknown: {x: null, # comment\n 'long key': preserved # comment\n}", ['unknown' => ['x' => null, 'long key' => 'preserved']]];
+        yield 'flow null values and trailing separators' => ['unknown: {x: , y: null, z: [one, , three,],}', ['unknown' => ['x' => null, 'y' => null, 'z' => ['one', null, 'three']]]];
+        yield 'flow scalar properties' => ['unknown: [&a {x: !!str 42}, &b [!!binary PDw=], !!str plain]', ['unknown' => [['x' => '42'], ['<<'], 'plain']]];
+        yield 'quoted flow punctuation' => ['unknown: {"#key: words": "#value: text", "it\'s": preserved}', ['unknown' => ['#key: words' => '#value: text', "it's" => 'preserved']]];
+        yield 'multiword block keys' => ["unknown:\n  long key: preserved", ['unknown' => ['long key' => 'preserved']]];
+        yield 'quoted flow key spacing' => ['unknown: {"long key"  : preserved, \'雪 key\': intact}', ['unknown' => ['long key' => 'preserved', '雪 key' => 'intact']]];
+        yield 'multiline flow with value comments' => ["unknown: [ # opening\n { # mapping\n x : first value, # separator\n y: https://example.test/a#b}, # closing\n second value]", ['unknown' => [['x' => 'first value', 'y' => 'https://example.test/a#b'], 'second value']]];
         yield 'quoted and escaped nested keys' => ['"unknown": {"quoted:key": {"\\u96ea": value}, "<not-merge>": true}', ['unknown' => ['quoted:key' => ['雪' => 'value'], '<not-merge>' => true]]];
         yield 'merge symbol values' => ['unknown: ["<<", \'<<\', <<, "\\x3c\\u003c"]', ['unknown' => ['<<', '<<', '<<', '<<']]];
         yield 'quoted syntax is text' => ['unknown: "<<: {}"', ['unknown' => '<<: {}']];
@@ -108,6 +128,7 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
         yield 'tagged quoted value' => ['unknown: !!binary "SGVsbG8="', ['unknown' => 'Hello']];
         yield 'independent flow mappings' => ['unknown: [{x: null}, {x: 2}, {x: {x: 3}}]', ['unknown' => [['x' => null], ['x' => 2], ['x' => ['x' => 3]]]]];
         yield 'large plain value within budget' => ['unknown: '.str_repeat('x', 60000), ['unknown' => str_repeat('x', 60000)]];
+        yield 'spaced flow value before comment' => ['unknown: {key: first'.str_repeat(' ', 50000)."last  \t# comment\n}", ['unknown' => ['key' => 'first'.str_repeat(' ', 50000).'last']]];
         yield 'large flow plain value within budget' => ['unknown: {value: '.str_repeat('x', 60000).'}', ['unknown' => ['value' => str_repeat('x', 60000)]]];
         yield 'large quoted value within budget' => ['unknown: "'.str_repeat('x', 60000).'"', ['unknown' => str_repeat('x', 60000)]];
         yield 'large escaped value within budget' => ['unknown: "'.str_repeat('\\"', 20000).'"', ['unknown' => str_repeat('"', 20000)]];
@@ -119,6 +140,21 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
 
     public static function lossyMappings(): iterable
     {
+        yield 'comment separated plain flow key' => ["unknown: {x # comment\n: null, x: second}"];
+        yield 'comment separated quoted flow key' => ["unknown: {\"x\" # comment\n: null, x: second}"];
+        yield 'comment separated single quoted key' => ["unknown: {'x' # comment\n: null, x: second}"];
+        yield 'comment containing colon before separator' => ["unknown: {x # ignored: value\n: null, x: second}"];
+        yield 'multiword plain flow key' => ['unknown: {long key: preserved}'];
+        yield 'multiword nested flow key' => ['unknown: [{雪 key: preserved}]'];
+        yield 'multiword duplicate flow key' => ['unknown: {long: null, long key: second}'];
+        yield 'implicit flow sequence mapping' => ['unknown: [long key: preserved]'];
+        yield 'tagged flow key' => ['unknown: {!!str x: preserved}'];
+        yield 'anchored flow key' => ['unknown: {&key x: preserved}'];
+        yield 'line separated quoted flow key' => ["unknown: {\"x\"\n: null, x: second}"];
+        yield 'multiline quoted flow key' => ["unknown: {'long\n key': preserved}"];
+        yield 'colon embedded in plain flow key' => ['unknown: {x:y: preserved}'];
+        yield 'implicit mapping with quoted key' => ['unknown: ["long key": preserved]'];
+        yield 'line separated plain flow key' => ["unknown: {long\n key: preserved}"];
         yield 'block duplicate after merge' => ["<<: {}\ndescription: first\ndescription: second"];
         yield 'nested duplicate after merge' => ["unknown:\n  <<: {}\n  x: first\n  x: second"];
         yield 'flow duplicate after merge' => ['unknown: {<<: {}, x: first, x: second}'];
@@ -151,6 +187,8 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
     {
         foreach ([
             '', '[]', 'null', '42', "a: 1\na: 2", '{a: 1, a: 2}', "x: {a: 1, a: 2}",
+            'x: [}', 'x: }', 'x: {key: ]}', 'x: [one two: three]', 'x: [? key: value]',
+            'x: {key: "value" "other"}', "x: {key: first\n second}", 'x: {key: [one] other: two}',
             'a: "unterminated', "a: 'unterminated", '--- {<<: {a: relocated}}',
             'object: !php/object O:8:"stdClass":0:{}', 'constant: !php/const PHP_VERSION', 'include: !include secret',
             'custom: !anything foo', 'date: 2026-01-01', 'x: .nan', 'x: .inf', "x: \xff",

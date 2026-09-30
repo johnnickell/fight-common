@@ -47,10 +47,11 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
     /**
      * Validates mapping keys before Symfony can discard them or enable duplicate overwrites
      *
-     * This bounded lexical pass does not interpret mappings or rewrite source bytes. Symfony still owns
-     * syntax and scalar decoding. Quoted keys resolving to << are also unsupported because Symfony treats
-     * them as merges. Flow maps require an additional duplicate check because Symfony uses isset and misses
-     * prior null values. Scalar values, comments and block scalar bodies must not be mistaken for keys.
+     * Symfony owns scalar decoding and block syntax. Flow collections use an explicit key/value/separator
+     * state so a key cannot escape validation through comments or whitespace. Only single-line quoted keys
+     * or single-token plain keys with a same-line colon are supported there; Symfony can truncate other
+     * spellings. Merge keys and implicit flow-sequence mappings reject before conversion. Source bytes stay
+     * unchanged, and scalar values, comments and block scalar bodies are not mistaken for keys.
      *
      * @phpstan-param int-mask-of<Yaml::PARSE_*> $flags
      */
@@ -68,7 +69,31 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
             }
 
             $character = $source[$offset];
-            if (preg_match('/\G(?:---|\.\.\.)(?=\s|$)/', $source, $match, offset: $offset) === 1) {
+            $collection = array_key_last($collections);
+            if ($collection !== null) {
+                if (
+                    $collections[$collection]['state'] === 'end'
+                    && $character !== ',' && $character !== $collections[$collection]['close']
+                ) {
+                    throw new DomainException('Skill frontmatter requires a flow collection separator.');
+                }
+
+                if ($collections[$collection]['state'] === 'key' && $character !== '}') {
+                    $key = $this->readFlowKey($source, $offset, $flags, $maxDepth);
+                    if ($key === '<<' || isset($collections[$collection]['keys'][$key])) {
+                        throw new DomainException('Skill frontmatter contains a merge or duplicate mapping key.');
+                    }
+
+                    $collections[$collection]['keys'][$key] = true;
+                    $collections[$collection]['state'] = 'value';
+                    continue;
+                }
+            }
+
+            if (
+                $collections === []
+                && preg_match('/\G(?:---|\.\.\.)(?=\s|$)/', $source, $match, offset: $offset) === 1
+            ) {
                 $offset += strlen($match[0]);
                 continue;
             }
@@ -82,9 +107,27 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
                         throw new DomainException('Skill frontmatter exceeds its nesting budget.');
                     }
 
-                    $collections[] = $character === '{' ? [] : null;
+                    if ($collection !== null) {
+                        $collections[$collection]['state'] = 'end';
+                    }
+
+                    $collections[] = [
+                        'close' => $character === '{' ? '}' : ']',
+                        'state' => $character === '{' ? 'key' : 'value',
+                        'keys'  => []
+                    ];
                 } elseif (str_contains(']}', $character)) {
+                    if ($collection === null || $collections[$collection]['close'] !== $character) {
+                        throw new DomainException('Skill frontmatter contains a mismatched flow collection.');
+                    }
+
                     array_pop($collections);
+                } elseif ($collection !== null) {
+                    if ($character !== ',') {
+                        throw new DomainException('Skill frontmatter does not support implicit flow mappings.');
+                    }
+
+                    $collections[$collection]['state'] = $collections[$collection]['close'] === '}' ? 'key' : 'value';
                 }
 
                 $tag = '';
@@ -120,7 +163,7 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
                 // Plain scalars retain embedded quotes and flow-looking punctuation outside flow collections.
                 $pattern = '/\G(?:(?!:[\s]|:$)[^\n])++/';
                 if ($collections !== []) {
-                    $pattern = '/\G(?:(?!:[\s,\[\]{}]|:$)[^\n,\[\]{}])++/';
+                    $pattern = '/\G(?:(?![ \t]\#|:[\s,\[\]{}]|:$)[^\n,\[\]{}])++/';
                 }
 
                 if (preg_match($pattern, $source, $match, offset: $offset) !== 1) {
@@ -135,21 +178,41 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
 
             $tag = '';
             $offset += strlen($match[0]);
+            if ($collection !== null) {
+                $collections[$collection]['state'] = 'end';
+            }
+
             if (is_string($key) && preg_match('/\G\s*:/', $source, offset: $offset) === 1) {
                 if ($key === '<<') {
                     throw new DomainException('Skill frontmatter does not support YAML merge keys.');
                 }
-
-                $collection = array_key_last($collections);
-                if ($collection !== null && $collections[$collection] !== null) {
-                    if (isset($collections[$collection][$key])) {
-                        throw new DomainException('Skill frontmatter contains a duplicate mapping key.');
-                    }
-
-                    $collections[$collection][$key] = true;
-                }
             }
         }
+    }
+
+    /**
+     * Returns a losslessly decoded flow key and consumes its same-line separator
+     *
+     * The accepted grammar cannot invoke Symfony's forward search for a colon or its plain-key truncation.
+     * Tags, anchors, multiline keys and comments before the colon are unsupported, not normalized away.
+     *
+     * @phpstan-param int-mask-of<Yaml::PARSE_*> $flags
+     */
+    private function readFlowKey(string $source, int &$offset, int $flags, int $maxDepth): string
+    {
+        $quoted = '"[^"\\\\\n]*+(?:\\\\[^\n][^"\\\\\n]*+)*+"|\'[^\'\n]*+(?:\'\'[^\'\n]*+)*+\'';
+        $pattern = '/\G('.$quoted.'|[^\s:,\[\]{}\#\'"!&*?]++)[ \t]*:/';
+        if (preg_match($pattern, $source, $match, offset: $offset) !== 1) {
+            throw new DomainException('Skill frontmatter contains an unsupported flow mapping key.');
+        }
+
+        $offset += strlen($match[0]);
+        $key = $match[1];
+        if ($key[0] === '"' || $key[0] === "'") {
+            $key = Yaml::parse($key, $flags, $maxDepth, 0);
+        }
+
+        return $key;
     }
 
     /**

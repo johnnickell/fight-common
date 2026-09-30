@@ -59,8 +59,15 @@ non-finite numbers, unsupported objects/dates and excessive raw bytes, encoded b
 The Symfony adapter rejects any mapping key resolving to `<<`, including quoted, escaped and tag-decoded
 spellings (such as `!!str '<<'` or `!!binary PDw=`): Symfony otherwise interprets even these literal-looking keys as merges and can silently
 relocate fields or overwrite duplicates. This check precedes conversion; it neither expands merges nor rewrites
-file bytes. Ordinary quoted keys, merge-looking **values**, comments and literal/folded scalar content remain data. Quote date-like values when they should be strings; do not
-rely on implicit timestamp conversion. No includes, PHP objects or constants are executed. Alternative parser
+file bytes. Flow mappings accept single-token plain keys or single-line quoted keys, followed by a same-line
+colon (optional horizontal spacing). Quote multiword flow keys: `{"long key": value}` preserves the full name;
+`{long key: value}` rejects instead of accepting Symfony's shortened name. Comments/newlines between a key and
+its colon, tagged/anchored flow keys and implicit mappings inside flow sequences reject before conversion.
+Use explicit `{key: value}` mappings inside sequences. Flow values require commas between entries; multiline
+plain flow values are unsupported. Quoted values and block literal/folded scalars can represent multiline text.
+Ordinary quoted keys, merge-looking **values**, comments between entries or after values, multiword block keys
+and literal/folded scalar content remain data. These bounded syntax restrictions do not permit silent field loss.
+Quote date-like values when they should be strings; do not rely on implicit timestamp conversion. No includes, PHP objects or constants are executed. Alternative parser
 implementations must satisfy the same safe, lossless contract; snapshot validation additionally checks their
 returned JSON shape, depth, size and required fields.
 

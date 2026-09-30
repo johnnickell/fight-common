@@ -161,6 +161,10 @@ scenario-specific Resource conformance results/gaps, compatibility classificatio
 No Skills extension conformance is claimed. Independent review subsequently returned R1 for lossy YAML merge and
 duplicate-key handling. The authorized correction is implemented with failing-then-passing parser/revision
 regressions and a fresh full gate (Unit 4,824/10,999; exact 12,467/12,467 statements; Integration 150/1,024;
-Functional 48/1,847), repeated Resource checks and 38 HTTP observations. Renewed independent acceptance remains
-pending; the TASK owns detailed evidence and limitations. TASK-00120 remains separately authorized future work
+Functional 48/1,847), repeated Resource checks and 38 HTTP observations. Renewed review still found R1's
+comment-separated duplicate keys and multiword-key truncation. A second authorized correction adds explicit flow
+key/value/separator validation, 18 failing-before-repair regressions and a fresh full gate (Unit 4,871/11,070;
+exact 12,498/12,498 statements; Integration 150/1,024; Functional 48/1,847). The reviewer reproducer now rejects
+all unsafe constructions; repeated Resource checks and 38 HTTP observations retain their documented outcomes.
+Independent re-review remains pending; the TASK owns detailed evidence and limitations. TASK-00120 remains separately authorized future work
 for complete list/get and advertisement; this TICKET is not accepted or closed by the first slice.
