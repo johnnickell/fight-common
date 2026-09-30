@@ -158,5 +158,9 @@ validated immutable revision snapshots, bounded safe YAML parsing and whole-Skil
 implemented and locally verified; independent review remains pending. Full gate: Unit 4,742/10,840, Integration
 150/1,024, Functional 48/1,847 and exact 12,387/12,387 unit statements. Its TASK record and ignored handoff retain
 scenario-specific Resource conformance results/gaps, compatibility classification and 38 actual HTTP observations.
-No Skills extension conformance is claimed. TASK-00120 remains separately authorized future work for complete
-list/get and advertisement; this TICKET is not accepted or closed by the first slice.
+No Skills extension conformance is claimed. Independent review subsequently returned R1 for lossy YAML merge and
+duplicate-key handling. The authorized correction is implemented with failing-then-passing parser/revision
+regressions and a fresh full gate (Unit 4,824/10,999; exact 12,467/12,467 statements; Integration 150/1,024;
+Functional 48/1,847), repeated Resource checks and 38 HTTP observations. Renewed independent acceptance remains
+pending; the TASK owns detailed evidence and limitations. TASK-00120 remains separately authorized future work
+for complete list/get and advertisement; this TICKET is not accepted or closed by the first slice.

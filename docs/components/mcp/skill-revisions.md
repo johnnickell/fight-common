@@ -53,9 +53,13 @@ nesting limits and alias rejection before expansion. Domain/Application never de
 
 The root begins with `---` on its own line and has a closing `---` line (LF and CRLF supported). Only its bounded
 frontmatter is parsed; the original complete file is served unchanged. The parser retains JSON object/list
-identity and every authored JSON-representable field, including unknown nested values. Duplicate keys, aliases
-(including merge aliases), executable/custom tags, non-finite numbers, unsupported objects/dates and excessive
-raw bytes, encoded bytes or nesting reject safely. Quote date-like values when they should be strings; do not
+identity and every authored JSON-representable field in accepted input, including unknown nested values. Duplicate keys
+at every depth (including prior null values in flow mappings), aliases, merge keys, executable/custom tags,
+non-finite numbers, unsupported objects/dates and excessive raw bytes, encoded bytes or nesting reject safely.
+The Symfony adapter rejects any mapping key resolving to `<<`, including quoted, escaped and tag-decoded
+spellings (such as `!!str '<<'` or `!!binary PDw=`): Symfony otherwise interprets even these literal-looking keys as merges and can silently
+relocate fields or overwrite duplicates. This check precedes conversion; it neither expands merges nor rewrites
+file bytes. Ordinary quoted keys, merge-looking **values**, comments and literal/folded scalar content remain data. Quote date-like values when they should be strings; do not
 rely on implicit timestamp conversion. No includes, PHP objects or constants are executed. Alternative parser
 implementations must satisfy the same safe, lossless contract; snapshot validation additionally checks their
 returned JSON shape, depth, size and required fields.
