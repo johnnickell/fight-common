@@ -11,6 +11,7 @@ use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResult;
 use Fight\Common\Domain\Exception\DomainException;
 use Generator;
+use Uri\Rfc3986\Uri;
 
 /**
  * Class McpResourceDiscovery
@@ -27,7 +28,9 @@ final readonly class McpResourceDiscovery implements McpCapability
      *
      * Supply a stable secret shared across serving processes and a distinct catalog scope per endpoint.
      * Neither is a credential or principal. Public caching is an explicit consumer assertion that the complete
-     * catalog is caller-independent. Providers are inspected only when a guarded request dispatches discovery.
+     * catalog and any readable content are caller-independent. Providers are inspected only after dispatch.
+     * Supplying readLimits opts in to exact reads and requires the readable subtype on every provider;
+     * omitting it preserves the original discovery-only composition and provider contract.
      *
      * @param array<array-key, mixed> $providers
      */
@@ -38,7 +41,8 @@ final readonly class McpResourceDiscovery implements McpCapability
         private string $cursorScope,
         private McpResourceLimits $limits = new McpResourceLimits(),
         private int $ttlMs = 0,
-        private string $cacheScope = 'private'
+        private string $cacheScope = 'private',
+        private ?McpResourceReadLimits $readLimits = null
     ) {
         if (strlen($cursorKey) < 32 || strlen($cursorKey) > 4096 || $cursorScope === '' || strlen($cursorScope) > 128) {
             throw new DomainException('Resource cursors require a bounded secret and a non-empty catalog scope.');
@@ -59,6 +63,10 @@ final readonly class McpResourceDiscovery implements McpCapability
                 throw new DomainException('Resource providers must be distinct McpResourceProvider instances.');
             }
 
+            if ($readLimits !== null && !$provider instanceof McpReadableResourceProvider) {
+                throw new DomainException('Resource reads require every provider to support exact lookup and opening.');
+            }
+
             $seen[spl_object_id($provider)] = true;
             $registered[] = $provider;
         }
@@ -71,7 +79,12 @@ final readonly class McpResourceDiscovery implements McpCapability
      */
     public function methods(): array
     {
-        return ['resources/list', 'resources/templates/list'];
+        $methods = ['resources/list', 'resources/templates/list'];
+        if ($this->readLimits !== null) {
+            $methods[] = 'resources/read';
+        }
+
+        return $methods;
     }
 
     /**
@@ -96,6 +109,19 @@ final readonly class McpResourceDiscovery implements McpCapability
     public function validate(McpRequest $request): void
     {
         $parameters = $request->parameters();
+        if ($request->method() === 'resources/read' && $this->readLimits !== null) {
+            if (
+                array_diff(array_keys($parameters), ['uri']) !== []
+                || !is_string($parameters['uri'] ?? null)
+                || strlen($parameters['uri']) > $this->limits->maxUriBytes
+                || Uri::parse($parameters['uri'])?->getScheme() === null
+            ) {
+                throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+            }
+
+            return;
+        }
+
         if (
             !in_array($request->method(), $this->methods(), true)
             || array_diff(array_keys($parameters), ['cursor']) !== []
@@ -114,7 +140,25 @@ final readonly class McpResourceDiscovery implements McpCapability
      */
     public function handle(McpRequest $request): McpResult
     {
+        return $this->handleWithMetadata($request, []);
+    }
+
+    /**
+     * Handles a request with the responder's actual central metadata for read-budget validation
+     *
+     * Metadata is request-local so sharing this capability between responders cannot retain another identity.
+     *
+     * @phpstan-param array<string, mixed> $metadata
+     *
+     * @internal
+     */
+    public function handleWithMetadata(McpRequest $request, array $metadata): McpResult
+    {
         $this->validate($request);
+        if ($request->method() === 'resources/read' && $this->readLimits !== null) {
+            return $this->read($request, $this->readLimits, $metadata);
+        }
+
         if ($request->method() === 'resources/templates/list') {
             return McpResult::boundedComplete(
                 ['resourceTemplates' => [], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
@@ -134,7 +178,7 @@ final readonly class McpResourceDiscovery implements McpCapability
         $page = [];
         $pageBytes = 0;
         try {
-            foreach ($this->resources() as $info) {
+            foreach ($this->resources($metadata) as $info) {
                 if (!$this->availability->isAvailable($info)) {
                     continue;
                 }
@@ -186,11 +230,16 @@ final readonly class McpResourceDiscovery implements McpCapability
      * Memory retains at most one descriptor per provider plus the requested page. All providers are exhausted
      * within the scan budget, so an invalid or duplicate descriptor beyond the page cannot hide in a success.
      *
+     * @param array<string, mixed> $metadata
+     *
      * @return Generator<int, McpResourceInfo>
      */
-    private function resources(): Generator
+    private function resources(array $metadata): Generator
     {
-        $streams = array_map($this->providerResources(...), $this->providers);
+        $streams = array_map(
+            fn($provider): Generator => $this->providerResources($provider, $metadata),
+            $this->providers
+        );
         $previous = null;
         $count = 0;
         while ($streams !== []) {
@@ -226,9 +275,11 @@ final readonly class McpResourceDiscovery implements McpCapability
     /**
      * Returns one provider's validated ordered metadata without materializing its corpus
      *
+     * @phpstan-param array<string, mixed> $metadata
+     *
      * @return Generator<int, McpResourceInfo>
      */
-    private function providerResources(McpResourceProvider $provider): Generator
+    private function providerResources(McpResourceProvider $provider, array $metadata): Generator
     {
         $previous = null;
         /**
@@ -241,8 +292,81 @@ final readonly class McpResourceDiscovery implements McpCapability
             }
 
             $info->validateLimits($this->limits);
+            if ($this->readLimits !== null) {
+                $this->validateReadBudget($info, $this->readLimits, $metadata);
+            }
+
             $previous = $info->uri();
             yield $info;
+        }
+    }
+
+    /**
+     * Returns exact authorized content without using listing membership or cached authority
+     *
+     * @phpstan-param array<string, mixed> $metadata
+     */
+    private function read(McpRequest $request, McpResourceReadLimits $limits, array $metadata): McpResult
+    {
+        $selected = null;
+        $resource = null;
+        try {
+            foreach ($this->providers as $provider) {
+                // Construction guarantees the subtype when reads are enabled; old discovery ports remain valid.
+                if ($provider instanceof McpReadableResourceProvider) {
+                    $found = $provider->find($request->parameters()['uri']);
+                    if ($found === null) {
+                        continue;
+                    }
+
+                    $found->validateLimits($this->limits);
+                    $this->validateReadBudget($found, $limits, $metadata);
+                    if ($resource !== null || $found->uri() !== $request->parameters()['uri']) {
+                        throw new DomainException('Resource lookup must have exactly one matching URI owner.');
+                    }
+
+                    $selected = $provider;
+                    $resource = $found;
+                }
+            }
+
+            if ($resource !== null && $this->availability->isAvailable($resource)) {
+                $content = $selected->open($resource)->consume($resource, $limits);
+
+                return McpResult::boundedComplete(
+                    ['contents' => [$content], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
+                    $limits->maxResultBytes
+                );
+            }
+        } catch (McpProtocolException $mcpProtocolException) {
+            throw new DomainException('Resource reading failed.', previous: $mcpProtocolException);
+        }
+
+        throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+    }
+
+    /**
+     * Validates the complete worst-case read representation before advertisement or content opening
+     *
+     * Empty text supplies the exact wrapper size; six encoded bytes per raw byte also bounds Base64 blobs.
+     * The actual final result remains independently bounded by McpResult after content and metadata are added.
+     *
+     * @phpstan-param array<string, mixed> $metadata
+     */
+    private function validateReadBudget(
+        McpResourceInfo $resource,
+        McpResourceReadLimits $limits,
+        array $metadata
+    ): void {
+        $limits->validate($resource);
+        $content = array_intersect_key($resource->toArray(), array_flip(['uri', 'mimeType']));
+        $result = McpResult::boundedComplete(
+            ['contents' => [[...$content, 'text' => '']], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
+            $limits->maxResultBytes
+        )->withMetadata($metadata);
+        $encodedBound = strlen(json_encode($result->toArray(), JSON_THROW_ON_ERROR)) + 6 * $limits->maxContentBytes;
+        if ($encodedBound > $limits->maxResultBytes) {
+            throw new DomainException('Resource content cannot fit its complete encoded result budget.');
         }
     }
 

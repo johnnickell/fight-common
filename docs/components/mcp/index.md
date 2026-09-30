@@ -25,6 +25,8 @@ atlas_local_contents:
     href: "#composition"
   - label: Resource discovery
     href: "#authorized-resource-discovery"
+  - label: Resource reads
+    href: "#exact-authorized-resource-reads"
   - label: Tool registration
     href: "#explicit-tool-registration"
   - label: Tool discovery
@@ -96,11 +98,12 @@ owns the one diagnostic, preventing duplicate records.
 
 ## Authorized Resource discovery
 
-`Application\Mcp\Resource` supplies **discovery only** in this slice: `resources/list` and an empty complete
-`resources/templates/list`. It registers no `resources/read`, template resolution or subscription handler.
-`server/discover` advertises `resources` with `subscribe: false` and `listChanged: false`. This is not complete
-Resources conformance; exact authorized reads are the next delivery slice. A listed URI is metadata, not proof
-that this partial endpoint can already return its content.
+`Application\Mcp\Resource` supplies `resources/list`, an empty complete `resources/templates/list`, and
+[opt-in exact reads](#exact-authorized-resource-reads). `McpResourceDiscovery` remains the single method owner:
+its original constructor defaults preserve discovery-only consumers; supplying `readLimits` enables
+`resources/read` on the same provider objects and availability boundary. `server/discover` advertises `resources`
+with `subscribe: false` and `listChanged: false`. Template resolution and subscriptions remain unsupported.
+A discovery-only composition still cannot return content; explicitly opt in to deliver a readable endpoint.
 
 ### Metadata and provider ownership
 
@@ -123,7 +126,8 @@ and string last-modified values. `_meta` must be an object whose immediate keys 
 and name grammar. Empty names and unknown reserved keys are legal; extension values remain open JSON, without
 recursive metadata-key rules. Unknown top-level fields, invalid JSON/Unicode, excessive nesting (32 levels), invalid
 identities and byte-limit violations are rejected, not silently repaired or truncated. Common validates representations, not
-whether a supplied MIME label describes actual bytes; content validation belongs to the read slice.
+whether a supplied MIME label describes actual bytes; reads check matching labels, sizes and valid UTF-8 text,
+not content-type sniffing.
 
 Nested objects are immutable `StrictJson` values; `toArray()` retains those typed objects and lists. Use
 `StrictJson::fromObject([])` for an empty object, distinct from an empty list. `uri()` returns the exact input
@@ -164,8 +168,8 @@ $resources = new McpResourceDiscovery(
 // Do not register a second owner for either Resource discovery method.
 ```
 
-The discovery-only provider port intentionally has no content method. Consumers can later implement a separate
-exact-lookup/read contract on the same provider without changing this metadata enumeration contract.
+The discovery-only provider port intentionally has no content method. Implement `McpReadableResourceProvider`
+on the same object to opt into exact lookup/opening without changing the original metadata-provider contract.
 
 ### Authorization, pagination and caching
 
@@ -227,15 +231,147 @@ query cost, memory and deadlines. Exceeding the configured scan cap is an intern
 not a successful partial catalog. Descriptor depth and cursor encoding have fixed finite bounds, not tunable
 parser engines. The cursor key is 32–4,096 bytes and catalog scope is 1–128 bytes.
 
-### Discovery verification boundary
+### Resources verification boundary
 
 Pinned official conformance source `modelcontextprotocol/conformance` at
-`7169291ec0b68eb370fddcd9947313ab0d5e4156` (`0.2.0-alpha.11`) supplies discovery/schema and cache-hint checks.
-TASK-00117 records the exact runs and gaps. Its caching scenario also calls uncomposed Tools/Prompts and the
-not-yet-implemented read method; those failures are not relabeled passing. Read/content checks are deferred to
-TASK-00118. Owned tests supplement the harness's gaps in current authorization, empty-string names/cursors,
-pagination, ownership, budgets, failures and empty template discovery. No full Resources, Skills or downstream
-client conformance is claimed.
+`7169291ec0b68eb370fddcd9947313ab0d5e4156` (`0.2.0-alpha.11`), using MCP `2026-07-28`, supplies list, text/binary
+read, missing-resource, wire-schema and cache-hint checks. TASK-00118 records passing Resource checks and the
+missing-resource warning for deliberately omitted URI error data. The broader caching scenario still fails its
+uncomposed Tools/Prompts checks; all Resource cache checks pass. Neither those failures nor the warning are hidden
+behind a blanket conformance badge. Template expansion/subscriptions are excluded, not passed. Owned tests fill
+harness gaps in current authorization, exact Unicode/CRLF/empty bytes, independent lookup, ownership conflicts,
+encoded bounds, provider failures, pagination and cache isolation. The real guarded-handler journey includes
+consumer authentication composition and rejection-before-opening proof. This is package evidence, not Skills,
+combined Tool/Resource-link, production storage, Agent OS or Pi qualification.
+
+## Exact authorized Resource reads
+
+**Contract `fight-common.behavior.mcp-resource-reads`:** Supply `readLimits: new McpResourceReadLimits()` to
+`McpResourceDiscovery`. Every registered provider must then implement the optional `McpReadableResourceProvider`
+subtype, or composition fails before I/O. Do not add a parallel Resource capability or a second provider registry.
+Existing `McpResourceProvider` implementations and discovery-only constructor calls remain unchanged.
+
+The readable provider supplies two additional methods:
+
+- `find(string $uri): ?McpResourceInfo` performs an exact metadata-only lookup. Return null for an unowned identity.
+  Each listed identity must be findable with consistent metadata, but additional owned identities may be omitted
+  from discovery. A prior page, list membership or successful list call is never required for reading.
+- `open(McpResourceInfo $resource): McpResourceContent` opens only the selected authorized item. Return
+  `McpResourceContent::text($info, $freshPsrStream)` or `::binary(...)`. A fresh readable stream starts at byte zero;
+  Common consumes and closes it. Supply metadata describing the same version as the bytes, with exactly matching
+  URI, optional MIME and optional size. Lookup and enumeration must not open or hash content.
+
+Common validates the bounded absolute URI, checks **every registered provider** for exact ownership, rejects
+multiple owners or a mismatched returned URI, then reevaluates `McpResourceAvailability` before opening. Provider
+order cannot authorize fallback. Reads never enumerate the listing or prefetch unrelated content. A caller with a
+saved URI, descriptor, cursor or cached result has no new authority. Policy is evaluated anew on each read; any
+business permission and current identity resolution remain consumer-owned.
+
+URI identity is exact, case-sensitive input, not a path normalization instruction. Common never decodes URI
+escapes into another identity, follows redirects, performs URL fetches, resolves dot segments or maps to arbitrary
+filesystem paths. For example `file:///safe/a`, `file:///safe/%61` and `file:///safe/../a` are distinct identities:
+only an explicitly owned exact identity can open content. A provider that returns normalized `/a` metadata for an
+encoded/traversal input fails before opening. This is registered-identity containment, **not** proof that a future
+filesystem adapter is safe: consumers must use a closed exact catalog and independently enforce real-path/symlink,
+network and storage containment. Do not implement `find()` as a broad URI-to-file/URL fallback.
+
+```php
+use Fight\Common\Application\Mcp\Resource\McpReadableResourceProvider;
+use Fight\Common\Application\Mcp\Resource\McpResourceContent;
+use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
+use Psr\Http\Message\StreamFactoryInterface;
+
+// Small fixed demonstration only; production providers open a bounded lazy stream from owned storage.
+$documents = new class ($streamFactory) implements McpReadableResourceProvider {
+    private const URI = 'context://revision-42/guide';
+    private const TEXT = "# Guide 雪\r\n";
+
+    public function __construct(private readonly StreamFactoryInterface $streams) {}
+
+    public function resources(): iterable
+    {
+        yield $this->find(self::URI);
+    }
+
+    public function find(string $uri): ?McpResourceInfo
+    {
+        if ($uri !== self::URI) {
+            return null;
+        }
+
+        return McpResourceInfo::fromArray([
+            'uri' => self::URI, 'name' => 'Guide', 'mimeType' => 'text/markdown', 'size' => strlen(self::TEXT)
+        ]);
+    }
+
+    public function open(McpResourceInfo $resource): McpResourceContent
+    {
+        return McpResourceContent::text($resource, $this->streams->createStream(self::TEXT));
+    }
+};
+
+$resources = new McpResourceDiscovery(
+    [$documents], $visibility, $dedicatedCursorSecret, 'planning-documents',
+    readLimits: new McpResourceReadLimits()
+);
+// Compose this one capability in the existing registry/guarded endpoint, not alongside the earlier $resources.
+```
+
+Send `resources/read` with `params.uri` and the existing mandatory request `_meta`; over HTTP `Mcp-Name` mirrors
+the exact URI, alongside `Mcp-Method: resources/read` and `MCP-Protocol-Version: 2026-07-28`. Existing Origin,
+authentication composition and invocation guards precede lookup/opening. Transport rejection does not become a
+Resource or Tool result.
+
+An authorized read returns one `contents` item, `resultType: complete`, the central server identity, and cache hints.
+Text preserves the original UTF-8 bytes, Unicode and line endings. Binary is Base64 of the raw bytes. An empty file
+returns one item with `text: ""` or `blob: ""`, never an empty `contents` array for absence. Invalid UTF-8 text,
+changed/mismatched URI/MIME/declared size or provider failure is a generic internal error with diagnostics at the
+existing redaction-aware boundary; bytes are never normalized, rendered, executed or truncated into success.
+Common cannot infer the true media type or prove a consumer's immutable-storage guarantee from a label or URI.
+
+Invalid, unknown and unavailable targets share `-32602 Invalid params.` without URI data, concealed metadata or
+permission reasons. The pinned missing-resource check's optional URI-data recommendation is intentionally not
+followed because this contract forbids reflecting protected paths. Unexpected provider/policy/stream failures,
+including collaborator-thrown protocol exceptions, cannot publish their private messages; they become `-32603`.
+These are central Resource failures, never Tool `isError` envelopes.
+
+Reads use the capability's existing `ttlMs`/`cacheScope` overrides and default to zero/private. Public caching is an
+explicit consumer assertion that **both metadata and content** are caller-independent. Revision-looking URIs,
+immutable bytes or freshness do not confer visibility. Common keeps no content or permission cache, always checks
+current availability, and cannot erase bytes previously disclosed to a client. Clients/consumer caches must isolate
+private results by authorization context. `server/discover` retains its independent zero/private defaults.
+
+### Finite read budgets and stream ownership
+
+**Contract `fight-common.behavior.mcp-resource-read-bounds`:** `McpResourceReadLimits` defaults to 1,048,576 raw
+bytes and 8,388,608 encoded result bytes, with respective ceilings of 8,388,608 and 67,108,864. Raw budget must be
+positive; encoded budget must reserve at least `6 * maxContentBytes + 256`. Six is the worst-case JSON text escape
+expansion per raw byte and also covers Base64 (including escaped slashes). This conservative relationship rejects
+an unsafe override at construction, even for a binary-only provider.
+
+Before listing or opening in read-enabled composition, declared size must fit the raw limit, and the encoded
+budget must additionally fit the actual JSON-encoded URI/MIME fields. Hidden descriptors obey these same rules.
+The 256-byte reserve is only the constructor/descriptor minimum. Before advertising any readable descriptor or
+opening content, the responder also supplies its actual server metadata to Resource dispatch. Common checks the
+exact JSON-encoded URI/MIME, result/cache wrapper and central metadata plus `6 * maxContentBytes`. An incompatible
+combination fails safely before a successful listing or content I/O, even when the separate discovery page budget
+would fit. Identity strings are measured after JSON escaping, not by raw length. No identity is retained between
+requests or shared responders. The **actual final** encoded result is independently checked after central metadata
+is added as defense in depth. Discovery-only composition remains unchanged and retains its separate
+`McpResourceLimits` page budget.
+Neither limit changes shared HTTP request reading; that belongs to the ingress slice.
+
+Common requests chunks no larger than 8,192 bytes, up to the remaining raw budget plus **one overflow byte**.
+It validates actual byte count even when size was omitted or lied about. A stream that exceeds the requested chunk,
+returns no bytes without EOF, is unreadable/previously consumed, or throws fails closed. A valid zero-byte stream
+succeeds. Common never calls unbounded `getContents()`, casts a stream to string, seeks it, retries or drops excess
+bytes. Every returned stream is closed in `finally`, including metadata, read, UTF-8 and limit failures; a closing
+failure is also an internal failure. `consume()` is an internal one-shot serving seam, not a direct authorization API.
+
+Providers must return fresh streams rather than shared handles, not eagerly buffer unbounded content before
+returning, and clean up themselves if opening fails before ownership transfers. Consumers retain bounded query/I/O
+time, storage deadlines and immutable-version guarantees. Common bounds its own buffering (raw content plus finite
+encoded copies), not arbitrary work inside a supplied collaborator or a blocking stream implementation.
 
 ## Explicit Tool registration
 

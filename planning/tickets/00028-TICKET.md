@@ -119,7 +119,7 @@ SSE, cancellation and authentication work retains its current ownership.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00117](../tasks/00117-TASK.md) | Discover Authorized Resources Through the Guarded Endpoint | done |
-| [TASK-00118](../tasks/00118-TASK.md) | Read Exact Authorized Resource Content | ready-for-agent |
+| [TASK-00118](../tasks/00118-TASK.md) | Read Exact Authorized Resource Content | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -142,5 +142,21 @@ TASK decomposition is complete. John subsequently authorized TASK-00117 in the m
 implementation and local verification are complete at the 2026-09-29 pre-publication checkpoint, with independent
 review pending. It supplies metadata-only providers, current visibility, bounded list/empty-template discovery,
 real guarded-handler proof and applicable pinned conformance evidence. The broader caching scenario retains its
-uncomposed/deferred-method failures; no full Resources conformance is claimed. TASK-00118's exact authorized reads
-and complete Resource acceptance remain future work, requiring a separate implementation request.
+uncomposed/deferred-method failures; no full Resources conformance is claimed. TASK-00118 was subsequently authorized in the main checkout; its exact reads and integrated Resource behavior
+are implemented and locally verified at the 2026-09-30 pre-publication checkpoint. The first independent TASK-00118 review returned revise for R1 (central metadata omitted from pre-advertisement
+read-budget validation). The 2026-09-30 revision now enforces the complete composed bound before advertisement or
+content opening and passes a fresh full gate. Independent re-review, applicable QA and explicit TICKET closeout
+remain pending; this parent is not automatically marked done.
+
+| TICKET outcome | Owning implementation and evidence |
+|---|---|
+| Authorized metadata, deterministic bounded pages, opaque continuations, empty templates | TASK-00117 discovery contracts/tests and guarded discovery journey, preserved by TASK-00118 and the full gate. |
+| Exact authorized listed/unlisted reads, current denial, byte/empty-file fidelity | TASK-00118 `McpResourceReadTest`, `McpResourceContentTest` and `McpResourceReadJourneyTest`; only selected authorized content opens. |
+| Ownership conflicts, malformed output, traversal/non-fallback, raw/encoded bounds | TASK-00117 discovery validation plus TASK-00118 all-provider lookup, stream/metadata checks and R1 list/read exact-boundary regression including actual central metadata before advertisement/opening. |
+| Cache hints, private separation, failures, guard/mirror/authentication ordering | Both TASKs' actual guarded-handler journeys; reads have no authority/content cache, retain fresh policy and safe central errors. |
+| Protocol checks, compatibility, docs, complete local gate | TASK-00118 pinned conformance: list/text/binary/schema and Resource caching pass; missing-resource URI-data warning retained; only uncomposed Tools/Prompts fail aggregate caching. Three public additions/two behavior contracts classified, docs/CONTEXT updated, R1 full build exit 0 with exact 12,236/12,236 unit statements; additive internal metadata dispatch classified. |
+| Independent acceptance | TASK-00117 is merged in the implementation base. TASK-00118 R1 is repaired and locally verified; independent re-review and applicable QA remain pending. Builder proof does not close this requirement. |
+
+See TASK-00118 for exact counts, warnings, retained local receipt/transcripts, compatible read opt-in, consumer
+storage/authorization boundaries and remaining downstream exclusions. No release, publication, Pi, Skills or
+combined Tool/Resource-link acceptance is inferred.
