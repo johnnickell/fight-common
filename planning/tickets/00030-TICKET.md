@@ -2,7 +2,7 @@
 id: TICKET-00030
 epic: EPIC-00007
 title: Compose Resources, Skills and Tools Through One Guarded Endpoint
-status: ready-for-agent
+status: done
 ---
 
 # Compose Resources, Skills and Tools Through One Guarded Endpoint
@@ -182,5 +182,27 @@ TASK-00121 supplies bounded request ingress; TASK-00117/00118 supply Resource di
 TASK-00119/00120 supply immutable Skill revisions and complete list/get; TASK-00107 supplies Tool invocation.
 TASK-00122 adds combined HTTP evidence, the narrow link API, compatible behavior classification, documentation,
 applicable pinned scenario-specific Resources/Skills checks and a new complete local gate. Its TASK record and
-`.runs/TASK-00122/receipt.md` retain outcomes and limitations. This is builder evidence only: independent technical
-review and behavioral QA are pending, and neither this TICKET nor EPIC-00007 is accepted or closed automatically.
+`.runs/TASK-00122/receipt.md` retain outcomes and limitations. This was a builder checkpoint only: independent
+technical review and behavioral QA were pending at that time, and neither this TICKET nor EPIC-00007 was closed
+by the builder's evidence alone.
+
+## Parent acceptance and closeout
+
+The read-only parent assessment at `6bf11b3d5e80b85d0b3a32fe55f5ddd95d33868b` found **TICKET-00030 ready
+for bounded closeout**. TASK-00121 and TASK-00122 are its complete implementation split; both are `done` with
+independent technical acceptance and applicable independent behavioral QA PASS. Their combined guarded-endpoint
+journey accounts for Tool-linked exact Resource reads, complete Skill discovery and selective file reads, current
+availability, guarded rejection before content opens, bounded input/output, private caching, safe errors,
+compatibility classification and consumer documentation. The TASK-00122 local `./bin/build` passed with 5,020 Unit
+tests / 11,645 assertions and exact 12,687/12,687 owned statements, 150 Integration / 1,024 and 51 Functional /
+2,122. Its final published head also passed the required hosted Tests and Docs delivery checks; those checks are
+not a substitute for local acceptance. See `.runs/reviews/parent-closeout-00006-00030-6bf11b3/assessment.md`,
+the canonical child reviews and QA reports, and `.runs/land/TASK-00122/receipt.md` for the evidence and limits.
+
+**TICKET-00030 is done** for this Common package boundary. The pinned composed-server Resources/Skills scenarios
+passed within their recorded scope; optional SHOULD warnings, six N/A directory skips and an aggregate Prompts
+caching failure for an uncomposed capability remain disclosed, not a blanket conformance badge. This does not
+qualify a real Pi client, production catalog/permissions, installed consumer runtime, release or deployment.
+TASK-00123 and TASK-00124 are separately approved follow-up chores, not unfinished children of this TICKET.
+EPIC-00007 requires its own explicit parent acceptance; this TICKET closeout does not close it automatically.
+Publication, PR approval and merge of this administrative update remain separate from the recorded parent outcome.
