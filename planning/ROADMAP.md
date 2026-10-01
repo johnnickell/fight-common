@@ -18,7 +18,7 @@ count. No row changes authored status automatically. Execution remains on the [T
 <!-- planning:frontier -->
 | Parent ID | Title | Status | Planning action |
 |---|---|---|---|
-| [TICKET-00030](tickets/00030-TICKET.md) | Compose Resources, Skills and Tools Through One Guarded Endpoint | ready-for-agent | Review parent closeout |
+| [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | ready-for-agent | Review parent closeout |
 <!-- /planning:frontier -->
 
 ## Strategy and next decisions
