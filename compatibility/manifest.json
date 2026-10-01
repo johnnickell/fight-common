@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "70971dff50fad21472d44504c1d65959d1f26e26686607821a6246353830f8f3",
+    "operation_shapes_sha256": "ebbc25b86320378b9709f5b80567d108584dbe035c0e19dcfd8148ea8eea5da4",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 244,
+            "declarations": 245,
             "functions": 0
         },
         "Adapter": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00123-addition": {
+            "path": "planning/tasks/00123-TASK.md",
+            "locator": "Outcome and acceptance: optional metadata-aware MCP capability without changing existing implementers"
+        },
         "fight-common.classification.task-00121-addition": {
             "path": "planning/tasks/00121-TASK.md",
             "locator": "Scope and acceptance: bounded request ingestion and parsing, compatible calls and intentional rejection of excess input"
@@ -160,7 +164,7 @@
             "source": "src/Application/Mcp/Skill/McpSkillDiscovery.php",
             "layer": "Application", "kind": "class", "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery", "source_locator": "working-tree:src/Application/Mcp/Skill/McpSkillDiscovery.php#Fight\\Common\\Application\\Mcp\\Skill\\McpSkillDiscovery"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00120-addition", "rationale": "Complete Skills list/get over the same immutable Resource provider and fresh authorization; resourceDiscovery and handleWithMetadata are internal composition/dispatch seams, not consumer policy APIs."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00120-addition", "rationale": "Complete Skills list/get over the same immutable Resource provider and fresh authorization; resourceDiscovery remains an internal composition seam; handleWithMetadata now implements the optional public metadata-aware capability contract, not a consumer policy API."},
             "members": [{
                 "name": "constant EXTENSION",
                 "signature": "public const string EXTENSION = 'io.modelcontextprotocol/skills'",
@@ -412,7 +416,7 @@
             "kind": "class",
             "classification": "public",
             "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery"},
-            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults. R1 adds the explicitly internal handleWithMetadata responder seam to validate complete read budgets before advertisement or opening; it is not a consumer metadata or authorization API. TASK-00120 adds internal serves, permits and validateCatalog seams for Skills composition, general-policy intersection and shared read-budget/ownership checks."},
+            "classification_evidence": {"authority": "fight-common.classification.task-00117-addition", "rationale": "One capability owns bounded discovery; TASK-00118 adds explicitly opted-in exact reads on the same providers without changing discovery-only defaults. R1 introduced handleWithMetadata for complete read budgets before advertisement or opening; TASK-00123 makes it an optional public metadata-aware capability contract, not a consumer authorization API. TASK-00120 adds internal serves, permits and validateCatalog seams for Skills composition, general-policy intersection and shared read-budget/ownership checks."},
             "members": [],
             "operations": {
                 "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Capability methods validate and handle discovery with safe pagination and current availability.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "source_locator": "working-tree:src/Application/Mcp/Resource/McpResourceDiscovery.php#Fight\\Common\\Application\\Mcp\\Resource\\McpResourceDiscovery", "operation": "callable"}}},
@@ -1346,6 +1350,20 @@
                         }
                     }
                 }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability",
+            "source": "src/Application/Mcp/McpMetadataAwareCapability.php",
+            "layer": "Application", "kind": "interface", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "source_locator": "working-tree:src/Application/Mcp/McpMetadataAwareCapability.php#Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00123-addition", "rationale": "Optional public MCP capability subtype supplies actual responder-owned metadata per request for pre-disclosure budgets without adding mandatory methods to McpCapability; not a principal or general context API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Responder dispatch supplies request-local central metadata to selected implementations; direct base handle remains supported.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "source_locator": "working-tree:src/Application/Mcp/McpMetadataAwareCapability.php#Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Interface has no constructor.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "source_locator": "working-tree:src/Application/Mcp/McpMetadataAwareCapability.php#Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Implementation is the consumer promise.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "source_locator": "working-tree:src/Application/Mcp/McpMetadataAwareCapability.php#Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "operation": "extensible"}}},
+                "implementable": {"promised": true, "evidence": {"authority": "fight-common.operation.interface-implementation", "rationale": "Consumers can opt into responder metadata without changing other McpCapability implementations.", "binding": {"subject": "Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "source_locator": "working-tree:src/Application/Mcp/McpMetadataAwareCapability.php#Fight\\Common\\Application\\Mcp\\McpMetadataAwareCapability", "operation": "implementable"}}}
             }
         },
         {

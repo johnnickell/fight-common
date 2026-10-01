@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Application\Mcp;
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpJsonResponse;
+use Fight\Common\Application\Mcp\McpMetadataAwareCapability;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
@@ -97,6 +98,76 @@ final class McpResponderTest extends UnitTestCase
         );
         self::assertSame(1, $capability->validateCalls);
         self::assertSame(1, $capability->handleCalls);
+    }
+
+    public function test_that_an_optional_capability_receives_request_local_central_metadata_without_changing_legacy_calls(): void
+    {
+        $capability = new class implements McpMetadataAwareCapability {
+            /**
+             * @var list<array<string, mixed>>
+             */
+            public array $seen = [];
+
+            public function methods(): array
+            {
+                return ['example/echo'];
+            }
+
+            public function capabilities(): array
+            {
+                return ['example' => ['enabled' => true]];
+            }
+
+            public function mirrorDeclarations(): array
+            {
+                return [];
+            }
+
+            public function validate(McpRequest $request): void
+            {
+                if (!is_string($request->parameters()['message'] ?? null)) {
+                    throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+                }
+            }
+
+            public function handle(McpRequest $request): McpResult
+            {
+                return McpResult::complete(['message' => $request->parameters()['message']]);
+            }
+
+            public function handleWithMetadata(McpRequest $request, array $metadata): McpResult
+            {
+                $this->seen[] = $metadata;
+
+                return McpResult::complete([
+                    'message' => $request->parameters()['message'],
+                    '_meta' => ['example/metadata' => 'retained',
+                        'io.modelcontextprotocol/serverInfo' => ['name' => 'not authoritative', 'version' => '0']],
+                ]);
+            }
+        };
+        $first = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('First', '1'), [$capability]));
+        $second = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Second', '2'), [$capability]));
+        $wire = $this->request('example/echo', 19, ['message' => 'hello']);
+
+        self::assertSame('First', $first->respond($wire)->toArray()['result']['_meta']['io.modelcontextprotocol/serverInfo']['name']);
+        $result = $second->respond($wire)->toArray()['result'];
+        self::assertSame(['name' => 'Second', 'version' => '2'], $result['_meta']['io.modelcontextprotocol/serverInfo']);
+        self::assertSame('retained', $result['_meta']['example/metadata']);
+        self::assertSame([
+            ['io.modelcontextprotocol/serverInfo' => ['name' => 'First', 'version' => '1']],
+            ['io.modelcontextprotocol/serverInfo' => ['name' => 'Second', 'version' => '2']],
+        ], $capability->seen);
+        self::assertSame(
+            ['resultType' => 'complete', 'message' => 'hello'],
+            $capability->handle((new McpRequestDecoder())->decode($wire))->toArray(),
+        );
+        self::assertSame(-32602, $first->respond($this->request('example/echo', 20))->errorCode());
+        self::assertCount(2, $capability->seen);
+        $legacy = new FixtureCapability();
+        self::assertSame('hello', (new McpResponder($this->registry($legacy)))
+            ->respond($wire)->toArray()['result']['message']);
+        self::assertSame(1, $legacy->handleCalls);
     }
 
     public function test_that_protocol_failures_are_centralized_without_capability_dispatch(): void

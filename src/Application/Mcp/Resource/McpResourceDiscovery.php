@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Resource;
 
-use Fight\Common\Application\Mcp\McpCapability;
+use Fight\Common\Application\Mcp\McpMetadataAwareCapability;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
@@ -16,7 +16,7 @@ use Uri\Rfc3986\Uri;
 /**
  * Class McpResourceDiscovery
  */
-final readonly class McpResourceDiscovery implements McpCapability
+final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
 {
     /**
      * @var list<McpResourceProvider>
@@ -188,7 +188,7 @@ final readonly class McpResourceDiscovery implements McpCapability
      *
      * @phpstan-param array<string, mixed> $metadata
      *
-     * @internal
+     * @inheritDoc
      */
     public function handleWithMetadata(McpRequest $request, array $metadata): McpResult
     {
