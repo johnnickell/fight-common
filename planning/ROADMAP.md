@@ -19,6 +19,7 @@ count. No row changes authored status automatically. Execution remains on the [T
 | Parent ID | Title | Status | Planning action |
 |---|---|---|---|
 | [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | ready-for-agent | Review parent closeout |
+| [TICKET-00030](tickets/00030-TICKET.md) | Compose Resources, Skills and Tools Through One Guarded Endpoint | ready-for-agent | Review parent closeout |
 <!-- /planning:frontier -->
 
 ## Strategy and next decisions

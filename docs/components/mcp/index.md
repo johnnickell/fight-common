@@ -519,6 +519,45 @@ object, a PHP list with typed object children for an array, or the scalar itself
 not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
 The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success.
 
+### Combined Tool, Resource and Skill journey
+
+A consumer can compose `McpToolDiscovery` and `McpToolInvocation` over one `McpToolRegistry`,
+`McpResourceDiscovery` over explicit document providers plus one `McpSkillResources`, and
+`McpSkillDiscovery` over **that same** readable Resource discovery and Skill provider. Register all four
+capabilities in one `McpCapabilityRegistry` and give it to the existing guarded `McpRequestHandler`.
+Supply the route, authentication middleware, `McpOriginPolicy`, `McpInvocationGuard`, diagnostics, cursor secrets,
+current request-scoped Tool/Resource/whole-Skill availability, and appropriate finite limits. The handler
+validates Origin, negotiation, request bytes/depth, mirrors and guard before dispatch; upstream authentication,
+server buffering, timeouts and authorization policy remain the consumer's responsibility. Distinct extension IDs
+coexist; incompatible same-ID settings or duplicate methods fail composition. `server/discover` advertises
+Tools, Resources and `io.modelcontextprotocol/skills` only when actually registered. Skills requires its same
+readable Resource provider; registration never implies a route or permission grant.
+
+For a query-backed Tool that returns a short public summary and a registered document revision, construct
+`McpResourceInfo::fromArray(['uri' => $exactUri, 'name' => $publicName, ...])` and return
+`McpToolOutput::structuredWithResourceLinks((object) ['summary' => $publicSummary], $resourceInfo)`.
+The complete result has a schema-checked `structuredContent` value, matching text and a standard
+`resource_link` content item with validated Resource metadata. Existing `structured()` calls remain text-only;
+links are not injected into the output schema or automatically looked up, authorized, or read. The consumer
+must select public-safe fields and register the exact URI with its own immutable provider. A client may follow
+that link through `resources/read` without listing it; Common checks current Resource availability independently
+of Tool availability. Denied and unknown reads have the same safe protocol error, not a Tool `isError` result.
+
+The same client can page through `skills/list`, directly `skills/get` a complete entry outside the current page,
+then request only its root `SKILL.md` and selected supporting `resources/read` files. Exact manifest sizes/digests
+refer to original bytes, including CRLF, Unicode and binary files; serving template/script bytes does not run
+or activate them. Recheck whole-Skill and general Resource availability on every read, including saved and
+historical URIs. Cursors, link possession, authentication, immutable bytes, private cache hints (`ttlMs: 0`,
+`cacheScope: private` by default) and previously returned manifests are not read grants. Resource and Skill
+metadata/raw/encoded budgets must fit the configured revision, including JSON/Base64 and central result metadata;
+invalid overrides or inconsistent providers fail rather than emitting a partial success. Do not treat the
+Tool output as subject to the Resource content budget; it retains its existing schema/StrictJson bounds.
+
+`tests/Functional/McpCombinedJourneyTest.php` exercises this single guarded handler with real query dispatch,
+linked document reads and lazy structured Skill files. This package fixture is not an installed Agent OS/Pi
+client, OAuth issuer, production catalog, directory RPC, execution sandbox or deployed proxy qualification.
+
+
 This pre-release revision replaces the earlier MCP JsonObject/raw-object accessors with StrictJson. Request decoding,
 client capability/info accessors, nested validated Tool arguments, discovery definitions, mirror traversal and semantic
 structured output now use the same typed object representation; HTTP JSON remains compatible. Missing Tool arguments

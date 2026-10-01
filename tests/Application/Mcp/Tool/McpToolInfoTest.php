@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
+use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Mcp\Tool\McpToolSchema;
@@ -211,6 +212,21 @@ final class McpToolInfoTest extends UnitTestCase
         self::assertSame($output->text(), $value->toString());
         self::assertSame($output->text(), json_encode($value, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
         self::assertEquals($content, json_decode($output->text(), false, 512, JSON_THROW_ON_ERROR));
+    }
+
+    public function test_that_linked_output_retains_validated_resource_metadata_and_isolated_content(): void
+    {
+        $link = McpResourceInfo::fromArray(['uri' => 'doc://revision/v1', 'name' => 'Public guide', 'mimeType' => 'text/plain']);
+        $output = McpToolOutput::structuredWithResourceLinks((object) ['summary' => 'Public'], $link);
+        $items = $output->contentItems();
+        self::assertSame([
+            ['type' => 'text', 'text' => '{"summary":"Public"}'],
+            ['type' => 'resource_link', 'uri' => 'doc://revision/v1', 'name' => 'Public guide', 'mimeType' => 'text/plain'],
+        ], $items);
+        $items[1]['name'] = 'Mutated';
+        self::assertSame('Public guide', $output->contentItems()[1]['name']);
+        self::assertSame('{"summary":"Public"}', $output->text());
+        self::assertSame([['type' => 'text', 'text' => 'null']], McpToolOutput::structured(null)->contentItems());
     }
 
     public static function structuredValues(): iterable

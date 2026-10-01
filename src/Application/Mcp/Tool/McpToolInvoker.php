@@ -289,9 +289,9 @@ final readonly class McpToolInvoker
             throw new DomainException('Tool output does not match its declared schema.');
         }
 
-        // McpToolOutput is final and derives text from the same isolated JSON snapshot.
+        // McpToolOutput is final and derives text and links from isolated validated values.
         return McpResult::complete([
-            'content'           => [['type' => 'text', 'text' => $output->text()]],
+            'content'           => $output->contentItems(),
             'structuredContent' => $content
         ]);
     }
