@@ -30,7 +30,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| `standards/Planning.md` | `dff87d291d415542115d9aacc484b0cdd973a885df10c2bcf753e8ac4345ca94` |
+| `standards/Planning.md` | `f1536f87a8041614a8429f8a6fc0b349cdb1ae397b9cd98c11e6abf67f7e37e7` |
 | `standards/Review.md` | `0bec2986099fafa2866fa07a5fd4e319e172d2cc354671e30b62858f9e6eb402` |
 | `standards/Testing.md` | `77639b06e8bfc306345963826382e45af603bb176308e494917d59ea4eb10e9b` |
 
@@ -85,3 +85,12 @@ contracts, compatibility promises, exact unit coverage, full gate, ordinary depe
 post-publication hosted delivery checks are preserved. No private installation, new landing workflow, release
 certification or publication is implied by this adoption. Installed hashes above identify the reconciled documents;
 historical baseline identity remains intact.
+
+## Automatic parent completion amendment — 2026-10-01
+
+John approved closing eligible TICKETs and EPICs in the same operation that completes their children, without a
+separate parent assessment, review, QA, confirmation, or skill invocation. The local
+[planning conventions](../../planning/CONVENTIONS.md#automatic-parent-completion) own the rule; the planning
+standard, project guidance and generator now follow it. Child acceptance, independent implementation review,
+publication, merge and archive authority retain their existing meanings. The Planning digest above identifies
+this local amendment; no automatic standards synchronization or change to other repositories is implied.

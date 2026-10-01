@@ -140,6 +140,25 @@ def load_records() -> tuple[dict, list[str]]:
     return records, errors
 
 
+def complete_parents(records: dict) -> dict[Path, str]:
+    """Plan bottom-up parent closure from all live and archived child records."""
+    pending = {}
+    for kind, parent_key in (("TICKET-", "ticket"), ("EPIC-", "epic")):
+        for identifier, (path, data) in sorted(records.items()):
+            if not identifier.startswith(kind) or "archive" in path.parts or data["status"] in TERMINAL:
+                continue
+            children = [child for _, child in records.values() if child.get(parent_key) == identifier]
+            if not children or any(child["status"] not in TERMINAL for child in children):
+                continue
+            status = "wontfix" if all(child["status"] == "wontfix" for child in children) else "done"
+            text = path.read_text()
+            header, body = text[4:].split("\n---\n", 1)
+            header = re.sub(r"^status:[^\n]*$", f"status: {status}", header, count=1, flags=re.MULTILINE)
+            pending[path] = f"---\n{header}\n---\n{body}"
+            data["status"] = status
+    return pending
+
+
 def projections(records: dict) -> dict[tuple[Path, str], str]:
     views = {}
     board = PLANNING / "tasks/BOARD.md"
@@ -189,8 +208,6 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
         children = [meta for _, meta in records.values() if meta.get(parent_key) == identifier]
         if not children:
             action = "Decompose into TICKETs" if parent_key == "epic" else "Decompose into TASKs"
-        elif all(child["status"] in TERMINAL for child in children):
-            action = "Review parent closeout"
         else:
             continue
         frontier.append([linked(roadmap, path, identifier), cell(data["title"]), cell(data["status"]), action])
@@ -232,7 +249,7 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="refresh generated views after validating records")
+    parser.add_argument("--write", action="store_true", help="close eligible parents and refresh generated views after validating records")
     args = parser.parse_args()
     records, errors = load_records()
     for path in PLANNING.rglob("*.md"):
@@ -247,7 +264,11 @@ def main() -> int:
     if ignored.returncode:
         errors.append(".runs/ must be gitignored")
     if not errors:
-        pending = {}
+        closures = complete_parents(records)
+        pending = dict(closures) if args.write else {}
+        if not args.write:
+            for path in closures:
+                errors.append(f"{path.relative_to(ROOT)}: parent completion out of sync; run ./bin/planning-check --write")
         for (path, name), content in projections(records).items():
             if not path.is_file():
                 errors.append(f"missing view: {path.relative_to(ROOT)}")
@@ -266,6 +287,8 @@ def main() -> int:
         if not errors:
             for path, text in pending.items():
                 path.write_text(text)
+            for path in closures:
+                print(f"Completed parent: {path.relative_to(ROOT)}")
     if errors:
         print("Planning validation failed:")
         for error in errors:

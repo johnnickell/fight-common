@@ -6,19 +6,19 @@
 | EPIC ID | Title | Target | Status |
 |---|---|---|---|
 | [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | done |
-| [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | ready-for-agent |
+| [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | done |
 <!-- /planning:epics -->
 
 ## Planning frontier
 
-These are planning actions, not executable TASKs. Inspect the parent requirements and any missing decisions
-before decomposition; review acceptance explicitly before closing a parent. Live and archived children both
-count. No row changes authored status automatically. Execution remains on the [TASK Board](tasks/BOARD.md).
+These are decomposition actions, not executable TASKs. Inspect parent requirements and any missing decisions
+before decomposition. Live and archived children both count. [Automatic parent completion](CONVENTIONS.md#automatic-parent-completion)
+closes eligible parents during the child-completion operation. Execution remains on the [TASK Board](tasks/BOARD.md).
 
 <!-- planning:frontier -->
 | Parent ID | Title | Status | Planning action |
 |---|---|---|---|
-| [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | ready-for-agent | Review parent closeout |
+| None | — | — | — |
 <!-- /planning:frontier -->
 
 ## Strategy and next decisions

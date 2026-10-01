@@ -349,8 +349,8 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 ## Durable and ephemeral work
 
 Committed planning state lives in `planning/`. The TASK Board displays executable work; the Roadmap planning
-frontier displays decomposition and explicit parent closeout actions, counting live and archived children without
-automatically changing parent state. TASK `done` means implementation acceptance and required local verification
+frontier displays decomposition. [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
+closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done` means implementation acceptance and required local verification
 are complete, before publication; pending independent review and delivery outcomes are recorded separately.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The

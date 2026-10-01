@@ -25,7 +25,8 @@ next major.
 Before editing, read the relevant task, its parent TICKET, and any accepted ADR named by the task. The live
 [Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/BOARD.md) is the execution
 frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates. The Roadmap has a separate
-planning frontier for undecomposed parents and explicit closeout review, counting live and archived children.
+planning frontier for undecomposed parents. Close eligible parents in the same child-completion operation under
+[Automatic parent completion](https://github.com/johnnickell/fight-common/blob/develop/planning/CONVENTIONS.md#automatic-parent-completion), counting live and archived children.
 Common owns reusable package promises; consumer applications own policy, permissions, routes and composition
 unless an explicit package contract says otherwise. Use public package contracts directly without behaviorless
 wrappers; preserve required compatibility aliases and framework integrations.

@@ -55,7 +55,7 @@ only for deterministic display. `pr` is an optional full PR URL, not an assertio
 | `ready-for-agent` | Decision-complete and executable when dependencies permit |
 | `ready-for-human` | Human judgment or an external action is next |
 | `in-progress` | Implementation or revision is underway |
-| `done` | Implementation acceptance and required local verification are complete for a TASK; parent acceptance is explicitly reviewed |
+| `done` | Implementation acceptance and required local verification are complete for a TASK; parent completion follows terminal child statuses |
 | `wontfix` | Intentionally closed without implementation |
 
 Blocking is derived, not a stored status. Mark TASK implementation `done` before PR publication once implementation
@@ -63,6 +63,18 @@ acceptance and required local verification are complete. A green build alone doe
 Independent review may still be pending: state that explicitly in completion notes/handoffs and record its outcome,
 publication, merge, release and deployment separately. Done grants none of those authorities. Preserve truthful
 historical records rather than inventing review approval or rewriting prior outcomes.
+
+## Automatic parent completion
+
+When a TASK becomes `done` or `wontfix`, run `./bin/planning-check --write` in the same completion
+operation. It closes eligible TICKETs first, then EPICs, and refreshes the generated views. Count both live
+and archived children. A live, non-terminal parent with at least one child closes when every child is terminal:
+use `wontfix` when every child is `wontfix`, otherwise `done`.
+
+Parents without children or with any unfinished child stay open. Preserve already-terminal and archived
+parents. Child acceptance and intentional `wontfix` decisions remain with the child records; parent completion
+requires no separate assessment, independent review, QA, confirmation, or skill invocation. Parent status does
+not assert review, merge, release, or deployment, and completion never archives records automatically.
 
 ## Board and generated views
 
@@ -76,8 +88,8 @@ is no executable work, say so. Execution priority is authored in record metadata
 
 `ROADMAP.md` retains strategy and milestone narrative; its EPIC status table and separate Planning frontier are
 generated. The frontier shows non-terminal EPICs without TICKETs and TICKETs without TASKs for decomposition,
-and parents with at least one child and all children terminal for explicit closeout review. Count live and archived
-children. Never close parents automatically or put these planning actions in executable TASK Board rows. Parent
+counting live and archived children. [Automatic parent completion](#automatic-parent-completion) removes eligible
+parents from unfinished planning work. Do not put decomposition in executable TASK Board rows. Parent
 readiness and unresolved decisions still govern decomposition. Standalone chores appear on the Board without
 inventing an EPIC. Live EPICs and TICKETs have generated child tables. Archived
 progress prose remains historical completion evidence, not a live status source.
@@ -89,8 +101,9 @@ Generated sections use `<!-- planning:NAME -->` and `<!-- /planning:NAME -->`. A
 ./bin/planning-check
 ```
 
-The first command validates records and links, then refreshes marked sections. The second is read-only and fails
-on stale views, invalid identifiers/parents, missing links, and dependency cycles. `./bin/build` already runs
+The first command validates records and links, closes eligible parents, then refreshes marked sections. The second
+is read-only and fails on pending parent completion, stale views, invalid identifiers/parents, missing links, and
+dependency cycles. Validation errors prevent writes to parent records and generated views. `./bin/build` already runs
 the read-only check and must not rewrite planning as a side effect. Verify documentation and tooling directly;
 do not add tests of Markdown, wrappers, configuration text, or planning tooling to the product suite.
 
