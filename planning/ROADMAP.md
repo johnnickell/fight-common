@@ -5,7 +5,7 @@
 <!-- planning:epics -->
 | EPIC ID | Title | Target | Status |
 |---|---|---|---|
-| [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | ready-for-agent |
+| [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | done |
 | [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
@@ -18,7 +18,6 @@ count. No row changes authored status automatically. Execution remains on the [T
 <!-- planning:frontier -->
 | Parent ID | Title | Status | Planning action |
 |---|---|---|---|
-| [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | ready-for-agent | Review parent closeout |
 | [TICKET-00030](tickets/00030-TICKET.md) | Compose Resources, Skills and Tools Through One Guarded Endpoint | ready-for-agent | Review parent closeout |
 <!-- /planning:frontier -->
 
