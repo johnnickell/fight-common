@@ -246,8 +246,10 @@ must fit **both** list and get, including cache fields, a possible 48-character 
 responder's actual central metadata. All entries, including concealed entries, are checked. Shared Resource
 ownership, scan/descriptor budgets and worst-case encoded read budgets are checked without opening content at
 composition and on each operation. An oversized server identity or inconsistent provider output cannot yield an
-entry whose files the configured reader cannot represent. `handleWithMetadata`, `resourceDiscovery` and the Resource
-`serves`/`permits`/`validateCatalog` methods are internal coordination seams, not consumer authorization APIs.
+entry whose files the configured reader cannot represent. `handleWithMetadata` is the public optional
+`McpMetadataAwareCapability` method for receiving the responder's actual central metadata per request;
+`resourceDiscovery` and the Resource `serves`/`permits`/`validateCatalog` methods remain internal coordination
+seams. Neither the optional metadata method nor those internal seams are consumer authorization APIs.
 
 A page stops at its count **or byte** bound; entries remain atomic and no bytes/members are truncated. Results
 retain an independent final encoded guard. Like Resource budgets, the result bound covers the JSON-encoded
