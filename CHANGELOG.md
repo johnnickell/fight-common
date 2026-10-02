@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A bounded stateless MCP `2026-07-28` server surface: semantic JSON-RPC dispatch, capability discovery,
+  explicit Tool registration, available-only listing and validated calls, and a guarded PSR-15 POST endpoint
+  checking Origin, negotiation, transport mirrors and a consumer invocation guard. Common provides neither
+  routes nor application authentication or authorization.
+- Opt-in MCP progress and cooperative cancellation with progressive SSE delivery through a PHP-SAPI emitter;
+  documented Symfony, Laravel, Yii, Slim and CodeIgniter composition paths. Direct JSON remains the default.
+  Package loopback evidence does not qualify other runtimes, buffering layers or proxies.
+- Protected ordinary `input_required` Tool interactions with stateless form retries and separate atomic
+  single-use destructive confirmation backed by a consumer store. Consumers own caller binding, permission
+  policy, keys, destructive classification and store persistence.
+- Explicit Resource discovery and exact, availability-filtered text/binary reads; immutable Skill revision files
+  served as Resources; complete `skills/list` and `skills/get` over shared Resource providers. The combined
+  Tool/Resource/Skill endpoint rechecks availability and bounds catalog, read and result work. Consumers own
+  Skill and Resource acquisition, storage and authorization policy.
+- A policy-free OAuth resource-server boundary usable with MCP, with consumer-supplied token validation,
+  claim/scope checks and authentication handoff; Common neither issues tokens nor decides business permissions.
+- `Domain\Value\Basic\StrictJson` for immutable, type-preserving bounded JSON values used by MCP contracts.
+
+### Changed
+
+- **Pre-release MCP API change:** `McpTool::handle()` now permits `McpToolOutput|McpInputRequired`; non-interactive
+  Tools may retain the narrower `McpToolOutput` return. Earlier unreleased MCP raw-object/`JsonObject` accessors
+  use `StrictJson`; callers of the base interface must handle interactive results. Tool/Resource/Skill discovery
+  and read APIs use finite budgets and request-scoped availability; dynamic shared Resource catalogs are checked
+  on admitted Skill dispatch rather than during Skill service construction.
+- Fight Common's own PHPCS gate enforces its documented strict multiline-docblock and declaration layout rules
+  instead of allowing suppression comments. Existing Doctrine DBAL schema builders retain compatibility with
+  the `^4.4` dependency range.
+
+MCP support is deliberately scoped: no composed Prompts, resource subscriptions, Skill directory RPC, URL-mode
+elicitation, client-to-server notifications or framework-starter/installed-consumer qualification is implied.
+Pinned composed-endpoint conformance results include scenario-specific SHOULD warnings, skips and an uncomposed
+Prompts failure; they are not a blanket MCP conformance pass. See the [MCP guide](docs/components/mcp/index.md)
+for exact limits and composition requirements.
+
 ## [1.2.0] - 2026-09-12
 
 ### Added
