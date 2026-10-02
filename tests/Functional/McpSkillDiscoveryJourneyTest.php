@@ -20,6 +20,7 @@ use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
 use Fight\Common\Application\Mcp\Skill\McpSkillResources;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\Common\Fixture\Mcp\ReadableResources;
 use Fight\Test\Common\Fixture\Mcp\SkillRevision;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -159,6 +160,63 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         self::assertSame(['sanitized_skill_failure', 'sanitized_skill_failure'], $diagnostics->events);
         $policy->fail = false;
         self::assertSame($page['skills'], $this->responseResult($app, 'skills/list', ['cursor' => ''])['skills']);
+    }
+
+    public function test_that_request_scoped_construction_does_not_probe_dynamic_providers_before_guarded_dispatch(): void
+    {
+        $revision = SkillRevision::create();
+        $provider = new McpSkillResources([$revision], new class implements McpSkillAvailability {
+            public function isAvailable(StrictJson $entry): bool { return true; }
+        }, new HttpFactory());
+        $external = new ReadableResources([]);
+        $factory = new HttpFactory();
+        $diagnostics = new class implements McpDiagnostics {
+            public int $count = 0;
+            public function record(Throwable $failure): void { ++$this->count; }
+        };
+        $guard = new class implements McpInvocationGuard {
+            public bool $allowed = false;
+            public function allows(string $method, ?string $name): bool { return $this->allowed; }
+        };
+        $constructions = 0;
+        $app = new App($factory);
+        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($provider, $external, $factory, $diagnostics, $guard, &$constructions) {
+            ++$constructions;
+            $resources = new McpResourceDiscovery([$provider, $external], new class implements McpResourceAvailability {
+                public function isAvailable(McpResourceInfo $resource): bool { return true; }
+            }, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
+            $skills = new McpSkillDiscovery($provider, $resources, str_repeat('fixture-only', 4), 'skills');
+            $handler = new McpRequestHandler(
+                new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skills, $resources]),
+                new ExactMcpOriginPolicy(['https://client.test']),
+                $guard,
+                new McpResponseFactory($factory, $factory, $diagnostics)
+            );
+            return $handler->handle($request);
+        });
+        $app->add(function (ServerRequestInterface $request, RequestHandlerInterface $next) use ($factory) {
+            return $request->getHeaderLine('Authorization') === 'Bearer fixture-only' ? $next->handle($request) : $factory->createResponse(401);
+        });
+        $request = $this->request('skills/get', ['uri' => $revision->entry()->get('uri')]);
+        self::assertSame(401, $app->handle($request->withoutHeader('Authorization'))->getStatusCode());
+        self::assertSame(0, $constructions);
+        foreach ([[$request->withHeader('Origin', 'https://evil.test'), 403], [$request->withHeader('Accept', 'text/plain'), 406], [$request->withoutHeader('Mcp-Method'), 400], [$request->withHeader('MCP-Protocol-Version', '2025-11-25'), 400]] as [$bad, $status]) {
+            self::assertSame($status, $app->handle($bad)->getStatusCode());
+        }
+        self::assertSame(4, $constructions);
+        self::assertSame(429, $app->handle($request)->getStatusCode());
+        self::assertSame(0, $external->enumerations);
+        self::assertSame([], $external->lookedUp);
+        self::assertSame([], $external->opened);
+        $guard->allowed = true;
+        self::assertArrayHasKey('result', $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')]));
+        self::assertSame(1, $external->enumerations);
+        $external->entries = [$revision->entry()->get('uri') => ['bytes' => 'collision']];
+        self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')])['error']);
+        self::assertSame(2, $external->enumerations);
+        self::assertSame(1, $diagnostics->count);
+        self::assertSame([], $external->lookedUp);
+        self::assertSame([], $external->opened);
     }
 
     private function entry(StrictJson $entry): array { return json_decode($entry->toString(), true, flags: JSON_THROW_ON_ERROR); }

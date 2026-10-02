@@ -404,7 +404,9 @@ Validated immutable Skill revisions can contribute their root instructions and e
 same Resource provider composition. See [Skill revisions as Resources](skill-revisions.md) for safe YAML parsing,
 complete manifests, whole-Skill availability, lazy reads and limits. Resource-only compositions remain unchanged.
 Explicitly add `McpSkillDiscovery` to serve [complete Skills list/get](skill-revisions.md#complete-skills-discovery-and-exact-get)
-and advertise the static Skills extension through that same guarded endpoint.
+and advertise the static Skills extension through that same guarded endpoint. Skills construction inspects supplied
+immutable entries but does not enumerate other Resource providers; current shared catalog validity is checked
+on admitted Skills dispatch before disclosure. Consumer acquisition and upstream authentication remain consumer-owned.
 
 ## Explicit Tool registration
 

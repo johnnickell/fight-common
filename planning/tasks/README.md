@@ -26,5 +26,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | done | [TICKET-00030](../tickets/00030-TICKET.md) |
 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | done | [TICKET-00030](../tickets/00030-TICKET.md) |
 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | done | — |
-| [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | ready-for-agent | — |
+| [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | done | — |
 <!-- /planning:records -->
