@@ -24,9 +24,10 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     /**
      * Constructs McpSkillDiscovery
      *
-     * Register this capability and the same read-enabled Resources capability together. The provider owns
-     * immutable entries and the whole-Skill decision used by file reads. Public cache scope explicitly asserts
-     * caller-independent visibility; neither cursor scope nor key is a principal or access credential.
+     * Register this capability and the same read-enabled Resources capability together. Construction validates
+     * supplied immutable entries; dynamic Resource catalogs are checked on Skills dispatch, not construction.
+     * The provider owns immutable entries and the whole-Skill decision used by file reads. Public cache scope
+     * asserts caller-independent visibility; neither cursor scope nor key is a principal or access credential.
      */
     public function __construct(
         private McpSkillResources $provider,
@@ -55,7 +56,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             throw new DomainException('Skill discovery exceeds its complete catalog budget.');
         }
 
-        $this->validateCatalog([]);
+        $this->validateEntries([]);
     }
 
     /**
@@ -168,6 +169,16 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     private function validateCatalog(array $metadata): void
     {
         $this->resources->validateCatalog($metadata);
+        $this->validateEntries($metadata);
+    }
+
+    /**
+     * Validates locally supplied immutable entries without querying dynamic Resource providers
+     *
+     * @phpstan-param array<string, mixed> $metadata
+     */
+    private function validateEntries(array $metadata): void
+    {
         foreach ($this->provider->entries() as $uri => $entry) {
             if (
                 strlen($uri) > $this->limits->maxUriBytes

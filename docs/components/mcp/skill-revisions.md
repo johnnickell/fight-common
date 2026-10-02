@@ -170,8 +170,9 @@ advertise partial Skills support; add both methods together through the capabili
 
 One `McpSkillDiscovery` owns `skills/list` and `skills/get` together. It consumes the **same** `McpSkillResources`
 instance already serving revision files through one read-enabled `McpResourceDiscovery`. Construction rejects a
-missing/read-disabled provider composition and inconsistent budgets. Registry construction rejects substituting a
-different Resource capability, missing methods or unsupported optional feature claims. Independent Resources still
+missing/read-disabled provider composition and locally inconsistent immutable entry budgets without querying
+external Resource providers. Registry construction rejects substituting a different Resource capability, missing
+methods or unsupported optional feature claims. Independent Resources still
 works without Skills. No Tool registration, new endpoint, route or framework adapter is required.
 
 Continue the preceding composition:
@@ -205,8 +206,13 @@ $registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$reso
 All requests still carry mandatory MCP `_meta`, protocol and method mirrors. `skills/get` has **no `Mcp-Name`
 requirement**; `resources/read` retains its URI mirror. Authentication remains consumer composition, with Origin
 and invocation guard checks before dispatch. No protected content is opened by discovery/get. Construction checks
-neutral metadata/ownership before serving; unlike standalone Resource discovery it enumerates the shared catalog
-at composition. Do not perform provider content reads during metadata enumeration.
+supplied immutable Skill entries and wiring, but does **not** enumerate the shared dynamic Resource catalog. Each admitted Skills list/get checks current all-provider ownership and serving budgets, including
+concealed descriptors and descriptors beyond the page, before disclosure. A bad external catalog that formerly
+failed Skills construction now fails the request with sanitized `-32603` and consumer diagnostics. No provider
+content is opened by metadata enumeration. With request-scoped service construction, rejected HTTP requests do not
+cause Common to enumerate providers before guarded dispatch; consumer acquisition before composition, custom
+factories and authentication middleware remain consumer responsibilities. Direct semantic callers must supply their
+own admission controls.
 
 Availability is reevaluated for every list/get and historical file read. The injected `McpSkillAvailability` owns
 the whole revision; additionally, discovery/get checks the shared general Resource policy for every member. If
@@ -244,9 +250,10 @@ provider/policy/budget failures use `-32603` with consumer diagnostics and no pa
 The provider's file budget and snapshot/Resource limits remain independently enforced. Actual complete entries
 must fit **both** list and get, including cache fields, a possible 48-character continuation, and the current
 responder's actual central metadata. All entries, including concealed entries, are checked. Shared Resource
-ownership, scan/descriptor budgets and worst-case encoded read budgets are checked without opening content at
-composition and on each operation. An oversized server identity or inconsistent provider output cannot yield an
-entry whose files the configured reader cannot represent. `handleWithMetadata` is the public optional
+ownership, scan/descriptor budgets and worst-case encoded read budgets are checked without opening content on
+each Skills operation, not at composition. Immutable Skill entry/URI budgets are also checked at construction;
+actual responder metadata is checked per request and is never retained across responders. An oversized server
+identity or inconsistent provider output cannot yield an entry whose files the configured reader cannot represent. `handleWithMetadata` is the public optional
 `McpMetadataAwareCapability` method for receiving the responder's actual central metadata per request;
 `resourceDiscovery` and the Resource `serves`/`permits`/`validateCatalog` methods remain internal coordination
 seams. Neither the optional metadata method nor those internal seams are consumer authorization APIs.

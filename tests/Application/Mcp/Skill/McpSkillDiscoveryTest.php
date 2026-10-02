@@ -281,10 +281,18 @@ final class McpSkillDiscoveryTest extends UnitTestCase
         $policy = new DiscoveryAvailability(); $policy->denied = [$revision->entry()->get('uri')];
         $provider = new McpSkillResources([$revision], $policy, new HttpFactory());
         foreach ([new McpResourceReadLimits(maxContentBytes: 1), null] as $readLimits) {
-            $extras = $readLimits === null ? [new ReadableResources([$revision->entry()->get('uri') => ['bytes' => 'collision']])] : [];
-            $resources = $this->resources($provider, readLimits: $readLimits ?? new McpResourceReadLimits(), extras: $extras);
-            try { new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope'); self::fail('Unservable catalog accepted.'); }
-            catch (DomainException) { self::assertSame([], $policy->seen); }
+            $other = new ReadableResources($readLimits === null ? [$revision->entry()->get('uri') => ['bytes' => 'collision']] : []);
+            $resources = $this->resources($provider, readLimits: $readLimits ?? new McpResourceReadLimits(), extras: [$other]);
+            $skills = new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope');
+            self::assertSame(0, $other->enumerations);
+            self::assertSame([], $other->lookedUp);
+            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$skills, $resources]));
+            foreach (['skills/list' => [], 'skills/get' => ['uri' => $revision->entry()->get('uri')]] as $method => $params) {
+                self::assertSame(-32603, $this->response($responder, $method, $params)['error']['code']);
+            }
+            self::assertSame($readLimits === null ? 2 : 0, $other->enumerations);
+            self::assertSame([], $other->opened);
+            self::assertSame([], $policy->seen);
         }
         $resources = $this->resources($provider, readLimits: new McpResourceReadLimits(maxContentBytes: 1024, maxResultBytes: 6500));
         $skills = new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope');
@@ -311,6 +319,33 @@ final class McpSkillDiscoveryTest extends UnitTestCase
         self::assertCount(4, $diagnostics->failures);
     }
 
+    public function test_that_catalog_changes_and_hidden_faults_beyond_a_page_are_checked_afresh(): void
+    {
+        $revision = SkillRevision::create();
+        $provider = new McpSkillResources([$revision], new DiscoveryAvailability(), new HttpFactory());
+        $other = new ReadableResources([]);
+        $resources = $this->resources($provider, extras: [$other]);
+        $skills = new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope', new McpSkillDiscoveryLimits(pageSize: 1));
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$skills, $resources]));
+        self::assertSame(0, $other->enumerations);
+        self::assertArrayHasKey('result', $this->response($responder, 'skills/list'));
+        self::assertSame(1, $other->enumerations);
+        $other->entries = [
+            'skill://catalog/zz/hidden' => ['bytes' => 'safe'],
+            $revision->entry()->get('uri') => ['bytes' => 'collision']
+        ];
+        self::assertSame(-32603, $this->response($responder, 'skills/get', ['uri' => $revision->entry()->get('uri')])['error']['code']);
+        self::assertSame(2, $other->enumerations);
+        self::assertSame([], $other->lookedUp);
+        self::assertSame([], $other->opened);
+        $other->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe', 'size' => 999999999]];
+        self::assertSame(-32603, $this->response($responder, 'skills/list')['error']['code']);
+        self::assertSame(3, $other->enumerations);
+        $other->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe']];
+        self::assertArrayHasKey('result', $this->response($responder, 'skills/list'));
+        self::assertSame(4, $other->enumerations);
+    }
+
     public function test_that_runtime_catalog_failure_cannot_supply_a_public_protocol_error(): void
     {
         $provider = new McpSkillResources([SkillRevision::create()], new DiscoveryAvailability(), new HttpFactory());
@@ -328,6 +363,22 @@ final class McpSkillDiscoveryTest extends UnitTestCase
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$resources, $skills]));
         $other->fail = true;
         self::assertSame(['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $this->response($responder, 'skills/list'));
+    }
+
+    public function test_that_static_entry_failure_precedes_external_provider_enumeration(): void
+    {
+        $revision = SkillRevision::create();
+        $provider = new McpSkillResources([$revision], new DiscoveryAvailability(), new HttpFactory());
+        $other = new ReadableResources([]);
+        $resources = $this->resources($provider, extras: [$other]);
+        try {
+            new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope', new McpSkillDiscoveryLimits(maxEntryBytes: 1));
+            self::fail('An oversized supplied Skill entry was accepted.');
+        } catch (DomainException) {
+            self::assertSame(0, $other->enumerations);
+            self::assertSame([], $other->lookedUp);
+            self::assertSame([], $other->opened);
+        }
     }
 
     #[DataProvider('invalidComposition')]
