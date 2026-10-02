@@ -27,4 +27,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | done | [TICKET-00030](../tickets/00030-TICKET.md) |
 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | done | — |
 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | done | — |
+| [TASK-00125](00125-TASK.md) | Reconcile v1.3 MCP documentation and prepare release qualification | done | — |
 <!-- /planning:records -->

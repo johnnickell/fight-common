@@ -16,11 +16,14 @@ command-bus contract.
 ## Solution and boundaries
 
 Provide explicit `McpTool`, `McpToolInfo`, and `McpToolOutput` contracts plus a focused tool registry. An opted-in
-tool implements `McpTool::handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput` and declares
-method-level `#[McpToolInfo(name: ..., description: ..., inputSchema: ..., outputSchema: ...)]`. It receives
-validated `ApplicationData`, maps arguments explicitly to an existing command or query, and returns only safe,
-semantic tool output. Structured output must conform to the declared output schema and provide compatible text
-presentation; the protocol responder creates JSON-RPC/MCP wire results and centralizes failures.
+tool declares method-level `#[McpToolInfo(name: ..., description: ..., inputSchema: ..., outputSchema: ...)]`.
+The original complete-output-only design was widened before release with John's explicit approval in
+[TASK-00111](../tasks/00111-TASK.md): the current `McpTool::handle()` contract returns
+`McpToolOutput|McpInputRequired`, while non-interactive Tools may retain the narrower `McpToolOutput` return.
+The Tool receives validated `ApplicationData` and explicitly maps arguments to an existing command or query;
+an interactive Tool must not dispatch that use case until its input is complete.
+Complete structured output must conform to the declared output schema and provide compatible text presentation;
+the protocol responder creates JSON-RPC/MCP wire results and centralizes failures.
 
 `tools/list` filters before deterministic ordering, pagination, and cache metadata. One request-scoped neutral
 availability boundary receives tool metadata only for both discovery and invocation. It conceals unavailable tools

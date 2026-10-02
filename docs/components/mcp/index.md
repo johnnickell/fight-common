@@ -412,7 +412,9 @@ on admitted Skills dispatch before disclosure. Consumer acquisition and upstream
 
 `Application\Mcp\Tool` provides explicit registration, discovery and validated invocation. A consumer Tool implements
 `McpTool` and declares exactly one `#[McpToolInfo(name:, description:, inputSchema:, outputSchema:)]` on its
-`handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput` method. `ApplicationData` is
+`handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput|McpInputRequired` method.
+Non-interactive Tools may declare the narrower `McpToolOutput` return; interactive Tools may request additional
+input as described under [Protected ordinary input](#protected-ordinary-input). `ApplicationData` is
 `Application\Validation\Data\ApplicationData`; the reporter lives directly in `Application\Mcp`.
 
 Construct `McpToolRegistry` with the complete array of opted-in Tool objects. Registration examines only those
