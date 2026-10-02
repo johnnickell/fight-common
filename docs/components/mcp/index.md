@@ -87,7 +87,15 @@ It uses the conservative cache defaults `ttlMs: 0` and
 `cacheScope: private`; consumers do not supply a cache or authorization policy to this foundation.
 
 For any other registered method, the responder validates the outer MCP request once and dispatches exactly that
-capability. The result is `McpJsonResponse`, an `Arrayable` semantic JSON-RPC response. `toJson()` encodes it;
+capability. Existing custom `McpCapability` implementations still use `handle(McpRequest)` unchanged. A capability
+that needs the responder's actual central result metadata for pre-disclosure or pre-open serving budgets may also
+implement `McpMetadataAwareCapability::handleWithMetadata(McpRequest, array)`. Resource and Skill discovery use
+this optional Application contract; other capabilities need not implement it. Metadata is passed per request, not
+bound to a capability shared across responders, and contains neither a principal nor an authorization decision.
+Direct `handle()` calls on Resources and Skills retain their previous metadata-free behavior; the responder alone
+merges final metadata and overrides the reserved server identity key. Final encoded-result enforcement does not
+replace the Resource/Skill pre-disclosure checks. The Tool execution binding is separate and unchanged.
+The result is `McpJsonResponse`, an `Arrayable` semantic JSON-RPC response. `toJson()` encodes it;
 `errorCode()` permits transport status mapping. `dispatch(McpRequest)` handles an already-decoded request and
 propagates failures to the caller's diagnostic boundary. Unlike `respond(string)`, it does not sanitize thrown
 failures itself. `McpRequestHandler` uses this seam only after HTTP safeguards, and owns sanitization and diagnostics.
