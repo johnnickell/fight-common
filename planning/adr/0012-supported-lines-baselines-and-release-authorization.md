@@ -14,14 +14,21 @@ commit OIDs, phase, allowed fix classes, exclusive UTC `ends_at` instant, and su
 
 At `ends_at`, unfinished release work stops. Continuing support requires a separately reviewed
 policy commit that changes the boundary before it expires. End-of-life records remain immutable
-history.
+history. Each superseded minor keeps its own six-month limited-fix window after its successor's
+publication, even if another minor ships meanwhile; more than one previous minor may therefore
+remain supported at once. John's 2026-10-02 release-policy decision confirms that 1.0 and 1.1
+must not be retired early merely because 1.3 is prepared. For a legacy tag without an observed
+publication instant, declare a conservative explicit UTC boundary with the evidence and uncertainty
+in `SUPPORTED_VERSIONS.md`; do not infer an exact publication time from a commit timestamp.
 
 ### Tags and comparison baselines
 
 Future canonical release tags use the `vX.Y.Z` form and are signed annotated tags. A second tag that
 normalizes to the same SemVer version is forbidden. The authoritative historical `1.1.0` exception
-remains the bare annotated tag at `fdd4806`; the lightweight `v1.1.0` tag remains untouched legacy
-history.
+remains the bare annotated tag (current peeled commit `1666dbaa503e40ea2fc652bccbeba22e6cda6b70`);
+the lightweight `v1.1.0` tag remains untouched legacy history. The earlier `fdd4806` identity was
+replaced by TASK-00101's authorship-only all-ref rewrite; its exact before/after identities are in
+that completion record. Do not treat the old object ID as the present remote tag or move either tag.
 
 Compatibility uses these explicit baselines:
 
@@ -32,8 +39,14 @@ Compatibility uses these explicit baselines:
 
 Every baseline records the canonical tag and peeled OID. The baseline must be an ancestor of the
 candidate; missing, moving, ambiguous, duplicate-normalized, or non-ancestor references fail rather
-than fall back to tag ordering. The `1.2.0` lineage must therefore be reconciled with the published
-`1.1.0` commit before `v1.2.0` certification.
+than fall back to tag ordering. The historical `1.2.0` lineage required reconciliation with the
+published `1.1.0` commit before certification. The actual published `v1.2.0` commit is **not**
+descended from the current canonical `1.1.0` peeled commit; that historical publication does not
+satisfy the stated ancestry rule or create a precedent for future candidates. Do not rewrite the
+published tag to mask it. Check the actual refs and TASK-00101's rewrite map when choosing any later
+baseline. ADR 0025 replaced the retired release framework with thin, exact-commit certification;
+it does not assert that the thin command supplies the composed baseline-relative SemVer assessment
+or typed approval described below.
 
 ### Affected-line proof
 
