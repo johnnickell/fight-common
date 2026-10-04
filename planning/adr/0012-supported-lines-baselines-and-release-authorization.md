@@ -117,9 +117,11 @@ Support state, baseline selection, defect reach, and release authority become de
 rather than prompt or tag-discovery guesses. Historical tag ambiguity cannot silently choose a
 different consumer baseline.
 
-The strict ancestry rule requires the published `1.1.0` lineage to be repaired before `v1.2.0` can
-be certified. An unfinished release cannot race an EOL boundary, and an emergency remains visible as
-an exact human exception rather than a suppressed finding.
+At this decision's pre-1.2 checkpoint, the strict ancestry rule required reconciling the published
+`1.1.0` lineage before certifying `v1.2.0`. The actual published `v1.2.0` does not satisfy that rule;
+this historical exception cannot be repaired by rewriting published refs and supplies no precedent
+for future certification. An unfinished release cannot race an EOL boundary, and an emergency remains
+visible as an exact human exception rather than a suppressed finding.
 
 ## Rejected Alternatives
 
