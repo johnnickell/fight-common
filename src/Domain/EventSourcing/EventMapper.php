@@ -18,9 +18,13 @@ use Fight\Common\Domain\Messaging\Meta;
  */
 final class EventMapper
 {
-    /** @var array<string, array{EventMapping, class-string<Event>}> */
+    /**
+     * @var array<string, array{EventMapping, class-string<Event>}>
+     */
     private array $mappingsByName = [];
-    /** @var array<class-string<Event>, array{string, EventMapping}> */
+    /**
+     * @var array<class-string<Event>, array{string, EventMapping}>
+     */
     private array $mappingsByClass = [];
 
     /**
@@ -77,7 +81,9 @@ final class EventMapper
      */
     public function map(EventMessage $message): MappedEvent
     {
-        /** @var Event $event */
+        /**
+         * @var Event $event
+         */
         $event = $message->payload();
         $eventClass = $event::class;
 

@@ -75,7 +75,9 @@ final class EventMessage extends BaseMessage
         $timestamp = new DateTimeImmutable('@'.(string) $data['timestamp']);
         $meta = Meta::create($data['meta']);
         $payloadType = Type::create($data['payload_type']);
-        /** @var class-string<Event> $payloadClass */
+        /**
+         * @var class-string<Event> $payloadClass
+         */
         $payloadClass = $payloadType->toClassName();
 
         assert(Validate::implementsInterface($payloadClass, Event::class));
@@ -90,7 +92,9 @@ final class EventMessage extends BaseMessage
      */
     public function withMeta(Meta $data): static
     {
-        /** @var Event $event */
+        /**
+         * @var Event $event
+         */
         $event = $this->payload;
 
         return new static(
@@ -109,7 +113,9 @@ final class EventMessage extends BaseMessage
         $meta = clone $this->meta;
         $meta->merge($data);
 
-        /** @var Event $event */
+        /**
+         * @var Event $event
+         */
         $event = $this->payload;
 
         return new static(

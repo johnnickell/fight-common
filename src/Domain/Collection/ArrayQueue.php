@@ -21,7 +21,9 @@ final class ArrayQueue implements Queue
 {
     use ItemTypeMethods;
 
-    /** @var array<T> */
+    /**
+     * @var array<T>
+     */
     private array $items = [];
     private int $count = 0;
     private int $front = 0;

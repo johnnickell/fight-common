@@ -1,10 +1,10 @@
 # Framework support and activation
 
 This is the normative consumer contract for framework integrations. It describes the supported
-composition surface; adapter conformance and a booted starter receipt remain the evidence needed
-for a framework support claim. Select only the capabilities your application uses. Fight Common
-does not install frameworks or optional providers for a consumer, and it does not publish an
-aggregate provider that activates every optional adapter.
+composition surface; adapter conformance and a booted starter receipt remain the default evidence needed
+for a framework support claim, subject to the scoped progressive MCP amendment below. Select only the
+capabilities your application uses. Fight Common does not install frameworks or optional providers for a
+consumer, and it does not publish an aggregate provider that activates every optional adapter.
 
 ## Support window
 
@@ -154,6 +154,19 @@ Every **ship** item needs adapter conformance plus a booted starter receipt befo
 claim. A prototype may fail only when its documented tested **wire** fallback remains; otherwise that framework
 claim is blocked. Compatible new adapters, including Yii Queue after its gate, may be additive in 1.3. Legacy
 name removal and incompatible inward contract changes are reserved for 2.0.
+
+### Progressive MCP evidence boundary
+
+The approved TASK-00110 closeout makes progressive MCP a scoped exception to the starter-receipt gate.
+Fight Common's accepted reporter semantics, package adapter conformance, and live PHP cli-server journey
+complete the package requirement; no five-starter confirmation or consumer-adoption TASK blocks later Common
+work or release for this capability. Fight Agent OS owns its implementation and runtime qualification, reporting
+demonstrated Common issues upstream as bug-fix TASKs.
+
+This is not evidence that any starter or Agent OS journey passed. The [MCP guide](../../components/mcp/index.md#consumer-wiring)
+retains consumer wiring and runtime limitations. Existing support receipts and the requirements for other
+framework capabilities remain unchanged; package conformance does not establish arbitrary production-runtime
+behavior.
 
 ### Starter support receipt v1
 

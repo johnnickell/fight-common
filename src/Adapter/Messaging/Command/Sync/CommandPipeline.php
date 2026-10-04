@@ -16,9 +16,13 @@ use Throwable;
  */
 final class CommandPipeline implements SynchronousCommandBus, CommandFilter
 {
-    /** @var LinkedStack<CommandFilter> */
+    /**
+     * @var LinkedStack<CommandFilter>
+     */
     private readonly LinkedStack $filters;
-    /** @var LinkedStack<object> */
+    /**
+     * @var LinkedStack<object>
+     */
     private ?LinkedStack $executionStack = null;
 
     /**
@@ -70,7 +74,9 @@ final class CommandPipeline implements SynchronousCommandBus, CommandFilter
      */
     public function pipe(CommandMessage $commandMessage): void
     {
-        /** @var CommandFilter $filter */
+        /**
+         * @var CommandFilter $filter
+         */
         $filter = $this->executionStack->pop();
         $filter->process($commandMessage, $this->pipe(...));
     }

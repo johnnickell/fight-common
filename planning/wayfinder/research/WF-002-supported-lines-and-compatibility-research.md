@@ -3,7 +3,7 @@
 **Research date:** 2026-08-06
 
 **Scope:** Primary-source findings for
-[`WF-002`](../tickets/WF-002-supported-lines-and-compatibility-contract.md). This note records evidence
+[`WF-002`](../tickets/archive/WF-002-supported-lines-and-compatibility-contract.md). This note records evidence
 and recommendations to consider; it does not approve a compatibility policy, support transition,
 tool installation, dependency change, or release.
 
@@ -63,7 +63,7 @@ tool installation, dependency change, or release.
   and an annotated bare `1.1.0` tag. The annotated tag object is `5f1c2f2`, peels to `fdd4806`, and therefore
   does **not** identify the `be965a0` commit named by `v1.1.0`. Roave's automatic baseline requires `x.y.z`
   tags and therefore should not be the authority for line selection.
-- [WF-001](../tickets/WF-001-release-destination-and-boundaries.md) has already established the initial
+- [WF-001](../tickets/archive/WF-001-release-destination-and-boundaries.md) has already established the initial
   support shape: current minor normal fixes; immediately previous minor limited security, data-loss, and
   critical-compatibility fixes for six months; only the latest patch per supported minor; oldest affected
   supported line first, then explicit forward ports. WF-002 still must make that shape unambiguous and

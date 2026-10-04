@@ -9,8 +9,8 @@ Exact complete statement coverage has two simultaneous conditions: production so
 coverage-ignore directives, and the generated Clover report records covered statements equal to all
 executable statements. Percentage formatting or rounding is not acceptance evidence.
 
-T-00023 through T-00026 remove every existing `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, and
-`@codeCoverageIgnoreEnd` directive from `src` in bounded migration slices before T-00027 activates the
+TASK-00023 through TASK-00026 remove every existing `@codeCoverageIgnore`, `@codeCoverageIgnoreStart`, and
+`@codeCoverageIgnoreEnd` directive from `src` in bounded migration slices before TASK-00027 activates the
 permanent gate. Previously excluded statements are covered through deterministic tests or removed through
 behavior-preserving boundary refactoring. The migration does not weaken public APIs or alter runtime behavior
 solely to improve reported coverage.
@@ -31,7 +31,7 @@ executed. New untestable branches cannot be hidden with inline annotations; thei
 resolved before acceptance.
 
 Removing the existing exclusions is visible migration work rather than hidden build-wrapper scope, so it is
-split into dependency-aware tickets that all gate permanent enforcement.
+split into dependency-aware tasks that all gate permanent enforcement.
 
 ## Rejected Alternatives
 

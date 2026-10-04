@@ -33,10 +33,12 @@ final readonly class Uuid extends ValueObject implements Comparable
     public const string NAMESPACE_X500 = '6ba7b814-9dad-11d1-80b4-00c04fd430c8';
     public const string NIL = '00000000-0000-0000-0000-000000000000';
 
-    // phpcs:ignore Generic.Files.LineLength
-    private const string UUID = '/\A([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{2})([a-f0-9]{2})-([a-f0-9]{12})\z/';
-    // phpcs:ignore Generic.Files.LineLength
-    private const string UUID_HEX = '/\A([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{12})\z/';
+    private const string UUID = (
+        '/\A([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{2})([a-f0-9]{2})-([a-f0-9]{12})\z/'
+    );
+    private const string UUID_HEX = (
+        '/\A([a-f0-9]{8})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{12})\z/'
+    );
 
     /**
      * Constructs Uuid

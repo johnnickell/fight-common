@@ -11,7 +11,7 @@ starter-owned composition. Equivalent capability names do not guarantee equivale
 behavior, and a supported installation needs more than an autoloadable framework-named class.
 
 This record is the accepted result of WF-024's documented grilling session and governs the subsequent
-specification and ticket handoff.
+specification and task handoff.
 
 ## Decisions Settled
 
@@ -59,7 +59,7 @@ add a second general callback mechanism or scan project code implicitly.
 
 Fight Common attempts a framework-native adapter when the framework has a current public API for the capability.
 The adapter ships only after tests prove the complete Fight contract. If the native API cannot express a required
-operation or value, the implementation ticket reports that exact gap for a new decision instead of silently
+operation or value, the implementation task reports that exact gap for a new decision instead of silently
 omitting it.
 
 Official companion packages are evaluated case by case rather than automatically preferred over a small native
@@ -80,6 +80,23 @@ The initial support rule requires both library-owned adapter conformance evidenc
 journey in the corresponding starter repository. This rule is intentionally reviewable during implementation if
 its cost proves disproportionate; changing it requires an explicit planning decision rather than silently
 weakening a support claim.
+
+### Progressive MCP adoption amendment — 2026-09-28
+
+John explicitly closed [TASK-00110](../tasks/00110-TASK.md) as `wontfix`: Fight Agent OS will implement and qualify
+its consumer MCP features and report demonstrated Common defects upstream as bug-fix TASKs. Common does not
+allocate five starter qualification TASKs, collect new progressive-MCP starter receipts, or retain a confirmation
+TASK as a prerequisite for TICKET-00025 completion or subsequent work. Consumer adoption is not a Common
+planning, implementation, or release gate for this capability.
+
+For progressive MCP only, the independently accepted TASK-00108 semantics and TASK-00109 package adapter
+conformance/live-runtime evidence complete the Common requirement. This explicitly amends the initial
+support-evidence rule for that capability; it does not assert that any starter or Agent OS journey passed.
+Package runtime limits remain documented, and consumers own verification of their actual SAPI, buffering, proxy,
+and disconnect behavior. No public behavior is removed or buffered fallback permitted.
+
+All other framework-support, historical receipt, compatibility and release-certification requirements remain
+unchanged. The amendment creates no new cross-repository allocation or publication authority.
 
 ## Accepted Framework Catalog
 
@@ -148,14 +165,14 @@ namespace cleanup. A stable Yii Queue integration is an explicit example of a po
 
 ## Planning Handoff
 
-WF-024 handed its accepted decisions to `/to-spec`, which refreshed PRD-00014 for Fight Common public adapters
-and compatibility and PRD-00015 for framework support, activation, and support claims. `/to-tickets` then
-preserved valid existing tickets, rewrote tickets whose namespace or adapter assumptions changed, and added the
+WF-024 handed its accepted decisions to `/to-spec`, which refreshed TICKET-00014 for Fight Common public adapters
+and compatibility and TICKET-00015 for framework support, activation, and support claims. `/to-tasks` then
+preserved valid existing tasks, rewrote tasks whose namespace or adapter assumptions changed, and added the
 missing vertical slices.
 
-The intended ticket slices are shared PSR/container integration; Symfony reconciliation; Laravel messaging,
+The intended task slices are shared PSR/container integration; Symfony reconciliation; Laravel messaging,
 transactions, and container integration; remaining Laravel adapters and prototypes; Yii stable adapters and
 prototypes; CodeIgniter messaging, transactions, and container integration; remaining CodeIgniter adapters and
 prototypes; and final dependency, documentation, starter-receipt, and certification integration. Existing
-T-00049, T-00053, and T-00059 remain valid. T-00050 through T-00052, T-00054, and T-00058 are rewritten, and
-T-00069 through T-00075 publish the shared, framework-native, and final evidence slices.
+TASK-00049, TASK-00053, and TASK-00059 remain valid. TASK-00050 through TASK-00052, TASK-00054, and TASK-00058 are rewritten, and
+TASK-00069 through TASK-00075 publish the shared, framework-native, and final evidence slices.

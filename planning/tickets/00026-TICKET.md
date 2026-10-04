@@ -1,52 +1,170 @@
 ---
-id: T-00026
-prd: PRD-00009
-title: Cover process and FTP integration boundaries
+id: TICKET-00026
+epic: EPIC-00006
+title: Resume Protected input_required Interactions
 status: done
-blocked_by:
 ---
 
-# Cover Process and FTP Integration Boundaries
+# Resume Protected input_required Interactions
 
-## What to Build
+## Problem statement
 
-Replace live-process and live-FTP coverage exclusions with deterministic integration boundaries. Consumers
-receive the same process lifecycle, failure, retry, and FTP transport behavior while the normal test suite
-can execute every maintained statement without unavailable external infrastructure.
+Some consumer tools need additional ordinary input or one destructive-action confirmation after initial argument
+validation. Without protected retry state, a client could replay, substitute, or resume another caller's interaction;
+using the HMAC authentication nonce would incorrectly couple the mechanism to one authentication scheme and fail
+for Bearer-authenticated callers.
 
-## Blocked By
+## Solution and boundaries
 
-None — can start immediately.
+Support MCP `input_required` results with two protected interaction modes. Ordinary multi-step input uses stateless,
+versioned-AEAD opaque state; destructive confirmation uses a consumer-provided atomic one-time interaction store.
+Both bind neutral caller identity, selected canonical Tool, originally validated arguments, the requested-input
+contract, and expiry. An interactive Tool resumes with restored original arguments plus separately validated
+`inputResponses`; it does not duplicate initial metadata or validation declarations. Ordinary state has no
+server-side record and is not replay-preventing; destructive or otherwise replay-sensitive work must use confirmation
+mode.
 
-## Acceptance Criteria
+An interactive Tool statically declares form elicitation as its required client capability. After resolving current
+availability but before initial validation or `handle()`, the selected-Tool invoker gates that declaration against
+the current request. An incapable client never enters the Tool branch: Common emits no input request and calls
+neither `handle()` nor `resume()` or an underlying bus.
 
-- [x] Symfony process execution success, output, failure, and retry paths execute through deterministic tests.
-- [x] Process lifecycle behavior remains compatible with the Application-owned process contracts.
-- [x] FTP transport behavior is exercised through an owned seam or focused deterministic integration
-  boundary that requires no live FTP service in the normal build.
-- [x] Boundary repairs preserve existing public APIs and operational error behavior.
-- [x] Every production coverage-ignore directive in the process and FTP scope is removed.
-- [x] The existing submit gate remains green with exact complete statement coverage for the measured source.
+Every retry privately authenticates and opens its opaque state only to recover its canonical Tool identity, then
+reevaluates that Tool through the current request-scoped availability/concealment decision before revealing any
+restored-state detail, validating responses, or invoking `resume()`. A Tool revoked between rounds is
+indistinguishable from an unknown Tool and receives no state disclosure, `resume()`, command, query, or event dispatch.
 
-## Parent
+Consumers decide which actions are destructive, supply the neutral caller identity and confirmation store, and own
+their business confirmation policy. Common provides protected state mechanics and MCP representation only.
 
-PRD-00009 — Build, Dependency, and Coverage Verification.
+## Use cases
 
-## Outcome
+| Use case | Commands | Queries | Events | Expected side effects |
+| --- | --- | --- | --- | --- |
+| A capable client receives a request for ordinary additional input | N/A | N/A | N/A | Verify the declared client capability, call `handle()` only to yield `input_required`, then preserve caller, Tool, arguments, requested-input contract, and expiry without mapped command/query dispatch. |
+| A capable client receives a destructive confirmation request | N/A | N/A | N/A | Verify the declared client capability and ensure one confirmation cannot be replayed or resumed twice. |
+| A client without the interaction capability selects an interactive Tool | N/A | N/A | N/A | Reject before initial validation or `handle()`, input request, `resume()`, or bus dispatch. |
+| A client resumes an interaction through `resume()` | Consumer-defined existing Command when the resumed tool mutates state | Consumer-defined existing Query when the resumed tool reads state | Consumer-defined events only | Continue the selected use case without repeating discovery metadata or initial validation declarations. |
+| Invalid interaction state is presented | N/A | N/A | N/A | Return a safe interaction/protocol failure without dispatching the underlying use case. |
 
-Symfony process execution now exercises the real default factory for success, stdout, stderr, exit-code
-failure, and output-disabled behavior while deterministic collaborators retain retry and cleanup control.
-Output-disabled processes start without Symfony's prohibited callback, preserving the Application-owned
-contracts and public API. FTP transport behavior executes through an isolated test-only namespace boundary
-that delegates to native functions outside each test, covers connection and transport failures without a live
-service, and leaves production signatures, native calls, and operational errors unchanged. All process and FTP
-coverage exclusions are removed.
+## Validation, permissions, and failures
 
-## Verification
+`inputResponses` is a keyed map whose values are `ElicitResult` envelopes with an action of `accept`, `decline`, or
+`cancel`. Common first validates the envelope shape, requested response keys, action values, and the absence of
+accept-only content for `decline`/`cancel`; it validates restricted-schema content only for `accept`. Caller/Tool/
+original-argument mismatch, expiry, AEAD authentication failure, malformed/oversized state, invalid response
+envelope/key/action, unavailable-on-retry state, and already-consumed confirmation state fail closed. A confirmation
+state is atomically consumed before affirmative resume and atomically retired on decline/cancel. Ordinary state
+deliberately cannot offer replay prevention without a server-side record; valid repeated use follows the Tool's
+ordinary retry semantics, while replay-sensitive operations require confirmation mode.
 
-- Rector, PHPStan, PHPCS, both mandatory Deptrac checks, planning validation, and `git diff --check` pass.
-- The complete disposable-database suite passes 3,063 tests with 5,496 assertions and zero skips.
-- Clover coverage is exact at 8,997/8,997 statements and 1,862/1,862 methods overall.
-- `SymfonyProcessRunner` is exact at 153/153 statements and 14/14 methods.
-- `FtpFileTransport` is exact at 119/119 statements and 10/10 methods.
-- Independent Standards and Spec reviews report no findings.
+HMAC request nonce machinery is not reused. Common receives a neutral caller identity for state binding, never a
+generic principal or permission model. Missing client interaction capability fails closed before initial Tool or
+underlying use-case dispatch.
+
+## Dependencies
+
+- [TICKET-00023](00023-TICKET.md) supplies protocol errors and request validation.
+- [TICKET-00024](00024-TICKET.md) supplies explicit tools, metadata, validation, and selected invocation.
+- [WF-040](../wayfinder/tickets/WF-040-define-mcp-tool-and-cqrs-integration-conventions.md) settles the
+  interactive-tool convention.
+- [WF-041](../wayfinder/tickets/WF-041-define-mcp-presentation-errors-and-response-modes.md) settles safe result
+  representation and cancellation boundaries.
+
+## Compatibility and exclusions
+
+Every public contract added by this work requires additive public-API-manifest classification and behavior-focused
+compatibility evidence. Existing HMAC authentication and nonce behavior remain unchanged.
+
+Consumer destructive-action policy, approval language, principal resolution, authorization, persistence selection,
+Common-owned interaction persistence, ordinary replay detection, reversible/plaintext client-visible bound values,
+durable task lifecycle, forced cancellation, and automatic rollback are excluded.
+
+## Acceptance and evidence
+
+Package-owned interactive fixtures prove versioned-AEAD opaque ordinary state with no server-side record, active-key
+rotation, retired-key rejection, strict pre-cryptography state-size limits, and no client-visible reversible caller/
+Tool/argument/schema/expiry values. They prove caller/Tool/argument/expiry binding; keyed `ElicitResult` envelope/key/
+action rules; restricted-schema validation only for `accept`; ordinary `decline`/`cancel` typed-resume behavior;
+destructive `decline`/`cancel` terminal retirement without destructive dispatch; and confirmation atomic single use.
+
+Retry fixtures prove current availability is reevaluated before restored-state disclosure or `resume()`, including a
+Tool revoked between rounds that is concealed as unknown. Tests prove no HMAC nonce reuse and distinguish allowed
+registry/availability resolution from prohibited handler/bus dispatch: an incapable request calls no `handle()`,
+`resume()`, or bus; rejected retry calls no `resume()` or bus; an initial capable ordinary request may call `handle()`
+solely to yield `input_required`. A transport-neutral cancellation simulation proves an acquired confirmation remains
+consumed without automatic retry. Every public addition is manifest-classified and behavior evidence proves existing
+authentication and command/query contracts unchanged.
+
+## TASKs
+
+<!-- planning:children -->
+| ID | Title | Status |
+|---|---|---|
+| [TASK-00111](../tasks/00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | done |
+| [TASK-00112](../tasks/00112-TASK.md) | Atomically resume destructive MCP confirmations | done |
+<!-- /planning:children -->
+
+## Decisions and progress
+
+The implementation checkpoint below retains its historical review state. The parent acceptance section records
+current closeout; earlier pending-review wording is not a current blocker.
+
+The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) records the ordinary and
+confirmation-state modes and reserves consumer business policy to the consumer. Decomposition preserves those as
+two complete behavior slices rather than layer slices: TASK-00111 owns stateless versioned-AEAD ordinary additional-
+input retry, and TASK-00112 extends its stable interaction envelope with consumer-provided atomic single-use
+confirmation and owns integrated TICKET acceptance. Ordinary state is intentionally not a one-time token; consumers
+must route destructive or otherwise replay-sensitive actions through confirmation mode.
+
+### Integrated implementation evidence (TASK-00112; independent review pending)
+
+| Requirement | Package-owned evidence |
+|---|---|
+| Ordinary opaque AEAD state, bounded processing, active-key rotation and retired-key rejection | TASK-00111's `McpToolInteractionTest` and `SodiumMcpStateProtectorTest` remain unchanged. Ordinary retries remain replayable even with a confirmation store configured (`McpConfirmationTest`). |
+| Static capability gate, current retry availability/concealment and original validated arguments | Both interaction test classes prove no handle/resume/bus entry for incapable requests and no store acquisition for revoked confirmation retries. |
+| Keyed ElicitResult envelope/action validation, accept-only schema/rules | Shared `McpInputResponses`/`McpInputRequest` mechanics remain unchanged; confirmation tests add missing/extra keys, refusal content, invalid actions, schema/rules and mixed refusal maps. |
+| Atomic confirmation and terminal refusal | `McpConfirmationStore` issues without overwrite and consumes one exact unexpired full-state binding; `McpConfirmationOutcome` retains private reasons. `McpConfirmationJourneyTest` qualifies the test consumer store and races independent processes through the semantic responder and real command/event dispatch. |
+| Consumption survives every acquired outcome | `McpConfirmationTest` covers success, mapped rejection, unexpected Throwable, output failure, uncertain store acknowledgement, cancellation before/during resume and simulated stream closure, followed by rejected replay. |
+| Neutral mechanics and unchanged authentication/CQRS | Only MCP interaction/invoker runtime files change. No HMAC/nonce/Bearer or messaging implementation is modified. A consumer Tool interprets accepted content and chooses the mutation. |
+| Public compatibility and documentation | `compatibility/manifest.json` classifies the store/outcome, additive confirmation factory/composition and two behavioral contracts; `docs/components/mcp/index.md` documents the contract, terminal outcomes and consumer obligations. |
+
+This reconciles implementation coverage across both TASKs, not independent acceptance or a production persistence
+certification. TASK-00112 owns current complete-gate evidence and review handoff. No Common persistence adapter,
+consumer policy, new principal model, distributed transaction or automatic rollback is introduced.
+
+## Parent acceptance and closeout
+
+John authorized this tracked closeout after the parent reassessment at
+`3d92010c22f0f81ab1d84d7932cd67b5055d4e73` explicitly accepted the complete bounded interaction outcome.
+TICKET-00026 is **done**: both children have applicable independent technical acceptance and behavioral QA PASS,
+all parent outcomes above are satisfied, and required local verification is complete. The earlier PC-01 hold
+concerned missing independent QA, not an implementation defect; the new dispositions resolve it without rewriting
+historical checkpoints or reports.
+
+- [TASK-00111](../tasks/00111-TASK.md) supplies protected ordinary input, capability gating, stateless restoration,
+  current retry availability, exact keyed response validation, AEAD bounds/rotation and deliberately replayable
+  ordinary state. Its independent QA exercised 89 semantic requests / 957 assertions with real Sodium and routed
+  synthetic command/query/event effects; supporting checks passed 966 tests / 1,968 assertions.
+- [TASK-00112](../tasks/00112-TASK.md) supplies atomic confirmation admission, terminal refusal, full-state binding
+  and consumed-state retention across failure/cancellation. Its independent QA exercised 148 semantic requests /
+  1,462 parent-process assertions, including five four-process races, plus direct cancellation/delivery cases.
+  Supporting checks passed 1,091 tests / 2,391 assertions. The concrete locked-store fixture proves process
+  contention and forbidden duplicate effects, not production or distributed storage durability.
+- Both canonical QA reports PASS at the exact reassessed head, with no confirmed product defects and visual
+  evidence N/A only. Canonical technical reviews are `.runs/reviews/TASK-00111/review.md` and
+  `.runs/reviews/TASK-00112/review.md`; QA is `.runs/qa/TASK-00111/qa.md` and `.runs/qa/TASK-00112/qa.md`.
+  Accepted confirmation and later shared MCP integration are explicitly reconciled rather than assumed unchanged.
+- Across this and the OAuth parent reassessment, all 123 indexed child QA artifacts verified without mismatch;
+  each QA snapshot matched all 1,573 tracked paths and current dependencies/runtime. Overlapping suites and
+  reruns are not summed as unique coverage. The retained complete gate has exit 0: Unit 4,972 / 11,428, exact
+  12,651/12,651 statements, Integration 150 / 1,024 and Functional 49 / 1,999. Its tested snapshot matches
+  `d9cce23`; subsequent changes through reassessment are planning-only. Existing documentation advisories remain.
+  This administrative closeout changes no product inputs; targeted checks and content mapping belong in its handoff.
+
+Outcome mapping and evidence are retained in `.runs/reviews/parent-closeout-00026-00027-3d92010c/report.md`;
+local closeout verification belongs in `.runs/handoffs/ticket-00026-00027-closeout/receipt.md`. Consumers retain
+caller identity, key custody, authorization, approval language and durable atomic storage qualification. Admission
+is at most once, not exactly-once business completion or a transaction with mutation; cancellation is cooperative,
+not forced rollback. Semantic closure probes do not qualify live HTTP/proxy deployments. This acceptance does not
+close an EPIC, archive records, reopen child PRs, or authorize publication, merge, release or deployment.

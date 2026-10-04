@@ -124,7 +124,7 @@ selection or release qualification Fight Common's responsibility.
 
 ## Rollout
 
-1. Finish Fight Common documentation tickets T-00093 through T-00099 in their dependency order and obtain every
+1. Finish Fight Common documentation tasks TASK-00093 through TASK-00099 in their dependency order and obtain every
    separately required review and publication authorization.
 2. Simplify Fight Common before 1.2: remove `tests/Tooling` and file/text meta-tests, keep exact direct unit
    coverage, retain meaningful public-consumer integration, and keep real certification release-only.
@@ -144,7 +144,7 @@ selection or release qualification Fight Common's responsibility.
    minimum real framework integration and functional behavior. Each remains an independently useful starter with
    framework-native product ownership.
 
-Each repository owns one bounded cleanup ticket linked to this ADR. No new epic or PRD exists solely to manage
+Each repository owns one bounded cleanup task linked to this ADR. No new epic or TICKET exists solely to manage
 test cleanup. Each repository is complete only after its canonical `./bin/build` passes.
 
 Dialvault is archived dead code and is excluded from adoption and cleanup. Epic Content remains outside this

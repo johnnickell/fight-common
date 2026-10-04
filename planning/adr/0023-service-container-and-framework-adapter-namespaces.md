@@ -49,7 +49,7 @@ weakening the compatibility policy for the full release.
 ADR 0019's capability-first rule remains the default for runtime adapters, but no longer governs framework
 service-container extension points. The previously planned
 `Adapter\Messaging\Symfony\DependencyInjection` and similar compiler-pass destinations must be reconciled
-before their implementation tickets become executable.
+before their implementation tasks become executable.
 
 ADR 0021's starter-owned composition evidence remains valid. Its blanket `no new shared adapter` policy and
 statement that framework integration classes cannot live in Fight Common are superseded. Composer dependency

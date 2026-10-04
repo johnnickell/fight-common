@@ -31,36 +31,36 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
-      * Sends an HTTP request synchronously
-      *
-      * @param RequestInterface $request
-      * @param array<string, mixed> $options
-      */
+     * Sends an HTTP request synchronously
+     *
+     * @param RequestInterface $request
+     * @param array<string, mixed> $options
+     */
     public function send(RequestInterface $request, array $options = []): ResponseInterface
     {
         return $this->httpClient->send($request, $options);
     }
 
     /**
-      * Sends an HTTP request asynchronously
-      *
-      * @param RequestInterface $request
-      * @param array<string, mixed> $options
-      */
+     * Sends an HTTP request asynchronously
+     *
+     * @param RequestInterface $request
+     * @param array<string, mixed> $options
+     */
     public function sendAsync(RequestInterface $request, array $options = []): Promise
     {
         return $this->httpClient->sendAsync($request, $options);
     }
 
     /**
-      * Creates an HTTP request
-      *
-      * @param string $method
-      * @param UriInterface|string $uri
-      * @param array<string, string> $headers
-      * @param mixed $body
-      * @param string $protocol
-      */
+     * Creates an HTTP request
+     *
+     * @param string $method
+     * @param UriInterface|string $uri
+     * @param array<string, string> $headers
+     * @param mixed $body
+     * @param string $protocol
+     */
     public function createRequest(
         string $method,
         UriInterface|string $uri,
@@ -78,14 +78,14 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
     }
 
     /**
-      * Creates an HTTP response
-      *
-      * @param integer $status
-      * @param array<string, string> $headers
-      * @param mixed $body
-      * @param string $protocol
-      * @param string|null $reason
-      */
+     * Creates an HTTP response
+     *
+     * @param integer $status
+     * @param array<string, string> $headers
+     * @param mixed $body
+     * @param string $protocol
+     * @param string|null $reason
+     */
     public function createResponse(
         int $status = 200,
         array $headers = [],

@@ -62,6 +62,7 @@ return static function (DeptracConfig $config, string ...$paths): void {
                 ClassLikeConfig::create('^Symfony\\Component\\Mime\\'),
                 ClassLikeConfig::create('^Symfony\\Component\\Process\\'),
                 ClassLikeConfig::create('^Symfony\\Component\\Routing\\'),
+                ClassLikeConfig::create('^Symfony\\Component\\Yaml\\'),
             ),
             $twig = Layer::withName('Twig infrastructure')->collectors(
                 ClassLikeConfig::create('^Twig\\'),

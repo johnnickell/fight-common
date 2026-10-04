@@ -1,52 +1,128 @@
 ---
-id: T-00024
-prd: PRD-00009
-title: Make Scheduler coverage exact
+id: TICKET-00024
+epic: EPIC-00006
+title: Discover and Invoke Explicitly Opted-In CQRS Tools
 status: done
-blocked_by: T-00022
 ---
 
-# Make Scheduler Coverage Exact
+# Discover and Invoke Explicitly Opted-In CQRS Tools
 
-## What to Build
+## Problem statement
 
-Use the Scheduler's repaired `ProcessRunner` boundary and deterministic collaborators to execute every
-previously excluded scheduling branch. Preserve locking, runtime expiry, output, logging, notification, and
-cleanup behavior while removing Scheduler's coverage exceptions.
+Consumers need a safe way to expose selected existing commands and queries to MCP without discovering arbitrary
+HTTP Actions, reflectively hydrating use cases, leaking authorization context into handlers, or changing the void
+command-bus contract.
 
-## Blocked By
+## Solution and boundaries
 
-T-00022 — Introduce Mandatory Architecture Enforcement.
+Provide explicit `McpTool`, `McpToolInfo`, and `McpToolOutput` contracts plus a focused tool registry. An opted-in
+tool declares method-level `#[McpToolInfo(name: ..., description: ..., inputSchema: ..., outputSchema: ...)]`.
+The original complete-output-only design was widened before release with John's explicit approval in
+[TASK-00111](../tasks/00111-TASK.md): the current `McpTool::handle()` contract returns
+`McpToolOutput|McpInputRequired`, while non-interactive Tools may retain the narrower `McpToolOutput` return.
+The Tool receives validated `ApplicationData` and explicitly maps arguments to an existing command or query;
+an interactive Tool must not dispatch that use case until its input is complete.
+Complete structured output must conform to the declared output schema and provide compatible text presentation;
+the protocol responder creates JSON-RPC/MCP wire results and centralizes failures.
 
-## Acceptance Criteria
+`tools/list` filters before deterministic ordering, pagination, and cache metadata. One request-scoped neutral
+availability boundary receives tool metadata only for both discovery and invocation. It conceals unavailable tools
+from listing and makes direct invocation indistinguishable from an unknown tool.
 
-- [x] Maximum-runtime inspection failures are exercised through deterministic tests.
-- [x] Lock creation, contention, unexpected lock failures, and lock release are covered through observable
-  Scheduler behavior.
-- [x] Command output and failure behavior execute through a deterministic `ProcessRunner` substitute.
-- [x] Logging and notification outcomes remain correct for every exercised failure path.
-- [x] Every production coverage-ignore directive owned by Scheduler is removed.
-- [x] Scheduler's public API and runtime behavior remain compatible.
-- [x] The existing submit gate remains green with exact complete statement coverage for the measured source.
+## Use cases
 
-## Parent
+| Use case | Commands | Queries | Events | Expected side effects |
+| --- | --- | --- | --- | --- |
+| A consumer explicitly exposes a tool | N/A | N/A | N/A | Reject duplicate, absent, or invalid metadata at composition rather than exposing an accidental tool. |
+| A client lists available tools through `tools/list` | N/A | N/A | N/A | Return only available tools with conservative `ttlMs: 0` and `cacheScope: private` defaults unless safely overridden. |
+| A client invokes a query-backed tool through `tools/call` | N/A | Consumer-defined existing Query, dispatched through `QueryBus::fetch()` | N/A; queries do not mutate business state | Return safe semantic output without coupling the query payload to MCP transport. |
+| A client invokes a mutation-backed tool through `tools/call` | Consumer-defined existing Command, dispatched through void `CommandBus::execute()` | An existing consumer Query only when genuinely necessary for truthful output | Consumer-defined events only | Return only a truthful acknowledgement, such as a caller-generated identifier. |
+| A consumer elects envelope observability | N/A | N/A | N/A | Add only namespaced canonical-tool/correlation baseline metadata and scalar namespaced consumer audit metadata. |
 
-PRD-00009 — Build, Dependency, and Coverage Verification.
+## Validation, permissions, and failures
 
-## Outcome
+The selected-tool invoker reflects `#[Validation]` beside method-level `#[McpToolInfo]`, calls `ValidationService`
+over exactly `tools/call.params.arguments`, and passes the resulting `ApplicationData` to `handle()`. Explicit input
+and output schemas require separate consistency and conformance evidence, including structured-output conformance
+and compatible text presentation; an empty rule list still produces validated application data over the original
+arguments. Exact reporter convenience methods and registration mechanics remain TASK design.
 
-Scheduler runtime inspection now covers empty, dead, active, expired, and failed lock states through exact-path
-test controls that delegate to native PHP outside each test. Lock creation/open failures, real contention,
-recursive acquisition, release, command output, and command failure execute through public Scheduler behavior
-with deterministic `ProcessRunner`, logger, and mail observations. All ten Scheduler coverage directives are
-removed without changing production logic or the public API, and a source-level regression guard prevents their
-return.
+Availability receives neither a principal nor a generic principal context. Consumers retain their own
+authentication and permission enforcement. Missing or invalid tool metadata, invalid canonical identity, and
+duplicate registry names fail composition. Unknown or unavailable tools are protocol errors; after tool selection,
+validation and expected typed business failures are complete `isError: true` tool results. Unclassified failures
+are centrally logged through the consumer's redaction-aware diagnostics and become generic internal errors.
 
-## Verification
+Fight Access Control owns its planned `RequiresAgentPermission` declaration and Agent-aware availability and
+invocation enforcement; the consuming application wires that integration to current-Agent authentication. This is
+future cross-project adoption, not a Fight Common implementation or acceptance dependency.
 
-- Rector, PHPStan, PHPCS, both mandatory Deptrac checks, planning validation, and `git diff --check` pass.
-- The complete disposable-database suite passes 3,071 tests with 5,537 assertions and zero skips.
-- Clover coverage is exact at 9,033/9,033 statements and 1,862/1,862 methods overall.
-- `Scheduler` is exact at 171/171 statements and 18/18 methods; production source has zero coverage directives.
-- Independent Standards and Spec reviews pass after one test-helper namespace refinement; the Coordinate Build
-  checklist grades 10/10.
+## Dependencies
+
+- [TICKET-00023](00023-TICKET.md) provides protocol dispatch and capability registration.
+- [WF-040](../wayfinder/tickets/WF-040-define-mcp-tool-and-cqrs-integration-conventions.md) establishes the
+  explicit tool, schema, validation, CQRS, and metadata conventions.
+- [WF-041](../wayfinder/tickets/WF-041-define-mcp-presentation-errors-and-response-modes.md) establishes the
+  availability concealment and selected-tool error boundary.
+
+## Compatibility and exclusions
+
+Every public contract added by this work requires additive public-API-manifest classification and behavior-focused
+compatibility evidence. `CommandBus::execute()` remains void, existing command/query payloads remain transport
+neutral, and existing consumers retain normal bus behavior when filters are not composed.
+
+Arbitrary Action discovery, reflective payload hydration, framework responses, raw JSON-RPC in tools, raw
+arguments, headers, credentials, authorization decisions, Agent models, permission strings, and tool-created MCP
+wire errors are excluded.
+
+## Acceptance and evidence
+
+Package-owned query-backed and mutation-backed fixtures prove explicit opt-in, metadata rejection, schema and
+runtime-validation conformance, structured-output/output-schema conformance with compatible text presentation,
+safe output projection, one-read/write discipline, deterministic availability-filtered pagination, conservative
+cache defaults, optional filter metadata isolation, and all failure classifications. Public additions are
+manifest-classified and behavior evidence proves existing bus and consumer contracts remain unchanged. No Fight
+Access Control query, mutation, permission attribute, or consumer adoption is required: the Common-owned fixtures
+are the acceptance authority.
+
+## TASKs
+
+<!-- planning:children -->
+| ID | Title | Status |
+|---|---|---|
+| [TASK-00106](../tasks/00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | done |
+| [TASK-00107](../tasks/00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | done |
+<!-- /planning:children -->
+
+## Decisions and progress
+
+Independent re-review accepted TASK-00107 candidate `05e6aba43c8e50cd383b247cb1adeb58827b6340`, resolving
+StrictJson boundary finding R1. All twelve TASK criteria pass with Spec/Standards 100%; TASK-00106's accepted
+discovery and the revised invocation evidence complete this TICKET without Access Control adoption. `done`
+records accepted implementation, not final publication, hosted delivery checks, approval or merge. John authorized
+updating PR #166; final-head delivery and cleanup remain governed by the ignored landing handoff. The following
+paragraphs retain the earlier revision/build and original acceptance chronology.
+
+Reopened for John's pre-merge TASK-00107 revision: introduce `Domain/Value/Basic/StrictJson` and remove generic
+object representation from MCP consumers. Earlier acceptance below is historical; revised implementation needs
+fresh verification and John's re-review. This changes unreleased MCP representation contracts, not CQRS behavior.
+The first revision passed its complete local gate, but independent review of `ddfa096` found R1: accepted
+maximum-depth empty containers could not reconstruct from their emitted JSON. TASK-00107 has now corrected that
+boundary without widening MCP ingress or changing the Tool-data budget. Its fresh complete local gate and boundary
+regressions pass, with exact coverage and unchanged semantic transcripts; independent re-review is next. No revision
+publication or renewed independent acceptance is claimed.
+
+The [grill handoff](../wayfinder/research/fight-common-mcp-http-support-grill-handoff.md) fixes the named tool
+contracts and behavioral constraints while leaving exact PHP registration mechanics to implementation decomposition.
+[TASK-00106](../tasks/00106-TASK.md) owns explicit registration and truthful availability-filtered discovery;
+[TASK-00107](../tasks/00107-TASK.md) owns validated query/mutation invocation, safe semantic output, optional CQRS
+envelope metadata, and integrated TICKET acceptance. TASK-00106 follows the generic semantic capability foundation
+in TASK-00104 and may proceed in parallel with TASK-00105's guarded HTTP transport; TASK-00107 follows TASK-00106.
+
+At the original acceptance checkpoint, TASK-00107 delivered semantic invocation, optional envelope metadata, selected Tool mirrors, safe failure/output
+handling, package-owned CQRS fixtures and a guarded write/read journey. Independent review accepted its exact
+implementation at `e97cf901f38a952f75ee40b3e8beaf4ff3857dfb`, with all criteria passing and no code findings;
+`.runs/reviews/TASK-00107/review.md` retains the canonical evidence. TASK-00106's accepted discovery and this
+invocation evidence complete the integrated TICKET matrix without an Access Control dependency. Both TASKs have
+verified full product gates. `done` records accepted behavior, not PR approval, merge, release or downstream
+adoption. TASK-00107's landing handoff owns publication and verification provenance.

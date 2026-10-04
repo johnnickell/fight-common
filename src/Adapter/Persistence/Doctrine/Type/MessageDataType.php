@@ -66,7 +66,9 @@ class MessageDataType extends Type
         try {
             $serializer = new JsonSerializer();
 
-            /** @var Message $message */
+            /**
+             * @var Message $message
+             */
             $message = $serializer->deserialize($value);
 
             return $message;

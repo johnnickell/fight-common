@@ -37,7 +37,9 @@ final class MetaDataType extends \Fight\Common\Adapter\Persistence\Doctrine\Type
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Meta
     {
-        /** @var ?Meta $converted */
+        /**
+         * @var ?Meta $converted
+         */
         $converted = parent::convertToPHPValue($value, $platform);
 
         return $converted;

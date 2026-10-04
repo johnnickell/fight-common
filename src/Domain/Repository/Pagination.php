@@ -18,7 +18,9 @@ final readonly class Pagination
     private int $perPage;
     private int $offset;
     private int $limit;
-    /** @var array<string, string> */
+    /**
+     * @var array<string, string>
+     */
     private array $orderings;
 
     /**

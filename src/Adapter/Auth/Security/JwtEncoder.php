@@ -21,7 +21,9 @@ use Throwable;
  */
 final class JwtEncoder implements TokenEncoder
 {
-    /** @var array<string, class-string> */
+    /**
+     * @var array<string, class-string>
+     */
     private static array $algorithms = [
         'HS256' => Sha256::class,
         'HS384' => Sha384::class,

@@ -26,7 +26,9 @@ final class RulesParser
     {
         $output = [];
 
-        /** @var array{field: string, label: string, rules: string, errors?: array<string, string>} $rule */
+        /**
+         * @var array{field: string, label: string, rules: string, errors?: array<string, string>} $rule
+         */
         foreach ($rules as $rule) {
             // @phpstan-ignore isset.offset
             if (!isset($rule['field'])) {
@@ -245,7 +247,9 @@ final class RulesParser
             new ReflectionClass(ErrorMessages::class)->getConstants(),
             CASE_LOWER
         );
-        /** @var StringObject $part */
+        /**
+         * @var StringObject $part
+         */
         foreach ($remainingParts as $part) {
             if ($part->startsWith('match[')) {
                 $matchString .= $part->toString();

@@ -14,14 +14,24 @@ commit OIDs, phase, allowed fix classes, exclusive UTC `ends_at` instant, and su
 
 At `ends_at`, unfinished release work stops. Continuing support requires a separately reviewed
 policy commit that changes the boundary before it expires. End-of-life records remain immutable
-history.
+history. Each superseded minor keeps its own six-month limited-fix window after its successor's
+publication, even if another minor ships meanwhile; more than one previous minor may therefore
+remain supported at once. John's 2026-10-02 release-policy decision confirms that 1.0 and 1.1
+must not be retired early merely because 1.3 is prepared. For a legacy tag without an observed
+publication instant, declare a conservative explicit UTC boundary with the evidence and uncertainty
+in `SUPPORTED_VERSIONS.md`; do not infer an exact publication time from a commit timestamp.
 
 ### Tags and comparison baselines
 
 Future canonical release tags use the `vX.Y.Z` form and are signed annotated tags. A second tag that
 normalizes to the same SemVer version is forbidden. The authoritative historical `1.1.0` exception
-remains the bare annotated tag at `fdd4806`; the lightweight `v1.1.0` tag remains untouched legacy
-history.
+remains the bare annotated tag (current peeled commit `1666dbaa503e40ea2fc652bccbeba22e6cda6b70`);
+the lightweight `v1.1.0` tag remains untouched legacy history. The earlier `fdd4806` identity was
+replaced by TASK-00101's authorship-only all-ref rewrite; its exact before/after identities are in
+that completion record. Do not treat the old object ID as the present remote tag or move either tag. The manifest's
+`baseline` tag object and peeled OIDs identify the **current** canonical 1.1 tag; its older
+`source_locator` commit prefixes remain historical provenance for tree-identical pre-rewrite source,
+not present-day release baselines. TASK-00101 records that tree identity.
 
 Compatibility uses these explicit baselines:
 
@@ -32,8 +42,14 @@ Compatibility uses these explicit baselines:
 
 Every baseline records the canonical tag and peeled OID. The baseline must be an ancestor of the
 candidate; missing, moving, ambiguous, duplicate-normalized, or non-ancestor references fail rather
-than fall back to tag ordering. The `1.2.0` lineage must therefore be reconciled with the published
-`1.1.0` commit before `v1.2.0` certification.
+than fall back to tag ordering. The historical `1.2.0` lineage required reconciliation with the
+published `1.1.0` commit before certification. The actual published `v1.2.0` commit is **not**
+descended from the current canonical `1.1.0` peeled commit; that historical publication does not
+satisfy the stated ancestry rule or create a precedent for future candidates. Do not rewrite the
+published tag to mask it. Check the actual refs and TASK-00101's rewrite map when choosing any later
+baseline. ADR 0025 replaced the retired release framework with thin, exact-commit certification;
+it does not assert that the thin command supplies the composed baseline-relative SemVer assessment
+or typed approval described below.
 
 ### Affected-line proof
 
@@ -89,6 +105,26 @@ inspected minimum release class, and the actual baseline-relative authorized rel
 approval ID is also present in
 `required_approvals`. Any bound value changing invalidates approval and requires recertification.
 
+For **1.3.0 only**, John's 2026-10-04 decision to assess 1.2→1.3 compatibility separately
+reconciles this earlier plan/comparator design with ADR 0025's thin certifier. Before the final
+release decision, prepare a retained, independently reviewed compatibility assessment against the
+actual annotated `v1.2.0` tag object and peeled commit. Inventory the ADR 0013 categories with
+stable finding and evidence IDs, source locations, `patch`/`minor`/`major`/`indeterminate`
+classifications and limitations; derive the minimum release class from the highest category.
+Missing or indeterminate categories, or a `major` minimum for 1.3.0, stop the minor release rather
+than become an implicit exception. The current certifier's installed package-surface check and
+product gates are evidence, not substitutes for baseline-relative review.
+
+After the exact `main` release merge is known and the relevant evidence is complete, obtain John's
+**separate, explicit version approval** in the retained release handoff. Record a typed authority
+with the exact `1.3.0` version and merge OID, canonical baseline tag/object/peeled OIDs, the complete
+assessment's SHA-256 digest, inspected minimum class, authorized baseline-relative class, approval
+identity and time. There is no patch exception for this minor. An altered commit, baseline or
+assessment invalidates the authority. Independently verify that record and the assessment before
+final-commit certification and signing; do not label `./bin/release certify` as validating or
+emitting this retired plan machinery. This narrow 1.3 path does not reinstate the old release
+framework or weaken compatibility for later releases; their process requires a fresh decision.
+
 ### Adopted maintenance precedent
 
 Fight Common adopts explicit public and internal surfaces, no unapproved compatibility breaks
@@ -104,9 +140,11 @@ Support state, baseline selection, defect reach, and release authority become de
 rather than prompt or tag-discovery guesses. Historical tag ambiguity cannot silently choose a
 different consumer baseline.
 
-The strict ancestry rule requires the published `1.1.0` lineage to be repaired before `v1.2.0` can
-be certified. An unfinished release cannot race an EOL boundary, and an emergency remains visible as
-an exact human exception rather than a suppressed finding.
+At this decision's pre-1.2 checkpoint, the strict ancestry rule required reconciling the published
+`1.1.0` lineage before certifying `v1.2.0`. The actual published `v1.2.0` does not satisfy that rule;
+this historical exception cannot be repaired by rewriting published refs and supplies no precedent
+for future certification. An unfinished release cannot race an EOL boundary, and an emergency remains
+visible as an exact human exception rather than a suppressed finding.
 
 ## Rejected Alternatives
 

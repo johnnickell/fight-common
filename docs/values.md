@@ -26,12 +26,13 @@ Each section below shows both the helper and the direct constructor.
 1. [StringObject](#stringobject)
 2. [MbStringObject](#mbstringobject)
 3. [JsonObject](#jsonobject)
-4. [EmailAddress](#emailaddress)
-5. [Uri](#uri)
-6. [Url](#url)
-7. [Uuid](#uuid)
-8. [Identity (UniqueId)](#identity-uniqueid)
-9. [Doctrine Data Types](#doctrine-data-types)
+4. [StrictJson](#strictjson)
+5. [EmailAddress](#emailaddress)
+6. [Uri](#uri)
+7. [Url](#url)
+8. [Uuid](#uuid)
+9. [Identity (UniqueId)](#identity-uniqueid)
+10. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -196,6 +197,55 @@ $json->encode(JSON_UNESCAPED_UNICODE);       // custom encoding options
 ```
 
 Default encoding uses `JSON_UNESCAPED_SLASHES`. Pass custom options to `fromData()` or `encode()`.
+
+---
+
+## StrictJson
+
+`Fight\Common\Domain\Value\Basic\StrictJson`
+
+An immutable, framework-free JSON value that preserves objects, lists and scalar types. Unlike `JsonObject`,
+it validates a bounded plain-data tree and never exposes mutable generic objects through data accessors.
+The existing `JsonObject` and its helpers are unchanged; no Doctrine mapping or new global helper is supplied.
+
+```php-inline
+use Fight\Common\Domain\Value\Basic\StrictJson;
+
+$value = StrictJson::fromString('{"options":{},"items":[],"limit":1.0,"cursor":null}');
+$emptyObject = StrictJson::fromObject();      // {}
+$emptyList = StrictJson::fromData([]);        // []
+$value->get('options')->isObject();           // true
+$value->get('items');                        // []
+$value->has('cursor');                       // true (explicit null)
+$value->has('missing');                      // false
+$value->get('missing');                      // null
+$next = $value->with('limit', 2);             // new object; $value is unchanged
+$value->toString();                          // retains {}, [], 1.0 and null
+```
+
+`fromData()` accepts null, Booleans, integers, finite floats, valid Unicode strings, PHP lists, associative arrays,
+existing `StrictJson` values and exact plain PHP decoded objects. Arbitrary objects, subclasses of generic objects,
+resources and consumer serializers reject without invoking serialization code. Associative arrays become objects;
+use `fromObject($properties)` to require an object for empty or numerically named properties. Numeric PHP array keys
+remain their original JSON property names on serialization, including when replaced through `with()`.
+
+`properties()` returns an object's property map; `get()`, `has()` and `with()` require an object and otherwise throw
+`DomainException`. Nested objects are immutable `StrictJson` values, lists are ordinary arrays, and scalars retain
+their types. `toData()` returns that same representation: the value itself for an object, or its list/scalar data.
+It is not an associative-array decoder that collapses `{}` into `[]`. `jsonSerialize()` is the encoding boundary:
+any generic object it emits is a fresh representation, never retained mutable state.
+
+Construction rejects malformed JSON/Unicode, non-finite numbers, cycles and nesting beyond `maxDepth` (default 64,
+root depth zero), including depth introduced by composing existing values. All factories and `with()` accept this
+optional limit from 0 through 511. The retained PHP decoder depth of 512 permits at most 511 nested containers:
+scalars may occupy node depth 511, but objects and lists (including empty ones) must stop at depth 510. Construction
+and replacement enforce that codec ceiling as well as `maxDepth`, so accepted values reconstruct from their emitted
+JSON under the same limit. MCP uses 511 for the protocol envelope and 64 separately for Tool arguments, schemas and
+output, so wrappers do not consume the Tool budget. Property names beginning with U+0000 reject because PHP's
+object-mode decoder cannot represent them; empty names and embedded non-leading U+0000 are supported. Exceptions use
+fixed messages without reflecting data. PHP-decoded number precision is not recovered. Encoding preserves zero-fraction
+floats. Equality/hash follow the existing ValueObject string-representation contract: property order and `1` versus
+`1.0` remain significant; this is not JSON Schema's numeric-aware structural equality. Validation is not redaction.
 
 ---
 

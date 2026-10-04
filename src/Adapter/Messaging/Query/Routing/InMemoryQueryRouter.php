@@ -15,7 +15,9 @@ use Fight\Common\Domain\Utility\Validate;
  */
 final class InMemoryQueryRouter implements QueryRouter
 {
-    /** @var array<string, QueryHandler> */
+    /**
+     * @var array<string, QueryHandler>
+     */
     private array $handlers = [];
 
     /**

@@ -14,7 +14,9 @@ use Fight\Common\Domain\Auth\NonceRepository;
  */
 final class InMemoryNonceRepository implements NonceRepository
 {
-    /** @var array<string, DateTimeImmutable> */
+    /**
+     * @var array<string, DateTimeImmutable>
+     */
     private array $consumed = [];
 
     /**

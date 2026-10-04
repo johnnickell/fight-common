@@ -4,6 +4,10 @@ Use this guide when changing Fight Common itself. Consumer installation, compone
 composition belong in their respective guides; this route covers repository workflow, verification, and release
 evidence for maintainers.
 
+Read the repository-local `AGENTS.md`, `planning/agents/project-profile.md`, and the applicable documents in
+`docs/engineering/standards/`. These committed instructions are self-contained; they require no private skills
+or external checkout. `docs/engineering/STANDARDS.md` records the adopted baseline and update policy.
+
 ## Choose the change boundary
 
 Start with the smallest owned boundary that can deliver the requested behavior:
@@ -18,29 +22,37 @@ The enforced dependency direction is `Adapter -> Application -> Domain`. Keep pu
 compatible: a deprecated public API remains supported for at least one released minor and is removed only in the
 next major.
 
-Before editing, read the relevant ticket, its parent PRD, and any accepted ADR named by the ticket. The live
-[Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tickets/BOARD.md) is the execution
-frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates.
+Before editing, read the relevant task, its parent TICKET, and any accepted ADR named by the task. The live
+[Board](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/BOARD.md) is the execution
+frontier; `planning/CONVENTIONS.md` defines status, ordering, and completion updates. The Roadmap has a separate
+planning frontier for undecomposed parents. Close eligible parents in the same child-completion operation under
+[Automatic parent completion](https://github.com/johnnickell/fight-common/blob/develop/planning/CONVENTIONS.md#automatic-parent-completion), counting live and archived children.
+Common owns reusable package promises; consumer applications own policy, permissions, routes and composition
+unless an explicit package contract says otherwise. Use public package contracts directly without behaviorless
+wrappers; preserve required compatibility aliases and framework integrations.
 
 ## Create an isolated branch
 
-Feature work starts from `develop`, never from `main`; do not commit directly to either protected branch.
+Choose the main checkout or an isolated worktree with the maintainer. New TASK branches use
+`feature/task-NNNNN-<slug>` from `develop`, never from `main`; do not commit directly to either protected branch.
+Preserve established branch/PR identities and existing release/patch conventions.
 
 ```bash
 git switch develop
 git pull --ff-only
-git switch -c feature/short-description
+git switch -c feature/task-NNNNN-short-description
 ```
 
 For coordinated or concurrent work, use a linked checkout under the repository's ignored run area:
 
 ```bash
-git worktree add -b feature/short-description \
+git worktree add -b feature/task-NNNNN-short-description \
   .runs/worktrees/short-description develop
 ```
 
 Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
-in `.runs/handoffs/`, and retired scratch in `.runs/archive/`. Those paths are local evidence and must not be
+in `.runs/handoffs/`, canonical independent reports in the base worktree's `.runs/reviews/<TASK-ID>/review.md`,
+and retired scratch in `.runs/archive/`. Those paths are local evidence and must not be
 staged. Removing a worktree or other run material is a separate cleanup action.
 
 ## Implement and verify
@@ -51,7 +63,10 @@ Production tests cover owned production code and meaningful behavior. Every PHPU
 hide missing direct coverage.
 
 Documentation, generated files, wrappers, build orchestration, configuration text, and tooling are checked with
-their owning commands and human inspection. Do not add tests that merely inspect those surfaces.
+their owning commands and human inspection. Do not add tests that merely inspect those surfaces. Preserve existing
+release tests and probes without adding packaging or release-process tests in any suite or renamed harness. The
+project profile inventories retained checks; do not recreate a removed suite. Meaningful runtime, shipped coding
+standard and framework integration tests remain product contracts.
 
 Use a non-interactive container command for focused feedback:
 
@@ -76,15 +91,18 @@ The canonical pre-submit gate is:
 ./bin/build
 ```
 
-It installs ordinary dependencies, validates the documentation artifact, provisions disposable MySQL and PostgreSQL
-services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac, Rector's dry run, direct unit tests
-with exact statement coverage, integration tests, functional tests, and planning integrity. Dependency installation
-uses the local `composer.lock` when one exists; because the lockfile is intentionally ignored, an unprepared
-checkout resolves compatible dependencies and creates a local lockfile. A focused or fast run is feedback, not
-completion evidence.
+It resolves and installs dependencies with `composer update`, validates the documentation artifact, provisions
+disposable MySQL and PostgreSQL services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac,
+Rector's dry run, direct unit tests with exact statement coverage, integration tests, functional tests, and planning
+integrity. This library ignores `composer.lock`; every full build resolves its supported dependency constraints
+instead of reusing a stale local lock. A focused run provides iteration feedback; implementation completion requires
+the full gate. Documentation-only follow-ups may retain a verified earlier full pass with input-equivalence evidence
+and current targeted checks under `docs/engineering/standards/Testing.md`.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
-evidence for the checked-out SHA, not a second dependency or quality lane.
+delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
+verification → independent review → land**: local evidence permits technical acceptance without a PR or hosted run,
+including in this public repository. Authorized land owns the later push and PR creation.
 
 To enable the tracked pre-commit gate:
 
@@ -102,14 +120,27 @@ delivery unverified.
 Before the final commit or pull request:
 
 1. Verify every acceptance criterion with current evidence.
-2. Mark the ticket `done` and record its verified outcome.
-3. Move it to **Recently Done** on the Board and recalculate **What's Next?**.
-4. Refresh parent PRD, epic, roadmap, and downstream `blocked_by` state when the completed outcome changes them.
-5. Run `./bin/planning-check`, inspect the complete diff, and rerun `./bin/build`.
+2. Mark TASK implementation `done` once all implementation acceptance and required local verification are complete,
+   before publication. A green build alone is insufficient. Keep pending independent review explicit and record
+   review, publication, merge, release and deployment separately.
+3. Update the TASK metadata and PR link, preserving dependency edges as history.
+4. Run `./bin/planning-check --write` to refresh Board, parent, index, and Roadmap tables.
+5. Run the read-only `./bin/planning-check`, inspect the complete diff, and satisfy `./bin/build` or Testing's
+   documented input-equivalence rule for documentation-only follow-ups.
 
-Open the feature pull request against `develop`. The hosted Tests workflow runs the complete pre-submit gate; the
-documentation workflow builds and validates the generated site. A queued, skipped, cancelled, warning-bearing, or
-no-step job is not passing evidence.
+Independent review follows the Spec/Standards accept/revise contract in `docs/engineering/standards/Review.md`:
+one independent reviewer may do both passes, material contributors cannot accept, and any failed or unverified
+criterion requires revise. Review does not repair, change status, publish or merge. Moving revisions retain
+acceptance only through the proven mechanical-reconciliation bridge in Delivery; semantic or uncertain changes
+need renewed independent review.
+
+After independent acceptance, authorized land opens the feature pull request against `develop` with title
+`TASK-NNNNN — <TASK title>`; preserve an established PR identity. The hosted Tests workflow runs the complete
+pre-submit gate; the documentation workflow builds and validates the generated site. Both are required delivery
+checks on the final published head, not pre-publication review prerequisites. A queued, skipped, cancelled,
+warning-bearing, or no-step job is not passing evidence. Pending delivery does not invalidate local acceptance;
+record it honestly and retain required resources. The repository's `planning/agents/project-profile.md` owns
+these delivery requirements.
 
 Commit, push, pull-request creation, merge, deployment, and cleanup are distinct effects. Perform only the effects
 that have been explicitly authorized.
@@ -117,25 +148,17 @@ that have been explicitly authorized.
 ## Certify a release candidate
 
 A successful `./bin/build` proves the checkout's submit gate; it does not certify or publish a release.
-Certification additionally requires a reviewed local `composer.lock`, even though that file is ignored. Prepare
-and verify that ordinary locked lane for the exact clean, committed candidate:
-
-```bash
-./bin/build
-```
-
-With that precondition satisfied, run:
+Certification requires a clean, committed candidate and resolves its own baseline, latest-compatible, and
+lowest-compatible dependency lanes in exported workspaces:
 
 ```bash
 ./bin/release certify <version>
 ```
 
-Certification binds its evidence to the exact `HEAD`, resolves latest-compatible and lowest-compatible lockfiles in
-exported candidate workspaces, then exercises all three dependency lanes, builds the Composer archive, probes an
-installed consumer, and writes the result under
-`.runs/handoffs/`. See the
-[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full
-contract.
+It binds evidence to the exact `HEAD`, runs the complete product gate for those three lanes, builds the Composer
+archive, probes an installed consumer, and writes the result under `.runs/handoffs/`. A pre-existing root lockfile
+is not a certification prerequisite. See the
+[release module guide](https://github.com/johnnickell/fight-common/blob/develop/release/README.md) for the full contract.
 
 Certification does not merge, tag, push, create a GitHub release, publish to Packagist, or deploy documentation.
 Promotion from `develop` to `main`, tagging, publication, rollback, and maintenance-branch work each require their

@@ -18,7 +18,9 @@ use Traversable;
  */
 final readonly class ErrorData implements Arrayable, Collection
 {
-    /** @var HashTable<string, HashSet<string>> */
+    /**
+     * @var HashTable<string, HashSet<string>>
+     */
     private HashTable $data;
 
     /**
@@ -50,7 +52,9 @@ final readonly class ErrorData implements Arrayable, Collection
         $errors = [];
 
         try {
-            /** @var HashSet<string> $set */
+            /**
+             * @var HashSet<string> $set
+             */
             $set = $this->data->get($name);
 
             foreach ($set as $message) {
@@ -120,7 +124,9 @@ final readonly class ErrorData implements Arrayable, Collection
     {
         $errors = [];
 
-        /** @var string $name @var HashSet $messages */
+        /**
+         * @var string $name @var HashSet $messages
+         */
         foreach ($this->data as $name => $messages) {
             $errors[$name] = [];
             foreach ($messages as $message) {
