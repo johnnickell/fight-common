@@ -28,7 +28,10 @@ normalizes to the same SemVer version is forbidden. The authoritative historical
 remains the bare annotated tag (current peeled commit `1666dbaa503e40ea2fc652bccbeba22e6cda6b70`);
 the lightweight `v1.1.0` tag remains untouched legacy history. The earlier `fdd4806` identity was
 replaced by TASK-00101's authorship-only all-ref rewrite; its exact before/after identities are in
-that completion record. Do not treat the old object ID as the present remote tag or move either tag.
+that completion record. Do not treat the old object ID as the present remote tag or move either tag. The manifest's
+`baseline` tag object and peeled OIDs identify the **current** canonical 1.1 tag; its older
+`source_locator` commit prefixes remain historical provenance for tree-identical pre-rewrite source,
+not present-day release baselines. TASK-00101 records that tree identity.
 
 Compatibility uses these explicit baselines:
 
@@ -101,6 +104,26 @@ canonical complete compatibility-exception ID and patch-exception authority iden
 inspected minimum release class, and the actual baseline-relative authorized release class. Its
 approval ID is also present in
 `required_approvals`. Any bound value changing invalidates approval and requires recertification.
+
+For **1.3.0 only**, John's 2026-10-04 decision to assess 1.2→1.3 compatibility separately
+reconciles this earlier plan/comparator design with ADR 0025's thin certifier. Before the final
+release decision, prepare a retained, independently reviewed compatibility assessment against the
+actual annotated `v1.2.0` tag object and peeled commit. Inventory the ADR 0013 categories with
+stable finding and evidence IDs, source locations, `patch`/`minor`/`major`/`indeterminate`
+classifications and limitations; derive the minimum release class from the highest category.
+Missing or indeterminate categories, or a `major` minimum for 1.3.0, stop the minor release rather
+than become an implicit exception. The current certifier's installed package-surface check and
+product gates are evidence, not substitutes for baseline-relative review.
+
+After the exact `main` release merge is known and the relevant evidence is complete, obtain John's
+**separate, explicit version approval** in the retained release handoff. Record a typed authority
+with the exact `1.3.0` version and merge OID, canonical baseline tag/object/peeled OIDs, the complete
+assessment's SHA-256 digest, inspected minimum class, authorized baseline-relative class, approval
+identity and time. There is no patch exception for this minor. An altered commit, baseline or
+assessment invalidates the authority. Independently verify that record and the assessment before
+final-commit certification and signing; do not label `./bin/release certify` as validating or
+emitting this retired plan machinery. This narrow 1.3 path does not reinstate the old release
+framework or weaken compatibility for later releases; their process requires a fresh decision.
 
 ### Adopted maintenance precedent
 
