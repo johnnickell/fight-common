@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-08-06
+- Scoped supersession: [ADR 0028](0028-clear-package-release-decisions.md) replaces the mandatory fourteen-category release plan and typed/digest-bound process. Public compatibility promises and meaningful evidence remain; the original plan format below is historical, not a current release prerequisite.
 
 ## Decision
 

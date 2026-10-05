@@ -1,17 +1,17 @@
 # ADR 0028: Clear Package Release Decisions
 
-- Status: proposed — John must accept the wording before this becomes policy
+- Status: accepted — John approved the wording of PR #192 on 2026-10-05
 - Date: 2026-10-05
-- If accepted, replaces only these older process requirements:
+- Supersedes only these older process requirements:
   - ADR 0012's typed approval/patch-exception records and 1.3-only assessment sequence; ADR 0013's required fourteen-category release plan.
   - ADR 0014–0016's digest/plan-bound publication authority and patch exception, including separate approval for manual recovery; ADR 0027's separate human approval for every normal release effect. Unexpected effects and new risks still stop for human resolution.
   - ADR 0027's rejection of ADR 0016's unused publication environment and mandatory asset bundle **stays in force**. Superseding a decision does not reactivate those older clauses. All other package, patch-line and publication safety rules remain as described below.
 
 ## Why change
 
-For Fight Common 1.3.0, the required fourteen-category assessment could not be finished before certification because certification itself created some of its evidence. Asking John to approve a digest-bound version record and each subsequent effect separately did not explain the real risks; John explicitly rejected that procedure. The release was shipped with a readable change/risk summary, full exact-commit certification, John-held signing key, and independent tag, GitHub and registry read-backs. **This proposal does not claim that 1.3 completed the rejected checklist.**
+For Fight Common 1.3.0, the required fourteen-category assessment could not be finished before certification because certification itself created some of its evidence. Asking John to approve a digest-bound version record and each subsequent effect separately did not explain the real risks; John explicitly rejected that procedure. The release was shipped with a readable change/risk summary, full exact-commit certification, John-held signing key, and independent tag, GitHub and registry read-backs. **This decision does not claim that 1.3 completed the rejected checklist.**
 
-## Proposed release flow
+## Release flow
 
 1. **Review the actual changes.** The release PR follows the normal independent code review, local product gate and required hosted delivery checks. Compare with the last published version: say what is new, what existing consumers must change, what could break or fail to install, and what important environments remain untested. Use the public API/behavioral manifest, changelog, consumer tests and relevant source as evidence. Do not infer compatibility solely from a green build or a PHP signature scan. Present unresolved breaking behavior plainly and fix it, choose an appropriate higher version, or request an explicit, understandable exception for a truly urgent repair. The specific fourteen-row plan, synthetic finding IDs, digest-bound approval record and retired release state machine are **not** required.
 2. **Certify the code that will be tagged.** After the release PR is merged, run the repository's real `./bin/release certify <version>` on the clean release commit (`main` for a current-line release; its maintenance branch for an older-line patch). It retains its three dependency resolutions, full product checks, archive, installed-consumer probe and package-surface check. If that commit changes, rerun the certifier on the new release commit: we should not tag code we did not test. Investigate failures and meaningful warnings, rather than hiding them or treating the output as permission to publish. No other home-grown smaller certifier is introduced.
@@ -20,8 +20,8 @@ For Fight Common 1.3.0, the required fourteen-category assessment could not be f
 
 ## What remains in force
 
-Semantic Versioning by consumer-visible effect, public API and behavioral promises, backward readability of stored data, supported platform and framework constraints, deprecation periods, support windows, canonical signed tags, normal independent code review, exact product/release checks and John's control of his signing key remain. The safety rule for an otherwise incompatible **patch** remains narrow: only security, imminent data loss or critical interoperability when no compatible repair works, with plain consumer impact, mitigation, evidence and recovery presented to John. An exception is not a wildcard or permission to call a known break compatible. The published 1.3.0 history and its scoped decisions stay historical facts; accepting this ADR would make the simpler flow prospective, not rewrite that tag.
+Semantic Versioning by consumer-visible effect, public API and behavioral promises, backward readability of stored data, supported platform and framework constraints, deprecation periods, support windows, canonical signed tags, normal independent code review, exact product/release checks and John's control of his signing key remain. The safety rule for an otherwise incompatible **patch** remains narrow: only security, imminent data loss or critical interoperability when no compatible repair works, with plain consumer impact, mitigation, evidence and recovery presented to John. An exception is not a wildcard or permission to call a known break compatible. The published 1.3.0 history and its scoped decisions stay historical facts; this ADR makes the simpler flow prospective, not a rewrite of that tag.
 
 ## Adoption
 
-This ADR is a proposal in its PR. Until John accepts it and the reviewed change lands, existing accepted ADRs remain repository policy except where John's explicit release-specific direction governed 1.3. If accepted, update project-profile/Delivery cross-references as a small verified follow-up; do not silently reinterpret historical release receipts or remove useful product tests.
+John accepted the proposed wording in [PR #192](https://github.com/johnnickell/fight-common/pull/192) on 2026-10-05. Adoption aligns the project profile, Delivery standard and CONTEXT terminology with this decision; older ADRs retain their historical content with scoped precedence notices. This is Fight Common release policy, not a change to other projects or generic PR/deployment authority. Do not reinterpret historical release receipts or remove useful product tests.

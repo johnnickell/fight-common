@@ -24,7 +24,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
 | `AGENTS.md installed` | `f2ba692b08a0abc109200c76f5b2041ade64d6606828b06a3ba4e6fd048f5444` |
 | `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
-| `standards/Delivery.md` | `dd4925c4369c435b982fec9d7a9348a9bf13166a1daf82415a89ffea5771eb5b` |
+| `standards/Delivery.md` | `de68e6897dfe28ae8d24bd081b67f6c76945e75db41c4bd6fe1a35779521430d` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `54f36212c604615d7c6e2691de41b3b2c843c4f53e59800c9e330eeedf3d3ed5` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
@@ -94,3 +94,16 @@ separate parent assessment, review, QA, confirmation, or skill invocation. The l
 standard, project guidance and generator now follow it. Child acceptance, independent implementation review,
 publication, merge and archive authority retain their existing meanings. The Planning digest above identifies
 this local amendment; no automatic standards synchronization or change to other repositories is implied.
+
+## Clear package release decisions — 2026-10-05
+
+John approved the future release wording in [PR #192](https://github.com/johnnickell/fight-common/pull/192).
+[ADR 0028](../../planning/adr/0028-clear-package-release-decisions.md) owns the Fight Common-only decision:
+one readable summary and informed ship decision for an unchanged certified candidate, replacing the mandatory
+fourteen-row plan, typed/digest-bound approvals and repeated normal publication approvals. Independent review,
+meaningful compatibility evidence, the full certifier, human-held signing key and provider/registry verification
+remain. Failure, ambiguity, changed inputs or new material risk still stop for resolution. CONTEXT, the profile,
+release guide and local Delivery cross-reference now route to that authority; earlier ADRs retain historical text
+with scoped precedence notices. This does not claim the rejected 1.3 checklist passed, fix the inherited local
+archive limitation, rewrite a published tag, or change other repositories or application deployment authority.
+The installed Delivery digest above identifies this reviewed local amendment.
