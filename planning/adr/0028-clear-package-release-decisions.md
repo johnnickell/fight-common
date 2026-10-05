@@ -2,7 +2,10 @@
 
 - Status: proposed — John must accept the wording before this becomes policy
 - Date: 2026-10-05
-- If accepted: supersedes ADR 0012's typed release-approval/patch-exception records and 1.3-only mandatory assessment sequence; ADR 0013's required fourteen-category release classification/plan; and ADR 0027's separate human approval for every release publication effect. Retains the other decisions identified below. ADR 0027's rejection of ADR 0016's unused publication environment and mandatory asset bundle remains in force; superseding an ADR does not reactivate those older clauses.
+- If accepted, replaces only these older process requirements:
+  - ADR 0012's typed approval/patch-exception records and 1.3-only assessment sequence; ADR 0013's required fourteen-category release plan.
+  - ADR 0014–0016's digest/plan-bound publication authority and patch exception, including separate approval for manual recovery; ADR 0027's separate human approval for every normal release effect. Unexpected effects and new risks still stop for human resolution.
+  - ADR 0027's rejection of ADR 0016's unused publication environment and mandatory asset bundle **stays in force**. Superseding a decision does not reactivate those older clauses. All other package, patch-line and publication safety rules remain as described below.
 
 ## Why change
 
