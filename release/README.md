@@ -3,6 +3,8 @@
 This directory contains Fight Common's small, maintainer-only release certifier. It is development tooling,
 autoloaded only through Composer's root `autoload-dev`; `Fight\Release\` is not a consumer runtime API.
 
+For an actual package release, read [ADR 0028](../planning/adr/0028-clear-package-release-decisions.md): it owns the change/risk summary, informed ship decision, human signing, publication checks and applicable housekeeping. Certification below remains verification-only, not publication permission or a complete compatibility verdict.
+
 ## Entry point
 
 The only release command is:

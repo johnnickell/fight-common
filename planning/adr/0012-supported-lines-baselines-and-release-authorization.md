@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-08-06
+- Scoped supersession: [ADR 0028](0028-clear-package-release-decisions.md) replaces typed approval/exception records and the historical 1.3-only assessment sequence. Support windows, baseline and patch safety rules remain; the original procedure below is retained as history, not a current prerequisite.
 
 ## Decision
 
