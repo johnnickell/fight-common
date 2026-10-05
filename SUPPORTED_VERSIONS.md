@@ -35,6 +35,16 @@ not deleted or repointed.
       "branch": "1.2",
       "initial_release": {"tag": "v1.2.0", "commit": "a2cd615d9b5064c9c30e994655536176249cd73b"},
       "latest_release": {"tag": "v1.2.0", "commit": "a2cd615d9b5064c9c30e994655536176249cd73b"},
+      "phase": "limited",
+      "allowed_fixes": ["security", "data-loss", "critical-compatibility"],
+      "ends_at": "2027-04-05T05:41:42Z",
+      "successor": "1.3"
+    },
+    {
+      "line": "1.3",
+      "branch": "1.3",
+      "initial_release": {"tag": "v1.3.0", "commit": "7de6cad6e8a9752973ad9f8e27e285b0c1510582"},
+      "latest_release": {"tag": "v1.3.0", "commit": "7de6cad6e8a9752973ad9f8e27e285b0c1510582"},
       "phase": "current",
       "allowed_fixes": ["bug", "security"],
       "ends_at": null,
@@ -44,11 +54,12 @@ not deleted or repointed.
 }
 ```
 
-| Line | Status before 1.3 publication | Exclusive UTC end | Latest release |
+| Line | Status after 1.3 publication | Exclusive UTC end | Latest release |
 | --- | --- | --- | --- |
 | 1.0 | Limited security, data-loss and critical-compatibility fixes | 2026-12-05 00:00:00 | `v1.0.0` |
 | 1.1 | Limited security, data-loss and critical-compatibility fixes | 2027-03-13 01:24:24 | `1.1.0` |
-| 1.2 | Current: bug and security fixes | Not set until 1.3 publishes | `v1.2.0` |
+| 1.2 | Limited security, data-loss and critical-compatibility fixes | 2027-04-05 05:41:42 | `v1.2.0` |
+| 1.3 | Current: bug and security fixes | Not set until its successor publishes | `v1.3.0` |
 
 The six-month clock for **each** superseded minor survives later minor releases: 1.0 does not become
 end-of-life merely because 1.2 exists, nor 1.1 merely because 1.3 ships. The 1.1 deadline follows
@@ -68,7 +79,10 @@ Supporting a line does not authorize patching from a mismatched base: reconcile 
 branch, ancestry, review and signing requirements before attempting a 1.1 patch. Do not replace
 published refs to accomplish that.
 
-`1.3.0` is **not yet published**. After verified tag and GitHub publication, a reviewed policy update
-must add the actual released line/commit and set 1.2's six-month limited-fix deadline from its
-observed publication time. Do not predeclare a 1.3 tag object, release commit or end date. Support
-for 1.0/1.1 during their windows does not waive the 1.x public API compatibility promise for 1.3.
+[`v1.3.0`](https://github.com/johnnickell/fight-common/releases/tag/v1.3.0) was published on GitHub at
+`2026-10-05T05:41:42Z`. Its signed annotated tag peels to the exact `main` release merge recorded above;
+the `1.3` maintenance branch starts at that same commit. The six-calendar-month limit on 1.2 ends
+exclusively at `2027-04-05T05:41:42Z`. The 1.0 and 1.1 windows remain in force until their own
+published boundaries and their branches are preserved, not removed early. A branch by itself is
+not evidence that a line is supported. Support for multiple older minors during their own windows
+does not waive the 1.x public API compatibility promise for current releases.
