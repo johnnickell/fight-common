@@ -23,9 +23,10 @@ closes eligible parents during the child-completion operation. Execution remains
 
 ## Strategy and next decisions
 
-The immediate planning-surface adoption chore appears on the [TASK Board](tasks/BOARD.md). It does not create a
-new product EPIC. Potential 2.0 work begins with fresh planning in the repository that owns the proposed scope;
-do not reopen archived work as an active commitment.
+The [TASK Board](tasks/BOARD.md) has no active implementation TASK at this checkpoint. Preparing the 1.3.0
+release is a separately authorized release operation, not an unfinished product EPIC. Potential 2.0 work begins
+with fresh planning in the repository that owns the proposed scope; do not reopen archived work as an active
+commitment.
 
 ## Completed and retired work
 

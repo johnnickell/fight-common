@@ -83,14 +83,14 @@ The release workflow owns release branch integration, the human signing handoff,
 
 For libraries ignoring the lockfile, ordinary dependency preparation uses `composer update`. A release resolver's already selected lowest/latest lane must remain intact during certification; follow its documented preserving mode rather than running a broad update over it. Product gates and release certification are separate evidence.
 
-Library support, once adopted by the project:
+Library support ([canonical line data and UTC boundaries](../../../SUPPORTED_VERSIONS.md)):
 
 | Line | Support |
 |---|---|
 | Current minor | Bug and security fixes |
-| Immediately previous minor | Security, data-loss, critical compatibility fixes for six months after the next minor |
+| Each superseded minor with an unexpired window | Security, data-loss and critical compatibility fixes for six months after its immediate successor minor is published, even if a further minor ships |
 | Latest minor of previous major | Same limited six-month window after the new major |
-| Older minors | End of life, retained read-only |
+| Expired minor | End of life, retained read-only |
 
 Only the latest patch of a supported minor is supported. Maintenance branches use `major.minor`, such as `1.1`. Derive lifecycle dates from actual releases and the support authority. Create a needed maintenance branch at the exact signed release commit, update support/protection records, and retire support by preserving the branch read-only. Branch existence alone does not prove current support. Do not merge an old maintenance line wholesale over newer main content.
 
