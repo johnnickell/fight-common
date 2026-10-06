@@ -158,6 +158,7 @@ touch "${OUTCOMES}"
 DEFAULT_ROOT="${WORKSPACE}/default"
 LATEST_ROOT="${WORKSPACE}/latest"
 LOWEST_ROOT="${WORKSPACE}/lowest"
+ARCHIVE_ROOT="${WORKSPACE}/archive-source"
 ARTIFACT_ROOT="${WORKSPACE}/artifacts"
 CONSUMER_ROOT="${WORKSPACE}/consumer"
 mkdir -p "${ARTIFACT_ROOT}" "${CONSUMER_ROOT}"
@@ -202,20 +203,23 @@ run_step \
     "${WORKSPACE}/lowest-product-gate.log" \
     env FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build
 
+# Keep installed dependencies and build output out of the consumer archive.
+export_candidate "${ARCHIVE_ROOT}"
 ARCHIVE="${ARTIFACT_ROOT}/fight-common-${VERSION}.tar"
 "${DOCKER_BIN}" container run --rm \
-    -v "${DEFAULT_ROOT}:/source:delegated" \
+    -v "${DEFAULT_ROOT}:/source:ro" \
+    -v "${ARCHIVE_ROOT}:/archive:delegated" \
     -w /source \
     --user "$(id -u):$(id -g)" \
     "${PHP_IMAGE}" \
-    php release/scripts/certify.php archive-manifest /source/composer.json "${VERSION}"
+    php release/scripts/certify.php archive-manifest /archive/composer.json "${VERSION}"
 run_step \
     'composer-archive' \
     'composer archive --format=tar' \
-    "${DEFAULT_ROOT}" \
+    "${ARCHIVE_ROOT}" \
     "${WORKSPACE}/archive.log" \
     "${DOCKER_BIN}" container run --rm \
-        -v "${DEFAULT_ROOT}:/app:ro" \
+        -v "${ARCHIVE_ROOT}:/app:ro" \
         -v "${ARTIFACT_ROOT}:/artifacts:delegated" \
         -w /app \
         --user "$(id -u):$(id -g)" \
