@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Repository;
 
+use Fight\Common\Domain\Exception\DomainException;
+
 /**
  * Class Pagination
  */
@@ -29,6 +31,8 @@ final readonly class Pagination
      * @param integer|null $page
      * @param integer|null $perPage
      * @param array<string, string> $orderings
+     *
+     * @deprecated Use strict() for validated bounds and ordering; retained for minor-release compatibility.
      */
     public function __construct(?int $page = null, ?int $perPage = null, array $orderings = [])
     {
@@ -43,6 +47,38 @@ final readonly class Pagination
 
             return static::ASC;
         }, $orderings);
+    }
+
+    /**
+     * Creates pagination with positive bounds and supported ordering directions
+     *
+     * Null bounds select the existing defaults. PHP owns parameter type enforcement;
+     * this factory validates resolved integers and direction values without coercion.
+     * Ordering fields remain consumer-owned, not validated SQL identifiers.
+     *
+     * @phpstan-param array<string, mixed> $orderings
+     *
+     * @throws DomainException When bounds, directions or the integer offset are invalid
+     */
+    public static function strict(?int $page = null, ?int $perPage = null, array $orderings = []): self
+    {
+        $page ??= self::DEFAULT_PAGE;
+        $perPage ??= self::DEFAULT_PER_PAGE;
+        if ($page < 1 || $perPage < 1) {
+            throw new DomainException('Pagination bounds must be positive.');
+        }
+
+        if ($page - 1 > intdiv(PHP_INT_MAX, $perPage)) {
+            throw new DomainException('Pagination offset exceeds the integer range.');
+        }
+
+        foreach ($orderings as $ordering) {
+            if (!is_string($ordering) || !in_array(strtoupper($ordering), [self::ASC, self::DESC], true)) {
+                throw new DomainException('Pagination directions must be ASC or DESC.');
+            }
+        }
+
+        return new self($page, $perPage, $orderings);
     }
 
     /**

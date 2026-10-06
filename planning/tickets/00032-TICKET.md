@@ -2,7 +2,7 @@
 id: TICKET-00032
 epic: EPIC-00008
 title: Construct Safe Pagination Requests
-status: ready-for-agent
+status: done
 ---
 
 # Construct Safe Pagination Requests
@@ -76,7 +76,7 @@ not a hidden extra effect of shipping the new factory.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00128](../tasks/00128-TASK.md) | Add Strict Pagination Construction | ready-for-agent |
+| [TASK-00128](../tasks/00128-TASK.md) | Add Strict Pagination Construction | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -92,5 +92,12 @@ Child status is generated above; [planning conventions](../CONVENTIONS.md) gover
 DomainException contracts, and the code-first/legacy-reproduction testing clarification recorded above. The TASK owns
 factory construction, unchanged legacy behavior, existing repository consumption evidence, API/behavior classification,
 documentation/migration and the full gate. It has no blockers, including no dependency on TASK-00127, and no execution
-priority is assigned. The TICKET is decomposed, not implemented or done. No source change, commit or delivery is
-authorized. TICKET-00033 through TICKET-00039 still need their own TASK decomposition.
+priority was assigned. At that planning checkpoint the TICKET was decomposed, not implemented or done; no source
+change, commit or delivery was authorized, and TICKET-00033 through TICKET-00039 still needed decomposition.
+
+2026-10-06 implementation checkpoint: TASK-00128 now delivers opt-in `Pagination::strict()`, retained legacy behavior,
+integer-safe validation, direct value and Doctrine translation evidence, compatibility classification and migration
+documentation. Its focused checks and full local gate passed (exact 12,696/12,696 owned statements). TASK completion
+and this automatic parent rollup record implementation/local verification only; independent review and applicable
+behavioral QA remain pending. The TASK and ignored builder handoff own detailed counts, warnings and evidence.
+No publication, merge or release is asserted.

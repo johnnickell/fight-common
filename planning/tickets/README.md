@@ -14,7 +14,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00029](00029-TICKET.md) | Discover Structured Skills and Retrieve Revision Files Lazily | done | [EPIC-00007](../epics/00007-EPIC.md) |
 | [TICKET-00030](00030-TICKET.md) | Compose Resources, Skills and Tools Through One Guarded Endpoint | done | [EPIC-00007](../epics/00007-EPIC.md) |
 | [TICKET-00031](00031-TICKET.md) | Safely Reuse Validation Services | done | [EPIC-00008](../epics/00008-EPIC.md) |
-| [TICKET-00032](00032-TICKET.md) | Construct Safe Pagination Requests | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
+| [TICKET-00032](00032-TICKET.md) | Construct Safe Pagination Requests | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00033](00033-TICKET.md) | Snapshot JSON Without Mutable Aliasing | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00034](00034-TICKET.md) | Treat Stream Identifiers as Values | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00035](00035-TICKET.md) | Validate Network and Contact Values | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
