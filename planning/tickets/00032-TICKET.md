@@ -101,3 +101,9 @@ documentation. Its focused checks and full local gate passed (exact 12,696/12,69
 and this automatic parent rollup record implementation/local verification only; independent review and applicable
 behavioral QA remain pending. The TASK and ignored builder handoff own detailed counts, warnings and evidence.
 No publication, merge or release is asserted.
+
+2026-10-06 acceptance/landing checkpoint: independent technical review accepted TASK-00128 candidate `559663a` with
+no findings, and independent behavioral QA passed all seven scenarios with no defects. The TASK links the canonical
+reports and exact candidate/base identities. This TICKET remains done under automatic parent completion; EPIC-00008
+remains open. John authorized landing; publication and final-head hosted delivery checks are pending at this checkpoint,
+not conditions silently claimed by the completed child status. No merge or release is asserted.
