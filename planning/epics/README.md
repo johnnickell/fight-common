@@ -7,4 +7,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 |---|---|---|---|
 | [EPIC-00006](00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | done | — |
 | [EPIC-00007](00007-EPIC.md) | Reusable MCP Resources and Structured Skills | done | — |
+| [EPIC-00008](00008-EPIC.md) | Strengthen Value Objects and Validation Invariants | ready-for-agent | — |
 <!-- /planning:records -->

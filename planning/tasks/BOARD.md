@@ -19,19 +19,35 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00127](00127-TASK.md) | Make Validation Reuse Exception-Safe | [TICKET-00031 — Safely Reuse Validation Services](../tickets/00031-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00128](00128-TASK.md) | Add Strict Pagination Construction | [TICKET-00032 — Construct Safe Pagination Requests](../tickets/00032-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | [TICKET-00033 — Snapshot JSON Without Mutable Aliasing](../tickets/00033-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | [TICKET-00034 — Treat Stream Identifiers as Values](../tickets/00034-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00132](00132-TASK.md) | Add Canonical IP Address Values | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | [TICKET-00038 — Express Transport-Neutral Application Failures](../tickets/00038-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | [TASK-00134](00134-TASK.md) | — |
+| — | [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | [TASK-00134](00134-TASK.md) | — |
+| — | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | [TASK-00136](00136-TASK.md) | — |
+| — | [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | ready-for-agent | [TASK-00139](00139-TASK.md), [TASK-00140](00140-TASK.md) | — |
+| — | [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | ready-for-agent | [TASK-00142](00142-TASK.md) | — |
+| — | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | ready-for-agent | [TASK-00143](00143-TASK.md) | — |
+| — | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | ready-for-agent | [TASK-00143](00143-TASK.md) | — |
 
 ## Needs Info
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00140](00140-TASK.md) | Recognize Versioned ISO Currencies | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | needs-info | — | — |
 
 ## Human Action
 
