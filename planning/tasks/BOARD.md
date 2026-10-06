@@ -13,7 +13,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00126](00126-TASK.md) | Create certification archives from pristine release content | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
