@@ -88,7 +88,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00126](00126-TASK.md) | Create certification archives from pristine release content | — (standalone chore) | done | — | [PR #193](https://github.com/johnnickell/fight-common/pull/193) |
 | — | [TASK-00127](00127-TASK.md) | Make Validation Reuse Exception-Safe | [TICKET-00031 — Safely Reuse Validation Services](../tickets/00031-TICKET.md) | done | — | [PR #195](https://github.com/johnnickell/fight-common/pull/195) |
 | — | [TASK-00128](00128-TASK.md) | Add Strict Pagination Construction | [TICKET-00032 — Construct Safe Pagination Requests](../tickets/00032-TICKET.md) | done | — | [PR #196](https://github.com/johnnickell/fight-common/pull/196) |
-| — | [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | [TICKET-00033 — Snapshot JSON Without Mutable Aliasing](../tickets/00033-TICKET.md) | done | — | — |
+| — | [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | [TICKET-00033 — Snapshot JSON Without Mutable Aliasing](../tickets/00033-TICKET.md) | done | — | [PR #197](https://github.com/johnnickell/fight-common/pull/197) |
 <!-- /planning:board -->
 
 ## Wayfinder
