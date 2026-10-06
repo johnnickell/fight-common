@@ -48,7 +48,7 @@ final readonly class JsonObject extends ValueObject
             throw new DomainException($message);
         }
 
-        return new static(json_decode($value, $assoc = true));
+        return new static(json_decode($value, true));
     }
 
     /**

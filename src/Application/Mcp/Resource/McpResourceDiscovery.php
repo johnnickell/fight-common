@@ -107,9 +107,8 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
      */
     public function validateCatalog(array $metadata): void
     {
-        foreach ($this->resources($metadata) as $resource) {
-            // Exhaust validation, including concealed descriptors and collisions beyond the current page.
-        }
+        // Exhaust validation, including concealed descriptors and collisions beyond the current page.
+        iterator_count($this->resources($metadata));
     }
 
     /**

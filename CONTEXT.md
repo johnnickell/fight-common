@@ -74,7 +74,7 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 | **Input data** | Untrusted field data entering validation. |
 | **Validation rule** | A reusable predicate such as length, range, format, type, or required-field behavior. |
 | **Validator** | A component that applies a specification to a validation context and may add field errors. |
-| **Validation coordinator** | The component that runs validators and produces one `ValidationResult`. |
+| **Validation coordinator** | The component that runs one invocation's queued validators in a fresh context and produces one `ValidationResult`. It discards the queue on normal and exceptional exits; explicit `resetValidators()` discards pending work without execution. ValidationService also clears the same supplied coordinator when input/rule preparation fails. Sequential reuse retains original throwables and ordinary results, not stale rules/errors; it promises neither reentrancy nor rollback of consumer validator effects, and confers no authorization or public-safe diagnostics. |
 | **Validation result** | Either passed application data or failed error data; data and errors are mutually exclusive states. |
 | **Application data** | Validated data safe for application use. |
 | **Error data** | Structured field errors produced by failed validation. |

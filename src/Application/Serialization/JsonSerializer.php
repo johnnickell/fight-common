@@ -19,7 +19,7 @@ class JsonSerializer implements Serializer
      */
     public function deserialize(string $state): Serializable
     {
-        $data = json_decode($state, $array = true);
+        $data = json_decode($state, true);
 
         $keys = ['@', '$'];
         foreach ($keys as $key) {
