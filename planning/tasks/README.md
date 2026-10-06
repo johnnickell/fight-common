@@ -29,4 +29,23 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | done | — |
 | [TASK-00125](00125-TASK.md) | Reconcile v1.3 MCP documentation and prepare release qualification | done | — |
 | [TASK-00126](00126-TASK.md) | Create certification archives from pristine release content | done | — |
+| [TASK-00127](00127-TASK.md) | Make Validation Reuse Exception-Safe | ready-for-agent | [TICKET-00031](../tickets/00031-TICKET.md) |
+| [TASK-00128](00128-TASK.md) | Add Strict Pagination Construction | ready-for-agent | [TICKET-00032](../tickets/00032-TICKET.md) |
+| [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | ready-for-agent | [TICKET-00033](../tickets/00033-TICKET.md) |
+| [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | ready-for-agent | [TICKET-00034](../tickets/00034-TICKET.md) |
+| [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |
+| [TASK-00132](00132-TASK.md) | Add Canonical IP Address Values | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |
+| [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |
+| [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | ready-for-agent | [TICKET-00037](../tickets/00037-TICKET.md) |
+| [TASK-00140](00140-TASK.md) | Recognize Versioned ISO Currencies | needs-info | [TICKET-00037](../tickets/00037-TICKET.md) |
+| [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | ready-for-agent | [TICKET-00037](../tickets/00037-TICKET.md) |
+| [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | ready-for-agent | [TICKET-00038](../tickets/00038-TICKET.md) |
+| [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
+| [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
+| [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
 <!-- /planning:records -->
