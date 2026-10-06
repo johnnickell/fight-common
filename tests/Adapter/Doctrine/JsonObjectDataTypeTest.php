@@ -67,6 +67,19 @@ class JsonObjectDataTypeTest extends UnitTestCase
         self::assertSame('{"key":"value"}', $result);
     }
 
+    public function test_that_snapshot_writes_preserve_capture_but_string_hydration_remains_legacy(): void
+    {
+        $input = (object) ['empty' => (object) [], 'numeric' => (object) ['0' => 'zero'], 'float' => 1.0];
+        $snapshot = JsonObject::fromSnapshot($input);
+        $input->empty->changed = true;
+        $stored = $this->type->convertToDatabaseValue($snapshot, $this->platform);
+        self::assertSame('{"empty":{},"numeric":{"0":"zero"},"float":1.0}', $stored);
+        $hydrated = $this->type->convertToPHPValue($stored, $this->platform);
+        self::assertSame('{"empty":[],"numeric":["zero"],"float":1}', $hydrated->toString());
+        self::assertFalse($snapshot->equals($hydrated));
+        self::assertTrue($snapshot->equals(JsonObject::fromSnapshotString($stored)));
+    }
+
     public function test_that_convert_to_php_value_returns_null_for_null(): void
     {
         self::assertNull($this->type->convertToPHPValue(null, $this->platform));

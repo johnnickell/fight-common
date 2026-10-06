@@ -88,6 +88,19 @@ class FunctionsTest extends UnitTestCase
         self::assertSame('{"key":"value"}', $result->toString());
     }
 
+    public function test_that_json_helpers_keep_legacy_aliasing_and_text_reconstruction(): void
+    {
+        $child = (object) ['value' => 'original'];
+        $json = json_data(['child' => $child]);
+        $child->value = 'changed';
+        self::assertSame('{"child":{"value":"changed"}}', $json->toString());
+        $json->jsonSerialize()['child']->value = 'output change';
+        self::assertSame('{"child":{"value":"output change"}}', $json->toString());
+        self::assertSame('[]', json_string('{}')->toString());
+        self::assertSame('["zero"]', json_string('{"0":"zero"}')->toString());
+        self::assertSame('1', json_string('1.0')->toString());
+    }
+
     public function test_that_json_data_throws_domain_exception_for_non_encodable_data(): void
     {
         $this->expectException(DomainException::class);
