@@ -35231,7 +35231,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject promises its inventoried public callable surface to consumers.",
+                        "rationale": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject promises its inventoried public callable surface to consumers, including the additive fromSnapshot/fromSnapshotString factories and snapshot output behavior documented by fight-common.behavior.json-object-snapshots (TASK-00129).",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Value/Basic/JsonObject.php#Fight\\Common\\Domain\\Value\\Basic\\JsonObject",
@@ -35243,7 +35243,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject promises construction through its inventoried public constructor or named factory.",
+                        "rationale": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject promises construction through its inventoried public named factories, including additive opt-in fromSnapshot/fromSnapshotString (TASK-00129). Legacy factories remain unchanged; no extensibility is added.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Value\\Basic\\JsonObject",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Value/Basic/JsonObject.php#Fight\\Common\\Domain\\Value\\Basic\\JsonObject",
@@ -37592,6 +37592,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.json-object-snapshots",
+            "normative": {"path": "docs/values.md", "section": "Immutable JSON snapshots"},
+            "fixture": {"path": "tests/Domain/Value/Basic/JsonObjectTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.json-object-snapshot-doctrine",
+            "normative": {"path": "docs/values.md", "section": "Legacy JSON and Doctrine boundaries"},
+            "fixture": {"path": "tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php"}
+        },
         {
             "id": "fight-common.behavior.pagination-strict-construction",
             "normative": {"path": "docs/repositories.md", "section": "Strict pagination construction"},

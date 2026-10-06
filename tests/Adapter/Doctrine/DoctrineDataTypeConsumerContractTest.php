@@ -9,6 +9,9 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Fight\Common\Adapter\Doctrine\JsonObjectDataType as LegacyJsonObjectDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType;
+use Fight\Common\Domain\Value\Basic\JsonObject;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -62,6 +65,18 @@ final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
             $legacyType->convertToDatabaseValue($legacyValue, $platform),
             $canonicalType->convertToDatabaseValue($canonicalValue, $platform),
         );
+    }
+
+    public function test_that_both_json_type_identities_write_snapshots_without_changing_legacy_hydration(): void
+    {
+        $snapshot = JsonObject::fromSnapshotString('{"empty":{},"numeric":{"0":"zero"},"float":1.0}');
+        $platform = new SQLitePlatform();
+        foreach ([new LegacyJsonObjectDataType(), new JsonObjectDataType()] as $type) {
+            $stored = $type->convertToDatabaseValue($snapshot, $platform);
+            self::assertSame('{"empty":{},"numeric":{"0":"zero"},"float":1.0}', $stored);
+            $hydrated = $type->convertToPHPValue($stored, $platform);
+            self::assertSame('{"empty":[],"numeric":["zero"],"float":1}', $hydrated->toString());
+        }
     }
 
     /**

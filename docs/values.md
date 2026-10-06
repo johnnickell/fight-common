@@ -198,6 +198,102 @@ $json->encode(JSON_UNESCAPED_UNICODE);       // custom encoding options
 
 Default encoding uses `JSON_UNESCAPED_SLASHES`. Pass custom options to `fromData()` or `encode()`.
 
+### Immutable JSON snapshots
+
+Contract ID: `fight-common.behavior.json-object-snapshots`.
+
+Opt in with `JsonObject::fromSnapshot(mixed $data, int $encodingOptions = JSON_UNESCAPED_SLASHES)` or
+`JsonObject::fromSnapshotString(string $value, int $encodingOptions = JSON_UNESCAPED_SLASHES)`. Both return the
+existing JsonObject type. These additive public factories are callable/constructible API under ADR 0009; they
+introduce no extensibility, new dependency, database type or mandatory migration.
+
+```php-inline
+$input = (object) ['child' => (object) ['value' => 'original'], 'ratio' => 1.0];
+$snapshot = JsonObject::fromSnapshot($input);
+$input->child->value = 'changed';
+$snapshot->toData()->child->value = 'also changed';
+$snapshot->toString(); // {"child":{"value":"original"},"ratio":1.0}
+$restored = JsonObject::fromSnapshotString($snapshot->toString());
+$restored->equals($snapshot); // true
+```
+
+Capture encodes scalars, arrays, ordinary objects and supported `JsonSerializable` output at construction, then
+verifies that object-mode decoding succeeds. Only captured JSON is retained, not the supplied object graph.
+Every `toData()` and `jsonSerialize()` returns an independent object-mode reconstruction: objects (including empty
+and numerically named objects) stay objects, lists stay arrays, and scalars/null keep their kinds. Nested input
+objects, PHP references and earlier mutable outputs cannot alter the retained string, hash or equality against an
+unchanged comparison value. Custom serializers run at capture, never again on reads. This does not promise one
+callback per object identity when references repeat, retain class identity/methods or reference topology, deep-clone
+arbitrary PHP state, perform redaction, or establish permission to publish the data. Private/non-JSON state is not
+captured. Common does not sandbox or roll back consumer serializer effects.
+
+**Numbers and text.** Snapshot-owned encoding temporarily selects PHP `serialize_precision=-1` (shortest native
+float round-trip spelling), restores the previous setting on success/failure, and always includes
+`JSON_PRESERVE_ZERO_FRACTION`. Native integers and finite floats remain distinct (`1` versus `1.0`, including
+negative float zero); changing ambient formatting later cannot change retained string/equality/hash or snapshot-owned
+`encode()`/`prettyPrint()` output. Consumers own any global-setting changes inside their serializers. No arbitrary-
+precision decimal or recovery of precision already lost in a caller's float is promised.
+
+Text reconstruction uses PHP's native integer range (`PHP_INT_MIN` through `PHP_INT_MAX`) and native float conversion.
+Every integer literal outside that range rejects, even in a subsequently overwritten duplicate property; numeric
+strings and property names remain strings. Decimal/exponent literals become native floats: excess decimal digits
+round, underflow can become `0.0`, and overflow to infinity rejects. Whitespace, escapes, exponent spelling and decimal
+lexemes normalize; `1e0` becomes `1.0` and integer `-0` becomes `0`. Ordinary PHP JSON duplicate-name decoding keeps
+the last value. This is not preservation of arbitrary input text or general JSON canonicalization.
+
+**Presentation options.** The allowed bitmask is zero or any combination of `JSON_HEX_TAG`, `JSON_HEX_AMP`,
+`JSON_HEX_APOS`, `JSON_HEX_QUOT`, `JSON_UNESCAPED_SLASHES`, `JSON_UNESCAPED_UNICODE`,
+`JSON_UNESCAPED_LINE_TERMINATORS`, `JSON_PRETTY_PRINT` and `JSON_PRESERVE_ZERO_FRACTION`.
+Line terminators are unescaped only together with unescaped Unicode, as in PHP. Zero-fraction preservation is always
+on. Other bits reject, including `JSON_FORCE_OBJECT`, `JSON_NUMERIC_CHECK`, partial-output/invalid-UTF-8 substitution
+or omission, and `JSON_THROW_ON_ERROR` (the snapshot owns error handling). Integer constants with identical numeric
+bits cannot be distinguished by their names; use encoding constants, not decoder flags.
+
+The same option boundary applies to snapshot `encode()`. `prettyPrint()` adds pretty printing to the captured options;
+`encode()` uses its explicit/default options without replacing the retained representation. Factory options can
+change equality/hash because inherited ValueObject equality compares strings, including property order and formatting.
+No key sorting or semantic/key-order-independent equality is introduced. A snapshot and a legacy value with identical
+strings compare equal and have equal hashes; a separately mutable legacy comparator may subsequently change.
+
+Outer `json_encode($snapshot, ...)` receives fresh data, **not raw captured JSON**. The outer encoder controls precision,
+flags and total depth, including wrappers: use suitable precision and `JSON_PRESERVE_ZERO_FRACTION` when float kinds
+matter. Its lossy flags/defaults can change external output but cannot mutate the snapshot. Snapshot factory presentation
+options do not override outer encoding options.
+
+**Limits and failures.** Both codecs use depth 512. At most **511 nested containers** reconstruct, including empty
+containers: in root-zero node terminology, containers stop at depth 510 and scalars may reach 511. Encoder-only
+acceptance at 512 containers is insufficient and rejects at the independent decoder boundary. Malformed JSON/Unicode,
+resources, cycles, non-finite floats and object property names beginning with U+0000 reject; empty names and non-leading
+U+0000 are supported. No partial/error-substituted snapshot is returned. Codec failures throw catchable
+`DomainException` with fixed messages `Unable to encode JSON snapshot.` or `Unable to decode JSON snapshot.` and a
+`JsonException` cause carrying the codec error code. Integer-range rejection uses
+`Unsupported JSON snapshot representation.`; unsupported option bits use `Unsupported JSON snapshot encoding options.`.
+Those validation failures have no underlying codec cause. Consumer serializer throwables, including `JsonException`
+and PHP `Error`, propagate unchanged with original identity, code and previous cause. Fixed wrapper messages do not
+make arbitrary consumer exceptions or diagnostic causes public-safe.
+
+### Legacy JSON and Doctrine boundaries
+
+Contract ID: `fight-common.behavior.json-object-snapshot-doctrine` (controlled adapter translation evidence).
+
+`fromData()`, `fromString()`, `json_data()` and `json_string()` retain their existing legacy behavior in this minor.
+Legacy construction can retain nested mutable objects/references, expose them from accessors and reinvoke custom
+serializers on reads. Legacy associative text decoding/encoding collapses `{}` to `[]`, `{"0":"zero"}` to `["zero"]`
+and `1.0` to `1`. These limitations explain why snapshot reconstruction has its own factory; they are not repaired or
+silently replaced. Existing StrictJson/MCP semantics remain independent and unchanged.
+
+Both canonical and deprecated Doctrine `JsonObjectDataType` identities write a snapshot via its captured string.
+Hydration from database text still calls legacy `fromString()`: it does **not** restore snapshot mode or faithfully
+round-trip all snapshot shapes/numeric representations. Applications needing snapshot restoration must explicitly
+use the snapshot-aware text boundary in their own composition; no automatic Doctrine opt-in, persisted-data rewrite
+or schema migration is supplied. Existing supported stored data remains readable. Adapter fixtures prove translation
+against controlled platforms, not real database JSON storage/normalization or downstream qualification.
+
+This is an additive minor capability under ADRs 0009–0011: existing public construction, helper semantics, exception
+paths, Doctrine identities and hydration remain unchanged. Snapshot-specific exceptions, fresh mutable output,
+numeric representation and string equality are explicit new promises, not a claim that signatures alone establish
+compatibility or that legacy JSON becomes immutable.
+
 ---
 
 ## StrictJson
@@ -206,7 +302,8 @@ Default encoding uses `JSON_UNESCAPED_SLASHES`. Pass custom options to `fromData
 
 An immutable, framework-free JSON value that preserves objects, lists and scalar types. Unlike `JsonObject`,
 it validates a bounded plain-data tree and never exposes mutable generic objects through data accessors.
-The existing `JsonObject` and its helpers are unchanged; no Doctrine mapping or new global helper is supplied.
+Legacy `JsonObject` factories and helpers are unchanged; its opt-in snapshots above are a separate capability.
+StrictJson supplies no Doctrine mapping or new global helper.
 
 ```php-inline
 use Fight\Common\Domain\Value\Basic\StrictJson;

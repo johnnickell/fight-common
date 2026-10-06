@@ -2,7 +2,7 @@
 id: TICKET-00033
 epic: EPIC-00008
 title: Snapshot JSON Without Mutable Aliasing
-status: ready-for-agent
+status: done
 ---
 
 # Snapshot JSON Without Mutable Aliasing
@@ -84,7 +84,7 @@ contracts. Resolve encoding/precision representation choices before committing a
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00129](../tasks/00129-TASK.md) | Add Immutable JSON Snapshots | ready-for-agent |
+| [TASK-00129](../tasks/00129-TASK.md) | Add Immutable JSON Snapshots | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
