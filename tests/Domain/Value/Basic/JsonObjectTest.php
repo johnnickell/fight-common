@@ -230,6 +230,48 @@ class JsonObjectTest extends UnitTestCase
         yield 'float overflow' => ['1e9999', JSON_ERROR_INF_OR_NAN];
     }
 
+    #[DataProvider('overflowingSnapshotFloats')]
+    public function test_that_snapshot_text_rejects_every_overflowing_float_before_duplicate_selection(string $text): void
+    {
+        $precision = ini_get('serialize_precision');
+        try {
+            JsonObject::fromSnapshotString($text);
+            self::fail('Expected overflowing float rejection');
+        } catch (DomainException $exception) {
+            self::assertSame('Unable to encode JSON snapshot.', $exception->getMessage());
+            self::assertInstanceOf(Catchable::class, $exception);
+            self::assertInstanceOf(JsonException::class, $exception->getPrevious());
+            self::assertSame(JSON_ERROR_INF_OR_NAN, $exception->getPrevious()->getCode());
+            self::assertSame($precision, ini_get('serialize_precision'));
+        }
+    }
+
+    public static function overflowingSnapshotFloats(): iterable
+    {
+        yield 'retained positive' => ['1e9999'];
+        yield 'retained negative' => ['-1e9999'];
+        yield 'overwritten positive' => ['{"n":1e9999,"n":1}'];
+        yield 'overwritten negative' => ['{"n":-1E+9999,"n":1}'];
+        yield 'overwritten nested subtree' => ['{"n":{"items":[1,-1e9999]},"n":null}'];
+        yield 'escaped duplicate name' => ['{"n":1e9999,"\u006e":1}'];
+        yield 'overwritten decimal without exponent' => ['{"n":'.str_repeat('9', 309).'.0,"n":1}'];
+    }
+
+    #[DataProvider('finiteSnapshotDuplicates')]
+    public function test_that_snapshot_text_keeps_last_duplicate_values_with_valid_numeric_literals(string $text, string $expected): void
+    {
+        self::assertSame($expected, JsonObject::fromSnapshotString($text)->toString());
+    }
+
+    public static function finiteSnapshotDuplicates(): iterable
+    {
+        yield 'finite extrema' => ['{"n":1.7976931348623157e308,"n":-1.7976931348623157e308}', '{"n":-1.7976931348623157e+308}'];
+        yield 'rounding' => ['{"n":1.0,"n":1.00000000000000000001}', '{"n":1.0}'];
+        yield 'underflow' => ['{"n":1e-9999,"n":0.0}', '{"n":0.0}'];
+        yield 'escaped name and discarded subtree' => ['{"n":{"items":[1.5,-1e-9999]},"\u006e":1}', '{"n":1}'];
+        yield 'numeric strings and escaped quotes' => ['{"1e9999":"-1e9999","n":"escaped \" 1e9999","n":1}', '{"1e9999":"-1e9999","n":1}'];
+    }
+
     #[DataProvider('invalidSnapshotData')]
     public function test_that_snapshot_codec_failures_keep_fixed_messages_and_causes(mixed $data, int $code): void
     {

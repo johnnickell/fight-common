@@ -237,8 +237,10 @@ precision decimal or recovery of precision already lost in a caller's float is p
 Text reconstruction uses PHP's native integer range (`PHP_INT_MIN` through `PHP_INT_MAX`) and native float conversion.
 Every integer literal outside that range rejects, even in a subsequently overwritten duplicate property; numeric
 strings and property names remain strings. Decimal/exponent literals become native floats: excess decimal digits
-round, underflow can become `0.0`, and overflow to infinity rejects. Whitespace, escapes, exponent spelling and decimal
-lexemes normalize; `1e0` becomes `1.0` and integer `-0` becomes `0`. Ordinary PHP JSON duplicate-name decoding keeps
+round, underflow can become `0.0`, and overflow to infinity rejects, including literals in overwritten duplicate
+properties or discarded subtrees. Float overflow uses the same fixed encoding failure and `JSON_ERROR_INF_OR_NAN`
+cause whether retained or discarded. Whitespace, escapes, exponent spelling and decimal lexemes normalize;
+`1e0` becomes `1.0` and integer `-0` becomes `0`. Ordinary PHP JSON duplicate-name decoding keeps
 the last value. This is not preservation of arbitrary input text or general JSON canonicalization.
 
 **Presentation options.** The allowed bitmask is zero or any combination of `JSON_HEX_TAG`, `JSON_HEX_AMP`,

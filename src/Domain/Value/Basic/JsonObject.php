@@ -62,8 +62,8 @@ final readonly class JsonObject extends ValueObject
     /**
      * Creates a snapshot from JSON text using native numeric precision
      *
-     * Rejects integer literals outside the native range. Whitespace, escape spelling
-     * and float lexemes normalize; object/list and integer/float kinds remain distinct.
+     * Rejects integer range and float overflow even in overwritten properties.
+     * Whitespace, escapes and float lexemes normalize; JSON kinds remain distinct.
      *
      * @throws DomainException When text, options or its representation are unsupported
      */
@@ -202,6 +202,11 @@ final readonly class JsonObject extends ValueObject
             $number = substr($json, $offset, $size);
             if (strpbrk($number, '.eE') === false && $number !== '-0' && (string) (int) $number !== $number) {
                 throw new DomainException('Unsupported JSON snapshot representation.');
+            }
+
+            if (!is_finite((float) $number)) {
+                // Preserve the codec failure even when duplicate decoding discarded this value.
+                self::encodeSnapshot((float) $number, 0);
             }
 
             $offset += $size;
