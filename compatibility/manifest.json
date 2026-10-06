@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "ebbc25b86320378b9709f5b80567d108584dbe035c0e19dcfd8148ea8eea5da4",
+    "operation_shapes_sha256": "2941813f639848685f04da209b5e7d2eb92e5cd0681ce1366494fbc0433b9ebb",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -33911,10 +33911,10 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Domain\\Repository\\Pagination promises its inventoried public callable surface to consumers.",
+                        "rationale": "Pagination preserves its grandfathered public methods and adds strict(?int $page = null, ?int $perPage = null, array $orderings = []): self under TASK-00128; strict value rejection uses DomainException, distinct from native PHP type boundaries.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\Pagination",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Repository/Pagination.php#Fight\\Common\\Domain\\Repository\\Pagination",
+                            "source_locator": "working-tree:src/Domain/Repository/Pagination.php#Fight\\Common\\Domain\\Repository\\Pagination",
                             "operation": "callable"
                         }
                     }
@@ -33923,10 +33923,10 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Domain\\Repository\\Pagination promises construction through its inventoried public constructor or named factory.",
+                        "rationale": "Pagination retains the functional legacy constructor with documentation-only deprecation and adds opt-in strict construction of the same immutable type under TASK-00128; no automatic migration, runtime warning or new extension promise.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\Pagination",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Repository/Pagination.php#Fight\\Common\\Domain\\Repository\\Pagination",
+                            "source_locator": "working-tree:src/Domain/Repository/Pagination.php#Fight\\Common\\Domain\\Repository\\Pagination",
                             "operation": "constructible"
                         }
                     }
@@ -37592,6 +37592,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.pagination-strict-construction",
+            "normative": {"path": "docs/repositories.md", "section": "Strict pagination construction"},
+            "fixture": {"path": "tests/Domain/Repository/PaginationTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.pagination-legacy-construction",
+            "normative": {"path": "docs/repositories.md", "section": "Legacy pagination and migration"},
+            "fixture": {"path": "tests/Domain/Repository/PaginationTest.php"}
+        },
         {
             "id": "fight-common.behavior.validation-coordinator-reuse",
             "normative": {"path": "docs/validation.md", "section": "Sequential reuse and failure cleanup"},

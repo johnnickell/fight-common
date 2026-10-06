@@ -185,6 +185,47 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         self::assertSame(50, $result->perPage());
     }
 
+    public function test_that_get_by_actor_consumes_strict_pagination_without_signature_changes(): void
+    {
+        $entry = AuditEntry::record('user:1', 'login');
+        $em = $this->mock(EntityManagerInterface::class);
+        $qb = $this->mock(QueryBuilder::class);
+        $paginator = $this->mock(Paginator::class);
+
+        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
+        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
+        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
+        $qb->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($qb);
+        $qb->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($qb);
+        $qb->shouldReceive('setFirstResult')->with(50)->once()->andReturn($qb);
+        $qb->shouldReceive('setMaxResults')->with(25)->once()->andReturn($qb);
+        $qb->shouldReceive('addOrderBy')->with('e.timestamp', 'DESC')->once()->ordered()->andReturn($qb);
+        $qb->shouldReceive('addOrderBy')->with('e.action', 'ASC')->once()->ordered()->andReturn($qb);
+        $paginator->shouldReceive('count')->once()->andReturn(51);
+        $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
+
+        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+            {
+                parent::__construct($em);
+            }
+
+            protected function createPaginator(QueryBuilder|Query $query): Paginator
+            {
+                return $this->paginator;
+            }
+        };
+
+        $pagination = Pagination::strict(3, 25, ['timestamp' => 'desc', 'action' => 'asc']);
+        $result = $repo->getByActor('user:1', $pagination);
+
+        self::assertSame(3, $result->page());
+        self::assertSame(25, $result->perPage());
+        self::assertSame(51, $result->totalRecords());
+        self::assertSame(1, $result->count());
+        self::assertSame($entry, $result->records()->first());
+    }
+
     public function test_that_get_by_actor_returns_empty_result_set(): void
     {
         $em = $this->mock(EntityManagerInterface::class);

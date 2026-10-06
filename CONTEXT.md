@@ -67,7 +67,7 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Repository** | A domain-oriented collection boundary for retrieving and persisting domain records without exposing infrastructure details. |
-| **Pagination** | A request for page, page size, offset, limit, and normalized field ordering. |
+| **Pagination** | An immutable request for page, page size, offset, limit, and normalized field ordering. Opt-in `Pagination::strict()` resolves null defaults, requires positive bounds and ASC/DESC strings, and rejects unrepresentable integer offsets with DomainException before multiplication. Native PHP parameter typing remains distinct from value validation. The deprecated legacy constructor retains permissive defaults/normalization without runtime warnings during minor migration; its negative-bound/overflow limitations are not repaired. Consumers own field eligibility, SQL safety, authorization and provider/query policy. |
 | **Result set** | A typed page of records plus page and total-count metadata. |
 | **Unit of work** | The application transaction boundary used to commit work and run a callable transactionally. A closed unit of work is terminally unable to accept another operation; a rolled-back transaction does not by itself mean the unit of work is closed. |
 | **Required audit record** | Secret-free durable evidence required for a classified sensitive command to succeed. The protected mutation and its required audit record commit atomically; a later projection of that evidence is derived state rather than the authoritative audit record. |
