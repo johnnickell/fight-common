@@ -228,7 +228,6 @@ final class Scheduler
     {
         ob_start();
 
-        $returnValue = null;
         try {
             $returnValue = call_user_func($job['command']);
         } catch (Throwable $throwable) {

@@ -81,36 +81,36 @@ final class ValidationCoordinator
     }
 
     /**
-     * Validates input data
+     * Validates input data and clears queued validators on every exit
      */
     public function validate(InputData $input): ValidationResult
     {
-        $context = $this->createContext($input);
+        try {
+            $context = $this->createContext($input);
 
-        $valid = $this->validators->reduce(
-            function (bool $valid, Validator $validator) use ($context) {
-                if (!$validator->validate($context)) {
-                    return false;
-                }
+            $valid = $this->validators->reduce(
+                function (bool $valid, Validator $validator) use ($context) {
+                    if (!$validator->validate($context)) {
+                        return false;
+                    }
 
-                return $valid;
-            },
-            $valid = true
-        );
-
-        if ($context->hasErrors() || !$valid) {
-            $result = ValidationResult::failed(
-                new ErrorData($context->getErrors())
+                    return $valid;
+                },
+                true
             );
-        } else {
-            $result = ValidationResult::passed(
+
+            if ($context->hasErrors() || !$valid) {
+                return ValidationResult::failed(
+                    new ErrorData($context->getErrors())
+                );
+            }
+
+            return ValidationResult::passed(
                 new ApplicationData($input->toArray())
             );
+        } finally {
+            $this->resetValidators();
         }
-
-        $this->resetValidators();
-
-        return $result;
     }
 
     /**
@@ -1133,9 +1133,12 @@ final class ValidationCoordinator
     }
 
     /**
-     * Clears the list of validators
+     * Clears queued validators without executing them
+     *
+     * Preparation failures can discard pending work on the same coordinator.
+     * This does not reset consumer-owned validator state or undo side effects.
      */
-    private function resetValidators(): void
+    public function resetValidators(): void
     {
         $this->validators = ArrayList::of(Validator::class);
     }

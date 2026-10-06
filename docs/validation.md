@@ -8,6 +8,7 @@ authorize input; it only establishes that the declared rules passed.
 ## Table of Contents
 
 1. [Overview](#overview)
+    - [Sequential reuse and failure cleanup](#sequential-reuse-and-failure-cleanup)
 2. [Wiring Up the Subscriber](#wiring-up-the-subscriber)
 3. [The `#[Validation]` Attribute](#the-validation-attribute)
 4. [Defining Rules](#defining-rules)
@@ -41,6 +42,36 @@ Request
 For JSON APIs, register `JsonRequestMiddleware` so that the JSON body is parsed into `$request->request` before the subscriber runs.
 
 **`ValidationService`** — a portable Application service that orchestrates field-level validation using the parsed rules. On success it returns an `ApplicationData` object (unused in the attribute flow). On failure it throws `Fight\Common\Application\Validation\Exception\ValidationException`.
+
+---
+
+## Sequential reuse and failure cleanup
+
+**Contracts:** `fight-common.behavior.validation-coordinator-reuse` and
+`fight-common.behavior.validation-service-reuse`.
+
+`ValidationCoordinator` and `ValidationService` support sequential reuse. Queued validators belong to one
+invocation, not the lifetime of the service. Register custom validators again when they are needed for a later
+call. Each coordinator call creates a fresh context and clears its queue on success, ordinary validation failure,
+or an unexpected throwable. It returns the existing passed/failed `ValidationResult`; the service returns
+`ApplicationData` or raises the existing structured `ValidationException` for an ordinary failed result.
+
+An unexpected validator `Exception` or PHP `Error` propagates unchanged, including object identity, integer code
+and previous cause. Remaining validators are not executed to drain the queue. A later call with unrelated input
+and empty or new rules does not run old validators or inherit their errors. The service also discards queued
+custom validators and any partially registered rules when input validation, rule parsing or registration fails,
+without replacing the supplied coordinator. Preparation rejection behavior is unchanged.
+
+`ValidationCoordinator::resetValidators(): void` explicitly discards queued validators without executing them;
+it is safe to call on an empty queue, and new validators may be registered afterward. This additive callable
+operation lets the service clean up preparation failures on its existing coordinator. Exceptional state retention
+was a defect, not a promised retry mechanism; supported existing signatures, normal results and exception families
+are retained. No new runtime or dependency requirement is introduced.
+
+These guarantees apply to calls that enter validation, not PHP argument-type rejection before method entry.
+They do not promise concurrent or reentrant use, reset consumer-owned validator internals, or roll back a custom
+validator's side effects. Validation is neither sanitization nor authorization. Cleanup does not make exception
+messages or diagnostic context safe for public HTTP presentation.
 
 ---
 

@@ -26900,10 +26900,10 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Application\\Validation\\ValidationCoordinator promises its inventoried public callable surface to consumers.",
+                        "rationale": "Preserves the baseline callable surface; TASK-00127 adds public resetValidators(): void to discard queued work without execution, including service preparation failures. Sequential reuse cleanup is a compatible defect repair, not a promise of reentrancy or side-effect rollback.",
                         "binding": {
                             "subject": "Fight\\Common\\Application\\Validation\\ValidationCoordinator",
-                            "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Application/Validation/ValidationCoordinator.php#Fight\\Common\\Application\\Validation\\ValidationCoordinator",
+                            "source_locator": "working-tree:src/Application/Validation/ValidationCoordinator.php#Fight\\Common\\Application\\Validation\\ValidationCoordinator",
                             "operation": "callable"
                         }
                     }
@@ -37592,6 +37592,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.validation-coordinator-reuse",
+            "normative": {"path": "docs/validation.md", "section": "Sequential reuse and failure cleanup"},
+            "fixture": {"path": "tests/Application/Validation/ValidationCoordinatorTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.validation-service-reuse",
+            "normative": {"path": "docs/validation.md", "section": "Sequential reuse and failure cleanup"},
+            "fixture": {"path": "tests/Application/Validation/ValidationServiceTest.php"}
+        },
         {
             "id": "fight-common.behavior.mcp-combined-resource-links",
             "normative": {"path": "docs/components/mcp/index.md", "locator": "Combined Tool, Resource and Skill journey"},

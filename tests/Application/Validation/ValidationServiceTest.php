@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Validation;
 
+use ArgumentCountError;
+use Error;
 use Fight\Common\Application\Validation\Data\ApplicationData;
+use Fight\Common\Application\Validation\Data\InputData;
 use Fight\Common\Application\Validation\Exception\ValidationException;
 use Fight\Common\Application\Validation\ValidationContext;
 use Fight\Common\Application\Validation\ValidationCoordinator;
@@ -13,6 +16,10 @@ use Fight\Common\Application\Validation\Validator;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
+use RuntimeException;
+use Throwable;
 
 #[CoversClass(ValidationService::class)]
 class ValidationServiceTest extends UnitTestCase
@@ -120,6 +127,161 @@ class ValidationServiceTest extends UnitTestCase
             ['name' => 'Alice'],
             [['field' => 'name', 'label' => 'Name', 'rules' => 'alpha']]
         );
+    }
+
+    #[TestWith([RuntimeException::class])]
+    #[TestWith([Error::class])]
+    public function test_that_validator_failure_preserves_throwable_and_isolates_service_reuse(string $failureClass): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $service = new ValidationService($coordinator);
+        $cause = new Error('Original cause');
+        $failure = new $failureClass('Validator failed', 31, $cause);
+        $throwing = $this->mock(Validator::class);
+        $throwing->shouldReceive('validate')->once()->andThrow($failure);
+        $skipped = $this->mock(Validator::class);
+        $skipped->shouldNotReceive('validate');
+        $coordinator->addRequiredValidation('missing', 'Old error');
+        $service->addValidator($throwing);
+        $service->addValidator($skipped);
+
+        try {
+            $service->validate([], [['field' => 'old', 'label' => 'Old', 'rules' => 'required']]);
+            self::fail('Expected validator failure');
+        } catch (Throwable $caught) {
+            self::assertSame($failure, $caught);
+            self::assertSame(31, $caught->getCode());
+            self::assertSame($cause, $caught->getPrevious());
+        }
+
+        self::assertSame(['new' => 'input'], $service->validate(['new' => 'input'], [])->toArray());
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+
+        $custom = $this->mock(Validator::class);
+        $custom->shouldReceive('validate')->once()->andReturn(true);
+        $coordinator->addValidator($custom);
+        self::assertSame(
+            ['email' => 'new@example.com'],
+            $service->validate(
+                ['email' => 'new@example.com'],
+                [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']]
+            )->toArray()
+        );
+        self::assertSame([], $service->validate([], [])->toArray());
+    }
+
+    #[DataProvider('preparationFailures')]
+    public function test_that_preparation_failure_discards_queued_work(
+        array $input,
+        array $rules,
+        string $failureClass,
+        string $message
+    ): void {
+        $coordinator = new ValidationCoordinator();
+        $service = new ValidationService($coordinator);
+        $skipped = $this->mock(Validator::class);
+        $skipped->shouldNotReceive('validate');
+        $service->addValidator($skipped);
+        $coordinator->addRequiredValidation('old', 'Old error');
+
+        $caught = null;
+        try {
+            $service->validate($input, $rules);
+        } catch (Throwable $failure) {
+            $caught = $failure;
+        }
+
+        self::assertInstanceOf($failureClass, $caught);
+        self::assertStringContainsString($message, $caught->getMessage());
+        self::assertSame(['fresh' => 'value'], $service->validate(['fresh' => 'value'], [])->toArray());
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+
+        // The injected coordinator must still be the service's registration boundary.
+        $coordinator->addRequiredValidation('current', 'Current error');
+        try {
+            $service->validate([], []);
+            self::fail('Expected current validation error');
+        } catch (ValidationException $failure) {
+            self::assertSame(['current' => ['Current error']], $failure->getErrors());
+        }
+        self::assertSame([], $service->validate([], [])->toArray());
+    }
+
+    public static function preparationFailures(): iterable
+    {
+        yield 'input keys' => [[0 => 'value'], [], DomainException::class, 'Input keys should be strings'];
+        yield 'rule shape' => [[], [['field' => 'old']], DomainException::class, 'Label is required'];
+        yield 'rule parsing' => [
+            [],
+            [['field' => 'old', 'label' => 'Old', 'rules' => 'required|unknown']],
+            DomainException::class,
+            'Unsupported rule name: unknown'
+        ];
+        yield 'partial registration' => [
+            [],
+            [[
+                'field' => 'prepared',
+                'label' => 'Prepared',
+                'rules' => 'required|type',
+                'errors' => ['type' => 'Invalid type']
+            ]],
+            ArgumentCountError::class,
+            'ValidationCoordinator::addTypeValidation()'
+        ];
+    }
+
+    public function test_that_partial_rule_registration_is_discarded_after_preparation_failure(): void
+    {
+        $service = new ValidationService();
+        try {
+            $service->validate([], [[
+                'field' => 'prepared',
+                'label' => 'Prepared',
+                'rules' => 'required|type',
+                'errors' => ['type' => 'Invalid type']
+            ]]);
+            self::fail('Expected missing type argument');
+        } catch (ArgumentCountError $failure) {
+            self::assertStringContainsString('ValidationCoordinator::addTypeValidation()', $failure->getMessage());
+        }
+
+        // The preceding required rule was registered before addTypeValidation rejected its arguments.
+        self::assertSame([], $service->validate([], [])->toArray());
+    }
+
+    public function test_that_normal_service_results_and_errors_remain_isolated_on_reuse(): void
+    {
+        $service = new ValidationService();
+        $rules = [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']];
+
+        self::assertSame(
+            ['email' => 'user@example.com', 'extra' => 42],
+            $service->validate(['email' => 'user@example.com', 'extra' => 42], $rules)->toArray()
+        );
+        self::assertSame([], $service->validate([], [])->toArray());
+
+        $coordinator = new ValidationCoordinator();
+        $coordinator->addNotBlankValidation('email', 'Email cannot be blank');
+        $coordinator->addEmailValidation('email', 'Email must be valid');
+        $coordinator->addRequiredValidation('name', 'Name is required');
+        $service = new ValidationService($coordinator);
+        try {
+            $service->validate(['email' => ''], []);
+            self::fail('Expected accumulated validation errors');
+        } catch (ValidationException $failure) {
+            self::assertSame([
+                'email' => ['Email cannot be blank', 'Email must be valid'],
+                'name' => ['Name is required']
+            ], $failure->getErrors());
+        }
+
+        self::assertSame([], $service->validate([], [])->toArray());
+        try {
+            $service->validate([], [['field' => 'new', 'label' => 'New', 'rules' => 'required']]);
+            self::fail('Expected only the newly registered rule');
+        } catch (ValidationException $failure) {
+            self::assertSame(['new' => ['New is required']], $failure->getErrors());
+        }
     }
 
     public function test_that_validate_rejects_an_unsupported_rule_name(): void

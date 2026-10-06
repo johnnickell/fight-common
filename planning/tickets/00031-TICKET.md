@@ -2,7 +2,7 @@
 id: TICKET-00031
 epic: EPIC-00008
 title: Safely Reuse Validation Services
-status: ready-for-agent
+status: done
 ---
 
 # Safely Reuse Validation Services
@@ -62,7 +62,7 @@ and is independently useful. It does not require new error categories from [TICK
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00127](../tasks/00127-TASK.md) | Make Validation Reuse Exception-Safe | ready-for-agent |
+| [TASK-00127](../tasks/00127-TASK.md) | Make Validation Reuse Exception-Safe | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

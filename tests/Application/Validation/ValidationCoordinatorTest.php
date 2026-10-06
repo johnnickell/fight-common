@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Validation;
 
+use Error;
 use Fight\Common\Application\Validation\Data\InputData;
 use Fight\Common\Application\Validation\ValidationContext;
 use Fight\Common\Application\Validation\ValidationCoordinator;
 use Fight\Common\Application\Validation\Validator;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
+use RuntimeException;
+use Throwable;
 
 #[CoversClass(ValidationCoordinator::class)]
 class ValidationCoordinatorTest extends UnitTestCase
@@ -92,6 +96,69 @@ class ValidationCoordinatorTest extends UnitTestCase
         $result = $coordinator->validate(new InputData(['email' => 'not-an-email']));
 
         self::assertTrue($result->isPassed());
+    }
+
+    #[TestWith([RuntimeException::class])]
+    #[TestWith([Error::class])]
+    public function test_that_validator_failure_does_not_leak_queued_validators_into_reuse(string $failureClass): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $cause = new Error('Original cause');
+        $failure = new $failureClass('Validator failed', 17, $cause);
+        $coordinator->addRequiredValidation('missing', 'Old error');
+        $throwing = $this->mock(Validator::class);
+        $throwing->shouldReceive('validate')->once()->andThrow($failure);
+        $skipped = $this->mock(Validator::class);
+        $skipped->shouldNotReceive('validate');
+        $coordinator->addValidator($throwing);
+        $coordinator->addValidator($skipped);
+
+        try {
+            $coordinator->validate(new InputData(['old' => 'input']));
+            self::fail('Expected validator failure');
+        } catch (Throwable $caught) {
+            self::assertSame($failure, $caught);
+            self::assertSame(17, $caught->getCode());
+            self::assertSame($cause, $caught->getPrevious());
+        }
+
+        $result = $coordinator->validate(new InputData(['new' => 'input']));
+
+        self::assertTrue($result->isPassed());
+        self::assertSame(['new' => 'input'], $result->getData()->toArray());
+
+        $coordinator->addRequiredValidation('current', 'Current error');
+        $failed = $coordinator->validate(new InputData([]));
+        self::assertSame(['current' => ['Current error']], $failed->getErrors()->toArray());
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+    }
+
+    public function test_that_successful_validation_consumes_registered_validators(): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $coordinator->addRequiredValidation('name', 'Name required');
+
+        self::assertTrue($coordinator->validate(new InputData(['name' => 'Alice']))->isPassed());
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+    }
+
+    public function test_that_reset_discards_validators_without_execution_and_allows_new_registration(): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $skipped = $this->mock(Validator::class);
+        $skipped->shouldNotReceive('validate');
+        $coordinator->addValidator($skipped);
+        $coordinator->addRequiredValidation('old', 'Old error');
+
+        $coordinator->resetValidators();
+        $coordinator->resetValidators();
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+
+        $coordinator->addRequiredValidation('new', 'New error');
+        self::assertSame(
+            ['new' => ['New error']],
+            $coordinator->validate(new InputData([]))->getErrors()->toArray()
+        );
     }
 
     public function test_that_add_validator_registers_a_custom_validator(): void
