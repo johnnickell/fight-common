@@ -2,7 +2,7 @@
 id: TICKET-00035
 epic: EPIC-00008
 title: Validate Network and Contact Values
-status: ready-for-agent
+status: done
 ---
 
 # Validate Network and Contact Values
@@ -85,7 +85,7 @@ Application rule contracts; no base-class prefactor, automatic caller migration 
 |---|---|---|
 | [TASK-00131](../tasks/00131-TASK.md) | Correct Quoted Email Part Extraction | done |
 | [TASK-00132](../tasks/00132-TASK.md) | Add Canonical IP Address Values | done |
-| [TASK-00133](../tasks/00133-TASK.md) | Add Lexical E.164 Phone Numbers | ready-for-agent |
+| [TASK-00133](../tasks/00133-TASK.md) | Add Lexical E.164 Phone Numbers | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

@@ -19,7 +19,6 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | ready-for-agent | — | — |
@@ -89,6 +88,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | [TICKET-00034 — Treat Stream Identifiers as Values](../tickets/00034-TICKET.md) | done | — | [PR #198](https://github.com/johnnickell/fight-common/pull/198) |
 | — | [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | [PR #199](https://github.com/johnnickell/fight-common/pull/199) |
 | — | [TASK-00132](00132-TASK.md) | Add Canonical IP Address Values | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | [PR #200](https://github.com/johnnickell/fight-common/pull/200) |
+| — | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | — |
 <!-- /planning:board -->
 
 ## Wayfinder

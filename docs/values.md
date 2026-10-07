@@ -17,7 +17,7 @@ The recommended way to construct value objects is via the helper functions in `F
 | `url($url)` | `Url` | `Url::fromString($url)` |
 | `uuid()` | `Uuid` | `Uuid::comb()` |
 
-Sections show helpers where available and named factories; the IP hierarchy has no helper.
+Sections show helpers where available and named factories; the IP hierarchy and E164PhoneNumber have no helpers.
 
 ---
 
@@ -29,12 +29,13 @@ Sections show helpers where available and named factories; the IP hierarchy has 
 4. [StrictJson](#strictjson)
 5. [EmailAddress](#emailaddress)
 6. [IP addresses](#ip-addresses)
-7. [Uri](#uri)
-8. [Url](#url)
-9. [Uuid](#uuid)
-10. [Identity (UniqueId)](#identity-uniqueid)
-11. [StreamId](#streamid)
-12. [Doctrine Data Types](#doctrine-data-types)
+7. [E164PhoneNumber](#e164phonenumber)
+8. [Uri](#uri)
+9. [Url](#url)
+10. [Uuid](#uuid)
+11. [Identity (UniqueId)](#identity-uniqueid)
+12. [StreamId](#streamid)
+13. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -448,6 +449,52 @@ presentation. Valid private, loopback, link-local, multicast, unspecified and br
 as applicable to the family. Construction makes no DNS or network call. Consumers own destination authorization,
 address-category restrictions, trusted client-IP sources and SSRF defenses; this is not a CIDR/subnet value or a
 sanitization/redaction boundary. Exception prose is not a stable diagnostic contract.
+
+---
+
+## E164PhoneNumber
+
+`Fight\Common\Domain\Value\Internet\E164PhoneNumber`
+
+A final readonly lexical phone value, constructed with `fromString()`; no helper, Identifier, ordering,
+extension point or Doctrine mapping is added.
+
+### E.164 lexical form and value identity
+
+**Contract ID:** `fight-common.behavior.e164-phone-number`
+
+Accept exactly `\A\+[1-9][0-9]{0,14}\z`: a leading plus, a nonzero first ASCII digit and one through fifteen
+ASCII digits total, excluding the plus. There is no arbitrary minimum or country-code/assignment database.
+`+1` and `+9` are valid lexical values, not claims of assigned or dialable numbers. Keep phone data as strings,
+never numeric casts. Construction does not trim whitespace, remove separators or convert national prefixes.
+
+```php-inline
+use Fight\Common\Domain\Value\Internet\E164PhoneNumber;
+
+$number = E164PhoneNumber::fromString('+15550001234');
+$number->toString();                          // '+15550001234'
+(string) $number;                            // '+15550001234'
+json_encode($number);                        // '"+15550001234"'
+$number->equals(E164PhoneNumber::fromString($number->toString())); // true
+// E164PhoneNumber::fromString('+0987654321') throws DomainException
+// E164PhoneNumber::fromString('+1234567890123456') throws DomainException
+```
+
+Empty/plus-only input, leading zero, missing/double/embedded plus, letters, Unicode digits/lookalikes, all
+whitespace/control bytes, separators, extensions and overlength strings raise `DomainException` without repair.
+Unprefixed short codes and alphanumeric sender IDs are not values of this type. Native PHP parameter typing
+remains separate from invalid-string validation; exception prose is not a stable diagnostic contract.
+
+The accepted text is retained exactly by `toString()`, string casting, `hashValue()` and JSON serialization.
+Equality is same-concrete-type plus exact string, and equal values have equal hashes. Reconstruct via `fromString()`
+from the emitted string or decoded JSON string. Values expose no mutable state. No exact PHP serialized-byte or
+new persistence contract is introduced.
+
+Adoption is optional: explicitly pass `toString()` into the existing [SMS string APIs](../sms/index.md#optional-lexical-phone-adoption).
+Existing short codes, sender IDs and non-E.164 strings remain supported there; neither value construction nor
+message creation sends anything. Lexical validity does not establish assignment, reachability, SMS capability,
+provider eligibility, ownership or permission to contact. Consumers own sender selection, country/provider rules,
+consent, authorization, redaction and delivery policy. Construction performs no network/provider lookup.
 
 ---
 
