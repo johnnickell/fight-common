@@ -32,7 +32,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00127](00127-TASK.md) | Make Validation Reuse Exception-Safe | done | [TICKET-00031](../tickets/00031-TICKET.md) |
 | [TASK-00128](00128-TASK.md) | Add Strict Pagination Construction | done | [TICKET-00032](../tickets/00032-TICKET.md) |
 | [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | done | [TICKET-00033](../tickets/00033-TICKET.md) |
-| [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | ready-for-agent | [TICKET-00034](../tickets/00034-TICKET.md) |
+| [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | done | [TICKET-00034](../tickets/00034-TICKET.md) |
 | [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |
 | [TASK-00132](00132-TASK.md) | Add Canonical IP Address Values | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |
 | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | ready-for-agent | [TICKET-00035](../tickets/00035-TICKET.md) |

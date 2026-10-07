@@ -2,7 +2,7 @@
 id: TICKET-00034
 epic: EPIC-00008
 title: Treat Stream Identifiers as Values
-status: ready-for-agent
+status: done
 ---
 
 # Treat Stream Identifiers as Values
@@ -25,10 +25,11 @@ comparison knowledge. Consumers need coherent reusable identity without rewritin
   and wrong-type comparison raise DomainException. Compare aggregate name, then identifier, bytewise.
 - Preserve persisted aggregate-name/identifier fields, adapter lookup meaning and repository identity contracts.
   In-memory comparison may delegate to the owned value only after the compatibility effect is established.
-- Target direct StreamId promotion at the following major, explicitly outside this EPIC's next-minor delivery.
-  John approved this conservative boundary after collection/native-JSON probes; no parallel opt-in value type or
-  minor compatibility exception is selected. Assess public/behavioral/serialization effects and migration guidance
-  honestly; this planning decision is not an exact-version approval or completed release certification.
+- Target direct StreamId promotion at the next minor under John's explicit TASK-00130 work-intake amendment:
+  he reports no external adopters and approved a minor bump with changed-behavior notes after reviewing the collection
+  and JSON effects. This supersedes the original major-only boundary, not the behavioral-break classification.
+  No parallel opt-in type is selected. Preserve constructor/persistence compatibility and honest migration guidance;
+  this scoped exception is not a general policy change, exact-version approval or release certification.
 - Exclude storage layouts/migrations, event-store concurrency, mapping/upcasting, new aggregate ID classes,
   publication/projection changes and general identity-framework reorganization.
 
@@ -56,13 +57,13 @@ Reuse the existing Identifier/Value/collection capabilities and
 [ADR 0001](../adr/0001-event-sourcing-contract.md)'s stable stream identity contract. No new cross-TICKET prerequisite.
 Compatibility classification precedes adapter/collection adoption; source-compatible interface additions alone
 are not proof that a minor release can change existing collection uniqueness. There are no TASK dependencies, but
-execution/integration must respect the approved following-major target. Verify actual branch/timing suitability at
-work intake rather than merging the promotion into a next-minor line or inventing a branch-policy exception.
+execution/integration follows the normal develop-based feature branch under the scoped minor exception recorded in
+[TASK-00130](../tasks/00130-TASK.md#owner-amendment-at-work-intake). John selected the main checkout.
 
 ## Acceptance and evidence
 
 - Retain current object-identity collection and native-JSON reproduction evidence; use code-first feature
-  development and meaningful value/collection regressions for the selected following-major delivery. Do not silently
+  development and meaningful value/collection regressions for the explicitly approved minor delivery. Do not silently
   rewrite a legacy expectation to claim minor compatibility or manufacture a red result caused only by a missing API.
   Any actual separate defect repair remains regression-first.
 - Cover equal/different tuples, equal hashes, comparison consistency, malformed input and round trips with
@@ -80,10 +81,13 @@ work intake rather than merging the promotion into a next-minor line or inventin
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00130](../tasks/00130-TASK.md) | Give StreamId Tuple Value Semantics | ready-for-agent |
+| [TASK-00130](../tasks/00130-TASK.md) | Give StreamId Tuple Value Semantics | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+**Current decision:** TASK-00130's owner amendment supersedes the historical major-only decision below. The observable
+collection and JSON changes remain breaking behavior, accepted for minor delivery with explicit migration notes.
 
 2026-10-06: John approved this requirement area in [EPIC-00008](../epics/00008-EPIC.md)'s nine-TICKET split.
 At that requirement checkpoint, final grammar and compatible delivery mechanics remained for TASK design;

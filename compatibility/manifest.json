@@ -31112,7 +31112,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Domain\\EventSourcing\\StreamId promises its inventoried public callable surface to consumers.",
+                        "rationale": "StreamId promises component access and Identifier tuple equality, hashing, bytewise comparison, canonical string/JSON and fromString reconstruction. TASK-00130 records the owner-approved minor exception for changed collection/JSON dispatch; this is not a backward-compatibility claim.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\EventSourcing\\StreamId",
                             "source_locator": "working-tree:src/Domain/EventSourcing/StreamId.php#Fight\\Common\\Domain\\EventSourcing\\StreamId",
@@ -31124,7 +31124,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Domain\\EventSourcing\\StreamId promises construction through its inventoried public constructor or named factory.",
+                        "rationale": "StreamId retains its public nonempty-byte-string constructor and adds canonical fromString reconstruction; it remains final and readonly.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\EventSourcing\\StreamId",
                             "source_locator": "working-tree:src/Domain/EventSourcing/StreamId.php#Fight\\Common\\Domain\\EventSourcing\\StreamId",
@@ -37592,6 +37592,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.stream-id-tuple",
+            "normative": {"path": "docs/event-sourcing.md", "section": "Stream identity values"},
+            "fixture": {"path": "tests/Domain/EventSourcing/StreamIdTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.stream-id-collections",
+            "normative": {"path": "docs/collections.md", "section": "StreamId collection migration"},
+            "fixture": {"path": "tests/Domain/EventSourcing/StreamIdTest.php"}
+        },
         {
             "id": "fight-common.behavior.json-object-snapshots",
             "normative": {"path": "docs/values.md", "section": "Immutable JSON snapshots"},
