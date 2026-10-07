@@ -32,7 +32,8 @@ Each section below shows both the helper and the direct constructor.
 7. [Url](#url)
 8. [Uuid](#uuid)
 9. [Identity (UniqueId)](#identity-uniqueid)
-10. [Doctrine Data Types](#doctrine-data-types)
+10. [StreamId](#streamid)
+11. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -625,6 +626,20 @@ $uid->equals(UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479')); // tru
 | `$id->hashValue(): string` | Hash including the type prefix |
 
 ---
+
+## StreamId
+
+`Fight\Common\Domain\EventSourcing\StreamId` extends `ValueObject` and implements `Identifier` without UUID
+restrictions. Its public constructor retains two nonempty byte strings: stable aggregate name and identifier.
+Equality/hash include both components; comparison is bytewise name-first, then identifier, never numeric.
+`toString()`, string casts and native JSON use the canonical ASCII `stream:v1:<base64(name)>:<base64(id)>` frame.
+`fromString()` strictly reconstructs it with `DomainException` for invalid/noncanonical frames or empty components;
+wrong-type comparison also raises `DomainException`, while wrong-type equality is false.
+
+See [Stream identity values](../event-sourcing/index.md#stream-identity-values) for the exact grammar and
+[the minor-upgrade notice](../event-sourcing/index.md#streamid-minor-upgrade-notice) for the explicitly approved changes to
+hash collection identity and native JSON. Component fields in storage and diagnostics remain unchanged; encoding
+is not redaction, authorization or automatic persistence migration.
 
 ## Doctrine Data Types
 

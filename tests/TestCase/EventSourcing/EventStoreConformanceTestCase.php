@@ -462,6 +462,30 @@ abstract class EventStoreConformanceTestCase extends UnitTestCase
         self::assertSame('6ba7b820-9dad-11d1-80b4-00c04fd430c8', (string) $storedEvents[0]->message()->id());
     }
 
+    public function test_that_reconstructed_and_separately_constructed_tuples_select_the_same_stream(): void
+    {
+        $eventStore = $this->createEventStore(new EventMapper([new ConformanceEventMappingProvider()]));
+        $stream = new StreamId('order', 'order-42');
+        $message = new EventMessage(
+            MessageId::fromString('6ba7b840-9dad-11d1-80b4-00c04fd430c8'),
+            new DateTimeImmutable('2026-08-02T10:13:00.000016+00:00'),
+            new ConformanceOrderPlaced('order-42'),
+            Meta::create(),
+        );
+        $eventStore->append($stream, 0, [$message]);
+        $eventStore->append(StreamId::fromString($stream->toString()), 0, [$message]);
+
+        $events = [...$eventStore->readStream(new StreamId('order', 'order-42'))];
+        self::assertCount(1, $events);
+        self::assertTrue($events[0]->message()->id()->equals($message->id()));
+        self::assertSame('order', $events[0]->streamId()->aggregateName());
+        self::assertSame('order-42', $events[0]->streamId()->identifier());
+        self::assertCount(1, [...$eventStore->readStream(StreamId::fromString($stream->toString()))]);
+        self::assertCount(1, [...$eventStore->readAllAfter(0, 10)]);
+        self::assertSame([], [...$eventStore->readStream(new StreamId('invoice', 'order-42'))]);
+        self::assertSame([], [...$eventStore->readStream(new StreamId('order', 'order-43'))]);
+    }
+
     public function test_that_stream_identity_includes_aggregate_name_and_identifier(): void
     {
         $eventStore = $this->createEventStore(new EventMapper([new ConformanceEventMappingProvider()]));

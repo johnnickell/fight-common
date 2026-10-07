@@ -121,6 +121,25 @@ $set = hash_set([1, 2, 3], 'int');
 
 ---
 
+### StreamId collection migration
+
+Contract: `fight-common.behavior.stream-id-collections`.
+
+`StreamId` implements `Identifier` and compares the complete aggregate-name/identifier tuple. Hash sets now
+collapse separately constructed equal tuples, and equivalent tuples can find/remove entries. Hash tables resolve
+equivalent keys to the same entry; setting one replaces the previous value. Both components remain significant,
+and different tuples remain distinct even when their finite hash digests collide.
+
+This changes the former object-identity hashing behavior and is explicitly approved for minor delivery with a
+migration notice; it is not backward-compatible for instance-sensitive consumers. Rebuild previously serialized
+hash collections holding StreamIds rather than reusing their old cached buckets. Use an `ArrayList`,
+`SplObjectStorage` or a consumer-owned identity/key policy when distinct instances must remain separate.
+
+Typed `Identifier` collections accept StreamId. `SortedSet::comparable(Identifier::class)` uses bytewise name-first,
+identifier-second ordering and deduplicates equal tuples. Explicit custom comparators retain control of sorted
+order and equivalence; they are not replaced by the value's natural order. See
+[Stream identity values](../event-sourcing/index.md#stream-identity-values) for encoding and persistence boundaries.
+
 ## HashTable
 
 `Fight\Common\Domain\Collection\HashTable` implements `Table`

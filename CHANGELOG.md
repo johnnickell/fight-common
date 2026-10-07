@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **StreamId behavior change (explicit maintainer-approved minor exception):** StreamId now implements Identifier
+  with tuple equality, hashing, bytewise ordering and canonical string/JSON reconstruction. Separately constructed
+  equal tuples now deduplicate in HashSet, find/remove each other and share a HashTable key (later values replace
+  earlier ones). Native JSON changes from `{}` to a string such as `"stream:v1:T3JkZXI=:MTIz"` for `('Order', '123')`.
+  This is not backward-compatible for instance-sensitive collections or JSON consumers; the maintainer approved
+  minor delivery after reporting no external StreamId adopters. Constructor/getters, nonempty byte-string inputs
+  and persisted aggregate-name/identifier fields remain unchanged; no schema migration is required. Rebuild old
+  serialized hash collections containing StreamIds; choose a list or consumer-owned instance identity policy if
+  duplicate instances must remain distinct. See [migration guidance](docs/event-sourcing.md#streamid-minor-upgrade-notice).
+
 ## [1.3.0] - 2026-10-02
 
 ### Added
