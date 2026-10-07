@@ -17,7 +17,7 @@ The recommended way to construct value objects is via the helper functions in `F
 | `url($url)` | `Url` | `Url::fromString($url)` |
 | `uuid()` | `Uuid` | `Uuid::comb()` |
 
-Each section below shows both the helper and the direct constructor.
+Sections show helpers where available and named factories; the IP hierarchy has no helper.
 
 ---
 
@@ -28,12 +28,13 @@ Each section below shows both the helper and the direct constructor.
 3. [JsonObject](#jsonobject)
 4. [StrictJson](#strictjson)
 5. [EmailAddress](#emailaddress)
-6. [Uri](#uri)
-7. [Url](#url)
-8. [Uuid](#uuid)
-9. [Identity (UniqueId)](#identity-uniqueid)
-10. [StreamId](#streamid)
-11. [Doctrine Data Types](#doctrine-data-types)
+6. [IP addresses](#ip-addresses)
+7. [Uri](#uri)
+8. [Url](#url)
+9. [Uuid](#uuid)
+10. [Identity (UniqueId)](#identity-uniqueid)
+11. [StreamId](#streamid)
+12. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -398,6 +399,55 @@ the `common_email_address` name, null/empty conversion and instance passthrough;
 Validation is lexical only: no DNS lookup, reachability or ownership verification occurs. Consumers own login
 identity, authorization and permission to contact the address; neither accepted syntax nor diagnostic text grants
 those guarantees or promises public-safe presentation.
+
+---
+
+## IP addresses
+
+`Fight\Common\Domain\Value\Internet\IpAddress` is an abstract readonly family boundary. Its generic
+`fromString()` returns final readonly `IpV4Address` or `IpV6Address`; concrete factories accept only their own
+family. These are additive, opt-in values; existing `Validate::isIp*` predicates, Application `IsIp*` rules and
+URI/adapter callers retain their existing behavior and are not migrated automatically. No Doctrine mapping,
+Identifier, ordering or consumer-extension contract is introduced by the abstract declaration.
+
+### IP literal normalization and family identity
+
+**Contract ID:** `fight-common.behavior.ip-address-values`
+
+Factories require a bare literal string, without trimming, resolving hostnames or inferring context. Empty or
+malformed values, ambiguous leading-zero IPv4, whitespace, CIDR, brackets, IPv4 ports and IPv6 zone identifiers
+raise `DomainException`. A valid final IPv6 hextet is address content, not a port; use a separate connection/URI
+boundary for ports. Native PHP parameter typing remains distinct from invalid-string value validation.
+
+Canonical IPv4 is dotted decimal. Canonical IPv6 uses lowercase hexadecimal hextets without leading zeros,
+compressing the **first longest run of at least two zero hextets** to `::`; an isolated zero is never compressed.
+Every embedded IPv4 suffix, including mapped IPv6, is rendered as hexadecimal hextets rather than dotted decimal.
+Common owns this formatting policy, using native binary parsing but not platform-specific native rendering.
+
+```php-inline
+use Fight\Common\Domain\Value\Internet\IpAddress;
+use Fight\Common\Domain\Value\Internet\IpV4Address;
+use Fight\Common\Domain\Value\Internet\IpV6Address;
+
+$v4 = IpAddress::fromString('192.0.2.1');     // IpV4Address; '192.0.2.1'
+$v6 = IpAddress::fromString('2001:0DB8:0:0:0:0:0:1'); // IpV6Address; '2001:db8::1'
+$mapped = IpV6Address::fromString('::ffff:192.0.2.1');
+$mapped->toString();                        // '::ffff:c000:201'
+$mapped->equals(IpV6Address::fromString('::FFFF:C000:0201')); // true
+$mapped->equals($v4);                       // false: mapped IPv6 remains IPv6
+// IpV4Address::fromString('::ffff:192.0.2.1') throws DomainException
+```
+
+Equality is concrete-family plus canonical address; equal values have equal hashes. String casting, `toString()`,
+`hashValue()` and JSON serialization use the canonical string. Generic and family-specific factories reconstruct
+that representation; independently constructed equivalent values deduplicate and support membership/removal in
+`HashSet`. Values expose no mutable state. No exact PHP serialized-byte or new persistence promise is made.
+
+Lexical validity does **not** imply reachability, trusted provenance, public routing, permission or public-safe
+presentation. Valid private, loopback, link-local, multicast, unspecified and broadcast addresses are accepted
+as applicable to the family. Construction makes no DNS or network call. Consumers own destination authorization,
+address-category restrictions, trusted client-IP sources and SSRF defenses; this is not a CIDR/subnet value or a
+sanitization/redaction boundary. Exception prose is not a stable diagnostic contract.
 
 ---
 

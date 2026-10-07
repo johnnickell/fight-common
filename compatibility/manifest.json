@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "2941813f639848685f04da209b5e7d2eb92e5cd0681ce1366494fbc0433b9ebb",
+    "operation_shapes_sha256": "52d9c2e0bda684230ffe54a1123a3f78f4078e3b2a052a8b9256d303cb1de9fd",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,7 +9,7 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 132,
+            "declarations": 135,
             "functions": 13
         },
         "Application": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00132-addition": {
+            "path": "planning/tasks/00132-TASK.md",
+            "locator": "Scope and acceptance: additive canonical IP values, strict family parsing and retained mapped IPv6 identity"
+        },
         "fight-common.classification.task-00123-addition": {
             "path": "planning/tasks/00123-TASK.md",
             "locator": "Outcome and acceptance: optional metadata-aware MCP capability without changing existing implementers"
@@ -131,6 +135,48 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress",
+            "source": "src/Domain/Value/Internet/IpAddress.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "source_locator": "working-tree:src/Domain/Value/Internet/IpAddress.php#Fight\\Common\\Domain\\Value\\Internet\\IpAddress"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00132-addition", "rationale": "Public abstract readonly address-family boundary with a generic factory selecting the two package-owned final families. Not a consumer extension point, Identifier or ordering contract."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Generic bare-literal fromString factory and inherited concrete-type equality, hashing, string and JSON operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "source_locator": "working-tree:src/Domain/Value/Internet/IpAddress.php#Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factory returns IpV4Address or IpV6Address; abstract IpAddress is not directly instantiated.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "source_locator": "working-tree:src/Domain/Value/Internet/IpAddress.php#Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "The accepted hierarchy has only two package-owned final families; abstract declaration shape does not promise consumer specialization or third-party families.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "source_locator": "working-tree:src/Domain/Value/Internet/IpAddress.php#Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "source_locator": "working-tree:src/Domain/Value/Internet/IpAddress.php#Fight\\Common\\Domain\\Value\\Internet\\IpAddress", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address",
+            "source": "src/Domain/Value/Internet/IpV4Address.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV4Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV4Address"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00132-addition", "rationale": "Additive final readonly bare IPv4 value with dotted-decimal representation and DomainException rejection; no network/category policy or persistence mapping."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Family-specific factory, canonical toString and inherited ValueObject equality/hash/string/JSON.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV4Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Public named factory only; private constructor enforces bare IPv4 validation.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV4Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable family value; no consumer subclassing contract.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV4Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV4Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV4Address", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address",
+            "source": "src/Domain/Value/Internet/IpV6Address.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV6Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV6Address"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00132-addition", "rationale": "Additive final readonly bare IPv6 value with owned deterministic hexadecimal compression, mapped-family retention and DomainException rejection."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Family-specific factory, canonical toString and inherited ValueObject equality/hash/string/JSON; equivalent dotted/hex mapped forms remain IPv6.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV6Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Public named factory only; private constructor validates IPv6 and captures canonical text.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV6Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable family value; no consumer subclassing contract.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV6Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "source_locator": "working-tree:src/Domain/Value/Internet/IpV6Address.php#Fight\\Common\\Domain\\Value\\Internet\\IpV6Address", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Application\\Mcp\\McpRequestLimits",
             "source": "src/Application/Mcp/McpRequestLimits.php",
@@ -37592,6 +37638,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.ip-address-values",
+            "normative": {"path": "docs/values.md", "section": "IP literal normalization and family identity"},
+            "fixture": {"path": "tests/Domain/Value/Internet/IpAddressTest.php"}
+        },
         {
             "id": "fight-common.behavior.email-parts-and-identity",
             "normative": {"path": "docs/values.md", "section": "Email parts and identity"},
