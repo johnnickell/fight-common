@@ -88,7 +88,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00128](00128-TASK.md) | Add Strict Pagination Construction | [TICKET-00032 — Construct Safe Pagination Requests](../tickets/00032-TICKET.md) | done | — | [PR #196](https://github.com/johnnickell/fight-common/pull/196) |
 | — | [TASK-00129](00129-TASK.md) | Add Immutable JSON Snapshots | [TICKET-00033 — Snapshot JSON Without Mutable Aliasing](../tickets/00033-TICKET.md) | done | — | [PR #197](https://github.com/johnnickell/fight-common/pull/197) |
 | — | [TASK-00130](00130-TASK.md) | Give StreamId Tuple Value Semantics | [TICKET-00034 — Treat Stream Identifiers as Values](../tickets/00034-TICKET.md) | done | — | [PR #198](https://github.com/johnnickell/fight-common/pull/198) |
-| — | [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | — |
+| — | [TASK-00131](00131-TASK.md) | Correct Quoted Email Part Extraction | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | [PR #199](https://github.com/johnnickell/fight-common/pull/199) |
 <!-- /planning:board -->
 
 ## Wayfinder
