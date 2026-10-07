@@ -154,6 +154,18 @@ class FunctionsTest extends UnitTestCase
         self::assertSame('test@example.com', $result->toString());
     }
 
+    public function test_that_email_preserves_quoted_address_bytes_and_extracts_complete_parts(): void
+    {
+        $address = '"A\"@B"@[IPv6:2001:db8::1]';
+        $result = email($address);
+
+        self::assertInstanceOf(EmailAddress::class, $result);
+        self::assertSame($address, $result->toString());
+        self::assertSame('"A\"@B"', $result->localPart());
+        self::assertSame('IPv6:2001:db8::1', $result->domainPart());
+        self::assertTrue($result->equals(EmailAddress::fromString($address)));
+    }
+
     public function test_that_email_throws_domain_exception_for_invalid_email(): void
     {
         $this->expectException(DomainException::class);
