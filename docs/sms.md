@@ -40,7 +40,7 @@ Adapter\Sms
 `Fight\Common\Application\Sms\Message\SmsMessage`
 
 A mutable, fluent DTO for building SMS/MMS messages. Constructed with `to` and `from`
-phone numbers; body and media are optional.
+address strings; body and media are optional. Common does not impose E.164 validation on these strings.
 
 ```php-inline
 use Fight\Common\Application\Sms\Message\SmsMessage;
@@ -53,8 +53,8 @@ $message = SmsMessage::create('+15550001234', '+15559998765')
 
 | Method | Signature | Description |
 |---|---|---|
-| `getTo` | `(): string` | Recipient phone number |
-| `getFrom` | `(): string` | Sender phone number |
+| `getTo` | `(): string` | Recipient address string |
+| `getFrom` | `(): string` | Sender address string |
 | `setBody` | `(string $body): static` | Message body text |
 | `getBody` | `(): ?string` | Returns null if not set |
 | `addMedia` | `(Url $url): static` | Adds a media URL for MMS |
@@ -62,6 +62,33 @@ $message = SmsMessage::create('+15550001234', '+15559998765')
 
 `addMedia()` accepts a `Fight\Common\Domain\Value\Internet\Url` value object. Use
 `SmsService::createMediaUrl()` to build one from a plain string.
+
+### Optional lexical phone adoption
+
+**Contract ID:** `fight-common.behavior.sms-string-addressing`
+
+`SmsMessage` constructor/`create()`, `SmsFactory::createMessage()` and `SmsService::createMessage()` retain
+string-based addressing and accessors without mandatory new-value validation. Short codes such as `12345`,
+alphanumeric sender IDs such as `FIGHT` and existing non-E.164 strings such as `+0987654321` remain unchanged.
+This preserves Common's construction and provider translation, not acceptance by a particular provider.
+
+Consumers may opt into [E164PhoneNumber](../values/index.md#e164phonenumber) at their own boundary and explicitly convert
+with `toString()`. Its whole-string plus/nonzero-first-ASCII-digit/at-most-fifteen-digit grammar adds no minimum,
+assignment database, trimming, local-number conversion, extension support or reachability guarantee.
+
+```php-inline
+use Fight\Common\Domain\Value\Internet\E164PhoneNumber;
+
+$to = E164PhoneNumber::fromString('+15550001234');
+$message = $smsService->createMessage($to->toString(), 'FIGHT', 'Hello');
+// Value and message construction do not send; only an explicit send requests delivery.
+// $smsService->send($message);
+```
+
+Body/media construction and transport mapping are unchanged: Twilio receives the exact recipient/sender strings,
+body and media URLs when `send()` is called. Lexical validity is not SMS capability, consent, contact permission,
+sender eligibility or public-safe disclosure. Consumers retain country/provider rules, consent, authorization,
+sender selection and delivery operations; tests with controlled providers do not qualify live delivery.
 
 ---
 

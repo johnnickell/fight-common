@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "52d9c2e0bda684230ffe54a1123a3f78f4078e3b2a052a8b9256d303cb1de9fd",
+    "operation_shapes_sha256": "cf4ecea75ba9afcafa5513ff24b7eb76265b2d35f30768784dca605ecd6ff85a",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,7 +9,7 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 135,
+            "declarations": 136,
             "functions": 13
         },
         "Application": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00133-addition": {
+            "path": "planning/tasks/00133-TASK.md",
+            "locator": "Scope and acceptance: additive lexical E.164 phone value and optional adoption without changing SMS string contracts"
+        },
         "fight-common.classification.task-00132-addition": {
             "path": "planning/tasks/00132-TASK.md",
             "locator": "Scope and acceptance: additive canonical IP values, strict family parsing and retained mapped IPv6 identity"
@@ -135,6 +139,20 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber",
+            "source": "src/Domain/Value/Internet/E164PhoneNumber.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "source_locator": "working-tree:src/Domain/Value/Internet/E164PhoneNumber.php#Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00133-addition", "rationale": "Additive final readonly lexical phone value, exact leading-plus/ASCII/nonzero-first-digit/fifteen-digit grammar and DomainException rejection. No assignment/provider policy, SMS signature migration or persistence mapping."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named fromString factory, exact toString and inherited concrete-type equality/hash/string/JSON operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "source_locator": "working-tree:src/Domain/Value/Internet/E164PhoneNumber.php#Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Public named factory only; private constructor enforces lexical validation without repair or lookup.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "source_locator": "working-tree:src/Domain/Value/Internet/E164PhoneNumber.php#Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "source_locator": "working-tree:src/Domain/Value/Internet/E164PhoneNumber.php#Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "source_locator": "working-tree:src/Domain/Value/Internet/E164PhoneNumber.php#Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\Internet\\IpAddress",
             "source": "src/Domain/Value/Internet/IpAddress.php",
@@ -37638,6 +37656,16 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.e164-phone-number",
+            "normative": {"path": "docs/values.md", "section": "E.164 lexical form and value identity"},
+            "fixture": {"path": "tests/Domain/Value/Internet/E164PhoneNumberTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.sms-string-addressing",
+            "normative": {"path": "docs/sms.md", "section": "Optional lexical phone adoption"},
+            "fixture": {"path": "tests/Adapter/Sms/Twilio/TwilioSmsTransportTest.php"}
+        },
         {
             "id": "fight-common.behavior.ip-address-values",
             "normative": {"path": "docs/values.md", "section": "IP literal normalization and family identity"},
