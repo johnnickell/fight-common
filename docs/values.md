@@ -371,6 +371,34 @@ $email->domainPart();                        // "example.com"
 $email->canonical();                         // "alice@example.com" (lowercased)
 ```
 
+### Email parts and identity
+
+**Contract ID:** `fight-common.behavior.email-parts-and-identity`
+
+Part extraction uses the separator after the complete accepted local part. Local quotes and escape bytes are
+retained, not decoded; domain-literal brackets are removed, but literal contents (including `IPv6:`) are preserved.
+
+```php-inline
+$quoted = EmailAddress::fromString('"a@b"@Example.COM');
+$quoted->localPart();                        // '"a@b"'
+$quoted->domainPart();                       // 'Example.COM'
+$quoted->toString();                         // '"a@b"@Example.COM'
+$quoted->canonical();                        // '"a@b"@example.com'
+
+$literal = EmailAddress::fromString('"a@b"@[IPv6:2001:db8::1]');
+$literal->domainPart();                       // 'IPv6:2001:db8::1'
+```
+
+This corrects extraction for already accepted quoted addresses; it does not broaden `Validate::isEmail` syntax.
+String/JSON representation and hashing retain the original address, and equality remains concrete-type and
+case-sensitive. `canonical()` lowercases the **whole** address as a separate operation; it does not change the
+stored value or define login identity. The canonical and legacy Doctrine email types retain original stored text,
+the `common_email_address` name, null/empty conversion and instance passthrough; no data rewrite is required.
+
+Validation is lexical only: no DNS lookup, reachability or ownership verification occurs. Consumers own login
+identity, authorization and permission to contact the address; neither accepted syntax nor diagnostic text grants
+those guarantees or promises public-safe presentation.
+
 ---
 
 ## Uri

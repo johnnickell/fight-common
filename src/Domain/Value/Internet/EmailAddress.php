@@ -35,34 +35,29 @@ final readonly class EmailAddress extends ValueObject
     }
 
     /**
-     * Retrieves the local part
-     *
-     * @return string
+     * Returns the local part with original quotes and escape bytes
      */
     public function localPart(): string
     {
-        $parts = explode('@', $this->value);
+        // Construction validation ensures only the local part can contain additional at-signs.
+        $separator = (int) strrpos($this->value, '@');
 
-        return $parts[0];
+        return substr($this->value, 0, $separator);
     }
 
     /**
-     * Retrieves the domain part
-     *
-     * @return string
+     * Returns the domain part without literal brackets
      */
     public function domainPart(): string
     {
-        $parts = explode('@', $this->value);
-        $domain = trim($parts[1], '[]');
+        $separator = (int) strrpos($this->value, '@');
+        $domain = trim(substr($this->value, $separator + 1), '[]');
 
         return $domain;
     }
 
     /**
-     * Retrieves the unique lowercase value
-     *
-     * @return string
+     * Returns the lowercase address without changing the stored value
      */
     public function canonical(): string
     {

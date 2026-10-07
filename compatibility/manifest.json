@@ -37593,6 +37593,11 @@
     ],
     "behavioral_contracts": [
         {
+            "id": "fight-common.behavior.email-parts-and-identity",
+            "normative": {"path": "docs/values.md", "section": "Email parts and identity"},
+            "fixture": {"path": "tests/Domain/Value/Internet/EmailAddressTest.php"}
+        },
+        {
             "id": "fight-common.behavior.stream-id-tuple",
             "normative": {"path": "docs/event-sourcing.md", "section": "Stream identity values"},
             "fixture": {"path": "tests/Domain/EventSourcing/StreamIdTest.php"}

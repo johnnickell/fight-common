@@ -9,9 +9,12 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
+use Fight\Common\Adapter\Doctrine\EmailAddressDataType as LegacyEmailAddressDataType;
 use Fight\Common\Adapter\Doctrine\JsonObjectDataType as LegacyJsonObjectDataType;
+use Fight\Common\Adapter\Persistence\Doctrine\Type\EmailAddressDataType;
 use Fight\Common\Adapter\Persistence\Doctrine\Type\JsonObjectDataType;
 use Fight\Common\Domain\Value\Basic\JsonObject;
+use Fight\Common\Domain\Value\Internet\EmailAddress;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -65,6 +68,29 @@ final class DoctrineDataTypeConsumerContractTest extends UnitTestCase
             $legacyType->convertToDatabaseValue($legacyValue, $platform),
             $canonicalType->convertToDatabaseValue($canonicalValue, $platform),
         );
+    }
+
+    public function test_that_registered_email_type_identities_preserve_quoted_address_text_and_parts(): void
+    {
+        $registry = Type::getTypeRegistry();
+        $platform = new SQLitePlatform();
+        $registry->register('common_email_address', new LegacyEmailAddressDataType());
+        foreach ([new LegacyEmailAddressDataType(), new EmailAddressDataType()] as $type) {
+            $registry->override('common_email_address', $type);
+            $registered = $registry->get('common_email_address');
+            self::assertSame($type, $registered);
+            foreach ([
+                ['"A\"@B"@Example.COM', 'Example.COM'],
+                ['"A\"@B"@[IPv6:2001:db8::1]', 'IPv6:2001:db8::1']
+            ] as [$address, $domain]) {
+                $value = $registered->convertToPHPValue($address, $platform);
+                self::assertInstanceOf(EmailAddress::class, $value);
+                self::assertSame('"A\"@B"', $value->localPart());
+                self::assertSame($domain, $value->domainPart());
+                self::assertSame($address, $value->toString());
+                self::assertSame($address, $registered->convertToDatabaseValue($value, $platform));
+            }
+        }
     }
 
     public function test_that_both_json_type_identities_write_snapshots_without_changing_legacy_hydration(): void
