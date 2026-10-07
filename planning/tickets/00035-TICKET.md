@@ -84,7 +84,7 @@ Application rule contracts; no base-class prefactor, automatic caller migration 
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00131](../tasks/00131-TASK.md) | Correct Quoted Email Part Extraction | done |
-| [TASK-00132](../tasks/00132-TASK.md) | Add Canonical IP Address Values | ready-for-agent |
+| [TASK-00132](../tasks/00132-TASK.md) | Add Canonical IP Address Values | done |
 | [TASK-00133](../tasks/00133-TASK.md) | Add Lexical E.164 Phone Numbers | ready-for-agent |
 <!-- /planning:children -->
 
