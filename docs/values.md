@@ -37,7 +37,8 @@ WeekDay is a native enum, not a ValueObject.
 11. [Identity (UniqueId)](#identity-uniqueid)
 12. [StreamId](#streamid)
 13. [Calendar and local time](#calendar-and-local-time)
-14. [Duration](#duration)
+14. [Strict zoned DateTime](#strict-zoned-datetime)
+15. [Duration](#duration)
 15. [Doctrine Data Types](#doctrine-data-types)
 
 ---
@@ -861,6 +862,31 @@ WeekDay::from(1) === WeekDay::MONDAY;            // true
 WeekDay::tryFrom(7);                            // null
 json_encode(WeekDay::SUNDAY);                   // "0" (JSON number)
 ```
+
+## Strict zoned DateTime
+
+Contract ID: `fight-common.behavior.strict-zoned-datetime`.
+
+`Fight\Common\Domain\Value\DateTime\DateTime` is a final readonly value with an explicit timezone and an exact instant. It is separate from native `DateTimeImmutable`, `Date` (calendar-only), `Time` (local-only), `Timezone` (whose original string identity is unchanged) and elapsed `Duration`. Its code is original, not adapted from Novuso. No existing native timestamp signatures, audit range semantics, persistence formats or scheduler policy change; opt in explicitly.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\{Date, DateTime, Time, Timezone};
+
+$zone = Timezone::fromString('America/New_York');
+$fold = DateTime::fromLocal(Date::fromString('2026-11-01'), Time::fromString('01:30:00.123456'), $zone, -18000);
+$fold->toNative()->format('U.u'); // 1793514600.123456
+$copy = DateTime::fromString($fold->toString()); // exact second fold, not a fresh wall-time choice
+$utc = $fold->inTimezone(Timezone::fromString('UTC')); // same instant, different local components
+$other = $fold->reinterpretInTimezone(Timezone::fromString('UTC')); // same wall components, different instant
+```
+
+`fromLocal(Date, Time, Timezone, ?int $offsetSeconds = null)` rejects nonexistent local times even with an offset. Repeated times require an exact signed integer offset in **seconds** selecting a real occurrence; a supplied offset for a unique time must also match. No one-hour/whole-minute assumption is made: historical second offsets, non-hour transitions, fixed-offset and abbreviation zones are supported. Native timezone rules are evaluated at construction, not pinned to a tzdb version. `reinterpretInTimezone()` repeats these checks on the target wall components; `inTimezone()` preserves the instant but rejects a target local year outside 0001–9999. Neither operation performs date or Duration arithmetic.
+
+`fromNative(DateTimeInterface)` copies the supplied native instant/timezone (including a mutable `DateTime`) without retaining mutable caller state. `fromInstant(string $seconds, int $microsecond, Timezone $timezone)` takes canonical signed Unix seconds (`0` or `-?[1-9][0-9]*`) and a 0–999999 microsecond component, without floating point or a combined integer-microsecond total. It validates the resulting local date. `toNative()` returns an immutable timestamp; `date()`, `time()`, `timezone()` and `instantSeconds()` expose values/coordinates. Invalid text, offsets, out-of-range local years and unrepresentable coordinates raise `DomainException`; native PHP argument type failures remain native. Unexpected native engine errors are not converted to domain validation failures. Exception messages/causes are diagnostic, not public-safe. The supported range is the 0001–9999 **local** year in the chosen zone; crossing it during conversion rejects rather than clamps.
+
+String/JSON/hash use `zoned:v1:<canonical signed Unix seconds>:<six microsecond digits>:<canonical Base64 native timezone identifier>`; `fromString()` strictly reconstructs that instant and native identifier, including either overlap occurrence. Names are `DateTimeZone::getName()` values: IANA aliases remain distinct, while native offset normalization makes `+5:30` and `+05:30` the same identifier (`+05:30`). Pre-epoch `-1.500000` means whole second `-1` and microseconds `500000`, **not** negative one-and-a-half seconds. Saved instants stay instants; timezone rule updates may change displayed local components but never silently reinterpret the stored wall time. No exact PHP serialized-byte, frozen tzdb or new Doctrine mapping is promised.
+
+`equals()`/hash require both exact instant and native timezone identifier; `compareTo()` orders instants first and identifier second (-1/0/1), rejecting another type with DomainException. `compareInstantTo(DateTime)` and `isSameInstantAs(DateTime)` deliberately ignore the identifier so instant intervals need not inherit value tie-breaking. Wrong-type equality is false. All factories are additive callable/constructible-only operations under ADRs 0009–0011, without a new consumer-implementable/extension contract, platform/dependency floor or automatic migration. Consumers own occurrence provenance, scheduling/access eligibility and any presentation/redaction policy. Nonvisual native/DST and test transcripts are the appropriate acceptance evidence.
 
 ## Duration
 

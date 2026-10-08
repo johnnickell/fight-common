@@ -19,8 +19,8 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | [TICKET-00038 — Express Transport-Neutral Application Failures](../tickets/00038-TICKET.md) | ready-for-agent | — | — |
 
@@ -28,7 +28,6 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | ready-for-agent | [TASK-00136](00136-TASK.md) | — |
 | — | [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | ready-for-agent | [TASK-00139](00139-TASK.md), [TASK-00140](00140-TASK.md) | — |
 | — | [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | ready-for-agent | [TASK-00142](00142-TASK.md) | — |
 | — | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | ready-for-agent | [TASK-00143](00143-TASK.md) | — |
@@ -89,6 +88,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | [TICKET-00035 — Validate Network and Contact Values](../tickets/00035-TICKET.md) | done | — | [PR #201](https://github.com/johnnickell/fight-common/pull/201) |
 | — | [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #202](https://github.com/johnnickell/fight-common/pull/202) |
 | — | [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #203](https://github.com/johnnickell/fight-common/pull/203) |
+| — | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | — |
 <!-- /planning:board -->
 
 ## Wayfinder
