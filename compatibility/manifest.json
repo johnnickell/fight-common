@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "cf4ecea75ba9afcafa5513ff24b7eb76265b2d35f30768784dca605ecd6ff85a",
+    "operation_shapes_sha256": "0146940b99e10bf28b9411975711cb7e71d977fb825944dfa110c757c62365f2",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,7 +9,7 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 136,
+            "declarations": 139,
             "functions": 13
         },
         "Application": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00134-addition": {
+            "path": "planning/tasks/00134-TASK.md",
+            "locator": "Scope and acceptance: additive Gregorian Date, exact local Time and native ISO-backed WeekDay without native timestamp replacement"
+        },
         "fight-common.classification.task-00133-addition": {
             "path": "planning/tasks/00133-TASK.md",
             "locator": "Scope and acceptance: additive lexical E.164 phone value and optional adoption without changing SMS string contracts"
@@ -139,6 +143,56 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\DateTime\\Date",
+            "source": "src/Domain/Value/DateTime/Date.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Date", "source_locator": "working-tree:src/Domain/Value/DateTime/Date.php#Fight\\Common\\Domain\\Value\\DateTime\\Date"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00134-addition", "rationale": "Additive final readonly Gregorian calendar value for years 0001-9999, strict canonical text, named component/native factories and DomainException rejection without rollover or timezone assumptions."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named fromParts/fromString/fromNative factories, component access, Gregorian weekDay, canonical toString and coherent equality/hash/JSON/chronological compareTo operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Date", "source_locator": "working-tree:src/Domain/Value/DateTime/Date.php#Fight\\Common\\Domain\\Value\\DateTime\\Date", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories only; private constructor validates Gregorian components and supported years.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Date", "source_locator": "working-tree:src/Domain/Value/DateTime/Date.php#Fight\\Common\\Domain\\Value\\DateTime\\Date", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Date", "source_locator": "working-tree:src/Domain/Value/DateTime/Date.php#Fight\\Common\\Domain\\Value\\DateTime\\Date", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Date", "source_locator": "working-tree:src/Domain/Value/DateTime/Date.php#Fight\\Common\\Domain\\Value\\DateTime\\Date", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\DateTime\\Time",
+            "source": "src/Domain/Value/DateTime/Time.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Time", "source_locator": "working-tree:src/Domain/Value/DateTime/Time.php#Fight\\Common\\Domain\\Value\\DateTime\\Time"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00134-addition", "rationale": "Additive final readonly local time value, exact integer microseconds, strict six-digit canonical text and DomainException rejection; not an instant, timezone or scheduling API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named fromParts/fromString/fromNative factories, component access, exact toString and coherent equality/hash/JSON/chronological compareTo operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Time", "source_locator": "working-tree:src/Domain/Value/DateTime/Time.php#Fight\\Common\\Domain\\Value\\DateTime\\Time", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories only; private constructor validates time components. fromParts defaults only microseconds to zero.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Time", "source_locator": "working-tree:src/Domain/Value/DateTime/Time.php#Fight\\Common\\Domain\\Value\\DateTime\\Time", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Time", "source_locator": "working-tree:src/Domain/Value/DateTime/Time.php#Fight\\Common\\Domain\\Value\\DateTime\\Time", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\Time", "source_locator": "working-tree:src/Domain/Value/DateTime/Time.php#Fight\\Common\\Domain\\Value\\DateTime\\Time", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay",
+            "source": "src/Domain/Value/DateTime/WeekDay.php",
+            "layer": "Domain", "kind": "enum", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00134-addition", "rationale": "Native integer-backed weekday cases Monday=1 through Sunday=7; from/tryFrom and JSON retain PHP semantics rather than ValueObject or DomainException behavior."},
+            "members": [
+                {"name": "case FRIDAY", "signature": "case FRIDAY = 5", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Friday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case FRIDAY"}}},
+                {"name": "case MONDAY", "signature": "case MONDAY = 1", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Monday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case MONDAY"}}},
+                {"name": "case SATURDAY", "signature": "case SATURDAY = 6", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Saturday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case SATURDAY"}}},
+                {"name": "case SUNDAY", "signature": "case SUNDAY = 7", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Sunday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case SUNDAY"}}},
+                {"name": "case THURSDAY", "signature": "case THURSDAY = 4", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Thursday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case THURSDAY"}}},
+                {"name": "case TUESDAY", "signature": "case TUESDAY = 2", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Tuesday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case TUESDAY"}}},
+                {"name": "case WEDNESDAY", "signature": "case WEDNESDAY = 3", "evidence": {"authority": "fight-common.member.public-declaration", "rationale": "ISO Wednesday backing", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "member": "case WEDNESDAY"}}}
+            ],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "PHP-native cases/from/tryFrom selection and backed enum JSON behavior are promised in the weekday behavioral contract; structural inventory has no authored enum methods.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum cases are native singletons, not new instances; selection belongs to callable native methods.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum cannot be subclassed.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Enum, not an implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "source_locator": "working-tree:src/Domain/Value/DateTime/WeekDay.php#Fight\\Common\\Domain\\Value\\DateTime\\WeekDay", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\Internet\\E164PhoneNumber",
             "source": "src/Domain/Value/Internet/E164PhoneNumber.php",
@@ -37656,6 +37710,21 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.calendar-date-values",
+            "normative": {"path": "docs/values.md", "section": "Gregorian Date values"},
+            "fixture": {"path": "tests/Domain/Value/DateTime/DateTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.local-time-values",
+            "normative": {"path": "docs/values.md", "section": "Exact local Time values"},
+            "fixture": {"path": "tests/Domain/Value/DateTime/TimeTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.iso-weekday-values",
+            "normative": {"path": "docs/values.md", "section": "Native ISO WeekDay"},
+            "fixture": {"path": "tests/Domain/Value/DateTime/WeekDayTest.php"}
+        },
         {
             "id": "fight-common.behavior.e164-phone-number",
             "normative": {"path": "docs/values.md", "section": "E.164 lexical form and value identity"},

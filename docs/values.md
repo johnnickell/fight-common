@@ -17,7 +17,8 @@ The recommended way to construct value objects is via the helper functions in `F
 | `url($url)` | `Url` | `Url::fromString($url)` |
 | `uuid()` | `Uuid` | `Uuid::comb()` |
 
-Sections show helpers where available and named factories; the IP hierarchy and E164PhoneNumber have no helpers.
+Sections show helpers where available and named factories; the IP, phone and calendar/local-time values have no helpers.
+WeekDay is a native enum, not a ValueObject.
 
 ---
 
@@ -35,7 +36,8 @@ Sections show helpers where available and named factories; the IP hierarchy and 
 10. [Uuid](#uuid)
 11. [Identity (UniqueId)](#identity-uniqueid)
 12. [StreamId](#streamid)
-13. [Doctrine Data Types](#doctrine-data-types)
+13. [Calendar and local time](#calendar-and-local-time)
+14. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -765,6 +767,94 @@ See [Stream identity values](../event-sourcing/index.md#stream-identity-values) 
 [the minor-upgrade notice](../event-sourcing/index.md#streamid-minor-upgrade-notice) for the explicitly approved changes to
 hash collection identity and native JSON. Component fields in storage and diagnostics remain unchanged; encoding
 is not redaction, authorization or automatic persistence migration.
+
+## Calendar and local time
+
+`Date`, `Time` and `WeekDay` live under `Fight\Common\Domain\Value\DateTime`. They are optional new concepts, not
+replacements for native timestamps or existing `Timezone`. Neither a date nor a local time identifies an instant,
+contains a zone or grants scheduling/record-access permission. Consumers own calendar, locale and scheduling policy.
+No ambient clock, midnight/default-date conversion, persistence mapping, arithmetic or automatic adoption is supplied.
+The code is original; these APIs do not adopt Novuso's constructors, Sunday-zero weekday or sequence semantics.
+
+### Gregorian Date values
+
+Contract ID: `fight-common.behavior.calendar-date-values`.
+
+Final readonly `Date` extends `ValueObject` and implements `Comparable`. Its factories are
+`fromParts(int $year, int $month, int $day)`, `fromString(string $value)` and `fromNative(DateTimeInterface $value)`.
+Supported dates are proleptic Gregorian years **0001–9999**, including before historical Gregorian adoption.
+Leap years are divisible by four, except centuries not divisible by 400. Year zero, invalid month/day, non-leap
+February 29 and rollover reject with `DomainException`; native parameter typing remains distinct from validation.
+
+The only accepted string spelling is exact ASCII `YYYY-MM-DD`: no trimming, short fields, signs, trailing newlines
+or native free-form parser. `toString()`, string casts, JSON and `hashValue()` use that canonical date.
+`year()`, `month()`, `day()` return integer components; `weekDay()` returns the Gregorian `WeekDay` case.
+Equality is same-concrete-type canonical equality; wrong-type equality is false. `compareTo()` returns -1/0/1
+in chronological order, coherent with equality, and raises `DomainException` for a non-Date.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\Date;
+use Fight\Common\Domain\Value\DateTime\WeekDay;
+
+$date = Date::fromParts(2024, 2, 29);
+$date->toString();                               // "2024-02-29"
+$date->weekDay() === WeekDay::THURSDAY;            // true
+$date->compareTo(Date::fromString('2024-03-01'));  // -1
+Date::fromString('2023-02-29');                   // throws DomainException, no March rollover
+```
+
+`fromNative()` copies the supplied timestamp's **own local** year/month/day without ambient-zone conversion or
+retaining the native object; unsupported extracted years reject. Mutating the caller's DateTime afterward cannot
+change the Date. It extracts existing components, not the text originally parsed by the native timestamp: native
+normalization that already occurred is not undone. It does not recombine a date and time into a zoned timestamp.
+
+### Exact local Time values
+
+Contract ID: `fight-common.behavior.local-time-values`.
+
+Final readonly `Time` extends `ValueObject` and implements `Comparable`. Factories are
+`fromParts(int $hour, int $minute, int $second, int $microsecond = 0)`, `fromString(string $value)` and
+`fromNative(DateTimeInterface $value)`. Bounds are hour 0–23, minute/second 0–59 and microsecond 0–999999.
+Only the microsecond component defaults to zero. Invalid components, **24:00**, leap seconds and fractional overflow
+raise `DomainException`, never rollover. Native parameter typing is not replaced with coercive domain parsing.
+
+Only exact ASCII `HH:MM:SS.ffffff` strings are accepted: exactly six fractional digits, no timezone suffix,
+short fields, missing fraction, whitespace or parser normalization. String/JSON/hash outputs retain exactly six
+digits. Microseconds are integers, never floating-point time. Accessors are `hour()`, `minute()`, `second()` and
+`microsecond()`. Equality/hash use the same-concrete-type canonical value; wrong-type equality is false.
+`compareTo()` returns -1/0/1 in local component order, coherent with equality; non-Time input raises DomainException.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\Time;
+
+$time = Time::fromParts(1, 2, 3, 4);
+$time->toString();                              // "01:02:03.000004"
+$time->microsecond();                           // 4
+Time::fromParts(1, 2, 3)->toString();            // "01:02:03.000000"
+Time::fromString('23:59:59.999999');             // maximum local time
+```
+
+`fromNative()` copies local hour/minute/second/microsecond from the supplied DateTimeInterface, with no ambient-zone
+conversion, date interpretation, instant arithmetic or retained mutable input. Native pre-epoch timestamps still
+contribute their exact local microseconds. Mutating a native input cannot change the resulting Time. Stable string
+and JSON reconstruction uses the factories above; PHP serialized bytes and automatic persistence are not promised.
+
+### Native ISO WeekDay
+
+Contract ID: `fight-common.behavior.iso-weekday-values`.
+
+`WeekDay` is a native integer-backed enum with `MONDAY=1`, `TUESDAY=2`, `WEDNESDAY=3`, `THURSDAY=4`, `FRIDAY=5`,
+`SATURDAY=6`, `SUNDAY=7`. Use case identity, `name`, `value` and native `cases()`, `from()` or `tryFrom()`; it is not a
+ValueObject or Identifier and adds no value-object string/hash/comparison factories. Native JSON encodes the integer
+backing value. Invalid integer `from()` raises PHP `ValueError`, `tryFrom()` returns null; PHP's native parameter
+rules still apply (for example a string backing value raises TypeError in strict calling code). There is no
+DomainException wrapper, Sunday-zero alias, locale-dependent renumbering or consumer extension promise.
+
+```php-inline
+WeekDay::from(1) === WeekDay::MONDAY;            // true
+WeekDay::tryFrom(0);                            // null
+json_encode(WeekDay::SUNDAY);                   // "7" (JSON number)
+```
 
 ## Doctrine Data Types
 
