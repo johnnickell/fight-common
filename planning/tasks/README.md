@@ -39,7 +39,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | done | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | done | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | done | [TICKET-00036](../tickets/00036-TICKET.md) |
-| [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | done | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | ready-for-agent | [TICKET-00037](../tickets/00037-TICKET.md) |
 | [TASK-00140](00140-TASK.md) | Recognize Versioned ISO Currencies | needs-info | [TICKET-00037](../tickets/00037-TICKET.md) |

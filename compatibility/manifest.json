@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00137-addition": {
+            "path": "planning/tasks/00137-TASK.md",
+            "locator": "Scope and acceptance: additive inclusive DateRange with ordered Gregorian Date endpoints, single-date membership and stable reconstruction without instant or stepped-sequence semantics"
+        },
         "fight-common.classification.task-00136-addition": {
             "path": "planning/tasks/00136-TASK.md",
             "locator": "Scope and acceptance: additive strict zoned DateTime with exact instant and native timezone identity, DST rejection and optional native interop"
@@ -151,6 +155,20 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange",
+            "source": "src/Domain/Value/DateTime/DateRange.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "source_locator": "working-tree:src/Domain/Value/DateTime/DateRange.php#Fight\\Common\\Domain\\Value\\DateTime\\DateRange"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00137-addition", "rationale": "Additive final readonly inclusive calendar interval with validated ordered Date endpoints, single-date containment and strict versioned reconstruction; no native timestamp, persistence or scheduling changes."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named fromDates/fromString factories, inclusive contains, endpoint access and inherited canonical value equality/hash/string/JSON operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "source_locator": "working-tree:src/Domain/Value/DateTime/DateRange.php#Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories only; private constructor rejects reversed endpoints and string reconstruction validates both dates.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "source_locator": "working-tree:src/Domain/Value/DateTime/DateRange.php#Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "source_locator": "working-tree:src/Domain/Value/DateTime/DateRange.php#Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "source_locator": "working-tree:src/Domain/Value/DateTime/DateRange.php#Fight\\Common\\Domain\\Value\\DateTime\\DateRange", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime",
             "source": "src/Domain/Value/DateTime/DateTime.php",
