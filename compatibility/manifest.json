@@ -24,7 +24,7 @@
     "evidence_authorities": {
         "fight-common.classification.task-00134-addition": {
             "path": "planning/tasks/00134-TASK.md",
-            "locator": "Scope and acceptance: additive Gregorian Date, exact local Time and native ISO-backed WeekDay without native timestamp replacement"
+            "locator": "Scope and acceptance: additive Gregorian Date, exact local Time and native Sunday-zero WeekDay matching PHP's w convention without native timestamp replacement"
         },
         "fight-common.classification.task-00133-addition": {
             "path": "planning/tasks/00133-TASK.md",
