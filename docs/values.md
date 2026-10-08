@@ -774,7 +774,7 @@ is not redaction, authorization or automatic persistence migration.
 replacements for native timestamps or existing `Timezone`. Neither a date nor a local time identifies an instant,
 contains a zone or grants scheduling/record-access permission. Consumers own calendar, locale and scheduling policy.
 No ambient clock, midnight/default-date conversion, persistence mapping, arithmetic or automatic adoption is supplied.
-The code is original; these APIs do not adopt Novuso's constructors, Sunday-zero weekday or sequence semantics.
+The code is original; these APIs do not adopt Novuso's constructors or sequence semantics.
 
 ### Gregorian Date values
 
@@ -788,7 +788,10 @@ February 29 and rollover reject with `DomainException`; native parameter typing 
 
 The only accepted string spelling is exact ASCII `YYYY-MM-DD`: no trimming, short fields, signs, trailing newlines
 or native free-form parser. `toString()`, string casts, JSON and `hashValue()` use that canonical date.
-`year()`, `month()`, `day()` return integer components; `weekDay()` returns the Gregorian `WeekDay` case.
+`year()`, `month()`, `day()` return integer components; `weekDay()` returns the Gregorian `WeekDay` case using
+PHP's Sunday-zero `w` convention. It formats an already-validated date with explicit UTC internally, so ambient
+zones (including skipped local dates) cannot change the weekday. This does not assign a consumer timezone/instant
+to the value or introduce a public date-to-timestamp conversion.
 Equality is same-concrete-type canonical equality; wrong-type equality is false. `compareTo()` returns -1/0/1
 in chronological order, coherent with equality, and raises `DomainException` for a non-Date.
 
@@ -839,21 +842,23 @@ conversion, date interpretation, instant arithmetic or retained mutable input. N
 contribute their exact local microseconds. Mutating a native input cannot change the resulting Time. Stable string
 and JSON reconstruction uses the factories above; PHP serialized bytes and automatic persistence are not promised.
 
-### Native ISO WeekDay
+### Native WeekDay
 
-Contract ID: `fight-common.behavior.iso-weekday-values`.
+Contract ID: `fight-common.behavior.weekday-values`.
 
-`WeekDay` is a native integer-backed enum with `MONDAY=1`, `TUESDAY=2`, `WEDNESDAY=3`, `THURSDAY=4`, `FRIDAY=5`,
-`SATURDAY=6`, `SUNDAY=7`. Use case identity, `name`, `value` and native `cases()`, `from()` or `tryFrom()`; it is not a
-ValueObject or Identifier and adds no value-object string/hash/comparison factories. Native JSON encodes the integer
+`WeekDay` is a native integer-backed enum matching PHP's `DateTimeInterface::format('w')`: `SUNDAY=0`, `MONDAY=1`,
+`TUESDAY=2`, `WEDNESDAY=3`, `THURSDAY=4`, `FRIDAY=5`, `SATURDAY=6`. Use case identity, `name`, `value` and native
+`cases()`, `from()` or `tryFrom()`; it is not a ValueObject or Identifier and adds no value-object string/hash/comparison
+factories. Native JSON encodes the integer
 backing value. Invalid integer `from()` raises PHP `ValueError`, `tryFrom()` returns null; PHP's native parameter
 rules still apply (for example a string backing value raises TypeError in strict calling code). There is no
-DomainException wrapper, Sunday-zero alias, locale-dependent renumbering or consumer extension promise.
+DomainException wrapper, ISO Sunday-seven alias, locale-dependent renumbering or consumer extension promise.
 
 ```php-inline
+WeekDay::from(0) === WeekDay::SUNDAY;            // true
 WeekDay::from(1) === WeekDay::MONDAY;            // true
-WeekDay::tryFrom(0);                            // null
-json_encode(WeekDay::SUNDAY);                   // "7" (JSON number)
+WeekDay::tryFrom(7);                            // null
+json_encode(WeekDay::SUNDAY);                   // "0" (JSON number)
 ```
 
 ## Doctrine Data Types

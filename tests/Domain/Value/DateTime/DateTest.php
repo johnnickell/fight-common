@@ -126,6 +126,27 @@ class DateTest extends UnitTestCase
         yield ['9999-12-31', WeekDay::FRIDAY];
     }
 
+    public function test_that_weekday_ignores_ambient_timezone_and_skipped_local_dates(): void
+    {
+        $originalZone = date_default_timezone_get();
+        $expected = [
+            '0001-01-01' => WeekDay::MONDAY,
+            '1582-10-10' => WeekDay::SUNDAY,
+            '2011-12-30' => WeekDay::FRIDAY,
+            '9999-12-31' => WeekDay::FRIDAY
+        ];
+        try {
+            foreach (['Pacific/Apia', 'Pacific/Kiritimati', 'America/Los_Angeles'] as $zone) {
+                date_default_timezone_set($zone);
+                foreach ($expected as $text => $weekday) {
+                    self::assertSame($weekday, Date::fromString($text)->weekDay());
+                }
+            }
+        } finally {
+            date_default_timezone_set($originalZone);
+        }
+    }
+
     public function test_that_equality_hash_and_order_agree_across_calendar_boundaries(): void
     {
         $texts = ['0001-01-01', '1900-02-28', '1900-03-01', '2000-02-29', '2024-12-31', '2025-01-01', '9999-12-31'];

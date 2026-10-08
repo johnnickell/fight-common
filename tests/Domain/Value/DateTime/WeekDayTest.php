@@ -15,11 +15,11 @@ use ValueError;
 #[CoversClass(WeekDay::class)]
 class WeekDayTest extends UnitTestCase
 {
-    public function test_that_native_cases_use_iso_backing_and_json_instead_of_value_object_semantics(): void
+    public function test_that_native_cases_use_sunday_zero_backing_and_json_instead_of_value_object_semantics(): void
     {
         $expected = [
-            'MONDAY' => 1, 'TUESDAY' => 2, 'WEDNESDAY' => 3, 'THURSDAY' => 4,
-            'FRIDAY' => 5, 'SATURDAY' => 6, 'SUNDAY' => 7
+            'SUNDAY' => 0, 'MONDAY' => 1, 'TUESDAY' => 2, 'WEDNESDAY' => 3,
+            'THURSDAY' => 4, 'FRIDAY' => 5, 'SATURDAY' => 6
         ];
         self::assertCount(7, WeekDay::cases());
         foreach (WeekDay::cases() as $case) {
@@ -45,7 +45,7 @@ class WeekDayTest extends UnitTestCase
      */
     public static function invalidValues(): iterable
     {
-        yield [0];
+        yield [7];
         yield [-1];
         yield [8];
         yield [PHP_INT_MIN];

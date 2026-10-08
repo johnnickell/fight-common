@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Value\DateTime;
 
+use DateTimeImmutable;
 use DateTimeInterface;
+use DateTimeZone;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Comparable;
 use Fight\Common\Domain\Value\ValueObject;
@@ -85,21 +87,13 @@ final readonly class Date extends ValueObject implements Comparable
     }
 
     /**
-     * Returns the proleptic Gregorian weekday without a timezone or timestamp
+     * Returns the proleptic Gregorian weekday independently of the ambient timezone
      */
     public function weekDay(): WeekDay
     {
-        // Gregorian 0001-01-01 is Monday; count whole days since that calendar origin.
-        $previousYear = $this->year - 1;
-        $days = 365 * $previousYear + intdiv($previousYear, 4) - intdiv($previousYear, 100);
-        $days += intdiv($previousYear, 400);
-        $monthOffsets = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-        $days += $monthOffsets[$this->month - 1] + $this->day - 1;
-        if ($this->month > 2 && checkdate(2, 29, $this->year)) {
-            $days++;
-        }
+        $native = new DateTimeImmutable($this->toString(), new DateTimeZone('UTC'));
 
-        return WeekDay::from($days % 7 + 1);
+        return WeekDay::from((int) $native->format('w'));
     }
 
     /**
