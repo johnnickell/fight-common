@@ -37,7 +37,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00132](00132-TASK.md) | Add Canonical IP Address Values | done | [TICKET-00035](../tickets/00035-TICKET.md) |
 | [TASK-00133](00133-TASK.md) | Add Lexical E.164 Phone Numbers | done | [TICKET-00035](../tickets/00035-TICKET.md) |
 | [TASK-00134](00134-TASK.md) | Add Calendar and Local Time Values | done | [TICKET-00036](../tickets/00036-TICKET.md) |
-| [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
+| [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | done | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |

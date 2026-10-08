@@ -17,7 +17,7 @@ The recommended way to construct value objects is via the helper functions in `F
 | `url($url)` | `Url` | `Url::fromString($url)` |
 | `uuid()` | `Uuid` | `Uuid::comb()` |
 
-Sections show helpers where available and named factories; the IP, phone and calendar/local-time values have no helpers.
+Sections show helpers where available and named factories; the IP, phone, calendar/local-time and Duration values have no helpers.
 WeekDay is a native enum, not a ValueObject.
 
 ---
@@ -37,7 +37,8 @@ WeekDay is a native enum, not a ValueObject.
 11. [Identity (UniqueId)](#identity-uniqueid)
 12. [StreamId](#streamid)
 13. [Calendar and local time](#calendar-and-local-time)
-14. [Doctrine Data Types](#doctrine-data-types)
+14. [Duration](#duration)
+15. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -860,6 +861,65 @@ WeekDay::from(1) === WeekDay::MONDAY;            // true
 WeekDay::tryFrom(7);                            // null
 json_encode(WeekDay::SUNDAY);                   // "0" (JSON number)
 ```
+
+## Duration
+
+`Fight\Common\Domain\Value\DateTime\Duration` represents signed **fixed elapsed time**, not a date, local time,
+instant, timezone, calendar month/year or DST-aware wall-clock operation. This is original, additive code, not a
+Novuso API adaptation. Adoption is optional; existing native timestamps, Timezone, scheduler, timeout and TTL
+contracts remain unchanged. There is no helper, persistence mapping, DateTime arithmetic or interval-length API.
+
+### Exact elapsed Duration values
+
+Contract ID: `fight-common.behavior.exact-elapsed-durations`.
+
+Final readonly `Duration` extends `ValueObject` and implements `Comparable`. It stores an exact integer total of
+microseconds in the **native PHP_INT_MIN through PHP_INT_MAX** range, including zero and negative values. No 64-bit
+floor, float approximation, required arithmetic extension or arbitrary-precision storage is introduced. Numeric
+range therefore depends on the runtime: a value representable on one integer width may reject on a narrower one.
+
+Factories are `fromMicroseconds(int $microseconds)`, `fromMilliseconds(int $milliseconds)`,
+`fromSeconds(int $seconds)` and `fromString(string $value)`. Integer-unit factories scale exactly, checking bounds
+**before multiplication**. `toMicroseconds()` returns the stored total; `toMilliseconds()` and `toSeconds()` return
+an exact integer quotient or raise `DomainException` for any fractional unit, including negative fractions.
+There is no implicit rounding/truncation or floating result. Native PHP parameter typing remains distinct from
+value validation; strict calling code rejects floats with TypeError. Use exact integers, not weak-call coercion.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\Duration;
+
+$elapsed = Duration::fromSeconds(2);
+$elapsed->toMilliseconds();                       // 2000
+$next = $elapsed->add(Duration::fromMicroseconds(1));
+$next->toString();                               // "2000001us"
+$elapsed->toString();                            // "2000000us" (unchanged)
+$next->toSeconds();                              // throws DomainException: fractional second
+Duration::fromMilliseconds(-2)->toMicroseconds(); // -2000
+Duration::fromMicroseconds(-1)->negate()->toString(); // "1us"
+```
+
+Canonical string/JSON/hash representation is ASCII decimal microseconds followed by **`us`**, with grammar
+`\A(0|-?[1-9][0-9]*)us\z` and native numeric bounds. Zero is `0us`; no plus, leading zeros, negative zero, whitespace,
+Unicode digits, separators, exponent, fractional spelling or other units/ISO calendar-duration syntax is accepted.
+`fromString()` checks decimal magnitude before casting; out-of-range text never clamps or becomes a float.
+`toString()`, string casting and JSON emit the same exact text, independently of ambient float precision settings.
+Reconstruct from that string or the decoded JSON string; no PHP serialized-byte or automatic persistence promise
+is added.
+
+`add(Duration $other)`, `subtract(Duration $other)` and `negate()` return new values without changing either
+operand. All check representability before evaluating arithmetic. Subtraction does not first negate its operand:
+subtracting PHP_INT_MIN from itself succeeds as zero. PHP_INT_MIN itself is valid, but its negation rejects because
+the positive magnitude is unrepresentable. Malformed/out-of-range text, scaled overflow, fractional exact
+conversion and arithmetic overflow raise `DomainException`; exception prose is not a stable contract.
+
+Equality requires the same concrete type and exact canonical total; equal durations have equal hashes and
+deduplicate in value collections. Wrong-type equality is false. `compareTo(mixed $other)` returns **-1/0/1 numeric
+ordering**, coherent with equality (not lexicographic string ordering), and raises DomainException for non-Duration
+values. Values expose no mutable state and have no consumer-extension or Identifier promise.
+
+Signed duration validity does not establish occurrence, permission, a timeout deadline or suitability for a TTL.
+Consumers own positivity, limits, scheduling/calendar policy and optional explicit conversion when adopting the
+value in their own APIs. Construction and arithmetic perform no clock, network, persistence or scheduler effects.
 
 ## Doctrine Data Types
 
