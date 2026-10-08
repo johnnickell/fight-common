@@ -111,7 +111,7 @@ ambiguous Novuso wall-time reconstruction, native normalization or a new platfor
 |---|---|---|
 | [TASK-00134](../tasks/00134-TASK.md) | Add Calendar and Local Time Values | done |
 | [TASK-00135](../tasks/00135-TASK.md) | Add Exact Elapsed Durations | done |
-| [TASK-00136](../tasks/00136-TASK.md) | Construct Strict Zoned DateTimes | ready-for-agent |
+| [TASK-00136](../tasks/00136-TASK.md) | Construct Strict Zoned DateTimes | done |
 | [TASK-00137](../tasks/00137-TASK.md) | Add Inclusive Calendar Date Ranges | ready-for-agent |
 | [TASK-00138](../tasks/00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent |
 <!-- /planning:children -->

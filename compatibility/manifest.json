@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "c77ccd3fcbb5ed47c579cdb2e28b4c31e5698ba9a76d567d96d5a43c6f587e2e",
+    "operation_shapes_sha256": "ff1ed4a168e100c295b52e50340edd1dc4201b8e4b059b8defb73cc5b0bff27d",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,7 +9,7 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 140,
+            "declarations": 141,
             "functions": 13
         },
         "Application": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00136-addition": {
+            "path": "planning/tasks/00136-TASK.md",
+            "locator": "Scope and acceptance: additive strict zoned DateTime with exact instant and native timezone identity, DST rejection and optional native interop"
+        },
         "fight-common.classification.task-00135-addition": {
             "path": "planning/tasks/00135-TASK.md",
             "locator": "Scope and acceptance: additive signed native-integer Duration, exact conversions and checked elapsed arithmetic without automatic adoption"
@@ -147,6 +151,20 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime",
+            "source": "src/Domain/Value/DateTime/DateTime.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "source_locator": "working-tree:src/Domain/Value/DateTime/DateTime.php#Fight\\Common\\Domain\\Value\\DateTime\\DateTime"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00136-addition", "rationale": "Additive final readonly strict zoned value; exact instant and native identifier identity with validated DST, native import and stable versioned reconstruction. Existing native timestamp APIs remain unchanged."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named local/native/instant/text factories, local component and native access, instant-only comparison, instant conversion and strict reinterpretation, with inherited value equality/hash/string/JSON and instant-first ordering.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "source_locator": "working-tree:src/Domain/Value/DateTime/DateTime.php#Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories only; private constructor validates supported local date. No ambient timezone or default occurrence for overlaps.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "source_locator": "working-tree:src/Domain/Value/DateTime/DateTime.php#Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final immutable value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "source_locator": "working-tree:src/Domain/Value/DateTime/DateTime.php#Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "source_locator": "working-tree:src/Domain/Value/DateTime/DateTime.php#Fight\\Common\\Domain\\Value\\DateTime\\DateTime", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\DateTime\\Duration",
             "source": "src/Domain/Value/DateTime/Duration.php",
@@ -37728,6 +37746,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.strict-zoned-datetime",
+            "normative": {"path": "docs/values.md", "section": "Strict zoned DateTime"},
+            "fixture": {"path": "tests/Domain/Value/DateTime/DateTimeTest.php"}
+        },
         {
             "id": "fight-common.behavior.exact-elapsed-durations",
             "normative": {"path": "docs/values.md", "section": "Exact elapsed Duration values"},
