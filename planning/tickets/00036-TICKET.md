@@ -19,7 +19,8 @@ APIs or importing Novuso's broader scheduling/sequence semantics.
 - Add proleptic Gregorian Date for years 0001–9999 (`YYYY-MM-DD`), local Time with exact microseconds
   (`HH:MM:SS.ffffff`, 00:00:00.000000 through 23:59:59.999999) and zoned DateTime using existing Timezone. Reject
   rollover, 24:00 and leap seconds. Native component extraction uses the supplied timestamp's own local context.
-- Add native integer-backed WeekDay, Monday=1 through Sunday=7; retain native enum from/tryFrom/JSON behavior.
+- Add native integer-backed WeekDay matching PHP's w convention, Sunday=0 through Saturday=6; retain native enum
+  from/tryFrom/JSON behavior. Date weekday calculation uses PHP with explicit internal UTC, not ambient-zone defaults.
   Date/Time have coherent canonical equality/hash/chronological comparison and reconstruction.
 - DateTime equality is exact instant plus native timezone identifier; compare instant first, identifier second,
   returning -1/0/1 coherently with equality. Expose separate same-instant comparison, provisionally isSameInstantAs,
@@ -108,7 +109,7 @@ ambiguous Novuso wall-time reconstruction, native normalization or a new platfor
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00134](../tasks/00134-TASK.md) | Add Calendar and Local Time Values | ready-for-agent |
+| [TASK-00134](../tasks/00134-TASK.md) | Add Calendar and Local Time Values | done |
 | [TASK-00135](../tasks/00135-TASK.md) | Add Exact Elapsed Durations | ready-for-agent |
 | [TASK-00136](../tasks/00136-TASK.md) | Construct Strict Zoned DateTimes | ready-for-agent |
 | [TASK-00137](../tasks/00137-TASK.md) | Add Inclusive Calendar Date Ranges | ready-for-agent |
@@ -116,6 +117,13 @@ ambiguous Novuso wall-time reconstruction, native normalization or a new platfor
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+**Current weekday amendment:** after initial TASK-00134 landing, John explicitly selected Sunday=0 through
+Saturday=6 (PHP `w`) and PHP-native weekday calculation. This supersedes the original ISO numbering recorded in
+the historical checkpoints below; all other temporal bounds/contracts remain unchanged. TASK-00134 owns the
+unreleased source/test/docs/manifest revision and fresh verification/review/QA. Internal UTC is a calculation detail,
+not a consumer timezone or public timestamp conversion. See its owner-amendment section for authority and delivery
+state; previously accepted ISO evidence remains historical, not acceptance of the amended contract.
 
 2026-10-06: John approved the focused temporal suite, zoned equality, strict DST construction and equal-endpoint
 semantics in [EPIC-00008](../epics/00008-EPIC.md), then approved this requirement area in its nine-TICKET split.
