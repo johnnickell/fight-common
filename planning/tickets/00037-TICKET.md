@@ -98,7 +98,7 @@ rounding promises. No temporal framework, new platform floor or separate termina
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00139](../tasks/00139-TASK.md) | Add Exact Decimal Arithmetic | ready-for-agent |
+| [TASK-00139](../tasks/00139-TASK.md) | Add Exact Decimal Arithmetic | done |
 | [TASK-00140](../tasks/00140-TASK.md) | Define 49 Common Currency Values | done |
 | [TASK-00141](../tasks/00141-TASK.md) | Calculate and Allocate Exact Money | ready-for-agent |
 <!-- /planning:children -->
