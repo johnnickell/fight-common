@@ -110,8 +110,8 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
 
     public function test_that_get_between_returns_result_set(): void
     {
-        $from = new DateTimeImmutable('2026-01-01T00:00:00Z');
-        $to = new DateTimeImmutable('2026-12-31T23:59:59Z');
+        $from = new DateTimeImmutable('2026-01-01T00:00:00.000001Z');
+        $to = new DateTimeImmutable('2026-12-31T23:59:59.999999Z');
         $entry = AuditEntry::record('user:1', 'login');
         $em = $this->mock(EntityManagerInterface::class);
         $qb = $this->mock(QueryBuilder::class);
