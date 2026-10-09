@@ -56,8 +56,8 @@ five for TICKET-00036, three for TICKET-00037, one for TICKET-00038 and three fo
   blocked by TASK-00136.
 - [TASK-00139 — Add Exact Decimal Arithmetic](tasks/00139-TASK.md), bounded normalized exact arithmetic and native
   RoundingMode semantics with an extension-free baseline; no TASK blockers.
-- [TASK-00140 — Recognize Versioned ISO Currencies](tasks/00140-TASK.md), offline current/historical catalog and
-  supported precision provenance; no TASK blockers, but needs-info for unresolved source/data reuse evidence.
+- [TASK-00140 — Define 49 Common Currency Values](tasks/00140-TASK.md), a bounded owned 49-code/0-2-3 scale
+  set with no outside catalog; implementation done with independent review pending.
 - [TASK-00141 — Calculate and Allocate Exact Money](tasks/00141-TASK.md), captured scale/safe readers, checked
   compatible-unit arithmetic and signed largest-remainder allocation; blocked by TASK-00139 and TASK-00140.
 - [TASK-00142 — Express Transport-Neutral Application Failures](tasks/00142-TASK.md), all eleven extensible categories,
@@ -70,8 +70,8 @@ five for TICKET-00036, three for TICKET-00037, one for TICKET-00038 and three fo
   and legacy controller/provider compatibility; blocked by TASK-00143, independent of TASK-00144.
 
 The first seven TASKs and TASK-00134/TASK-00135/TASK-00139/TASK-00140/TASK-00142 have no TASK dependencies;
-temporal/Money slices retain their true dependencies above. Currency's missing reuse evidence is explicit, not silently cleared by planning
-approval or represented by a fake blocker TASK. No execution priority is assigned. TASK-00130 uses the main checkout
+temporal/Money slices retain their true dependencies above. John's 2026-10-09 bounded-set amendment replaces the
+previous currency-data hold; Money still depends on the implemented Currency and Decimal capabilities. No execution priority is assigned. TASK-00130 uses the main checkout
 and normal develop-based branch under its explicit owner-approved minor exception. All nine TICKETs are now
 decomposed; consult the Board for execution selection and outstanding decisions. TICKET-00039's shared PSR-15 slice
 consumes TASK-00142's vocabulary before the independent Symfony/Laravel integrations. New category existence and
