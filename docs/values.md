@@ -1,6 +1,6 @@
 Value objects are immutable, self-validating domain primitives. They measure, quantify, or describe something in the domain — they are not entities with identity, but rather values that are compared by their content rather than by reference.
 
-All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Two value objects are equal only when they have the same concrete type and an identical `toString()` representation of their attributes.
+All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Default equality requires the same concrete type and `toString()` value; default hashing uses only `toString()`, so unequal types may share a hash. `InstantRange` overrides both to use exact endpoint instants even when its serialized timezone context differs.
 
 ### Recommended: Helper Functions
 
@@ -40,8 +40,9 @@ WeekDay is a native enum, not a ValueObject.
 14. [Calendar and local time](#calendar-and-local-time)
 15. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
 16. [Strict zoned DateTime](#strict-zoned-datetime)
-17. [Duration](#duration)
-18. [Doctrine Data Types](#doctrine-data-types)
+17. [Half-open InstantRange](#half-open-instantrange)
+18. [Duration](#duration)
+19. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -972,6 +973,54 @@ $other = $fold->reinterpretInTimezone(Timezone::fromString('UTC')); // same wall
 String/JSON/hash use `zoned:v1:<canonical signed Unix seconds>:<six microsecond digits>:<canonical Base64 native timezone identifier>`; `fromString()` strictly reconstructs that instant and native identifier, including either overlap occurrence. Names are `DateTimeZone::getName()` values: IANA aliases remain distinct, while native offset normalization makes `+5:30` and `+05:30` the same identifier (`+05:30`). Pre-epoch `-1.500000` means whole second `-1` and microseconds `500000`, **not** negative one-and-a-half seconds. Saved instants stay instants; timezone rule updates may change displayed local components but never silently reinterpret the stored wall time. No exact PHP serialized-byte, frozen tzdb or new Doctrine mapping is promised.
 
 `equals()`/hash require both exact instant and native timezone identifier; `compareTo()` orders instants first and identifier second (-1/0/1), rejecting another type with DomainException. `compareInstantTo(DateTime)` and `isSameInstantAs(DateTime)` deliberately ignore the identifier so instant intervals need not inherit value tie-breaking. Wrong-type equality is false. All factories are additive callable/constructible-only operations under ADRs 0009–0011, without a new consumer-implementable/extension contract, platform/dependency floor or automatic migration. Consumers own occurrence provenance, scheduling/access eligibility and any presentation/redaction policy. Nonvisual native/DST and test transcripts are the appropriate acceptance evidence.
+
+## Half-open InstantRange
+
+Contract ID: `fight-common.behavior.half-open-instant-range`.
+
+`Fight\Common\Domain\Value\DateTime\InstantRange` is a final readonly value for exact instants in
+`[start, end)`. Construct with `fromInstants(DateTime $start, DateTime $end)`; `start()` and `end()` return the
+original immutable zoned endpoint values. `contains(DateTime $candidate)` includes the starting instant and excludes
+the ending instant, at microsecond precision, regardless of any of their timezone identifiers. Reversed instants
+raise `DomainException`; equal instants (even if their zones differ) form an empty interval containing nothing.
+The endpoints must be supported strict zoned DateTimes (local year 0001–9999 in each endpoint zone). No separate
+span limit or Duration calculation is imposed.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\{DateTime, InstantRange, Timezone};
+
+$utc = Timezone::fromString('UTC');
+$start = DateTime::fromInstant('-1', 500000, $utc);
+$end = DateTime::fromInstant('0', 1, $utc);
+$range = InstantRange::fromInstants($start, $end);
+$range->contains($start->inTimezone(Timezone::fromString('America/New_York'))); // true
+$range->contains($end); // false
+$copy = InstantRange::fromString($range->toString()); // exact instants and endpoint zone context
+```
+
+String casts and JSON strings use the versioned ASCII frame
+`instant-range:v1:<canonical Base64 zoned DateTime string>:<canonical Base64 zoned DateTime string>`.
+Each nested `zoned:v1` representation preserves signed Unix seconds, six-digit microseconds and the original native
+timezone identifier. Base64 frames avoid ambiguous separators. `fromString()` requires canonical Base64 and valid
+zoned endpoints in instant order; malformed, unsupported, out-of-range or reversed frames raise `DomainException`.
+Both factory and reconstructed getters retain their supplied endpoint zones, even at instants whose UTC local year
+falls outside 0001–9999. A range with the same exact endpoint instants in different zones has a **different string
+and JSON representation**, because they retain context, but compares equal and has the same hash. `InstantRange`
+overrides the normal ValueObject string-based equality/hash: its hash is the canonical coordinate frame
+`instant-range:v1:<seconds>:<six digits>:<seconds>:<six digits>` without timezone labels. For the example above it
+is `instant-range:v1:-1:500000:0:000001`. Distinct endpoint pairs, including empty ranges at different instants,
+remain distinct. Do not use string/JSON byte identity as a test of range equality. Exception prose is diagnostic,
+not public-safe; native PHP argument typing remains separate.
+
+This original additive callable/constructible API and versioned behavior are classified under ADRs 0009–0011. It
+adds no consumer extension or implementer contract, dependency, persistence mapping or existing-data migration.
+Adoption is optional: neither native timestamp APIs nor `AuditRepository::getBetween(DateTimeImmutable,
+DateTimeImmutable, Pagination)` change. That audit query remains **inclusive on both endpoints**, using `>=` and
+`<=` in the Doctrine adapter; do not pass an InstantRange as if it changed audit lookup semantics. This value is
+not proof of occurrence, authorization or record access. Consumers own access, schedules and optional conversions;
+there is no range length, iteration, recurrence, calendar interval or automatic audit/scheduler migration.
+Direct nonvisual containment/reconstruction and controlled audit translation tests establish the package boundary,
+not database execution.
 
 ## Duration
 

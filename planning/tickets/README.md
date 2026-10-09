@@ -18,7 +18,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00033](00033-TICKET.md) | Snapshot JSON Without Mutable Aliasing | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00034](00034-TICKET.md) | Treat Stream Identifiers as Values | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00035](00035-TICKET.md) | Validate Network and Contact Values | done | [EPIC-00008](../epics/00008-EPIC.md) |
-| [TICKET-00036](00036-TICKET.md) | Model Calendar Time and Instant Boundaries | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
+| [TICKET-00036](00036-TICKET.md) | Model Calendar Time and Instant Boundaries | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00037](00037-TICKET.md) | Calculate Exact Monetary Values | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00038](00038-TICKET.md) | Express Transport-Neutral Application Failures | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00039](00039-TICKET.md) | Present Safe Errors Across HTTP Adapters | ready-for-agent | [EPIC-00008](../epics/00008-EPIC.md) |

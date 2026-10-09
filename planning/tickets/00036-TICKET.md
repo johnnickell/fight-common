@@ -2,7 +2,7 @@
 id: TICKET-00036
 epic: EPIC-00008
 title: Model Calendar Time and Instant Boundaries
-status: ready-for-agent
+status: done
 ---
 
 # Model Calendar Time and Instant Boundaries
@@ -113,7 +113,7 @@ ambiguous Novuso wall-time reconstruction, native normalization or a new platfor
 | [TASK-00135](../tasks/00135-TASK.md) | Add Exact Elapsed Durations | done |
 | [TASK-00136](../tasks/00136-TASK.md) | Construct Strict Zoned DateTimes | done |
 | [TASK-00137](../tasks/00137-TASK.md) | Add Inclusive Calendar Date Ranges | done |
-| [TASK-00138](../tasks/00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent |
+| [TASK-00138](../tasks/00138-TASK.md) | Add Half-Open Instant Ranges | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
