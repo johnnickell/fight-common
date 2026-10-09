@@ -28,9 +28,18 @@ The builder must save a durable local gate receipt beside its complete build log
 
 **Local verification and sufficient acceptance evidence support independent acceptance regardless of repository visibility.** An absent PR or hosted run does not make a review criterion Unverified or require draft publication before acceptance. Workflow files, previous CI usage and hosting configuration do not create pre-land acceptance prerequisites. Do not query repository visibility solely to decide whether local review may accept.
 
-After publication, `land` handles any explicitly required hosted delivery checks recorded in the project profile. Missing or infrastructure-failed required delivery evidence keeps delivery incomplete, not the already-established local technical acceptance. A demonstrated product defect still requires repair and independent review; optional CI is not permission to ignore such a defect. Never label missing or skipped checks passed. Host-enforced merge checks remain binding and may not be bypassed. This separation does not authorize merge, release or deployment.
+After publication, `land` reports available hosted results separately from local acceptance and handles any
+explicitly required hosted checks recorded in the project profile, accepted TASK or actual host rules. Missing
+or infrastructure-failed **required** evidence keeps that delivery requirement incomplete; optional hosted
+failures are disclosed to the human without blocking land's ready-for-review handoff by themselves. A demonstrated
+product defect still requires repair and independent review; optional CI is not permission to ignore such a
+defect. Never label missing, skipped or failed checks passed. Host-enforced merge checks remain binding and may
+not be bypassed. This separation does not authorize agent merge, release or deployment.
 
-A future exception requiring hosted proof before technical acceptance needs a new explicit human decision, a named requirement and a publication plan. Generic historical requirements that workflows pass refer to post-publication delivery under this workflow; they must not recreate a circular review-before-publication dependency.
+A future exception requiring hosted proof before technical acceptance needs a new explicit human decision, a named
+requirement and a publication plan. Historical workflow/ADR wording does not by itself establish a current hosted
+delivery gate: apply the accepted project/TASK policy and actual host restrictions. Do not recreate a circular
+review-before-publication dependency.
 
 ## Reusing a full-gate result after documentation-only follow-ups
 
