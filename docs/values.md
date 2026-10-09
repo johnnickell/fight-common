@@ -1,6 +1,6 @@
 Value objects are immutable, self-validating domain primitives. They measure, quantify, or describe something in the domain — they are not entities with identity, but rather values that are compared by their content rather than by reference.
 
-All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). The default equality/hash uses concrete type and `toString()`; `InstantRange` explicitly overrides it to compare exact endpoint instants even when its serialized timezone context differs.
+All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Default equality requires the same concrete type and `toString()` value; default hashing uses only `toString()`, so unequal types may share a hash. `InstantRange` overrides both to use exact endpoint instants even when its serialized timezone context differs.
 
 ### Recommended: Helper Functions
 
