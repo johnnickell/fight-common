@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00140-addition": {
+            "path": "planning/tasks/00140-TASK.md",
+            "locator": "Scope and acceptance: additive bounded 49-code Currency values with retained versioned accounting definitions and no consumer financial policy"
+        },
         "fight-common.classification.task-00137-addition": {
             "path": "planning/tasks/00137-TASK.md",
             "locator": "Scope and acceptance: additive inclusive DateRange with ordered Gregorian Date endpoints, single-date membership and stable reconstruction without instant or stepped-sequence semantics"
@@ -155,6 +159,34 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Money\\Currency",
+            "source": "src/Domain/Value/Money/Currency.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Currency", "source_locator": "working-tree:src/Domain/Value/Money/Currency.php#Fight\\Common\\Domain\\Value\\Money\\Currency"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00140-addition", "rationale": "Additive final readonly 49-code value, strict construction and retained accounting definitions; no existing values or financial policy change."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Code factories, retained version lookup, exponent and inherited code-only value equality/hash/string/JSON operations.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Currency", "source_locator": "working-tree:src/Domain/Value/Money/Currency.php#Fight\\Common\\Domain\\Value\\Money\\Currency", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named validated factories only; private constructor, no arbitrary consumer-supplied scale.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Currency", "source_locator": "working-tree:src/Domain/Value/Money/Currency.php#Fight\\Common\\Domain\\Value\\Money\\Currency", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final readonly value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Currency", "source_locator": "working-tree:src/Domain/Value/Money/Currency.php#Fight\\Common\\Domain\\Value\\Money\\Currency", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Currency", "source_locator": "working-tree:src/Domain/Value/Money/Currency.php#Fight\\Common\\Domain\\Value\\Money\\Currency", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions",
+            "source": "src/Domain/Value/Money/CurrencyDefinitions.php",
+            "layer": "Domain", "kind": "class", "classification": "internal",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "source_locator": "working-tree:src/Domain/Value/Money/CurrencyDefinitions.php#Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions"},
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "Internal immutable definition/maintenance snapshot, not a consumer registration API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "source_locator": "working-tree:src/Domain/Value/Money/CurrencyDefinitions.php#Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "operation": "callable"}}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "source_locator": "working-tree:src/Domain/Value/Money/CurrencyDefinitions.php#Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "source_locator": "working-tree:src/Domain/Value/Money/CurrencyDefinitions.php#Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal implementation.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "source_locator": "working-tree:src/Domain/Value/Money/CurrencyDefinitions.php#Fight\\Common\\Domain\\Value\\Money\\CurrencyDefinitions", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\DateTime\\DateRange",
             "source": "src/Domain/Value/DateTime/DateRange.php",

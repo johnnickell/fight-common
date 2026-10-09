@@ -31,16 +31,17 @@ WeekDay is a native enum, not a ValueObject.
 5. [EmailAddress](#emailaddress)
 6. [IP addresses](#ip-addresses)
 7. [E164PhoneNumber](#e164phonenumber)
-8. [Uri](#uri)
-9. [Url](#url)
-10. [Uuid](#uuid)
-11. [Identity (UniqueId)](#identity-uniqueid)
-12. [StreamId](#streamid)
-13. [Calendar and local time](#calendar-and-local-time)
-14. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
-15. [Strict zoned DateTime](#strict-zoned-datetime)
-16. [Duration](#duration)
-17. [Doctrine Data Types](#doctrine-data-types)
+8. [Currency](#currency)
+9. [Uri](#uri)
+10. [Url](#url)
+11. [Uuid](#uuid)
+12. [Identity (UniqueId)](#identity-uniqueid)
+13. [StreamId](#streamid)
+14. [Calendar and local time](#calendar-and-local-time)
+15. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
+16. [Strict zoned DateTime](#strict-zoned-datetime)
+17. [Duration](#duration)
+18. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -500,6 +501,54 @@ Existing short codes, sender IDs and non-E.164 strings remain supported there; n
 message creation sends anything. Lexical validity does not establish assignment, reachability, SMS capability,
 provider eligibility, ownership or permission to contact. Consumers own sender selection, country/provider rules,
 consent, authorization, redaction and delivery policy. Construction performs no network/provider lookup.
+
+---
+
+## Currency
+
+Contract ID: `fight-common.behavior.bounded-currency-definitions`.
+
+`Fight\Common\Domain\Value\Money\Currency` is a final readonly value. `fromCode()` and `fromString()`
+accept **only** the uppercase ASCII codes below without trimming, normalization or lookup; malformed or unsupported
+codes (including BGN) raise `DomainException`, not a guessed exponent. This is a deliberately bounded package-owned
+set, not a complete global/historical catalog, ranking, legal-tender declaration or authorization to transact.
+
+| Base-ten accounting exponent | Supported codes |
+|---|---|
+| 0 | CLP, JPY, KRW, VND |
+| 3 | BHD, KWD |
+| 2 | AED, ARS, AUD, BDT, BRL, CAD, CHF, CNY, COP, CZK, DKK, EGP, EUR, GBP, HKD, HUF, IDR, ILS, INR, KES, LKR, MAD, MXN, MYR, NGN, NOK, NZD, PEN, PHP, PKR, PLN, QAR, RON, RUB, SAR, SEK, SGD, THB, TRY, TWD, UAH, USD, ZAR |
+
+```php-inline
+use Fight\Common\Domain\Value\Money\Currency;
+
+$currency = Currency::fromCode('JPY');
+$currency->code();               // 'JPY'
+$currency->accountingExponent(); // 0
+$currency->definitionVersion();  // 'v1'
+$currency->toString();           // 'JPY'
+$old = Currency::fromDefinition('JPY', 'v1'); // explicit retained reader
+```
+
+All 49 initial codes have definition version `v1`. `fromDefinition(code, version)` retrieves **only** a retained
+package definition and rejects unknown codes/versions. A saved Money reader must retain its code, definition version,
+scale and exact minor units; it must never reconstruct via the *current* `fromCode()` definition alone. Currency's
+string cast, native JSON string, hash and same-concrete-type equality use **code only**; `fromString()`/decoded JSON
+reconstruct the current definition for that code. A future different version with the same code remains Currency-equal,
+but it is **not** scale-compatible Money; Money must compare captured definitions and scales separately. This API does
+not itself store or reconstruct Money. Currency carries immutable scalar metadata and exposes no mutable shared data.
+
+**Maintenance:** the package's internal `CurrencyDefinitions` snapshot owns code → version → exponent and code →
+current version. New codes require deliberate documented additions and tests. A changed scale needs a new version,
+retention of all old version/exponent pairs for backward reads and an explicit update to current selection;
+`revised()` rejects dropping or changing a prior definition. Existing supported definitions are pinned by the
+49-code test data. Do not alter an old entry or erase an old code, silently redenominate saved values, register
+consumer-invented scales, or infer precision from external tables, the clock or online data. No numeric codes,
+display names, exchange rates, physical denominations, cash rounding, persistence mapping or automatic conversion
+are provided. Consumers decide transaction eligibility, accounting/regulatory and cash policy. Adoption is optional;
+existing values and consumers are unchanged. Public factory/accessor/error/representation behavior is additive under
+ADRs 0009–0011; no consumer subclassing, new platform/dependency floor, exact PHP serialized bytes or global currency
+coverage is promised. Exception prose is diagnostic rather than public-safe.
 
 ---
 

@@ -42,7 +42,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | done | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | ready-for-agent | [TICKET-00036](../tickets/00036-TICKET.md) |
 | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | ready-for-agent | [TICKET-00037](../tickets/00037-TICKET.md) |
-| [TASK-00140](00140-TASK.md) | Recognize Versioned ISO Currencies | needs-info | [TICKET-00037](../tickets/00037-TICKET.md) |
+| [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | done | [TICKET-00037](../tickets/00037-TICKET.md) |
 | [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | ready-for-agent | [TICKET-00037](../tickets/00037-TICKET.md) |
 | [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | ready-for-agent | [TICKET-00038](../tickets/00038-TICKET.md) |
 | [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
