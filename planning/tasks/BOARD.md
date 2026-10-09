@@ -89,7 +89,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00135](00135-TASK.md) | Add Exact Elapsed Durations | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #203](https://github.com/johnnickell/fight-common/pull/203) |
 | — | [TASK-00136](00136-TASK.md) | Construct Strict Zoned DateTimes | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #204](https://github.com/johnnickell/fight-common/pull/204) |
 | — | [TASK-00137](00137-TASK.md) | Add Inclusive Calendar Date Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #205](https://github.com/johnnickell/fight-common/pull/205) |
-| — | [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | — |
+| — | [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | [PR #206](https://github.com/johnnickell/fight-common/pull/206) |
 <!-- /planning:board -->
 
 ## Wayfinder
