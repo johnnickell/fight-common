@@ -37,9 +37,10 @@ WeekDay is a native enum, not a ValueObject.
 11. [Identity (UniqueId)](#identity-uniqueid)
 12. [StreamId](#streamid)
 13. [Calendar and local time](#calendar-and-local-time)
-14. [Strict zoned DateTime](#strict-zoned-datetime)
-15. [Duration](#duration)
-15. [Doctrine Data Types](#doctrine-data-types)
+14. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
+15. [Strict zoned DateTime](#strict-zoned-datetime)
+16. [Duration](#duration)
+17. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -862,6 +863,41 @@ WeekDay::from(1) === WeekDay::MONDAY;            // true
 WeekDay::tryFrom(7);                            // null
 json_encode(WeekDay::SUNDAY);                   // "0" (JSON number)
 ```
+
+## Inclusive calendar DateRange
+
+Contract ID: `fight-common.behavior.inclusive-calendar-date-range`.
+
+`Fight\Common\Domain\Value\DateTime\DateRange` is a final readonly `ValueObject` representing an inclusive
+calendar interval `[start, end]`. Construct with `fromDates(Date $start, Date $end)`; `start()` and `end()` return
+immutable Date values. `contains(Date $candidate)` includes both endpoints and every intervening date, irrespective
+of weekday, month, leap day or year. Equal endpoints represent one date, **not** an empty range. Reversed dates raise
+`DomainException`; Dates themselves enforce proleptic Gregorian years **0001–9999**. No timestamp, timezone,
+midnight or step alignment is involved.
+
+```php-inline
+use Fight\Common\Domain\Value\DateTime\Date;
+use Fight\Common\Domain\Value\DateTime\DateRange;
+
+$range = DateRange::fromDates(Date::fromString('2024-02-28'), Date::fromString('2024-03-01'));
+$range->contains(Date::fromString('2024-02-29')); // true
+$range->end()->toString(); // "2024-03-01"
+$copy = DateRange::fromString($range->toString());
+```
+
+The exact ASCII string/JSON/hash representation is `date-range:v1:YYYY-MM-DD:YYYY-MM-DD`, start first. `fromString()`
+accepts only that frame with two valid canonical Dates in order; unsupported versions, malformed dates and reversed
+intervals raise `DomainException`. `equals()` requires the same concrete type and equal ordered endpoints; wrong-type
+equality is false, and equal ranges have equal hashes. There is no ordering contract for ranges, PHP serialized-byte
+promise, persisted schema or new dependency. Exception prose is diagnostic, not public-safe.
+
+This is original additive code, not Novuso's stepped DateRange. Its public callable/constructible operations and
+behavioral/representation contract are classified under ADRs 0009–0011; it is final, not an extension or
+implementer contract. Adoption is optional; existing native timestamps, inclusive audit lookups, scheduler and
+consumer data are unchanged. Calendar containment is not proof of occurrence or permission to act. Consumers own
+calendar, retention and access policy. Half-open instant intervals are a separate concept; there is no range
+length/count, iteration, recurrence, date arithmetic or automatic conversion to instants. Direct nonvisual
+containment and reconstruction tests are the appropriate acceptance evidence.
 
 ## Strict zoned DateTime
 
