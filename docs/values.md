@@ -577,9 +577,10 @@ All 49 initial codes have definition version `v1`. `fromDefinition(code, version
 package definition and rejects unknown codes/versions. A saved Money reader must retain its code, definition version,
 scale and exact minor units; it must never reconstruct via the *current* `fromCode()` definition alone. Currency's
 string cast, native JSON string, hash and same-concrete-type equality use **code only**; `fromString()`/decoded JSON
-reconstruct the current definition for that code. A future different version with the same code remains Currency-equal,
-but it is **not** scale-compatible Money; Money compares captured code and scale separately. This API does
-not itself store or reconstruct Money. Currency carries immutable scalar metadata and exposes no mutable shared data.
+reconstruct the current definition for that code. A future different version with the same code remains Currency-equal.
+Money compares captured code and scale separately: metadata-only revisions at the same exponent remain compatible;
+a changed exponent does not. Currency does not itself store or reconstruct Money. It carries immutable scalar
+metadata and exposes no mutable shared data.
 
 **Maintenance:** the package's internal `CurrencyDefinitions` snapshot owns code → version → exponent and code →
 current version. New codes require deliberate documented additions and tests. A changed scale needs a new version,
@@ -653,7 +654,8 @@ values with different supported definition versions may have **different strings
 `fromString()` or from the decoded JSON string, not from `Currency::fromCode()` alone. PHP argument/type failures
 remain native; invalid supported values, incompatibility, overflow and malformed saved data raise
 `DomainException` (diagnostic messages are not public-safe contracts). Caller-side float or JSON numeric precision
-loss cannot be recovered. The internal definition-snapshot maintenance seams are not consumer factories.
+loss cannot be recovered. Money's public factories accept only retained package definitions; hypothetical future
+snapshots in tests are not consumer construction or reader APIs.
 
 This new opt-in public factory/reader, operations, failure family and versioned representation are additive under
 ADRs 0009–0011; no pre-existing Money schema or persisted value is migrated. No extension contract, PHP serialized

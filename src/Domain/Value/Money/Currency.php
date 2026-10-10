@@ -43,16 +43,6 @@ final readonly class Currency extends ValueObject
     }
 
     /**
-     * Creates a currency from a controlled definition snapshot for package maintenance evidence
-     *
-     * @internal
-     */
-    public static function fromDefinitions(string $code, string $version, CurrencyDefinitions $definitions): self
-    {
-        return new self($code, $version, $definitions->exponent($code, $version));
-    }
-
-    /**
      * @inheritDoc
      */
     public static function fromString(string $value): static

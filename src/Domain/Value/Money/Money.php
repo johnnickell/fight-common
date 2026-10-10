@@ -29,6 +29,8 @@ final readonly class Money extends ValueObject implements Comparable
      */
     public static function fromMinorUnits(int $minorUnits, Currency $currency): self
     {
+        self::requireSupported($currency);
+
         return new self($minorUnits, $currency);
     }
 
@@ -39,6 +41,7 @@ final readonly class Money extends ValueObject implements Comparable
      */
     public static function fromDecimal(Decimal $amount, Currency $currency, ?RoundingMode $mode = null): self
     {
+        self::requireSupported($currency);
         $minor = $amount->multiply(self::factor($currency));
 
         return new self(self::nativeAmount($minor, $mode), $currency);
@@ -51,22 +54,11 @@ final readonly class Money extends ValueObject implements Comparable
      */
     public static function fromString(string $value): static
     {
-        return self::fromSavedWithDefinitions($value, CurrencyDefinitions::standard());
-    }
-
-    /**
-     * Creates Money from a controlled definition snapshot for package maintenance evidence
-     *
-     * @internal
-     * @throws DomainException When the representation, definition or amount is unsupported
-     */
-    public static function fromSavedWithDefinitions(string $value, CurrencyDefinitions $definitions): self
-    {
         if (preg_match('/\Amoney:v1:([A-Z]{3}):(v[1-9][0-9]*):([0-9]+):(0|-?[1-9][0-9]*)\z/', $value, $parts) !== 1) {
             throw new DomainException('Invalid Money representation');
         }
 
-        $currency = Currency::fromDefinitions($parts[1], $parts[2], $definitions);
+        $currency = Currency::fromDefinition($parts[1], $parts[2]);
         if ((string) $currency->accountingExponent() !== $parts[3]) {
             throw new DomainException('Money accounting scale does not match its definition');
         }
@@ -105,7 +97,7 @@ final readonly class Money extends ValueObject implements Comparable
     {
         $this->requireCompatible($other);
 
-        return self::fromMinorUnits(self::nativeAmount($this->amount()->add($other->amount())), $this->currency);
+        return new self(self::nativeAmount($this->amount()->add($other->amount())), $this->currency);
     }
 
     /**
@@ -115,7 +107,7 @@ final readonly class Money extends ValueObject implements Comparable
     {
         $this->requireCompatible($other);
 
-        return self::fromMinorUnits(self::nativeAmount($this->amount()->subtract($other->amount())), $this->currency);
+        return new self(self::nativeAmount($this->amount()->subtract($other->amount())), $this->currency);
     }
 
     /**
@@ -125,7 +117,7 @@ final readonly class Money extends ValueObject implements Comparable
     {
         $opposite = Decimal::fromString('0')->subtract($this->amount());
 
-        return self::fromMinorUnits(self::nativeAmount($opposite), $this->currency);
+        return new self(self::nativeAmount($opposite), $this->currency);
     }
 
     /**
@@ -133,7 +125,7 @@ final readonly class Money extends ValueObject implements Comparable
      */
     public function multiply(Decimal $scalar, ?RoundingMode $mode = null): self
     {
-        return self::fromMinorUnits(self::nativeAmount($this->amount()->multiply($scalar), $mode), $this->currency);
+        return new self(self::nativeAmount($this->amount()->multiply($scalar), $mode), $this->currency);
     }
 
     /**
@@ -149,7 +141,7 @@ final readonly class Money extends ValueObject implements Comparable
             $amount = $this->amount()->divideRounded($scalar, 0, $mode);
         }
 
-        return self::fromMinorUnits(self::nativeAmount($amount), $this->currency);
+        return new self(self::nativeAmount($amount), $this->currency);
     }
 
     /**
@@ -208,7 +200,7 @@ final readonly class Money extends ValueObject implements Comparable
         $result = [];
         foreach ($shares as $share) {
             $signed = $this->minorUnits < 0 ? Decimal::fromString('0')->subtract($share) : $share;
-            $result[] = self::fromMinorUnits(self::nativeAmount($signed), $this->currency);
+            $result[] = new self(self::nativeAmount($signed), $this->currency);
         }
 
         return $result;
@@ -252,6 +244,17 @@ final readonly class Money extends ValueObject implements Comparable
         $definition = 'money:v1:'.$this->currency->code().':'.$this->currency->definitionVersion();
 
         return $definition.':'.$this->currency->accountingExponent().':'.$this->minorUnits;
+    }
+
+    /**
+     * Rejects definitions not present with their exact exponent in the package's retained set
+     */
+    private static function requireSupported(Currency $currency): void
+    {
+        $supported = Currency::fromDefinition($currency->code(), $currency->definitionVersion());
+        if ($currency->accountingExponent() !== $supported->accountingExponent()) {
+            throw new DomainException('Money accounting scale does not match its definition');
+        }
     }
 
     /**

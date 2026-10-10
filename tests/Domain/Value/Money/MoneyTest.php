@@ -15,6 +15,8 @@ use Fight\Common\Domain\Value\Money\Money;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionClass;
+use ReflectionMethod;
 use RoundingMode;
 
 #[CoversClass(Money::class)]
@@ -30,6 +32,29 @@ class MoneyTest extends UnitTestCase
                 self::assertSame($currency, $money->currency());
                 self::assertSame($scale, $money->currency()->accountingExponent());
                 self::assertTrue($money->equals(Money::fromString($money->toString())));
+            }
+        }
+    }
+
+    public function test_that_public_construction_rejects_consumer_supplied_definitions(): void
+    {
+        $definitions = CurrencyDefinitions::fromDefinitions(
+            ['ZZZ' => ['v1' => 3], 'USD' => ['v1' => 3]],
+            ['ZZZ' => 'v1', 'USD' => 'v1']
+        );
+        foreach (['ZZZ', 'USD'] as $code) {
+            $currency = self::maintenanceCurrency($code, 'v1', $definitions);
+            foreach (['minor', 'major'] as $factory) {
+                try {
+                    if ($factory === 'minor') {
+                        Money::fromMinorUnits(123, $currency);
+                    } else {
+                        Money::fromDecimal(Decimal::fromString('1.23'), $currency);
+                    }
+                    self::fail('Public Money construction must reject an unsupported definition');
+                } catch (DomainException) {
+                    self::assertSame(3, $currency->accountingExponent());
+                }
             }
         }
     }
@@ -186,7 +211,7 @@ class MoneyTest extends UnitTestCase
         $usd = Money::fromMinorUnits(1, Currency::fromCode('USD'));
         $eur = Money::fromMinorUnits(1, Currency::fromCode('EUR'));
         $definitions = CurrencyDefinitions::fromDefinitions(['USD' => ['v1' => 2, 'v2' => 3]], ['USD' => 'v2']);
-        $rescaled = Money::fromMinorUnits(1, Currency::fromDefinitions('USD', 'v2', $definitions));
+        $rescaled = self::maintenanceMoney(1, 'USD', 'v2', $definitions);
         foreach ([$eur, $rescaled] as $other) {
             foreach (['add', 'subtract', 'compareTo'] as $operation) {
                 try {
@@ -205,11 +230,13 @@ class MoneyTest extends UnitTestCase
     public function test_that_numeric_identity_ignores_metadata_only_versions_and_supports_real_hash_collections(): void
     {
         $definitions = CurrencyDefinitions::fromDefinitions(['USD' => ['v1' => 2, 'v2' => 2]], ['USD' => 'v2']);
-        $old = Money::fromMinorUnits(12, Currency::fromDefinitions('USD', 'v1', $definitions));
-        $new = Money::fromMinorUnits(12, Currency::fromDefinitions('USD', 'v2', $definitions));
+        $old = Money::fromMinorUnits(12, Currency::fromCode('USD'));
+        $new = self::maintenanceMoney(12, 'USD', 'v2', $definitions);
         self::assertTrue($old->equals($old));
         self::assertTrue($old->equals($new));
         self::assertSame($old->hashValue(), $new->hashValue());
+        self::assertSame(0, $old->compareTo($new));
+        self::assertSame(24, $old->add($new)->minorUnits());
         self::assertNotSame($old->toString(), $new->toString());
         self::assertFalse($old->equals(Money::fromMinorUnits(13, $old->currency())));
         self::assertFalse($old->equals(Money::fromMinorUnits(12, Currency::fromCode('EUR'))));
@@ -232,15 +259,17 @@ class MoneyTest extends UnitTestCase
             ['USD' => ['v1' => 2, 'v2' => 3], 'JPY' => ['v1' => 0]],
             ['USD' => 'v2', 'JPY' => 'v1']
         );
-        $saved = Money::fromMinorUnits(123, Currency::fromDefinitions('USD', 'v1', $original))->toString();
-        $restored = Money::fromSavedWithDefinitions($saved, $updated);
+        $saved = Money::fromMinorUnits(123, Currency::fromCode('USD'))->toString();
+        $restored = Money::fromString($saved);
         self::assertSame('money:v1:USD:v1:2:123', $saved);
         self::assertSame('1.23', $restored->toDecimal()->toString());
         self::assertSame($saved, $restored->toString());
-        self::assertSame('0.123', Money::fromMinorUnits(
-            123, Currency::fromDefinitions('USD', 'v2', $updated)
-        )->toDecimal()->toString());
-        self::assertSame('JPY', Currency::fromDefinitions('JPY', 'v1', $updated)->code());
+        self::assertSame($original->exponent('USD', 'v1'), $updated->exponent('USD', 'v1'));
+        self::assertSame(3, $updated->exponent('USD', 'v2'));
+        self::assertSame(0, $updated->exponent('JPY', 'v1'));
+        self::assertSame('0.123', self::maintenanceMoney(123, 'USD', 'v2', $updated)->toDecimal()->toString());
+        $this->expectException(DomainException::class);
+        Money::fromString('money:v1:USD:v2:3:123');
     }
 
     #[DataProvider('invalidSavedValues')]
@@ -333,6 +362,40 @@ class MoneyTest extends UnitTestCase
         yield 'minimum with max weights' => [PHP_INT_MIN, [PHP_INT_MAX, PHP_INT_MAX], [
             intdiv(PHP_INT_MIN, 2), intdiv(PHP_INT_MIN, 2)
         ]];
+    }
+
+    /**
+     * Builds a hypothetical future definition only inside tests, bypassing private construction
+     *
+     * @internal
+     */
+    private static function maintenanceCurrency(string $code, string $version, CurrencyDefinitions $definitions): Currency
+    {
+        $reflection = new ReflectionClass(Currency::class);
+        $currency = $reflection->newInstanceWithoutConstructor();
+        (new ReflectionMethod(Currency::class, '__construct'))->invoke(
+            $currency, $code, $version, $definitions->exponent($code, $version)
+        );
+
+        return $currency;
+    }
+
+    /**
+     * Builds hypothetical Money only for future-definition arithmetic evidence, never through a public factory
+     */
+    private static function maintenanceMoney(
+        int $units,
+        string $code,
+        string $version,
+        CurrencyDefinitions $definitions
+    ): Money {
+        $reflection = new ReflectionClass(Money::class);
+        $money = $reflection->newInstanceWithoutConstructor();
+        (new ReflectionMethod(Money::class, '__construct'))->invoke(
+            $money, $units, self::maintenanceCurrency($code, $version, $definitions)
+        );
+
+        return $money;
     }
 
     public function test_that_money_is_immutable(): void

@@ -88,11 +88,10 @@ class CurrencyTest extends UnitTestCase
         $original = CurrencyDefinitions::fromDefinitions(['USD' => ['v1' => 2]], ['USD' => 'v1']);
         $updated = $original->revised(['USD' => ['v1' => 2, 'v2' => 3]], ['USD' => 'v2']);
 
-        self::assertSame(2, Currency::fromDefinitions('USD', 'v1', $updated)->accountingExponent());
-        self::assertSame(3, Currency::fromDefinitions('USD', 'v2', $updated)->accountingExponent());
-        self::assertTrue(Currency::fromDefinitions('USD', 'v1', $updated)->equals(
-            Currency::fromDefinitions('USD', 'v2', $updated)
-        ));
+        self::assertSame(2, $updated->exponent('USD', 'v1'));
+        self::assertSame(3, $updated->exponent('USD', 'v2'));
+        self::assertSame('v2', $updated->currentVersion('USD'));
+        self::assertSame(2, Currency::fromDefinition('USD', 'v1')->accountingExponent());
     }
 
     public function test_that_unsupported_definition_versions_reject_without_substitution(): void
