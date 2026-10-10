@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "cc4280f2a8b77185f39a1d5a9329ddec52609b0a4ef46b7e0c6a04b404a6bda9",
+    "operation_shapes_sha256": "7885c78c444e44b07d5b4dc686bdbbf05a33972a5fd91e487884afc111967db0",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -9,7 +9,7 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 145,
+            "declarations": 147,
             "functions": 13
         },
         "Application": {
@@ -22,6 +22,14 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00139-addition": {
+            "path": "planning/tasks/00139-TASK.md",
+            "locator": "Scope and acceptance: additive exact bounded Decimal with finite division and explicit rounding, without float or optional extension requirements"
+        },
+        "fight-common.classification.task-00141-addition": {
+            "path": "planning/tasks/00141-TASK.md",
+            "locator": "Scope and acceptance: additive signed native Money with retained definition meaning, exact calculations and signed largest-remainder allocation"
+        },
         "fight-common.classification.task-00138-addition": {
             "path": "planning/tasks/00138-TASK.md",
             "locator": "Scope and acceptance: additive half-open InstantRange with instant-only endpoint identity, empty equal-instant intervals and versioned zoned reconstruction without changing inclusive audit queries"
@@ -163,6 +171,34 @@
         }
     },
     "declarations": [
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Basic\\Decimal",
+            "source": "src/Domain/Value/Basic/Decimal.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\Decimal", "source_locator": "working-tree:src/Domain/Value/Basic/Decimal.php#Fight\\Common\\Domain\\Value\\Basic\\Decimal"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00139-addition", "rationale": "Additive final readonly bounded exact decimal value with validated plain-text construction, exact arithmetic and explicit native rounding; no existing value changes."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Named string construction, exact and explicitly rounded arithmetic, numeric comparison and canonical equality/hash/string/JSON semantics.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\Decimal", "source_locator": "working-tree:src/Domain/Value/Basic/Decimal.php#Fight\\Common\\Domain\\Value\\Basic\\Decimal", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Validated fromString factory only; private constructor and no float conversion or extension floor.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\Decimal", "source_locator": "working-tree:src/Domain/Value/Basic/Decimal.php#Fight\\Common\\Domain\\Value\\Basic\\Decimal", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final readonly value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\Decimal", "source_locator": "working-tree:src/Domain/Value/Basic/Decimal.php#Fight\\Common\\Domain\\Value\\Basic\\Decimal", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not an interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Basic\\Decimal", "source_locator": "working-tree:src/Domain/Value/Basic/Decimal.php#Fight\\Common\\Domain\\Value\\Basic\\Decimal", "operation": "implementable"}}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Domain\\Value\\Money\\Money",
+            "source": "src/Domain/Value/Money/Money.php",
+            "layer": "Domain", "kind": "class", "classification": "public",
+            "evidence_binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Money", "source_locator": "working-tree:src/Domain/Value/Money/Money.php#Fight\\Common\\Domain\\Value\\Money\\Money"},
+            "classification_evidence": {"authority": "fight-common.classification.task-00141-addition", "rationale": "Additive final readonly exact signed Money value with supported captured accounting definitions, checked arithmetic, largest-remainder allocation and stable versioned backward reads; no existing financial value changes."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": true, "evidence": {"authority": "fight-common.operation.public-call", "rationale": "Validated minor/Decimal/saved-text factories, exact and explicitly rounded arithmetic, signed allocation, compatible comparison and owned equality/hash/string/JSON semantics.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Money", "source_locator": "working-tree:src/Domain/Value/Money/Money.php#Fight\\Common\\Domain\\Value\\Money\\Money", "operation": "callable"}}},
+                "constructible": {"promised": true, "evidence": {"authority": "fight-common.operation.public-construction", "rationale": "Named factories with supported captured Currency; private constructor and strict saved-meaning validation, no arbitrary consumer scale.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Money", "source_locator": "working-tree:src/Domain/Value/Money/Money.php#Fight\\Common\\Domain\\Value\\Money\\Money", "operation": "constructible"}}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final readonly value, not a consumer extension point.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Money", "source_locator": "working-tree:src/Domain/Value/Money/Money.php#Fight\\Common\\Domain\\Value\\Money\\Money", "operation": "extensible"}}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete class, not a consumer-implementable interface.", "binding": {"subject": "Fight\\Common\\Domain\\Value\\Money\\Money", "source_locator": "working-tree:src/Domain/Value/Money/Money.php#Fight\\Common\\Domain\\Value\\Money\\Money", "operation": "implementable"}}}
+            }
+        },
         {
             "name": "Fight\\Common\\Domain\\Value\\Money\\Currency",
             "source": "src/Domain/Value/Money/Currency.php",
@@ -37814,6 +37850,21 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.bounded-currency-definitions",
+            "normative": {"path": "docs/values.md", "section": "Currency"},
+            "fixture": {"path": "tests/Domain/Value/Money/CurrencyTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.exact-decimal-arithmetic",
+            "normative": {"path": "docs/values.md", "section": "Decimal"},
+            "fixture": {"path": "tests/Domain/Value/Basic/DecimalTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.exact-money-and-allocation",
+            "normative": {"path": "docs/values.md", "section": "Money"},
+            "fixture": {"path": "tests/Domain/Value/Money/MoneyTest.php"}
+        },
         {
             "id": "fight-common.behavior.half-open-instant-range",
             "normative": {"path": "docs/values.md", "section": "Half-open InstantRange"},

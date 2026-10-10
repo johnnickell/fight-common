@@ -9,6 +9,7 @@ use Fight\Common\Domain\Collection\HashSet;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StringObject;
 use Fight\Common\Domain\Value\Money\Currency;
+use Fight\Common\Domain\Value\Money\CurrencyDefinitions;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -80,6 +81,18 @@ class CurrencyTest extends UnitTestCase
         yield 'non ASCII' => ['UŚD'];
         yield 'trailing newline' => ["USD\n"];
         yield 'embedded NUL' => ["US\0D"];
+    }
+
+    public function test_that_controlled_definition_snapshots_preserve_old_and_new_scale(): void
+    {
+        $original = CurrencyDefinitions::fromDefinitions(['USD' => ['v1' => 2]], ['USD' => 'v1']);
+        $updated = $original->revised(['USD' => ['v1' => 2, 'v2' => 3]], ['USD' => 'v2']);
+
+        self::assertSame(2, Currency::fromDefinitions('USD', 'v1', $updated)->accountingExponent());
+        self::assertSame(3, Currency::fromDefinitions('USD', 'v2', $updated)->accountingExponent());
+        self::assertTrue(Currency::fromDefinitions('USD', 'v1', $updated)->equals(
+            Currency::fromDefinitions('USD', 'v2', $updated)
+        ));
     }
 
     public function test_that_unsupported_definition_versions_reject_without_substitution(): void
