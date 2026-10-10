@@ -2,7 +2,7 @@
 id: TICKET-00037
 epic: EPIC-00008
 title: Calculate Exact Monetary Values
-status: ready-for-agent
+status: done
 ---
 
 # Calculate Exact Monetary Values
@@ -100,7 +100,7 @@ rounding promises. No temporal framework, new platform floor or separate termina
 |---|---|---|
 | [TASK-00139](../tasks/00139-TASK.md) | Add Exact Decimal Arithmetic | done |
 | [TASK-00140](../tasks/00140-TASK.md) | Define 49 Common Currency Values | done |
-| [TASK-00141](../tasks/00141-TASK.md) | Calculate and Allocate Exact Money | ready-for-agent |
+| [TASK-00141](../tasks/00141-TASK.md) | Calculate and Allocate Exact Money | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

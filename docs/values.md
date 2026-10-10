@@ -1,6 +1,7 @@
 Value objects are immutable, self-validating domain primitives. They measure, quantify, or describe something in the domain — they are not entities with identity, but rather values that are compared by their content rather than by reference.
 
 All value objects in this library extend `ValueObject`, which implements the `Value` interface (`Equatable` + `JsonSerializable` + `Stringable`). Default equality requires the same concrete type and `toString()` value; default hashing uses only `toString()`, so unequal types may share a hash. `InstantRange` overrides both to use exact endpoint instants even when its serialized timezone context differs.
+`Money` overrides both to use code, captured scale and minor units rather than saved definition-version metadata.
 
 ### Recommended: Helper Functions
 
@@ -33,17 +34,18 @@ WeekDay is a native enum, not a ValueObject.
 7. [E164PhoneNumber](#e164phonenumber)
 8. [Decimal](#decimal)
 9. [Currency](#currency)
-10. [Uri](#uri)
-11. [Url](#url)
-12. [Uuid](#uuid)
-13. [Identity (UniqueId)](#identity-uniqueid)
-14. [StreamId](#streamid)
-15. [Calendar and local time](#calendar-and-local-time)
-16. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
-17. [Strict zoned DateTime](#strict-zoned-datetime)
-18. [Half-open InstantRange](#half-open-instantrange)
-19. [Duration](#duration)
-20. [Doctrine Data Types](#doctrine-data-types)
+10. [Money](#money)
+11. [Uri](#uri)
+12. [Url](#url)
+13. [Uuid](#uuid)
+14. [Identity (UniqueId)](#identity-uniqueid)
+15. [StreamId](#streamid)
+16. [Calendar and local time](#calendar-and-local-time)
+17. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
+18. [Strict zoned DateTime](#strict-zoned-datetime)
+19. [Half-open InstantRange](#half-open-instantrange)
+20. [Duration](#duration)
+21. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -575,9 +577,10 @@ All 49 initial codes have definition version `v1`. `fromDefinition(code, version
 package definition and rejects unknown codes/versions. A saved Money reader must retain its code, definition version,
 scale and exact minor units; it must never reconstruct via the *current* `fromCode()` definition alone. Currency's
 string cast, native JSON string, hash and same-concrete-type equality use **code only**; `fromString()`/decoded JSON
-reconstruct the current definition for that code. A future different version with the same code remains Currency-equal,
-but it is **not** scale-compatible Money; Money must compare captured definitions and scales separately. This API does
-not itself store or reconstruct Money. Currency carries immutable scalar metadata and exposes no mutable shared data.
+reconstruct the current definition for that code. A future different version with the same code remains Currency-equal.
+Money compares captured code and scale separately: metadata-only revisions at the same exponent remain compatible;
+a changed exponent does not. Currency does not itself store or reconstruct Money. It carries immutable scalar
+metadata and exposes no mutable shared data.
 
 **Maintenance:** the package's internal `CurrencyDefinitions` snapshot owns code → version → exponent and code →
 current version. New codes require deliberate documented additions and tests. A changed scale needs a new version,
@@ -590,6 +593,75 @@ are provided. Consumers decide transaction eligibility, accounting/regulatory an
 existing values and consumers are unchanged. Public factory/accessor/error/representation behavior is additive under
 ADRs 0009–0011; no consumer subclassing, new platform/dependency floor, exact PHP serialized bytes or global currency
 coverage is promised. Exception prose is diagnostic rather than public-safe.
+
+---
+
+## Money
+
+Contract ID: `fight-common.behavior.exact-money-and-allocation`.
+
+`Fight\Common\Domain\Value\Money\Money` is a final readonly ValueObject and Comparable. It captures a
+supported `Currency` definition at `fromMinorUnits(int $minorUnits, Currency $currency)` or
+`fromDecimal(Decimal $majorAmount, Currency $currency, ?RoundingMode $mode = null)`. Its amount is **signed native
+integer minor units**, including zero, negatives and `PHP_INT_MIN`; `minorUnits()` returns that exact integer,
+`currency()` returns the captured immutable context, and `toDecimal()` returns the exact major-unit Decimal.
+The accounting exponent is 0, 2 or 3, not a cash-rounding or physical subdivision rule. Construction and
+reconstruction do not consult an online table. Unsupported codes, definitions and caller-invented scales are
+not supported. There is no mandatory 64-bit, BCMath, GMP or float backend.
+
+```php-inline
+use Fight\Common\Domain\Value\Basic\Decimal;
+use Fight\Common\Domain\Value\Money\Currency;
+use Fight\Common\Domain\Value\Money\Money;
+
+$usd = Currency::fromCode('USD');
+$price = Money::fromDecimal(Decimal::fromString('1.23'), $usd); // 123 minor units
+$price->add(Money::fromMinorUnits(2, $usd))->toDecimal()->toString(); // '1.25'
+Money::fromDecimal(Decimal::fromString('-1.005'), $usd, RoundingMode::HalfAwayFromZero)
+    ->minorUnits(); // -101
+$shares = Money::fromMinorUnits(-5, $usd)->allocate([1, 1, 1]);
+array_map(static fn (Money $share): int => $share->minorUnits(), $shares); // [-2, -2, -1]
+```
+
+`add`, `subtract`, `negate`, `multiply(Decimal $scalar, ?RoundingMode $mode = null)`, and
+`divide(Decimal $scalar, ?RoundingMode $mode = null)` return new Money. Exact paths reject a fractional minor
+unit, even when a decimal result is otherwise finite; `divide` without rounding also rejects a nonterminating
+Decimal quotient. With a mode, scalar division rounds the exact ratio **once at minor-unit scale zero**, not at
+an intermediate major scale. Decimal conversion scales exactly first, then makes one explicit rounding decision
+at the minor-unit boundary. All eight native PHP `RoundingMode` cases are supported. Native integer limits are
+checked **after** exact wide arithmetic, without `abs(PHP_INT_MIN)`, native float multiplication or implicit
+precision loss. A zero divisor and unrepresentable result reject. Amount comparison and addition/subtraction
+require matching currency code **and captured scale**, not matching revision labels; different currencies or
+scales reject rather than sorting, exchanging or redenominating. `compareTo` returns -1/0/1 for compatible Money.
+
+`allocate(array $weights)` accepts only a nonempty **list** of nonnegative native integer weights with at least
+one positive weight (even when allocating zero). It divides the exact absolute amount by the exact total weight,
+takes floor shares, gives remaining minor units to the greatest fractional remainders (ties to the first original
+index), restores the original sign and returns Money shares in original list order. Zero weights get zero; the
+signed shares sum exactly to the original amount, even at native limits. Large sums/products are calculated exactly.
+This includes equal-weight splitting, not a policy about fairness or authority to distribute funds.
+
+Saved text and JSON are the same **string**, `money:v1:CODE:definitionVersion:scale:signedMinorUnits` (for example
+`money:v1:USD:v1:2:-123`). `fromString()` reads only canonical text with an exact ASCII signed integer (no `+`,
+leading zeros or negative zero), the saved scale and a **retained** package definition. It rejects unknown schema/
+definition/code/scale, mismatches, malformed values and amounts outside the native integer range, never inferring
+scale from today's current code definition. Exact minor units remain text in JSON, so a JSON decoder must retain
+the string rather than parse an imprecise numeric JSON amount. Readers for previously supported definitions
+remain available when new codes or definition versions are added; changed exponents require a *new* retained
+version, not mutation of an old entry. Equality/hash and hash-collection membership use code, captured scale and
+minor units, not definition version. Saved representations also carry provenance, so two numerically equal Money
+values with different supported definition versions may have **different strings/JSON**. Reconstruct with
+`fromString()` or from the decoded JSON string, not from `Currency::fromCode()` alone. PHP argument/type failures
+remain native; invalid supported values, incompatibility, overflow and malformed saved data raise
+`DomainException` (diagnostic messages are not public-safe contracts). Caller-side float or JSON numeric precision
+loss cannot be recovered. Money's public factories accept only retained package definitions; hypothetical future
+snapshots in tests are not consumer construction or reader APIs.
+
+This new opt-in public factory/reader, operations, failure family and versioned representation are additive under
+ADRs 0009–0011; no pre-existing Money schema or persisted value is migrated. No extension contract, PHP serialized
+bytes, database mapping or automatic adoption is supplied. Consumers own currency eligibility, accounting/legal and
+cash rules, refunds/debts, permissions, ledger/payment writes and any persistence integration. Recognition is not
+permission to transact.
 
 ---
 
