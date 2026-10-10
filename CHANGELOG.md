@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in `Domain\Value\Basic\Decimal` for bounded, string-based exact decimal arithmetic, finite division
+  and explicit scale/`RoundingMode` rounding without float or optional arithmetic extensions. Numeric identity is
+  canonical; consumers choose financial policy and adoption. See [Decimal values](docs/values.md#decimal).
+
 ### Changed
 
 - **StreamId behavior change (explicit maintainer-approved minor exception):** StreamId now implements Identifier

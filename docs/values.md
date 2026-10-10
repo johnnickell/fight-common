@@ -31,18 +31,19 @@ WeekDay is a native enum, not a ValueObject.
 5. [EmailAddress](#emailaddress)
 6. [IP addresses](#ip-addresses)
 7. [E164PhoneNumber](#e164phonenumber)
-8. [Currency](#currency)
-9. [Uri](#uri)
-10. [Url](#url)
-11. [Uuid](#uuid)
-12. [Identity (UniqueId)](#identity-uniqueid)
-13. [StreamId](#streamid)
-14. [Calendar and local time](#calendar-and-local-time)
-15. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
-16. [Strict zoned DateTime](#strict-zoned-datetime)
-17. [Half-open InstantRange](#half-open-instantrange)
-18. [Duration](#duration)
-19. [Doctrine Data Types](#doctrine-data-types)
+8. [Decimal](#decimal)
+9. [Currency](#currency)
+10. [Uri](#uri)
+11. [Url](#url)
+12. [Uuid](#uuid)
+13. [Identity (UniqueId)](#identity-uniqueid)
+14. [StreamId](#streamid)
+15. [Calendar and local time](#calendar-and-local-time)
+16. [Inclusive calendar DateRange](#inclusive-calendar-daterange)
+17. [Strict zoned DateTime](#strict-zoned-datetime)
+18. [Half-open InstantRange](#half-open-instantrange)
+19. [Duration](#duration)
+20. [Doctrine Data Types](#doctrine-data-types)
 
 ---
 
@@ -502,6 +503,45 @@ Existing short codes, sender IDs and non-E.164 strings remain supported there; n
 message creation sends anything. Lexical validity does not establish assignment, reachability, SMS capability,
 provider eligibility, ownership or permission to contact. Consumers own sender selection, country/provider rules,
 consent, authorization, redaction and delivery policy. Construction performs no network/provider lookup.
+
+---
+
+## Decimal
+
+Contract ID: `fight-common.behavior.exact-decimal-arithmetic`.
+
+`Fight\Common\Domain\Value\Basic\Decimal` is an opt-in final readonly exact base-ten ValueObject and
+Comparable. `fromString(string)` accepts an optional sign, mandatory ASCII integer digits and an optional dot
+followed by one or more ASCII fractional digits. It does not trim, accept exponents/localized notation or convert
+floats. Input is limited to 4,096 bytes; the **normalized** coefficient has at most 1,024 digits and its normalized
+scale is 0–1,024. Excess leading/trailing zeros may fit in the input even when the unnormalized coefficient is
+longer. Invalid inputs, unsupported exact results, negative/requested scales above 1,024, zero divisors and
+nonterminating exact quotients raise `DomainException`. Native PHP argument and enum type errors remain native.
+
+```php-inline
+use Fight\Common\Domain\Value\Basic\Decimal;
+
+$sum = Decimal::fromString('0.1')->add(Decimal::fromString('0.2')); // 0.3 exactly
+$sum->toString(); // '0.3'
+Decimal::fromString('+01.000')->equals(Decimal::fromString('1')); // true
+Decimal::fromString('1')->divide(Decimal::fromString('8'))->toString(); // '0.125'
+Decimal::fromString('1')->divideRounded(Decimal::fromString('3'), 2, RoundingMode::HalfEven)->toString(); // '0.33'
+Decimal::fromString('-2.5')->round(0, RoundingMode::HalfEven)->toString(); // '-2'
+```
+
+`add`, `subtract`, `multiply` and `divide` return exact supported values or reject; no implicit rounding.
+`divideRounded(Decimal $divisor, int $scale, RoundingMode $mode)` and
+`round(int $scale, RoundingMode $mode)` require an explicit precision and one of **all eight** native PHP rounding
+modes. The requested scale controls rounding, not stored zero padding. Identity, hash, ordering (-1/0/1), string
+cast and JSON string use the normalized numeric value: `-0`, `0.00` and `0` are one value. `fromString()` reconstructs
+string or decoded JSON; wrong-type equality is false and wrong-type comparison raises `DomainException`.
+
+The implementation uses plain PHP exact digits without requiring BCMath, GMP or a third-party arithmetic backend;
+it does not change global `bcscale`, locale or float precision. Passing a string made from an already-rounded native
+float cannot recover precision lost by the caller. The new factories, operations, representations and documented
+throwable families are additive public contracts under ADRs 0009–0011; no pre-existing consumer value changes,
+automatic persistence mapping, subclassing contract, PHP serialized-byte format, unlimited precision or currency
+policy is supplied. Consumers own financial rounding/admission rules and optional adoption.
 
 ---
 
