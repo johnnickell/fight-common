@@ -33,21 +33,28 @@ Fight Common is public, but visibility does not add a pre-publication acceptance
 and sufficient behavior evidence permit independent acceptance without a hosted run or PR. Work and review do
 not push or create PRs to obtain CI; publication belongs to an explicitly authorized land operation.
 
-This decision supersedes the former public-repository hosted requirement for review, including that interpretation
-of ADR 0008's “both workflows must pass.” Hosted checks are **post-publication delivery** evidence: land obtains
-Tests / Complete pre-submit gate and Deploy Docs / build for the final published head before declaring delivery
-complete. The main-only Docs deploy job is not a feature-PR gate. Missing hosted evidence before land is not a
-review blocker or a reason for a draft-publication acceptance loop. Host protections, merge authorization, release
-certification and deployment remain separate and unchanged.
+The 2026-09-28 decision removed the former public-repository hosted *review* prerequisite. John clarified on
+2026-10-09 that Fight Common has **never required hosted CI to pass before human merge**: the later instruction
+requiring successful final-head Tests / Complete pre-submit gate and Deploy Docs / build for land completion was
+incorrect. Both workflows remain useful independent evidence, but their results are advisory by default. Land
+inspects available results, records missing/skipped/failing runs and their cause, and may mark a locally accepted,
+QA-satisfied PR ready for **human** review/merge without green hosted checks. Do not label an unrun or failed job
+passed, conceal a demonstrated product defect or substitute hosted output for required local proof. A specifically
+accepted TASK requirement or an actual host-enforced rule may still require a hosted check; verify its identity
+and satisfy it rather than inventing or bypassing it. The main-only Docs deploy job is not a feature-PR check.
+No agent approval, merge, release, certification or deployment authority follows from this discretion.
 
 TASK-00115's completion convention records implementation done before independent review, with that review pending
-explicitly. Land requires independent acceptance and may then publish administrative completion/PR metadata;
-required hosted delivery checks cover that final head. Preserve candidate acceptance separately from delivery
-results under [Delivery](../../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout).
-This is a policy amendment, not a claim that an absent hosted run passed. The decision also applies to TASK-00109's
-hosted-only review finding; its existing local evidence remains usable subject to normal content-equivalence checks.
+explicitly. Ordinary land requires independent acceptance and applicable QA before marking a PR ready;
+truthful administrative completion/PR metadata may follow the accepted candidate without making the agent's
+readiness conditional on optional hosted CI. Preserve the accepted candidate, later administrative closeout,
+observed hosted results and human merge decision as distinct facts under
+[Delivery](../../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout).
+This correction does not claim any missing or failed hosted run passed, change historical review/landing receipts,
+or weaken the local gate. TASK-00109's old hosted-only review finding remains governed by its recorded
+local-evidence equivalence assessment.
 
-`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's local-acceptance boundary regardless of repository visibility; required hosted delivery checks occur only after land publishes. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
+`./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's local-acceptance boundary regardless of repository visibility; optional hosted results are reported after publication, with any specifically required hosted check treated according to its accepted scope or actual host rule. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
 
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 

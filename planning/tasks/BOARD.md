@@ -90,6 +90,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00138](00138-TASK.md) | Add Half-Open Instant Ranges | [TICKET-00036 — Model Calendar Time and Instant Boundaries](../tickets/00036-TICKET.md) | done | — | [PR #207](https://github.com/johnnickell/fight-common/pull/207) |
 | — | [TASK-00139](00139-TASK.md) | Add Exact Decimal Arithmetic | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | [PR #208](https://github.com/johnnickell/fight-common/pull/208) |
 | — | [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | [PR #206](https://github.com/johnnickell/fight-common/pull/206) |
+| — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
 <!-- /planning:board -->
 
 ## Wayfinder
