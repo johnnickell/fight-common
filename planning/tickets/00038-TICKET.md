@@ -2,7 +2,7 @@
 id: TICKET-00038
 epic: EPIC-00008
 title: Express Transport-Neutral Application Failures
-status: ready-for-agent
+status: done
 ---
 
 # Express Transport-Neutral Application Failures
@@ -98,7 +98,7 @@ integrations TASK-00144/TASK-00145 blocked by TASK-00143. Safe HTTP proof is not
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00142](../tasks/00142-TASK.md) | Express Transport-Neutral Application Failures | ready-for-agent |
+| [TASK-00142](../tasks/00142-TASK.md) | Express Transport-Neutral Application Failures | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

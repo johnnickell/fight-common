@@ -336,7 +336,13 @@ When validation fails, `SymfonyValidationSubscriber` allows the `ValidationExcep
 
 Each key is a field name; each value is an array of one or more error message strings for that field (multiple rules can fail independently on the same field — all errors are collected).
 
-The recommended way to handle this exception is a global exception subscriber that converts exceptions into a standardized `JSendResponse`. This keeps the error-handling logic in one place and the controller action stays free of try/catch boilerplate. The next section shows how to wire this up.
+This structured exception and the Domain validation exception retain their constructors, cause and catchability;
+consumer subclasses may still use the Application exception's late-static `fromErrors()` factory. They are not
+subtypes of the opt-in Application failure vocabulary (`docs/application-failures.md`). Use `InvalidInput` only when a
+consumer deliberately reports generic unusable input without a field map; use `RuleViolation` for an explicit
+business-rule rejection. Neither replaces field validation or makes diagnostic errors public-safe.
+
+The existing global exception subscriber converts exceptions into a `JSendResponse`. This keeps the controller action free of try/catch boilerplate, but the legacy subscriber can expose arbitrary diagnostic messages and validation context. It is **not** a production-safe redaction boundary. The Application failure vocabulary does not change this behavior or install safe HTTP handling. The next section describes the existing wiring, not an opt-in safe error path.
 
 ### Global Exception Subscriber
 

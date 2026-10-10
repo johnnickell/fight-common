@@ -117,6 +117,7 @@ nav:
       - Messaging (CQRS): components/messaging/index.md
       - MCP Protocol Semantics: components/mcp/index.md
       - Validation: components/validation/index.md
+      - Application Failures: application-failures.md
       - Serialization: components/serialization/index.md
       - Dependency Injection: components/dependency-injection/index.md
     - Connect Systems:
