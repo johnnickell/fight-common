@@ -16,6 +16,7 @@ use Fight\Common\Adapter\Http\Psr17\JSendResponseFactory;
 use Fight\Common\Adapter\Middleware\Psr15\SafeJSendErrorMiddleware;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\HttpFactory;
+use JsonSerializable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -183,6 +184,43 @@ class SafeJSendErrorMiddlewareTest extends UnitTestCase
         );
         self::assertSame(500, $response->getStatusCode());
         self::assertStringNotContainsString('private', (string) $response->getBody());
+    }
+
+    public function test_that_process_does_not_serialize_mutated_referenced_public_data(): void
+    {
+        $http = new HttpFactory();
+        $serializer = new class implements JsonSerializable {
+            public int $calls = 0;
+
+            public function jsonSerialize(): string
+            {
+                ++$this->calls;
+                return 'password=synthetic-secret';
+            }
+        };
+        $projector = new class ($serializer) implements SafeHttpProjector {
+            public function __construct(private readonly JsonSerializable $serializer)
+            {
+            }
+
+            public function project(Throwable $failure, int $status): ?SafeHttpPresentation
+            {
+                $nested = ['field' => 'Safe'];
+                $presentation = new SafeHttpPresentation(data: ['nested' => &$nested]);
+                $nested['field'] = $this->serializer;
+                return $presentation;
+            }
+        };
+        $diagnostics = $this->mock(SafeHttpDiagnostics::class);
+        $diagnostics->shouldReceive('report')->once();
+        $response = $this->middleware($http, $diagnostics, $projector)->process(
+            $http->createServerRequest('GET', '/'), $this->throwing(new PermissionDenied('private'))
+        );
+
+        self::assertSame(403, $response->getStatusCode());
+        self::assertSame(['status' => 'fail', 'data' => ['nested' => ['field' => 'Safe']]], json_decode((string) $response->getBody(), true));
+        self::assertStringNotContainsString('synthetic-secret', (string) $response->getBody());
+        self::assertSame(0, $serializer->calls);
     }
 
     private function middleware(HttpFactory $http, SafeHttpDiagnostics $diagnostics, ?SafeHttpProjector $projector = null): SafeJSendErrorMiddleware

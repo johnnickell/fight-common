@@ -93,8 +93,10 @@ A trusted `SafeHttpProjector` may deliberately select a public `SafeHttpPresenta
 For a fail response, supplied `data` replaces the default `{"message": ...}` entirely; a message without data
 replaces that default message. For an error response, `message` is the JSend message and optional data is added
 only if supplied. Data must be plain JSON arrays/scalars/null: no arbitrary objects, entities, resources,
-`JsonSerializable` callbacks, recursive arrays, invalid UTF-8, non-finite numbers or over-deep data. A rejected
-projection falls back to generic 500. Public data safety remains the projector author's responsibility: use
+`JsonSerializable` callbacks, recursive arrays, invalid UTF-8, non-finite numbers or over-deep data. Construction
+copies plain data recursively without retaining PHP array references: later changes to the projector's input
+cannot alter an accepted presentation. Invalid data at construction rejects the projection and falls back to
+generic 500. Public data safety remains the projector author's responsibility: use
 allowlisted, independently authored field messages; never forward exception messages, raw `getErrors()`, causes,
 request data or credential-bearing context. There is no client-controlled debug mode or automatic development
 exception-detail exposure. Deliberate development diagnostics require a separately trusted project-owned
