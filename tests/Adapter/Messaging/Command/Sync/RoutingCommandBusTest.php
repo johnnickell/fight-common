@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\Messaging\Command\Sync;
 
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\CommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
+use Fight\Common\Application\Error\Exception\PermissionDenied;
 use Fight\Common\Application\Messaging\Command\CommandHandler;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -30,6 +31,35 @@ class RoutingCommandBusTest extends UnitTestCase
 
         $bus = new RoutingCommandBus($router);
         $bus->execute(new SampleRoutingCommand());
+    }
+
+    public function test_that_consumer_handler_refusal_propagates_unchanged(): void
+    {
+        $failure = new PermissionDenied('private policy decision');
+        $handler = new class($failure) implements CommandHandler {
+            public function __construct(private readonly PermissionDenied $failure)
+            {
+            }
+
+            public static function commandRegistration(): string
+            {
+                return SampleRoutingCommand::class;
+            }
+
+            public function handle(CommandMessage $commandMessage): void
+            {
+                throw $this->failure;
+            }
+        };
+        $router = $this->mock(CommandRouter::class);
+        $router->shouldReceive('match')->once()->andReturn($handler);
+
+        try {
+            (new RoutingCommandBus($router))->execute(new SampleRoutingCommand());
+            self::fail('Handler refusal was swallowed');
+        } catch (PermissionDenied $caught) {
+            self::assertSame($failure, $caught);
+        }
     }
 
     public function test_that_dispatch_routes_message_to_matched_handler(): void

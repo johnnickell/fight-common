@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\Messaging\Query;
 
 use Fight\Common\Adapter\Messaging\Query\Routing\QueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Application\Error\Exception\ResourceNotFound;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -33,6 +34,35 @@ class RoutingQueryBusTest extends UnitTestCase
         $bus = new RoutingQueryBus($router);
 
         self::assertSame($expected, $bus->fetch(new SampleRoutingQuery()));
+    }
+
+    public function test_that_consumer_handler_missing_resource_propagates_unchanged(): void
+    {
+        $failure = new ResourceNotFound('private identifier');
+        $handler = new class($failure) implements QueryHandler {
+            public function __construct(private readonly ResourceNotFound $failure)
+            {
+            }
+
+            public static function queryRegistration(): string
+            {
+                return SampleRoutingQuery::class;
+            }
+
+            public function handle(QueryMessage $queryMessage): mixed
+            {
+                throw $this->failure;
+            }
+        };
+        $router = $this->mock(QueryRouter::class);
+        $router->shouldReceive('match')->once()->andReturn($handler);
+
+        try {
+            (new RoutingQueryBus($router))->fetch(new SampleRoutingQuery());
+            self::fail('Handler failure was swallowed');
+        } catch (ResourceNotFound $caught) {
+            self::assertSame($failure, $caught);
+        }
     }
 
     public function test_that_dispatch_routes_message_to_matched_handler(): void
