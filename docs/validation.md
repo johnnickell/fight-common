@@ -342,7 +342,7 @@ subtypes of the opt-in Application failure vocabulary (`docs/application-failure
 consumer deliberately reports generic unusable input without a field map; use `RuleViolation` for an explicit
 business-rule rejection. Neither replaces field validation or makes diagnostic errors public-safe.
 
-The existing global exception subscriber converts exceptions into a `JSendResponse`. This keeps the controller action free of try/catch boilerplate, but the legacy subscriber can expose arbitrary diagnostic messages and validation context. It is **not** a production-safe redaction boundary. The Application failure vocabulary does not change this behavior or install safe HTTP handling. The separate opt-in safe PSR-15 path (`docs/safe-http-errors.md`) returns a fixed 400 by default and deliberately requires a public-data projector before disclosing any validation field map. It does not alter this legacy wiring or install a Symfony handler. The next section describes the existing wiring, not the opt-in safe error path.
+The existing global exception subscriber converts exceptions into a `JSendResponse`. This keeps the controller action free of try/catch boilerplate, but the legacy subscriber can expose arbitrary diagnostic messages and validation context. It is **not** a production-safe redaction boundary. For JSON requests, select the explicit [safe Symfony exception composition](https://johnnickell.github.io/fight-common/safe-http-errors/#symfony-native-exception-lifecycle) **instead of** the legacy exception subscriber: the validation subscriber remains unchanged, but the thrown exception yields a fixed safe 400 unless a consumer deliberately projects public field data. The opt-in safe PSR-15 path is separate. The next section describes existing *unsafe* wiring, not the new safe path.
 
 ### Global Exception Subscriber
 
@@ -399,7 +399,7 @@ Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber:
             - { name: kernel.event_subscriber }
 ```
 
-Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) automatically produces a structured JSON fail response instead of a 500 error page.
+Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) produces a raw structured JSON fail response; validator text may contain private data. This legacy behavior remains compatible for the minor, not safe for production exposure. Use the safe composition above for new JSON error handling; HTML is delegated to the framework and has no Common redaction guarantee.
 
 ---
 

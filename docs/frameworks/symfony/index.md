@@ -73,7 +73,10 @@ autoconfiguration, compiler-pass registration, public aliases, transport DSNs, a
 Use canonical Symfony adapters where Symfony owns the integration seam: Messenger buses and serialization,
 HTTP middleware and JSend responses, routing, Mailer, Filesystem, Process, and Doctrine persistence. Compose Twig,
 Mercure, cache, PSR HTTP, and other shared provider lanes directly when no additional framework translation is
-needed.
+needed. For native JSON exception handling, opt into the [safe Symfony exception listener](../../safe-http-errors.md#symfony-native-exception-lifecycle)
+**instead of** a legacy exception subscriber; service/event registration and reporter redaction are application-owned.
+HTML handling delegates to Symfony and requires its own security review. Common's package-level kernel evidence
+does not qualify an installed starter or consumer deployment.
 
 Do not add a Fight wrapper around PSR-3, PSR-7, or another accepted contract solely for symmetry. See the
 individual component guide for construction, errors, and consequential behavior.
