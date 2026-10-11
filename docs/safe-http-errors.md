@@ -1,7 +1,7 @@
 # Opt-in safe HTTP error presentation
 
 `SafeJSendErrorMiddleware` is the **explicit opt-in** PSR-15 path for application failures. It does not
-replace `JSendErrorMiddleware`, Symfony/Laravel handlers, or MCP/OAuth endpoints. The old PSR-15
+replace `JSendErrorMiddleware`, native framework handlers, or MCP/OAuth endpoints. The old PSR-15
 middleware still publishes arbitrary `getMessage()` and raw validation errors; keep it operational for
 1.x compatibility but do not treat it as a redaction boundary. Migrating legacy defaults requires a
 separately approved following-major change after a released-minor deprecation period.
@@ -123,8 +123,8 @@ validated retry metadata. A hint does not authorize a retry, transaction replay 
 
 This package path proves PSR request/response behavior, not installed framework lifecycle, downstream auth,
 route selection, diagnostics-sink redaction, rollback, a live application, or a secured deployment.
-The [Symfony native exception integration](#symfony-native-exception-lifecycle) is a separate explicit
-composition; Laravel remains separate work. These new classes/interfaces are additive callable public
+The [Symfony](#symfony-native-exception-lifecycle) and [Laravel](#laravel-native-report-and-render-lifecycle)
+native exception integrations are separate explicit compositions. These new classes/interfaces are additive callable public
 API under ADRs 0009–0011; the final concrete classes are constructible but not extensible, the two interfaces
 are consumer-implementable, and no legacy constructor, JSend semantic shape or behavior is changed. Security
 behavior and header validation are part of the new opt-in contract; legacy arbitrary-message output remains
@@ -203,3 +203,92 @@ or removal is reserved for the following major after a released-minor deprecatio
 HttpKernel tests prove Common's component-level conformance, **not** a booted installed-package
 starter journey or any consumer runtime/security qualification; those remain missing before a new
 framework-support claim under ADR 0024.
+
+## Laravel native report and render lifecycle
+
+Opt in by binding Laravel's **exception handler contract** to `SafeLaravelExceptionHandler` in the
+consumer's own application bootstrap, *instead of* its existing handler. Do not register this as an
+automatic provider, use it alongside another global handler, or install it through Fight Common's
+`HttpServiceProvider` (which continues to bind only `JSendResponse`). The new handler extends Laravel's
+native `Handler`: in the real HTTP kernel/router pipeline Laravel calls `report()` before `render()`.
+The safe handler intercepts reporting **before** Laravel's exception `report()` methods, callbacks,
+context construction and default logger can receive raw data. It calls one required consumer-owned
+`SafeHttpDiagnostics` sink for every handled Throwable, **including** authentication, authorization,
+validation and HTTP exceptions that Laravel normally ignores. It does not call Laravel's normal
+`dontReport`/throttling callbacks on this path; configure filtering *inside the redaction-aware sink*
+if needed, without forwarding secrets first. A repeated report of the same Throwable instance is
+ignored. If the sink throws, JSON rendering returns generic 500 without a second report or false
+claim of delivery. The consumer must ensure no earlier middleware, callback, or outer reporting
+path logs raw context before this handler; do not register competing exception loggers.
+
+For example, in the consumer's own `bootstrap/app.php` exception setup or service-provider
+composition, register the binding **before** serving HTTP requests (adapt any existing handler
+registration rather than overwriting it accidentally):
+
+```php
+use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
+use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
+use Fight\Common\Adapter\Http\Laravel\SafeLaravelExceptionHandler;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Psr\Log\LoggerInterface;
+
+$app->singleton(SafeHttpDiagnostics::class, function ($app): SafeHttpDiagnostics {
+    return new class ($app->make(LoggerInterface::class)) implements SafeHttpDiagnostics {
+        public function __construct(private LoggerInterface $logger) {}
+
+        public function report(\Throwable $failure): void
+        {
+            // Only fixed text and an allowlisted type reach logger formatters.
+            $this->logger->error('HTTP failure', ['type' => $failure::class]);
+        }
+    };
+});
+$app->singleton(SafeHttpErrorPolicy::class);
+$app->singleton(ExceptionHandler::class, SafeLaravelExceptionHandler::class);
+// Optional: $app->singleton(SafeHttpProjector::class, ConsumerPublicErrorProjector::class);
+```
+
+Laravel's `Request::expectsJson()` chooses the safe native `JSendResponse` for JSON/XHR; non-JSON
+requests delegate rendering to Laravel, **not** to a Common HTML sanitizer. Reporting still uses
+the consumer's redacted sink. Test your real app's HTML renderer, debug setting, middleware,
+exception customizers, and final response handling independently. The safe JSON path never reads
+request debug headers or Laravel's `app.debug`; do not expose diagnostic detail unless a separate
+trusted, explicitly configured consumer path owns it. Rendering bypasses Laravel's `render()` /
+`Responsable` / renderable exception hooks for selected JSON, so do not depend on those hooks for
+safe JSON presentation. For JSON customization, wire a `SafeHttpProjector`: it receives the
+**original** failure and the translated status, and must return only deliberately public message,
+plain data or validated metadata. Never copy native validation messages, `errors()` or a supplied
+exception response. `ValidationException` from Common remains a safe fixed 400; Laravel's native
+`Illuminate\Validation\ValidationException` with its standard 422 is a separate safe fixed 422.
+Mutated native validation statuses are not recognized. Both need explicit public field projection.
+A missing application or native 401 challenge returns safe generic 500; supply a consumer-selected
+`SafeHttpMetadata(challenge: 'Basic realm="example"')` from a trusted projector or a native
+`UnauthorizedHttpException` with a validated challenge. No universal Bearer challenge is invented.
+
+Laravel's deliberately supported native types are `AuthenticationException` (401, challenge
+required), `AuthorizationException` (403 or explicit 404 only), native validation (422),
+`BadRequestHttpException` (400), `UnauthorizedHttpException` (401),
+`AccessDeniedHttpException` (403), `NotFoundHttpException` (404),
+`MethodNotAllowedHttpException` (405), `NotAcceptableHttpException` (406),
+`ConflictHttpException` (409), `GoneHttpException` (410),
+`PreconditionFailedHttpException` (412), `PostTooLargeException` (413),
+`UnsupportedMediaTypeHttpException` (415), `UnprocessableEntityHttpException` (422),
+`ThrottleRequestsException` / `TooManyRequestsHttpException` (429),
+`ServiceUnavailableHttpException` (503), and an **exact** `HttpException` with allowed
+400/401/403/404/405/406/409/410/412/413/415/422/429/502/503/504. No generic model/record
+lookup, arbitrary authentication fault, authorization status, timeout, exception integer code,
+custom HTTP subtype or transformed Laravel `prepareException()` result is trusted implicitly.
+Only one scalar `WWW-Authenticate` (401), `Allow` (405), or canonical numeric
+`Retry-After` (429/503) is selected from native headers. Invalid/duplicate/injected selected
+metadata or absent required challenge/Allow falls back to generic 500. Other native headers
+are not forwarded. Native retry metadata is an optional hint, never retry authority. Shared
+application failure categories, JSend fail/error shapes, strict public data and retry policy
+are described above; Laravel does not alter them.
+
+These additive final classes expose new callable composition/translation behavior under ADRs
+0009–0011. Legacy `Adapter\Http\Laravel\Controller\ErrorController` and `HttpServiceProvider` keep their
+constructors, response type and **unsafe** raw-message/field-error behavior in this minor;
+do not present the old path as safe. Changing legacy defaults requires a separately approved
+following-major transition after a released-minor deprecation period. Package booted-Laravel
+fixtures prove this native HTTP integration only; downstream installed-package starters,
+consumer sink behavior, auth policy, routes and production operations are not qualified by it.
