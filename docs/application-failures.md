@@ -30,8 +30,9 @@ on Application. Consumers choose transactions, authorization, recovery and adopt
 All categories accept the native exception-style `string $message = ''`, `int $code = 0` and
 `?Throwable $previous = null`. Messages, integer codes and causes are **diagnostics**, not authorized
 public response data; even friendly text, an HTTP-like code, or a PHP `Error` cause remains private.
-The code is not an HTTP status. No safe HTTP handling, status, header, JSend envelope, public-message API,
-automatic classification or mandatory migration is supplied here. Existing HTTP paths may still expose
+The code is not an HTTP status. No HTTP handling, status, header, JSend envelope or public-message API is supplied **by these exceptions**.
+The separate [opt-in safe PSR-15 error path](safe-http-errors.md) deliberately classifies them in Adapter;
+there is no automatic installation or mandatory migration. Existing HTTP paths may still expose
 private diagnostics; safe presentation is separate work. A generic `LookupException`, `AuthException`,
 storage exception, OAuth outcome or timeout is not implicitly one of these intents. Consumers may
 explicitly translate a known outcome while retaining its original cause. MCP Tool failure mappings still
@@ -42,7 +43,8 @@ require exact-class registration with separately authored safe constants; inheri
 Null is unspecified, zero is valid, and positive integers through `PHP_INT_MAX` retain their exact
 value. Negative values throw `DomainException`; native parameter type errors remain native (there is
 no blanket `Error` wrapper). The hint neither retries nor schedules anything, and does not authorize
-an HTTP Retry-After header. Consumers decide whether/how to use it.
+an HTTP Retry-After header by itself. Consumers may deliberately opt into its validated projection through
+[the safe PSR-15 policy](safe-http-errors.md). Consumers decide whether/how to use it.
 
 For structured field validation, continue using
 `Application\Validation\Exception\ValidationException` and its `fromErrors()`/`getErrors()` contract.

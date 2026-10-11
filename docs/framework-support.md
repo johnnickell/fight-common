@@ -84,6 +84,10 @@ portable behavior and failure contracts; return here when choosing an adapter, p
 | Templating | **ship** Twig/PHP engines | **ship** Blade | **prototype** Yii View; Twig fallback | **prototype** native View; Twig/PHP fallback | **wire** Twig |
 | Validation and pure Application services | **wire** Fight services | **wire** unchanged | **wire** unchanged | **wire** unchanged | **wire** unchanged |
 
+The opt-in safe PSR-15 JSend error path (`docs/safe-http-errors.md`) is shared request/response handling only.
+It does not install a Symfony/Laravel native exception handler or qualify a starter or consumer deployment;
+legacy native controllers and subscribers retain their old disclosure behavior until separately migrated.
+
 ## Install and activate one capability
 
 All framework and provider packages are Composer suggestions (and Fight Common development dependencies), never
