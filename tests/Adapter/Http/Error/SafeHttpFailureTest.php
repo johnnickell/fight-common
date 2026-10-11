@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\Http\Error;
 
 use Fight\Common\Adapter\Http\Error\SafeHttpFailure;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
@@ -28,5 +29,15 @@ class SafeHttpFailureTest extends UnitTestCase
         self::assertSame(415, SafeHttpFailure::unsupportedMediaType()->status);
         self::assertSame(429, SafeHttpFailure::tooManyRequests()->status);
         self::assertSame(503, SafeHttpFailure::unavailable()->status);
+    }
+
+    public function test_that_native_factory_accepts_only_explicit_transport_statuses(): void
+    {
+        foreach ([400, 401, 403, 404, 405, 406, 409, 410, 412, 413, 415, 422, 429, 502, 503, 504] as $status) {
+            self::assertSame($status, SafeHttpFailure::fromNative($status)->status);
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        SafeHttpFailure::fromNative(418);
     }
 }

@@ -142,7 +142,7 @@ that a downstream application's middleware/logging deployment has been secured.
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00143](../tasks/00143-TASK.md) | Present Safe Errors Through PSR-15 | done |
-| [TASK-00144](../tasks/00144-TASK.md) | Integrate Safe Symfony Error Handling | ready-for-agent |
+| [TASK-00144](../tasks/00144-TASK.md) | Integrate Safe Symfony Error Handling | done |
 | [TASK-00145](../tasks/00145-TASK.md) | Integrate Safe Laravel Error Handling | ready-for-agent |
 <!-- /planning:children -->
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Http\Error;
 
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -25,6 +26,21 @@ final class SafeHttpFailure extends RuntimeException
         ?Throwable $previous = null
     ) {
         parent::__construct($diagnostic, 0, $previous);
+    }
+
+    /**
+     * Creates an explicitly allowlisted native HTTP outcome
+     *
+     * Only adapters translating a native HTTP failure should use this factory.
+     */
+    public static function fromNative(int $status, ?SafeHttpMetadata $metadata = null): self
+    {
+        $allowed = [400, 401, 403, 404, 405, 406, 409, 410, 412, 413, 415, 422, 429, 502, 503, 504];
+        if (!in_array($status, $allowed, true)) {
+            throw new InvalidArgumentException('Unsupported native HTTP failure.');
+        }
+
+        return new self($status, $metadata);
     }
 
     /**
