@@ -122,6 +122,7 @@ nav:
       - Dependency Injection: components/dependency-injection/index.md
     - Connect Systems:
       - HTTP Client: components/http-client/index.md
+      - Safe PSR-15 Errors: safe-http-errors.md
       - Auth: components/auth/index.md
       - Cache: components/cache/index.md
       - Files: components/files/index.md

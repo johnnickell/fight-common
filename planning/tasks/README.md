@@ -45,7 +45,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | done | [TICKET-00037](../tickets/00037-TICKET.md) |
 | [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | done | [TICKET-00037](../tickets/00037-TICKET.md) |
 | [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | done | [TICKET-00038](../tickets/00038-TICKET.md) |
-| [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
+| [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | ready-for-agent | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | done | — |
