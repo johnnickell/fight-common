@@ -90,7 +90,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 | — | [TASK-00140](00140-TASK.md) | Define 49 Common Currency Values | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | [PR #206](https://github.com/johnnickell/fight-common/pull/206) |
 | — | [TASK-00141](00141-TASK.md) | Calculate and Allocate Exact Money | [TICKET-00037 — Calculate Exact Monetary Values](../tickets/00037-TICKET.md) | done | — | [PR #210](https://github.com/johnnickell/fight-common/pull/210) |
 | — | [TASK-00142](00142-TASK.md) | Express Transport-Neutral Application Failures | [TICKET-00038 — Express Transport-Neutral Application Failures](../tickets/00038-TICKET.md) | done | — | [PR #211](https://github.com/johnnickell/fight-common/pull/211) |
-| — | [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | — |
+| — | [TASK-00143](00143-TASK.md) | Present Safe Errors Through PSR-15 | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | [PR #212](https://github.com/johnnickell/fight-common/pull/212) |
 | — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
 <!-- /planning:board -->
 
