@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- The public `Pagination::__construct()` is deprecated in PHPDoc/documentation in favor of
+  `Pagination::strict()`; it remains functional with its permissive behavior in 1.x and emits no runtime
+  deprecation warning. See [legacy pagination and migration](docs/repositories.md#legacy-pagination-and-migration).
 - Legacy HTTP error paths that expose arbitrary exception messages remain operational in 1.x but are unsafe for
   untrusted clients; opt into the safe PSR-15/Symfony/Laravel handlers. Replacing legacy defaults waits for a
   separately approved major release.
