@@ -7,11 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-12
+
 ### Added
 
+- Opt-in strict `Pagination::strict()` construction for checked bounds, ordering and offsets; the legacy
+  constructor remains available with its existing permissive behavior.
+- Opt-in immutable `JsonObject::fromSnapshot()` and `fromSnapshotString()` for detached JSON-encodable input and
+  fresh object-mode output; legacy factories and Doctrine text hydration retain their existing semantics.
+- Canonical IPv4/IPv6 values and a lexical E.164 phone value. Existing validation and string-based SMS APIs are
+  unchanged; validity does not imply network reachability or permission to contact a number.
+- Gregorian Date, local Time, Sunday-zero WeekDay, strict zoned DateTime, fixed microsecond Duration, inclusive
+  calendar DateRange and half-open InstantRange. These do not replace native timestamp, audit, scheduler or
+  consumer timezone policy contracts.
 - Opt-in `Domain\Value\Basic\Decimal` for bounded, string-based exact decimal arithmetic, finite division
   and explicit scale/`RoundingMode` rounding without float or optional arithmetic extensions. Numeric identity is
   canonical; consumers choose financial policy and adoption. See [Decimal values](docs/values.md#decimal).
+- A bounded 49-code Currency catalog and exact signed-minor-unit Money with checked arithmetic, explicit rounding
+  and deterministic weighted allocation. Consumers own currency eligibility, payment and financial policy; no
+  automatic persisted-value migration or exchange-rate handling is introduced.
+- Eleven transport-neutral Application failure categories and opt-in safe error presentation for PSR-15,
+  Symfony and Laravel. Safe responses use fixed public defaults and consumer-owned projection and redacted
+  diagnostics. See [safe HTTP error handling](docs/safe-http-errors.md) for wiring and migration.
+
+### Fixed
+
+- ValidationService and ValidationCoordinator clear pending validators after exceptional exits, retaining the
+  original error and allowing subsequent independent validation.
+- EmailAddress extracts quoted local parts and domain literals without changing accepted syntax or its stored
+  text, case-sensitive identity and separate canonicalization.
+- Release certification archives now come from pristine source, excluding build-generated dependencies and
+  caches from the local installed-consumer probe. This changes release tooling, not the published runtime API.
 
 ### Changed
 
@@ -24,6 +50,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and persisted aggregate-name/identifier fields remain unchanged; no schema migration is required. Rebuild old
   serialized hash collections containing StreamIds; choose a list or consumer-owned instance identity policy if
   duplicate instances must remain distinct. See [migration guidance](docs/event-sourcing.md#streamid-minor-upgrade-notice).
+- Hosted CI is advisory by default for Fight Common PR delivery; the full local product gate and independent
+  technical review remain required. A specifically accepted or host-enforced check remains binding.
+
+### Deprecated
+
+- Legacy HTTP error paths that expose arbitrary exception messages remain operational in 1.x but are unsafe for
+  untrusted clients; opt into the safe PSR-15/Symfony/Laravel handlers. Replacing legacy defaults waits for a
+  separately approved major release.
 
 ## [1.3.0] - 2026-10-02
 
@@ -249,7 +283,8 @@ for exact limits and composition requirements.
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/johnnickell/fight-common/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/johnnickell/fight-common/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/johnnickell/fight-common/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/johnnickell/fight-common/compare/v1.0.0...v1.1.0
