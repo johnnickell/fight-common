@@ -27,7 +27,7 @@ final readonly class ValidationService
     }
 
     /**
-     * Performs validation on input with the given rules
+     * Performs validation and clears queued validators even when preparation fails
      *
      * @param array<string, mixed> $input
      * @param array<int, array{field: string, label: string, rules: string}> $rules
@@ -36,17 +36,21 @@ final readonly class ValidationService
      */
     public function validate(array $input, array $rules): ApplicationData
     {
-        $this->validateInput($input);
-        $this->validateRules($rules);
-        $this->addValidators($rules);
+        try {
+            $this->validateInput($input);
+            $this->validateRules($rules);
+            $this->addValidators($rules);
 
-        $result = $this->coordinator->validate(new InputData($input));
+            $result = $this->coordinator->validate(new InputData($input));
 
-        if ($result->isFailed()) {
-            throw ValidationException::fromErrors($result->getErrors()->toArray());
+            if ($result->isFailed()) {
+                throw ValidationException::fromErrors($result->getErrors()->toArray());
+            }
+
+            return $result->getData();
+        } finally {
+            $this->coordinator->resetValidators();
         }
-
-        return $result->getData();
     }
 
     /**

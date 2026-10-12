@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Validation\Exception;
 
+use Error;
 use Fight\Common\Application\Validation\Exception\ValidationException;
+use Fight\Common\Domain\Exception\Catchable;
 use Fight\Common\Domain\Exception\ValidationException as BaseException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -34,10 +36,30 @@ class ValidationExceptionTest extends UnitTestCase
         self::assertSame('Validation Failed', $exception->getMessage());
     }
 
+    public function test_that_consumer_subtype_factory_and_constructor_retain_field_errors_and_causes(): void
+    {
+        $errors = ['private-field' => ['private detail']];
+        $cause = new Error('private cause');
+        $direct = new ConsumerValidationException($errors, 'diagnostic', $cause);
+        self::assertSame($errors, $direct->getErrors());
+        self::assertSame($cause, $direct->getPrevious());
+        self::assertSame(0, $direct->getCode());
+        self::assertInstanceOf(Catchable::class, $direct);
+
+        $factory = ConsumerValidationException::fromErrors($errors);
+        self::assertInstanceOf(ConsumerValidationException::class, $factory);
+        self::assertSame('Validation Failed', $factory->getMessage());
+        self::assertSame($errors, $factory->getErrors());
+    }
+
     public function test_that_exception_extends_base_validation_exception(): void
     {
         $exception = ValidationException::fromErrors([]);
 
         self::assertInstanceOf(BaseException::class, $exception);
     }
+}
+
+class ConsumerValidationException extends ValidationException
+{
 }

@@ -66,7 +66,7 @@ final class InMemoryEventStore implements EventStore
 
             if (
                 !$record instanceof InMemoryEventRecord
-                || !$this->isSameStream($record->streamId(), $streamId)
+                || !$record->streamId()->equals($streamId)
                 || $record->streamVersion() !== $expectedVersion + $offset + 1
             ) {
                 $isExactRetry = false;
@@ -143,7 +143,7 @@ final class InMemoryEventStore implements EventStore
     private function recordsForStream(StreamId $streamId): iterable
     {
         foreach ($this->records as $record) {
-            if ($this->isSameStream($record->streamId(), $streamId)) {
+            if ($record->streamId()->equals($streamId)) {
                 yield $record;
             }
         }
@@ -161,15 +161,6 @@ final class InMemoryEventStore implements EventStore
         }
 
         return null;
-    }
-
-    /**
-     * Determines whether two stream identities match
-     */
-    private function isSameStream(StreamId $first, StreamId $second): bool
-    {
-        return $first->aggregateName() === $second->aggregateName()
-            && $first->identifier() === $second->identifier();
     }
 
     /**

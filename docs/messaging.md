@@ -79,7 +79,9 @@ interface Message extends Arrayable, Comparable, Equatable, JsonSerializable, Se
 ```
 
 Equality and comparison are based on the `MessageId` — two messages with the same ID are
-considered equal regardless of other fields.
+considered equal regardless of other fields. The timestamp remains `DateTimeImmutable`; the optional
+optional strict zoned DateTime value does not change envelope construction, serialization or
+message identity. Convert explicitly through its `toNative()`/`fromNative()` boundary when needed.
 
 ### BaseMessage
 

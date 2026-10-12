@@ -24,7 +24,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
 | `AGENTS.md installed` | `f2ba692b08a0abc109200c76f5b2041ade64d6606828b06a3ba4e6fd048f5444` |
 | `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
-| `standards/Delivery.md` | `dd4925c4369c435b982fec9d7a9348a9bf13166a1daf82415a89ffea5771eb5b` |
+| `standards/Delivery.md` | `de68e6897dfe28ae8d24bd081b67f6c76945e75db41c4bd6fe1a35779521430d` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `54f36212c604615d7c6e2691de41b3b2c843c4f53e59800c9e330eeedf3d3ed5` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
@@ -32,7 +32,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `f1536f87a8041614a8429f8a6fc0b349cdb1ae397b9cd98c11e6abf67f7e37e7` |
 | `standards/Review.md` | `0bec2986099fafa2866fa07a5fd4e319e172d2cc354671e30b62858f9e6eb402` |
-| `standards/Testing.md` | `77639b06e8bfc306345963826382e45af603bb176308e494917d59ea4eb10e9b` |
+| `standards/Testing.md` | `cb5d4b5383e150a1f53c10f9e9856f4541314ef9c10955a3f10d5d11356552a5` |
 
 ## Project scope and unresolved work
 
@@ -82,7 +82,8 @@ tests in any suite or harness; the [profile inventory](../../planning/agents/pro
 records actual active checks and legacy fixtures. Product runtime, shipped coding-standard and framework contracts
 remain testable. Common's namespaces, Application semantics/container, CronExpression allowance, transaction
 contracts, compatibility promises, exact unit coverage, full gate, ordinary dependency resolution, GitFlow and
-post-publication hosted delivery checks are preserved. No private installation, new landing workflow, release
+post-publication hosted delivery checks were preserved at that checkpoint (the later 2026-10-09 correction below
+removes their mandatory-pass interpretation). No private installation, new landing workflow, release
 certification or publication is implied by this adoption. Installed hashes above identify the reconciled documents;
 historical baseline identity remains intact.
 
@@ -94,3 +95,31 @@ separate parent assessment, review, QA, confirmation, or skill invocation. The l
 standard, project guidance and generator now follow it. Child acceptance, independent implementation review,
 publication, merge and archive authority retain their existing meanings. The Planning digest above identifies
 this local amendment; no automatic standards synchronization or change to other repositories is implied.
+
+## Clear package release decisions — 2026-10-05
+
+John approved the future release wording in [PR #192](https://github.com/johnnickell/fight-common/pull/192).
+[ADR 0028](../../planning/adr/0028-clear-package-release-decisions.md) owns the Fight Common-only decision:
+one readable summary and informed ship decision for an unchanged certified candidate, replacing the mandatory
+fourteen-row plan, typed/digest-bound approvals and repeated normal publication approvals. Independent review,
+meaningful compatibility evidence, the full certifier, human-held signing key and provider/registry verification
+remain. Failure, ambiguity, changed inputs or new material risk still stop for resolution. CONTEXT, the profile,
+release guide and local Delivery cross-reference now route to that authority; earlier ADRs retain historical text
+with scoped precedence notices. This does not claim the rejected 1.3 checklist passed, fix the inherited local
+archive limitation, rewrite a published tag, or change other repositories or application deployment authority.
+The installed Delivery digest above identifies this reviewed local amendment.
+
+## Hosted CI discretion correction — 2026-10-09
+
+John explicitly corrected the project policy: a hosted green result has never been a prerequisite for human PR
+merge in Fight Common. [TASK-00146](../../planning/tasks/00146-TASK.md) aligns the project profile, ADR 0008,
+release ADR 0028 and the local Testing standard. The existing Tests and Deploy Docs workflows remain useful
+independent signals; missing/failing results are disclosed with their cause, not labeled green. When current local
+acceptance and applicable QA are satisfied, land can finish its ready-for-human handoff despite optional CI
+failures. An explicitly accepted TASK requirement or real host restriction still binds; a demonstrated product
+defect is not waived. Human merge control, local full gate, independent review, QA, exact-commit release
+certification and signing remain unchanged. Historical receipts and earlier amendment checkpoints are not
+rewritten. This local project correction does not itself claim independent review or publication and is not an
+automatic canonical baseline sync or a change to other repositories, GitHub workflows/rulesets or the Agent OS
+skill installation. The Testing digest above identifies the current local copy; other shared-standard digests
+remain unchanged.

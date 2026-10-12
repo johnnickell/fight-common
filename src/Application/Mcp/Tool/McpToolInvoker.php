@@ -213,7 +213,7 @@ final readonly class McpToolInvoker
             $confirmation
         );
         try {
-            return $this->metadata === null ? $invoke() : $this->metadata->invoke($info, $invoke);
+            return $this->metadata?->invoke($info, $invoke) ?? $invoke();
         } catch (Throwable $throwable) {
             throw new DomainException('Tool execution failed.', 0, $throwable);
         }

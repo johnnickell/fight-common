@@ -43,7 +43,7 @@ An immutable input DTO for paginated repository methods. Pre-computes `offset` a
 ```php-inline
 use Fight\Common\Domain\Repository\Pagination;
 
-$pagination = new Pagination(
+$pagination = Pagination::strict(
     page: 2,
     perPage: 20,
     orderings: ['createdAt' => 'DESC', 'name' => 'ASC']
@@ -65,6 +65,55 @@ $pagination->orderings();            // ['createdAt' => 'DESC', 'name' => 'ASC']
 | `orderings()` | `array` | Values normalized to `ASC` / `DESC` |
 
 Constants: `Pagination::ASC`, `Pagination::DESC`, `Pagination::DEFAULT_PAGE`, `Pagination::DEFAULT_PER_PAGE`.
+
+### Strict pagination construction
+
+**Contract `fight-common.behavior.pagination-strict-construction`.**
+`Pagination::strict(?int $page = null, ?int $perPage = null, array $orderings = []): self` returns the existing
+immutable `Pagination`, accepted by existing repository signatures without adapter changes. Omitted or explicit
+null bounds select page 1 and size 100 independently. Resolved bounds must be positive; zero and negative values
+raise `Fight\Common\Domain\Exception\DomainException` rather than selecting defaults.
+
+Offset is exactly `(page - 1) * perPage`; limit is `perPage`. The factory checks integer representability before
+multiplication and raises the same DomainException family on overflow, not an accidental float-assignment TypeError.
+There is no arbitrary page-size cap: page one with `PHP_INT_MAX` size has zero offset, and page two with that size
+has offset `PHP_INT_MAX`. A database or consumer may impose smaller limits.
+
+Ordering values must be strings equal to ASC or DESC case-insensitively. They normalize to uppercase, retain their
+field associations and sequence, and default to an empty array. Unknown, empty, padded or non-string direction values
+raise DomainException; the factory neither trims nor silently substitutes ASC. Exception prose is not stable API.
+
+PHP owns the `?int` and `array` parameter boundaries: wrong argument types from strict PHP callers raise native
+TypeError, not DomainException. Weak callers retain PHP's native scalar coercion; this API is not an HTTP parser.
+Parse and validate external strings before calling it. Direction values are checked explicitly even for weak callers.
+
+Construction performs no I/O or query. Consumers retain ordering-field eligibility, SQL identifier safety, authorization,
+query execution and provider restrictions. Positive bounds are not a query permission or a promise that a provider
+can execute them. Neither input nor returned ordering-array edits change a constructed Pagination.
+
+### Legacy pagination and migration
+
+**Contract `fight-common.behavior.pagination-legacy-construction`.** The existing public constructor remains
+functional: omitted/null/zero bounds select the defaults, ordinary positive bounds compute the same offset/limit,
+and directions normalize case-insensitively with unknown strings becoming ASC. Existing consumers do not have to
+adopt the factory in the minor release. Separate legacy tests retain these expectations.
+
+Legacy construction is deprecated in PHPDoc/documentation only, with **no runtime deprecation warning**. It does
+not enforce positive bounds or check overflow: negative bounds can produce negative offsets/limits, and an
+unrepresentable offset can fail with TypeError. These reproduced limitations are not repaired by this addition and
+are not new perpetual compatibility promises.
+
+For new or migrated call sites, replace `new Pagination(...)` with `Pagination::strict(...)`, retaining the same
+parameter names. Normalize intentional zero-as-default inputs to null explicitly and resolve unsupported directions
+in consumer input policy before opting in. Handle DomainException for invalid resolved values, not as permission to
+run an unbounded fallback query. Existing repository accessors, ResultSet metadata and adapter signatures are unchanged.
+Incompatible enforcement/removal of legacy construction requires a separately authorized major transition after at
+least one released minor of functional deprecation support; no exact release or automatic migration is assigned.
+
+The factory and its validation failures are additive minor API/behavior under ADRs 0009–0011. No database schema,
+persisted representation, framework support range, dependency or legacy constructor behavior changes. Direct value
+fixtures prove strict and legacy contracts; a real strict Pagination with controlled Doctrine collaborators proves
+adapter translation and result metadata, not real database execution or installed-starter qualification.
 
 ---
 

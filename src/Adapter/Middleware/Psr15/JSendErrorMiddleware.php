@@ -19,6 +19,9 @@ use Throwable;
  * Class JSendErrorMiddleware
  *
  * Converts downstream failures into provider-neutral JSend error responses.
+ *
+ * @deprecated Legacy 1.x output exposes arbitrary diagnostic messages and validation maps;
+ *             opt into SafeJSendErrorMiddleware for safe presentation.
  */
 final readonly class JSendErrorMiddleware implements MiddlewareInterface
 {

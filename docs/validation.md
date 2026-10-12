@@ -8,6 +8,7 @@ authorize input; it only establishes that the declared rules passed.
 ## Table of Contents
 
 1. [Overview](#overview)
+    - [Sequential reuse and failure cleanup](#sequential-reuse-and-failure-cleanup)
 2. [Wiring Up the Subscriber](#wiring-up-the-subscriber)
 3. [The `#[Validation]` Attribute](#the-validation-attribute)
 4. [Defining Rules](#defining-rules)
@@ -41,6 +42,36 @@ Request
 For JSON APIs, register `JsonRequestMiddleware` so that the JSON body is parsed into `$request->request` before the subscriber runs.
 
 **`ValidationService`** — a portable Application service that orchestrates field-level validation using the parsed rules. On success it returns an `ApplicationData` object (unused in the attribute flow). On failure it throws `Fight\Common\Application\Validation\Exception\ValidationException`.
+
+---
+
+## Sequential reuse and failure cleanup
+
+**Contracts:** `fight-common.behavior.validation-coordinator-reuse` and
+`fight-common.behavior.validation-service-reuse`.
+
+`ValidationCoordinator` and `ValidationService` support sequential reuse. Queued validators belong to one
+invocation, not the lifetime of the service. Register custom validators again when they are needed for a later
+call. Each coordinator call creates a fresh context and clears its queue on success, ordinary validation failure,
+or an unexpected throwable. It returns the existing passed/failed `ValidationResult`; the service returns
+`ApplicationData` or raises the existing structured `ValidationException` for an ordinary failed result.
+
+An unexpected validator `Exception` or PHP `Error` propagates unchanged, including object identity, integer code
+and previous cause. Remaining validators are not executed to drain the queue. A later call with unrelated input
+and empty or new rules does not run old validators or inherit their errors. The service also discards queued
+custom validators and any partially registered rules when input validation, rule parsing or registration fails,
+without replacing the supplied coordinator. Preparation rejection behavior is unchanged.
+
+`ValidationCoordinator::resetValidators(): void` explicitly discards queued validators without executing them;
+it is safe to call on an empty queue, and new validators may be registered afterward. This additive callable
+operation lets the service clean up preparation failures on its existing coordinator. Exceptional state retention
+was a defect, not a promised retry mechanism; supported existing signatures, normal results and exception families
+are retained. No new runtime or dependency requirement is introduced.
+
+These guarantees apply to calls that enter validation, not PHP argument-type rejection before method entry.
+They do not promise concurrent or reentrant use, reset consumer-owned validator internals, or roll back a custom
+validator's side effects. Validation is neither sanitization nor authorization. Cleanup does not make exception
+messages or diagnostic context safe for public HTTP presentation.
 
 ---
 
@@ -305,7 +336,13 @@ When validation fails, `SymfonyValidationSubscriber` allows the `ValidationExcep
 
 Each key is a field name; each value is an array of one or more error message strings for that field (multiple rules can fail independently on the same field — all errors are collected).
 
-The recommended way to handle this exception is a global exception subscriber that converts exceptions into a standardized `JSendResponse`. This keeps the error-handling logic in one place and the controller action stays free of try/catch boilerplate. The next section shows how to wire this up.
+This structured exception and the Domain validation exception retain their constructors, cause and catchability;
+consumer subclasses may still use the Application exception's late-static `fromErrors()` factory. They are not
+subtypes of the opt-in Application failure vocabulary (`docs/application-failures.md`). Use `InvalidInput` only when a
+consumer deliberately reports generic unusable input without a field map; use `RuleViolation` for an explicit
+business-rule rejection. Neither replaces field validation or makes diagnostic errors public-safe.
+
+The existing global exception subscriber converts exceptions into a `JSendResponse`. This keeps the controller action free of try/catch boilerplate, but the legacy subscriber can expose arbitrary diagnostic messages and validation context. It is **not** a production-safe redaction boundary. For JSON requests, select the explicit [safe Symfony exception composition](https://johnnickell.github.io/fight-common/safe-http-errors/#symfony-native-exception-lifecycle) **instead of** the legacy exception subscriber: the validation subscriber remains unchanged, but the thrown exception yields a fixed safe 400 unless a consumer deliberately projects public field data. The opt-in safe PSR-15 path is separate. In Laravel, the [explicit safe native handler](https://johnnickell.github.io/fight-common/safe-http-errors/#laravel-native-report-and-render-lifecycle) also fixes Common structured validation at 400 without raw fields; native Laravel validation retains its own 422 and requires deliberate public field projection. The legacy Laravel `ErrorController` still returns raw validation errors and must not be mistaken for that safe path. The next section describes existing *unsafe* Symfony wiring, not the new safe path.
 
 ### Global Exception Subscriber
 
@@ -362,7 +399,7 @@ Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyExceptionSubscriber:
             - { name: kernel.event_subscriber }
 ```
 
-Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) automatically produces a structured JSON fail response instead of a 500 error page.
+Once wired, any `ValidationException` thrown during a request (including from `SymfonyValidationSubscriber`) produces a raw structured JSON fail response; validator text may contain private data. This legacy behavior remains compatible for the minor, not safe for production exposure. Use the safe composition above for new JSON error handling; HTML is delegated to the framework and has no Common redaction guarantee.
 
 ---
 

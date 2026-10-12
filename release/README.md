@@ -3,6 +3,8 @@
 This directory contains Fight Common's small, maintainer-only release certifier. It is development tooling,
 autoloaded only through Composer's root `autoload-dev`; `Fight\Release\` is not a consumer runtime API.
 
+For an actual package release, read [ADR 0028](../planning/adr/0028-clear-package-release-decisions.md): it owns the change/risk summary, informed ship decision, human signing, publication checks and applicable housekeeping. Certification below remains verification-only, not publication permission or a complete compatibility verdict.
+
 ## Entry point
 
 The only release command is:
@@ -19,9 +21,16 @@ resolution, certification invokes the full build with `FIGHT_COMMON_DEPENDENCY_P
 uses `composer update --lock` to retain the resolved versions while validating lock metadata; it requires an
 existing candidate lockfile. Without this boundary, the ordinary build's `composer update` would upgrade the
 lowest-compatible lane back to latest-compatible versions. No product checks are skipped. Ordinary library
-builds use the default profile and resolve dependency versions afresh. It then creates a Composer archive, resolves and installs that
-archive with `--no-dev`, exercises one
-installed-consumer behavior probe, and compares the installed package surface with `compatibility/manifest.json`.
+builds use the default profile and resolve dependency versions afresh.
+
+After the lane gates, certification exports the same exact candidate commit into a separate pristine archive
+staging directory. Only that staging directory's Composer manifest receives the requested version annotation;
+no dependencies are installed and no build runs there. The certifier uses the baseline lane's development
+autoloader to run its manifest helper without adding `vendor/` to the archive staging directory. Composer archives
+this pristine content, excluding installed dependencies, generated lane lockfiles and build output. It then
+resolves and installs that archive with `--no-dev` into an isolated consumer with its own dependencies, exercises
+one installed-consumer behavior probe, and compares the installed package surface with
+`compatibility/manifest.json`.
 
 On success it writes the archive and `certification.json` beneath
 `.runs/handoffs/release-<version>-<full-commit>/`. The record includes command outcomes and output digests, exact

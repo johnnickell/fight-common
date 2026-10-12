@@ -300,7 +300,6 @@ final class PhpEngine implements TemplateEngine
         try {
             require $evalFile;
         } finally {
-            $evalFile = null;
             $content = ob_get_level() < $bufferLevel ? false : ob_get_clean();
         }
 

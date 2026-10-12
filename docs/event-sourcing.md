@@ -17,6 +17,53 @@ that previously mutated the value returned by `meta()` and expected the original
 message to change must instead retain and use the envelope returned by
 `withMeta()` or `mergeMeta()`.
 
+### StreamId minor-upgrade notice
+
+`StreamId` now implements `Identifier`. This deliberately changes existing collection and native JSON behavior:
+equal tuples deduplicate in `HashSet`, find/remove each other, and replace the value for an equivalent `HashTable`
+key. Previously separate instances occupied separate hash entries. Native `json_encode()` now emits the canonical
+string instead of `{}`, including when nested in another JSON value. Generic Equatable/Comparable/Stringable-aware
+code can also select different behavior. Custom sorted comparators still own their comparison policy.
+
+The maintainer explicitly approved this change for minor delivery, reporting no external StreamId adopters;
+this is a scoped exception, **not a claim of backward compatibility**. Audit instance-sensitive collections,
+JSON consumers and generic value dispatch before upgrading. Use a list, `SplObjectStorage` or an explicit
+consumer-owned identity/key policy when separate instances must remain distinct. Rebuild any serialized hash
+collections containing StreamId keys/items: their cached object-identity buckets are not tuple-value buckets.
+Do not expect old `{}` JSON to reconstruct identity—it never contained either component.
+
+Constructor parameter names, component getters, nonempty rejection and stored stream selection are unchanged.
+No schema migration or event rewrite is needed. Explicit SQL, logging and publication-failure fields still use
+`aggregate_name` and `aggregate_identifier`, not the canonical string. The existing two-private-property PHP
+serialized StreamId representation remains readable; exact PHP serialized bytes are not a new public promise,
+and untrusted PHP serialized input is not an accepted construction boundary.
+
+## Stream identity values
+
+Contract: `fight-common.behavior.stream-id-tuple`.
+
+`Domain\EventSourcing\StreamId` is a final readonly tuple value, not a UUID-specific identifier.
+`new StreamId($aggregateName, $identifier)` accepts any two nonempty byte strings. It does not trim, fold case,
+coerce numbers, normalize Unicode or reject control/invalid-UTF-8 bytes. Local byte support does not promise
+that a particular database, collation or provider can store every byte string.
+
+Two StreamIds are equal exactly when both component byte strings match. Equal tuples have equal `hashValue()`
+and `FastHasher` results; finite digests may collide, and hash collections still check equality within buckets.
+Equality with another type returns false. `compareTo()` orders by aggregate-name bytes, then identifier bytes;
+it is not numeric or locale ordering, and its sign (not magnitude) is meaningful. Zero agrees with equality.
+A wrong comparison type raises `DomainException`, even with assertions disabled.
+
+`toString()`, string casts and `jsonSerialize()` expose `stream:v1:<name>:<id>`, where each component is standard
+RFC 4648 Base64 with canonical padding and zero unused pad bits. For example, `('Order', '123')` becomes
+`stream:v1:T3JkZXI=:MTIz`, and native JSON is `"stream:v1:T3JkZXI=:MTIz"`. This is a byte-preserving representation,
+not a database key replacement, URI, secret hash or redaction; its content is recoverable.
+
+`StreamId::fromString()` accepts only that exact case-sensitive four-part frame. It rejects unsupported versions,
+extra/missing parts, empty decoded components, invalid encodings, omitted/extra padding, nonzero pad bits, URL-safe
+alphabet substitutions and frame/encoding whitespace with `DomainException`. Whitespace and control bytes **inside
+decoded components** remain valid. Canonical reconstruction recovers both components exactly, including delimiters
+and binary bytes. Identity confers no authorization, stream existence or routing authority.
+
 ## Persist and reload an aggregate
 
 An aggregate extends `AggregateRoot`, records new events, replays stored events

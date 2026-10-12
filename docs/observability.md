@@ -258,6 +258,11 @@ Domain\Observability\AuditRepository
     getBetween(DateTimeImmutable $from, DateTimeImmutable $to, Pagination $pagination): ResultSet
 ```
 
+`getBetween()` retains native `DateTimeImmutable` parameters and **inclusive** endpoints. The Doctrine adapter
+translates this to `e.timestamp >= :from AND e.timestamp <= :to` with the supplied values. The optional
+[InstantRange](../values/index.md#half-open-instantrange) is half-open and does not change this repository contract or
+implicitly convert to audit bounds. Controlled adapter tests prove query translation, not database execution.
+
 ### Built-in adapters
 
 | Adapter | Notes |

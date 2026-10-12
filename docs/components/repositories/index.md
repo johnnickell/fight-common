@@ -80,7 +80,7 @@ final readonly class ListOrders
     public function handle(): ResultSet
     {
         return $this->unitOfWork->commitTransactional(
-            fn (): ResultSet => $this->orders->findAll(new Pagination(page: 1, perPage: 20)),
+            fn (): ResultSet => $this->orders->findAll(Pagination::strict(page: 1, perPage: 20)),
         );
     }
 }

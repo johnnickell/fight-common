@@ -5,17 +5,69 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Sms;
 
 use Fight\Common\Application\Sms\Exception\SmsException;
+use Fight\Common\Application\Sms\Message\SmsFactory;
 use Fight\Common\Application\Sms\Message\SmsMessage;
 use Fight\Common\Application\Sms\SmsService;
 use Fight\Common\Application\Sms\Transport\SmsTransport;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\Internet\E164PhoneNumber;
 use Fight\Common\Domain\Value\Internet\Url;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(SmsService::class)]
 class SmsServiceTest extends UnitTestCase
 {
+    public function test_that_optional_phone_adoption_builds_without_sending_and_sends_only_on_request(): void
+    {
+        $transport = $this->mock(SmsTransport::class);
+        $service = new SmsService($transport);
+        self::assertInstanceOf(SmsFactory::class, $service);
+        $to = E164PhoneNumber::fromString('+15550001234');
+        $from = E164PhoneNumber::fromString('+15559998765');
+        $media = Url::parse('https://example.com/image.jpg');
+        // The strict mock has no send expectation during value and message construction.
+        $message = $service->createMessage(
+            $to->toString(),
+            $from->toString(),
+            'Hello',
+            [$media, 'https://example.com/other.jpg']
+        );
+
+        self::assertSame('+15550001234', $message->getTo());
+        self::assertSame('+15559998765', $message->getFrom());
+        self::assertSame('Hello', $message->getBody());
+        self::assertSame($media, $message->getMedia()[0]);
+        self::assertSame('https://example.com/other.jpg', $message->getMedia()[1]->toString());
+        $transport->shouldReceive('send')->once()->with($message);
+        $service->send($message);
+    }
+
+    #[DataProvider('stringAddresses')]
+    public function test_that_factory_preserves_non_e164_strings_without_sending(string $to, string $from): void
+    {
+        $transport = $this->mock(SmsTransport::class);
+        $transport->shouldNotReceive('send');
+        $factory = new SmsService($transport);
+        $message = $factory->createMessage($to, $from, 'Unchanged', ['https://example.com/image.jpg']);
+
+        self::assertInstanceOf(SmsFactory::class, $factory);
+        self::assertSame($to, $message->getTo());
+        self::assertSame($from, $message->getFrom());
+        self::assertSame('Unchanged', $message->getBody());
+        self::assertSame('https://example.com/image.jpg', $message->getMedia()[0]->toString());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function stringAddresses(): iterable
+    {
+        yield 'short code and sender ID' => ['12345', 'FIGHT'];
+        yield 'existing leading-zero string' => ['+1234567890', '+0987654321'];
+    }
+
     public function test_that_send_delegates_to_transport(): void
     {
         $message = SmsMessage::create('+1234567890', '+0987654321');

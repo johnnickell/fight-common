@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-09-12
 - Supersedes: ADR 0016 only where this decision conflicts with its publication environment, sequencing, and asset clauses
+- Scoped supersession: [ADR 0028](0028-clear-package-release-decisions.md) replaces separate approval for every normal release effect with one informed ship decision for the unchanged candidate. Human signing, provider verification, immutable publication and the permitted zero-asset form remain. The original per-effect procedure below is historical.
 
 ## Context
 

@@ -3,9 +3,13 @@
 - Status: accepted
 - Date: 2026-08-01
 - Amended 2026-09-28: the maintainer-approved [local-first workflow](../agents/project-profile.md#local-first-acceptance-and-publication)
-  makes the hosted requirements below post-publication delivery gates only. They are not prerequisites for work,
-  independent technical acceptance, or land's initial push/PR creation. Historical runner mechanics below are
-  superseded by ADR 0026 and the actual project commands.
+  removed hosted checks from pre-publication technical acceptance. At that checkpoint hosted checks were called
+  post-publication delivery gates. Historical runner mechanics below are superseded by ADR 0026 and the actual
+  project commands.
+- Corrected 2026-10-09: John confirmed that Fight Common has never required hosted CI success before human merge.
+  [Project policy](../agents/project-profile.md#local-first-acceptance-and-publication) supersedes the 2026-09-28
+  must-pass delivery interpretation below; hosted results are advisory unless an accepted TASK or actual host rule
+  explicitly requires them. Preserve the historical decision chronology without treating failed jobs as passed.
 
 ## Decision
 
@@ -47,9 +51,11 @@ are discovered.
 Hosted evidence is intentionally split. The `Tests` workflow resolves latest-compatible dependencies
 ephemerally and runs `bin/quality` directly on the hosted runner with disposable database services. The
 documentation workflow runs `bin/docs validate`, uploads the resulting Pages artifact, and deploys it only
-after its build job succeeds on a protected push to `main`. Both workflows must pass for post-publication delivery completion; neither is evidence for
-the other. Under the 2026-09-28 amendment, the local gate and independent review precede land's publication;
-missing hosted runs do not block that technical acceptance. Hosted workflows deliberately do not execute `bin/build` or claim to run one host-neutral script:
+after its build job succeeds on a protected push to `main`. Each workflow supplies evidence for its own component and neither proves the other. The former requirement for
+both workflows to pass before land completion is superseded by the 2026-10-09 project policy: land reports
+observed results accurately and may hand off a ready PR despite missing or infrastructure-failed hosted checks
+when local acceptance/QA and any actual host or TASK-specific requirements are satisfied. The human decides
+whether to merge. Under the 2026-09-28 amendment, the local gate and independent review precede publication. Hosted workflows deliberately do not execute `bin/build` or claim to run one host-neutral script:
 they provide independent evidence for their respective component gate and deployment boundary.
 
 ## Failure Contract

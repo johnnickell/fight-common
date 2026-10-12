@@ -354,7 +354,7 @@ final class ArrayList implements ItemList
             $key = array_search(
                 $object,
                 $this->items,
-                $strict = true
+                true
             );
 
             if ($key === false) {
@@ -382,7 +382,7 @@ final class ArrayList implements ItemList
             $key = array_search(
                 $object,
                 array_reverse($this->items, true),
-                $strict = true
+                true
             );
 
             if ($key === false) {
