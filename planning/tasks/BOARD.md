@@ -1,5 +1,13 @@
 # TASK Board
 
+## Routing index
+
+Read only current human decisions and active work below; otherwise the first ready TASK.
+Use [lightweight routing](../CONVENTIONS.md#lightweight-work-routing) for validation and evidence limits.
+[Wayfinder status and frontiers](../wayfinder/README.md) answer the decision-routing question.
+Use the [Roadmap](../ROADMAP.md) and current handoffs for planning phases; do not infer full decomposition from closed maps.
+Read the referenced current section, not the full historical record. Missing handoff/phase needs owner input.
+
 Execution view for Fight Common. TASK records own status, dependencies, priority (`order`), and PR links.
 Refresh generated rows with `./bin/planning-check --write`. A PR link does not assert merge or deployment.
 
