@@ -8,6 +8,10 @@
 | [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | done |
 | [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | done |
 | [EPIC-00008](epics/00008-EPIC.md) | Strengthen Value Objects and Validation Invariants | next-minor | done |
+| [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | ready-for-agent |
+| [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | ready-for-agent |
+| [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | ready-for-agent |
+| [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
 ## Planning frontier
@@ -26,6 +30,103 @@ closes eligible parents during the child-completion operation. Execution remains
 
 The [TASK Board](tasks/BOARD.md) owns current implementation status. Release preparation remains a separately
 authorized operation, not an unfinished product EPIC.
+
+[EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
+[EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),
+[EPIC-00011 — Generic MCP Subscriptions](epics/00011-EPIC.md) and
+[EPIC-00012 — Generic MCP Tasks](epics/00012-EPIC.md) are approved. EPIC-00009's complete four-TICKET split is
+accepted and written: [TICKET-00040](tickets/00040-TICKET.md) recording,
+[TICKET-00041](tickets/00041-TICKET.md) safe summaries/activity,
+[TICKET-00042](tickets/00042-TICKET.md) protected reading/removal and
+[TICKET-00043](tickets/00043-TICKET.md) read-only MCP presentation. EPIC-00010's complete single-TICKET decomposition
+is also approved and written as [TICKET-00044 — Discover and retrieve authorized MCP Prompts](tickets/00044-TICKET.md).
+EPIC-00011's complete four-TICKET split is approved and written:
+[TICKET-00045](tickets/00045-TICKET.md) retained recording/removal,
+[TICKET-00046](tickets/00046-TICKET.md) polling/history recovery,
+[TICKET-00047](tickets/00047-TICKET.md) MCP live changes/current subscribers and
+[TICKET-00048](tickets/00048-TICKET.md) optional Mercure output. EPIC-00012's complete four-TICKET split is approved
+and written: [TICKET-00049](tickets/00049-TICKET.md) durable operation handles/status/results,
+[TICKET-00050](tickets/00050-TICKET.md) requested input,
+[TICKET-00051](tickets/00051-TICKET.md) cooperative cancellation and
+[TICKET-00052](tickets/00052-TICKET.md) optional live Task state/current-state recovery.
+The [execution introspection map](wayfinder/mcp-execution-introspection-map.md#planning-handoff) is Closed with all
+four EPIC handoffs and all thirteen requirement TICKETs accepted and written. TICKET-00040's complete three-TASK
+split is now accepted and written:
+[TASK-00147](tasks/00147-TASK.md) session/phase recording (no blockers),
+[TASK-00148](tasks/00148-TASK.md) activity/usage recording (blocked by TASK-00147), and
+[TASK-00149](tasks/00149-TASK.md) protected-detail recording (blocked by both). John approved DBAL qualification
+on SQLite, MySQL and PostgreSQL and initially database-backed protected content, not a filesystem/object-storage
+adapter. TICKET-00041's complete three-TASK split is now also accepted and written:
+[TASK-00150](tasks/00150-TASK.md) authorized overview/execution pages (blocked by TASK-00148),
+[TASK-00151](tasks/00151-TASK.md) execution summary/phases (blocked by TASK-00150), and
+[TASK-00152](tasks/00152-TASK.md) activity/safe references (blocked by TASK-00150 and TASK-00149, not TASK-00151).
+John approved direct DBAL reads on SQLite, MySQL and PostgreSQL with no asynchronous projection or Event Store
+dependency. Safe availability evidence does not depend on TICKET-00042's public protected reads/removal.
+TICKET-00042's complete two-TASK split is now also accepted and written:
+[TASK-00153](tasks/00153-TASK.md) separately authorized protected-detail reading (blocked by TASK-00149/00150), and
+[TASK-00154](tasks/00154-TASK.md) ordinary protected-detail removal with integrated evidence (blocked by TASK-00153/00152).
+Both reuse database-backed detail on SQLite, MySQL and PostgreSQL; read/removal permissions remain separate.
+No retention orchestrator, filesystem adapter or MCP removal Tool is added. No prior read TASK depends on removal.
+TICKET-00043's complete two-TASK split is now also accepted and written:
+[TASK-00155](tasks/00155-TASK.md) safe MCP inspection (blocked by TASK-00151/00152), and
+[TASK-00156](tasks/00156-TASK.md) separately protected MCP inspection (blocked by TASK-00155/00153).
+Both reuse shared Queries and guarded HTTP/Tool contracts; final encoded bounds include text duplication and
+protocol overhead. Removed-content protocol fixtures require no TASK-00154 dependency or removal Tool.
+EPIC-00009's complete TASK decomposition is accepted/written, not implemented.
+TICKET-00044's complete single-TASK decomposition is now also accepted and written as
+[TASK-00157](tasks/00157-TASK.md), with no unfinished blockers. It owns the full Prompt list/get HTTP journey:
+bounded explicit catalog, lazy selected providers, string arguments, authenticated stateless continuation,
+private/zero-TTL defaults and bounded text/Resource-link results. EPIC-00010's planning decomposition is complete;
+no introspection, Subscriptions or Tasks dependency is added.
+TICKET-00045's complete two-TASK split is also accepted/written:
+[TASK-00158](tasks/00158-TASK.md) durable safe-notice recording, with no unfinished blockers, then
+[TASK-00159](tasks/00159-TASK.md) authorized removal/history-loss integrity, blocked only by TASK-00158.
+Approved mechanics use dedicated DBAL storage on SQLite/MySQL/PostgreSQL, producer/scope-bound content comparison,
+commit-ordered notice positions and atomic bounded access-safe history-loss updates. TICKET-00046 owns public
+recovery Queries/Tool; there is no reverse dependency or mandatory Event Store/projection.
+TICKET-00046's complete two-TASK split is also accepted/written:
+[TASK-00160](tasks/00160-TASK.md) authorized summary/history/detail (blocked by TASK-00158), then
+[TASK-00161](tasks/00161-TASK.md) shared recovery Query/MCP polling (blocked by TASK-00160/00159).
+Direct DBAL reads on all three databases preserve live page/per-page inspection separately from bounded committed-
+position recovery. Protected opaque continuation, coherent history-loss/access assessment and qualified completion
+avoid false catch-up claims; final encoded bounds never advance past omitted eligible notices. Neither slice requires
+unfinished introspection/Prompts or live MCP/Mercure.
+TICKET-00047's complete three-TASK split is also accepted/written:
+[TASK-00162](tasks/00162-TASK.md) live Tool/Resource subscriptions and technical tracking (blocked by TASK-00161),
+[TASK-00163](tasks/00163-TASK.md) current-subscriber inspection (blocked by TASK-00162), and
+[TASK-00164](tasks/00164-TASK.md) optional Prompt changes (blocked by TASK-00162/00157).
+Cross-process shared Query sourcing and DBAL registrations with owner-bound freshness/closure support truthful live
+behavior and inspection. Bounded waits/queues/frames, current emission permission and actual native streaming preserve
+safe recovery without a broker/Mercure dependency. Prompt integration does not block the first two slices.
+TICKET-00048's complete single-TASK decomposition is accepted/written as
+[TASK-00165](tasks/00165-TASK.md), optional retained-notice Mercure publication, blocked only by TASK-00161.
+It owns bounded safe mapping, current topic/public-private policy, actual post-commit publication/failure isolation
+and shared recovery, reusing existing publishers without an MCP-live dependency. Controlled hub adapter proof and
+real three-database recovery are distinct from deployed browser receipt. EPIC-00011's eight-TASK decomposition is complete.
+TICKET-00049's complete three-TASK split is accepted/written: [TASK-00166](tasks/00166-TASK.md) shared durable lifecycle
+(no unfinished blockers), [TASK-00167](tasks/00167-TASK.md) bounded removal (00166), and
+[TASK-00168](tasks/00168-TASK.md) complete MCP activation/combined journeys (00166, 00169, 00170). The extension has no polling-only capability flag. TICKET-00050/00051 supply behavior/method handling
+from 00166; 00168 owns final activation and combined Tool-start/input/cancel evidence, without a circular supplier
+blocker. All 00168 supplier identities are now resolved; it is ready-for-agent with unfinished blockers. Removal is independent.
+TICKET-00050's complete single [TASK-00169](tasks/00169-TASK.md) is accepted/written, blocked only by 00166. It owns retained
+forms/confirmation, lifetime request identity, partial/mixed response admission, atomic duplicate protection and actual
+tasks/update handling without partial extension advertisement. It owns input/producer-terminal races; TICKET-00051 owns
+cancellation-intent/input races and 00168 owns combined Tool-start HTTP evidence. No reverse activation/live dependency.
+TICKET-00051's complete single [TASK-00170](tasks/00170-TASK.md) is accepted/written, blocked by 00166 and 00169 for actual
+input-intent integration. It owns durable bounded cancellation intent, cross-process authorized observation, harmless
+repeats/terminal no-ops, actual tasks/cancel handling and three-database race/failure evidence. Intent is not actual
+stopping or compensation; consumers decide stopping and report outcomes. Preserve accepted input/confirmation and terminal
+winners. 00168 owns final activation/combined HTTP proof; no reverse activation/removal/live dependency is introduced.
+No implementation or global execution priority is assigned; worktree choice remains explicit.
+TICKET-00052's complete single [TASK-00171](tasks/00171-TASK.md) is accepted/written, blocked only by 00162 and 00168.
+It owns live taskIds integration, complete currently authorized state/baseline through shared Queries, atomically bound
+Task-scoped get/live revision comparison, bounded coalescing and current-state reconnect recovery. Full state stays out
+of notices/Mercure/tracking; unsafe output stops honestly. Real three-database HTTP/race/failure evidence, native/API/schema
+compatibility, docs/CONTEXT.md, exact coverage and full build remain implementation obligations.
+All map planning is complete: four EPICs, thirteen TICKETs, 25 TASKs (00147–00171). No implementations are accepted by
+this planning operation. Next: `/skill:next` to consult the authoritative Board; no task selection, execution authority,
+global priority or worktree choice follows automatically. Ready Frontier remains the execution-selection source.
+Map closure does not authorize implementation, consumer coordination changes or release; no release target is assigned.
 
 [EPIC-00008](epics/00008-EPIC.md) has nine approved requirement TICKETs. John selected TICKET-00031 through TICKET-00039
 and approved nineteen complete PR-sized TASKs (one each for TICKET-00031 through TICKET-00034, three for TICKET-00035,
