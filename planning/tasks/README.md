@@ -49,4 +49,29 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | done | [TICKET-00039](../tickets/00039-TICKET.md) |
 | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | done | — |
+| [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | ready-for-agent | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | ready-for-agent | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00149](00149-TASK.md) | Record separately protected execution detail | ready-for-agent | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |
+| [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | ready-for-agent | [TICKET-00042](../tickets/00042-TICKET.md) |
+| [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | ready-for-agent | [TICKET-00042](../tickets/00042-TICKET.md) |
+| [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | ready-for-agent | [TICKET-00043](../tickets/00043-TICKET.md) |
+| [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent | [TICKET-00043](../tickets/00043-TICKET.md) |
+| [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | ready-for-agent | [TICKET-00044](../tickets/00044-TICKET.md) |
+| [TASK-00158](00158-TASK.md) | Record durable safe change notices | ready-for-agent | [TICKET-00045](../tickets/00045-TICKET.md) |
+| [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent | [TICKET-00045](../tickets/00045-TICKET.md) |
+| [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | ready-for-agent | [TICKET-00046](../tickets/00046-TICKET.md) |
+| [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | ready-for-agent | [TICKET-00046](../tickets/00046-TICKET.md) |
+| [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent | [TICKET-00048](../tickets/00048-TICKET.md) |
+| [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | ready-for-agent | [TICKET-00050](../tickets/00050-TICKET.md) |
+| [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | ready-for-agent | [TICKET-00051](../tickets/00051-TICKET.md) |
+| [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent | [TICKET-00052](../tickets/00052-TICKET.md) |
 <!-- /planning:records -->

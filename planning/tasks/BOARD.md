@@ -16,6 +16,14 @@ Refresh generated rows with `./bin/planning-check --write`. A PR link does not a
 For `/ask-matt` or an unqualified "What's next?", report the current Human Action or Needs Info decision and the
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
 
+The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
+approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
+`/skill:next` for Board-based execution selection, not automatic implementation. TASK-00147/00157/00158/00166's Ready
+Frontier entries reflect satisfied implementation dependencies, not execution authority. Checkout/worktree choice and
+global priority remain unassigned. TASK-00168's approved protocol activation
+has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
+still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input-intent race integration.
+
 <!-- planning:board -->
 ## Active Work
 
@@ -27,13 +35,36 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | [TASK-00147](00147-TASK.md) | — |
+| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | [TASK-00147](00147-TASK.md), [TASK-00148](00148-TASK.md) | — |
+| — | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00148](00148-TASK.md) | — |
+| — | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md) | — |
+| — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md), [TASK-00149](00149-TASK.md) | — |
+| — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | [TASK-00149](00149-TASK.md), [TASK-00150](00150-TASK.md) | — |
+| — | [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | [TASK-00153](00153-TASK.md), [TASK-00152](00152-TASK.md) | — |
+| — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | [TASK-00151](00151-TASK.md), [TASK-00152](00152-TASK.md) | — |
+| — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | [TASK-00155](00155-TASK.md), [TASK-00153](00153-TASK.md) | — |
+| — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
+| — | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
+| — | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00160](00160-TASK.md), [TASK-00159](00159-TASK.md) | — |
+| — | [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | ready-for-agent | [TASK-00161](00161-TASK.md) | — |
+| — | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | ready-for-agent | [TASK-00162](00162-TASK.md) | — |
+| — | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | ready-for-agent | [TASK-00162](00162-TASK.md), [TASK-00157](00157-TASK.md) | — |
+| — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | ready-for-agent | [TASK-00161](00161-TASK.md) | — |
+| — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md) | — |
+| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00169](00169-TASK.md), [TASK-00170](00170-TASK.md) | — |
+| — | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | [TICKET-00050 — Supply requested input to asynchronous operations](../tickets/00050-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md) | — |
+| — | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | [TICKET-00051 — Request cooperative cancellation of asynchronous operations](../tickets/00051-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00169](00169-TASK.md) | — |
+| — | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | [TICKET-00052 — Follow live Task state and recover after reconnecting](../tickets/00052-TICKET.md) | ready-for-agent | [TASK-00162](00162-TASK.md), [TASK-00168](00168-TASK.md) | — |
 
 ## Needs Info
 
