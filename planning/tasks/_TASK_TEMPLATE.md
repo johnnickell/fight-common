@@ -49,11 +49,12 @@ and PR title `TASK-NNNNN — <TASK title>`; preserve established identities and 
 
 ## Completion notes
 
-At the implementation checkpoint, account for every acceptance criterion and required local verification before
-marking `done`, before PR publication. A green build alone is insufficient. Record actual counts, warnings,
-limitations, files changed and remaining risks. State pending independent review explicitly; record review,
-publication, merge, release and deployment separately without implying approval or effect authority.
+At the implementation checkpoint, account for every acceptance criterion and required local verification.
+Record actual counts, warnings, limitations, files changed and remaining risks. Keep the TASK non-terminal while
+independent Review or required QA is pending; name the current handoff. A successful build alone is not done.
 
-Link the ignored builder receipt and handoff; independent review uses the base-worktree canonical report and the
-[Review contract](../../docs/engineering/standards/Review.md), not builder self-approval. Refresh generated views
-after metadata changes. Preserve truthful historical outcomes rather than rewriting prior completion evidence.
+Link the ignored builder receipt, canonical [Review](../../docs/engineering/standards/Review.md) report and
+[QA](../../docs/engineering/standards/QA.md) report or justified applicability decision. Independent owners supply
+verdicts; builders cannot approve themselves. Mark `done` only after independent acceptance and required QA are
+satisfied, normally during authorized Land closeout. Record publication, merge, release and deployment separately.
+Refresh views and roll up eligible parents in the same completion operation. Preserve historical evidence.

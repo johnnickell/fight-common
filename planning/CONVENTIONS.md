@@ -91,15 +91,21 @@ only for deterministic display. `pr` is an optional full PR URL, not an assertio
 | `needs-info` | A decision or required evidence is missing |
 | `ready-for-agent` | Decision-complete and executable when dependencies permit |
 | `ready-for-human` | Human judgment or an external action is next |
-| `in-progress` | Implementation or revision is underway |
-| `done` | Implementation acceptance and required local verification are complete for a TASK; parent completion follows terminal child statuses |
+| `in-progress` | Implementation, revision or required independent Review/QA is underway |
+| `done` | TASK implementation acceptance, required verification, independent Review acceptance and required QA are satisfied; parent completion follows terminal child statuses |
 | `wontfix` | Intentionally closed without implementation |
 
-Blocking is derived, not a stored status. Mark TASK implementation `done` before PR publication once implementation
-acceptance and required local verification are complete. A green build alone does not establish acceptance.
-Independent review may still be pending: state that explicitly in completion notes/handoffs and record its outcome,
-publication, merge, release and deployment separately. Done grants none of those authorities. Preserve truthful
-historical records rather than inventing review approval or rewriting prior outcomes.
+Blocking is derived, not a stored status. Keep an implemented TASK `in-progress` while independent Review or
+required QA is pending; name the current stage in its handoff. Use `ready-for-human` only for an actual human
+judgment/external action. Mark `done` only after independent acceptance and satisfied QA, including justified
+overall N/A, plus every required acceptance check. A green build alone is insufficient. Authorized Land normally
+records this administrative closeout; Review/QA publish reports without changing planning. Record publication,
+merge, release and deployment separately; done grants none of those authorities.
+
+This prospective rule was approved in [TASK-00172](tasks/00172-TASK.md). Preserve historical implementation-complete
+statuses and reports under their original policy; do not mass-reopen or infer current acceptance from old `done`.
+The [Delivery contract](../docs/engineering/standards/Delivery.md#acceptance-and-administrative-closeout) separates
+accepted content from administrative metadata and any required final-head delivery checks.
 
 ## Automatic parent completion
 
@@ -159,6 +165,24 @@ WF IDs, title, type, mode, current status, and dependency IDs. Data comes from d
 and decision summaries retain their meaning. A Closed map has no decision frontier and links to its implementation
 handoff. Wayfinder indexes derive state from maps. Do not invent a frontier when all maps are closed.
 
+## Map-wide planning order
+
+For a selected Wayfinder map, finish its decisions and approved EPIC destinations first, then all accepted
+TICKET decompositions, then all TASK decompositions, before recommending Board-based implementation selection.
+Honor explicit human choices for a narrower slice or different order; do not invent dependencies or global
+priority between maps. A Wayfinder decision may produce zero, one or several EPIC destinations; decision closure
+or a grill-mode label does not itself invoke the EPIC-producing Grill skill. Grill creates one approved EPIC
+per invocation, then returns to the map's remaining destinations.
+
+Track decisions resolved, EPICs written/approved, TICKET decomposition accepted and TASK decomposition accepted
+in the existing map/handoff and owning records. A child table or parent status does not prove complete planning.
+Reuse live/archived records, preserve historical approvals and report uncertain scope instead of allocating
+duplicates. A Closed map may still have a pending linked planning handoff without reopening decisions.
+
+At useful stopping points give an explicit `Next:` command for the actual target and phase under the
+[shared handoff rules](agents/shared-workflows.md#handoffs), or name the precise pending human decision.
+Recommendations never invoke a workflow. The TASK Board still owns execution order and active work.
+
 ## Archive operation
 
 Archive only on an explicit request, never as a completion side effect. Use the owning tool rather than moving
@@ -181,8 +205,10 @@ New TASK branches use `feature/task-NNNNN-<slug>` from `develop`, and PR titles 
 `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities without retrospective renaming; release and
 patch conventions remain unchanged. Never commit directly to `develop` or `main`. Choose the main checkout or an
 isolated worktree with the user. Ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/`, and
-`.runs/archive/` hold local execution material. [Review](../docs/engineering/standards/Review.md) owns the canonical
-base-worktree report, independence, criteria and accept/revise contract. Durable requirements and outcomes belong in planning records.
+`.runs/archive/` hold local execution material. Use the prospective [evidence layout](agents/shared-workflows.md#ignored-evidence)
+for Build coordination, task runs and canonical QA reports; do not migrate historical evidence implicitly.
+[Review](../docs/engineering/standards/Review.md) and [QA](../docs/engineering/standards/QA.md) own their independent
+base-worktree reports. Durable requirements and outcomes belong in planning records.
 
 Before a commit or PR, record verified acceptance and outstanding review honestly, update the PR link if known,
 refresh views, and satisfy the canonical `./bin/build` gate (or the verified documentation-only reuse rule in

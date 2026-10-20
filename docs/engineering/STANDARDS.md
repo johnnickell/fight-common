@@ -15,24 +15,29 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 - [PHP](standards/PHP.md)
 - [Planning](standards/Planning.md)
 - [Review](standards/Review.md)
+- [QA](standards/QA.md) and [report template](QA_REPORT_TEMPLATE.md)
 - [Testing](standards/Testing.md)
+- [Shared workflow binding](../../planning/agents/shared-workflows.md)
 
 ## Baseline identity
 
 | Document | SHA-256 |
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
-| `AGENTS.md installed` | `f2ba692b08a0abc109200c76f5b2041ade64d6606828b06a3ba4e6fd048f5444` |
+| `AGENTS.md installed` | `14923f325dc7809669bcc6096aa65f101bf8ade19eae259710ce6a9757bc004b` |
 | `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
-| `standards/Delivery.md` | `de68e6897dfe28ae8d24bd081b67f6c76945e75db41c4bd6fe1a35779521430d` |
+| `standards/Delivery.md` | `7f96b532a54ec95d9265487de500f08791019fb43fb979158b729fa981d9ea33` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
-| `standards/Governance.md` | `54f36212c604615d7c6e2691de41b3b2c843c4f53e59800c9e330eeedf3d3ed5` |
+| `standards/Governance.md` | `edb5ea685253c45638930ae9f41a5e0dd12caa1f143dcd9b7ca207013eb350c2` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| `standards/Planning.md` | `f1536f87a8041614a8429f8a6fc0b349cdb1ae397b9cd98c11e6abf67f7e37e7` |
-| `standards/Review.md` | `0bec2986099fafa2866fa07a5fd4e319e172d2cc354671e30b62858f9e6eb402` |
-| `standards/Testing.md` | `cb5d4b5383e150a1f53c10f9e9856f4541314ef9c10955a3f10d5d11356552a5` |
+| `standards/Planning.md` | `016d9bc84f26bf710074fb6cd4bc9f732186902627a29b2cf54e785de561c4fe` |
+| `standards/Review.md` | `cd86ecfa4f1a9b7a73394ff14c97dbf12def59ebb3bdea084f18253be5f21277` |
+| `standards/Testing.md` | `410c6447aec8ec7a95e668e8dd698d597e52955f73b49291a4e31e27422f593b` |
+| `standards/QA.md` | `715aa0bb9caf81c03f5949cca0c4d2cecad1cc1b82b30c1b55cd38fe111c3258` |
+| `QA_REPORT_TEMPLATE.md` | `1e71e01157b297abdfef19fc146fb18cfc36337abb1fcd984f2dd7b7bf8aa7e6` |
+| `planning/agents/shared-workflows.md` | `32ab451ea924c9f3678f42154d0fc9c524088f95faa342943da0338159a3317f` |
 
 ## Project scope and unresolved work
 
@@ -123,3 +128,25 @@ rewritten. This local project correction does not itself claim independent revie
 automatic canonical baseline sync or a change to other repositories, GitHub workflows/rulesets or the Agent OS
 skill installation. The Testing digest above identifies the current local copy; other shared-standard digests
 remain unchanged.
+
+## Shared workflows and independent QA — 2026-10-20
+
+John approved [TASK-00172](../../planning/tasks/00172-TASK.md) to bind installed shared skills to Common-owned
+policy and adopt Agent OS's independent QA contract. TASK `done` now requires independent Review acceptance and
+satisfied required QA (or justified overall N/A), in addition to implementation acceptance and required verification.
+This supersedes TASK-00115's earlier completion rule prospectively; historical statuses, approvals and reports
+retain their original meaning and are not mass-migrated.
+
+The local QA standard/template preserve independent ownership, PASS/FAIL/INCOMPLETE/N/A, non-UI applicability,
+real subject/evidence identity, repair routing and publication separation. The binding adds provider/target
+substitutions, explicit Build authority, stage/planning handoffs and prospective ignored evidence paths.
+Shared skill/monitor mechanics remain with the installed provider; ordinary contributors need no private checkout.
+No runtime enrollment, global installation, dependency change, evidence relocation or product test is introduced.
+
+The comparison inspected Agent OS revision `04e0e6cfbd832b88354d9ed2e5247ec712a91fb6` and Common baseline
+`354b0c2d1b8ec45a5e7b224d3de03b3bbe18d1e8`. QA is a reviewed local adaptation, not automatic synchronization or
+certification of provider code. John explicitly excluded requalification of already-used shared workflows:
+validate Common-specific documentation and required local checks without new workflow trials or simulations.
+Independent Review and applicable local documentation QA remain separate, pending evidence rather than implied
+by this adoption record. Exact coverage, compatibility, gate/reuse policy, advisory hosted CI, GitFlow, release
+certification/signing and human merge control remain intact. The digests above identify the current local copies.

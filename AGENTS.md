@@ -29,6 +29,8 @@ path above takes precedence over broad orientation reads; it does not waive engi
 | Write or review React/TypeScript | [Frontend](docs/engineering/standards/Frontend.md) |
 | Implement or verify behavior | [Testing](docs/engineering/standards/Testing.md) |
 | Review or assess readiness | [Review](docs/engineering/standards/Review.md) |
+| Challenge reviewed behavior | [QA](docs/engineering/standards/QA.md) |
+| Use shared skills or delegate workflow roles | [Shared workflow binding](planning/agents/shared-workflows.md) |
 | Worktrees, runtime, PRs, merge, release, deploy | [Delivery](docs/engineering/standards/Delivery.md) and the actual project profile/runbooks |
 | Change these standards or adopt them elsewhere | [Governance](docs/engineering/standards/Governance.md) |
 
@@ -36,9 +38,9 @@ path above takes precedence over broad orientation reads; it does not waive engi
 
 **Verify:** use focused checks while iterating, then the complete project gate for implementation/build-input changes. Documentation-only follow-ups may retain prior full-gate evidence with verified input equivalence and targeted checks under the Testing standard. Cover meaningful product behavior, including the shipped coding standard and framework contracts. Preserve existing release tests/probes without adding packaging or release-process tests in any suite; see Testing and the project inventory. Use local build receipts for pre-publication acceptance in public and private repositories alike; hosted CI is not a review prerequisite. Any required hosted delivery checks occur after land publishes. Surface warnings and incomplete evidence. Keep CONTEXT.md and affected documentation aligned with the code.
 
-**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. The normal workflow is work → local verification → independent review → authorized land; land owns push/PR publication. A local commit or accepted review grants no publication, merge, release, or deployment permission.
+**Authorize:** follow the current request's delivery scope. Implementation, publication, independent review, landing, signed library release, and production deployment are distinct operations. The normal workflow is work → local verification → independent review → independent QA → authorized land → human merge; land owns push/PR publication. Explicit Build invocation delegates those stages through PR publication under the [binding](planning/agents/shared-workflows.md); a recommendation does not. A local commit or accepted review grants no publication, merge, release, or deployment permission.
 
-**Complete and review:** TASK `done` means implementation acceptance and required local verification, before PR publication; a green build alone is insufficient. Keep pending independent review explicit and record delivery separately. Review uses the independent Spec/Standards accept-or-revise contract in [Review](docs/engineering/standards/Review.md), never builder self-approval.
+**Complete and review:** TASK `done` requires implementation acceptance, required verification, independent Review acceptance and satisfied required QA (or justified overall N/A). Keep implementation awaiting Review/QA non-terminal with its next stage explicit. Record publication, merge, release and deployment separately. Review uses the independent Spec/Standards accept-or-revise contract in [Review](docs/engineering/standards/Review.md); [QA](docs/engineering/standards/QA.md) owns behavioral dispositions. Builders cannot independently accept or pass their own work. Preserve historical completion records.
 
 **Persist:** records own durable decisions and acceptance. Ignored `.runs` subfolders own coordination, review handoffs, logs, and screenshots. Preserve useful evidence through landing and remove only resources demonstrably owned by the work.
 

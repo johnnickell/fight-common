@@ -205,7 +205,8 @@ These are distinct capabilities. Avoid using their names interchangeably.
 | **Architecture gate** | The quality gate that verifies inward dependency direction between Domain, Application, and Adapter. |
 | **Coverage gate** | The quality gate that compares covered statements with all executable statements. Fight Common requires exact complete statement coverage rather than a rounded percentage. |
 | **Dependency freshness lane** | CI verification performed after resolving the latest versions permitted by the package constraints. It is distinct from a local build using already-resolved dependencies. |
-| **Build** | The complete ordered set of quality gates used to decide whether the repository is acceptable. |
+| **Product build** | The complete ordered quality gate invoked by `./bin/build`; it verifies the checkout but grants no independent acceptance or delivery authority. |
+| **Build workflow** | An explicitly invoked shared Team Lead workflow coordinating one TASK through Engineer, independent Review, QA and authorized Land to a PR. It is distinct from the product build and does not merge, release or deploy. |
 | **Candidate commit** | The exact clean `HEAD` commit certified by `bin/release certify`. A branch name or dirty checkout cannot substitute for this immutable identity. |
 | **Certification record** | The compact, digest-bearing JSON record emitted by `bin/release certify`. It binds the version, candidate commit, archive digest, dependency lanes, package surface, installed-consumer result, and cited historical starter receipts. |
 | **Publication authorization** | John's informed `ship <version>` decision for the unchanged certified candidate and stated publication form, after reading the summary required by [ADR 0028](planning/adr/0028-clear-package-release-decisions.md). It covers the remaining normal release operation and applicable reviewed housekeeping, not unrelated releases, branch deletion or application deployment. Certification alone authorizes no effect; changed inputs, failures or new material risk require a fresh decision. |
@@ -366,13 +367,18 @@ An event-sourced aggregate identifier implements `Identifier`. Repositories conv
 
 Committed planning state lives in `planning/`. The TASK Board displays executable work; the Roadmap planning
 frontier displays decomposition. [Automatic parent completion](planning/CONVENTIONS.md#automatic-parent-completion)
-closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done` means implementation acceptance and required local verification
-are complete, before publication; pending independent review and delivery outcomes are recorded separately.
+closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done`
+requires implementation acceptance, required verification, independent Review acceptance and satisfied required QA
+(or justified overall N/A). Implementation awaiting Review/QA stays non-terminal with its handoff explicit; delivery
+is separate. Historical completion records retain the meaning of their original policy.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained
 under the [Review contract](docs/engineering/standards/Review.md). Important outcomes and deviations belong in the
-TASK; a report's accept/revise verdict is distinct from implementation completion and delivery authority.
+TASK; a report's accept/revise verdict is distinct from QA and delivery authority. The current independent QA
+report is `<base-worktree>/.runs/qa/<TASK-ID>/qa.md` under the [QA contract](docs/engineering/standards/QA.md).
+The [shared workflow binding](planning/agents/shared-workflows.md) owns provider/target substitutions and prospective
+Build/task-run paths without relocating historical evidence.
 
 ## Decisions
 

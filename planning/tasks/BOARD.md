@@ -10,11 +10,16 @@ Read the referenced current section, not the full historical record. Missing han
 
 Execution view for Fight Common. TASK records own status, dependencies, priority (`order`), and PR links.
 Refresh generated rows with `./bin/planning-check --write`. A PR link does not assert merge or deployment.
+[Shared handoffs](../agents/shared-workflows.md#handoffs) select the next stage from actual evidence. Implemented
+TASKs awaiting independent Review/QA remain active, not done; historical terminal records retain their old meaning.
 
 ## What's next?
 
 For `/ask-matt` or an unqualified "What's next?", report the current Human Action or Needs Info decision and the
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
+
+[TASK-00172's current handoff](00172-TASK.md#completion-notes) is independent Review, then required QA.
+Its implementation is locally verified but remains active under the new completion rule; publication is not authorized.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
@@ -29,7 +34,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
