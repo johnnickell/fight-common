@@ -26,6 +26,7 @@ use Fight\Common\Domain\Execution\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Observation\ObservationOutcome;
+use Fight\Common\Domain\Execution\Phase\Phase;
 use Fight\Common\Domain\Execution\Phase\PhaseReference;
 use Fight\Common\Domain\Execution\Session\Session;
 use Fight\Common\Domain\Execution\Session\SessionReference;
@@ -635,7 +636,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_installation_preserves_evidence_and_recording_comparison_agrees_with_sql(string $backend): void
+    public function test_that_current_installation_preserves_evidence_and_commands_remain_available(string $backend): void
     {
         $connection = $this->database($backend);
         $manager = $connection->createSchemaManager();
@@ -650,8 +651,26 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
         self::assertTrue($manager->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
         self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id'));
+        // Ordinary recording uses the same current schema and pipeline.
+        (new RecordingFixture($store))->record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString()]));
+        self::assertSame(4, $this->rowCount($connection, 'observations'));
+    }
+
+    #[DataProvider('orderingDatasets')]
+    public function test_that_recording_comparison_agrees_with_sql_independently_of_bootstrap_time(string $backend, string $bootstrapDate, bool $bootstrapNewer): void
+    {
+        $connection = $this->database($backend);
+        $store = new DbalRecordingTransaction($connection);
         $repository = new DbalObservationRepository($store);
-        // Adapter conformance supplies controlled recorded times, not producer-controlled Command receipt times.
+        // Adapter conformance controls every receipt; the separate Command test uses the real server clock.
+        $bootstrap = [ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()];
+        $store->commitTransactional(static function () use ($store, $repository, $bootstrap, $bootstrapDate): void {
+            (new DbalSessionRepository($store))->add(new Session($bootstrap[0]->session()));
+            (new DbalPhaseRepository($store))->add(new Phase('project', $bootstrap[1]->phase()));
+            foreach ($bootstrap as $i => $observation) {
+                $repository->add($observation->recorded(new DateTimeImmutable($bootstrapDate.'T00:00:00.00000'.$i.'Z')));
+            }
+        });
         $keys = [
             ['019a1234-5678-4abc-8def-000000000001', '000001', '2026-10-20T12:00:00Z'],
             ['019a1234-5678-4abc-8def-000000000002', '000001', '2020-01-01T00:00:00.1Z'],
@@ -669,10 +688,32 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $application = array_reverse($roots);
         usort($application, static fn (Observation $a, Observation $b): int => $b->compareRecordingTo($a));
         self::assertSame(array_map(static fn ($root) => $root->id()->toString(), $roots), array_map(static fn ($root) => $root->id()->toString(), $application));
-        self::assertSame(array_reverse(array_column($keys, 0)), array_slice(array_column($rows, 'observation_id'), 0, 5));
+        // Expected order is independent of insertion order and the production comparator:
+        // receipt microseconds first, then every UUID component, including the random suffix.
+        $controlledIds = [
+            '019a1234-5678-4abc-8def-000000000000',
+            '019a1234-5679-4000-8000-000000000000',
+            '019a1234-5678-4abc-8dff-000000000000',
+            '019a1234-5678-4abc-8def-000000000002',
+            '019a1234-5678-4abc-8def-000000000001',
+        ];
+        $bootstrapIds = [
+            '019a1234-5678-4abc-8def-123456789abe',
+            '019a1234-5678-4abc-8def-123456789abd',
+            '019a1234-5678-4abc-8def-123456789abc',
+        ];
+        $expectedIds = array_merge($controlledIds, $bootstrapIds);
+        if ($bootstrapNewer) { $expectedIds = array_merge($bootstrapIds, $controlledIds); }
+        self::assertSame($expectedIds, array_column($rows, 'observation_id'));
         for ($i = 1; $i < count($roots); ++$i) { self::assertSame(1, $roots[$i - 1]->compareRecordingTo($roots[$i])); }
-        // Ordinary recording uses the same current schema and pipeline.
-        (new RecordingFixture($store))->record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString()]));
+    }
+
+    public static function orderingDatasets(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend.'-bootstrap-before' => [$backend, '2026-10-21', false];
+            yield $backend.'-bootstrap-after' => [$backend, '2026-10-23', true];
+        }
     }
 
     public static function databases(): iterable
