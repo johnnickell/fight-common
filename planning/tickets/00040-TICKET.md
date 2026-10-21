@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -130,8 +130,10 @@ Commands, protected Queries and their integrated deletion/retry evidence; no rev
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
-claimed then. TASK-00147's session/phase vertical slice has independent Review acceptance and QA PASS; its open
-[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaits human review/merge. TASK-00148/00149 remain
+claimed then. TASK-00147's previously accepted session/phase candidate has independent Review acceptance and QA PASS
+in open [PR #221](https://github.com/johnnickell/fight-common/pull/221). A maintainer-requested local session-Command
+encapsulation follow-up is locally verified and awaits fresh independent Review/affected QA; prior acceptance does not
+cover that change. TASK-00148/00149 remain
 unimplemented and blocked on their suppliers. No consumer amendment, merge or release is claimed here. Release target
 remains unassigned.
 

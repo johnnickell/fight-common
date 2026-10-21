@@ -38,6 +38,6 @@ final readonly class RecordSessionObservationHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected recording command.');
         }
 
-        $this->recorder->record($command->observation);
+        $this->recorder->record($command->observation());
     }
 }

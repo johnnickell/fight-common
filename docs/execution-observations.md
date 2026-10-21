@@ -33,6 +33,11 @@ Domain validation uses fixed diagnostics rather than echoing submitted content.
 
 ## Trusted admission and composition
 
+`RecordSessionObservation` keeps its payload private and exposes it through `observation(): Observation`.
+Use the accessor rather than direct property access; `toArray()` and `fromArray()` retain the version-one
+Command payload shape. This is a maintainer-requested correction to the unreleased TASK-00147 API, not a
+compatibility change to a released Command.
+
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
 It must verify the authenticated instrumentation producer and permitted project, session, target phase and parent
 phase references, throwing `RecordingDenied` on denial. IDs in Commands, `Meta` and correlation values are references,

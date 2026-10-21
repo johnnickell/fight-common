@@ -40,6 +40,17 @@ final class RecordingCommandsTest extends UnitTestCase
         }
     }
 
+    public function test_that_session_command_exposes_its_observation_only_through_an_accessor(): void
+    {
+        $observation = ObservationFixture::session();
+        $command = new RecordSessionObservation($observation);
+
+        self::assertSame([], get_object_vars($command));
+        self::assertSame($observation, $command->observation());
+        self::assertSame($observation->toArray(), $command->toArray());
+        self::assertSame($observation->toArray(), RecordSessionObservation::fromArray($command->toArray())->observation()->toArray());
+    }
+
     public function test_that_session_command_rejects_phase_evidence(): void
     {
         $this->expectException(DomainException::class);

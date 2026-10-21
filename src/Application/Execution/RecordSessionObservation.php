@@ -16,7 +16,7 @@ final readonly class RecordSessionObservation implements Command
     /**
      * Constructs RecordSessionObservation
      */
-    public function __construct(public Observation $observation)
+    public function __construct(private Observation $observation)
     {
         if ($observation->phase !== null) {
             throw new DomainException('Expected a session observation.');
@@ -29,6 +29,14 @@ final readonly class RecordSessionObservation implements Command
     public static function fromArray(array $data): static
     {
         return new self(Observation::fromArray($data));
+    }
+
+    /**
+     * Returns the session observation
+     */
+    public function observation(): Observation
+    {
+        return $this->observation;
     }
 
     /**
