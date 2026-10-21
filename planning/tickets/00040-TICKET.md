@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
