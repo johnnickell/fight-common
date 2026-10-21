@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Execution;
 
 use DateTimeImmutable;
+use Fight\Common\Domain\Execution\Activity\PhaseActivity;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
+use Fight\Common\Domain\Execution\Observation\ObservationOccurrence;
+use Fight\Common\Domain\Execution\Usage\UsageCompleteness;
+use Fight\Common\Domain\Execution\Usage\UsageMeasurement;
 use Fight\Common\Domain\Execution\Phase\PhaseReference;
 use Fight\Common\Domain\Execution\Session\SessionReference;
 
@@ -22,6 +26,23 @@ final class ObservationFixture
             new DateTimeImmutable('2026-10-20T12:34:56.123456+00:00'),
         );
 
+        return Observation::fromArray(array_replace($observation->toArray(), $changes));
+    }
+
+    public static function activity(array $changes = []): Observation
+    {
+        $phase = self::phase();
+        $observation = Observation::forActivity(
+            ObservationId::fromString('019a1234-5678-4abc-8def-123456789abe'),
+            'instrumentation', $phase->session(), $phase->phase(),
+            ObservationOccurrence::fromString('2026-10-20T12:34:56.120Z'),
+            PhaseActivity::create('consumer/model-call', 'Safe summary', 'model:one', [
+                UsageMeasurement::create('provider/input', 'token', 'response', UsageCompleteness::COMPLETE, '0'),
+                UsageMeasurement::create('provider/output', 'token', 'response', UsageCompleteness::PARTIAL, '12.5'),
+                UsageMeasurement::create('provider/cost', 'USD', 'response', UsageCompleteness::UNAVAILABLE, null),
+                UsageMeasurement::create('provider/capacity', 'token', 'response', UsageCompleteness::UNKNOWN, null),
+            ])
+        );
         return Observation::fromArray(array_replace($observation->toArray(), $changes));
     }
 

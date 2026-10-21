@@ -118,6 +118,10 @@ final readonly class ObservationRecorder
         }
 
         if ($existing === null) {
+            if ($observation->activity() !== null) {
+                throw new InvalidObservationRelationship();
+            }
+
             $this->phases->add($phase);
         }
     }

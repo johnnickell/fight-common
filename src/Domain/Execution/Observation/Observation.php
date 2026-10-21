@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Execution\Observation;
 use DateTimeImmutable;
 use DateTimeZone;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Execution\Activity\PhaseActivity;
 use Fight\Common\Domain\Execution\Phase\PhaseReference;
 use Fight\Common\Domain\Execution\Session\SessionReference;
 use Fight\Common\Domain\Execution\Value\ObservationFields;
@@ -31,7 +32,9 @@ final readonly class Observation
         private ?DateTimeImmutable $endedAt,
         private ObservationOutcome $outcome,
         private ObservationExtensions $extensions,
-        private ?DateTimeImmutable $recordedAt = null
+        private ?DateTimeImmutable $recordedAt = null,
+        private ?PhaseActivity $activity = null,
+        private ?ObservationOccurrence $occurrence = null
     ) {
     }
 
@@ -71,6 +74,36 @@ final readonly class Observation
     }
 
     /**
+     * Creates version-one activity evidence within an existing phase
+     */
+    public static function forActivity(
+        ObservationId $id,
+        string $producerId,
+        SessionReference $session,
+        PhaseReference $phase,
+        ObservationOccurrence $occurrence,
+        PhaseActivity $activity,
+        ?ObservationExtensions $extensions = null
+    ): self {
+        $base = self::create($id, $producerId, $session, $phase, $occurrence->instant(), extensions: $extensions);
+
+        return new self(
+            $base->id,
+            $base->producerId,
+            $base->session,
+            $base->phase,
+            $base->occurredAt,
+            null,
+            null,
+            ObservationOutcome::UNKNOWN,
+            $base->extensions,
+            null,
+            $activity,
+            $occurrence
+        );
+    }
+
+    /**
      * Creates an observation from an exact supported representation
      *
      * @param array<string, mixed> $data
@@ -83,7 +116,7 @@ final readonly class Observation
 
         ObservationFields::structure($data, [
             'version', 'observation_id', 'producer_id', 'session', 'phase',
-            'occurred_at', 'started_at', 'ended_at', 'outcome', 'extensions'
+            'occurred_at', 'started_at', 'ended_at', 'outcome', 'activity', 'extensions'
         ]);
         if (
             !is_string($data['observation_id'])
@@ -91,6 +124,7 @@ final readonly class Observation
             || !is_array($data['session']) || !is_array($data['extensions'])
             || ($data['phase'] !== null && !is_array($data['phase']))
             || !is_string($data['outcome'])
+            || ($data['activity'] !== null && !is_array($data['activity']))
         ) {
             throw new DomainException('Invalid observation structure.');
         }
@@ -98,6 +132,25 @@ final readonly class Observation
         $outcome = ObservationOutcome::tryFrom($data['outcome']);
         if ($outcome === null) {
             throw new DomainException('Invalid observation outcome.');
+        }
+
+        if ($data['activity'] !== null) {
+            if (
+                $data['phase'] === null || $data['started_at'] !== null || $data['ended_at'] !== null
+                || $outcome !== ObservationOutcome::UNKNOWN || !is_string($data['occurred_at'])
+            ) {
+                throw new DomainException('Invalid activity observation structure.');
+            }
+
+            return self::forActivity(
+                ObservationId::fromString($data['observation_id']),
+                ObservationFields::reference($data['producer_id']),
+                SessionReference::fromArray($data['session']),
+                PhaseReference::fromArray($data['phase']),
+                ObservationOccurrence::fromString($data['occurred_at']),
+                PhaseActivity::fromArray($data['activity']),
+                ObservationExtensions::fromArray($data['extensions'])
+            );
         }
 
         return self::create(
@@ -154,7 +207,9 @@ final readonly class Observation
             $this->endedAt,
             $this->outcome,
             $this->extensions,
-            $recordedAt
+            $recordedAt,
+            $this->activity,
+            $this->occurrence
         );
     }
 
@@ -168,6 +223,37 @@ final readonly class Observation
         }
 
         return $this->recordedAt;
+    }
+
+    /**
+     * Returns recorded-time then full-UUID comparison in ascending order
+     *
+     * Equal keys across producer namespaces remain equal; this is not causal order
+     */
+    public function compareRecordingTo(self $other): int
+    {
+        $time = $this->recordedAt() <=> $other->recordedAt();
+        if ($time !== 0) {
+            return $time;
+        }
+
+        return $this->id->compareTo($other->id);
+    }
+
+    /**
+     * Returns optional phase activity
+     */
+    public function activity(): ?PhaseActivity
+    {
+        return $this->activity;
+    }
+
+    /**
+     * Returns optional precision-preserving activity occurrence
+     */
+    public function occurrence(): ?ObservationOccurrence
+    {
+        return $this->occurrence;
     }
 
     /**
@@ -263,16 +349,17 @@ final readonly class Observation
             'producer_id'    => $this->producerId,
             'session'        => $this->session->toArray(),
             'phase'          => $this->phase?->toArray(),
-            'occurred_at'    => $this->occurredAt->format('Y-m-d\TH:i:s.u\Z'),
+            'occurred_at'    => $this->occurrence?->toString() ?? $this->occurredAt->format('Y-m-d\TH:i:s.u\Z'),
             'started_at'     => $this->startedAt?->format('Y-m-d\TH:i:s.u\Z'),
             'ended_at'       => $this->endedAt?->format('Y-m-d\TH:i:s.u\Z'),
             'outcome'        => $this->outcome->value,
+            'activity'       => $this->activity?->toArray(),
             'extensions'     => $this->extensions->toArray()
         ];
     }
 
     /**
-     * Returns deterministic version-one comparison bytes
+     * Returns deterministic versioned comparison bytes
      */
     public function comparison(): string
     {

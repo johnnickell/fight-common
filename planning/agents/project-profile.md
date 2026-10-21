@@ -22,6 +22,12 @@ transaction contracts; no application-only namespace or blanket external-effect 
 
 Value objects are immutable, validate construction, and use named public factories such as `fromString()`/`fromArray()`; invalid values use DomainException as appropriate to their contract. Specifications extend CompositeSpecification and implement `isSatisfiedBy(mixed $candidate): bool`, composing with `and()`/`or()`/`not()`. Typed collections use `ArrayList::of()` and `HashTable::of()` according to their actual signatures.
 
+Compatibility is against tagged releases, not earlier development commits. Never-released additions remain
+provisional until first tagged: revise their APIs, payloads and schemas directly without backward-compatibility
+code, aliases, deprecations or migrations for prior development snapshots. Keep current validation/integrity checks
+and actually released API guarantees intact. John explicitly confirmed this rule in
+[TASK-00148's correction](../tasks/00148-TASK.md#current-correction--user-amendment-after-publication).
+
 CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::trigger()`. Follow the existing MessageId, Meta and timestamp contracts. Deprecated public APIs remain supported for at least one released minor before removal in the next major. Preserve intentional extensibility of public base classes; final-by-default does not make a reusable abstract/base contract final. Retain framework-required entity mutability/proxy compatibility.
 
 ## Commands and verification

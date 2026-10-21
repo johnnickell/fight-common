@@ -38,7 +38,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
         }
 
         $data = json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR);
-        if (!is_array($data)) {
+        if (!is_array($data) || ($data['version'] ?? null) !== (int) $row['version']) {
             throw new DomainException('Invalid stored observation structure.');
         }
 
@@ -58,7 +58,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
             'project_id'     => $observation->session()->projectId(),
             'session_id'     => $observation->session()->sessionId(),
             'phase_id'       => $observation->phase()?->phaseId(),
-            'version'        => 1,
+            'version'        => $observation->toArray()['version'],
             'payload'        => $observation->comparison(),
             'recorded_at'    => $recordedAt->format('Y-m-d\TH:i:s.u\Z')
         ]);

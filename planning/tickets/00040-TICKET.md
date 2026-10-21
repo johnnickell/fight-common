@@ -27,6 +27,8 @@ and a working reusable persistence adapter. This is not an interface-only founda
 - Preserve measured usage with units and provenance. Unknown outcomes, partial capture and absent measurements
   remain explicit; missing values are not zero. Observation facts do not confer review acceptance or execution authority.
 - Version saved structured payloads and reject unsupported versions clearly rather than silently reinterpreting them.
+  Compatibility is against tagged releases, not prior development commits. Under John's TASK-00148 amendment,
+  unreleased session/phase/activity/usage is one provisional version-one design without historical readers/upgrades.
 - Use the existing void `CommandBus::execute()` contract. Success follows commit of all related database writes,
   including database-backed content/link changes; failure before commit rolls them back together. This does not
   create a transaction with external files or the work being observed. Storage errors are explicit; a timeout can
@@ -102,7 +104,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
-| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
+| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
 
@@ -134,10 +136,13 @@ claimed then. TASK-00147's earlier accepted candidate A and administrative close
 The ordinary aggregate-root revision is now complete: [TASK-00147's final closeout](../tasks/00147-TASK.md#ordinary-aggregate-revision-acceptance-and-administrative-closeout)
 records independent Review acceptance and affected QA PASS for candidate
 `08cbfb85b1cdc9453c2ac570e0a86c093a98d957`, followed by administrative closeout. Its existing
-[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaits human review/merge; this does not claim
-approval, merge, release or deployment. TASK-00148 is dependency-unblocked; TASK-00149 still waits for
-TASK-00148. This TICKET remains `ready-for-agent` under automatic parent rollup because its sibling TASKs are
-unfinished. No consumer amendment is claimed here; release target remains unassigned.
+[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaited human review/merge at that checkpoint.
+At TASK-00148's verified Work intake, PR #221 is integrated into develop. TASK-00148 subsequently received
+independent Review acceptance and QA PASS for candidate `3633b19d312d57e07a8bb4a8085d7ac00d53d3b9`, and its
+administrative closeout is recorded as `done` with [PR #222](https://github.com/johnnickell/fight-common/pull/222)
+open for human review. TASK-00149 is dependency-unblocked. No release or deployment is claimed. This TICKET
+remains `ready-for-agent` under automatic parent rollup because TASK-00149 is unfinished. No consumer amendment
+is claimed here; release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
@@ -162,4 +167,13 @@ claim PR approval, merge, release, certification or deployment. This TICKET
 remains `ready-for-agent` because TASK-00148 and TASK-00149 are unfinished.
 TASK-00148 is now dependency-unblocked; TASK-00149 still waits for TASK-00148.
 
-Next: `/skill:next`
+### Current TASK-00148 user correction
+
+The prior TASK-00148 accept/PASS and `done` checkpoint above are historical. John's correction removed
+backward-compatibility machinery for never-released snapshots while preserving the provisional version-one recording
+contract and tagged-release boundary. The corrected candidate `f593cde1b1009d1fb5d077f10eff918d30094de7` has
+independent Review acceptance (R-01 resolved) and affected QA PASS; TASK-00148 is `done` and PR #222 is open for
+human review/merge. TASK-00149 is now dependency-unblocked. This TICKET remains `ready-for-agent` because
+TASK-00149 is unfinished; no release or deployment is claimed.
+
+Next: human review/merge of PR #222; then select work from the Board.

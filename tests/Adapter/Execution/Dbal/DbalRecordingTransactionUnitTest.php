@@ -284,6 +284,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $schema->install($connection);
         $schema->install($connection);
         self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM consumer_owned'));
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
         self::assertTrue($connection->createSchemaManager()->tablesExist(DbalObservationSchema::TABLES));
         $definition = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true])->createSchemaManager()->introspectSchema();
         $schema->addTo($definition, new MySQLPlatform());
@@ -314,6 +315,33 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
                 if ($connection->isTransactionActive()) { $connection->rollBack(); }
             }
         }
+    }
+
+    public function test_that_activity_uses_the_same_atomic_version_one_payload(): void
+    {
+        $connection = $this->database();
+        $store = new DbalRecordingTransaction($connection);
+        $activity = ObservationFixture::activity()->recorded(new DateTimeImmutable('2026-10-21T00:00:00.000001Z'));
+        $store->commitTransactional(static function () use ($store, $activity): void {
+            (new DbalSessionRepository($store))->add(new Session($activity->session()));
+            (new DbalPhaseRepository($store))->add(new Phase('project', $activity->phase()));
+            (new DbalObservationRepository($store))->add($activity);
+        });
+        $saved = (new DbalObservationRepository($store))->getById('instrumentation', $activity->id());
+        self::assertSame($activity->comparison(), $saved->comparison());
+        self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
+        self::assertEquals($activity->recordedAt(), $saved->recordedAt());
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_observations'));
+        self::assertSame(1, $saved->toArray()['version']);
+    }
+
+    public function test_that_current_schema_missing_its_order_index_rejects_as_incomplete(): void
+    {
+        $connection = $this->database();
+        $connection->createSchemaManager()->dropIndex('fight_execution_recording_order', 'fight_execution_observations');
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Incomplete observation schema version one.');
+        (new DbalObservationSchema())->install($connection);
     }
 
     private function database(): Connection

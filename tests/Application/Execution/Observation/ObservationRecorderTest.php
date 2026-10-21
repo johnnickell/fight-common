@@ -56,6 +56,19 @@ final class ObservationRecorderTest extends UnitTestCase
         $this->events = $this->mock(EventDispatcher::class);
     }
 
+    public function test_that_activity_requires_an_existing_phase_after_current_admission(): void
+    {
+        $observation = ObservationFixture::activity();
+        $this->admission->shouldReceive('admit')->once()->with($observation)->globally()->ordered();
+        $this->sessions->shouldReceive('getById')->once()->globally()->ordered()->andReturn(new Session($observation->session()));
+        $this->phases->shouldReceive('getById')->once()->globally()->ordered()->andReturnNull();
+        $this->phases->shouldNotReceive('add');
+        $this->observations->shouldNotReceive('getById', 'add');
+        $this->events->shouldNotReceive('trigger');
+        $this->expectException(InvalidObservationRelationship::class);
+        $this->transactionalRecorder()->record($observation);
+    }
+
     public function test_that_first_session_is_admitted_and_persisted_before_postcommit_dispatch(): void
     {
         $observation = ObservationFixture::session()->recorded(new DateTimeImmutable('2000-01-01Z'));

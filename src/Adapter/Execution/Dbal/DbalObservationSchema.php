@@ -69,6 +69,7 @@ final readonly class DbalObservationSchema
         $observations->addColumn('payload', 'text');
         $observations->addColumn('recorded_at', 'string', ['length' => 27]);
         $observations->setPrimaryKey(['producer_id', 'observation_id']);
+        $observations->addIndex(['recorded_at', 'observation_id'], 'fight_execution_recording_order');
         $observations->addForeignKeyConstraint(
             self::TABLES[1],
             ['project_id', 'session_id'],
@@ -90,10 +91,10 @@ final readonly class DbalObservationSchema
     }
 
     /**
-     * Creates an empty namespace or validates its explicitly supported version
+     * Creates an empty version-one namespace or validates the current installation
      *
-     * Run during deployment, never during a recording command. Partial installations
-     * require operator recovery; no destructive automatic migration is attempted.
+     * Run exclusively during deployment, never during a recording command. Partial
+     * installations require operator recovery; MySQL DDL is not transactional.
      */
     public function install(Connection $connection): void
     {
@@ -106,9 +107,16 @@ final readonly class DbalObservationSchema
         if ($present !== []) {
             if (
                 count($present) !== count(self::TABLES)
-                || (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1') !== 1
+                || (int) $connection->fetchOne(
+                    'SELECT version FROM fight_execution_schema WHERE singleton = 1'
+                ) !== 1
             ) {
                 throw new RuntimeException('Unsupported or incomplete observation schema.');
+            }
+
+            $table = $manager->introspectTable(self::TABLES[3]);
+            if (!$table->hasIndex('fight_execution_recording_order')) {
+                throw new RuntimeException('Incomplete observation schema version one.');
             }
 
             return;
