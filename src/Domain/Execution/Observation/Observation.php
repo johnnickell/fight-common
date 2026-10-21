@@ -74,7 +74,7 @@ final readonly class Observation
     }
 
     /**
-     * Creates version-two activity evidence within an existing phase
+     * Creates version-one activity evidence within an existing phase
      */
     public static function forActivity(
         ObservationId $id,
@@ -110,17 +110,13 @@ final readonly class Observation
      */
     public static function fromArray(array $data): self
     {
-        if (($data['version'] ?? null) === 2) {
-            return self::activityFromArray($data);
-        }
-
         if (($data['version'] ?? null) !== 1) {
             throw new DomainException('Unsupported observation version.');
         }
 
         ObservationFields::structure($data, [
             'version', 'observation_id', 'producer_id', 'session', 'phase',
-            'occurred_at', 'started_at', 'ended_at', 'outcome', 'extensions'
+            'occurred_at', 'started_at', 'ended_at', 'outcome', 'activity', 'extensions'
         ]);
         if (
             !is_string($data['observation_id'])
@@ -128,6 +124,7 @@ final readonly class Observation
             || !is_array($data['session']) || !is_array($data['extensions'])
             || ($data['phase'] !== null && !is_array($data['phase']))
             || !is_string($data['outcome'])
+            || ($data['activity'] !== null && !is_array($data['activity']))
         ) {
             throw new DomainException('Invalid observation structure.');
         }
@@ -135,6 +132,25 @@ final readonly class Observation
         $outcome = ObservationOutcome::tryFrom($data['outcome']);
         if ($outcome === null) {
             throw new DomainException('Invalid observation outcome.');
+        }
+
+        if ($data['activity'] !== null) {
+            if (
+                $data['phase'] === null || $data['started_at'] !== null || $data['ended_at'] !== null
+                || $outcome !== ObservationOutcome::UNKNOWN || !is_string($data['occurred_at'])
+            ) {
+                throw new DomainException('Invalid activity observation structure.');
+            }
+
+            return self::forActivity(
+                ObservationId::fromString($data['observation_id']),
+                ObservationFields::reference($data['producer_id']),
+                SessionReference::fromArray($data['session']),
+                PhaseReference::fromArray($data['phase']),
+                ObservationOccurrence::fromString($data['occurred_at']),
+                PhaseActivity::fromArray($data['activity']),
+                ObservationExtensions::fromArray($data['extensions'])
+            );
         }
 
         return self::create(
@@ -225,7 +241,7 @@ final readonly class Observation
     }
 
     /**
-     * Returns optional version-two activity
+     * Returns optional phase activity
      */
     public function activity(): ?PhaseActivity
     {
@@ -327,29 +343,17 @@ final readonly class Observation
      */
     public function toArray(): array
     {
-        if ($this->activity !== null) {
-            return [
-                'version'        => 2,
-                'observation_id' => $this->id->toString(),
-                'producer_id'    => $this->producerId,
-                'session'        => $this->session->toArray(),
-                'phase'          => $this->phase?->toArray(),
-                'occurred_at'    => $this->occurrence?->toString(),
-                'activity'       => $this->activity->toArray(),
-                'extensions'     => $this->extensions->toArray()
-            ];
-        }
-
         return [
             'version'        => 1,
             'observation_id' => $this->id->toString(),
             'producer_id'    => $this->producerId,
             'session'        => $this->session->toArray(),
             'phase'          => $this->phase?->toArray(),
-            'occurred_at'    => $this->occurredAt->format('Y-m-d\TH:i:s.u\Z'),
+            'occurred_at'    => $this->occurrence?->toString() ?? $this->occurredAt->format('Y-m-d\TH:i:s.u\Z'),
             'started_at'     => $this->startedAt?->format('Y-m-d\TH:i:s.u\Z'),
             'ended_at'       => $this->endedAt?->format('Y-m-d\TH:i:s.u\Z'),
             'outcome'        => $this->outcome->value,
+            'activity'       => $this->activity?->toArray(),
             'extensions'     => $this->extensions->toArray()
         ];
     }
@@ -360,36 +364,6 @@ final readonly class Observation
     public function comparison(): string
     {
         return json_encode($this->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
-    }
-
-    /**
-     * Creates exact version-two activity evidence without reinterpreting version one
-     *
-     * @param array<string, mixed> $data
-     */
-    private static function activityFromArray(array $data): self
-    {
-        ObservationFields::structure($data, [
-            'version', 'observation_id', 'producer_id', 'session', 'phase', 'occurred_at', 'activity', 'extensions'
-        ]);
-        if (
-            !is_string($data['observation_id'])
-            || preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $data['observation_id']) !== 1
-            || !is_array($data['session']) || !is_array($data['phase']) || !is_array($data['activity'])
-            || !is_array($data['extensions']) || !is_string($data['occurred_at'])
-        ) {
-            throw new DomainException('Invalid activity observation structure.');
-        }
-
-        return self::forActivity(
-            ObservationId::fromString($data['observation_id']),
-            ObservationFields::reference($data['producer_id']),
-            SessionReference::fromArray($data['session']),
-            PhaseReference::fromArray($data['phase']),
-            ObservationOccurrence::fromString($data['occurred_at']),
-            PhaseActivity::fromArray($data['activity']),
-            ObservationExtensions::fromArray($data['extensions'])
-        );
     }
 
     /**

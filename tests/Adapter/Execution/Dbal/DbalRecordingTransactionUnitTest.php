@@ -260,7 +260,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
             (new DbalSessionRepository($store))->add(new Session($observation->session()));
             (new DbalObservationRepository($store))->add($observation->recorded(new DateTimeImmutable('now')));
         });
-        foreach ([['version' => 3], ['version' => 1, 'payload' => 'null'], ['payload' => '{"version":2}']] as $changes) {
+        foreach ([['version' => 2], ['version' => 1, 'payload' => 'null'], ['payload' => '{"version":2}']] as $changes) {
             $connection->update('fight_execution_observations', $changes, ['producer_id' => 'instrumentation']);
             try {
                 (new DbalObservationRepository($store))->getById('instrumentation', $observation->id());
@@ -269,7 +269,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
                 self::assertStringContainsString('observation', $exception->getMessage());
             }
         }
-        $connection->update('fight_execution_schema', ['version' => 3], ['singleton' => 1]);
+        $connection->update('fight_execution_schema', ['version' => 2], ['singleton' => 1]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Unsupported observation storage version.');
         $store->commitTransactional(static fn () => null);
@@ -284,6 +284,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $schema->install($connection);
         $schema->install($connection);
         self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM consumer_owned'));
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
         self::assertTrue($connection->createSchemaManager()->tablesExist(DbalObservationSchema::TABLES));
         $definition = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true])->createSchemaManager()->introspectSchema();
         $schema->addTo($definition, new MySQLPlatform());
@@ -302,7 +303,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
             } elseif ($mode === 'partial') {
                 $connection->executeStatement('DROP TABLE fight_execution_observations');
             } else {
-                $connection->update('fight_execution_schema', ['version' => 3], ['singleton' => 1]);
+                $connection->update('fight_execution_schema', ['version' => 2], ['singleton' => 1]);
             }
             try {
                 (new DbalObservationSchema())->install($connection);
@@ -316,7 +317,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         }
     }
 
-    public function test_that_activity_uses_the_same_atomic_payload_and_requires_explicit_schema_evolution(): void
+    public function test_that_activity_uses_the_same_atomic_version_one_payload(): void
     {
         $connection = $this->database();
         $store = new DbalRecordingTransaction($connection);
@@ -330,44 +331,16 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         self::assertSame($activity->comparison(), $saved->comparison());
         self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
         self::assertEquals($activity->recordedAt(), $saved->recordedAt());
-        $connection->delete('fight_execution_observations', ['producer_id' => 'instrumentation']);
-        $connection->update('fight_execution_schema', ['version' => 1], ['singleton' => 1]);
-        try {
-            $store->commitTransactional(static fn () => (new DbalObservationRepository($store))->add($activity));
-            self::fail('Expected unmigrated schema rejection.');
-        } catch (RuntimeException $exception) {
-            self::assertSame('Activity recording requires observation schema version two.', $exception->getMessage());
-        }
-        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_observations'));
+        self::assertSame(1, $saved->toArray()['version']);
     }
 
-    public function test_that_version_one_evolution_and_interrupted_index_creation_preserve_existing_evidence(): void
-    {
-        foreach ([false, true] as $indexAlreadyCreated) {
-            $connection = $this->database();
-            $connection->update('fight_execution_schema', ['version' => 1], ['singleton' => 1]);
-            if (!$indexAlreadyCreated) { $connection->createSchemaManager()->dropIndex('fight_execution_recording_order', 'fight_execution_observations'); }
-            $prior = json_decode(file_get_contents(__DIR__.'/../../../TestCase/Execution/version-one-records.json'), true, flags: JSON_THROW_ON_ERROR);
-            foreach ($prior['tables'] as $table => $rows) { foreach ($rows as $row) { $connection->insert($table, $row); } }
-            (new DbalObservationSchema())->install($connection);
-            (new DbalObservationSchema())->install($connection);
-            self::assertSame(2, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
-            self::assertTrue($connection->createSchemaManager()->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
-            $repository = new DbalObservationRepository(new DbalRecordingTransaction($connection));
-            foreach ($prior['tables']['fight_execution_observations'] as $row) {
-                $saved = $repository->getById($row['producer_id'], ObservationId::fromString($row['observation_id']));
-                self::assertSame($row['payload'], $saved->comparison());
-                self::assertSame($row['recorded_at'], $saved->recordedAt()->format('Y-m-d\\TH:i:s.u\\Z'));
-            }
-        }
-    }
-
-    public function test_that_version_two_missing_its_order_index_rejects_as_incomplete(): void
+    public function test_that_current_schema_missing_its_order_index_rejects_as_incomplete(): void
     {
         $connection = $this->database();
         $connection->createSchemaManager()->dropIndex('fight_execution_recording_order', 'fight_execution_observations');
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Incomplete observation schema version two.');
+        $this->expectExceptionMessage('Incomplete observation schema version one.');
         (new DbalObservationSchema())->install($connection);
     }
 

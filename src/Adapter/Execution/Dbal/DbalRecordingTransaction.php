@@ -70,9 +70,9 @@ final class DbalRecordingTransaction implements RecordingTransaction
                     'UPDATE fight_execution_schema SET version = version WHERE singleton = 1'
                 );
                 if (
-                    !in_array((int) $this->connection->fetchOne(
+                    (int) $this->connection->fetchOne(
                         'SELECT version FROM fight_execution_schema WHERE singleton = 1'
-                    ), [1, 2], true)
+                    ) !== 1
                 ) {
                     throw new RuntimeException('Unsupported observation storage version.');
                 }

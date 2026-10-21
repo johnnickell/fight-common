@@ -27,6 +27,8 @@ and a working reusable persistence adapter. This is not an interface-only founda
 - Preserve measured usage with units and provenance. Unknown outcomes, partial capture and absent measurements
   remain explicit; missing values are not zero. Observation facts do not confer review acceptance or execution authority.
 - Version saved structured payloads and reject unsupported versions clearly rather than silently reinterpreting them.
+  Compatibility is against tagged releases, not prior development commits. Under John's TASK-00148 amendment,
+  unreleased session/phase/activity/usage is one provisional version-one design without historical readers/upgrades.
 - Use the existing void `CommandBus::execute()` contract. Success follows commit of all related database writes,
   including database-backed content/link changes; failure before commit rolls them back together. This does not
   create a transaction with external files or the work being observed. Storage errors are explicit; a timeout can
@@ -102,7 +104,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
-| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
+| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | in-progress |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
 
@@ -165,4 +167,12 @@ claim PR approval, merge, release, certification or deployment. This TICKET
 remains `ready-for-agent` because TASK-00148 and TASK-00149 are unfinished.
 TASK-00148 is now dependency-unblocked; TASK-00149 still waits for TASK-00148.
 
-Next: `/skill:next`
+### Current TASK-00148 user correction
+
+The prior TASK-00148 accept/PASS and `done` checkpoint above are historical. John rejected backward-compatibility
+machinery for this never-released capability. TASK-00148 is reopened `in-progress` to consolidate payload/schema at
+version one, remove v2 readers/upgrades and development fixtures, and retain current recording/integrity guarantees.
+Fresh independent Review and affected QA are pending; PR #222 is reused without Work publication. Dependent TASKs
+wait for this correction. Tagged-release guarantees are unchanged; release target remains unassigned.
+
+Next: `/skill:review TASK-00148` in a fresh independent session after verified, committed repair.

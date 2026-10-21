@@ -88,14 +88,18 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_pre_revision_version_one_rows_reconstruct_as_independent_roots_without_migration(string $backend): void
+    public function test_that_current_records_reconstruct_as_independent_roots_and_retries_preserve_evidence(string $backend): void
     {
         $connection = $this->database($backend);
-        $prior = json_decode(file_get_contents(__DIR__.'/../../../TestCase/Execution/version-one-records.json'), true, flags: JSON_THROW_ON_ERROR);
-        foreach ($prior['tables'] as $table => $rows) {
-            foreach ($rows as $row) { $connection->insert($table, $row); }
-        }
-        $transaction = new DbalRecordingTransaction($connection);
+        $writer = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $writer->record(ObservationFixture::session());
+        $writer->record(ObservationFixture::phase(['phase' => PhaseReference::fromStrings('session', 'parent', null, 'reviewer', 'review', 2)->toArray()]));
+        $writer->record(ObservationFixture::phase([
+            'observation_id' => '019a1234-5678-4abc-8def-ffffffffffff',
+            'phase' => PhaseReference::fromStrings('session', 'child', 'parent', 'builder', 'repair', 3)->toArray(),
+        ]));
+        $rows = $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations');
+        $transaction = new DbalRecordingTransaction($this->connect($connection->getParams()));
         $sessions = new DbalSessionRepository($transaction);
         $phases = new DbalPhaseRepository($transaction);
         $observations = new DbalObservationRepository($transaction);
@@ -114,7 +118,8 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertTrue($child->acceptsParent($phases->getById('project', 'parent')));
         $fixture = new RecordingFixture($transaction);
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Retained evidence must not redispatch after reconstruction.'); });
-        foreach ($prior['tables']['fight_execution_observations'] as $row) {
+        foreach ($rows as $row) {
+            self::assertSame(1, (int) $row['version']);
             $id = ObservationId::fromString($row['observation_id']);
             self::assertNull($observations->getById('other-producer', $id));
             $root = $observations->getById($row['producer_id'], $id);
@@ -630,29 +635,22 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_schema_evolution_preserves_old_payloads_and_activity_recording_comparison_agrees_with_sql(string $backend): void
+    public function test_that_current_installation_preserves_evidence_and_recording_comparison_agrees_with_sql(string $backend): void
     {
         $connection = $this->database($backend);
         $manager = $connection->createSchemaManager();
-        $manager->dropIndex('fight_execution_recording_order', 'fight_execution_observations');
-        $connection->update('fight_execution_schema', ['version' => 1], ['singleton' => 1]);
-        $prior = json_decode(file_get_contents(__DIR__.'/../../../TestCase/Execution/version-one-records.json'), true, flags: JSON_THROW_ON_ERROR);
-        foreach ($prior['tables'] as $table => $rows) { foreach ($rows as $row) { $connection->insert($table, $row); } }
-        (new DbalObservationSchema())->install($connection);
-        (new DbalObservationSchema())->install($connection);
-        self::assertSame(2, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
-        self::assertTrue($manager->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
         $store = new DbalRecordingTransaction($connection);
         $fixture = new RecordingFixture($store);
-        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Old retries must not redispatch after migration.'); });
+        $fixture->record(ObservationFixture::session());
+        $fixture->record(ObservationFixture::phase());
+        $fixture->record(ObservationFixture::activity());
+        $before = $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id');
+        (new DbalObservationSchema())->install($connection);
+        (new DbalObservationSchema())->install($connection);
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
+        self::assertTrue($manager->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
+        self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id'));
         $repository = new DbalObservationRepository($store);
-        foreach ($prior['tables']['fight_execution_observations'] as $row) {
-            $saved = $repository->getById('instrumentation', ObservationId::fromString($row['observation_id']));
-            self::assertSame($row['payload'], $saved->comparison());
-            self::assertSame($row['recorded_at'], $saved->recordedAt()->format('Y-m-d\\TH:i:s.u\\Z'));
-            $fixture->record($saved);
-        }
-        (new RecordingFixture($store))->record(ObservationFixture::phase(['observation_id' => ObservationId::generate()->toString()]));
         // Adapter conformance supplies controlled recorded times, not producer-controlled Command receipt times.
         $keys = [
             ['019a1234-5678-4abc-8def-000000000001', '000001', '2026-10-20T12:00:00Z'],
@@ -673,7 +671,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame(array_map(static fn ($root) => $root->id()->toString(), $roots), array_map(static fn ($root) => $root->id()->toString(), $application));
         self::assertSame(array_reverse(array_column($keys, 0)), array_slice(array_column($rows, 'observation_id'), 0, 5));
         for ($i = 1; $i < count($roots); ++$i) { self::assertSame(1, $roots[$i - 1]->compareRecordingTo($roots[$i])); }
-        // Ordinary recording remains available after explicit evolution.
+        // Ordinary recording uses the same current schema and pipeline.
         (new RecordingFixture($store))->record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString()]));
     }
 

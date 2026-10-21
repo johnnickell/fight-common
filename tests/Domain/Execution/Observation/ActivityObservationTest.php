@@ -43,7 +43,7 @@ final class ActivityObservationTest extends UnitTestCase
         $command = new RecordPhaseObservation($observation);
         foreach ([$observation, RecordPhaseObservation::fromArray($command->toArray())->observation(), $observation->recorded(new DateTimeImmutable('2026-10-21T00:00:00.000001Z'))] as $copy) {
             self::assertSame([], get_object_vars($copy));
-            self::assertSame(2, $copy->toArray()['version']);
+            self::assertSame(1, $copy->toArray()['version']);
             self::assertSame($observation->comparison(), $copy->comparison());
             self::assertTrue($observation->matches($copy));
             self::assertSame('2026-10-20T12:34:56.120Z', $copy->occurrence()->toString());
@@ -73,6 +73,44 @@ final class ActivityObservationTest extends UnitTestCase
         self::assertStringNotContainsString('Safe public summary', json_encode($event->toArray()));
         self::assertNull(ObservationFixture::phase()->activity());
         self::assertNull(ObservationFixture::phase()->occurrence());
+    }
+
+    public function test_that_all_observation_kinds_use_one_current_version_one_shape(): void
+    {
+        foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $observation) {
+            $data = $observation->toArray();
+            self::assertSame(1, $data['version']);
+            self::assertSame([
+                'version', 'observation_id', 'producer_id', 'session', 'phase', 'occurred_at',
+                'started_at', 'ended_at', 'outcome', 'activity', 'extensions',
+            ], array_keys($data));
+            self::assertSame($observation->comparison(), Observation::fromArray($data)->comparison());
+            unset($data['activity']);
+            try { Observation::fromArray($data); self::fail('Expected missing current field rejection.'); }
+            catch (DomainException $exception) { self::assertSame('Invalid observation structure.', $exception->getMessage()); }
+        }
+    }
+
+    public function test_that_current_activity_is_accepted_as_version_one(): void
+    {
+        $data = ObservationFixture::phase()->toArray();
+        $data['version'] = 1;
+        $data['occurred_at'] = '2026-10-20T12:34:56.120Z';
+        $data['activity'] = PhaseActivity::create('consumer/model-call', 'Safe summary')->toArray();
+        $command = RecordPhaseObservation::fromArray($data);
+        self::assertSame(1, $command->toArray()['version']);
+        self::assertSame('consumer/model-call', $command->observation()->activity()->kind());
+        self::assertSame('2026-10-20T12:34:56.120Z', $command->observation()->occurrence()->toString());
+        self::assertEquals($data, $command->toArray());
+    }
+
+    public function test_that_version_two_is_unsupported_even_for_activity(): void
+    {
+        $data = ObservationFixture::activity()->toArray();
+        $data['version'] = 2;
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Unsupported observation version.');
+        RecordPhaseObservation::fromArray($data);
     }
 
     public function test_that_boundaries_snapshots_and_missing_measurements_remain_honest(): void
@@ -172,7 +210,7 @@ final class ActivityObservationTest extends UnitTestCase
     }
 
     #[DataProvider('invalidActivityObservations')]
-    public function test_that_invalid_version_two_core_rejects(array $changes): void
+    public function test_that_invalid_activity_core_rejects(array $changes): void
     {
         $base = ObservationFixture::phase();
         $observation = Observation::forActivity($base->id(), 'instrumentation', $base->session(), $base->phase(), ObservationOccurrence::fromString('2026-10-20T12:00:00Z'), PhaseActivity::create('v/a', ''));
@@ -182,7 +220,7 @@ final class ActivityObservationTest extends UnitTestCase
 
     public static function invalidActivityObservations(): iterable
     {
-        foreach ([['version' => 3], ['body' => 'private'], ['observation_id' => 0], ['observation_id' => 'invalid'], ['session' => null], ['phase' => null], ['activity' => null], ['extensions' => null], ['occurred_at' => 0]] as $changes) { yield [$changes]; }
+        foreach ([['version' => 2], ['body' => 'private'], ['observation_id' => 0], ['observation_id' => 'invalid'], ['session' => null], ['phase' => null], ['activity' => null], ['activity' => false], ['extensions' => null], ['occurred_at' => 0], ['started_at' => '2026-10-20T12:00:00.000000Z'], ['ended_at' => '2026-10-20T12:00:00.000000Z'], ['outcome' => 'succeeded']] as $changes) { yield [$changes]; }
     }
 
     public function test_that_recording_comparison_uses_time_then_every_uuid_digit_not_occurrence(): void

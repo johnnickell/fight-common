@@ -43,7 +43,7 @@ $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class)
 });
 $data = $config['observation'];
 if ($role === 'second' && $config['conflict']) {
-    if (($data['version'] ?? null) === 2) {
+    if ($data['activity'] !== null) {
         if ($config['usage_conflict'] ?? false) {
             $data['activity']['usage'][2]['value'] = '999';
         } else {

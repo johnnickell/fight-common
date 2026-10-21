@@ -33,7 +33,7 @@ Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods
 |---|---|
 | `Session` | `projectId()`, `id()`, `consumerReference()`, `reference()`, `matches()` |
 | `Phase` | `projectId()`, `id()`, `sessionId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()`, `reference()`, `matches()`, `belongsTo()`, `acceptsParent()` |
-| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `recordedAt()`, `matches()` |
+| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `activity()`, `occurrence()`, `recordedAt()`, `matches()`, `compareRecordingTo()` |
 | `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
 | `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
 | `RecordedObservation` | `observation()`, `recordedAt()` |
@@ -41,10 +41,8 @@ Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods
 For example, admission reads `$observation->session()->projectId()` and
 `$observation->phase()?->parentPhaseId()`. These methods preserve validated values, nulls, immutable object identity
 and UTC microseconds; they do not grant permission or introduce mutation. Native `ObservationOutcome` enum
-`name`/`value` behavior is unchanged. Structured `toArray()`/`fromArray()` payloads and comparison bytes remain unchanged;
-ordinary public-property reads and object enumeration are intentionally unavailable. This completes the requested
-encapsulation of unreleased TASK-00147 APIs, not a conversion of released interfaces or a promise that raw PHP object
-serialization from the superseded public-property implementation remains compatible.
+`name`/`value` behavior applies. Ordinary public-property reads and object enumeration are unavailable. All Execution
+additions remain provisional until tagged; no earlier development payload or PHP object snapshot is supported.
 
 | Field | Version-one limit / meaning |
 |---|---|
@@ -55,7 +53,8 @@ serialization from the superseded public-property implementation remains compati
 | Phase reference | Session ID, project-scoped phase ID, optional parent phase, performing Agent ID, name and attempt |
 | Phase name / attempt | Same reference alphabet, name at most 64 bytes; integer attempt 1–1,000,000 |
 | Outcomes | `unknown` (default), `succeeded`, `failed`, `cancelled`; never inferred from missing timing or process exit |
-| Times | Immutable native instants normalized to UTC, years 0001–9999; canonical JSON `YYYY-MM-DDTHH:MM:SS.ffffffZ`; start and end may independently be unknown, but known end cannot precede known start |
+| Times | Immutable native instants normalized to UTC, years 0001–9999; ordinary session/phase JSON uses `YYYY-MM-DDTHH:MM:SS.ffffffZ`; start and end may independently be unknown, but known end cannot precede known start |
+| Activity | Null for ordinary session/phase evidence; a bounded object for activity evidence with precision-preserving occurrence as below |
 | Extensions | At most 32 namespaced keys, each at most 96 ASCII bytes matching `[a-z][a-z0-9.-]*/[a-z][a-z0-9._-]*`; only string, native integer, Boolean or null values |
 | Extension strings / total | At most 256 UTF-8 bytes per string and 4,096 bytes for the sorted JSON extension map; no objects, lists, floats or nested content |
 
@@ -64,21 +63,23 @@ small consumer-owned vocabulary, **not** a channel for messages, tool arguments/
 Consumers own capture choices and redaction before submission; lexical/structural checks are not secret detection.
 Domain validation uses fixed diagnostics rather than echoing submitted content.
 
-## Version-two phase activity and measured usage
+## Phase activity and measured usage
 
-`Observation::forActivity(id, producerId, session, phase, occurrence, activity, extensions)` creates version `2`
-observations, submitted through the **existing** `RecordPhaseObservation` and handler/recorder. The matching session
-and phase must already exist; activity cannot create a phase or change its performing Agent. `activity()` and
-`occurrence()` return typed values for version two and null for version one. `occurredAt()` returns the instant;
-`occurrence()->toString()` retains actual source precision. Version-two activity does not report phase timing or
-completion: `startedAt()`/`endedAt()` remain null and `outcome()` is unknown. It never advances Workflow state.
+`Observation::forActivity(id, producerId, session, phase, occurrence, activity, extensions)` creates version `1`
+activity observations through the same `RecordPhaseObservation` and handler/recorder as ordinary phase evidence.
+The matching session and phase must already exist; activity cannot create a phase or change its performing Agent.
+`activity()` and `occurrence()` return typed values for activity evidence and null for ordinary session/phase evidence.
+`occurredAt()` returns the instant; `occurrence()->toString()` retains actual source precision. Activity does not report
+phase timing or completion: `startedAt()`/`endedAt()` must be null and `outcome()` must be unknown, including on
+reconstruction. It never advances Workflow state.
 
-The exact version-two field set is `version`, `observation_id`, `producer_id`, `session`, `phase`, `occurred_at`,
-`activity`, `extensions`. Reference/extension bounds are unchanged; phase cannot be null. Occurrence is canonical
-UTC `YYYY-MM-DDTHH:MM:SSZ` or the same with **one through six** supplied fractional digits. Rollover, offsets,
-leap seconds, year zero and finer precision reject. `.120` stays `.120`, not `.120000`; these represent the same
-instant but different reported precision and therefore different retry content. Version-one six-digit bytes remain
-unchanged, without retroactively asserting the precision of historical sources.
+All observation kinds share the exact field set `version`, `observation_id`, `producer_id`, `session`, `phase`,
+`occurred_at`, `started_at`, `ended_at`, `outcome`, `activity`, `extensions`. Ordinary session/phase evidence requires
+`activity: null`; activity evidence requires an activity object and non-null phase. No missing-field fallback exists.
+Activity occurrence is canonical UTC `YYYY-MM-DDTHH:MM:SSZ` or the same with **one through six** supplied fractional
+digits. Rollover, offsets, leap seconds, year zero and finer precision reject. `.120` stays `.120`, not `.120000`;
+these represent the same instant but different reported precision and therefore different retry content. Ordinary
+session/phase native timestamps use canonical six-digit UTC text.
 
 `PhaseActivity::create(kind, summary, modelId: null, usage: [])` owns immutable private safe data. Its exact nested
 version-one representation is `version`, `kind`, `summary`, `model_id`, `usage`:
@@ -139,8 +140,7 @@ covers activity and its usage atomically; it includes **no** kind, summary, mode
 
 `RecordSessionObservation` and `RecordPhaseObservation` keep their payloads private and expose them through
 `observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
-retain the version-one Command payload shape. These are maintainer-requested corrections to the unreleased
-TASK-00147 APIs, not compatibility changes to released Commands. Commands live in
+use the single current version-one observation shape. Commands live in
 `Domain\Execution\Observation\Command`; the safe Event lives in `Domain\Execution\Observation\Event`.
 Handlers, recording failures and the recorder live in `Application\Execution\Observation\CommandHandler`,
 `Exception` and `Service`, respectively. Admission and the shared transaction port remain Application responsibilities.
@@ -302,11 +302,11 @@ hold the producer-scoped identity, versioned submitted payload/comparison and im
 protected content can reference these records without putting bodies in these safe rows.
 
 `install()` creates only its tables and initial version row on an idle connection; repeated installation validates
-complete presence and supported versions `1`/`2`, evolving version one as described below. It does not repair
+complete presence, version `1` and the required recording-order index. It does not repair
 partial installations, infer unknown versions or alter consumer tables. Setup is deployment-owned and must be exclusive; MySQL DDL is not advertised as transactional. After
 a failed setup, inspect/recover the partial namespace explicitly. For migration composition, call
 `addTo($schema, $connection->getDatabasePlatform())` on a consumer-owned DBAL `Schema`, apply only the intended new tables,
-and seed `fight_execution_schema` with `singleton = 1, version = 2` before recording. Preserve the declared constraints,
+and seed `fight_execution_schema` with `singleton = 1, version = 1` before recording. Preserve the declared constraints,
 engine and collations. No destructive migration or maintenance/archival orchestration is supplied.
 
 All times are stored as canonical fixed UTC text rather than precision-losing native datetime mappings; supplied
@@ -316,7 +316,7 @@ future work. Qualification exercises real SQLite/MySQL/PostgreSQL round trips, i
 writers, FKs, rollback, outer-transaction rejection, lost commit acknowledgment and post-commit subscriber failure.
 Package evidence is not consumer runtime/deployment qualification.
 
-## Recording comparison and schema evolution
+## Recording comparison and current schema
 
 `Observation::compareRecordingTo(other)` compares **ascending** immutable UTC server recording time, then the entire
 UUID through its existing full-byte comparator. It requires both roots to be recorded. Descending order uses
@@ -326,49 +326,46 @@ or producer identity as a replacement. Equal time/full UUID keys across distinct
 these two keys alone are not a strict total order across that collision. They are neither causality, commit order
 nor a stable cross-transaction visibility boundary. Public Query selection/pagination is not introduced here.
 
-Schema version `2` adds only the `fight_execution_recording_order` index on `(recorded_at, observation_id)`.
-Existing tables, FKs, version-one payload bytes and recording times remain untouched. Bounded activity/measurement
-relationships live in the version-two payload in the same retained identity row, not extra tables that could
-partially commit. The stored `version` column must match the payload version; unsupported versions reject.
+Schema version `1` includes the `fight_execution_recording_order` index on `(recorded_at, observation_id)`.
+Session, phase and activity/usage evidence use that same schema and version-one payload. Bounded measurements live
+in the retained identity row, not extra tables that could partially commit. The stored `version` column must match
+the payload version; unsupported versions, including `2`, reject.
 
-During an **exclusive, idle, consumer-owned deployment window**, `install()` creates version two or evolves a
-complete version-one namespace by creating the index and then setting the lock row to version two. Repeating an
-interrupted version-one upgrade where that index already exists resumes the version update without rewriting
-records. Partial namespaces, unknown versions, or a version-two namespace missing its index reject. MySQL DDL is
-not transactional: retain backups and inspect failed upgrades before resuming; no safe concurrent schema deployment
-or automatic downgrade is promised. The recording boundary accepts schema one for ordinary historical recording,
-but activity writes require explicit evolution to two. Old package readers do not understand version-two evidence;
-upgrade readers/writers together and do not roll back software blindly after storing new evidence.
+During an **exclusive, idle, consumer-owned setup window**, `install()` creates the current namespace or validates
+an existing complete version-one installation. Partial namespaces, unsupported versions and a missing order index
+reject; installation does not upgrade or resume an earlier development format. MySQL DDL is not transactional:
+inspect/recover a failed partial installation explicitly. No concurrent schema deployment is promised.
 
 Conformance tests use controlled adapter recording timestamps to prove SQL/application ties; Commands still assign
-server time. Actual database tests cover retained version-one reconstruction/retries after evolution, activity/usage
-round trips, precision, current admission, conflicts, independent competing retries, after-insert rollback and
+server time. Actual database tests cover current session/phase/activity reconstruction and retries, repeated install
+without changed evidence, precision, admission, conflicts, independent competing retries, after-insert rollback and
 post-commit subscriber failures on all three supported databases. These are package guarantees, not deployment proof.
 
 ## Compatibility
 
-The accepted aggregate revision intentionally replaces the **unreleased TASK-owned** flat PHP names and combined
-`ObservationStore`; no legacy forwarding APIs are retained. The manifest deliberately classifies roots, repositories,
-Commands, handlers, admission/transaction ports, exceptions, receipt, Event and DBAL adapters; `ObservationFields` is
-internal. Concrete classes are final, ports are implementable, and no inheritance extension promise is added.
+Compatibility is measured against tagged releases, not earlier development commits. Tagged v1.4.0 contains no
+Execution capability: all session/phase/activity/usage APIs, payloads and schema remain one mutable provisional
+version-one design until first tagged. There are no historical codecs, aliases, legacy wrappers or migrations for
+previous development snapshots. Unsupported-version rejection remains current validation, not past-version support.
+The project profile records this release-baseline rule.
+
+The manifest classifies the intended public roots, repositories, Commands, handlers, admission/transaction ports,
+exceptions, receipt, Event and DBAL adapters; `ObservationFields` is internal. These classifications do not freeze
+never-released development representations. Concrete classes are final, ports are implementable, and no inheritance
+extension promise is added.
 Released/unrelated bus, dispatcher, UUID, audit, Event Store and unit-of-work contracts remain unchanged; TASK-00173's
 released-property migration is not implemented here.
 
 TASK-00148 adds public final `PhaseActivity`, `ObservationOccurrence`, `UsageMeasurement` and the native
 `UsageCompleteness` enum, plus named Observation factories/accessors/comparison. These are callable/factory-constructible
 additions, not subclass/implementation extension points. The compatibility manifest classifies them and their
-behavioral contracts. Existing Command, admission, repository and Event signatures are unchanged; the existing phase
-Command accepts the new opt-in version-two payload. Schema two is an additive index evolution, not a rewrite of
-version-one JSON, comparison bytes, Event payloads or UTC receipt text. Raw version-one rows reconstruct through
-individual repositories on SQLite, MySQL and PostgreSQL; matching retries retain their original time without
-dispatch. New readers accept versions one and two; older readers cannot read version two. No released unrelated API
-is removed. Raw PHP object serialization across the preceding pre-release rename remains unpromised.
+behavioral contracts. Session, phase and activity use the same Commands, admission, repositories and safe Event
+pipeline. Readers accept only the current version-one representation; schema one includes its recording-order index. Matching retained retries
+preserve their original recording time without dispatch. No released unrelated API is removed.
 
-Message envelope `payload_type` and code-facing handler/subscriber registrations follow the **new** PHP namespaces:
+Message envelope `payload_type` and code-facing handler/subscriber registrations follow the PHP namespaces:
 `Fight.Common.Domain.Execution.Observation.Command.RecordSessionObservation`, the corresponding
-`RecordPhaseObservation`, and `Fight.Common.Domain.Execution.Observation.Event.ObservationRecorded`. Payload arrays
-remain unchanged. Pre-release queued envelopes using old Application/flat Domain type names must have those three
-`payload_type` values explicitly mapped at their consumer-owned transport boundary before normal reconstruction;
-there is no automatic alias or silent stored-envelope rewrite. Register the new handler classes and subscriber Event
-FQCN/canonical name together. This is the approved pre-release namespace replacement, not a claim that old envelopes
-or registration keys are unchanged. No released message identity changes or release certification is implied.
+`RecordPhaseObservation`, and `Fight.Common.Domain.Execution.Observation.Event.ObservationRecorded`. Register the
+handler classes and subscriber Event FQCN/canonical name together. No compatibility mapping for superseded
+development envelope names is supplied or required. No released message identity changes or release
+certification is implied.

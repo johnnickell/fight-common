@@ -23,7 +23,7 @@ final readonly class DbalObservationSchema
     ];
 
     /**
-     * Adds version-two tables to a consumer-owned schema without changing other tables
+     * Adds version-one tables to a consumer-owned schema without changing other tables
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
@@ -91,7 +91,7 @@ final readonly class DbalObservationSchema
     }
 
     /**
-     * Creates an empty namespace or evolves version one without rewriting evidence
+     * Creates an empty version-one namespace or validates the current installation
      *
      * Run exclusively during deployment, never during a recording command. Partial
      * installations require operator recovery; MySQL DDL is not transactional.
@@ -107,24 +107,16 @@ final readonly class DbalObservationSchema
         if ($present !== []) {
             if (
                 count($present) !== count(self::TABLES)
-                || !in_array((int) $connection->fetchOne(
+                || (int) $connection->fetchOne(
                     'SELECT version FROM fight_execution_schema WHERE singleton = 1'
-                ), [1, 2], true)
+                ) !== 1
             ) {
                 throw new RuntimeException('Unsupported or incomplete observation schema.');
             }
 
             $table = $manager->introspectTable(self::TABLES[3]);
-            $version = (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1');
-            if ($version === 1) {
-                if (!$table->hasIndex('fight_execution_recording_order')) {
-                    $table->addIndex(['recorded_at', 'observation_id'], 'fight_execution_recording_order');
-                    $manager->createIndex($table->getIndex('fight_execution_recording_order'), self::TABLES[3]);
-                }
-
-                $connection->update(self::TABLES[0], ['version' => 2], ['singleton' => 1]);
-            } elseif (!$table->hasIndex('fight_execution_recording_order')) {
-                throw new RuntimeException('Incomplete observation schema version two.');
+            if (!$table->hasIndex('fight_execution_recording_order')) {
+                throw new RuntimeException('Incomplete observation schema version one.');
             }
 
             return;
@@ -136,6 +128,6 @@ final readonly class DbalObservationSchema
             $manager->createTable($schema->getTable($table));
         }
 
-        $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 2]);
+        $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1]);
     }
 }
