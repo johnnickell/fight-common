@@ -102,7 +102,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
-| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | in-progress |
+| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
 
@@ -135,10 +135,12 @@ The ordinary aggregate-root revision is now complete: [TASK-00147's final closeo
 records independent Review acceptance and affected QA PASS for candidate
 `08cbfb85b1cdc9453c2ac570e0a86c093a98d957`, followed by administrative closeout. Its existing
 [PR #221](https://github.com/johnnickell/fight-common/pull/221) awaited human review/merge at that checkpoint.
-At TASK-00148's verified Work intake, PR #221 is integrated into develop. TASK-00148 now has locally verified
-implementation awaiting independent Review/QA, not completion or publication; TASK-00149 still waits for
-TASK-00148. No release or deployment is claimed. This TICKET remains `ready-for-agent` under automatic parent rollup because its sibling TASKs are
-unfinished. No consumer amendment is claimed here; release target remains unassigned.
+At TASK-00148's verified Work intake, PR #221 is integrated into develop. TASK-00148 subsequently received
+independent Review acceptance and QA PASS for candidate `3633b19d312d57e07a8bb4a8085d7ac00d53d3b9`, and its
+administrative closeout is recorded as `done` with [PR #222](https://github.com/johnnickell/fight-common/pull/222)
+open for human review. TASK-00149 is dependency-unblocked. No release or deployment is claimed. This TICKET
+remains `ready-for-agent` under automatic parent rollup because TASK-00149 is unfinished. No consumer amendment
+is claimed here; release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
