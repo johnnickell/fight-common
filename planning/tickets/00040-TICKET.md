@@ -130,10 +130,10 @@ Commands, protected Queries and their integrated deletion/retry evidence; no rev
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
-claimed then. TASK-00147 now has its session/phase vertical slice implemented and locally verified in the explicitly
-selected main checkout, with independent Review and QA pending; see its current completion notes and builder
-receipt. TASK-00148/00149 remain unimplemented and blocked on their suppliers. No consumer amendment, publication,
-merge or release is claimed here. Release target remains unassigned.
+claimed then. TASK-00147's session/phase vertical slice has independent Review acceptance and QA PASS; its open
+[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaits human review/merge. TASK-00148/00149 remain
+unimplemented and blocked on their suppliers. No consumer amendment, merge or release is claimed here. Release target
+remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved

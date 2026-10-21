@@ -25,7 +25,7 @@ terminal TASK status records accepted content, not PR approval, merge, release o
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
 Board-based execution selection, not automatic implementation. John selected TASK-00147 and the main checkout;
-its bounded R-01 repair and fresh local verification are complete, awaiting renewed independent Review and required QA.
+its accepted candidate A has independent Review acceptance and QA PASS; [PR #221](https://github.com/johnnickell/fight-common/pull/221) is open for human review/merge.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
 priority is inferred. TASK-00168's approved protocol activation
 has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
