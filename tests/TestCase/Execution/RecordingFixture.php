@@ -20,13 +20,13 @@ use Fight\Common\Domain\Execution\Observation;
 
 final class RecordingFixture implements ObservationAdmission
 {
-    public bool $allowed = true;
-    public int $admissions = 0;
-    public ?array $permittedSessions = null;
-    public ?array $permittedPhases = null;
-    public readonly RoutingCommandBus $bus;
-    public readonly SimpleEventDispatcher $events;
-    public ?Closure $onAdmit = null;
+    private bool $allowed = true;
+    private int $admissions = 0;
+    private ?array $permittedSessions = null;
+    private ?array $permittedPhases = null;
+    private readonly RoutingCommandBus $bus;
+    private readonly SimpleEventDispatcher $events;
+    private ?Closure $onAdmit = null;
 
     public function __construct(DbalObservationStore $store)
     {
@@ -38,17 +38,52 @@ final class RecordingFixture implements ObservationAdmission
         $this->bus = new RoutingCommandBus($router);
     }
 
+    public function setAllowed(bool $allowed): void
+    {
+        $this->allowed = $allowed;
+    }
+
+    public function admissions(): int
+    {
+        return $this->admissions;
+    }
+
+    public function setPermittedSessions(?array $sessions): void
+    {
+        $this->permittedSessions = $sessions;
+    }
+
+    public function setPermittedPhases(?array $phases): void
+    {
+        $this->permittedPhases = $phases;
+    }
+
+    public function bus(): RoutingCommandBus
+    {
+        return $this->bus;
+    }
+
+    public function events(): SimpleEventDispatcher
+    {
+        return $this->events;
+    }
+
+    public function setOnAdmit(?Closure $onAdmit): void
+    {
+        $this->onAdmit = $onAdmit;
+    }
+
     public function admit(Observation $observation): void
     {
         ++$this->admissions;
-        if (!$this->allowed || $observation->producerId !== 'instrumentation' || $observation->session->projectId !== 'project') {
+        if (!$this->allowed || $observation->producerId() !== 'instrumentation' || $observation->session()->projectId() !== 'project') {
             throw new RecordingDenied();
         }
-        if ($this->permittedSessions !== null && !in_array($observation->session->sessionId, $this->permittedSessions, true)) {
+        if ($this->permittedSessions !== null && !in_array($observation->session()->sessionId(), $this->permittedSessions, true)) {
             throw new RecordingDenied();
         }
-        if ($this->permittedPhases !== null && $observation->phase !== null) {
-            foreach (array_filter([$observation->phase->phaseId, $observation->phase->parentPhaseId]) as $phaseId) {
+        if ($this->permittedPhases !== null && $observation->phase() !== null) {
+            foreach (array_filter([$observation->phase()->phaseId(), $observation->phase()->parentPhaseId()]) as $phaseId) {
                 if (!in_array($phaseId, $this->permittedPhases, true)) {
                     throw new RecordingDenied();
                 }
@@ -59,7 +94,7 @@ final class RecordingFixture implements ObservationAdmission
 
     public function record(Observation $observation): void
     {
-        if ($observation->phase === null) {
+        if ($observation->phase() === null) {
             $command = new RecordSessionObservation($observation);
         } else {
             $command = new RecordPhaseObservation($observation);

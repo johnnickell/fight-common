@@ -33,9 +33,9 @@ final readonly class ObservationRecorder
         $recorded = $this->store->commitTransactional(function () use ($observation): ?RecordedObservation {
             $this->admission->admit($observation);
             $this->validateRelationships($observation);
-            $existing = $this->store->get($observation->producerId, $observation->id);
+            $existing = $this->store->get($observation->producerId(), $observation->id());
             if ($existing !== null) {
-                if ($existing->observation->comparison() !== $observation->comparison()) {
+                if ($existing->observation()->comparison() !== $observation->comparison()) {
                     throw new ObservationConflict();
                 }
 
@@ -61,13 +61,13 @@ final readonly class ObservationRecorder
      */
     private function validateRelationships(Observation $observation): void
     {
-        $session = $observation->session;
-        $existing = $this->store->session($session->projectId, $session->sessionId);
+        $session = $observation->session();
+        $existing = $this->store->session($session->projectId(), $session->sessionId());
         if ($existing !== null && $existing->toArray() !== $session->toArray()) {
             throw new InvalidObservationRelationship();
         }
 
-        $phase = $observation->phase;
+        $phase = $observation->phase();
         if ($phase === null) {
             if ($existing === null) {
                 $this->store->addSession($session);
@@ -80,20 +80,20 @@ final readonly class ObservationRecorder
             throw new InvalidObservationRelationship();
         }
 
-        if ($phase->parentPhaseId !== null) {
-            $parent = $this->store->phase($session->projectId, $phase->parentPhaseId);
-            if ($parent === null || $parent->sessionId !== $session->sessionId) {
+        if ($phase->parentPhaseId() !== null) {
+            $parent = $this->store->phase($session->projectId(), $phase->parentPhaseId());
+            if ($parent === null || $parent->sessionId() !== $session->sessionId()) {
                 throw new InvalidObservationRelationship();
             }
         }
 
-        $existingPhase = $this->store->phase($session->projectId, $phase->phaseId);
+        $existingPhase = $this->store->phase($session->projectId(), $phase->phaseId());
         if ($existingPhase !== null && $existingPhase->toArray() !== $phase->toArray()) {
             throw new InvalidObservationRelationship();
         }
 
         if ($existingPhase === null) {
-            $this->store->addPhase($session->projectId, $phase);
+            $this->store->addPhase($session->projectId(), $phase);
         }
     }
 }

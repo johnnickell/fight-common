@@ -19,15 +19,15 @@ final readonly class Observation
      * Constructs Observation
      */
     private function __construct(
-        public ObservationId $id,
-        public string $producerId,
-        public SessionReference $session,
-        public ?PhaseReference $phase,
-        public DateTimeImmutable $occurredAt,
-        public ?DateTimeImmutable $startedAt,
-        public ?DateTimeImmutable $endedAt,
-        public ObservationOutcome $outcome,
-        public ObservationExtensions $extensions
+        private ObservationId $id,
+        private string $producerId,
+        private SessionReference $session,
+        private ?PhaseReference $phase,
+        private DateTimeImmutable $occurredAt,
+        private ?DateTimeImmutable $startedAt,
+        private ?DateTimeImmutable $endedAt,
+        private ObservationOutcome $outcome,
+        private ObservationExtensions $extensions
     ) {
     }
 
@@ -45,7 +45,7 @@ final readonly class Observation
         ObservationOutcome $outcome = ObservationOutcome::UNKNOWN,
         ?ObservationExtensions $extensions = null
     ): self {
-        if ($phase !== null && $phase->sessionId !== $session->sessionId) {
+        if ($phase !== null && $phase->sessionId() !== $session->sessionId()) {
             throw new DomainException('Invalid observation relationship.');
         }
 
@@ -124,6 +124,78 @@ final readonly class Observation
         }
 
         return self::utc($date);
+    }
+
+    /**
+     * Returns the observation identity
+     */
+    public function id(): ObservationId
+    {
+        return $this->id;
+    }
+
+    /**
+     * Returns the instrumentation producer reference
+     */
+    public function producerId(): string
+    {
+        return $this->producerId;
+    }
+
+    /**
+     * Returns the session reference
+     */
+    public function session(): SessionReference
+    {
+        return $this->session;
+    }
+
+    /**
+     * Returns the optional phase reference
+     */
+    public function phase(): ?PhaseReference
+    {
+        return $this->phase;
+    }
+
+    /**
+     * Returns the occurrence time
+     */
+    public function occurredAt(): DateTimeImmutable
+    {
+        return $this->occurredAt;
+    }
+
+    /**
+     * Returns the optional observed start time
+     */
+    public function startedAt(): ?DateTimeImmutable
+    {
+        return $this->startedAt;
+    }
+
+    /**
+     * Returns the optional observed end time
+     */
+    public function endedAt(): ?DateTimeImmutable
+    {
+        return $this->endedAt;
+    }
+
+    /**
+     * Returns the reported outcome
+     */
+    public function outcome(): ObservationOutcome
+    {
+        return $this->outcome;
+    }
+
+    /**
+     * Returns the bounded extension snapshot
+     */
+    public function extensions(): ObservationExtensions
+    {
+        return $this->extensions;
     }
 
     /**

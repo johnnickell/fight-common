@@ -12,15 +12,31 @@ use DateTimeZone;
  */
 final readonly class RecordedObservation
 {
-    public DateTimeImmutable $recordedAt;
+    private DateTimeImmutable $recordedAt;
 
     /**
      * Constructs RecordedObservation
      */
-    public function __construct(public Observation $observation, DateTimeImmutable $recordedAt)
+    public function __construct(private Observation $observation, DateTimeImmutable $recordedAt)
     {
         $this->recordedAt = Observation::timestamp(
             $recordedAt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s.u\Z')
         );
+    }
+
+    /**
+     * Returns the submitted observation
+     */
+    public function observation(): Observation
+    {
+        return $this->observation;
+    }
+
+    /**
+     * Returns the server recording time
+     */
+    public function recordedAt(): DateTimeImmutable
+    {
+        return $this->recordedAt;
     }
 }

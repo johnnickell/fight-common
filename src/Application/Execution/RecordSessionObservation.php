@@ -18,7 +18,7 @@ final readonly class RecordSessionObservation implements Command
      */
     public function __construct(private Observation $observation)
     {
-        if ($observation->phase !== null) {
+        if ($observation->phase() !== null) {
             throw new DomainException('Expected a session observation.');
         }
     }

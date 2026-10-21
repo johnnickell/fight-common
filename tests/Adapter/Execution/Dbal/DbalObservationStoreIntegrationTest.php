@@ -66,16 +66,16 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $fixture->record($child);
         $reopened = new DbalObservationStore($this->connect($connection->getParams()));
         foreach ([$session, $parent, $child] as $observation) {
-            $saved = $reopened->get('instrumentation', $observation->id);
-            self::assertSame($observation->toArray(), $saved->observation->toArray());
-            self::assertSame('123456', $saved->observation->occurredAt->format('u'));
-            self::assertSame($observation->id->toString(), $saved->observation->id->toString());
-            self::assertSame(27, strlen($saved->recordedAt->format('Y-m-d\TH:i:s.u\Z')));
+            $saved = $reopened->get('instrumentation', $observation->id());
+            self::assertSame($observation->toArray(), $saved->observation()->toArray());
+            self::assertSame('123456', $saved->observation()->occurredAt()->format('u'));
+            self::assertSame($observation->id()->toString(), $saved->observation()->id()->toString());
+            self::assertSame(27, strlen($saved->recordedAt()->format('Y-m-d\TH:i:s.u\Z')));
         }
-        self::assertSame('000018', $reopened->get('instrumentation', $session->id)->observation->startedAt->format('u'));
-        self::assertSame(ObservationOutcome::UNKNOWN, $reopened->get('instrumentation', $child->id)->observation->outcome);
-        self::assertNull($reopened->get('instrumentation', $child->id)->observation->endedAt);
-        self::assertSame($child->phase->toArray(), $reopened->phase('project', 'child')->toArray());
+        self::assertSame('000018', $reopened->get('instrumentation', $session->id())->observation()->startedAt()->format('u'));
+        self::assertSame(ObservationOutcome::UNKNOWN, $reopened->get('instrumentation', $child->id())->observation()->outcome());
+        self::assertNull($reopened->get('instrumentation', $child->id())->observation()->endedAt());
+        self::assertSame($child->phase()->toArray(), $reopened->phase('project', 'child')->toArray());
         self::assertSame(3, $this->rowCount($connection, 'observations'));
         self::assertSame(2, $this->rowCount($connection, 'phases'));
         self::assertSame(1, $this->rowCount($connection, 'sessions'));
@@ -90,7 +90,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $fixture = new RecordingFixture($store);
         $reopened = new DbalObservationStore($this->connect($connection->getParams()));
         $events = 0;
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
 
         foreach ([false, true] as $phase) {
             $label = str_repeat('測', 85).'x';
@@ -107,19 +107,19 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             $count = str_repeat('x', 257);
             $copy = $command->toArray();
             $copy['extensions']['consumer/enabled'] = ['body' => 'output copy'];
-            $fixture->bus->execute($command);
-            $saved = $reopened->get('instrumentation', $observation->id);
-            self::assertSame($expected->toArray(), $saved->observation->toArray());
+            $fixture->bus()->execute($command);
+            $saved = $reopened->get('instrumentation', $observation->id());
+            self::assertSame($expected->toArray(), $saved->observation()->toArray());
             self::assertSame($comparison, $observation->comparison());
-            self::assertSame($comparison, $saved->observation->comparison());
-            self::assertSame($expectedExtensions, $observation->extensions->toArray());
+            self::assertSame($comparison, $saved->observation()->comparison());
+            self::assertSame($expectedExtensions, $observation->extensions()->toArray());
 
-            $fixture->bus->execute($command);
+            $fixture->bus()->execute($command);
             $serialized = json_decode(json_encode($command->toArray(), JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
-            $fixture->bus->execute($command::fromArray($serialized));
-            self::assertEquals($saved->recordedAt, $reopened->get('instrumentation', $observation->id)->recordedAt);
+            $fixture->bus()->execute($command::fromArray($serialized));
+            self::assertEquals($saved->recordedAt(), $reopened->get('instrumentation', $observation->id())->recordedAt());
             self::assertSame($phase ? 2 : 1, $events);
-            self::assertSame($phase ? 6 : 3, $fixture->admissions);
+            self::assertSame($phase ? 6 : 3, $fixture->admissions());
             self::assertSame($phase ? 2 : 1, $this->rowCount($connection, 'observations'));
             self::assertSame(1, $this->rowCount($connection, 'sessions'));
             self::assertSame($phase ? 1 : 0, $this->rowCount($connection, 'phases'));
@@ -135,37 +135,37 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $fixture = new RecordingFixture($store);
         $observation = ObservationFixture::session();
         $events = 0;
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
         $fixture->record($observation);
-        $recordedAt = $store->get('instrumentation', $observation->id)->recordedAt;
+        $recordedAt = $store->get('instrumentation', $observation->id())->recordedAt();
         usleep(1000);
         $fixture->record(Observation::fromArray($observation->toArray()));
-        self::assertEquals($recordedAt, $store->get('instrumentation', $observation->id)->recordedAt);
+        self::assertEquals($recordedAt, $store->get('instrumentation', $observation->id())->recordedAt());
         self::assertSame(1, $events);
-        self::assertSame(2, $fixture->admissions);
+        self::assertSame(2, $fixture->admissions());
         try {
             $fixture->record(ObservationFixture::session(['outcome' => 'failed']));
             self::fail('Expected same-ID content conflict.');
         } catch (ObservationConflict) {
-            self::assertSame(ObservationOutcome::UNKNOWN, $store->get('instrumentation', $observation->id)->observation->outcome);
+            self::assertSame(ObservationOutcome::UNKNOWN, $store->get('instrumentation', $observation->id())->observation()->outcome());
         }
-        $fixture->allowed = false;
+        $fixture->setAllowed(false);
         try {
             $fixture->record($observation);
             self::fail('Expected revoked retry rejection.');
         } catch (RecordingDenied $exception) {
             self::assertSame('Observation recording is not permitted.', $exception->getMessage());
         }
-        self::assertSame(4, $fixture->admissions);
+        self::assertSame(4, $fixture->admissions());
         self::assertSame(1, $this->rowCount($connection, 'observations'));
         self::assertSame(1, $events);
         // Same UUID belongs to a different producer's independent retry namespace.
         $other = ObservationFixture::session(['producer_id' => 'other-producer']);
         $store->commitTransactional(static fn () => $store->append($other));
-        self::assertSame('other-producer', $store->get('other-producer', $observation->id)->observation->producerId);
+        self::assertSame('other-producer', $store->get('other-producer', $observation->id())->observation()->producerId());
         $caseDistinct = ObservationFixture::session(['producer_id' => 'Other-producer']);
         $store->commitTransactional(static fn () => $store->append($caseDistinct));
-        self::assertSame('Other-producer', $store->get('Other-producer', $observation->id)->observation->producerId);
+        self::assertSame('Other-producer', $store->get('Other-producer', $observation->id())->observation()->producerId());
         self::assertSame(3, $this->rowCount($connection, 'observations'));
     }
 
@@ -183,15 +183,15 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             'observation_id' => ObservationId::generate()->toString(),
             'phase' => PhaseReference::fromStrings('session', 'child', 'phase', 'agent', 'work', 1)->toArray(),
         ]);
-        $fixture->permittedSessions = [];
+        $fixture->setPermittedSessions([]);
         try {
             $fixture->record($session);
             self::fail('Existing session does not bypass current scope.');
         } catch (RecordingDenied) {
             self::assertSame(2, $this->rowCount($connection, 'observations'));
         }
-        $fixture->permittedSessions = ['session'];
-        $fixture->permittedPhases = ['child'];
+        $fixture->setPermittedSessions(['session']);
+        $fixture->setPermittedPhases(['child']);
         foreach ([$phase, $child] as $observation) {
             try {
                 $fixture->record($observation);
@@ -202,7 +202,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         }
         self::assertSame(2, $this->rowCount($connection, 'observations'));
         self::assertSame(1, $this->rowCount($connection, 'phases'));
-        $fixture->permittedPhases = ['phase', 'child'];
+        $fixture->setPermittedPhases(['phase', 'child']);
         $fixture->record($child);
         self::assertSame(3, $this->rowCount($connection, 'observations'));
     }
@@ -265,13 +265,13 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $store = new DbalObservationStore($connection);
         $fixture = new RecordingFixture($store);
         $events = 0;
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
         $this->failureTrigger($connection, $backend);
         try {
             $fixture->record(ObservationFixture::session());
             self::fail('Expected late insert failure.');
         } catch (ObservationStorageFailed $exception) {
-            self::assertFalse($exception->outcomeUncertain);
+            self::assertFalse($exception->outcomeUncertain());
             self::assertSame('Observation storage was rolled back.', $exception->getMessage());
         }
         self::assertSame(0, $this->rowCount($connection, 'sessions'));
@@ -286,7 +286,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             $fixture->record(ObservationFixture::phase());
             self::fail('Expected phase evidence failure.');
         } catch (ObservationStorageFailed $exception) {
-            self::assertFalse($exception->outcomeUncertain);
+            self::assertFalse($exception->outcomeUncertain());
         }
         self::assertSame(0, $this->rowCount($connection, 'phases'));
         self::assertSame(1, $this->rowCount($connection, 'sessions'));
@@ -305,7 +305,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $fixture = new RecordingFixture($store);
         $observation = ObservationFixture::session();
         $subscribers = [];
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$subscribers, $otherConnection, $connection): void {
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$subscribers, $otherConnection, $connection): void {
             self::assertFalse($connection->isTransactionActive());
             self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
             self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
@@ -313,20 +313,21 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             $subscribers[] = 'failed';
             throw new RuntimeException('private subscriber detail');
         });
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$subscribers): void { $subscribers[] = 'completed'; });
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$subscribers): void { $subscribers[] = 'completed'; });
         try {
             $fixture->record($observation);
             self::fail('Expected explicitly committed event failure.');
         } catch (CommittedObservationDispatchFailed $exception) {
             self::assertInstanceOf(EventDispatchFailed::class, $exception->getPrevious());
             self::assertSame('Observation committed but event dispatch failed.', $exception->getMessage());
-            self::assertTrue($observation->id->equals($exception->event->id()));
+            self::assertSame([], get_object_vars($exception));
+            self::assertTrue($observation->id()->equals($exception->event()->id()));
         }
         self::assertSame(['failed', 'completed'], $subscribers);
-        self::assertNotNull($store->get('instrumentation', $observation->id));
+        self::assertNotNull($store->get('instrumentation', $observation->id()));
         $fixture->record($observation);
         self::assertSame(['failed', 'completed'], $subscribers);
-        self::assertSame(2, $fixture->admissions);
+        self::assertSame(2, $fixture->admissions());
     }
 
     #[DataProvider('databases')]
@@ -344,7 +345,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             self::assertTrue($connection->isTransactionActive());
             self::assertSame(1, $this->rowCount($connection, 'sessions'));
             self::assertSame(0, $this->rowCount($connection, 'observations'));
-            self::assertSame(0, $fixture->admissions);
+            self::assertSame(0, $fixture->admissions());
         }
         $connection->commit();
         self::assertSame(1, $this->rowCount($this->connect($connection->getParams()), 'sessions'));
@@ -367,22 +368,23 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         $store = new DbalObservationStore($proxy);
         $fixture = new RecordingFixture($store);
         $events = 0;
-        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
         $observation = ObservationFixture::session();
         try {
             $fixture->record($observation);
             self::fail('Expected uncertain outcome, not a false rollback claim.');
         } catch (ObservationStorageFailed $exception) {
-            self::assertTrue($exception->outcomeUncertain);
+            self::assertSame([], get_object_vars($exception));
+            self::assertTrue($exception->outcomeUncertain());
         }
         self::assertTrue($store->isClosed());
         self::assertSame(0, $events);
         $reopened = new DbalObservationStore($this->connect($connection->getParams()));
-        self::assertSame($observation->toArray(), $reopened->get('instrumentation', $observation->id)->observation->toArray());
+        self::assertSame($observation->toArray(), $reopened->get('instrumentation', $observation->id())->observation()->toArray());
         $freshFixture = new RecordingFixture($reopened);
-        $freshFixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Matching uncertain retry must not replay an event.'); });
+        $freshFixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Matching uncertain retry must not replay an event.'); });
         $freshFixture->record($observation);
-        self::assertSame(1, $freshFixture->admissions);
+        self::assertSame(1, $freshFixture->admissions());
         self::assertSame(1, $this->rowCount($connection, 'observations'));
     }
 
@@ -419,7 +421,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
             self::assertSame(1, $retry['admissions']);
             self::assertSame($winner['recorded_at'], $retry['recorded_at']);
             self::assertSame('unknown', $retry['outcome']);
-            self::assertSame($observation->id->toString(), $retry['id']);
+            self::assertSame($observation->id()->toString(), $retry['id']);
             self::assertSame($phase ? 2 : 1, $this->rowCount($connection, 'observations'));
             self::assertSame(1, $this->rowCount($connection, 'sessions'));
             self::assertSame($phase ? 1 : 0, $this->rowCount($connection, 'phases'));
@@ -500,7 +502,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         if ($backend === 'sqlite') {
             $connection->executeStatement("CREATE TRIGGER fight_execution_fail BEFORE INSERT ON fight_execution_observations BEGIN SELECT RAISE(ABORT, 'injected'); END");
         } elseif ($backend === 'mysql') {
-            $id = $phase ? ObservationFixture::phase()->id : ObservationFixture::session()->id;
+            $id = $phase ? ObservationFixture::phase()->id() : ObservationFixture::session()->id();
             $connection->executeStatement("ALTER TABLE fight_execution_observations ADD CONSTRAINT fight_execution_fail CHECK (observation_id <> '".$id->toString()."')");
         } else {
             $connection->executeStatement("CREATE FUNCTION fight_execution_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected'; END; $$");

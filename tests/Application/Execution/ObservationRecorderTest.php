@@ -47,12 +47,12 @@ final class ObservationRecorderTest extends UnitTestCase
         });
         $admission->shouldReceive('admit')->once()->with($observation)->globally()->ordered();
         $store->shouldReceive('session')->once()->with('project', 'session')->globally()->ordered()->andReturnNull();
-        $store->shouldReceive('addSession')->once()->with($observation->session)->globally()->ordered();
-        $store->shouldReceive('get')->once()->with('instrumentation', $observation->id)->globally()->ordered()->andReturnNull();
+        $store->shouldReceive('addSession')->once()->with($observation->session())->globally()->ordered();
+        $store->shouldReceive('get')->once()->with('instrumentation', $observation->id())->globally()->ordered()->andReturnNull();
         $store->shouldReceive('append')->once()->with($observation)->globally()->ordered()->andReturn($recorded);
         $events->shouldReceive('trigger')->once()->andReturnUsing(static function (ObservationRecorded $event) use (&$committed, $observation): void {
             self::assertTrue($committed);
-            self::assertTrue($event->id()->equals($observation->id));
+            self::assertTrue($event->id()->equals($observation->id()));
             self::assertNull($event->phaseId());
         });
         (new ObservationRecorder($store, $admission, $events))->record($observation);
@@ -65,7 +65,7 @@ final class ObservationRecorderTest extends UnitTestCase
         $admission = $this->mock(ObservationAdmission::class);
         $events = $this->mock(EventDispatcher::class);
         $admission->shouldReceive('admit')->once()->with($observation);
-        $store->shouldReceive('session')->once()->andReturn($observation->session);
+        $store->shouldReceive('session')->once()->andReturn($observation->session());
         $store->shouldReceive('get')->once()->andReturn(new RecordedObservation($observation, new DateTimeImmutable('2020-01-01Z')));
         $store->shouldNotReceive('append', 'addSession');
         $events->shouldNotReceive('trigger');
@@ -79,7 +79,7 @@ final class ObservationRecorderTest extends UnitTestCase
         $admission = $this->mock(ObservationAdmission::class);
         $events = $this->mock(EventDispatcher::class);
         $admission->shouldReceive('admit')->once();
-        $store->shouldReceive('session')->once()->andReturn($observation->session);
+        $store->shouldReceive('session')->once()->andReturn($observation->session());
         $store->shouldReceive('get')->once()->andReturn(new RecordedObservation(ObservationFixture::session(), new DateTimeImmutable('2020-01-01Z')));
         $store->shouldNotReceive('append');
         $events->shouldNotReceive('trigger');
@@ -114,7 +114,7 @@ final class ObservationRecorderTest extends UnitTestCase
         $admission = $this->mock(ObservationAdmission::class);
         $events = $this->mock(EventDispatcher::class);
         $admission->shouldReceive('admit')->once();
-        $session = $observation->session;
+        $session = $observation->session();
         if ($case === 'missing-session') {
             $session = null;
         } elseif ($case === 'session-mismatch') {
@@ -131,13 +131,13 @@ final class ObservationRecorderTest extends UnitTestCase
         }
         if (!in_array($case, ['session-mismatch', 'missing-session', 'parent-missing', 'parent-cross-session'], true)) {
             $existing = match ($case) {
-                'phase-existing' => $observation->phase,
+                'phase-existing' => $observation->phase(),
                 'phase-mismatch' => PhaseReference::fromStrings('session', 'phase', null, 'different-agent', 'review', 1),
                 default => null,
             };
-            $store->shouldReceive('phase')->with('project', $observation->phase->phaseId)->once()->andReturn($existing);
+            $store->shouldReceive('phase')->with('project', $observation->phase()->phaseId())->once()->andReturn($existing);
             if ($existing === null) {
-                $store->shouldReceive('addPhase')->with('project', $observation->phase)->once();
+                $store->shouldReceive('addPhase')->with('project', $observation->phase())->once();
             }
         }
         if (!$valid) {
@@ -148,7 +148,7 @@ final class ObservationRecorderTest extends UnitTestCase
         } else {
             $store->shouldReceive('get')->once()->andReturnNull();
             $store->shouldReceive('append')->once()->andReturn(new RecordedObservation($observation, new DateTimeImmutable('2026-10-20Z')));
-            $events->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId() === $observation->phase->phaseId);
+            $events->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId() === $observation->phase()->phaseId());
         }
         (new ObservationRecorder($store, $admission, $events))->record($observation);
     }
@@ -170,7 +170,7 @@ final class ObservationRecorderTest extends UnitTestCase
         $admission = $this->mock(ObservationAdmission::class);
         $events = $this->mock(EventDispatcher::class);
         $admission->shouldReceive('admit')->once();
-        $store->shouldReceive('session')->once()->andReturn($observation->session);
+        $store->shouldReceive('session')->once()->andReturn($observation->session());
         $store->shouldReceive('get')->once()->andReturnNull();
         $store->shouldReceive('append')->once()->andReturn(new RecordedObservation($observation, new DateTimeImmutable('2026-10-20Z')));
         $failure = new RuntimeException('private subscriber diagnostic');
@@ -181,7 +181,9 @@ final class ObservationRecorderTest extends UnitTestCase
         } catch (CommittedObservationDispatchFailed $exception) {
             self::assertSame($failure, $exception->getPrevious());
             self::assertSame('Observation committed but event dispatch failed.', $exception->getMessage());
-            self::assertTrue($observation->id->equals($exception->event->id()));
+            self::assertSame([], get_object_vars($exception));
+            self::assertTrue($observation->id()->equals($exception->event()->id()));
+            self::assertSame($exception->event(), $exception->event());
         }
     }
 
@@ -200,7 +202,8 @@ final class ObservationRecorderTest extends UnitTestCase
                 self::fail('Expected storage failure.');
             } catch (ObservationStorageFailed $exception) {
                 self::assertSame($cause, $exception->getPrevious());
-                self::assertSame($uncertain, $exception->outcomeUncertain);
+                self::assertSame([], get_object_vars($exception));
+                self::assertSame($uncertain, $exception->outcomeUncertain());
                 self::assertSame($uncertain ? 'Observation storage outcome is uncertain.' : 'Observation storage was rolled back.', $exception->getMessage());
             }
         }

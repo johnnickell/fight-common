@@ -33,15 +33,15 @@ final readonly class ObservationRecorded implements Event
      */
     public static function fromRecorded(RecordedObservation $recorded): self
     {
-        $observation = $recorded->observation;
+        $observation = $recorded->observation();
 
         return new self(
-            $observation->id,
-            $observation->producerId,
-            $observation->session->projectId,
-            $observation->session->sessionId,
-            $observation->phase?->phaseId,
-            $recorded->recordedAt
+            $observation->id(),
+            $observation->producerId(),
+            $observation->session()->projectId(),
+            $observation->session()->sessionId(),
+            $observation->phase()?->phaseId(),
+            $recorded->recordedAt()
         );
     }
 

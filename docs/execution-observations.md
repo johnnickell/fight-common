@@ -13,6 +13,24 @@ time, optional observed start/end times, an explicit `ObservationOutcome`, and i
 `RecordedObservation` adds the immutable server recording time. The same session/phase may have multiple observations;
 later evidence never overwrites an existing observation. Session and phase relationships are immutable once recorded.
 
+All properties declared by this slice's classes are private, including readonly values and exception context.
+Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods:
+
+| Value | Read accessors |
+|---|---|
+| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()` |
+| `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
+| `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
+| `RecordedObservation` | `observation()`, `recordedAt()` |
+
+For example, admission reads `$observation->session()->projectId()` and
+`$observation->phase()?->parentPhaseId()`. These methods preserve validated values, nulls, immutable object identity
+and UTC microseconds; they do not grant permission or introduce mutation. Native `ObservationOutcome` enum
+`name`/`value` behavior is unchanged. Structured `toArray()`/`fromArray()` payloads and comparison bytes remain unchanged;
+ordinary public-property reads and object enumeration are intentionally unavailable. This completes the requested
+encapsulation of unreleased TASK-00147 APIs, not a conversion of released interfaces or a promise that raw PHP object
+serialization from the superseded public-property implementation remains compatible.
+
 | Field | Version-one limit / meaning |
 |---|---|
 | Version | Integer `1` only, for both submitted and stored data; unsupported versions reject |
@@ -149,9 +167,9 @@ retry is hidden in this adapter. No transaction with the work being observed, fi
 | `InvalidObservationRelationship` | Unavailable/inconsistent relationship; no partial subject or observation writes |
 | `ObservationConflict` | Retained key has changed content; no overwrite |
 | `LogicException` | Unsupported outer/nested/closed-store transaction composition; fix composition |
-| `ObservationStorageFailed` with `outcomeUncertain === false` | A DBAL operation failed and the owned transaction rolled back |
-| `ObservationStorageFailed` with `outcomeUncertain === true` | Begin/commit acknowledgment or rollback failed; **do not assume absence**, discard the terminal store and reconcile/retry through a fresh idle connection with the same identity/content and fresh admission |
-| `CommittedObservationDispatchFailed` | Database already committed; safe `event` identifies the fact, while event/subscriber delivery failed |
+| `ObservationStorageFailed` with `outcomeUncertain() === false` | A DBAL operation failed and the owned transaction rolled back |
+| `ObservationStorageFailed` with `outcomeUncertain() === true` | Begin/commit acknowledgment or rollback failed; **do not assume absence**, discard the terminal store and reconcile/retry through a fresh idle connection with the same identity/content and fresh admission |
+| `CommittedObservationDispatchFailed` | Database already committed; safe `event()` identifies the fact, while event/subscriber delivery failed |
 
 Exception `getPrevious()` is private diagnostic material and must never be rendered as public error data. It can
 contain provider/subscriber details. Public exception messages are fixed; consumers remain responsible for safe HTTP,

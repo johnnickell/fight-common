@@ -200,11 +200,11 @@ final class DbalObservationStore implements ObservationStore
         $this->requireOwnedTransaction();
         $recordedAt = new DateTimeImmutable('now', new DateTimeZone('UTC'));
         $this->connection->insert('fight_execution_observations', [
-            'producer_id'    => $observation->producerId,
-            'observation_id' => $observation->id->toString(),
-            'project_id'     => $observation->session->projectId,
-            'session_id'     => $observation->session->sessionId,
-            'phase_id'       => $observation->phase?->phaseId,
+            'producer_id'    => $observation->producerId(),
+            'observation_id' => $observation->id()->toString(),
+            'project_id'     => $observation->session()->projectId(),
+            'session_id'     => $observation->session()->sessionId(),
+            'phase_id'       => $observation->phase()?->phaseId(),
             'version'        => 1,
             'payload'        => $observation->comparison(),
             'recorded_at'    => $recordedAt->format('Y-m-d\TH:i:s.u\Z')

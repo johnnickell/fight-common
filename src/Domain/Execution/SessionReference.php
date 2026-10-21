@@ -12,8 +12,11 @@ final readonly class SessionReference
     /**
      * Constructs SessionReference
      */
-    private function __construct(public string $projectId, public string $sessionId, public string $consumerReference)
-    {
+    private function __construct(
+        private string $projectId,
+        private string $sessionId,
+        private string $consumerReference
+    ) {
     }
 
     /**
@@ -42,6 +45,30 @@ final readonly class SessionReference
             ObservationFields::reference($data['session_id']),
             ObservationFields::reference($data['consumer_reference'])
         );
+    }
+
+    /**
+     * Returns the project reference
+     */
+    public function projectId(): string
+    {
+        return $this->projectId;
+    }
+
+    /**
+     * Returns the session reference
+     */
+    public function sessionId(): string
+    {
+        return $this->sessionId;
+    }
+
+    /**
+     * Returns the consumer execution reference
+     */
+    public function consumerReference(): string
+    {
+        return $this->consumerReference;
     }
 
     /**

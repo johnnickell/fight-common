@@ -18,8 +18,16 @@ final class CommittedObservationDispatchFailed extends RuntimeException
     /**
      * Constructs CommittedObservationDispatchFailed
      */
-    public function __construct(public readonly ObservationRecorded $event, Throwable $previous)
+    public function __construct(private readonly ObservationRecorded $event, Throwable $previous)
     {
         parent::__construct('Observation committed but event dispatch failed.', 0, $previous);
+    }
+
+    /**
+     * Returns the safe committed observation fact
+     */
+    public function event(): ObservationRecorded
+    {
+        return $this->event;
     }
 }

@@ -15,12 +15,12 @@ final readonly class PhaseReference
      * Constructs PhaseReference
      */
     private function __construct(
-        public string $sessionId,
-        public string $phaseId,
-        public ?string $parentPhaseId,
-        public string $agentId,
-        public string $name,
-        public int $attempt
+        private string $sessionId,
+        private string $phaseId,
+        private ?string $parentPhaseId,
+        private string $agentId,
+        private string $name,
+        private int $attempt
     ) {
     }
 
@@ -74,6 +74,54 @@ final readonly class PhaseReference
             ObservationFields::reference($data['name']),
             $data['attempt']
         );
+    }
+
+    /**
+     * Returns the session reference
+     */
+    public function sessionId(): string
+    {
+        return $this->sessionId;
+    }
+
+    /**
+     * Returns the phase reference
+     */
+    public function phaseId(): string
+    {
+        return $this->phaseId;
+    }
+
+    /**
+     * Returns the optional parent phase reference
+     */
+    public function parentPhaseId(): ?string
+    {
+        return $this->parentPhaseId;
+    }
+
+    /**
+     * Returns the performing Agent reference
+     */
+    public function agentId(): string
+    {
+        return $this->agentId;
+    }
+
+    /**
+     * Returns the phase name
+     */
+    public function name(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Returns the reported attempt
+     */
+    public function attempt(): int
+    {
+        return $this->attempt;
     }
 
     /**

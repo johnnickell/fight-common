@@ -39,21 +39,21 @@ final class DbalObservationStoreUnitTest extends UnitTestCase
         $session = ObservationFixture::session();
         $phase = ObservationFixture::phase();
         $first = $store->commitTransactional(static function () use ($store, $session) {
-            $store->addSession($session->session);
+            $store->addSession($session->session());
             return $store->append($session);
         });
         $second = $store->commitTransactional(static function () use ($store, $phase) {
-            $store->addPhase('project', $phase->phase);
+            $store->addPhase('project', $phase->phase());
             return $store->append($phase);
         });
         foreach ([$first, $second] as $recorded) {
-            $reconstructed = $store->get('instrumentation', $recorded->observation->id);
-            self::assertSame($recorded->observation->toArray(), $reconstructed->observation->toArray());
-            self::assertSame($recorded->recordedAt->format('Y-m-d\TH:i:s.u\Z'), $reconstructed->recordedAt->format('Y-m-d\TH:i:s.u\Z'));
-            self::assertNotEquals($recorded->observation->occurredAt, $reconstructed->recordedAt);
+            $reconstructed = $store->get('instrumentation', $recorded->observation()->id());
+            self::assertSame($recorded->observation()->toArray(), $reconstructed->observation()->toArray());
+            self::assertSame($recorded->recordedAt()->format('Y-m-d\TH:i:s.u\Z'), $reconstructed->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
+            self::assertNotEquals($recorded->observation()->occurredAt(), $reconstructed->recordedAt());
         }
-        self::assertSame($session->session->toArray(), $store->session('project', 'session')->toArray());
-        self::assertSame($phase->phase->toArray(), $store->phase('project', 'phase')->toArray());
+        self::assertSame($session->session()->toArray(), $store->session('project', 'session')->toArray());
+        self::assertSame($phase->phase()->toArray(), $store->phase('project', 'phase')->toArray());
         self::assertFalse($connection->isTransactionActive());
         self::assertSame(1, (int) $connection->fetchOne('PRAGMA foreign_keys'));
     }
@@ -69,8 +69,8 @@ final class DbalObservationStoreUnitTest extends UnitTestCase
                 $connection->insert('caller_work', ['id' => 42]);
             }
             foreach ([
-                static fn () => $store->addSession(ObservationFixture::session()->session),
-                static fn () => $store->addPhase('project', ObservationFixture::phase()->phase),
+                static fn () => $store->addSession(ObservationFixture::session()->session()),
+                static fn () => $store->addPhase('project', ObservationFixture::phase()->phase()),
                 static fn () => $store->append(ObservationFixture::session()),
                 static fn () => $store->commitTransactional(static fn () => $store->commitTransactional(static fn () => null)),
             ] as $write) {
@@ -97,13 +97,13 @@ final class DbalObservationStoreUnitTest extends UnitTestCase
         $observation = ObservationFixture::session();
         try {
             $store->commitTransactional(static function () use ($store, $connection, $observation): void {
-                $store->addSession($observation->session);
+                $store->addSession($observation->session());
                 $store->append($observation);
                 $connection->executeStatement('INSERT INTO absent_failure_table (id) VALUES (1)');
             });
             self::fail('Expected explicit rolled-back storage failure.');
         } catch (ObservationStorageFailed $exception) {
-            self::assertFalse($exception->outcomeUncertain);
+            self::assertFalse($exception->outcomeUncertain());
             self::assertInstanceOf(Exception::class, $exception->getPrevious());
         }
         self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
@@ -157,7 +157,7 @@ final class DbalObservationStoreUnitTest extends UnitTestCase
             });
             self::fail('Expected uncertainty.');
         } catch (ObservationStorageFailed $exception) {
-            self::assertTrue($exception->outcomeUncertain);
+            self::assertTrue($exception->outcomeUncertain());
             self::assertSame($failure, $exception->getPrevious());
         }
         self::assertTrue($store->isClosed());
@@ -208,13 +208,13 @@ final class DbalObservationStoreUnitTest extends UnitTestCase
         $store = new DbalObservationStore($connection);
         $observation = ObservationFixture::session();
         $store->commitTransactional(static function () use ($store, $observation): void {
-            $store->addSession($observation->session);
+            $store->addSession($observation->session());
             $store->append($observation);
         });
         foreach ([['version' => 2], ['version' => 1, 'payload' => 'null'], ['payload' => '{"version":2}']] as $changes) {
             $connection->update('fight_execution_observations', $changes, ['producer_id' => 'instrumentation']);
             try {
-                $store->get('instrumentation', $observation->id);
+                $store->get('instrumentation', $observation->id());
                 self::fail('Expected stored version or shape rejection.');
             } catch (DomainException $exception) {
                 self::assertStringContainsString('observation', $exception->getMessage());

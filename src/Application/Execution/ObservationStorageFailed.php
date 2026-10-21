@@ -17,12 +17,20 @@ final class ObservationStorageFailed extends RuntimeException
     /**
      * Constructs ObservationStorageFailed
      */
-    public function __construct(public readonly bool $outcomeUncertain, Throwable $previous)
+    public function __construct(private readonly bool $outcomeUncertain, Throwable $previous)
     {
         parent::__construct(
             $outcomeUncertain ? 'Observation storage outcome is uncertain.' : 'Observation storage was rolled back.',
             0,
             $previous
         );
+    }
+
+    /**
+     * Returns whether storage may have committed
+     */
+    public function outcomeUncertain(): bool
+    {
+        return $this->outcomeUncertain;
     }
 }

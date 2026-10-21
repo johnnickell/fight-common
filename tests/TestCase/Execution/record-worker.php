@@ -21,7 +21,7 @@ if ($connection->getDatabasePlatform() instanceof \Doctrine\DBAL\Platforms\SQLit
     $connection->executeStatement('PRAGMA busy_timeout = 10000');
 }
 $fixture = new RecordingFixture($store);
-$fixture->onAdmit = static function () use ($directory, $role): void {
+$fixture->setOnAdmit(static function () use ($directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'admitted');
     if ($role === 'first') {
         $deadline = microtime(true) + 10;
@@ -32,9 +32,9 @@ $fixture->onAdmit = static function () use ($directory, $role): void {
             usleep(10000);
         }
     }
-};
+});
 $events = 0;
-$fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$events, $connection): void {
+$fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$events, $connection): void {
     if ($connection->isTransactionActive()) {
         throw new RuntimeException('Dispatch occurred before the real commit.');
     }
@@ -52,12 +52,12 @@ try {
 } catch (Throwable $throwable) {
     $status = $throwable::class;
 }
-$stored = $store->get($observation->producerId, $observation->id);
+$stored = $store->get($observation->producerId(), $observation->id());
 echo json_encode([
     'status' => $status,
     'events' => $events,
-    'admissions' => $fixture->admissions,
-    'recorded_at' => $stored?->recordedAt->format('Y-m-d\TH:i:s.u\Z'),
-    'outcome' => $stored?->observation->outcome->value,
-    'id' => $stored?->observation->id->toString(),
+    'admissions' => $fixture->admissions(),
+    'recorded_at' => $stored?->recordedAt()->format('Y-m-d\TH:i:s.u\Z'),
+    'outcome' => $stored?->observation()->outcome()->value,
+    'id' => $stored?->observation()->id()->toString(),
 ], JSON_THROW_ON_ERROR).PHP_EOL;
