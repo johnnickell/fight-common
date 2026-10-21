@@ -27,11 +27,10 @@ approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–001
 Board-based execution selection, not automatic implementation. [TASK-00147](00147-TASK.md) is done after independent
 Review acceptance and affected QA PASS for its ordinary Session, Phase and Observation aggregate-root revision;
 no event-sourcing inheritance was introduced. Its existing [PR #221](https://github.com/johnnickell/fight-common/pull/221)
-is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication) is reopened
-`in-progress` for John's correction: remove compatibility machinery for never-released Execution snapshots and
-consolidate payload/schema at version one. Fresh independent Review and affected QA are pending after verified,
-committed Work; prior accept/PASS is historical. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222)
-is reused; dependent TASKs wait for current acceptance and authorized Land.
+is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication)
+is done: its corrected provisional version-one candidate has independent Review acceptance (R-01 resolved) and
+affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is open for human
+review/merge; dependent TASKs are unblocked.
 [TASK-00173](00173-TASK.md) separately plans
 getter-based deprecation for released runtime properties, excluding Standards; it is not started.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
