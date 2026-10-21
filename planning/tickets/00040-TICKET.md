@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | ready-for-agent |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -129,9 +129,11 @@ TASK-00149 proves the storage-level detail-removal/retry boundary. TICKET-00042 
 Commands, protected Queries and their integrated deletion/retry evidence; no reverse blocker or duplicate recording
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
-All three TASKs are accepted and written, but no implementation, consumer amendment, commit or publication has
-occurred. `ready-for-agent` records accepted planning, not completed capability evidence. Main-checkout/worktree
-selection remains explicit before implementation. Release target remains unassigned.
+All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
+claimed then. TASK-00147 now has its session/phase vertical slice implemented and locally verified in the explicitly
+selected main checkout, with independent Review and QA pending; see its current completion notes and builder
+receipt. TASK-00148/00149 remain unimplemented and blocked on their suppliers. No consumer amendment, publication,
+merge or release is claimed here. Release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved

@@ -24,9 +24,10 @@ terminal TASK status records accepted content, not PR approval, merge, release o
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
-`/skill:next` for Board-based execution selection, not automatic implementation. TASK-00147/00157/00158/00166's Ready
-Frontier entries reflect satisfied implementation dependencies, not execution authority. Checkout/worktree choice and
-global priority remain unassigned. TASK-00168's approved protocol activation
+Board-based execution selection, not automatic implementation. John selected TASK-00147 and the main checkout;
+its implementation and local verification are complete, with independent Review pending and required QA next.
+TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
+priority is inferred. TASK-00168's approved protocol activation
 has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
 still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input-intent race integration.
 
@@ -35,13 +36,12 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
