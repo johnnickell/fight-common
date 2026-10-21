@@ -5,18 +5,21 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Execution;
 
 use Closure;
-use Fight\Common\Adapter\Execution\Dbal\DbalObservationStore;
+use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Execution\Observation\Exception\RecordingDenied;
+use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Execution\ObservationAdmission;
-use Fight\Common\Application\Execution\ObservationRecorder;
-use Fight\Common\Application\Execution\RecordPhaseObservation;
-use Fight\Common\Application\Execution\RecordPhaseObservationHandler;
-use Fight\Common\Application\Execution\RecordSessionObservation;
-use Fight\Common\Application\Execution\RecordSessionObservationHandler;
-use Fight\Common\Application\Execution\RecordingDenied;
-use Fight\Common\Domain\Execution\Observation;
+use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
+use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
+use Fight\Common\Domain\Execution\Observation\Observation;
 
 final class RecordingFixture implements ObservationAdmission
 {
@@ -28,10 +31,17 @@ final class RecordingFixture implements ObservationAdmission
     private readonly SimpleEventDispatcher $events;
     private ?Closure $onAdmit = null;
 
-    public function __construct(DbalObservationStore $store)
+    public function __construct(DbalRecordingTransaction $transaction)
     {
         $this->events = new SimpleEventDispatcher();
-        $recorder = new ObservationRecorder($store, $this, $this->events);
+        $recorder = new ObservationRecorder(
+            $transaction,
+            new DbalSessionRepository($transaction),
+            new DbalPhaseRepository($transaction),
+            new DbalObservationRepository($transaction),
+            $this,
+            $this->events
+        );
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
         $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));

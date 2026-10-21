@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Execution;
 
-use Fight\Common\Domain\Execution\Observation;
+use Fight\Common\Domain\Execution\Observation\Observation;
 
 /**
  * Interface ObservationAdmission

@@ -1,0 +1,65 @@
+{
+    "source_head": "1a446f9188b8835b90e137546765e372cdb66a20",
+    "source": "Actual pre-revision Command recording through DbalObservationStore on SQLite; raw rows, no schema or payload conversion",
+    "tables": {
+        "fight_execution_sessions": [
+            {
+                "project_id": "project",
+                "session_id": "session",
+                "consumer_reference": "build:147"
+            }
+        ],
+        "fight_execution_phases": [
+            {
+                "project_id": "project",
+                "session_id": "session",
+                "phase_id": "parent",
+                "parent_phase_id": null,
+                "agent_id": "reviewer",
+                "name": "review",
+                "attempt": 2
+            },
+            {
+                "project_id": "project",
+                "session_id": "session",
+                "phase_id": "child",
+                "parent_phase_id": "parent",
+                "agent_id": "builder",
+                "name": "repair",
+                "attempt": 3
+            }
+        ],
+        "fight_execution_observations": [
+            {
+                "producer_id": "instrumentation",
+                "observation_id": "019a1234-5678-4abc-8def-123456789abc",
+                "project_id": "project",
+                "session_id": "session",
+                "phase_id": null,
+                "version": 1,
+                "payload": "{\"version\":1,\"observation_id\":\"019a1234-5678-4abc-8def-123456789abc\",\"producer_id\":\"instrumentation\",\"session\":{\"project_id\":\"project\",\"session_id\":\"session\",\"consumer_reference\":\"build:147\"},\"phase\":null,\"occurred_at\":\"2026-10-20T12:34:56.123456Z\",\"started_at\":\"2026-10-20T12:00:00.000018Z\",\"ended_at\":\"2026-10-20T12:34:56.123456Z\",\"outcome\":\"succeeded\",\"extensions\":{\"consumer\\/label\":\"\\u6e2c\\u5b9a\",\"consumer\\/version\":\"v1\"}}",
+                "recorded_at": "2026-10-21T17:20:38.167938Z"
+            },
+            {
+                "producer_id": "instrumentation",
+                "observation_id": "019a1234-5678-4abc-8def-123456789abd",
+                "project_id": "project",
+                "session_id": "session",
+                "phase_id": "parent",
+                "version": 1,
+                "payload": "{\"version\":1,\"observation_id\":\"019a1234-5678-4abc-8def-123456789abd\",\"producer_id\":\"instrumentation\",\"session\":{\"project_id\":\"project\",\"session_id\":\"session\",\"consumer_reference\":\"build:147\"},\"phase\":{\"session_id\":\"session\",\"phase_id\":\"parent\",\"parent_phase_id\":null,\"agent_id\":\"reviewer\",\"name\":\"review\",\"attempt\":2},\"occurred_at\":\"2026-10-20T12:34:56.123456Z\",\"started_at\":null,\"ended_at\":null,\"outcome\":\"unknown\",\"extensions\":[]}",
+                "recorded_at": "2026-10-21T17:20:38.173440Z"
+            },
+            {
+                "producer_id": "instrumentation",
+                "observation_id": "019a1234-5678-4abc-8def-ffffffffffff",
+                "project_id": "project",
+                "session_id": "session",
+                "phase_id": "child",
+                "version": 1,
+                "payload": "{\"version\":1,\"observation_id\":\"019a1234-5678-4abc-8def-ffffffffffff\",\"producer_id\":\"instrumentation\",\"session\":{\"project_id\":\"project\",\"session_id\":\"session\",\"consumer_reference\":\"build:147\"},\"phase\":{\"session_id\":\"session\",\"phase_id\":\"child\",\"parent_phase_id\":\"parent\",\"agent_id\":\"builder\",\"name\":\"repair\",\"attempt\":3},\"occurred_at\":\"2026-10-20T12:34:56.123456Z\",\"started_at\":\"2026-10-20T12:00:00.000019Z\",\"ended_at\":null,\"outcome\":\"unknown\",\"extensions\":{\"consumer\\/count\":-9223372036854775808,\"consumer\\/enabled\":true,\"consumer\\/unknown\":null}}",
+                "recorded_at": "2026-10-21T17:20:38.177024Z"
+            }
+        ]
+    }
+}

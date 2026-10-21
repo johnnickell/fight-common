@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Execution;
 
 use DateTimeImmutable;
-use Fight\Common\Domain\Execution\Observation;
-use Fight\Common\Domain\Execution\ObservationId;
-use Fight\Common\Domain\Execution\PhaseReference;
-use Fight\Common\Domain\Execution\SessionReference;
+use Fight\Common\Domain\Execution\Observation\Observation;
+use Fight\Common\Domain\Execution\Observation\ObservationId;
+use Fight\Common\Domain\Execution\Phase\PhaseReference;
+use Fight\Common\Domain\Execution\Session\SessionReference;
 
 final class ObservationFixture
 {

@@ -8,17 +8,31 @@ activity/usage recording, protected bodies, public inspection Queries, MCP tools
 
 ## Vocabulary and finite version-one representation
 
-`Observation` contains an `ObservationId`, producer reference, `SessionReference`, optional `PhaseReference`, occurrence
-time, optional observed start/end times, an explicit `ObservationOutcome`, and immutable `ObservationExtensions`.
-`RecordedObservation` adds the immutable server recording time. The same session/phase may have multiple observations;
-later evidence never overwrites an existing observation. Session and phase relationships are immutable once recorded.
+Execution contains three ordinary DDD aggregate roots, not one graph and not event-sourced aggregates:
+
+- `Domain\Execution\Session\Session` owns project-scoped session identity and its stable consumer relationship.
+- `Domain\Execution\Phase\Phase` owns project-scoped phase identity, session/parent, performing Agent, name and attempt.
+- `Domain\Execution\Observation\Observation` owns producer-scoped immutable evidence and its server recording time.
+  It contains an `ObservationId`, producer reference, `SessionReference`, optional `PhaseReference`, occurrence time,
+  nullable observed start/end times, explicit `ObservationOutcome` and immutable `ObservationExtensions`.
+
+Each has its own Domain repository. Session and Phase are recorded subjects, not authoritative Workflow state.
+References live with their owning concepts; they describe immutable relationships without loading a graph.
+`RecordedObservation` is only a receipt over a recorded Observation root: its `recordedAt()` reads that root's time,
+with no competing identity, repository or independently stored time. `Observation::recorded()` creates an immutable
+recorded copy; a different receipt time on an already recorded root rejects. `recordedAt()` rejects on submitted,
+unrecorded evidence. The recorder assigns the actual server time, never a producer-supplied receipt time.
+The same subject may have multiple observations; later evidence never overwrites an existing observation.
+No EventSourcing base, replay, stream version, Event Store or outbox is involved.
 
 All properties declared by this slice's classes are private, including readonly values and exception context.
 Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods:
 
 | Value | Read accessors |
 |---|---|
-| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()` |
+| `Session` | `projectId()`, `id()`, `consumerReference()`, `reference()`, `matches()` |
+| `Phase` | `projectId()`, `id()`, `sessionId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()`, `reference()`, `matches()`, `belongsTo()`, `acceptsParent()` |
+| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `recordedAt()`, `matches()` |
 | `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
 | `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
 | `RecordedObservation` | `observation()`, `recordedAt()` |
@@ -54,7 +68,10 @@ Domain validation uses fixed diagnostics rather than echoing submitted content.
 `RecordSessionObservation` and `RecordPhaseObservation` keep their payloads private and expose them through
 `observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
 retain the version-one Command payload shape. These are maintainer-requested corrections to the unreleased
-TASK-00147 APIs, not compatibility changes to released Commands.
+TASK-00147 APIs, not compatibility changes to released Commands. Commands live in
+`Domain\Execution\Observation\Command`; the safe Event lives in `Domain\Execution\Observation\Event`.
+Handlers, recording failures and the recorder live in `Application\Execution\Observation\CommandHandler`,
+`Exception` and `Service`, respectively. Admission and the shared transaction port remain Application responsibilities.
 
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
 It must verify the authenticated instrumentation producer and permitted project, session, target phase and parent
@@ -74,28 +91,38 @@ inconsistent relationships share `InvalidObservationRelationship` without disclo
 new attempt with a different performing identity, use a new phase subject ID and the intended attempt number.
 
 ```php
+use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
-use Fight\Common\Adapter\Execution\Dbal\DbalObservationStore;
+use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
-use Fight\Common\Application\Execution\ObservationRecorder;
-use Fight\Common\Application\Execution\RecordPhaseObservation;
-use Fight\Common\Application\Execution\RecordPhaseObservationHandler;
-use Fight\Common\Application\Execution\RecordSessionObservation;
-use Fight\Common\Application\Execution\RecordSessionObservationHandler;
-use Fight\Common\Domain\Execution\Observation;
-use Fight\Common\Domain\Execution\ObservationId;
-use Fight\Common\Domain\Execution\PhaseReference;
-use Fight\Common\Domain\Execution\SessionReference;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
+use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
+use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
+use Fight\Common\Domain\Execution\Observation\Observation;
+use Fight\Common\Domain\Execution\Observation\ObservationId;
+use Fight\Common\Domain\Execution\Phase\PhaseReference;
+use Fight\Common\Domain\Execution\Session\SessionReference;
 
 // Deployment/setup only, using a dedicated idle Doctrine DBAL connection:
 (new DbalObservationSchema())->install($connection);
 
 // $admission implements ObservationAdmission using the consumer's current trusted context.
-$store = new DbalObservationStore($connection);
+$transaction = new DbalRecordingTransaction($connection);
 $events = new SimpleEventDispatcher();
-$recorder = new ObservationRecorder($store, $admission, $events);
+$recorder = new ObservationRecorder(
+    $transaction,
+    new DbalSessionRepository($transaction),
+    new DbalPhaseRepository($transaction),
+    new DbalObservationRepository($transaction),
+    $admission,
+    $events
+);
 $router = new InMemoryCommandRouter();
 $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
 $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
@@ -128,9 +155,12 @@ producer, project, session and nullable phase IDs and recording time. Null phase
 identifies a phase fact. It contains no extensions, Agent description, consumer text, bodies or command metadata.
 Events are facts about saved observations, not authoritative session/phase transitions.
 
-`ObservationStore` is an inward recording/reconstruction port, not an authorized public inspection API. Its reads
-exist for handler relationship checks, retry comparison and adapter qualification. Do not expose them directly to
-untrusted callers. Public authorized inspection belongs to later work.
+`SessionRepository::getById(project, session)`, `PhaseRepository::getById(project, phase)` and
+`ObservationRepository::getById(producer, observationId)` return independently reconstructed nullable roots; `add()`
+persists a new immutable root inside the shared recording transaction. They are Domain contracts and do not inherit
+Application's unit of work. They are not authorized public inspection APIs: these reads support recording checks,
+retry comparison and adapter qualification. Do not expose them directly to untrusted callers. Future public Queries
+may use dedicated read results rather than hydrating roots; they are outside this slice.
 
 ## Retry and transaction guarantees
 
@@ -144,12 +174,17 @@ Server recording time is excluded. Matching retries write nothing new and preser
 throws `ObservationConflict`. Guarantees last only while the observation/identity/comparison row remains retained.
 Deleting it does not promise indefinite deduplication.
 
-`ObservationStore` extends the existing `TransactionalUnitOfWork` contract; `DbalObservationStore` implements it for
-this DBAL-only path. It does **not** use the ORM `DoctrineTransactionalUnitOfWork`: the latter owns ORM flush semantics,
-whereas this store owns its connection and all related session/phase/observation writes. Do not wrap recording in an
-ORM/filter/consumer transaction. The store rejects an already-active transaction, nested invocation and unowned writes
-before admission/writes; it never commits or rolls back caller-owned work. Do not share/manage this connection while
-recording. Successful void acknowledgment follows the actual outer database commit, not a released savepoint.
+Application's `RecordingTransaction` extends the existing `TransactionalUnitOfWork` contract. Its DBAL implementation
+`DbalRecordingTransaction` owns the single real transaction, shared connection and serialization lock. Construct **all
+three DBAL repositories with that same boundary object**, as above; a repository tied to another boundary cannot
+write inside this one's transaction. The recorder coordinates admission and repository-dependent checks, while roots
+own relationship/content matching and adapters own SQL mechanics. Callers only execute a Command; they never sequence
+repository writes or three independent commits.
+
+This DBAL path does **not** use ORM `DoctrineTransactionalUnitOfWork` or flush semantics. Do not wrap recording in an
+ORM/filter/consumer transaction. The boundary rejects an already-active transaction, nested invocation and unowned
+writes before admission/writes; it never commits or rolls back caller-owned work. Do not share/manage this connection
+while recording. Successful void acknowledgment follows the actual outer database commit, not a released savepoint.
 
 Every recording takes a write lock on the single `fight_execution_schema` version row before reading. This deliberately
 serializes recordings within this schema, including independently competing retries, so current relationships and
@@ -166,9 +201,9 @@ retry is hidden in this adapter. No transaction with the work being observed, fi
 | `RecordingDenied` | Current trusted producer/scope admission failed; existing identity grants no access |
 | `InvalidObservationRelationship` | Unavailable/inconsistent relationship; no partial subject or observation writes |
 | `ObservationConflict` | Retained key has changed content; no overwrite |
-| `LogicException` | Unsupported outer/nested/closed-store transaction composition; fix composition |
+| `LogicException` | Unsupported outer/nested/closed-boundary transaction composition; fix composition |
 | `ObservationStorageFailed` with `outcomeUncertain() === false` | A DBAL operation failed and the owned transaction rolled back |
-| `ObservationStorageFailed` with `outcomeUncertain() === true` | Begin/commit acknowledgment or rollback failed; **do not assume absence**, discard the terminal store and reconcile/retry through a fresh idle connection with the same identity/content and fresh admission |
+| `ObservationStorageFailed` with `outcomeUncertain() === true` | Begin/commit acknowledgment or rollback failed; **do not assume absence**, discard the terminal boundary and reconcile/retry through a fresh idle connection with the same identity/content and fresh admission |
 | `CommittedObservationDispatchFailed` | Database already committed; safe `event()` identifies the fact, while event/subscriber delivery failed |
 
 Exception `getPrevious()` is private diagnostic material and must never be rendered as public error data. It can
@@ -185,8 +220,9 @@ its normal fan-out and reports subscriber failures; the recorder distinguishes t
 
 Install with Doctrine DBAL `^4.4` (no floor increase) on SQLite, MySQL or PostgreSQL. The schema helper uses public
 schema-manager/schema-composition APIs available across the supported range; no new internal API suppressions are
-needed. SQLite foreign keys are enabled at store construction, requiring an idle connection. MySQL tables explicitly
-use InnoDB and `utf8mb4_bin` to preserve exact reference/producer case while supporting UTF-8 extension values.
+needed. SQLite foreign keys are enabled at recording-boundary construction, requiring an idle connection.
+MySQL tables explicitly use InnoDB and `utf8mb4_bin` to preserve exact reference/producer case while supporting UTF-8
+extension values.
 
 The reserved `fight_execution_*` namespace contains a version/lock table, session subjects, phase subjects and retained
 observation rows. Composite foreign keys enforce same-project/session parent and observation links. Observation rows
@@ -210,8 +246,23 @@ Package evidence is not consumer runtime/deployment qualification.
 
 ## Compatibility
 
-These are additive, explicitly composed public APIs. The compatibility manifest classifies the new values, Commands,
-handlers, admission/store ports, exceptions, event and DBAL adapter; `ObservationFields` is internal. Concrete new
-classes are final, ports are implementable, and no new inheritance extension promise is made. Existing void Command
-bus, event dispatcher, UUID, audit, Event Store and transactional unit-of-work contracts are unchanged. No automatic
-consumer migration, event-sourced aggregate, release or deployment is implied.
+The accepted aggregate revision intentionally replaces the **unreleased TASK-owned** flat PHP names and combined
+`ObservationStore`; no legacy forwarding APIs are retained. The manifest deliberately classifies roots, repositories,
+Commands, handlers, admission/transaction ports, exceptions, receipt, Event and DBAL adapters; `ObservationFields` is
+internal. Concrete classes are final, ports are implementable, and no inheritance extension promise is added.
+Released/unrelated bus, dispatcher, UUID, audit, Event Store and unit-of-work contracts remain unchanged; TASK-00173's
+released-property migration is not implemented here.
+
+The schema remains version `1`, with identical tables, submitted JSON, canonical comparison bytes, event payload
+fields and UTC receipt text. Raw rows captured by the preceding implementation reconstruct through the new individual
+repositories on SQLite, MySQL and PostgreSQL; matching retries retain their original time without dispatch. No
+observation-data migration is required, and raw PHP object serialization across the pre-release rename is not promised.
+
+Message envelope `payload_type` and code-facing handler/subscriber registrations follow the **new** PHP namespaces:
+`Fight.Common.Domain.Execution.Observation.Command.RecordSessionObservation`, the corresponding
+`RecordPhaseObservation`, and `Fight.Common.Domain.Execution.Observation.Event.ObservationRecorded`. Payload arrays
+remain unchanged. Pre-release queued envelopes using old Application/flat Domain type names must have those three
+`payload_type` values explicitly mapped at their consumer-owned transport boundary before normal reconstruction;
+there is no automatic alias or silent stored-envelope rewrite. Register the new handler classes and subscriber Event
+FQCN/canonical name together. This is the approved pre-release namespace replacement, not a claim that old envelopes
+or registration keys are unchanged. No released message identity changes or release certification is implied.
