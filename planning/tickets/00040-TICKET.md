@@ -130,15 +130,14 @@ Commands, protected Queries and their integrated deletion/retry evidence; no rev
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
-claimed then. TASK-00147's accepted candidate A and administrative closeout B remain historical checkpoints.
-John's [accepted design revision](../tasks/00147-TASK.md#accepted-design-revision-ordinary-aggregate-roots) reopens
-it for ordinary Session, Phase and Observation aggregate roots/repositories and aggregate-scoped namespaces,
-explicitly without event-sourcing inheritance. The revision is implemented and locally verified; fresh independent
-Review and affected QA are next. See the TASK's current checkpoint and ignored handoff for its owned commit identity.
-Previous acceptance and [PR #221](https://github.com/johnnickell/fight-common/pull/221) publication do not
-cover the revision. TASK-00148 waits for TASK-00147; TASK-00149 waits for both suppliers. This TICKET remains
-`ready-for-agent` under automatic parent rollup because its TASKs are unfinished. No consumer amendment, merge,
-release or deployment is claimed here; release target remains unassigned.
+claimed then. TASK-00147's earlier accepted candidate A and administrative closeout B remain historical checkpoints.
+The ordinary aggregate-root revision is now complete: [TASK-00147's final closeout](../tasks/00147-TASK.md#ordinary-aggregate-revision-acceptance-and-administrative-closeout)
+records independent Review acceptance and affected QA PASS for candidate
+`08cbfb85b1cdc9453c2ac570e0a86c093a98d957`, followed by administrative closeout. Its existing
+[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaits human review/merge; this does not claim
+approval, merge, release or deployment. TASK-00148 is dependency-unblocked; TASK-00149 still waits for
+TASK-00148. This TICKET remains `ready-for-agent` under automatic parent rollup because its sibling TASKs are
+unfinished. No consumer amendment is claimed here; release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
