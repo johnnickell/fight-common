@@ -131,8 +131,8 @@ implementation is introduced. Task order follows real dependencies; no global ex
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
 claimed then. TASK-00147's previously accepted session/phase candidate has independent Review acceptance and QA PASS
-in open [PR #221](https://github.com/johnnickell/fight-common/pull/221). A maintainer-requested local session-Command
-encapsulation follow-up is locally verified and awaits fresh independent Review/affected QA; prior acceptance does not
+in open [PR #221](https://github.com/johnnickell/fight-common/pull/221). Maintainer-requested local recording-Command/Event
+encapsulation follow-ups are locally verified and await fresh independent Review/affected QA; prior acceptance does not
 cover that change. TASK-00148/00149 remain
 unimplemented and blocked on their suppliers. No consumer amendment, merge or release is claimed here. Release target
 remains unassigned.

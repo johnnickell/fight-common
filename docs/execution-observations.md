@@ -33,10 +33,10 @@ Domain validation uses fixed diagnostics rather than echoing submitted content.
 
 ## Trusted admission and composition
 
-`RecordSessionObservation` keeps its payload private and exposes it through `observation(): Observation`.
-Use the accessor rather than direct property access; `toArray()` and `fromArray()` retain the version-one
-Command payload shape. This is a maintainer-requested correction to the unreleased TASK-00147 API, not a
-compatibility change to a released Command.
+`RecordSessionObservation` and `RecordPhaseObservation` keep their payloads private and expose them through
+`observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
+retain the version-one Command payload shape. These are maintainer-requested corrections to the unreleased
+TASK-00147 APIs, not compatibility changes to released Commands.
 
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
 It must verify the authenticated instrumentation producer and permitted project, session, target phase and parent
@@ -98,6 +98,10 @@ $phaseObservation = Observation::create(
 );
 $commands->execute(new RecordPhaseObservation($phaseObservation));
 ```
+
+`ObservationRecorded` also keeps its state private. Subscribers read it through `id()`, `producerId()`,
+`projectId()`, `sessionId()`, `phaseId()` and `recordedAt()`; `phaseId()` is null for a session fact. Its safe
+`toArray()`/`fromArray()` payload remains unchanged, including UTC recording time with microseconds.
 
 Use the existing subscriber registration contract to observe `ObservationRecorded`. When calling
 `SimpleEventDispatcher::addHandler()` directly, use the existing canonical event name from

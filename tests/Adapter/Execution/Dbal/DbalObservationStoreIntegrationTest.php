@@ -320,7 +320,7 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         } catch (CommittedObservationDispatchFailed $exception) {
             self::assertInstanceOf(EventDispatchFailed::class, $exception->getPrevious());
             self::assertSame('Observation committed but event dispatch failed.', $exception->getMessage());
-            self::assertTrue($observation->id->equals($exception->event->id));
+            self::assertTrue($observation->id->equals($exception->event->id()));
         }
         self::assertSame(['failed', 'completed'], $subscribers);
         self::assertNotNull($store->get('instrumentation', $observation->id));

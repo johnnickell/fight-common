@@ -52,8 +52,8 @@ final class ObservationRecorderTest extends UnitTestCase
         $store->shouldReceive('append')->once()->with($observation)->globally()->ordered()->andReturn($recorded);
         $events->shouldReceive('trigger')->once()->andReturnUsing(static function (ObservationRecorded $event) use (&$committed, $observation): void {
             self::assertTrue($committed);
-            self::assertTrue($event->id->equals($observation->id));
-            self::assertNull($event->phaseId);
+            self::assertTrue($event->id()->equals($observation->id));
+            self::assertNull($event->phaseId());
         });
         (new ObservationRecorder($store, $admission, $events))->record($observation);
     }
@@ -148,7 +148,7 @@ final class ObservationRecorderTest extends UnitTestCase
         } else {
             $store->shouldReceive('get')->once()->andReturnNull();
             $store->shouldReceive('append')->once()->andReturn(new RecordedObservation($observation, new DateTimeImmutable('2026-10-20Z')));
-            $events->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId === $observation->phase->phaseId);
+            $events->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId() === $observation->phase->phaseId);
         }
         (new ObservationRecorder($store, $admission, $events))->record($observation);
     }
@@ -181,7 +181,7 @@ final class ObservationRecorderTest extends UnitTestCase
         } catch (CommittedObservationDispatchFailed $exception) {
             self::assertSame($failure, $exception->getPrevious());
             self::assertSame('Observation committed but event dispatch failed.', $exception->getMessage());
-            self::assertTrue($observation->id->equals($exception->event->id));
+            self::assertTrue($observation->id->equals($exception->event->id()));
         }
     }
 

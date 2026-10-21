@@ -26,8 +26,10 @@ The selected [execution introspection map](../wayfinder/mcp-execution-introspect
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
 Board-based execution selection, not automatic implementation. John selected TASK-00147 and the main checkout;
 its previously accepted candidate A is published in [PR #221](https://github.com/johnnickell/fight-common/pull/221).
-John requested a local session-Command property-encapsulation follow-up and a public-property inventory;
+John requested local recording-Command/Event encapsulation follow-ups and a public-property inventory;
 TASK-00147 is reopened and locally verified, awaiting renewed independent Review/affected QA before publication.
+[TASK-00173](00173-TASK.md) separately plans getter-based deprecation for released runtime properties, excluding
+Standards; it is not started and does not alter the active-work selection.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
 priority is inferred. TASK-00168's approved protocol activation
 has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
@@ -47,6 +49,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 

@@ -127,6 +127,28 @@ final class ObservationTest extends UnitTestCase
         }
     }
 
+    public function test_that_recorded_events_expose_safe_state_only_through_accessors(): void
+    {
+        foreach ([ObservationFixture::session(), ObservationFixture::phase()] as $observation) {
+            $recorded = new RecordedObservation($observation, new DateTimeImmutable('2026-10-20T17:00:00.000123+02:00'));
+            $event = ObservationRecorded::fromRecorded($recorded);
+
+            self::assertSame([], get_object_vars($event));
+            self::assertSame($observation->id, $event->id());
+            self::assertSame($recorded->recordedAt, $event->recordedAt());
+            foreach ([$event, ObservationRecorded::fromArray($event->toArray())] as $fact) {
+                self::assertSame([], get_object_vars($fact));
+                self::assertTrue($observation->id->equals($fact->id()));
+                self::assertSame('instrumentation', $fact->producerId());
+                self::assertSame('project', $fact->projectId());
+                self::assertSame('session', $fact->sessionId());
+                self::assertSame($observation->phase?->phaseId, $fact->phaseId());
+                self::assertSame('2026-10-20T15:00:00.000123Z', $fact->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
+                self::assertSame($event->toArray(), $fact->toArray());
+            }
+        }
+    }
+
     #[DataProvider('invalidObservations')]
     public function test_that_unsupported_or_invalid_submitted_data_rejects_safely(array $changes): void
     {

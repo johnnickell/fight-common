@@ -19,12 +19,12 @@ final readonly class ObservationRecorded implements Event
      * Constructs ObservationRecorded
      */
     private function __construct(
-        public ObservationId $id,
-        public string $producerId,
-        public string $projectId,
-        public string $sessionId,
-        public ?string $phaseId,
-        public DateTimeImmutable $recordedAt
+        private ObservationId $id,
+        private string $producerId,
+        private string $projectId,
+        private string $sessionId,
+        private ?string $phaseId,
+        private DateTimeImmutable $recordedAt
     ) {
     }
 
@@ -66,6 +66,54 @@ final readonly class ObservationRecorded implements Event
             $data['phase_id'] === null ? null : ObservationFields::reference($data['phase_id']),
             Observation::timestamp($data['recorded_at'])
         );
+    }
+
+    /**
+     * Returns the observation identity
+     */
+    public function id(): ObservationId
+    {
+        return $this->id;
+    }
+
+    /**
+     * Returns the instrumentation producer reference
+     */
+    public function producerId(): string
+    {
+        return $this->producerId;
+    }
+
+    /**
+     * Returns the project reference
+     */
+    public function projectId(): string
+    {
+        return $this->projectId;
+    }
+
+    /**
+     * Returns the session reference
+     */
+    public function sessionId(): string
+    {
+        return $this->sessionId;
+    }
+
+    /**
+     * Returns the optional phase reference
+     */
+    public function phaseId(): ?string
+    {
+        return $this->phaseId;
+    }
+
+    /**
+     * Returns the server recording time
+     */
+    public function recordedAt(): DateTimeImmutable
+    {
+        return $this->recordedAt;
     }
 
     /**

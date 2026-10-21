@@ -16,7 +16,7 @@ final readonly class RecordPhaseObservation implements Command
     /**
      * Constructs RecordPhaseObservation
      */
-    public function __construct(public Observation $observation)
+    public function __construct(private Observation $observation)
     {
         if ($observation->phase === null) {
             throw new DomainException('Expected a phase observation.');
@@ -29,6 +29,14 @@ final readonly class RecordPhaseObservation implements Command
     public static function fromArray(array $data): static
     {
         return new self(Observation::fromArray($data));
+    }
+
+    /**
+     * Returns the phase observation
+     */
+    public function observation(): Observation
+    {
+        return $this->observation;
     }
 
     /**
