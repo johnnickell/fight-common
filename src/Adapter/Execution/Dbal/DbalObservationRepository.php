@@ -8,6 +8,7 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Observation\ObservationRepository;
+use RuntimeException;
 
 /**
  * Class DbalObservationRepository
@@ -33,12 +34,12 @@ final readonly class DbalObservationRepository implements ObservationRepository
             return null;
         }
 
-        if ((int) $row['version'] !== 1) {
+        if (!in_array((int) $row['version'], [1, 2], true)) {
             throw new DomainException('Unsupported observation version.');
         }
 
         $data = json_decode($row['payload'], true, 32, JSON_THROW_ON_ERROR);
-        if (!is_array($data)) {
+        if (!is_array($data) || ($data['version'] ?? null) !== (int) $row['version']) {
             throw new DomainException('Invalid stored observation structure.');
         }
 
@@ -52,13 +53,22 @@ final readonly class DbalObservationRepository implements ObservationRepository
     {
         $this->transaction->requireOwnedTransaction();
         $recordedAt = $observation->recordedAt();
+        if (
+            $observation->activity() !== null
+            && (int) $this->transaction->connection()->fetchOne(
+                'SELECT version FROM fight_execution_schema WHERE singleton = 1'
+            ) !== 2
+        ) {
+            throw new RuntimeException('Activity recording requires observation schema version two.');
+        }
+
         $this->transaction->connection()->insert('fight_execution_observations', [
             'producer_id'    => $observation->producerId(),
             'observation_id' => $observation->id()->toString(),
             'project_id'     => $observation->session()->projectId(),
             'session_id'     => $observation->session()->sessionId(),
             'phase_id'       => $observation->phase()?->phaseId(),
-            'version'        => 1,
+            'version'        => $observation->toArray()['version'],
             'payload'        => $observation->comparison(),
             'recorded_at'    => $recordedAt->format('Y-m-d\TH:i:s.u\Z')
         ]);

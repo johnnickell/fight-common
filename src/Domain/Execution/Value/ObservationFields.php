@@ -31,6 +31,21 @@ final readonly class ObservationFields
     }
 
     /**
+     * Returns a bounded consumer-owned namespaced name
+     */
+    public static function name(mixed $value): string
+    {
+        if (
+            !is_string($value) || strlen($value) > 96
+            || preg_match('/\A[a-z][a-z0-9.-]*\/[a-z][a-z0-9._-]*\z/D', $value) !== 1
+        ) {
+            throw new DomainException('Invalid observation name.');
+        }
+
+        return $value;
+    }
+
+    /**
      * Returns a bounded opaque reference
      */
     public static function reference(mixed $value): string

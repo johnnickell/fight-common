@@ -43,7 +43,15 @@ $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class)
 });
 $data = $config['observation'];
 if ($role === 'second' && $config['conflict']) {
-    $data['outcome'] = 'failed';
+    if (($data['version'] ?? null) === 2) {
+        if ($config['usage_conflict'] ?? false) {
+            $data['activity']['usage'][2]['value'] = '999';
+        } else {
+            $data['activity']['summary'] = 'Changed safe summary';
+        }
+    } else {
+        $data['outcome'] = 'failed';
+    }
 }
 $observation = Observation::fromArray($data);
 file_put_contents($directory.'/'.$role.'-started', 'started');
@@ -61,4 +69,5 @@ echo json_encode([
     'recorded_at' => $stored?->recordedAt()->format('Y-m-d\TH:i:s.u\Z'),
     'outcome' => $stored?->outcome()->value,
     'id' => $stored?->id()->toString(),
+    'payload' => $stored?->toArray(),
 ], JSON_THROW_ON_ERROR).PHP_EOL;

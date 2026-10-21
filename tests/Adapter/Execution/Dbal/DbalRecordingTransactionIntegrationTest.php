@@ -440,15 +440,17 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('races')]
-    public function test_that_independent_competing_retries_serialize_and_compare_content(string $backend, bool $phase, bool $conflict): void
+    public function test_that_independent_competing_retries_serialize_and_compare_content(string $backend, bool|string $phase, bool $conflict): void
     {
         $connection = $this->database($backend);
         $fixture = new RecordingFixture(new DbalRecordingTransaction($connection));
         if ($phase) { $fixture->record(ObservationFixture::session()); }
-        $observation = $phase ? ObservationFixture::phase() : ObservationFixture::session();
+        $activity = is_string($phase);
+        if ($activity) { $fixture->record(ObservationFixture::phase()); }
+        $observation = $activity ? ObservationFixture::activity() : ($phase ? ObservationFixture::phase() : ObservationFixture::session());
         $directory = $this->directory();
         $config = $directory.'/config.json';
-        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'observation' => $observation->toArray(), 'conflict' => $conflict], JSON_THROW_ON_ERROR));
+        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'observation' => $observation->toArray(), 'conflict' => $conflict, 'usage_conflict' => $phase === 'usage'], JSON_THROW_ON_ERROR));
         $first = new Process([PHP_BINARY, __DIR__.'/../../../TestCase/Execution/record-worker.php', $config, 'first'], timeout: 20);
         $second = new Process([PHP_BINARY, __DIR__.'/../../../TestCase/Execution/record-worker.php', $config, 'second'], timeout: 20);
         try {
@@ -473,7 +475,8 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             self::assertSame($winner['recorded_at'], $retry['recorded_at']);
             self::assertSame('unknown', $retry['outcome']);
             self::assertSame($observation->id()->toString(), $retry['id']);
-            self::assertSame($phase ? 2 : 1, $this->rowCount($connection, 'observations'));
+            self::assertSame($observation->toArray(), $retry['payload']);
+            self::assertSame($activity ? 3 : ($phase ? 2 : 1), $this->rowCount($connection, 'observations'));
             self::assertSame(1, $this->rowCount($connection, 'sessions'));
             self::assertSame($phase ? 1 : 0, $this->rowCount($connection, 'phases'));
         } finally {
@@ -481,6 +484,197 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             $first->stop();
             $second->stop();
         }
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_activity_and_usage_roundtrip_recheck_admission_and_conflict_without_overwrite(string $backend): void
+    {
+        $connection = $this->database($backend);
+        $store = new DbalRecordingTransaction($connection);
+        $fixture = new RecordingFixture($store);
+        $fixture->record(ObservationFixture::session());
+        $fixture->record(ObservationFixture::phase());
+        $events = 0;
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+        $observation = ObservationFixture::activity();
+        $fixture->bus()->execute(RecordPhaseObservation::fromArray($observation->toArray()));
+        $repository = new DbalObservationRepository(new DbalRecordingTransaction($this->connect($connection->getParams())));
+        $saved = $repository->getById('instrumentation', $observation->id());
+        self::assertSame($observation->toArray(), $saved->toArray());
+        self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
+        self::assertSame('120000', $saved->occurredAt()->format('u'));
+        self::assertSame('model:one', $saved->activity()->modelId());
+        self::assertSame('agent', $saved->phase()->agentId());
+        self::assertSame('instrumentation', $saved->producerId());
+        $usage = $saved->activity()->usage();
+        self::assertNull($usage[0]->value());
+        self::assertSame('unknown', $usage[0]->completeness()->value);
+        self::assertNull($usage[1]->value());
+        self::assertSame('unavailable', $usage[1]->completeness()->value);
+        self::assertSame('0', $usage[2]->value());
+        self::assertSame('12.5', $usage[3]->value());
+        self::assertSame('partial', $usage[3]->completeness()->value);
+        self::assertSame('response', $usage[3]->provenance());
+        self::assertSame('token', $usage[3]->unit());
+        $fixture->record(Observation::fromArray($observation->toArray()));
+        self::assertEquals($saved->recordedAt(), $repository->getById('instrumentation', $observation->id())->recordedAt());
+        foreach (['summary', 'kind', 'model_id', 'value', 'unit', 'provenance', 'completeness', 'precision'] as $field) {
+            $data = $observation->toArray();
+            if ($field === 'summary') { $data['activity']['summary'] = 'Different safe summary'; }
+            elseif ($field === 'kind') { $data['activity']['kind'] = 'consumer/other'; }
+            elseif ($field === 'model_id') { $data['activity']['model_id'] = 'model:two'; }
+            elseif ($field === 'precision') { $data['occurred_at'] = '2026-10-20T12:34:56.120000Z'; }
+            elseif ($field === 'completeness') { $data['activity']['usage'][3]['completeness'] = 'complete'; }
+            else { $data['activity']['usage'][2][$field] = $field === 'value' ? '1' : 'different'; }
+            try { $fixture->record(Observation::fromArray($data)); self::fail('Expected changed-content conflict.'); }
+            catch (ObservationConflict $exception) { self::assertSame('Observation identity has conflicting content.', $exception->getMessage()); }
+            self::assertSame($saved->comparison(), $repository->getById('instrumentation', $observation->id())->comparison());
+        }
+        $fixture->setAllowed(false);
+        try { $fixture->record($observation); self::fail('Expected revoked retry.'); }
+        catch (RecordingDenied) { self::assertSame(1, $events); }
+        self::assertSame(3, $this->rowCount($connection, 'observations'));
+        self::assertSame(1, $this->rowCount($connection, 'phases'));
+        // Retained-record guarantee ends after deliberate removal of its identity/comparison row.
+        $fixture->setAllowed(true);
+        $connection->delete('fight_execution_observations', ['producer_id' => 'instrumentation', 'observation_id' => $observation->id()->toString()]);
+        $fixture->record($observation);
+        self::assertSame(2, $events);
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_activity_missing_or_cross_scope_phase_rejects_without_creating_subjects(string $backend): void
+    {
+        $connection = $this->database($backend);
+        $fixture = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $fixture->record(ObservationFixture::session());
+        $activity = ObservationFixture::activity();
+        try { $fixture->record($activity); self::fail('Activity must not create its phase.'); }
+        catch (InvalidObservationRelationship) { self::assertSame(0, $this->rowCount($connection, 'phases')); }
+        $fixture->record(ObservationFixture::phase());
+        foreach ([
+            ['phase' => PhaseReference::fromStrings('session', 'missing', null, 'agent', 'review', 1)->toArray()],
+            ['phase' => PhaseReference::fromStrings('session', 'phase', null, 'other-agent', 'review', 1)->toArray()],
+            ['session' => SessionReference::fromStrings('project', 'other', 'build:other')->toArray(), 'phase' => PhaseReference::fromStrings('other', 'phase', null, 'agent', 'review', 1)->toArray()],
+        ] as $changes) {
+            try { $fixture->record(ObservationFixture::activity($changes)); self::fail('Expected relationship rejection.'); }
+            catch (InvalidObservationRelationship $exception) { self::assertSame('Observation relationship is unavailable or inconsistent.', $exception->getMessage()); }
+        }
+        foreach (['concealed', 'unknown'] as $project) {
+            try { $fixture->record(ObservationFixture::activity(['session' => SessionReference::fromStrings($project, 'session', 'build:147')->toArray()])); self::fail('Expected scope denial.'); }
+            catch (RecordingDenied $exception) { self::assertSame('Observation recording is not permitted.', $exception->getMessage()); }
+        }
+        $fixture->setPermittedPhases([]);
+        try { $fixture->record($activity); self::fail('Expected current phase denial.'); }
+        catch (RecordingDenied) { self::assertSame(2, $this->rowCount($connection, 'observations')); }
+        self::assertSame(1, $this->rowCount($connection, 'sessions'));
+        self::assertSame(1, $this->rowCount($connection, 'phases'));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_activity_usage_and_retry_identity_roll_back_after_insert_and_commit_before_subscribers(string $backend): void
+    {
+        $connection = $this->database($backend);
+        $store = new DbalRecordingTransaction($connection);
+        $fixture = new RecordingFixture($store);
+        $fixture->record(ObservationFixture::session());
+        $fixture->record(ObservationFixture::phase());
+        if ($backend === 'sqlite') {
+            $connection->executeStatement("CREATE TRIGGER fight_execution_fail AFTER INSERT ON fight_execution_observations BEGIN SELECT RAISE(ABORT, 'injected'); END");
+        } elseif ($backend === 'mysql') {
+            // The ordinary test user cannot create triggers under MySQL binary logging.
+            // Forward a real insert, then inject a real failing statement before commit.
+            $inject = true;
+            $proxy = $this->mock(Connection::class);
+            foreach (['getDatabasePlatform', 'isTransactionActive', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
+                $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
+            }
+            $proxy->shouldReceive('insert')->andReturnUsing(static function (...$arguments) use ($connection, &$inject): int {
+                $result = $connection->insert(...$arguments);
+                if ($inject) { $connection->executeStatement('INSERT INTO absent_activity_failure_table (id) VALUES (1)'); }
+                return $result;
+            });
+            $store = new DbalRecordingTransaction($proxy);
+            $fixture = new RecordingFixture($store);
+        } else {
+            $connection->executeStatement("CREATE FUNCTION fight_execution_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected'; END; $$");
+            $connection->executeStatement('CREATE TRIGGER fight_execution_fail AFTER INSERT ON fight_execution_observations FOR EACH ROW EXECUTE FUNCTION fight_execution_fail()');
+        }
+        $calls = 0;
+        $other = $this->connect($connection->getParams());
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$calls, $other, $connection): void {
+            ++$calls;
+            self::assertFalse($connection->isTransactionActive());
+            self::assertSame(3, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
+            self::assertSame(['observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'], array_keys($message->payload()->toArray()));
+            throw new RuntimeException('private subscriber diagnostic');
+        });
+        $observation = ObservationFixture::activity();
+        try { $fixture->record($observation); self::fail('Expected after-insert rollback.'); }
+        catch (ObservationStorageFailed $exception) { self::assertFalse($exception->outcomeUncertain()); }
+        self::assertSame(0, $calls);
+        self::assertNull((new DbalObservationRepository($store))->getById('instrumentation', $observation->id()));
+        self::assertSame(2, $this->rowCount($connection, 'observations'));
+        if ($backend === 'mysql') { $inject = false; }
+        else { $this->dropFailureTrigger($connection, $backend); }
+        try { $fixture->record($observation); self::fail('Expected committed subscriber failure.'); }
+        catch (CommittedObservationDispatchFailed $exception) {
+            self::assertSame('Observation committed but event dispatch failed.', $exception->getMessage());
+            self::assertSame($observation->id()->toString(), $exception->event()->id()->toString());
+        }
+        $saved = (new DbalObservationRepository($store))->getById('instrumentation', $observation->id());
+        self::assertSame($observation->comparison(), $saved->comparison());
+        $fixture->record($observation);
+        self::assertSame(1, $calls);
+        self::assertSame(3, $this->rowCount($connection, 'observations'));
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_schema_evolution_preserves_old_payloads_and_activity_recording_comparison_agrees_with_sql(string $backend): void
+    {
+        $connection = $this->database($backend);
+        $manager = $connection->createSchemaManager();
+        $manager->dropIndex('fight_execution_recording_order', 'fight_execution_observations');
+        $connection->update('fight_execution_schema', ['version' => 1], ['singleton' => 1]);
+        $prior = json_decode(file_get_contents(__DIR__.'/../../../TestCase/Execution/version-one-records.json'), true, flags: JSON_THROW_ON_ERROR);
+        foreach ($prior['tables'] as $table => $rows) { foreach ($rows as $row) { $connection->insert($table, $row); } }
+        (new DbalObservationSchema())->install($connection);
+        (new DbalObservationSchema())->install($connection);
+        self::assertSame(2, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
+        self::assertTrue($manager->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
+        $store = new DbalRecordingTransaction($connection);
+        $fixture = new RecordingFixture($store);
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Old retries must not redispatch after migration.'); });
+        $repository = new DbalObservationRepository($store);
+        foreach ($prior['tables']['fight_execution_observations'] as $row) {
+            $saved = $repository->getById('instrumentation', ObservationId::fromString($row['observation_id']));
+            self::assertSame($row['payload'], $saved->comparison());
+            self::assertSame($row['recorded_at'], $saved->recordedAt()->format('Y-m-d\\TH:i:s.u\\Z'));
+            $fixture->record($saved);
+        }
+        (new RecordingFixture($store))->record(ObservationFixture::phase(['observation_id' => ObservationId::generate()->toString()]));
+        // Adapter conformance supplies controlled recorded times, not producer-controlled Command receipt times.
+        $keys = [
+            ['019a1234-5678-4abc-8def-000000000001', '000001', '2026-10-20T12:00:00Z'],
+            ['019a1234-5678-4abc-8def-000000000002', '000001', '2020-01-01T00:00:00.1Z'],
+            ['019a1234-5678-4abc-8dff-000000000000', '000001', '2026-10-20T12:00:00.123456Z'],
+            ['019a1234-5679-4000-8000-000000000000', '000001', '2026-10-20T12:00:00.00Z'],
+            ['019a1234-5678-4abc-8def-000000000000', '000002', '2000-01-01T00:00:00Z'],
+        ];
+        foreach (array_reverse($keys) as [$id, $micros, $occurrence]) {
+            $root = ObservationFixture::activity(['observation_id' => $id, 'occurred_at' => $occurrence])->recorded(new DateTimeImmutable('2026-10-22T00:00:00.'.$micros.'Z'));
+            $store->commitTransactional(static fn () => $repository->add($root));
+            self::assertSame($occurrence, $repository->getById('instrumentation', $root->id())->occurrence()->toString());
+        }
+        $rows = $connection->fetchAllAssociative('SELECT producer_id, observation_id FROM fight_execution_observations ORDER BY recorded_at DESC, observation_id DESC');
+        $roots = array_map(static fn (array $row) => $repository->getById($row['producer_id'], ObservationId::fromString($row['observation_id'])), $rows);
+        $application = array_reverse($roots);
+        usort($application, static fn (Observation $a, Observation $b): int => $b->compareRecordingTo($a));
+        self::assertSame(array_map(static fn ($root) => $root->id()->toString(), $roots), array_map(static fn ($root) => $root->id()->toString(), $application));
+        self::assertSame(array_reverse(array_column($keys, 0)), array_slice(array_column($rows, 'observation_id'), 0, 5));
+        for ($i = 1; $i < count($roots); ++$i) { self::assertSame(1, $roots[$i - 1]->compareRecordingTo($roots[$i])); }
+        // Ordinary recording remains available after explicit evolution.
+        (new RecordingFixture($store))->record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString()]));
     }
 
     public static function databases(): iterable
@@ -491,9 +685,9 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     public static function races(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach ([false, true] as $phase) {
+            foreach ([false, true, 'activity', 'usage'] as $phase) {
                 foreach ([false, true] as $conflict) {
-                    yield $backend.'-'.($phase ? 'phase' : 'session').'-'.($conflict ? 'conflict' : 'matching') => [$backend, $phase, $conflict];
+                    yield $backend.'-'.(is_string($phase) ? $phase : ($phase ? 'phase' : 'session')).'-'.($conflict ? 'conflict' : 'matching') => [$backend, $phase, $conflict];
                 }
             }
         }
