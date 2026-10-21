@@ -31,6 +31,7 @@ final readonly class ObservationExtensions
             throw new DomainException('Observation extensions exceed bounds.');
         }
 
+        $snapshot = [];
         foreach ($values as $key => $value) {
             if (
                 !is_string($key) || strlen($key) > 96
@@ -40,14 +41,17 @@ final readonly class ObservationExtensions
             ) {
                 throw new DomainException('Invalid observation extension.');
             }
+
+            // Fresh scalar assignments detach caller-owned PHP element references.
+            $snapshot[$key] = $value;
         }
 
-        ksort($values, SORT_STRING);
-        if (strlen(json_encode($values, JSON_THROW_ON_ERROR)) > 4096) {
+        ksort($snapshot, SORT_STRING);
+        if (strlen(json_encode($snapshot, JSON_THROW_ON_ERROR)) > 4096) {
             throw new DomainException('Observation extensions exceed bounds.');
         }
 
-        return new self($values);
+        return new self($snapshot);
     }
 
     /**

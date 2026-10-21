@@ -14,6 +14,8 @@ use Fight\Common\Application\Execution\CommittedObservationDispatchFailed;
 use Fight\Common\Application\Execution\InvalidObservationRelationship;
 use Fight\Common\Application\Execution\ObservationConflict;
 use Fight\Common\Application\Execution\ObservationStorageFailed;
+use Fight\Common\Application\Execution\RecordPhaseObservation;
+use Fight\Common\Application\Execution\RecordSessionObservation;
 use Fight\Common\Application\Execution\RecordingDenied;
 use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
 use Fight\Common\Domain\Execution\Observation;
@@ -78,6 +80,51 @@ final class DbalObservationStoreIntegrationTest extends UnitTestCase
         self::assertSame(2, $this->rowCount($connection, 'phases'));
         self::assertSame(1, $this->rowCount($connection, 'sessions'));
         self::assertFalse($connection->isTransactionActive());
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_reference_mutations_cannot_corrupt_committed_commands_or_retries(string $backend): void
+    {
+        $connection = $this->database($backend);
+        $store = new DbalObservationStore($connection);
+        $fixture = new RecordingFixture($store);
+        $reopened = new DbalObservationStore($this->connect($connection->getParams()));
+        $events = 0;
+        $fixture->events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
+
+        foreach ([false, true] as $phase) {
+            $label = str_repeat('測', 85).'x';
+            $count = PHP_INT_MIN;
+            $enabled = true;
+            $expectedExtensions = ['consumer/count' => PHP_INT_MIN, 'consumer/enabled' => true, 'consumer/label' => str_repeat('測', 85).'x', 'consumer/unknown' => null];
+            $extensions = ['consumer/unknown' => null, 'consumer/label' => &$label, 'consumer/enabled' => &$enabled, 'consumer/count' => &$count];
+            $observation = $phase ? ObservationFixture::phase(['extensions' => $extensions]) : ObservationFixture::session(['extensions' => $extensions]);
+            $expected = $phase ? ObservationFixture::phase(['extensions' => $expectedExtensions]) : ObservationFixture::session(['extensions' => $expectedExtensions]);
+            $command = $phase ? new RecordPhaseObservation($observation) : new RecordSessionObservation($observation);
+            $comparison = $observation->comparison();
+
+            $label = ['body' => 'not a scalar'];
+            $count = str_repeat('x', 257);
+            $copy = $command->toArray();
+            $copy['extensions']['consumer/enabled'] = ['body' => 'output copy'];
+            $fixture->bus->execute($command);
+            $saved = $reopened->get('instrumentation', $observation->id);
+            self::assertSame($expected->toArray(), $saved->observation->toArray());
+            self::assertSame($comparison, $observation->comparison());
+            self::assertSame($comparison, $saved->observation->comparison());
+            self::assertSame($expectedExtensions, $observation->extensions->toArray());
+
+            $fixture->bus->execute($command);
+            $serialized = json_decode(json_encode($command->toArray(), JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
+            $fixture->bus->execute($command::fromArray($serialized));
+            self::assertEquals($saved->recordedAt, $reopened->get('instrumentation', $observation->id)->recordedAt);
+            self::assertSame($phase ? 2 : 1, $events);
+            self::assertSame($phase ? 6 : 3, $fixture->admissions);
+            self::assertSame($phase ? 2 : 1, $this->rowCount($connection, 'observations'));
+            self::assertSame(1, $this->rowCount($connection, 'sessions'));
+            self::assertSame($phase ? 1 : 0, $this->rowCount($connection, 'phases'));
+            self::assertFalse($connection->isTransactionActive());
+        }
     }
 
     #[DataProvider('databases')]

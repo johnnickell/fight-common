@@ -72,6 +72,47 @@ final class ObservationTest extends UnitTestCase
         self::assertSame(36, strlen(ObservationId::generate()->toString()));
     }
 
+    #[DataProvider('scalarExtensions')]
+    public function test_that_referenced_input_cannot_change_the_extension_snapshot_or_comparison(string|int|bool|null $value): void
+    {
+        $expected = ['v/a' => $value, 'v/z' => 'control'];
+        $observation = ObservationFixture::session(['extensions' => ['v/z' => 'control', 'v/a' => &$value]]);
+        $comparison = $observation->comparison();
+
+        foreach ([['body' => 'not a scalar'], str_repeat('x', 257)] as $replacement) {
+            $value = $replacement;
+            self::assertSame($expected, $observation->extensions->toArray());
+            self::assertSame($comparison, $observation->comparison());
+            self::assertSame($comparison, Observation::fromArray($observation->toArray())->comparison());
+        }
+    }
+
+    #[DataProvider('scalarExtensions')]
+    public function test_that_output_copies_cannot_write_through_referenced_extensions(string|int|bool|null $value): void
+    {
+        $expected = ['v/a' => $value];
+        $extensions = ObservationExtensions::fromArray(['v/a' => &$value]);
+        $copy = $extensions->toArray();
+        $copy['v/a'] = str_repeat('x', 257);
+        self::assertSame($expected, $extensions->toArray());
+        self::assertSame($expected['v/a'], $value);
+
+        $outputReference = &$copy['v/a'];
+        $outputReference = ['body' => 'not a scalar'];
+        self::assertSame($expected, $extensions->toArray());
+        self::assertSame($expected['v/a'], $value);
+    }
+
+    public static function scalarExtensions(): iterable
+    {
+        yield 'unicode byte boundary' => [str_repeat('測', 85).'x'];
+        yield 'minimum integer' => [PHP_INT_MIN];
+        yield 'zero' => [0];
+        yield 'true' => [true];
+        yield 'false' => [false];
+        yield 'null' => [null];
+    }
+
     public function test_that_events_contain_only_safe_committed_references_and_recording_time(): void
     {
         foreach ([ObservationFixture::session(), ObservationFixture::phase()] as $observation) {
