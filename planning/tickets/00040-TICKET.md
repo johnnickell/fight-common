@@ -104,7 +104,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
-| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | in-progress |
+| [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
 
@@ -169,10 +169,11 @@ TASK-00148 is now dependency-unblocked; TASK-00149 still waits for TASK-00148.
 
 ### Current TASK-00148 user correction
 
-The prior TASK-00148 accept/PASS and `done` checkpoint above are historical. John rejected backward-compatibility
-machinery for this never-released capability. TASK-00148 is reopened `in-progress` to consolidate payload/schema at
-version one, remove v2 readers/upgrades and development fixtures, and retain current recording/integrity guarantees.
-Fresh independent Review and affected QA are pending; PR #222 is reused without Work publication. Dependent TASKs
-wait for this correction. Tagged-release guarantees are unchanged; release target remains unassigned.
+The prior TASK-00148 accept/PASS and `done` checkpoint above are historical. John's correction removed
+backward-compatibility machinery for never-released snapshots while preserving the provisional version-one recording
+contract and tagged-release boundary. The corrected candidate `f593cde1b1009d1fb5d077f10eff918d30094de7` has
+independent Review acceptance (R-01 resolved) and affected QA PASS; TASK-00148 is `done` and PR #222 is open for
+human review/merge. TASK-00149 is now dependency-unblocked. This TICKET remains `ready-for-agent` because
+TASK-00149 is unfinished; no release or deployment is claimed.
 
-Next: `/skill:review TASK-00148` in a fresh independent session after verified, committed repair.
+Next: human review/merge of PR #222; then select work from the Board.
