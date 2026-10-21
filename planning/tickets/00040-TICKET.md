@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -152,5 +152,15 @@ TICKET-00050/00051/00052's TASK-00169/00170/00171 are complete accepted/written 
 Final activation TASK-00168's lifecycle/input/cancellation blockers are fully allocated, not implemented.
 The [map handoff](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) now recommends Board-based execution selection after complete map-wide TASK decomposition, not automatic implementation. The broader requirement
 sequence remains 00040 → 00041/00042 → 00043; unrelated MCP capabilities are not prerequisites for observation recording.
+
+### TASK-00147 ordinary aggregate revision closeout
+
+TASK-00147 is `done`: accepted candidate A
+`08cbfb85b1cdc9453c2ac570e0a86c093a98d957` has current independent Review
+acceptance and affected QA PASS. Its retained complete local gate and the
+administrative A → B bridge are recorded in its completion notes; this does not
+claim PR approval, merge, release, certification or deployment. This TICKET
+remains `ready-for-agent` because TASK-00148 and TASK-00149 are unfinished.
+TASK-00148 is now dependency-unblocked; TASK-00149 still waits for TASK-00148.
 
 Next: `/skill:next`
