@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -130,12 +130,13 @@ Commands, protected Queries and their integrated deletion/retry evidence; no rev
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
-claimed then. TASK-00147's previously accepted session/phase candidate has independent Review acceptance and QA PASS
-in open [PR #221](https://github.com/johnnickell/fight-common/pull/221). Maintainer-requested local recording-Command/Event
-encapsulation follow-ups are locally verified and await fresh independent Review/affected QA; prior acceptance does not
-cover that change. TASK-00148/00149 remain
-unimplemented and blocked on their suppliers. No consumer amendment, merge or release is claimed here. Release target
-remains unassigned.
+claimed then. TASK-00147's current session/phase candidate, including the maintainer-requested recording-Command/Event
+encapsulation follow-ups, now has independent Review acceptance and QA PASS; see its
+[closeout checkpoint](../tasks/00147-TASK.md#accepted-encapsulation-and-land-closeout). Authorized Land updates open
+[PR #221](https://github.com/johnnickell/fight-common/pull/221), then human review/merge is next. TASK-00148/00149 remain
+unimplemented: TASK-00148 is dependency-unblocked, while TASK-00149 still waits for it. This TICKET remains
+`ready-for-agent` under automatic parent rollup. No consumer amendment, merge or release is claimed here;
+release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
