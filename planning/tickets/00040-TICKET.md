@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | in-progress |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -130,15 +130,12 @@ Commands, protected Queries and their integrated deletion/retry evidence; no rev
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
 All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
-claimed then. TASK-00147's previously accepted session/phase candidate is published in
-[PR #221](https://github.com/johnnickell/fight-common/pull/221). John then requested correction of all remaining
-public properties added by the TASK, including Observation and test fixtures; its
-[current repair checkpoint](../tasks/00147-TASK.md#r-02-compatibility-manifest-repair-checkpoint) records the subsequent
-Review-requested R-02 manifest repair, passing direct inventory validation and the complete local gate. Fresh
-independent Review/affected QA are next; prior acceptance does not cover this API correction.
-TASK-00148/00149 remain unimplemented and blocked on their suppliers. This TICKET remains
-`ready-for-agent` under automatic parent rollup. No consumer amendment, merge or release is claimed here;
-release target remains unassigned.
+claimed then. TASK-00147 now records its accepted candidate A and administrative closeout B as `done` after current
+independent Review acceptance and QA PASS; its full gate is retained through a proven planning-prose-only bridge.
+The existing [PR #221](https://github.com/johnnickell/fight-common/pull/221) remains open for human review/merge;
+completion does not claim approval, merge, release, certification or deployment. TASK-00148 is now unblocked;
+TASK-00149 remains blocked by TASK-00148. This TICKET remains `ready-for-agent` under automatic parent rollup
+because its sibling TASKs are unfinished. No consumer amendment is claimed here; release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
