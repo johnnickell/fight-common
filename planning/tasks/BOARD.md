@@ -137,7 +137,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | [PR #213](https://github.com/johnnickell/fight-common/pull/213) |
 | — | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | [PR #214](https://github.com/johnnickell/fight-common/pull/214) |
 | — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
-| — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | — |
+| — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 <!-- /planning:board -->
 
 ## Wayfinder
