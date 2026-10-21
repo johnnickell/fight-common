@@ -28,7 +28,9 @@ CQRS uses `CommandBus::execute()`, `QueryBus::fetch()`, and `EventDispatcher::tr
 
 ### Local-first acceptance and publication
 
-John confirmed this workflow on 2026-09-28: **work → local verification → independent review → land**.
+The current workflow is **work → local verification → independent Review → independent QA → authorized Land →
+human merge**. [TASK-00172](../tasks/00172-TASK.md) adopts Agent OS QA and the later completion checkpoint;
+the 2026-09-28 local-first decision remains intact.
 Fight Common is public, but visibility does not add a pre-publication acceptance gate. A valid local build receipt
 and sufficient behavior evidence permit independent acceptance without a hosted run or PR. Work and review do
 not push or create PRs to obtain CI; publication belongs to an explicitly authorized land operation.
@@ -44,8 +46,9 @@ accepted TASK requirement or an actual host-enforced rule may still require a ho
 and satisfy it rather than inventing or bypassing it. The main-only Docs deploy job is not a feature-PR check.
 No agent approval, merge, release, certification or deployment authority follows from this discretion.
 
-TASK-00115's completion convention records implementation done before independent review, with that review pending
-explicitly. Ordinary land requires independent acceptance and applicable QA before marking a PR ready;
+TASK-00172 supersedes TASK-00115's implementation-complete `done` convention prospectively: implementation stays
+non-terminal until independent Review acceptance and required QA are satisfied. Historical records retain their
+original meaning. Ordinary land requires independent acceptance and applicable QA before marking a PR ready;
 truthful administrative completion/PR metadata may follow the accepted candidate without making the agent's
 readiness conditional on optional hosted CI. Preserve the accepted candidate, later administrative closeout,
 observed hosted results and human merge decision as distinct facts under
@@ -106,21 +109,25 @@ the remaining supported range permits the public replacement. No automatic suppo
 
 ## Planning and Git
 
-Read [CONVENTIONS.md](../CONVENTIONS.md). EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
+Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Build role also read the
+[shared workflow binding](shared-workflows.md) for target substitutions, authority, handoffs and evidence.
+EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
 After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
 
 New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
 
-TASK `done` records implementation acceptance and required local verification before publication; record pending
-independent review and all delivery outcomes separately. Use the single [Review catalog and canonical handoff](../../docs/engineering/standards/Review.md).
+TASK `done` requires implementation acceptance, required verification, independent Review acceptance and
+satisfied required [QA](../../docs/engineering/standards/QA.md), including justified overall N/A. Keep pending
+Review/QA explicit on a non-terminal TASK and record delivery separately. Use the single
+[Review catalog and canonical handoff](../../docs/engineering/standards/Review.md).
 One independent reviewer may conduct both passes; material contributors cannot accept their work. Preserve legacy
 report history and use [Delivery's provenance bridge](../../docs/engineering/standards/Delivery.md#reconciling-reviewed-revisions)
 for proven mechanical reconciliation, not semantic drift.
 
 ## Runtime, runs and delivery
 
-Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical review reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
+Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical Review and QA reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. The [binding](shared-workflows.md#ignored-evidence) adds prospective Build/task-run locations without relocating legacy evidence. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
 
 No persistent HTTP runtime or LocalDevelopment enrollment is asserted by this adoption. Library-focused checks need no feature URL. Any later HTTP runtime/worktree integration must use the shared operator's documented enrollment procedure; record the actual portable operator contract when adopted.
 

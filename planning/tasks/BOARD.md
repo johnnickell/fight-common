@@ -10,11 +10,17 @@ Read the referenced current section, not the full historical record. Missing han
 
 Execution view for Fight Common. TASK records own status, dependencies, priority (`order`), and PR links.
 Refresh generated rows with `./bin/planning-check --write`. A PR link does not assert merge or deployment.
+[Shared handoffs](../agents/shared-workflows.md#handoffs) select the next stage from actual evidence. Implemented
+TASKs awaiting independent Review/QA remain active, not done; historical terminal records retain their old meaning.
 
 ## What's next?
 
 For `/ask-matt` or an unqualified "What's next?", report the current Human Action or Needs Info decision and the
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
+
+[TASK-00172](00172-TASK.md#completion-notes) has independent Review acceptance, required QA PASS and an open
+[PR #220](https://github.com/johnnickell/fight-common/pull/220). Its current handoff is human review/merge; the
+terminal TASK status records accepted content, not PR approval, merge, release or deployment.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
@@ -132,6 +138,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00144](00144-TASK.md) | Integrate Safe Symfony Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | [PR #213](https://github.com/johnnickell/fight-common/pull/213) |
 | — | [TASK-00145](00145-TASK.md) | Integrate Safe Laravel Error Handling | [TICKET-00039 — Present Safe Errors Across HTTP Adapters](../tickets/00039-TICKET.md) | done | — | [PR #214](https://github.com/johnnickell/fight-common/pull/214) |
 | — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
+| — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 <!-- /planning:board -->
 
 ## Wayfinder
