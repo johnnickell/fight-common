@@ -25,10 +25,11 @@ terminal TASK status records accepted content, not PR approval, merge, release o
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
 Board-based execution selection, not automatic implementation. John selected TASK-00147 and the main checkout;
-[TASK-00147](00147-TASK.md#complete-added-property-encapsulation-correction) is reopened for John's correction of
-all remaining public properties added by the TASK, including Observation and test fixtures. Local verification passes;
-fresh independent Review/affected QA are pending. [PR #221](https://github.com/johnnickell/fight-common/pull/221)
-contains the previously accepted head; that acceptance does not cover this new correction.
+[TASK-00147](00147-TASK.md#r-02-compatibility-manifest-repair-checkpoint) remains active for John's all-properties
+correction, including Observation and test fixtures. Independent Review requested R-02 compatibility-manifest repair;
+that repair now passes the direct owning inspector and complete local gate. Fresh independent Review/affected QA
+are next. [PR #221](https://github.com/johnnickell/fight-common/pull/221) contains the historical published head;
+prior acceptance/QA do not cover this current correction.
 [TASK-00173](00173-TASK.md) separately plans getter-based deprecation for released runtime properties, excluding
 Standards; it is not started. TASK-00148 waits for the reopened TASK-00147.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global

@@ -133,8 +133,9 @@ All three TASKs were accepted and written at the planning checkpoint; no impleme
 claimed then. TASK-00147's previously accepted session/phase candidate is published in
 [PR #221](https://github.com/johnnickell/fight-common/pull/221). John then requested correction of all remaining
 public properties added by the TASK, including Observation and test fixtures; its
-[reopened checkpoint](../tasks/00147-TASK.md#complete-added-property-encapsulation-correction) passes local verification
-and awaits fresh independent Review/affected QA. Prior acceptance does not cover this API correction.
+[current repair checkpoint](../tasks/00147-TASK.md#r-02-compatibility-manifest-repair-checkpoint) records the subsequent
+Review-requested R-02 manifest repair, passing direct inventory validation and the complete local gate. Fresh
+independent Review/affected QA are next; prior acceptance does not cover this API correction.
 TASK-00148/00149 remain unimplemented and blocked on their suppliers. This TICKET remains
 `ready-for-agent` under automatic parent rollup. No consumer amendment, merge or release is claimed here;
 release target remains unassigned.
