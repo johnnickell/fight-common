@@ -134,6 +134,7 @@ nav:
       - Sockets: components/sockets/index.md
     - Operate Workloads:
       - Observability: components/observability/index.md
+      - Execution Observations: execution-observations.md
       - Process: components/process/index.md
       - Scheduler: components/scheduler/index.md
   - Frameworks:

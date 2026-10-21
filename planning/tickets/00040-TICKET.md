@@ -101,7 +101,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | ready-for-agent |
+| [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | ready-for-agent |
 | [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
 <!-- /planning:children -->
@@ -129,9 +129,15 @@ TASK-00149 proves the storage-level detail-removal/retry boundary. TICKET-00042 
 Commands, protected Queries and their integrated deletion/retry evidence; no reverse blocker or duplicate recording
 implementation is introduced. Task order follows real dependencies; no global execution priority is assigned.
 
-All three TASKs are accepted and written, but no implementation, consumer amendment, commit or publication has
-occurred. `ready-for-agent` records accepted planning, not completed capability evidence. Main-checkout/worktree
-selection remains explicit before implementation. Release target remains unassigned.
+All three TASKs were accepted and written at the planning checkpoint; no implementation or publication was
+claimed then. TASK-00147's earlier accepted candidate A and administrative closeout B remain historical checkpoints.
+The ordinary aggregate-root revision is now complete: [TASK-00147's final closeout](../tasks/00147-TASK.md#ordinary-aggregate-revision-acceptance-and-administrative-closeout)
+records independent Review acceptance and affected QA PASS for candidate
+`08cbfb85b1cdc9453c2ac570e0a86c093a98d957`, followed by administrative closeout. Its existing
+[PR #221](https://github.com/johnnickell/fight-common/pull/221) awaits human review/merge; this does not claim
+approval, merge, release or deployment. TASK-00148 is dependency-unblocked; TASK-00149 still waits for
+TASK-00148. This TICKET remains `ready-for-agent` under automatic parent rollup because its sibling TASKs are
+unfinished. No consumer amendment is claimed here; release target remains unassigned.
 
 All four EPICs' TICKET decompositions are accepted and written. This was the first complete TASK decomposition;
 TICKET-00041's approved three-TASK split is written as TASK-00150–00152, and TICKET-00042's complete approved
@@ -145,5 +151,15 @@ TICKET-00050/00051/00052's TASK-00169/00170/00171 are complete accepted/written 
 Final activation TASK-00168's lifecycle/input/cancellation blockers are fully allocated, not implemented.
 The [map handoff](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) now recommends Board-based execution selection after complete map-wide TASK decomposition, not automatic implementation. The broader requirement
 sequence remains 00040 → 00041/00042 → 00043; unrelated MCP capabilities are not prerequisites for observation recording.
+
+### TASK-00147 ordinary aggregate revision closeout
+
+TASK-00147 is `done`: accepted candidate A
+`08cbfb85b1cdc9453c2ac570e0a86c093a98d957` has current independent Review
+acceptance and affected QA PASS. Its retained complete local gate and the
+administrative A → B bridge are recorded in its completion notes; this does not
+claim PR approval, merge, release, certification or deployment. This TICKET
+remains `ready-for-agent` because TASK-00148 and TASK-00149 are unfinished.
+TASK-00148 is now dependency-unblocked; TASK-00149 still waits for TASK-00148.
 
 Next: `/skill:next`
