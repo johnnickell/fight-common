@@ -18,8 +18,9 @@ TASKs awaiting independent Review/QA remain active, not done; historical termina
 For `/ask-matt` or an unqualified "What's next?", report the current Human Action or Needs Info decision and the
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
 
-[TASK-00172's current handoff](00172-TASK.md#completion-notes) is independent Review, then required QA.
-Its implementation is locally verified but remains active under the new completion rule; publication is not authorized.
+[TASK-00172](00172-TASK.md#completion-notes) has independent Review acceptance, required QA PASS and an open
+[PR #220](https://github.com/johnnickell/fight-common/pull/220). Its current handoff is human review/merge; the
+terminal TASK status records accepted content, not PR approval, merge, release or deployment.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
 approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
