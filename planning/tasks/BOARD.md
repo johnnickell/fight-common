@@ -30,9 +30,9 @@ no event-sourcing inheritance was introduced. Its existing [PR #221](https://git
 is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication)
 is done: its corrected provisional version-one candidate has independent Review acceptance (R-01 resolved) and
 affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is merged and integrated
-at TASK-00149 intake; dependent TASKs are unblocked. [TASK-00149](00149-TASK.md) is in progress in the selected main
-checkout; Work implementation/full-gate verification is complete and independent Review, then required QA, is next.
-The TASK stays in-progress; no publication or independent acceptance is claimed.
+at TASK-00149 intake; dependent TASKs are unblocked. [TASK-00149](00149-TASK.md) is `done` after
+independent Review acceptance and required QA PASS; its open [PR #224](https://github.com/johnnickell/fight-common/pull/224)
+is published for human review/merge. This is not a return to Work, Review, or QA.
 [TASK-00173](00173-TASK.md) separately plans
 getter-based deprecation for released runtime properties, excluding Standards; it is not started.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global

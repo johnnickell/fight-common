@@ -178,14 +178,19 @@ TASK-00149 is unfinished; no release or deployment is claimed.
 
 That PR #222 handoff is historical: it is merged and integrated at TASK-00149 intake.
 
-### TASK-00149 Work handoff
+### TASK-00149 Work checkpoint (historical)
 
-TASK-00149 implements protected recording on the same session/phase/activity Command path, with separately stored
-bounded content, current retry admission, atomic FK-linked writes, safe committed facts and a retained-record
+At the Work checkpoint, TASK-00149 had implemented protected recording on the shared Command path with separately
+stored bounded content, current retry admission, atomic FK-linked writes, safe committed facts and a retained-record
 removal/retry boundary. Its full local gate passed (6,280 Unit, 260 Integration, 53 Functional tests; exact
-14,351/14,351 statement coverage), with real SQLite/MySQL/PostgreSQL and DBAL 4.4.5/4.5.0 evidence. Its completion
-notes link the criterion mapping, logs, content receipt and inherited release-manifest limitation. This TICKET
-remains open: TASK-00149 stays in-progress awaiting independent Review and required QA, not builder acceptance.
-Public protected Queries/removal remain TICKET-00042; no publication, release or consumer amendment is claimed.
+14,351/14,351 statement coverage), with real SQLite/MySQL/PostgreSQL and DBAL 4.4.5/4.5.0 evidence. The then-pending
+independent Review and QA handoff is historical.
 
-Next: `/skill:review TASK-00149` in an independent session.
+### Current TASK-00149 delivery handoff
+
+TASK-00149 is `done` after independent Review acceptance and required QA PASS. Its published
+[PR #224](https://github.com/johnnickell/fight-common/pull/224) is open for human review/merge; this does not claim
+merge, release, certification or deployment. All three TICKET-00040 TASKs are terminal, so TICKET-00040 is `done`.
+Public protected Queries/removal remain TICKET-00042.
+
+Next: human review and merge https://github.com/johnnickell/fight-common/pull/224.
