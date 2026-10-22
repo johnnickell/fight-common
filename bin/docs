@@ -10,11 +10,11 @@ fi
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 ID_BIN="${ID_BIN:-id}"
-PYTHON_IMAGE="${FIGHT_COMMON_DOCS_PYTHON_IMAGE:-fight-common-docs-python-3.13.7}"
+PYTHON_IMAGE="${FIGHT_COMMON_DOCS_PYTHON_IMAGE:-fight-common-docs-python-3.13.17}"
 
 cd "${ROOT_DIR}"
 
-"${DOCKER_BIN}" build -t "${PYTHON_IMAGE}" ./etc/docker/python/
+"${DOCKER_BIN}" build --pull -t "${PYTHON_IMAGE}" ./etc/docker/python/
 
 case "${1}" in
     preview)

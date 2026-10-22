@@ -47,7 +47,7 @@ source "${ROOT_DIR}/bin/.disposable-database-runtime"
 
 fight_common_install_disposable_database_cleanup
 
-"${DOCKER_BIN}" build -t "${PHP_IMAGE}" ./etc/docker/php/
+"${DOCKER_BIN}" build --pull -t "${PHP_IMAGE}" ./etc/docker/php/
 
 fight_common_start_disposable_databases
 

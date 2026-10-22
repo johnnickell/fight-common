@@ -43,7 +43,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 1 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 
