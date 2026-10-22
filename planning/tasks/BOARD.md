@@ -149,7 +149,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
 | — | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #221](https://github.com/johnnickell/fight-common/pull/221) |
 | — | [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #222](https://github.com/johnnickell/fight-common/pull/222) |
-| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | — |
+| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #224](https://github.com/johnnickell/fight-common/pull/224) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 <!-- /planning:board -->
 
