@@ -118,6 +118,74 @@ Never use `git commit --no-verify`, disable, or otherwise bypass the hook merely
 interrupted, or inconvenient. An exception requires explicit authorization for that exact commit and leaves
 delivery unverified.
 
+## Refresh build runtimes and TLS trust
+
+The PHP image follows the stable 8.5 line; image-building wrappers use `--pull` and stop if retrieval or
+building fails. PHP 8.5.12 is the minimum patched interpreter for CVE-2026-109618 and CVE-2026-109619.
+This does not change the library's public support floor or Composer's simulated platform. A Composer update
+cannot patch a consumer's web-serving PHP: its operator must urgently upgrade the interpreter using the
+[PHP security guidance](https://www.php.net/archive/2026.php) and restart the affected serving processes.
+Common's CLI verification is not a consumer deployment or proof of web-runtime safety.
+
+The documentation base is deliberately digest-pinned. `--pull` retrieves that digest; it **cannot** advance the
+pin. When maintaining trust inputs, inspect the official Python 3.13 image manifest, update both its version
+and digest in `etc/docker/python/Dockerfile`, and update the default local tag in `bin/docs`. Check the actual
+OS bundle and pip-vendored certifi before using that base to retrieve packages. For the
+[emSign incident](https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576),
+certifi must be at least 2026.10.19 and pip at least 26.2.2; updating top-level certifi does not repair pip's
+separate vendor bundle. Keep unrelated documentation dependencies pinned.
+
+From the selected checkout, force package-install layers to run as well as pulling bases:
+
+```bash
+set -euo pipefail
+docker build --pull --no-cache -t fight-common ./etc/docker/php/
+docker build --pull --no-cache -t fight-common-docs-python-3.13.17 ./etc/docker/python/
+docker image inspect fight-common fight-common-docs-python-3.13.17 \
+  --format '{{.RepoTags}} {{.Id}} {{json .RepoDigests}}'
+docker run --rm --pull=never --network=none --read-only fight-common php -v
+```
+
+Inspect each trust store separately; the affected `emSign ECC Root CA - G3` root must be absent. This diagnostic
+prints bundle identities and rejects that root without contacting an untrusted TLS endpoint:
+
+```bash
+for image in fight-common fight-common-docs-python-3.13.17; do
+  docker run --rm -i --pull=never --network=none --read-only "$image" python3 - <<'PY'
+import hashlib
+import importlib.metadata
+import ssl
+
+paths = {"os": "/etc/ssl/certs/ca-certificates.crt"}
+for name in ("certifi", "pip._vendor.certifi"):
+    try:
+        module = __import__(name, fromlist=["where"])
+    except ImportError:
+        continue
+    print(name, module.__version__)
+    if name == "pip._vendor.certifi":
+        print("pip", importlib.metadata.version("pip"))
+    paths[name] = module.where()
+for name, path in paths.items():
+    with open(path, "rb") as bundle:
+        print(name, path, hashlib.sha256(bundle.read()).hexdigest())
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.load_verify_locations(cafile=path)
+    assert not any(value == "emSign ECC Root CA - G3"
+                   for cert in context.get_ca_certs()
+                   for rdn in cert["subject"]
+                   for key, value in rdn if key == "commonName"), name
+PY
+  if [ "$?" -ne 0 ]; then exit 1; fi
+done
+```
+
+Record image IDs, actual interpreter/certifi/pip versions, OS `ca-certificates` package provenance, bundle
+hashes, commands and exit results with the TASK evidence. The Dockerfiles reject known-affected inputs; do not
+remove those checks, disable TLS verification, or reuse an old image after a failed refresh. Unavailable fixed
+inputs or uncertain vendor backports are prerequisites to resolve, not successful maintenance. After the focused
+checks, run `./bin/docs validate` and the complete `./bin/build`; retain their exact results and warnings.
+
 ## Prepare the pull request
 
 Before the final commit or pull request:
