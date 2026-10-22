@@ -22,7 +22,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00037](00037-TICKET.md) | Calculate Exact Monetary Values | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00038](00038-TICKET.md) | Express Transport-Neutral Application Failures | done | [EPIC-00008](../epics/00008-EPIC.md) |
 | [TICKET-00039](00039-TICKET.md) | Present Safe Errors Across HTTP Adapters | done | [EPIC-00008](../epics/00008-EPIC.md) |
-| [TICKET-00040](00040-TICKET.md) | Record trusted execution observations | ready-for-agent | [EPIC-00009](../epics/00009-EPIC.md) |
+| [TICKET-00040](00040-TICKET.md) | Record trusted execution observations | done | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00041](00041-TICKET.md) | Inspect execution summaries and activity | ready-for-agent | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00042](00042-TICKET.md) | Inspect and remove protected captured detail | ready-for-agent | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00043](00043-TICKET.md) | Inspect execution evidence through MCP | ready-for-agent | [EPIC-00009](../epics/00009-EPIC.md) |

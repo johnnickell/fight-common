@@ -2,7 +2,7 @@
 id: TICKET-00040
 epic: EPIC-00009
 title: Record trusted execution observations
-status: ready-for-agent
+status: done
 ---
 
 # Record trusted execution observations
@@ -105,7 +105,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
-| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | in-progress |
+| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
