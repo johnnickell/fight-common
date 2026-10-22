@@ -9,9 +9,13 @@ use DateTimeZone;
 use Fight\Common\Application\Execution\Observation\Exception\CommittedObservationDispatchFailed;
 use Fight\Common\Application\Execution\Observation\Exception\InvalidObservationRelationship;
 use Fight\Common\Application\Execution\Observation\Exception\ObservationConflict;
+use Fight\Common\Application\Execution\Observation\Exception\ProtectedContentRemoved;
 use Fight\Common\Application\Execution\ObservationAdmission;
 use Fight\Common\Application\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Execution\Detail\ProtectedContent;
+use Fight\Common\Domain\Execution\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Execution\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationRepository;
@@ -38,22 +42,47 @@ final readonly class ObservationRecorder
         private PhaseRepository $phases,
         private ObservationRepository $observations,
         private ObservationAdmission $admission,
-        private EventDispatcher $events
+        private EventDispatcher $events,
+        private ProtectedContentRepository $contents
     ) {
     }
 
     /**
      * Records admitted evidence and attempts dispatch after the real commit
      */
-    public function record(Observation $observation): void
+    public function record(Observation $observation, ?ProtectedContent $content = null): void
     {
-        $recorded = $this->transaction->commitTransactional(function () use ($observation): ?RecordedObservation {
+        $operation = function () use ($observation, $content): ?RecordedObservation {
             $this->admission->admit($observation);
+            if (($observation->detail() !== null) !== ($content !== null)) {
+                throw new DomainException('Detail recording requires paired capture and protected content.');
+            }
+
             $this->validateRelationships($observation);
+            $capture = $observation->detail();
+            if ($capture !== null) {
+                $capture->validateBody($content->body());
+                $activity = $this->observations->getById($observation->producerId(), $capture->activityId());
+                if ($activity === null || !$capture->acceptsActivity($observation, $activity)) {
+                    throw new InvalidObservationRelationship();
+                }
+            }
+
             $existing = $this->observations->getById($observation->producerId(), $observation->id());
             if ($existing !== null) {
                 if (!$existing->matches($observation)) {
                     throw new ObservationConflict();
+                }
+
+                if ($content !== null) {
+                    $retained = $this->contents->getFor($existing);
+                    if ($retained === null) {
+                        throw new ProtectedContentRemoved();
+                    }
+
+                    if (!$retained->matches($content)) {
+                        throw new ObservationConflict();
+                    }
                 }
 
                 return null;
@@ -65,9 +94,13 @@ final readonly class ObservationRecorder
                 new DateTimeImmutable('now', new DateTimeZone('UTC'))
             );
             $this->observations->add($recorded->observation());
+            if ($content !== null) {
+                $this->contents->add($recorded->observation(), $content);
+            }
 
             return $recorded;
-        });
+        };
+        $recorded = $this->transaction->commitTransactional($operation);
         if ($recorded === null) {
             return;
         }
@@ -118,7 +151,7 @@ final readonly class ObservationRecorder
         }
 
         if ($existing === null) {
-            if ($observation->activity() !== null) {
+            if ($observation->activity() !== null || $observation->detail() !== null) {
                 throw new InvalidObservationRelationship();
             }
 

@@ -291,7 +291,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         foreach (DbalObservationSchema::TABLES as $table) {
             self::assertSame('utf8mb4_bin', $definition->getTable($table)->getOption('collation'));
         }
-        self::assertCount(2, $definition->getTable('fight_execution_observations')->getForeignKeys());
+        self::assertCount(3, $definition->getTable('fight_execution_observations')->getForeignKeys());
     }
 
     public function test_that_schema_installation_rejects_active_partial_and_unsupported_composition(): void

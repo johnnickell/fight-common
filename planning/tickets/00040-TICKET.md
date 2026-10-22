@@ -105,7 +105,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
-| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
+| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -176,4 +176,16 @@ independent Review acceptance (R-01 resolved) and affected QA PASS; TASK-00148 i
 human review/merge. TASK-00149 is now dependency-unblocked. This TICKET remains `ready-for-agent` because
 TASK-00149 is unfinished; no release or deployment is claimed.
 
-Next: human review/merge of PR #222; then select work from the Board.
+That PR #222 handoff is historical: it is merged and integrated at TASK-00149 intake.
+
+### TASK-00149 Work handoff
+
+TASK-00149 implements protected recording on the same session/phase/activity Command path, with separately stored
+bounded content, current retry admission, atomic FK-linked writes, safe committed facts and a retained-record
+removal/retry boundary. Its full local gate passed (6,280 Unit, 260 Integration, 53 Functional tests; exact
+14,351/14,351 statement coverage), with real SQLite/MySQL/PostgreSQL and DBAL 4.4.5/4.5.0 evidence. Its completion
+notes link the criterion mapping, logs, content receipt and inherited release-manifest limitation. This TICKET
+remains open: TASK-00149 stays in-progress awaiting independent Review and required QA, not builder acceptance.
+Public protected Queries/removal remain TICKET-00042; no publication, release or consumer amendment is claimed.
+
+Next: `/skill:review TASK-00149` in an independent session.

@@ -29,8 +29,10 @@ Review acceptance and affected QA PASS for its ordinary Session, Phase and Obser
 no event-sourcing inheritance was introduced. Its existing [PR #221](https://github.com/johnnickell/fight-common/pull/221)
 is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication)
 is done: its corrected provisional version-one candidate has independent Review acceptance (R-01 resolved) and
-affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is open for human
-review/merge; dependent TASKs are unblocked.
+affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is merged and integrated
+at TASK-00149 intake; dependent TASKs are unblocked. [TASK-00149](00149-TASK.md) is in progress in the selected main
+checkout; Work implementation/full-gate verification is complete and independent Review, then required QA, is next.
+The TASK stays in-progress; no publication or independent acceptance is claimed.
 [TASK-00173](00173-TASK.md) separately plans
 getter-based deprecation for released runtime properties, excluding Standards; it is not started.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
@@ -43,13 +45,12 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |

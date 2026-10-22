@@ -19,7 +19,8 @@ final readonly class DbalObservationSchema
         'fight_execution_schema',
         'fight_execution_sessions',
         'fight_execution_phases',
-        'fight_execution_observations'
+        'fight_execution_observations',
+        'fight_execution_contents'
     ];
 
     /**
@@ -65,6 +66,7 @@ final readonly class DbalObservationSchema
         $observations->addColumn('project_id', 'string', ['length' => 128]);
         $observations->addColumn('session_id', 'string', ['length' => 128]);
         $observations->addColumn('phase_id', 'string', ['length' => 128, 'notnull' => false]);
+        $observations->addColumn('activity_id', 'string', ['length' => 36, 'notnull' => false]);
         $observations->addColumn('version', 'integer');
         $observations->addColumn('payload', 'text');
         $observations->addColumn('recorded_at', 'string', ['length' => 27]);
@@ -80,6 +82,25 @@ final readonly class DbalObservationSchema
             ['project_id', 'session_id', 'phase_id'],
             ['project_id', 'session_id', 'phase_id']
         );
+        $observations->addForeignKeyConstraint(
+            self::TABLES[3],
+            ['producer_id', 'activity_id'],
+            ['producer_id', 'observation_id']
+        );
+
+        $contents = $schema->createTable(self::TABLES[4]);
+        $contents->addColumn('producer_id', 'string', ['length' => 128]);
+        $contents->addColumn('observation_id', 'string', ['length' => 36]);
+        // JSON escaping may expand a bounded body beyond MySQL's ordinary TEXT limit.
+        $contents->addColumn('payload', 'text', ['length' => 16777215]);
+        $contents->setPrimaryKey(['producer_id', 'observation_id']);
+        $contents->addForeignKeyConstraint(
+            self::TABLES[3],
+            ['producer_id', 'observation_id'],
+            ['producer_id', 'observation_id'],
+            ['onDelete' => 'CASCADE']
+        );
+
         if ($platform instanceof AbstractMySQLPlatform) {
             foreach (self::TABLES as $name) {
                 $table = $schema->getTable($name);
@@ -115,7 +136,7 @@ final readonly class DbalObservationSchema
             }
 
             $table = $manager->introspectTable(self::TABLES[3]);
-            if (!$table->hasIndex('fight_execution_recording_order')) {
+            if (!$table->hasIndex('fight_execution_recording_order') || !$table->hasColumn('activity_id')) {
                 throw new RuntimeException('Incomplete observation schema version one.');
             }
 

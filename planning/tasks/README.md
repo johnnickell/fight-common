@@ -51,7 +51,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | done | — |
 | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | done | [TICKET-00040](../tickets/00040-TICKET.md) |
 | [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | done | [TICKET-00040](../tickets/00040-TICKET.md) |
-| [TASK-00149](00149-TASK.md) | Record separately protected execution detail | ready-for-agent | [TICKET-00040](../tickets/00040-TICKET.md) |
+| [TASK-00149](00149-TASK.md) | Record separately protected execution detail | in-progress | [TICKET-00040](../tickets/00040-TICKET.md) |
 | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |
 | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |
 | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent | [TICKET-00041](../tickets/00041-TICKET.md) |

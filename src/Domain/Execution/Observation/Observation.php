@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Execution\Activity\PhaseActivity;
+use Fight\Common\Domain\Execution\Detail\DetailCapture;
 use Fight\Common\Domain\Execution\Phase\PhaseReference;
 use Fight\Common\Domain\Execution\Session\SessionReference;
 use Fight\Common\Domain\Execution\Value\ObservationFields;
@@ -34,7 +35,8 @@ final readonly class Observation
         private ObservationExtensions $extensions,
         private ?DateTimeImmutable $recordedAt = null,
         private ?PhaseActivity $activity = null,
-        private ?ObservationOccurrence $occurrence = null
+        private ?ObservationOccurrence $occurrence = null,
+        private ?DetailCapture $detail = null
     ) {
     }
 
@@ -104,6 +106,39 @@ final readonly class Observation
     }
 
     /**
+     * Creates safe detail evidence linked to an existing activity
+     */
+    public static function forDetail(
+        ObservationId $id,
+        string $producerId,
+        SessionReference $session,
+        PhaseReference $phase,
+        ObservationOccurrence $occurrence,
+        DetailCapture $detail
+    ): self {
+        $base = self::create($id, $producerId, $session, $phase, $occurrence->instant());
+        if ($id->equals($detail->activityId())) {
+            throw new DomainException('Invalid detail observation relationship.');
+        }
+
+        return new self(
+            $base->id,
+            $base->producerId,
+            $base->session,
+            $base->phase,
+            $base->occurredAt,
+            null,
+            null,
+            ObservationOutcome::UNKNOWN,
+            $base->extensions,
+            null,
+            null,
+            $occurrence,
+            $detail
+        );
+    }
+
+    /**
      * Creates an observation from an exact supported representation
      *
      * @param array<string, mixed> $data
@@ -116,7 +151,7 @@ final readonly class Observation
 
         ObservationFields::structure($data, [
             'version', 'observation_id', 'producer_id', 'session', 'phase',
-            'occurred_at', 'started_at', 'ended_at', 'outcome', 'activity', 'extensions'
+            'occurred_at', 'started_at', 'ended_at', 'outcome', 'activity', 'detail', 'extensions'
         ]);
         if (
             !is_string($data['observation_id'])
@@ -125,6 +160,7 @@ final readonly class Observation
             || ($data['phase'] !== null && !is_array($data['phase']))
             || !is_string($data['outcome'])
             || ($data['activity'] !== null && !is_array($data['activity']))
+            || ($data['detail'] !== null && !is_array($data['detail']))
         ) {
             throw new DomainException('Invalid observation structure.');
         }
@@ -132,6 +168,25 @@ final readonly class Observation
         $outcome = ObservationOutcome::tryFrom($data['outcome']);
         if ($outcome === null) {
             throw new DomainException('Invalid observation outcome.');
+        }
+
+        if ($data['detail'] !== null) {
+            if (
+                $data['phase'] === null || $data['activity'] !== null || $data['started_at'] !== null
+                || $data['ended_at'] !== null || $outcome !== ObservationOutcome::UNKNOWN
+                || !is_string($data['occurred_at']) || $data['extensions'] !== []
+            ) {
+                throw new DomainException('Invalid detail observation structure.');
+            }
+
+            return self::forDetail(
+                ObservationId::fromString($data['observation_id']),
+                ObservationFields::reference($data['producer_id']),
+                SessionReference::fromArray($data['session']),
+                PhaseReference::fromArray($data['phase']),
+                ObservationOccurrence::fromString($data['occurred_at']),
+                DetailCapture::fromArray($data['detail'])
+            );
         }
 
         if ($data['activity'] !== null) {
@@ -209,7 +264,8 @@ final readonly class Observation
             $this->extensions,
             $recordedAt,
             $this->activity,
-            $this->occurrence
+            $this->occurrence,
+            $this->detail
         );
     }
 
@@ -238,6 +294,14 @@ final readonly class Observation
         }
 
         return $this->id->compareTo($other->id);
+    }
+
+    /**
+     * Returns safe detail capture metadata without protected bytes
+     */
+    public function detail(): ?DetailCapture
+    {
+        return $this->detail;
     }
 
     /**
@@ -354,6 +418,7 @@ final readonly class Observation
             'ended_at'       => $this->endedAt?->format('Y-m-d\TH:i:s.u\Z'),
             'outcome'        => $this->outcome->value,
             'activity'       => $this->activity?->toArray(),
+            'detail'         => $this->detail?->toArray(),
             'extensions'     => $this->extensions->toArray()
         ];
     }

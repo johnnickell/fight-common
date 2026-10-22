@@ -14,6 +14,7 @@ use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Execution\ObservationAdmission;
 use Fight\Common\Application\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Domain\Execution\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Execution\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationRepository;
@@ -236,6 +237,6 @@ final class ObservationRecorderTest extends UnitTestCase
 
     private function recorder(RecordingTransaction $transaction): ObservationRecorder
     {
-        return new ObservationRecorder($transaction, $this->sessions, $this->phases, $this->observations, $this->admission, $this->events);
+        return new ObservationRecorder($transaction, $this->sessions, $this->phases, $this->observations, $this->admission, $this->events, $this->mock(ProtectedContentRepository::class));
     }
 }
