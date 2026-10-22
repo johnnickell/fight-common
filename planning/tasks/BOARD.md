@@ -43,7 +43,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 1 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | — (standalone bug) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -103,6 +103,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 |---|---|---|---|---|---|---|
 | 1 | [TASK-00103](00103-TASK.md) | Adopt the EPIC, TICKET, and TASK planning surface | — (standalone chore) | done | — | [PR #155](https://github.com/johnnickell/fight-common/pull/155) |
 | 1 | [TASK-00104](00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #157](https://github.com/johnnickell/fight-common/pull/157) |
+| 1 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | — (standalone bug) | done | — | [PR #223](https://github.com/johnnickell/fight-common/pull/223) |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #165](https://github.com/johnnickell/fight-common/pull/165) |
 | 4 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #166](https://github.com/johnnickell/fight-common/pull/166) |
