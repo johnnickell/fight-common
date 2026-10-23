@@ -191,8 +191,9 @@ $commands->execute(new RecordProtectedDetail($detail, ProtectedContent::create($
 ```
 
 Recording admission is **not** protected-read authorization. The internal repository is trusted infrastructure,
-not a public inspection API. TICKET-00042 owns current separately authorized
-bounded Queries and public removal Commands; none are introduced here. Consumers retain authentication, permission
+not a public inspection API. The separate [protected inspection](execution-protected-reads.md) boundary supplies
+current separately authorized bounded Queries; public removal Commands remain TASK-00154. Neither belongs to the
+recording use case. Consumers retain authentication, permission
 policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, database roles and operations.
 
 ## Trusted admission and composition
