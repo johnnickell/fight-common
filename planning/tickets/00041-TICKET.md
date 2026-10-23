@@ -95,7 +95,7 @@ No capability implementation or product test result is claimed by this planning 
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00150](../tasks/00150-TASK.md) | Summarize and browse authorized executions | done |
-| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | in-progress |
+| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | done |
 | [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent |
 <!-- /planning:children -->
 
@@ -138,13 +138,13 @@ TICKET-00045's complete recording/removal split is also accepted/written as TASK
 
 TICKET-00046's complete inspection/recovery split is also accepted/written as TASK-00160–00161.
 
-### TASK-00151 Work checkpoint
+### TASK-00151 delivery closeout
 
-TASK-00150 PR #227 is merged at the verified TASK-00151 base. TASK-00151 now supplies locally verified selected
-Session summaries and bounded Phase pages through current shared admission and real DBAL reads. SQLite, MySQL and
-PostgreSQL qualification, exact owned-production coverage and the full local gate are recorded in
-[its completion notes](../tasks/00151-TASK.md#completion-notes). It remains `in-progress` awaiting independent Review
-and required QA; TASK-00152's activity browsing and all protected reads/MCP/UI remain outside that Work handoff.
-This TICKET remains open. No TASK-00151 publication, merge, release or consumer qualification is claimed.
+TASK-00150 PR #227 is merged at the verified TASK-00151 base. TASK-00151 is `done` after independent Review
+acceptance and required QA PASS for candidate `d0f6ad82add2d6a754645e34e60022b3791a1c08`; its administrative
+closeout records only truthful completion metadata and generated views. SQLite, MySQL and PostgreSQL qualification,
+exact owned-production coverage and the full local gate are recorded in [its completion notes](../tasks/00151-TASK.md#completion-notes).
+TASK-00152's activity browsing and all protected reads/MCP/UI remain outside this delivered slice. This TICKET remains
+open because TASK-00152 is unfinished. No TASK-00151 PR approval, merge, release or consumer qualification is claimed.
 
-Next: `/skill:review TASK-00151` in an independent session, coordinated by the existing Build run.
+Next: authorized Land publication, then human review and merge of TASK-00151's resulting PR.
