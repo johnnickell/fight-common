@@ -19,9 +19,15 @@ final readonly class ExecutionAccess
      *
      * @param array<string, list<string>|null> $projects
      * @param array<string, list<string>> $phaseGrants
+     * @param array<string, list<string>|null> $activityGrants
+     * @param array<string, list<string>|null> $detailGrants
      */
-    private function __construct(private array $projects, private array $phaseGrants)
-    {
+    private function __construct(
+        private array $projects,
+        private array $phaseGrants,
+        private array $activityGrants,
+        private array $detailGrants
+    ) {
     }
 
     /**
@@ -29,9 +35,15 @@ final readonly class ExecutionAccess
      *
      * @param array<string, mixed> $projects
      * @param array<string, mixed> $phaseGrants
+     * @param array<string, mixed> $activityGrants
+     * @param array<string, mixed> $detailGrants
      */
-    public static function create(array $projects, array $phaseGrants = []): self
-    {
+    public static function create(
+        array $projects,
+        array $phaseGrants = [],
+        array $activityGrants = [],
+        array $detailGrants = []
+    ): self {
         if (count($projects) > 16) {
             throw new DomainException('Invalid execution access.');
         }
@@ -70,7 +82,12 @@ final readonly class ExecutionAccess
             $phases[$project] = array_values(array_unique($validated));
         }
 
-        return new self($safe, $phases);
+        return new self(
+            $safe,
+            $phases,
+            self::observationGrants($safe, $activityGrants),
+            self::observationGrants($safe, $detailGrants)
+        );
     }
 
     /**
@@ -91,5 +108,73 @@ final readonly class ExecutionAccess
     public function phaseGrants(): array
     {
         return $this->phaseGrants;
+    }
+
+    /**
+     * Returns activity-browsing restrictions, with omitted projects unrestricted
+     *
+     * @return array<string, list<string>|null>
+     */
+    public function activityGrants(): array
+    {
+        return $this->activityGrants;
+    }
+
+    /**
+     * Returns explicit reference-disclosure grants, with omitted projects denied
+     *
+     * Null grants all references within otherwise permitted activity, never bodies
+     *
+     * @return array<string, list<string>|null>
+     */
+    public function detailGrants(): array
+    {
+        return $this->detailGrants;
+    }
+
+    /**
+     * Returns finite project-scoped producer/full-UUID reference lists
+     *
+     * @param array<string, list<string>|null> $projects
+     * @param array<string, mixed> $grants
+     *
+     * @return array<string, list<string>|null>
+     */
+    private static function observationGrants(array $projects, array $grants): array
+    {
+        $safe = [];
+        foreach ($grants as $project => $ids) {
+            if (!array_key_exists($project, $projects)) {
+                throw new DomainException('Invalid execution observation access.');
+            }
+
+            if ($ids === null) {
+                $safe[$project] = null;
+                continue;
+            }
+
+            if (!is_array($ids) || !array_is_list($ids) || count($ids) > 100) {
+                throw new DomainException('Invalid execution observation access.');
+            }
+
+            $validated = [];
+            foreach ($ids as $id) {
+                if (
+                    !is_string($id)
+                    || preg_match(
+                        '/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D',
+                        $id
+                    ) !== 1
+                ) {
+                    throw new DomainException('Invalid execution observation access.');
+                }
+
+                $validated[] = $id;
+            }
+
+            $safe[$project] = array_values(array_unique($validated));
+        }
+
+        return $safe;
     }
 }

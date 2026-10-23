@@ -5,7 +5,8 @@
 `Adapter\Execution\Dbal\DbalExecutionReader` reads the
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
 views, not authoritative Workflow state. Selected-execution summaries and phase pages use the same current
-admission. Activity browsing, protected reads/removal, MCP and UI remain separate capabilities.
+admission. Phase activity and permitted detail-reference metadata reuse that admission through `ListPhaseActivity`.
+Protected body reads/removal, MCP and UI remain separate capabilities.
 
 ## Ownership and layers
 
@@ -23,8 +24,11 @@ new aggregate nor adds read methods to their write repositories.
 | `Application\Execution\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
 | `Application\Execution\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
 | `Application\Execution\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
+| `Domain\Execution\Observation\Query` | `ListPhaseActivity` selects activity evidence owned by Observation within an exact phase. |
+| `Application\Execution\Observation` | `Service\ActivityReader`, its Query handler, `Data\ActivityPage` and `Data\ActivityView` own safe activity browsing. |
+| `Application\Execution\Detail\Data` | `DetailReference` projects permitted capture/availability metadata, never content or permission to read it. |
 | `Application\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
-| `Adapter\Execution\Dbal` | `DbalExecutionReader` and `DbalPhaseReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
+| `Adapter\Execution\Dbal` | `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
 
 Queries and their selection have no Application dependencies. Caller grants stay outside Domain payloads.
 Summary results may include related phase/activity evidence without transferring those aggregates' ownership to
@@ -32,6 +36,19 @@ Session. Selected-session Queries belong with Session; phase/activity Queries be
 Phase or Observation owner, not a generic `Read` peer. The DBAL adapters stay together under
 `Adapter\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
 adapter grouping before a tagged release if that directory grows enough to justify it.
+
+**Readers are not replacement repositories.** Domain `SessionRepository`, `PhaseRepository`,
+`ObservationRepository` and `ProtectedContentRepository` remain aggregate collection/persistence contracts.
+This read port is justified by an actual permission-constrained, bounded projection across observation roots
+and content-row presence, not by a rule that every aggregate needs a Reader. Putting caller grants or these
+Application Data results into Domain repositories would invert ownership. `ActivityReader` is owned by the
+activity use case under Application Observation; activity is an Observation variant, not another aggregate.
+Its Query likewise stays under Domain Observation; the existing Domain Activity value is not turned into a
+new collection/persistence owner. `DetailReference` remains with Detail. Consumers supply policy through the
+existing single admission. DBAL translates those constraints and validates stored relationships; Domain
+`DetailCapture::acceptsActivity()` owns the detail/activity invariant. No second authorizer, generic reporting
+repository, new aggregate or broad repository refactor is introduced. This is a narrow provisional choice,
+not a mandate to rename repositories elsewhere.
 
 ## Selection, current admission and limits
 
@@ -189,6 +206,85 @@ separate live statements, not one response-wide snapshot. Inserts/removal may re
 summary and phase requests independently see changed data/permissions. There is no retained browsing session or
 cross-request frozen result. Consumer transaction isolation may be stronger but is not promised by Common.
 
+## Phase activity and permitted detail references
+
+`Domain\Execution\Observation\Query\ListPhaseActivity(projectId, sessionId, phaseId, page: null, perPage: null,
+filters: [], orderings: [])` returns nullable Application `ActivityPage`. The exact Query array contains those
+three IDs, normalized `page`, `per_page`, `filters` and `orderings`, never authority. Strict defaults are **1/100**,
+maximum size **100**, maximum offset **1,000,000**. Supported filters are exact `producer_id`, namespaced `kind`
+and `model_id`; only `recorded_at` ASC/DESC is accepted. Invalid/extra fields and bounds raise fixed-text Domain
+failures without echoing inputs. Body, summary-text and arbitrary SQL filtering are not supported.
+
+`ExecutionReadAdmission::currentAccess()` is called on every invocation, including saved envelopes and missing
+phases. Existing project/session/phase constraints first select a consistent phase. Missing, cross-project,
+cross-session and concealed phases all return **null**, with no total. A permitted phase with no permitted
+matching activity returns an empty page and total zero. Out-of-range pages retain the authorized matching total.
+State and detail observations are not activity rows and do not contribute to activity totals.
+
+`ExecutionAccess::create()` adds optional third/fourth arguments `activityGrants` and `detailGrants`. Each is a
+map of already granted project keys to `null` or a list of **0–100** exact `producer_id/observation_uuid` keys.
+Producer references cannot contain `/`; UUIDs must be full canonical lowercase strings. Lists snapshot and
+deduplicate keys. These grants cannot authorize a different project, session or phase. `activityGrants` restricts
+**activity browsing**, with omitted projects or null unrestricted and an empty list concealing all activity rows.
+`detailGrants` explicitly permits **reference metadata disclosure**, with omitted projects or an empty list
+denying all references and null permitting all references linked to otherwise visible activity. A detail key
+from another producer/activity/scope grants nothing. SQL applies these constraints before decoding activity or
+detail rows; hidden references are not read, counted or reported as hidden. This extends the same admission
+result, not another permission-policy callback. Consumers must deliberately supply any human/Agent distinctions.
+
+These are distinct use-case permissions: aggregate overview statistics retain their existing session/phase
+scope and do not acquire activity-browsing/reference restrictions. Consumers must not grant aggregate inspection
+if those aggregate counts/usage are themselves confidential. Activity row permission never grants reference
+metadata, and reference disclosure never grants protected body retrieval. Current body-read policy remains a
+separate TICKET-00042 use case; references and `retained` status are not credentials or leases.
+
+`ActivityPage::activities()` returns typed `ActivityView`s; `toArray()` contains `activities`, authorized `total`,
+`page`, `per_page`. Each row contains only `producer_id`, `observation_id`, `occurred_at`, `recorded_at`, performing
+`agent_id`, the version-one safe `activity` (kind, consumer-redacted summary, model and exact bounded usage), and
+`details`. Models, instrumentation producers and performing Agents remain distinct. Extensions, consumer/parent
+relationships and protected bytes are never projected. Summary safety depends on consumer pre-submission
+redaction; this is structural separation, not an arbitrary secret detector or independent review verdict.
+
+`ActivityView::details()` returns typed `DetailReference`s. At most **32 permitted references per activity** are
+returned, newest recording time/full UUID first; excess fails the entire Query, never truncates. The complete
+`ActivityPage::toArray()` must fit **1,048,576 encoded bytes** using PHP `json_encode(..., JSON_THROW_ON_ERROR)`
+default escaping. Excess raises `ExecutionReadFailed`; consumers requesting smaller pages can reduce ordinary
+response size. A downstream protocol envelope may need additional independent bounds. Result constructors are
+trusted assembly, not untrusted-input decoders or an enforcement bypass for custom reader implementations.
+
+Each reference includes producer/full observation identity, occurrence/recording timestamps, versioned `capture`
+metadata and `availability`. Capture retains original kind, content type, completeness, linked activity and
+optional output coordinates. Complete/partial capture is `retained` only when the FK-linked content row exists;
+otherwise it is `missing` (unknown reason, not inferred expiry or never-captured). Supplied `absent`, `unavailable`
+and `expired` markers are preserved even after the content row disappears. No visible references means only
+no currently disclosed retained reference, not proof that nothing was captured. `retained` describes row presence
+under the recording contract, not body validation, completeness, current read permission or future availability.
+No protected payload column is selected/decoded; only `EXISTS (SELECT 1 ...)` checks permitted row presence.
+Missing content **tables**, corrupt/unsupported evidence, invalid relationships and storage errors fail with the
+existing fixed `ExecutionReadFailed`, not an empty success or false absence. Its cause remains private diagnostics.
+Without any detail-reference grant the adapter does not query the content table at all.
+
+Activity ordering is immutable receipt time, **full UUID**, then bytewise producer, all descending by default;
+ASC reverses all three. Actual six receipt microseconds survive SQLite/MySQL/PostgreSQL. Occurrence retains its
+original zero-to-six fractional digits and never orders the page. Retried identities preserve receipt time.
+Late arrivals, tied random suffixes and producer tie-breaks do not establish causality, commit order, Workflow
+state, complete capture or a safe global checkpoint. Recording time in each returned row describes only that
+persisted evidence, not an overall freshness/completeness guarantee.
+
+The direct reader scans permitted observations in **100-row keyset batches**, filters safe kind/model metadata,
+counts matching activity across the full phase, and retains at most the requested page. It then reads at most
+33 permitted reference rows per selected activity (one lookahead for the 32 limit). Memory/output are finite,
+but work grows with retained evidence and the full matching total is not page-local. No new schema/index,
+projection worker or Event Store is introduced. Consumer admission, timeouts and sizing remain necessary.
+
+No business mutation, Command, event, transaction or connection-isolation change occurs. Subject selection,
+activity scan and reference/presence statements are live, **not a response-wide snapshot**. Concurrent changes
+can affect one response's total/page/availability; inserts/removal may repeat or skip rows between pages.
+Permission changes and content removal take effect on subsequent invocations with a fresh consumer decision.
+The consumer keeps that decision effective for the invocation; there is no remembered browsing state, retained
+content lease or promised integrated deletion/retry protocol here. Storage-level removal fixtures qualify safe
+absence; public removal and its coordination with recording retries remain TICKET-00042.
+
 ## Direct DBAL and Query bus composition
 
 Use the same installed version-one recording namespace and consumer-owned connection. No new tables, indexes,
@@ -234,6 +330,24 @@ $execution = $queries->fetch(new GetExecution('project', 'session'));
 $phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1, perPage: 20));
 ```
 
+For activity, register this handler on the same router with the same current admission:
+
+```php
+use Fight\Common\Adapter\Execution\Dbal\DbalActivityReader;
+use Fight\Common\Application\Execution\Observation\QueryHandler\ListPhaseActivityHandler;
+use Fight\Common\Domain\Execution\Observation\Query\ListPhaseActivity;
+
+$router->registerHandler(
+    ListPhaseActivity::class,
+    new ListPhaseActivityHandler($currentCallerAdmission, new DbalActivityReader($connection))
+);
+$activity = $queries->fetch(new ListPhaseActivity('project', 'session', 'phase', page: 1, perPage: 20));
+```
+
+To disclose reference metadata, the consumer's fresh admission may for example return
+`ExecutionAccess::create(['project' => ['session']], ['project' => ['phase']], [], ['project' => null])`.
+That trusted result is never Query input and grants no later body retrieval.
+
 Future transports must consume these shared Queries, not implement their own admission or direct database overview.
 Do not reuse recording admission as a caller read grant or infer protected-body permission from timeline permission.
 
@@ -261,6 +375,15 @@ previous development-only shapes. Session overview behavior without phase restri
 Tagged declarations, envelopes/metadata, recording payloads, schema/indexes and existing Pagination are unchanged;
 there is no migration, asynchronous projection or Event Store dependency.
 
-`compatibility/manifest.json` records both TASKs' declarations and inventory deltas. Existing release-wide
+TASK-00152 adds **7** opt-in public declarations: `ListPhaseActivity`, its handler, `ActivityReader`,
+`ActivityPage`, `ActivityView`, `DetailReference` and `DbalActivityReader`. Only `ActivityReader` promises consumer
+implementation; all concrete additions are final with callable declared constructors/methods. The existing
+provisional `ExecutionAccess` gains optional activity-browsing and reference-disclosure maps without changing
+existing session/phase calls. Domain repositories, tagged APIs, recording/schema/indexes, Query envelopes,
+Pagination and earlier safe overview/phase behavior remain unchanged. There is no alias/migration for unreleased
+snapshots and no protected body API. Compatibility remains against actual tags (latest observed `v1.4.0`),
+not development snapshots; these Execution declarations are absent from that tag and remain provisional.
+
+`compatibility/manifest.json` records these TASKs' declarations and inventory deltas. Existing release-wide
 bookkeeping gaps and operation-shape fingerprint regeneration remain release-owner follow-ups, not a claim of
 release certification or consumer runtime qualification. No package/release-process tests are added.

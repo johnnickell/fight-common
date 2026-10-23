@@ -2,7 +2,7 @@
 id: TICKET-00041
 epic: EPIC-00009
 title: Inspect execution summaries and activity
-status: ready-for-agent
+status: done
 ---
 
 # Inspect execution summaries and activity
@@ -96,7 +96,7 @@ No capability implementation or product test result is claimed by this planning 
 |---|---|---|
 | [TASK-00150](../tasks/00150-TASK.md) | Summarize and browse authorized executions | done |
 | [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | done |
-| [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent |
+| [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -144,7 +144,8 @@ TASK-00150 PR #227 is merged at the verified TASK-00151 base. TASK-00151 is `don
 acceptance and required QA PASS for candidate `d0f6ad82add2d6a754645e34e60022b3791a1c08`; its administrative
 closeout records only truthful completion metadata and generated views. SQLite, MySQL and PostgreSQL qualification,
 exact owned-production coverage and the full local gate are recorded in [its completion notes](../tasks/00151-TASK.md#completion-notes).
-TASK-00152's activity browsing and all protected reads/MCP/UI remain outside this delivered slice. This TICKET remains
-open because TASK-00152 is unfinished. No TASK-00151 PR approval, merge, release or consumer qualification is claimed.
+TASK-00152's activity browsing is delivered by its own accepted candidate and remains distinct from protected
+reads/MCP/UI. With all live and archived TICKET children terminal, automatic completion marks this TICKET `done`.
+No TASK-00151 PR approval, merge, release or consumer qualification is claimed.
 
-Next: authorized Land publication, then human review and merge of TASK-00151's resulting PR.
+Next: human review and merge of the published TASK PRs; no TICKET-level merge, release or deployment is implied.
