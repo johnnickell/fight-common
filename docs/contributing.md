@@ -75,6 +75,16 @@ docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
   php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
 ```
 
+Focused PHPStan uses the same explicit 512M per-process budget as the full gate and interactive wrapper:
+
+```bash
+docker container run --rm -v "$PWD:/app:delegated" -w /app fight-common \
+  php vendor/bin/phpstan analyse --memory-limit=512M
+```
+
+This is a limit for each PHPStan process, including parallel workers, not a total container memory allocation.
+Existing concurrency and analysis findings remain unchanged.
+
 Useful interactive wrappers include:
 
 ```bash
