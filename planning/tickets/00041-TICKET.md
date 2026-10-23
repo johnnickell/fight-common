@@ -96,7 +96,7 @@ No capability implementation or product test result is claimed by this planning 
 |---|---|---|
 | [TASK-00150](../tasks/00150-TASK.md) | Summarize and browse authorized executions | done |
 | [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | done |
-| [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent |
+| [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

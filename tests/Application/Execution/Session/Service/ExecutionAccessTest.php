@@ -53,6 +53,38 @@ final class ExecutionAccessTest extends UnitTestCase
         yield [['project' => ['invalid phase']]];
     }
 
+    public function test_that_activity_restrictions_and_explicit_reference_grants_snapshot_producer_scoped_keys(): void
+    {
+        $id = 'producer/10000000-0000-4000-8000-000000000001';
+        $key = $id;
+        $access = ExecutionAccess::create(['project' => null, '123' => ['session']], [], ['project' => [&$id, $id], '123' => []], ['project' => null, '123' => [$key]]);
+        $id = 'changed';
+        self::assertSame(['project' => [$key], 123 => []], $access->activityGrants());
+        self::assertSame(['project' => null, 123 => [$key]], $access->detailGrants());
+        self::assertSame([], ExecutionAccess::create([])->detailGrants());
+        self::assertSame(['project' => null], ExecutionAccess::create(['project' => null], activityGrants: ['project' => null])->activityGrants());
+    }
+
+    #[DataProvider('invalidObservationGrants')]
+    public function test_that_activity_and_reference_access_require_finite_exact_project_scoped_keys(array $grants): void
+    {
+        foreach (['activityGrants', 'detailGrants'] as $field) {
+            try { ExecutionAccess::create(['project' => null], ...[$field => $grants]); self::fail('Invalid grants must reject.'); }
+            catch (DomainException $exception) { self::assertSame('Invalid execution observation access.', $exception->getMessage()); }
+        }
+    }
+
+    public static function invalidObservationGrants(): iterable
+    {
+        yield [['other' => null]];
+        yield [['project' => 'all']];
+        yield [['project' => ['key' => 'producer/id']]];
+        yield [['project' => array_fill(0, 101, 'producer/id')]];
+        yield [['project' => [null]]];
+        yield [['project' => ['producer/not-a-uuid']]];
+        yield [['project' => ['bad producer/10000000-0000-4000-8000-000000000001']]];
+    }
+
     public static function invalidAccess(): iterable
     {
         yield [array_fill_keys(range('a', 'q'), null)];
