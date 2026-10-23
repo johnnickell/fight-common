@@ -6,7 +6,8 @@
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
 views, not authoritative Workflow state. Selected-execution summaries and phase pages use the same current
 admission. Phase activity and permitted detail-reference metadata reuse that admission through `ListPhaseActivity`.
-Protected body reads/removal, MCP and UI remain separate capabilities.
+[Protected body reads](execution-protected-reads.md) use distinct current admission and shared Detail Queries.
+Public removal, MCP and UI remain separate capabilities.
 
 ## Ownership and layers
 
@@ -44,8 +45,8 @@ and content-row presence, not by a rule that every aggregate needs a Reader. Put
 Application Data results into Domain repositories would invert ownership. `ActivityReader` is owned by the
 activity use case under Application Observation; activity is an Observation variant, not another aggregate.
 Its Query likewise stays under Domain Observation; the existing Domain Activity value is not turned into a
-new collection/persistence owner. `DetailReference` remains with Detail. Consumers supply policy through the
-existing single admission. DBAL translates those constraints and validates stored relationships; Domain
+new collection/persistence owner. `DetailReference` remains with Detail. Consumers supply safe-read policy through the
+existing single safe admission; protected reads use the distinct Detail admission. DBAL translates those constraints and validates stored relationships; Domain
 `DetailCapture::acceptsActivity()` owns the detail/activity invariant. No second authorizer, generic reporting
 repository, new aggregate or broad repository refactor is introduced. This is a narrow provisional choice,
 not a mandate to rename repositories elsewhere.
@@ -235,8 +236,8 @@ result, not another permission-policy callback. Consumers must deliberately supp
 These are distinct use-case permissions: aggregate overview statistics retain their existing session/phase
 scope and do not acquire activity-browsing/reference restrictions. Consumers must not grant aggregate inspection
 if those aggregate counts/usage are themselves confidential. Activity row permission never grants reference
-metadata, and reference disclosure never grants protected body retrieval. Current body-read policy remains a
-separate TICKET-00042 use case; references and `retained` status are not credentials or leases.
+metadata, and reference disclosure never grants protected body retrieval. Current body-read policy uses the
+separate [protected inspection](execution-protected-reads.md) admission; references and `retained` status are not credentials or leases.
 
 `ActivityPage::activities()` returns typed `ActivityView`s; `toArray()` contains `activities`, authorized `total`,
 `page`, `per_page`. Each row contains only `producer_id`, `observation_id`, `occurred_at`, `recorded_at`, performing
@@ -381,7 +382,8 @@ implementation; all concrete additions are final with callable declared construc
 provisional `ExecutionAccess` gains optional activity-browsing and reference-disclosure maps without changing
 existing session/phase calls. Domain repositories, tagged APIs, recording/schema/indexes, Query envelopes,
 Pagination and earlier safe overview/phase behavior remain unchanged. There is no alias/migration for unreleased
-snapshots and no protected body API. Compatibility remains against actual tags (latest observed `v1.4.0`),
+snapshots; TASK-00152 itself adds no protected body API. The later separate
+[protected inspection slice](execution-protected-reads.md) adds that capability without changing these safe reads. Compatibility remains against actual tags (latest observed `v1.4.0`),
 not development snapshots; these Execution declarations are absent from that tag and remain provisional.
 
 `compatibility/manifest.json` records these TASKs' declarations and inventory deltas. Existing release-wide

@@ -55,7 +55,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | done | [TICKET-00041](../tickets/00041-TICKET.md) |
 | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | done | [TICKET-00041](../tickets/00041-TICKET.md) |
 | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | done | [TICKET-00041](../tickets/00041-TICKET.md) |
-| [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | ready-for-agent | [TICKET-00042](../tickets/00042-TICKET.md) |
+| [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | in-progress | [TICKET-00042](../tickets/00042-TICKET.md) |
 | [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | ready-for-agent | [TICKET-00042](../tickets/00042-TICKET.md) |
 | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | ready-for-agent | [TICKET-00043](../tickets/00043-TICKET.md) |
 | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent | [TICKET-00043](../tickets/00043-TICKET.md) |
