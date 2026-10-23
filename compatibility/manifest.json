@@ -9,11 +9,11 @@
     },
     "inventory_expectations": {
         "Domain": {
-            "declarations": 180,
+            "declarations": 181,
             "functions": 13
         },
         "Application": {
-            "declarations": 298,
+            "declarations": 302,
             "functions": 0
         },
         "Adapter": {
@@ -22,6 +22,10 @@
         }
     },
     "evidence_authorities": {
+        "fight-common.classification.task-00154-addition": {
+            "path": "docs/execution-detail-removal.md",
+            "locator": "Compatibility and public surface; exact authorized protected-row removal with retained safe evidence"
+        },
         "fight-common.classification.task-00153-addition": {
             "path": "docs/execution-protected-reads.md",
             "locator": "Composition and compatibility; separately authorized finite protected reading"
@@ -207,6 +211,11 @@
         }
     },
     "declarations": [
+        {"name":"Fight\\Common\\Domain\\Execution\\Detail\\Command\\RemoveCapturedDetail","source":"src/Domain/Execution/Detail/Command/RemoveCapturedDetail.php","layer":"Domain","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00154-addition","rationale":"Exact one-detail removal selection, without permission or body data."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Command selection, kind and strict representation."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Typed exact selection, identity and kind."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final Command."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
+        {"name":"Fight\\Common\\Application\\Execution\\Detail\\Service\\DetailRemovalAdmission","source":"src/Application/Execution/Detail/Service/DetailRemovalAdmission.php","layer":"Application","kind":"interface","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00154-addition","rationale":"Current consumer removal permission, independent of read grants."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Fresh exact-scope admission before lookups on every invocation."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Interface."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"No inheritance-base promise."}},"implementable":{"promised":true,"evidence":{"authority":"fight-common.operation.interface-implementation","rationale":"Consumers implement current authenticated removal policy."}}}},
+        {"name":"Fight\\Common\\Application\\Execution\\Detail\\Service\\DetailRemover","source":"src/Application/Execution/Detail/Service/DetailRemover.php","layer":"Application","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00154-addition","rationale":"Coordinates admission, retained relationships and protected deletion under the existing recording transaction."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"One admitted removal acknowledged after commit."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Injected shared transaction, repositories and independent admission."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final service."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
+        {"name":"Fight\\Common\\Application\\Execution\\Detail\\CommandHandler\\RemoveCapturedDetailHandler","source":"src/Application/Execution/Detail/CommandHandler/RemoveCapturedDetailHandler.php","layer":"Application","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00154-addition","rationale":"Ordinary void Command handler, not an MCP mutation Tool."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Handler registration and handling."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Injected removal coordinator."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final handler."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
+        {"name":"Fight\\Common\\Application\\Execution\\Detail\\Exception\\DetailRemovalRejected","source":"src/Application/Execution/Detail/Exception/DetailRemovalRejected.php","layer":"Application","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00154-addition","rationale":"Fixed safe rejection conceals denied, absent and inconsistent identities."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Safe failure category and fixed public message."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Consumers reject current admission with this category."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final exception."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
         {"name":"Fight\\Common\\Domain\\Execution\\Detail\\DetailSelection","source":"src/Domain/Execution/Detail/DetailSelection.php","layer":"Domain","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00153-addition","rationale":"Exact project/session/phase/producer/activity selection without authority."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Named factories and exact representation."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Private constructor; named factories only."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final selection."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
         {"name":"Fight\\Common\\Domain\\Execution\\Detail\\Query\\ListCapturedMessages","source":"src/Domain/Execution/Detail/Query/ListCapturedMessages.php","layer":"Domain","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00153-addition","rationale":"Strict bounded live message Query without grants."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Query representation and selection."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Validated selection and finite pagination."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final Query."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
         {"name":"Fight\\Common\\Domain\\Execution\\Detail\\Query\\GetCapturedDetail","source":"src/Domain/Execution/Detail/Query/GetCapturedDetail.php","layer":"Domain","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00153-addition","rationale":"Exact kind and detail selection with finite byte range."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Query representation and bounded selection."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Validated explicit kind and byte range."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final Query."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
@@ -38000,6 +38009,11 @@
         }
     ],
     "behavioral_contracts": [
+        {
+            "id": "fight-common.behavior.execution-authorized-detail-removal",
+            "normative": {"path": "docs/execution-detail-removal.md", "section": "Selection, admission and repeat behavior"},
+            "fixture": {"path": "tests/Adapter/Execution/Dbal/DbalDetailRemovalIntegrationTest.php"}
+        },
         {
             "id": "fight-common.behavior.execution-protected-capture",
             "normative": {"path": "docs/execution-observations.md", "section": "Protected detail recording"},

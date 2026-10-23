@@ -5,7 +5,8 @@ An opt-in recording slice in `Domain\Execution`, `Application\Execution` and
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
 includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
-model directory, protected inspection/removal APIs, MCP tools or automatic capture. Safe execution overview
+model directory, MCP removal tools or automatic capture. The separate [protected Queries](execution-protected-reads.md)
+and [ordinary removal Command](execution-detail-removal.md) reuse this storage. Safe execution overview
 Queries are documented separately in [authorized execution overviews](execution-reads.md).
 
 ## Vocabulary and finite version-one representation
@@ -192,8 +193,8 @@ $commands->execute(new RecordProtectedDetail($detail, ProtectedContent::create($
 
 Recording admission is **not** protected-read authorization. The internal repository is trusted infrastructure,
 not a public inspection API. The separate [protected inspection](execution-protected-reads.md) boundary supplies
-current separately authorized bounded Queries; public removal Commands remain TASK-00154. Neither belongs to the
-recording use case. Consumers retain authentication, permission
+current separately authorized bounded Queries; the [ordinary removal Command](execution-detail-removal.md) uses
+independent current permission. Neither belongs to the recording use case. Consumers retain authentication, permission
 policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, database roles and operations.
 
 ## Trusted admission and composition
@@ -405,13 +406,13 @@ than claiming availability from the safe capture marker.
 | Safe observation, protected row removed | Matching safe content raises `ProtectedContentRemoved`, regardless of submitted body; changed safe metadata still conflicts. No exact body comparison, silent restoration or new event |
 | Safe identity and protected row removed | Retry protection ended; a currently admitted submission can become new evidence with a new server recording time and one new dispatch attempt |
 
-Storage conformance removes content **inside the same `RecordingTransaction` serialization boundary**. Future removal
-Commands must coordinate with this lock; arbitrary SQL maintenance outside it is not covered by removal/retry race
+Storage conformance and the [public removal Command](execution-detail-removal.md) remove content **inside the same
+`RecordingTransaction` serialization boundary**. Arbitrary SQL maintenance outside this lock is not covered by removal/retry race
 guarantees. Tests exercise both lock orders (removal first and retained retry first) on SQLite/MySQL/PostgreSQL.
 Removing body alone preserves safe detail/activity and session/phase evidence and cannot leave a truthfully available
 body link: storage reconstruction returns no content. Removing identity too ends the guarantee, not an undeclared
-retained-content lease. Public removal authorization, eligible retention policy/jobs and the complete later Query/
-removal journey belong to TICKET-00042, without a reverse dependency here.
+retained-content lease. TICKET-00042's public Queries/removal reuse this boundary without a reverse dependency;
+retention eligibility, holds and maintenance jobs remain consumer-owned.
 
 ## Recording comparison and current schema
 

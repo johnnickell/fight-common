@@ -4,7 +4,8 @@ Protected inspection uses the existing Command/Query buses and [recording storag
 not a new capture system. `Domain\Execution\Detail\Query\ListCapturedMessages` and `GetCapturedDetail` have
 Application Detail handlers and `Service\DetailReader`; `Adapter\Execution\Dbal\DbalDetailReader` implements
 actual SQLite/MySQL/PostgreSQL reads. These Queries are independent of [safe inspection](execution-reads.md).
-No public removal Command, MCP Tool, UI, hidden reasoning or retention engine is included.
+[Ordinary authorized removal](execution-detail-removal.md) shares this storage; it is separate from these read-only
+Queries. No MCP removal Tool, UI, hidden reasoning or retention engine is included.
 
 ## Selection and current permission
 
@@ -120,8 +121,9 @@ statements are live, not a response-wide snapshot. Concurrent removal can change
 allowed body reads recheck content-row presence at the actual body read. Live offset pages can repeat/skip rows
 after insertions/removal. A prior result or continuation grants no frozen selection, remembered search, permission
 cache or retention lease. Deleted content is not kept alive to complete a browsing sequence. Earlier returned
-values are caller-owned historical data, not a promise of future access. Public removal and recording-retry
-coordination remain TASK-00154; tests here use owned storage fixtures between requests.
+values are caller-owned historical data, not a promise of future access. The separate
+[removal Command](execution-detail-removal.md#live-reads-and-recording-retries) shares recording's serialization
+boundary and has integrated real-database read/retry evidence; protected-read tests also retain owned storage fixtures.
 
 Reads issue no business writes, Commands or domain events, begin no transaction and change no isolation settings.
 `ExecutionReadFailed` uses the existing fixed public message. Causes/traces are private diagnostic context and may

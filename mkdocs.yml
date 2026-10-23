@@ -137,6 +137,7 @@ nav:
       - Execution Observations: execution-observations.md
       - Execution Overviews: execution-reads.md
       - Protected Execution Detail: execution-protected-reads.md
+      - Remove Execution Detail: execution-detail-removal.md
       - Process: components/process/index.md
       - Scheduler: components/scheduler/index.md
   - Frameworks:

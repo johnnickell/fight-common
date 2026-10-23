@@ -58,7 +58,8 @@ final class DbalProtectedContentTest extends UnitTestCase
         self::assertEquals($saved->recordedAt(), (new DbalObservationRepository($transaction))->getById($detail->producerId(), $detail->id())->recordedAt());
         try { $fixture->record($detail, ProtectedContent::create($detail->detail(), 'changed-private-body')); self::fail('Expected body conflict.'); }
         catch (ObservationConflict $exception) { self::assertStringNotContainsString('private-body', $exception->getMessage()); }
-        $db->delete('fight_execution_contents', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]);
+        $transaction->commitTransactional(static fn () => $repository->removeFor($detail));
+        $transaction->commitTransactional(static fn () => $repository->removeFor($detail));
         try { $fixture->record($detail, $content); self::fail('Retained identity must not restore deleted content.'); }
         catch (ProtectedContentRemoved $exception) { self::assertSame('Protected comparison content is no longer retained.', $exception->getMessage()); }
         self::assertNull($repository->getFor($detail));
@@ -103,6 +104,8 @@ final class DbalProtectedContentTest extends UnitTestCase
         $content = ProtectedContent::create($detail->detail(), 'private');
         try { $repository->add($detail, $content); self::fail('Expected owned transaction.'); } catch (LogicException) {}
         try { $repository->getFor(ObservationFixture::phase()); self::fail('Expected detail subject.'); } catch (DomainException) {}
+        try { $repository->removeFor($detail); self::fail('Expected owned removal transaction.'); } catch (LogicException) {}
+        try { $transaction->commitTransactional(static fn () => $repository->removeFor(ObservationFixture::phase())); self::fail('Expected detail subject.'); } catch (DomainException) {}
         try { $transaction->commitTransactional(static fn () => $repository->add(ObservationFixture::phase(), $content)); self::fail('Expected detail subject.'); } catch (DomainException) {}
         $fixture = new RecordingFixture($transaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $observation) { $fixture->record($observation); }

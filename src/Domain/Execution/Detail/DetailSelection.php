@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Execution\Detail;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Session\Query\GetExecution;
 use Fight\Common\Domain\Execution\Value\ObservationFields;
@@ -68,6 +69,22 @@ final readonly class DetailSelection
             ObservationFields::reference($data['producer_id']),
             ObservationFields::reference($data['activity_id'])
         );
+    }
+
+    /**
+     * Returns whether retained detail belongs to the complete selected relationship
+     */
+    public function acceptsDetail(Observation $detail, DetailKind $kind): bool
+    {
+        $capture = $detail->detail();
+        $execution = $this->execution->toArray();
+
+        return $capture !== null && $capture->kind() === $kind
+            && $capture->activityId()->equals($this->activityId)
+            && $detail->producerId() === $this->producerId
+            && $detail->session()->projectId() === $execution['project_id']
+            && $detail->session()->sessionId() === $execution['session_id']
+            && $detail->phase()?->phaseId() === $this->phaseId;
     }
 
     /**
