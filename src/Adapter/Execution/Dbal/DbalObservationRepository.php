@@ -58,6 +58,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
             'project_id'     => $observation->session()->projectId(),
             'session_id'     => $observation->session()->sessionId(),
             'phase_id'       => $observation->phase()?->phaseId(),
+            'activity_id'    => $observation->detail()?->activityId()->toString(),
             'version'        => $observation->toArray()['version'],
             'payload'        => $observation->comparison(),
             'recorded_at'    => $recordedAt->format('Y-m-d\TH:i:s.u\Z')

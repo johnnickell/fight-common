@@ -6,6 +6,9 @@ namespace Fight\Test\Common\TestCase\Execution;
 
 use DateTimeImmutable;
 use Fight\Common\Domain\Execution\Activity\PhaseActivity;
+use Fight\Common\Domain\Execution\Detail\CaptureCompleteness;
+use Fight\Common\Domain\Execution\Detail\DetailCapture;
+use Fight\Common\Domain\Execution\Detail\DetailKind;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Observation\ObservationOccurrence;
@@ -42,6 +45,18 @@ final class ObservationFixture
                 UsageMeasurement::create('provider/cost', 'USD', 'response', UsageCompleteness::UNAVAILABLE, null),
                 UsageMeasurement::create('provider/capacity', 'token', 'response', UsageCompleteness::UNKNOWN, null),
             ])
+        );
+        return Observation::fromArray(array_replace($observation->toArray(), $changes));
+    }
+
+    public static function detail(array $changes = []): Observation
+    {
+        $base = self::phase();
+        $observation = Observation::forDetail(
+            ObservationId::fromString('019a1234-5678-4abc-8def-123456789abf'),
+            'instrumentation', $base->session(), $base->phase(),
+            ObservationOccurrence::fromString('2026-10-20T12:34:56.12Z'),
+            DetailCapture::create(self::activity()->id(), DetailKind::MESSAGE, 'text/plain', CaptureCompleteness::COMPLETE)
         );
         return Observation::fromArray(array_replace($observation->toArray(), $changes));
     }

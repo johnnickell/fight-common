@@ -11,6 +11,7 @@ use Fight\Common\Application\Execution\ObservationAdmission;
 use Fight\Common\Application\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Execution\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
 use Fight\Common\Domain\Execution\Observation\ObservationRepository;
@@ -108,7 +109,8 @@ final class RecordingCommandsTest extends UnitTestCase
             $this->mock(PhaseRepository::class),
             $this->mock(ObservationRepository::class),
             $this->mock(ObservationAdmission::class),
-            $this->mock(EventDispatcher::class)
+            $this->mock(EventDispatcher::class),
+            $this->mock(ProtectedContentRepository::class)
         );
     }
 }

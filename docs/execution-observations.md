@@ -4,8 +4,8 @@ An opt-in recording slice in `Domain\Execution`, `Application\Execution` and
 `Adapter\Execution\Dbal` records trusted **evidence**, not authoritative Workflow state. Recording a phase named
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
-includes phase activity and measured usage, but no model directory, protected bodies, public inspection Queries,
-MCP tools or automatic capture.
+includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
+model directory, public inspection/removal APIs, MCP tools or automatic capture.
 
 ## Vocabulary and finite version-one representation
 
@@ -33,7 +33,7 @@ Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods
 |---|---|
 | `Session` | `projectId()`, `id()`, `consumerReference()`, `reference()`, `matches()` |
 | `Phase` | `projectId()`, `id()`, `sessionId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()`, `reference()`, `matches()`, `belongsTo()`, `acceptsParent()` |
-| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `activity()`, `occurrence()`, `recordedAt()`, `matches()`, `compareRecordingTo()` |
+| `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `activity()`, `detail()`, `occurrence()`, `recordedAt()`, `matches()`, `compareRecordingTo()` |
 | `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
 | `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
 | `RecordedObservation` | `observation()`, `recordedAt()` |
@@ -54,7 +54,8 @@ additions remain provisional until tagged; no earlier development payload or PHP
 | Phase name / attempt | Same reference alphabet, name at most 64 bytes; integer attempt 1–1,000,000 |
 | Outcomes | `unknown` (default), `succeeded`, `failed`, `cancelled`; never inferred from missing timing or process exit |
 | Times | Immutable native instants normalized to UTC, years 0001–9999; ordinary session/phase JSON uses `YYYY-MM-DDTHH:MM:SS.ffffffZ`; start and end may independently be unknown, but known end cannot precede known start |
-| Activity | Null for ordinary session/phase evidence; a bounded object for activity evidence with precision-preserving occurrence as below |
+| Activity | Null for ordinary session/phase/detail evidence; a bounded object for activity evidence with precision-preserving occurrence as below |
+| Detail | Null except for protected-detail evidence; safe bounded capture metadata linked to an existing same-scope activity |
 | Extensions | At most 32 namespaced keys, each at most 96 ASCII bytes matching `[a-z][a-z0-9.-]*/[a-z][a-z0-9._-]*`; only string, native integer, Boolean or null values |
 | Extension strings / total | At most 256 UTF-8 bytes per string and 4,096 bytes for the sorted JSON extension map; no objects, lists, floats or nested content |
 
@@ -74,8 +75,9 @@ phase timing or completion: `startedAt()`/`endedAt()` must be null and `outcome(
 reconstruction. It never advances Workflow state.
 
 All observation kinds share the exact field set `version`, `observation_id`, `producer_id`, `session`, `phase`,
-`occurred_at`, `started_at`, `ended_at`, `outcome`, `activity`, `extensions`. Ordinary session/phase evidence requires
-`activity: null`; activity evidence requires an activity object and non-null phase. No missing-field fallback exists.
+`occurred_at`, `started_at`, `ended_at`, `outcome`, `activity`, `detail`, `extensions`. Ordinary session/phase evidence
+requires `activity: null` and `detail: null`; activity evidence requires an activity object, null detail and non-null
+phase. Detail evidence requires capture metadata, null activity and non-null phase. No missing-field fallback exists.
 Activity occurrence is canonical UTC `YYYY-MM-DDTHH:MM:SSZ` or the same with **one through six** supplied fractional
 digits. Rollover, offsets, leap seconds, year zero and finer precision reject. `.120` stays `.120`, not `.120000`;
 these represent the same instant but different reported precision and therefore different retry content. Ordinary
@@ -133,8 +135,64 @@ $commands->execute(new RecordPhaseObservation($evidence));
 This uses the composition below after session and phase recording. No second pipeline, usage repository or hidden
 instrumentation is required. The observation row contains the entire bounded activity/usage snapshot and retained
 retry identity together, FK-linked to its existing project/session/phase. There are no independently committed
-measurement rows, and protected-body storage is deliberately absent. The existing `ObservationRecorded` fact
+measurement rows; protected bodies use the separate storage described below. The existing `ObservationRecorded` fact
 covers activity and its usage atomically; it includes **no** kind, summary, model, usage, extensions or bodies.
+
+## Protected detail recording
+
+`Observation::forDetail(id, producerId, session, phase, occurrence, capture)` creates a safe version-one observation.
+`DetailCapture` links an **existing activity observation** in the same producer namespace, exact project/session/
+consumer reference and phase (including parent/Agent/name/attempt). Detail cannot create its phase or activity.
+The detail identity is its own full observation UUID, never the target activity's UUID. `detail()` exposes only capture
+metadata; `activity()` remains null, timing remains unknown and extensions are empty. Agent/model/producer identities
+remain on their existing owners; no Workflow or review authority is mutated.
+
+`RecordProtectedDetail(observation, content)` pairs that safe observation with `ProtectedContent`. Its Command payload
+is `{observation: <safe version-one data>, content: {version: 1, body: <string|null>}}`. Unlike safe Events, this Command
+**contains protected bytes**: consumer bus filters, queues and diagnostics must not log/project it into safe channels.
+The handler uses the same recorder, admission and real transaction as session/phase/activity Commands.
+
+| Contract | Bound / meaning |
+|---|---|
+| `DetailKind` | `message`, `tool_arguments`, `tool_result`, `process_output` |
+| `DetailCapture` version | Integer `1`; exact fields `version`, `activity_id`, `kind`, `content_type`, `completeness`, `segment` |
+| Content type | Required lowercase parameter-free media type, at most 128 ASCII bytes; lexical `type/subtype`, not content validation |
+| `CaptureCompleteness` | `complete`/`partial` require a body (including empty string); `absent`/`unavailable`/consumer-supplied `expired` require null |
+| Message/tool body | At most 65,536 raw UTF-8 bytes; type is declared, not parsed as JSON or automatically redacted |
+| Process-output body | At most 16,384 raw UTF-8 bytes per submission; arbitrary binary must be encoded upstream within this budget |
+| `OutputSegment` | Required only for process output: `stdout`/`stderr`/`combined`, integer index 0–1,000,000 and byte offset 0–2,147,483,647; offset plus body bytes must remain within that bound |
+
+Complete/partial describes the producer's **submitted capture unit**, not proof of complete conversation/process output.
+Segment coordinates are supplied facts: no automatic concatenation, ordering/continuity inference, gap repair, total-size
+promise or capture service. Separate IDs may deliberately overlap; consumers own capture selection and vocabulary.
+`ProtectedContent::create(capture, body)` validates content against capture; `body()` is protected access, not read
+permission. All values are immutable with private state and typed accessors. Unsupported versions, extra fields,
+invalid UTF-8, inconsistent absence, bad coordinates and oversized bodies reject with fixed text, never submitted bytes.
+
+```php
+use Fight\Common\Domain\Execution\Detail\CaptureCompleteness;
+use Fight\Common\Domain\Execution\Detail\DetailCapture;
+use Fight\Common\Domain\Execution\Detail\DetailKind;
+use Fight\Common\Domain\Execution\Detail\OutputSegment;
+use Fight\Common\Domain\Execution\Detail\ProtectedContent;
+use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
+
+// After the activity example has committed, using the composition below:
+$capture = DetailCapture::create(
+    $evidence->id(), DetailKind::PROCESS_OUTPUT, 'text/plain', CaptureCompleteness::PARTIAL,
+    OutputSegment::create('stdout', 0, 0)
+);
+$detail = Observation::forDetail(
+    ObservationId::generate(), 'instrumentation', $session, $phaseObservation->phase(),
+    ObservationOccurrence::fromString('2026-10-20T12:34:57.12Z'), $capture
+);
+$commands->execute(new RecordProtectedDetail($detail, ProtectedContent::create($capture, 'synthetic output')));
+```
+
+Recording admission is **not** protected-read authorization. The internal repository is trusted infrastructure,
+not a public inspection API. TICKET-00042 owns current separately authorized
+bounded Queries and public removal Commands; none are introduced here. Consumers retain authentication, permission
+policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, database roles and operations.
 
 ## Trusted admission and composition
 
@@ -166,15 +224,18 @@ new attempt with a different performing identity, use a new phase subject ID and
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
 use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Execution\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
 use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
+use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
 use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
@@ -193,11 +254,13 @@ $recorder = new ObservationRecorder(
     new DbalPhaseRepository($transaction),
     new DbalObservationRepository($transaction),
     $admission,
-    $events
+    $events,
+    new DbalProtectedContentRepository($transaction)
 );
 $router = new InMemoryCommandRouter();
 $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
 $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
+$router->registerHandler(RecordProtectedDetail::class, new RecordProtectedDetailHandler($recorder));
 $commands = new RoutingCommandBus($router);
 
 $session = SessionReference::fromStrings('project', 'session', 'build:147');
@@ -243,12 +306,13 @@ hash. Version-one comparison emits the fixed core field order, sorted extension 
 scalar types. Array input key order and equivalent timezone instants do not affect comparison. Integer `3` differs
 from string `"3"`. Floats are excluded so process JSON float-precision settings cannot alter retry identity.
 Server recording time is excluded. Matching retries write nothing new and preserve that original time; changed data
-throws `ObservationConflict`. Guarantees last only while the observation/identity/comparison row remains retained.
-Deleting it does not promise indefinite deduplication.
+throws `ObservationConflict`. Detail comparison additionally requires the protected row, as described below.
+Guarantees last only while the required identity/comparison records remain retained; deletion does not promise
+indefinite deduplication.
 
 Application's `RecordingTransaction` extends the existing `TransactionalUnitOfWork` contract. Its DBAL implementation
 `DbalRecordingTransaction` owns the single real transaction, shared connection and serialization lock. Construct **all
-three DBAL repositories with that same boundary object**, as above; a repository tied to another boundary cannot
+four DBAL repositories with that same boundary object**, as above; a repository tied to another boundary cannot
 write inside this one's transaction. The recorder coordinates admission and repository-dependent checks, while roots
 own relationship/content matching and adapters own SQL mechanics. Callers only execute a Command; they never sequence
 repository writes or three independent commits.
@@ -272,7 +336,8 @@ retry is hidden in this adapter. No transaction with the work being observed, fi
 | `DomainException` | Invalid structure, limits, version or timing; correct the submission, do not blindly retry |
 | `RecordingDenied` | Current trusted producer/scope admission failed; existing identity grants no access |
 | `InvalidObservationRelationship` | Unavailable/inconsistent relationship; no partial subject or observation writes |
-| `ObservationConflict` | Retained key has changed content; no overwrite |
+| `ObservationConflict` | Retained key has changed safe metadata or protected content; no overwrite |
+| `ProtectedContentRemoved` | Safe identity remains but protected comparison row is gone; no body comparison or restoration |
 | `LogicException` | Unsupported outer/nested/closed-boundary transaction composition; fix composition |
 | `ObservationStorageFailed` with `outcomeUncertain() === false` | A DBAL operation failed and the owned transaction rolled back |
 | `ObservationStorageFailed` with `outcomeUncertain() === true` | Begin/commit acknowledgment or rollback failed; **do not assume absence**, discard the terminal boundary and reconcile/retry through a fresh idle connection with the same identity/content and fresh admission |
@@ -296,10 +361,12 @@ needed. SQLite foreign keys are enabled at recording-boundary construction, requ
 MySQL tables explicitly use InnoDB and `utf8mb4_bin` to preserve exact reference/producer case while supporting UTF-8
 extension values.
 
-The reserved `fight_execution_*` namespace contains a version/lock table, session subjects, phase subjects and retained
-observation rows. Composite foreign keys enforce same-project/session parent and observation links. Observation rows
-hold the producer-scoped identity, versioned submitted payload/comparison and immutable recording time. Future separately
-protected content can reference these records without putting bodies in these safe rows.
+The reserved `fight_execution_*` namespace contains a version/lock table, session subjects, phase subjects, retained
+safe observation rows and separately protected `fight_execution_contents`. Composite foreign keys enforce
+same-project/session parent and observation links. Observation rows hold producer-scoped identity, safe versioned
+payload/comparison, nullable `activity_id` FK and immutable recording time. The linked activity cannot be deleted while
+safe detail observations reference it. Content rows are FK-linked by `(producer_id, observation_id)`; deleting their
+safe identity cascades content, not session/phase summaries. Database grants and encryption remain consumer operations.
 
 `install()` creates only its tables and initial version row on an idle connection; repeated installation validates
 complete presence, version `1` and the required recording-order index. It does not repair
@@ -315,6 +382,34 @@ Neither COMB time bits nor recording timestamps imply causal order or commit ord
 future work. Qualification exercises real SQLite/MySQL/PostgreSQL round trips, independent competing session and phase
 writers, FKs, rollback, outer-transaction rejection, lost commit acknowledgment and post-commit subscriber failure.
 Package evidence is not consumer runtime/deployment qualification.
+
+## Protected storage and removal boundary
+
+Safe observations contain no bodies, content digests, encrypted bodies or second protected comparison copy.
+`fight_execution_contents.payload` alone holds exact version-one protected content (including a null body for explicit
+absence). Its DBAL text length permits JSON-escaping expansion beyond ordinary MySQL TEXT while raw byte limits remain
+fixed. Related safe identity/link/capture metadata and protected content commit together; failures after either insert
+roll all new effects back. Post-commit events expose only existing safe reference facts, not capture metadata or bodies.
+
+`DbalProtectedContentRepository::getFor(detail)` is a trusted recording/reconstruction boundary, not an authorized Query.
+A null **row** means content is no longer stored; a retained `ProtectedContent` with `body() === null` preserves an
+explicit absence marker. Capture `complete`/`partial` is historical supplied metadata, **never a current availability
+flag**. An absent row alone never means expired. A future read must check current storage and authorization rather
+than claiming availability from the safe capture marker.
+
+| Retained records | Retry behavior after current admission and relationship validation |
+|---|---|
+| Safe observation plus protected row | Exact safe content and body deduplicate with original recording time; changed metadata/body conflicts; matching retry does not redispatch |
+| Safe observation, protected row removed | Matching safe content raises `ProtectedContentRemoved`, regardless of submitted body; changed safe metadata still conflicts. No exact body comparison, silent restoration or new event |
+| Safe identity and protected row removed | Retry protection ended; a currently admitted submission can become new evidence with a new server recording time and one new dispatch attempt |
+
+Storage conformance removes content **inside the same `RecordingTransaction` serialization boundary**. Future removal
+Commands must coordinate with this lock; arbitrary SQL maintenance outside it is not covered by removal/retry race
+guarantees. Tests exercise both lock orders (removal first and retained retry first) on SQLite/MySQL/PostgreSQL.
+Removing body alone preserves safe detail/activity and session/phase evidence and cannot leave a truthfully available
+body link: storage reconstruction returns no content. Removing identity too ends the guarantee, not an undeclared
+retained-content lease. Public removal authorization, eligible retention policy/jobs and the complete later Query/
+removal journey belong to TICKET-00042, without a reverse dependency here.
 
 ## Recording comparison and current schema
 
@@ -344,7 +439,7 @@ post-commit subscriber failures on all three supported databases. These are pack
 ## Compatibility
 
 Compatibility is measured against tagged releases, not earlier development commits. Tagged v1.4.0 contains no
-Execution capability: all session/phase/activity/usage APIs, payloads and schema remain one mutable provisional
+Execution capability: all session/phase/activity/usage/protected-detail APIs, payloads and schema remain one mutable provisional
 version-one design until first tagged. There are no historical codecs, aliases, legacy wrappers or migrations for
 previous development snapshots. Unsupported-version rejection remains current validation, not past-version support.
 The project profile records this release-baseline rule.
@@ -362,6 +457,14 @@ additions, not subclass/implementation extension points. The compatibility manif
 behavioral contracts. Session, phase and activity use the same Commands, admission, repositories and safe Event
 pipeline. Readers accept only the current version-one representation; schema one includes its recording-order index. Matching retained retries
 preserve their original recording time without dispatch. No released unrelated API is removed.
+
+TASK-00149 adds public final `DetailCapture`, `OutputSegment`, `ProtectedContent`, `RecordProtectedDetail`, its handler,
+`ProtectedContentRemoved` and `DbalProtectedContentRepository`, native `DetailKind`/`CaptureCompleteness` enums and the
+implementable Domain `ProtectedContentRepository` port. Observation adds `forDetail()`/`detail()` and one nullable
+version-one field; the recorder takes the fourth repository and paired content. Schema one directly includes the
+content table and activity FK. These are provisional additions, not an upgrade/migration contract for earlier
+unreleased snapshots. The compatibility manifest classifies the new surface and behavioral guarantees. Existing
+session/phase/activity Commands and safe Event behavior remain supported; no unrelated released API changes.
 
 Message envelope `payload_type` and code-facing handler/subscriber registrations follow the PHP namespaces:
 `Fight.Common.Domain.Execution.Observation.Command.RecordSessionObservation`, the corresponding

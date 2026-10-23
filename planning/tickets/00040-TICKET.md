@@ -2,7 +2,7 @@
 id: TICKET-00040
 epic: EPIC-00009
 title: Record trusted execution observations
-status: ready-for-agent
+status: done
 ---
 
 # Record trusted execution observations
@@ -105,7 +105,7 @@ behavior changes under the accepted compatibility rules. These are future checks
 |---|---|---|
 | [TASK-00147](../tasks/00147-TASK.md) | Record durable execution sessions and phases | done |
 | [TASK-00148](../tasks/00148-TASK.md) | Record phase activity and measured usage | done |
-| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | ready-for-agent |
+| [TASK-00149](../tasks/00149-TASK.md) | Record separately protected execution detail | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -176,4 +176,21 @@ independent Review acceptance (R-01 resolved) and affected QA PASS; TASK-00148 i
 human review/merge. TASK-00149 is now dependency-unblocked. This TICKET remains `ready-for-agent` because
 TASK-00149 is unfinished; no release or deployment is claimed.
 
-Next: human review/merge of PR #222; then select work from the Board.
+That PR #222 handoff is historical: it is merged and integrated at TASK-00149 intake.
+
+### TASK-00149 Work checkpoint (historical)
+
+At the Work checkpoint, TASK-00149 had implemented protected recording on the shared Command path with separately
+stored bounded content, current retry admission, atomic FK-linked writes, safe committed facts and a retained-record
+removal/retry boundary. Its full local gate passed (6,280 Unit, 260 Integration, 53 Functional tests; exact
+14,351/14,351 statement coverage), with real SQLite/MySQL/PostgreSQL and DBAL 4.4.5/4.5.0 evidence. The then-pending
+independent Review and QA handoff is historical.
+
+### Current TASK-00149 delivery handoff
+
+TASK-00149 is `done` after independent Review acceptance and required QA PASS. Its published
+[PR #224](https://github.com/johnnickell/fight-common/pull/224) is open for human review/merge; this does not claim
+merge, release, certification or deployment. All three TICKET-00040 TASKs are terminal, so TICKET-00040 is `done`.
+Public protected Queries/removal remain TICKET-00042.
+
+Next: human review and merge https://github.com/johnnickell/fight-common/pull/224.

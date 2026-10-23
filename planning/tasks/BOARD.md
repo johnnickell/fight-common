@@ -29,8 +29,10 @@ Review acceptance and affected QA PASS for its ordinary Session, Phase and Obser
 no event-sourcing inheritance was introduced. Its existing [PR #221](https://github.com/johnnickell/fight-common/pull/221)
 is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication)
 is done: its corrected provisional version-one candidate has independent Review acceptance (R-01 resolved) and
-affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is open for human
-review/merge; dependent TASKs are unblocked.
+affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is merged and integrated
+at TASK-00149 intake; dependent TASKs are unblocked. [TASK-00149](00149-TASK.md) is `done` after
+independent Review acceptance and required QA PASS; its open [PR #224](https://github.com/johnnickell/fight-common/pull/224)
+is published for human review/merge. This is not a return to Work, Review, or QA.
 [TASK-00173](00173-TASK.md) separately plans
 getter-based deprecation for released runtime properties, excluding Standards; it is not started.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
@@ -49,7 +51,6 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
@@ -61,8 +62,8 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | — | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md) | — |
-| — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md), [TASK-00149](00149-TASK.md) | — |
-| — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | [TASK-00149](00149-TASK.md), [TASK-00150](00150-TASK.md) | — |
+| — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md) | — |
+| — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | [TASK-00150](00150-TASK.md) | — |
 | — | [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | [TASK-00153](00153-TASK.md), [TASK-00152](00152-TASK.md) | — |
 | — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | [TASK-00151](00151-TASK.md), [TASK-00152](00152-TASK.md) | — |
 | — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | [TASK-00155](00155-TASK.md), [TASK-00153](00153-TASK.md) | — |
@@ -148,6 +149,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00146](00146-TASK.md) | Make Hosted CI Advisory for Fight Common PR Delivery | — (standalone chore) | done | — | [PR #209](https://github.com/johnnickell/fight-common/pull/209) |
 | — | [TASK-00147](00147-TASK.md) | Record durable execution sessions and phases | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #221](https://github.com/johnnickell/fight-common/pull/221) |
 | — | [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #222](https://github.com/johnnickell/fight-common/pull/222) |
+| — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #224](https://github.com/johnnickell/fight-common/pull/224) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 <!-- /planning:board -->
 

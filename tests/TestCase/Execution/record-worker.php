@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Domain\Execution\Detail\ProtectedContent;
 use Fight\Common\Domain\Execution\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -42,8 +43,15 @@ $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class)
     ++$events;
 });
 $data = $config['observation'];
+$content = $config['content'] ?? null;
 if ($role === 'second' && $config['conflict']) {
-    if ($data['activity'] !== null) {
+    if ($data['detail'] !== null) {
+        if ($config['metadata_conflict'] ?? false) {
+            $data['detail']['content_type'] = 'text/other';
+        } else {
+            $content['body'] = 'changed-private-body';
+        }
+    } elseif ($data['activity'] !== null) {
         if ($config['usage_conflict'] ?? false) {
             $data['activity']['usage'][2]['value'] = '999';
         } else {
@@ -57,7 +65,23 @@ $observation = Observation::fromArray($data);
 file_put_contents($directory.'/'.$role.'-started', 'started');
 $status = 'recorded';
 try {
-    $fixture->record($observation);
+    if (($config['removal_role'] ?? null) === $role) {
+        // Storage fixture only: future authorized removal must use the same boundary.
+        $store->commitTransactional(static function () use ($connection, $observation, $directory, $role): void {
+            file_put_contents($directory.'/'.$role.'-admitted', 'storage lock held');
+            if ($role === 'first') {
+                $deadline = microtime(true) + 10;
+                while (!file_exists($directory.'/release')) {
+                    if (microtime(true) > $deadline) { throw new RuntimeException('Removal race barrier timed out.'); }
+                    usleep(10000);
+                }
+            }
+            $connection->delete('fight_execution_contents', ['producer_id' => $observation->producerId(), 'observation_id' => $observation->id()->toString()]);
+        });
+        $status = 'removed';
+    } else {
+        $fixture->record($observation, $content === null ? null : ProtectedContent::fromArray($observation->detail(), $content));
+    }
 } catch (Throwable $throwable) {
     $status = $throwable::class;
 }

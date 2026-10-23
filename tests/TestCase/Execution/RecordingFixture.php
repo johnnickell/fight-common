@@ -8,16 +8,20 @@ use Closure;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Execution\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
 use Fight\Common\Application\Execution\Observation\Exception\RecordingDenied;
 use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Execution\ObservationAdmission;
+use Fight\Common\Domain\Execution\Detail\ProtectedContent;
 use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
+use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
 use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
 use Fight\Common\Domain\Execution\Observation\Observation;
 
@@ -40,11 +44,13 @@ final class RecordingFixture implements ObservationAdmission
             new DbalPhaseRepository($transaction),
             new DbalObservationRepository($transaction),
             $this,
-            $this->events
+            $this->events,
+            new DbalProtectedContentRepository($transaction)
         );
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
         $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
+        $router->registerHandler(RecordProtectedDetail::class, new RecordProtectedDetailHandler($recorder));
         $this->bus = new RoutingCommandBus($router);
     }
 
@@ -102,9 +108,11 @@ final class RecordingFixture implements ObservationAdmission
         ($this->onAdmit ?? static function (): void {})($observation);
     }
 
-    public function record(Observation $observation): void
+    public function record(Observation $observation, ?ProtectedContent $content = null): void
     {
-        if ($observation->phase() === null) {
+        if ($content !== null) {
+            $command = new RecordProtectedDetail($observation, $content);
+        } elseif ($observation->phase() === null) {
             $command = new RecordSessionObservation($observation);
         } else {
             $command = new RecordPhaseObservation($observation);

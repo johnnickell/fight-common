@@ -82,7 +82,7 @@ final class ActivityObservationTest extends UnitTestCase
             self::assertSame(1, $data['version']);
             self::assertSame([
                 'version', 'observation_id', 'producer_id', 'session', 'phase', 'occurred_at',
-                'started_at', 'ended_at', 'outcome', 'activity', 'extensions',
+                'started_at', 'ended_at', 'outcome', 'activity', 'detail', 'extensions',
             ], array_keys($data));
             self::assertSame($observation->comparison(), Observation::fromArray($data)->comparison());
             unset($data['activity']);
