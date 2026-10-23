@@ -7,13 +7,13 @@ namespace Fight\Test\Common\TestCase\Execution;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
 use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Execution\Session\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
@@ -24,14 +24,11 @@ use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtecte
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
 use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Execution\ObservationAdmission;
-use Fight\Common\Application\Execution\Read\ExecutionAccess;
-use Fight\Common\Application\Execution\Read\ExecutionReadAdmission;
-use Fight\Common\Application\Execution\Read\ExecutionReadFailed;
-use Fight\Common\Application\Execution\Read\ExecutionSelection;
-use Fight\Common\Application\Execution\Read\Query\ListExecutions;
-use Fight\Common\Application\Execution\Read\Query\SummarizeExecutions;
-use Fight\Common\Application\Execution\Read\QueryHandler\ListExecutionsHandler;
-use Fight\Common\Application\Execution\Read\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Execution\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Execution\Session\ExecutionAccess;
+use Fight\Common\Application\Execution\Session\ExecutionReadAdmission;
+use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
+use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
 use Fight\Common\Domain\Execution\Detail\ProtectedContent;
 use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
@@ -39,9 +36,13 @@ use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Phase\PhaseReference;
+use Fight\Common\Domain\Execution\Session\ExecutionSelection;
+use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
+use Fight\Common\Domain\Execution\Session\Query\SummarizeExecutions;
 use Fight\Common\Domain\Execution\Session\SessionReference;
 use Fight\Common\Domain\Execution\Usage\UsageCompleteness;
 use Fight\Common\Domain\Execution\Usage\UsageMeasurement;
+use Fight\Common\Domain\Messaging\Query\QueryMessage;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -52,6 +53,29 @@ abstract class ExecutionReadTestCase extends UnitTestCase
     public static function databases(): iterable
     {
         yield 'sqlite' => ['sqlite'];
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_session_query_envelopes_reconstruct_and_route_without_carrying_read_authority(string $backend): void
+    {
+        $db = $this->database($backend);
+        $this->writer($db)($this->session('project', 'visible'));
+        $this->writer($db)($this->session('project', 'hidden'));
+        [$bus, $admission] = $this->bus($db, ['project' => ['visible']]);
+        $selection = ExecutionSelection::create(['project']);
+        $summary = QueryMessage::create(new SummarizeExecutions($selection));
+        $page = QueryMessage::create(new ListExecutions($selection, 1, 1));
+        $summary = QueryMessage::arrayDeserialize($summary->arraySerialize());
+        $page = QueryMessage::arrayDeserialize($page->arraySerialize());
+        self::assertInstanceOf(SummarizeExecutions::class, $summary->payload());
+        self::assertInstanceOf(ListExecutions::class, $page->payload());
+        self::assertSame(1, $bus->dispatch($summary)->toArray()['executions']);
+        $result = $bus->dispatch($page)->toArray();
+        self::assertSame(1, $result['total']);
+        self::assertSame('visible', $result['executions'][0]['session']['session_id']);
+        $admission->access = ExecutionAccess::create([]);
+        self::assertSame(0, $bus->dispatch($summary)->toArray()['executions']);
+        self::assertSame([], $bus->dispatch($page)->executions());
     }
 
     #[DataProvider('databases')]
@@ -266,8 +290,8 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         };
         $reader = new DbalExecutionReader($db);
         $router = new InMemoryQueryRouter();
-        $router->registerHandler(SummarizeExecutions::class, new SummarizeExecutionsHandler($admission, $reader));
-        $router->registerHandler(ListExecutions::class, new ListExecutionsHandler($admission, $reader));
+        $router->registerHandler(SummarizeExecutionsHandler::queryRegistration(), new SummarizeExecutionsHandler($admission, $reader));
+        $router->registerHandler(ListExecutionsHandler::queryRegistration(), new ListExecutionsHandler($admission, $reader));
         return [new RoutingQueryBus($router), $admission];
     }
 

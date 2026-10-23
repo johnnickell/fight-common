@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Execution\Dbal;
+namespace Fight\Test\Common\Adapter\Execution\Session\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
-use Fight\Common\Application\Execution\Read\ExecutionAccess;
-use Fight\Common\Application\Execution\Read\ExecutionPage;
-use Fight\Common\Application\Execution\Read\ExecutionReadFailed;
-use Fight\Common\Application\Execution\Read\ExecutionSelection;
-use Fight\Common\Application\Execution\Read\ExecutionSummary;
-use Fight\Common\Application\Execution\Read\ExecutionView;
-use Fight\Common\Application\Execution\Read\Query\ListExecutions;
-use Fight\Common\Application\Execution\Read\Query\SummarizeExecutions;
-use Fight\Common\Application\Execution\Read\QueryHandler\ListExecutionsHandler;
-use Fight\Common\Application\Execution\Read\QueryHandler\SummarizeExecutionsHandler;
-use Fight\Common\Application\Execution\Read\UsageTotal;
+use Fight\Common\Adapter\Execution\Session\Dbal\DbalExecutionReader;
+use Fight\Common\Application\Execution\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Execution\Session\ExecutionAccess;
+use Fight\Common\Application\Execution\Session\ExecutionPage;
+use Fight\Common\Application\Execution\Session\ExecutionSummary;
+use Fight\Common\Application\Execution\Session\ExecutionView;
+use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
+use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
+use Fight\Common\Domain\Execution\Session\ExecutionSelection;
+use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
+use Fight\Common\Domain\Execution\Session\Query\SummarizeExecutions;
 use Fight\Common\Domain\Execution\Usage\UsageCompleteness;
 use Fight\Common\Domain\Execution\Usage\UsageMeasurement;
+use Fight\Common\Domain\Execution\Usage\UsageTotal;
 use Fight\Test\Common\TestCase\Execution\ExecutionReadTestCase;
 use Fight\Test\Common\TestCase\Execution\ObservationFixture;
 use PHPUnit\Framework\Attributes\CoversClass;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Read\Query;
+namespace Fight\Common\Domain\Execution\Session\Query;
 
-use Fight\Common\Application\Execution\Read\ExecutionSelection;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Execution\Session\ExecutionSelection;
 use Fight\Common\Domain\Execution\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;

@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Read;
+namespace Fight\Common\Domain\Execution\Usage;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Execution\Usage\UsageMeasurement;
 use Fight\Common\Domain\Value\Basic\Decimal;
 
 /**

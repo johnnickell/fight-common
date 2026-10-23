@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Execution\Dbal;
+namespace Fight\Common\Adapter\Execution\Session\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Fight\Common\Application\Execution\Read\ExecutionAccess;
-use Fight\Common\Application\Execution\Read\ExecutionPage;
-use Fight\Common\Application\Execution\Read\ExecutionReader;
-use Fight\Common\Application\Execution\Read\ExecutionReadFailed;
-use Fight\Common\Application\Execution\Read\ExecutionSelection;
-use Fight\Common\Application\Execution\Read\ExecutionSummary;
-use Fight\Common\Application\Execution\Read\ExecutionView;
-use Fight\Common\Application\Execution\Read\Query\ListExecutions;
-use Fight\Common\Application\Execution\Read\UsageTotal;
+use Fight\Common\Application\Execution\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Execution\Session\ExecutionAccess;
+use Fight\Common\Application\Execution\Session\ExecutionPage;
+use Fight\Common\Application\Execution\Session\ExecutionReader;
+use Fight\Common\Application\Execution\Session\ExecutionSummary;
+use Fight\Common\Application\Execution\Session\ExecutionView;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationOutcome;
+use Fight\Common\Domain\Execution\Session\ExecutionSelection;
+use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
 use Fight\Common\Domain\Execution\Session\SessionReference;
+use Fight\Common\Domain\Execution\Usage\UsageTotal;
 use Throwable;
 
 /**

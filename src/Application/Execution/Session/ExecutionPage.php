@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Read;
+namespace Fight\Common\Application\Execution\Session;
 
 /**
  * Class ExecutionPage

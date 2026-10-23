@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Read;
+namespace Fight\Common\Application\Execution\Session;
 
-use Fight\Common\Application\Execution\Read\Query\ListExecutions;
+use Fight\Common\Domain\Execution\Session\ExecutionSelection;
+use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
 
 /**
  * Interface ExecutionReader

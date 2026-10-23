@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Read\QueryHandler;
+namespace Fight\Common\Application\Execution\Session\QueryHandler;
 
-use Fight\Common\Application\Execution\Read\ExecutionPage;
-use Fight\Common\Application\Execution\Read\ExecutionReadAdmission;
-use Fight\Common\Application\Execution\Read\ExecutionReader;
-use Fight\Common\Application\Execution\Read\Query\ListExecutions;
+use Fight\Common\Application\Execution\Session\ExecutionPage;
+use Fight\Common\Application\Execution\Session\ExecutionReadAdmission;
+use Fight\Common\Application\Execution\Session\ExecutionReader;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
 
 /**
