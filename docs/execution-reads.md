@@ -1,11 +1,11 @@
-# Authorized execution overviews
+# Authorized execution inspection
 
 `Domain\Execution\Session\Query` supplies `SummarizeExecutions` and `ListExecutions`; their
 `Application\Execution\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
 `Adapter\Execution\Dbal\DbalExecutionReader` reads the
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
-views, not authoritative Workflow state. Selected-execution/phase/activity inspection, protected reads/removal,
-MCP and UI are separate capabilities.
+views, not authoritative Workflow state. Selected-execution summaries and phase pages use the same current
+admission. Activity browsing, protected reads/removal, MCP and UI remain separate capabilities.
 
 ## Ownership and layers
 
@@ -15,17 +15,20 @@ new aggregate nor adds read methods to their write repositories.
 
 | Owner | Declarations and responsibility |
 | --- | --- |
-| `Domain\Execution\Session` | `ExecutionSelection` validates the requested session selection; `Query\ListExecutions` and `Query\SummarizeExecutions` are Domain payloads, not Application coordinators. |
+| `Domain\Execution\Session` | `ExecutionSelection` validates selection; `Query\ListExecutions`, `Query\SummarizeExecutions` and `Query\GetExecution` are Domain payloads, not Application coordinators. |
+| `Domain\Execution\Phase` | `Query\ListExecutionPhases` owns bounded phase selection within an exact selected Session. |
 | `Domain\Execution\Usage` | `UsageTotal` owns compatible exact measurement arithmetic beside `UsageMeasurement`; it is a supporting value, not a new aggregate. |
 | `Application\Execution\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
-| `Application\Execution\Session\Data` | `ExecutionView`, `ExecutionPage` and `ExecutionSummary` are safe use-case projections, not aggregate roots. |
-| `Application\Execution\Session\QueryHandler` | The two handlers obtain fresh access and delegate the selected read. |
+| `Application\Execution\Session\Data` | `ExecutionView`, `ExecutionPage`, `ExecutionSummary` and `ExecutionInspection` are safe use-case projections, not aggregate roots. |
+| `Application\Execution\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
+| `Application\Execution\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
+| `Application\Execution\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
 | `Application\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
-| `Adapter\Execution\Dbal` | `DbalExecutionReader` implements the Session read port alongside the existing DBAL recording adapters. |
+| `Adapter\Execution\Dbal` | `DbalExecutionReader` and `DbalPhaseReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
 
 Queries and their selection have no Application dependencies. Caller grants stay outside Domain payloads.
 Summary results may include related phase/activity evidence without transferring those aggregates' ownership to
-Session. Future selected-session Queries belong with Session; phase/activity Queries belong with their actual
+Session. Selected-session Queries belong with Session; phase/activity Queries belong with their actual
 Phase or Observation owner, not a generic `Read` peer. The DBAL adapters stay together under
 `Adapter\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
 adapter grouping before a tagged release if that directory grows enough to justify it.
@@ -40,11 +43,16 @@ raise fixed-text `DomainException`s without echoing inputs.
 
 Consumers implement `ExecutionReadAdmission::currentAccess(selection): ExecutionAccess` from trusted **current
 invocation context**. `ExecutionAccess::create()` takes at most 16 project keys, each mapped to `null` for a whole
-project or a list of **0–100** permitted session IDs. An empty list grants nothing. All-numeric project references
+project or a list of **0–100** permitted session IDs. An empty list grants nothing. Its optional second argument,
+`phaseGrants`, maps already supplied project keys to lists of **0–100** permitted phase IDs (unique within a project).
+Omitting a project from `phaseGrants` leaves its phases unrestricted; an empty list conceals all its phase evidence.
+Phase restrictions never grant a session or project. They apply to overview freshness/usage as well as selected
+summaries, phase counts/rows and exposed parents. Session-level evidence remains available under a session grant.
+All-numeric project references
 remain valid despite PHP's numeric array-key conversion. Common intersects these grants with the supplied selection
 and filters **in SQL before every count or row read**. A guessed/hidden/unselected project or session yields no
 matches, with no existence distinction. IDs, performing Agents, message metadata, prior pages and earlier success
-are not grants. Admission is called again for every summary/list request, even empty selections. Human permissions
+are not grants. Admission is called again for every overview, selected summary or phase-page request, even empty selections. Human permissions
 do not imply Agent permissions; authentication, policy and revocation synchronization belong to the consumer.
 The decision must remain effective throughout that invocation; never deserialize grants from Query input.
 
@@ -82,7 +90,7 @@ diagnostic context, never a public error projection. Do not expose exception tra
 
 `ExecutionPage::executions()` returns typed `ExecutionView`s; `toArray()` returns those rows plus `total`, `page`,
 `per_page`. Each row contains only the session reference, observed outcome and `latest_recorded_at`. Typed methods
-are `session()`, `outcome()`, `latestRecordedAt()`. Summary/page constructors are trusted result assembly, not
+are `session()`, `outcome()`, `latestRecordedAt()`. All result constructors are trusted result assembly, not
 untrusted input decoders. Output never includes extensions, activity text, model data, detail bodies, arguments,
 results or process output. The adapter never reads `fight_execution_contents`.
 
@@ -118,6 +126,69 @@ Access is reevaluated independently. Separate summary/list/detail calls do not s
 search. Persisted freshness says only what the reads encountered: not full producer capture, external completeness,
 authoritative terminal state, projection checkpoint or review acceptance.
 
+## Selected execution and phases
+
+`GetExecution(projectId, sessionId)` supplies one exact project/session selection and returns nullable
+`ExecutionInspection`. `toArray()` contains `execution` (the existing safe `ExecutionView` shape), `observation`
+(the latest retained session state evidence, or null) and `summary` (the existing full-selection statistics shape,
+restricted to this exact execution and its currently permitted phases). Statistics are not constrained by any
+phase-page filters or pagination. The observed timing comes from **one latest state observation**, not inferred
+minimum start, maximum end, activity timing or surrounding success.
+
+`ListExecutionPhases(projectId, sessionId, page: null, perPage: null, filters: [], orderings: [])` returns nullable
+`PhasePage`. It has the same strict default 1/100, maximum size **100** and maximum offset **1,000,000** as
+`ListExecutions`. Only exact `phase_id`, `agent_id` and `name` filters are accepted; only `latest_recorded_at`
+ASC/DESC ordering is accepted. Extra payload fields, invalid references, bounds, directions and unsupported fields
+raise fixed-text Domain failures without echoing input. Each Query's exact array representation carries selection,
+filters and normalized pagination, **never grants**. Both Query envelopes support ordinary serialization/routing.
+
+A phase page contains typed `phases()` (`PhaseView`s) and `toArray()` fields `phases`, `total`, `page`, `per_page`.
+Each phase row contains:
+
+- `phase`: session/phase IDs, performing `agent_id`, name, attempt and only a permitted, same-project/same-session
+  `parent_phase_id`. Null means no **disclosed** parent, not proof that the phase has no parent. Parent permission
+  does not follow from child permission. Parent lookup is independently constrained before selection.
+- `observation`: latest retained **phase state** evidence, excluding activity and detail observations, or null.
+  The `ObservationView` shape contains only `observation_id`, instrumentation `producer_id`, `occurred_at`,
+  `recorded_at`, nullable `started_at`/`ended_at`, and explicit observed `outcome`. Missing evidence is unknown,
+  never success. No review acceptance or Workflow transition is inferred, even for a phase named `review` in a
+  succeeded execution. Selected session observations use this same safe shape.
+- `latest_recorded_at`: latest retained recording time for that phase across state/activity/detail evidence, or null.
+  This freshness may be later than the state observation, and does not establish completion or complete capture.
+- `models`: bytewise sorted distinct model references from retained phase activity, at most **128** per phase.
+  Models remain separate from the performing Agent and recording producer; an empty list means no retained model
+  reference, not proof that no model performed work. More than 128 fails the whole response rather than truncating.
+  No activity summary, detail reference, extension or body is returned; this is not activity browsing.
+
+Phase rows default to their latest retained observation's immutable recording time descending, then **full UUID**
+descending, then producer bytewise descending. Exact cross-phase ties use phase ID bytewise ascending. Explicit ASC
+reverses the first three fields only. Evidence-free phases sort last in DESC, first in ASC. Latest state selection
+uses recording time/full UUID/producer descending independently of requested page ordering. Six recording-time
+microseconds are retained on SQLite, MySQL and PostgreSQL. Occurrence time is separate; neither timestamp, UUID
+suffix nor phase attempt supplies causality, commit ordering, Workflow authority or a global checkpoint.
+
+Missing and concealed executions return the same **null** for both Queries, without metadata or total counts.
+A permitted existing execution with no permitted/matching phases returns an **empty page with total zero**, not
+null. Out-of-range pages preserve the current authorized matching total. Guessed phase filters and phases belonging
+to another session/project return no matching rows. A retained subject with no state evidence remains inspectable
+with null observation/freshness as applicable; missing usage is not zero. Storage, corrupt identity/relationship,
+unsupported-version or finite-output-limit failure raises the existing fixed `ExecutionReadFailed`, never an empty
+successful page or partial statistics. Do not publicly expose its chained diagnostic cause.
+
+These readers issue no business writes/events and start no transaction. SQL constrains counts, selected rows and
+observation batches **before** loading evidence. Phase pages read at most 100 rows plus per-row batches of 100
+observations, retaining at most 128 model references per row. Full selected usage reuses the existing exact
+metric/unit/provenance grouping and 128-group limit; no activity joins multiply totals. Work grows with retained
+evidence, not merely page size. No protected storage is read. Consumer admission/timeouts/database sizing remain
+necessary; finite output is not a constant-cost query guarantee.
+
+Every call freshly obtains `ExecutionReadAdmission::currentAccess()`; earlier overview membership, a saved envelope
+or a parent reference confers no authority. Consumers must supply all relevant current human/Agent distinctions
+and keep that decision effective throughout the invocation. Totals, state, freshness, usage and phase rows use
+separate live statements, not one response-wide snapshot. Inserts/removal may repeat/skip rows between pages;
+summary and phase requests independently see changed data/permissions. There is no retained browsing session or
+cross-request frozen result. Consumer transaction isolation may be stronger but is not promised by Common.
+
 ## Direct DBAL and Query bus composition
 
 Use the same installed version-one recording namespace and consumer-owned connection. No new tables, indexes,
@@ -145,15 +216,33 @@ $summary = $queries->fetch(new SummarizeExecutions($selection));
 $page = $queries->fetch(new ListExecutions($selection, page: 1, perPage: 20));
 ```
 
+For selected navigation, add these explicit registrations to the same router/admission and connection:
+
+```php
+use Fight\Common\Adapter\Execution\Dbal\DbalPhaseReader;
+use Fight\Common\Application\Execution\Phase\QueryHandler\ListExecutionPhasesHandler;
+use Fight\Common\Application\Execution\Session\QueryHandler\GetExecutionHandler;
+use Fight\Common\Domain\Execution\Phase\Query\ListExecutionPhases;
+use Fight\Common\Domain\Execution\Session\Query\GetExecution;
+
+$router->registerHandler(GetExecution::class, new GetExecutionHandler($currentCallerAdmission, $reader));
+$router->registerHandler(
+    ListExecutionPhases::class,
+    new ListExecutionPhasesHandler($currentCallerAdmission, new DbalPhaseReader($connection))
+);
+$execution = $queries->fetch(new GetExecution('project', 'session'));
+$phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1, perPage: 20));
+```
+
 Future transports must consume these shared Queries, not implement their own admission or direct database overview.
 Do not reuse recording admission as a caller read grant or infer protected-body permission from timeline permission.
 
 ## Compatibility and public surface
 
-All **14** new declarations are additive opt-in public API: `ExecutionSelection`, `ExecutionAccess`,
+TASK-00150 introduced **14** additive opt-in public declarations: `ExecutionSelection`, `ExecutionAccess`,
 `ExecutionReadAdmission`, `ExecutionReader`, `ExecutionReadFailed`, `ExecutionView`, `ExecutionSummary`,
 `ExecutionPage`, `UsageTotal`, the two Queries, their two handlers and `DbalExecutionReader`.
-Only the two ports promise consumer implementation; final classes do not promise extension. Named factories own
+Only its two ports promise consumer implementation; final classes do not promise extension. Named factories own
 selection/access/usage construction; result/Query/handler/adapter constructors are callable as declared. All state
 is private. Existing tagged APIs, QueryBus envelopes/metadata, recording payloads, schema and Pagination behavior
 are unchanged. The pre-release ownership correction replaces the earlier `Application\Execution\Read` names
@@ -161,6 +250,17 @@ and relocates the DBAL reader directly; no backward shim for a never-released de
 Query envelope payload-type identifiers and handler registrations use the new Domain Session FQCNs. Discard or
 recreate envelopes from the earlier development snapshot; those provisional type names are not released aliases.
 
-`compatibility/manifest.json` records this TASK's declarations and inventory deltas. Existing release-wide
+TASK-00151 adds **10** opt-in public declarations: `GetExecution`, `ListExecutionPhases`, their two handlers,
+`ExecutionInspection`, `ObservationView`, `PhaseView`, `PhasePage`, `PhaseReader` and `DbalPhaseReader`.
+`PhaseReader` promises consumer implementation; final classes do not promise extension. Constructors and methods
+are callable as declared; result constructors assemble trusted projections rather than validate untrusted input.
+One additional declaration, `DbalExecutionReadSupport`, is explicitly internal, with no consumer-operation promise.
+The existing provisional `ExecutionReader` port adds `inspect()` and `ExecutionAccess::create()` adds optional
+phase restrictions; custom unreleased implementations must add the selected operation. No shim is provided for
+previous development-only shapes. Session overview behavior without phase restrictions remains supported.
+Tagged declarations, envelopes/metadata, recording payloads, schema/indexes and existing Pagination are unchanged;
+there is no migration, asynchronous projection or Event Store dependency.
+
+`compatibility/manifest.json` records both TASKs' declarations and inventory deltas. Existing release-wide
 bookkeeping gaps and operation-shape fingerprint regeneration remain release-owner follow-ups, not a claim of
 release certification or consumer runtime qualification. No package/release-process tests are added.

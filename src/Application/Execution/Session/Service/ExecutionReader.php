@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Execution\Session\Service;
 
+use Fight\Common\Application\Execution\Session\Data\ExecutionInspection;
 use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
 use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Domain\Execution\Session\ExecutionSelection;
+use Fight\Common\Domain\Execution\Session\Query\GetExecution;
 use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
 
 /**
@@ -23,4 +25,9 @@ interface ExecutionReader
      * Returns a live page and permitted total constrained before selection
      */
     public function list(ListExecutions $query, ExecutionAccess $access): ExecutionPage;
+
+    /**
+     * Returns a selected summary or null for a missing or concealed execution
+     */
+    public function inspect(GetExecution $query, ExecutionAccess $access): ?ExecutionInspection;
 }

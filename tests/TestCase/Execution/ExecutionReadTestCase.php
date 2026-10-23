@@ -10,6 +10,7 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Execution\Dbal\DbalPhaseReader;
 use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
@@ -24,7 +25,9 @@ use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtecte
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
 use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Execution\ObservationAdmission;
+use Fight\Common\Application\Execution\Phase\QueryHandler\ListExecutionPhasesHandler;
 use Fight\Common\Application\Execution\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Execution\Session\QueryHandler\GetExecutionHandler;
 use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
 use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
 use Fight\Common\Application\Execution\Session\Service\ExecutionAccess;
@@ -263,11 +266,11 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         return $db;
     }
 
-    protected function writer(Connection $db): callable
+    protected function writer(Connection $db, ?SimpleEventDispatcher $events = null): callable
     {
         $transaction = new DbalRecordingTransaction($db);
         $admission = new class implements ObservationAdmission { public function admit(Observation $observation): void {} };
-        $recorder = new ObservationRecorder($transaction, new DbalSessionRepository($transaction), new DbalPhaseRepository($transaction), new DbalObservationRepository($transaction), $admission, new SimpleEventDispatcher(), new DbalProtectedContentRepository($transaction));
+        $recorder = new ObservationRecorder($transaction, new DbalSessionRepository($transaction), new DbalPhaseRepository($transaction), new DbalObservationRepository($transaction), $admission, $events ?? new SimpleEventDispatcher(), new DbalProtectedContentRepository($transaction));
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
         $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
@@ -292,6 +295,8 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         $router = new InMemoryQueryRouter();
         $router->registerHandler(SummarizeExecutionsHandler::queryRegistration(), new SummarizeExecutionsHandler($admission, $reader));
         $router->registerHandler(ListExecutionsHandler::queryRegistration(), new ListExecutionsHandler($admission, $reader));
+        $router->registerHandler(GetExecutionHandler::queryRegistration(), new GetExecutionHandler($admission, $reader));
+        $router->registerHandler(ListExecutionPhasesHandler::queryRegistration(), new ListExecutionPhasesHandler($admission, new DbalPhaseReader($db)));
         return [new RoutingQueryBus($router), $admission];
     }
 

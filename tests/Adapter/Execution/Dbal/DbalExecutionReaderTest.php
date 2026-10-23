@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReadSupport;
 use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
 use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Execution\Session\Data\ExecutionView;
@@ -28,6 +29,7 @@ use Fight\Test\Common\TestCase\Execution\ObservationFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(DbalExecutionReader::class)]
+#[CoversClass(DbalExecutionReadSupport::class)]
 #[CoversClass(ExecutionAccess::class)]
 #[CoversClass(ExecutionPage::class)]
 #[CoversClass(ExecutionReadFailed::class)]

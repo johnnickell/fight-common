@@ -95,7 +95,7 @@ No capability implementation or product test result is claimed by this planning 
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00150](../tasks/00150-TASK.md) | Summarize and browse authorized executions | done |
-| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | ready-for-agent |
+| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | done |
 | [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent |
 <!-- /planning:children -->
 
@@ -123,8 +123,8 @@ presentation; TICKET-00042 retains public protected reads/removal and integrated
 reverse blocker. Each TASK owns its applicable validation, permissions, database implementation, compatibility,
 documentation, exact coverage and complete local build evidence. No layer-only or tests-later TASK is approved.
 
-All three TASKs are accepted and written. No implementation, consumer amendment, commit or publication has occurred.
-`ready-for-agent` records accepted planning, not completed capability evidence. No global execution priority or
+At the planning checkpoint all three TASKs were accepted and written, without implementation, consumer amendment,
+commit or publication. `ready-for-agent` recorded accepted planning, not completed capability evidence. No global execution priority or
 worktree choice is assigned; choose the checkout/worktree explicitly before implementation. Release target is unassigned.
 
 All map TICKET decompositions are accepted and written. TICKET-00040–00043 now have complete accepted
@@ -138,4 +138,13 @@ TICKET-00045's complete recording/removal split is also accepted/written as TASK
 
 TICKET-00046's complete inspection/recovery split is also accepted/written as TASK-00160–00161.
 
-Next: `/skill:next`
+### TASK-00151 delivery closeout
+
+TASK-00150 PR #227 is merged at the verified TASK-00151 base. TASK-00151 is `done` after independent Review
+acceptance and required QA PASS for candidate `d0f6ad82add2d6a754645e34e60022b3791a1c08`; its administrative
+closeout records only truthful completion metadata and generated views. SQLite, MySQL and PostgreSQL qualification,
+exact owned-production coverage and the full local gate are recorded in [its completion notes](../tasks/00151-TASK.md#completion-notes).
+TASK-00152's activity browsing and all protected reads/MCP/UI remain outside this delivered slice. This TICKET remains
+open because TASK-00152 is unfinished. No TASK-00151 PR approval, merge, release or consumer qualification is claimed.
+
+Next: authorized Land publication, then human review and merge of TASK-00151's resulting PR.
