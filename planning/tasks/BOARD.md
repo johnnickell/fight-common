@@ -151,7 +151,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00148](00148-TASK.md) | Record phase activity and measured usage | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #222](https://github.com/johnnickell/fight-common/pull/222) |
 | — | [TASK-00149](00149-TASK.md) | Record separately protected execution detail | [TICKET-00040 — Record trusted execution observations](../tickets/00040-TICKET.md) | done | — | [PR #224](https://github.com/johnnickell/fight-common/pull/224) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
-| — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | — |
+| — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 <!-- /planning:board -->
 
 ## Wayfinder
