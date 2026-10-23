@@ -155,7 +155,7 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 | — | [TASK-00150](00150-TASK.md) | Summarize and browse authorized executions | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | done | — | [PR #227](https://github.com/johnnickell/fight-common/pull/227) |
 | — | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | done | — | [PR #228](https://github.com/johnnickell/fight-common/pull/228) |
 | — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | done | — | [PR #229](https://github.com/johnnickell/fight-common/pull/229) |
-| — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | done | — | — |
+| — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | done | — | [PR #230](https://github.com/johnnickell/fight-common/pull/230) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 <!-- /planning:board -->
