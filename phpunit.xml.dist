@@ -14,6 +14,7 @@
             <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
             <exclude>tests/Adapter/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</exclude>
@@ -57,6 +58,7 @@
             <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>
             <file>tests/Adapter/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
+            <file>tests/Adapter/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</file>
