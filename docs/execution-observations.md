@@ -5,7 +5,8 @@ An opt-in recording slice in `Domain\Execution`, `Application\Execution` and
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
 includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
-model directory, public inspection/removal APIs, MCP tools or automatic capture.
+model directory, protected inspection/removal APIs, MCP tools or automatic capture. Safe execution overview
+Queries are documented separately in [authorized execution overviews](execution-reads.md).
 
 ## Vocabulary and finite version-one representation
 
@@ -112,8 +113,8 @@ Typed accessors expose all fields; string `"0"` is a real measured zero. Complet
 
 An absent metric, unknown/unavailable metric, partial value and measured zero are distinct. Common does not derive
 cost, context capacity, quota, outcome, permissions or billing from tokens or another metric. Consumers own units,
-metric vocabulary, capture accuracy and whether independently reported observations overlap; no aggregation or
-unit conversion is implied.
+metric vocabulary, capture accuracy and whether independently reported observations overlap. Recording alone
+implies no aggregation or unit conversion; [overview Queries](execution-reads.md) explicitly group compatible evidence.
 
 ```php
 use Fight\Common\Domain\Execution\Activity\PhaseActivity;
@@ -294,8 +295,8 @@ Events are facts about saved observations, not authoritative session/phase trans
 `ObservationRepository::getById(producer, observationId)` return independently reconstructed nullable roots; `add()`
 persists a new immutable root inside the shared recording transaction. They are Domain contracts and do not inherit
 Application's unit of work. They are not authorized public inspection APIs: these reads support recording checks,
-retry comparison and adapter qualification. Do not expose them directly to untrusted callers. Future public Queries
-may use dedicated read results rather than hydrating roots; they are outside this slice.
+retry comparison and adapter qualification. Do not expose them directly to untrusted callers. Public [overview Queries](execution-reads.md)
+return dedicated safe results through current read admission; recording repositories remain internal to composition.
 
 ## Retry and transaction guarantees
 
