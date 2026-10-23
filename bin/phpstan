@@ -12,4 +12,4 @@ docker container run \
     --rm -it \
     -v $(pwd):/app:delegated \
     -w /app \
-    fight-common php vendor/bin/phpstan analyse "$@"
+    fight-common php vendor/bin/phpstan analyse --memory-limit=512M "$@"

@@ -74,7 +74,9 @@ docker run --rm -v "$PWD:/app:delegated" -w /app fight-common \
   php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
 ```
 
-Use the same container pattern for PHPStan/Rector when appropriate. Inspect `./bin/*` before selecting them: interactive helpers may allocate a TTY or rebuild the image. Long detached gates must produce a complete log and explicit exit status; do not interpret timeout output as completion.
+For focused PHPStan use `php vendor/bin/phpstan analyse --memory-limit=512M` in that container pattern;
+`bin/quality` and `bin/phpstan` supply the same per-process limit, including parallel workers. This is not a total
+container allocation or a concurrency limit. Use the same container pattern for Rector when appropriate. Inspect `./bin/*` before selecting them: interactive helpers may allocate a TTY or rebuild the image. Long detached gates must produce a complete log and explicit exit status; do not interpret timeout output as completion.
 
 The coding-standard authority is `src/Standards/Phpcs/ruleset.xml` with the project's PHPCS composition. Fight Common must demonstrate its own strict conventions: root `phpcs.xml` enables multiline docblocks, checks declaration docblock alignment and ignores PHPCS suppression annotations. Repair violations instead of adding exclusions, lowering diagnostic severity, suppressing warnings or narrowing the scanned paths to make a gate pass. Changes to the published consumer defaults remain subject to [ADR 0004](../adr/0004-coding-standard-compatibility.md). Unit tests use the established UnitTestCase and Mockery helpers. Test methods follow `test_that_<subject>_<condition>()`, with `self::assert...`. Direct unit tests have `#[CoversClass(Target::class)]`; qualifying integration/journey tests may use `#[CoversNothing]`, never to hide missing direct coverage. Every PHPUnit test class carries explicit coverage metadata. Follow each suite's actual base-class contract.
 
