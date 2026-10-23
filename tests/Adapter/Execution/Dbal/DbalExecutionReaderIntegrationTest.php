@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Execution\Session\Dbal;
+namespace Fight\Test\Common\Adapter\Execution\Dbal;
 
 use Fight\Test\Common\TestCase\Execution\ExecutionReadTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;

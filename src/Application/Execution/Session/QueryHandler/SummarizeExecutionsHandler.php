@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Execution\Session\QueryHandler;
 
-use Fight\Common\Application\Execution\Session\ExecutionReadAdmission;
-use Fight\Common\Application\Execution\Session\ExecutionReader;
-use Fight\Common\Application\Execution\Session\ExecutionSummary;
+use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Execution\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Execution\Session\Service\ExecutionReader;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
 use Fight\Common\Domain\Execution\Session\Query\SummarizeExecutions;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;

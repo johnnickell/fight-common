@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Execution\Session\Dbal;
+namespace Fight\Test\Common\Adapter\Execution\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
-use Fight\Common\Adapter\Execution\Session\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
+use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
+use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Execution\Session\Data\ExecutionView;
 use Fight\Common\Application\Execution\Session\Exception\ExecutionReadFailed;
-use Fight\Common\Application\Execution\Session\ExecutionAccess;
-use Fight\Common\Application\Execution\Session\ExecutionPage;
-use Fight\Common\Application\Execution\Session\ExecutionSummary;
-use Fight\Common\Application\Execution\Session\ExecutionView;
 use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
 use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Execution\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Execution\Observation\Observation;
 use Fight\Common\Domain\Execution\Observation\ObservationId;
 use Fight\Common\Domain\Execution\Session\ExecutionSelection;

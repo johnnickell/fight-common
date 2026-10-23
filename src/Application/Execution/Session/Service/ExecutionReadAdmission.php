@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Session;
+namespace Fight\Common\Application\Execution\Session\Service;
 
 use Fight\Common\Domain\Execution\Session\ExecutionSelection;
 

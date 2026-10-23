@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Execution\Session;
+namespace Fight\Test\Common\Application\Execution\Session\Service;
 
-use Fight\Common\Application\Execution\Session\ExecutionAccess;
+use Fight\Common\Application\Execution\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;

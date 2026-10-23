@@ -2,7 +2,7 @@
 
 `Domain\Execution\Session\Query` supplies `SummarizeExecutions` and `ListExecutions`; their
 `Application\Execution\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
-`Adapter\Execution\Session\Dbal\DbalExecutionReader` reads the
+`Adapter\Execution\Dbal\DbalExecutionReader` reads the
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
 views, not authoritative Workflow state. Selected-execution/phase/activity inspection, protected reads/removal,
 MCP and UI are separate capabilities.
@@ -17,15 +17,18 @@ new aggregate nor adds read methods to their write repositories.
 | --- | --- |
 | `Domain\Execution\Session` | `ExecutionSelection` validates the requested session selection; `Query\ListExecutions` and `Query\SummarizeExecutions` are Domain payloads, not Application coordinators. |
 | `Domain\Execution\Usage` | `UsageTotal` owns compatible exact measurement arithmetic beside `UsageMeasurement`; it is a supporting value, not a new aggregate. |
-| `Application\Execution\Session` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` coordinate current caller scope and the dedicated read port. `ExecutionView`, `ExecutionPage` and `ExecutionSummary` are safe use-case projections, not aggregate roots. |
+| `Application\Execution\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
+| `Application\Execution\Session\Data` | `ExecutionView`, `ExecutionPage` and `ExecutionSummary` are safe use-case projections, not aggregate roots. |
 | `Application\Execution\Session\QueryHandler` | The two handlers obtain fresh access and delegate the selected read. |
 | `Application\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
-| `Adapter\Execution\Session\Dbal` | `DbalExecutionReader` implements the Session read port against existing storage. |
+| `Adapter\Execution\Dbal` | `DbalExecutionReader` implements the Session read port alongside the existing DBAL recording adapters. |
 
 Queries and their selection have no Application dependencies. Caller grants stay outside Domain payloads.
 Summary results may include related phase/activity evidence without transferring those aggregates' ownership to
 Session. Future selected-session Queries belong with Session; phase/activity Queries belong with their actual
-Phase or Observation owner, not a generic `Read` peer.
+Phase or Observation owner, not a generic `Read` peer. The DBAL adapters stay together under
+`Adapter\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
+adapter grouping before a tagged release if that directory grows enough to justify it.
 
 ## Selection, current admission and limits
 
@@ -121,12 +124,12 @@ Use the same installed version-one recording namespace and consumer-owned connec
 projection workers or Event Store are required. Compose the current caller admission and reader explicitly:
 
 ```php
-use Fight\Common\Adapter\Execution\Session\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
-use Fight\Common\Application\Execution\Session\ExecutionReadAdmission;
 use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
 use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Execution\Session\Service\ExecutionReadAdmission;
 use Fight\Common\Domain\Execution\Session\ExecutionSelection;
 use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
 use Fight\Common\Domain\Execution\Session\Query\SummarizeExecutions;

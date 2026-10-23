@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Execution\Session;
+namespace Fight\Common\Application\Execution\Session\Data;
 
 use Fight\Common\Domain\Execution\Observation\ObservationOutcome;
 use Fight\Common\Domain\Execution\Session\SessionReference;
