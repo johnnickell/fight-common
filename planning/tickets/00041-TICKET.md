@@ -95,7 +95,7 @@ No capability implementation or product test result is claimed by this planning 
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00150](../tasks/00150-TASK.md) | Summarize and browse authorized executions | done |
-| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | ready-for-agent |
+| [TASK-00151](../tasks/00151-TASK.md) | Inspect an execution summary and its phases | in-progress |
 | [TASK-00152](../tasks/00152-TASK.md) | Inspect phase activity and safe detail references | ready-for-agent |
 <!-- /planning:children -->
 
@@ -123,8 +123,8 @@ presentation; TICKET-00042 retains public protected reads/removal and integrated
 reverse blocker. Each TASK owns its applicable validation, permissions, database implementation, compatibility,
 documentation, exact coverage and complete local build evidence. No layer-only or tests-later TASK is approved.
 
-All three TASKs are accepted and written. No implementation, consumer amendment, commit or publication has occurred.
-`ready-for-agent` records accepted planning, not completed capability evidence. No global execution priority or
+At the planning checkpoint all three TASKs were accepted and written, without implementation, consumer amendment,
+commit or publication. `ready-for-agent` recorded accepted planning, not completed capability evidence. No global execution priority or
 worktree choice is assigned; choose the checkout/worktree explicitly before implementation. Release target is unassigned.
 
 All map TICKET decompositions are accepted and written. TICKET-00040–00043 now have complete accepted
@@ -138,4 +138,13 @@ TICKET-00045's complete recording/removal split is also accepted/written as TASK
 
 TICKET-00046's complete inspection/recovery split is also accepted/written as TASK-00160–00161.
 
-Next: `/skill:next`
+### TASK-00151 Work checkpoint
+
+TASK-00150 PR #227 is merged at the verified TASK-00151 base. TASK-00151 now supplies locally verified selected
+Session summaries and bounded Phase pages through current shared admission and real DBAL reads. SQLite, MySQL and
+PostgreSQL qualification, exact owned-production coverage and the full local gate are recorded in
+[its completion notes](../tasks/00151-TASK.md#completion-notes). It remains `in-progress` awaiting independent Review
+and required QA; TASK-00152's activity browsing and all protected reads/MCP/UI remain outside that Work handoff.
+This TICKET remains open. No TASK-00151 publication, merge, release or consumer qualification is claimed.
+
+Next: `/skill:review TASK-00151` in an independent session, coordinated by the existing Build run.

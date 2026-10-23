@@ -35,8 +35,10 @@ independent Review acceptance and required QA PASS; its open [PR #224](https://g
 is published for human review/merge. This is not a return to Work, Review, or QA.
 [TASK-00150](00150-TASK.md#combined-placement-acceptance-and-administrative-closeout) is `done` after independent
 Review acceptance and affected QA PASS for John's combined DBAL/Service/Data placement amendments. Existing
-[PR #227](https://github.com/johnnickell/fight-common/pull/227) retains its human review/merge handoff after authorized
-publication; earlier placement candidates and reports remain historical. Completion records acceptance, not merge.
+[PR #227](https://github.com/johnnickell/fight-common/pull/227) is merged and integrated at TASK-00151's verified
+Work base; earlier placement candidates and reports remain historical. [TASK-00151](00151-TASK.md#completion-notes)
+has locally verified selected summaries and phase Queries and remains `in-progress` awaiting independent Review,
+then required QA. Its Work handoff does not claim independent acceptance or publication.
 [TASK-00173](00173-TASK.md) separately plans
 getter-based deprecation for released runtime properties, excluding Standards; it is not started.
 TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
@@ -49,13 +51,12 @@ still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00151](00151-TASK.md) | Inspect an execution summary and its phases | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |

@@ -28,6 +28,31 @@ final class ExecutionAccessTest extends UnitTestCase
         ExecutionAccess::create($access);
     }
 
+    public function test_that_phase_grants_only_restrict_admitted_sessions_and_copy_numeric_reference_lists(): void
+    {
+        $id = 'phase';
+        $access = ExecutionAccess::create(['project' => null, '123' => ['session']], ['project' => [&$id, 'phase'], '123' => []]);
+        $id = 'changed';
+        self::assertSame(['project' => ['phase'], 123 => []], $access->phaseGrants());
+        self::assertSame([], ExecutionAccess::create(['project' => null])->phaseGrants());
+    }
+
+    #[DataProvider('invalidPhaseGrants')]
+    public function test_that_phase_grants_require_finite_project_scoped_lists(array $grants): void
+    {
+        $this->expectException(DomainException::class);
+        ExecutionAccess::create(['project' => null], $grants);
+    }
+
+    public static function invalidPhaseGrants(): iterable
+    {
+        yield [['other' => []]];
+        yield [['project' => null]];
+        yield [['project' => ['key' => 'phase']]];
+        yield [['project' => array_fill(0, 101, 'phase')]];
+        yield [['project' => ['invalid phase']]];
+    }
+
     public static function invalidAccess(): iterable
     {
         yield [array_fill_keys(range('a', 'q'), null)];

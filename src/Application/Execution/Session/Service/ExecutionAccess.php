@@ -18,8 +18,9 @@ final readonly class ExecutionAccess
      * Constructs ExecutionAccess
      *
      * @param array<string, list<string>|null> $projects
+     * @param array<string, list<string>> $phaseGrants
      */
-    private function __construct(private array $projects)
+    private function __construct(private array $projects, private array $phaseGrants)
     {
     }
 
@@ -27,8 +28,9 @@ final readonly class ExecutionAccess
      * Creates current whole-project or explicit session grants
      *
      * @param array<string, mixed> $projects
+     * @param array<string, mixed> $phaseGrants
      */
-    public static function create(array $projects): self
+    public static function create(array $projects, array $phaseGrants = []): self
     {
         if (count($projects) > 16) {
             throw new DomainException('Invalid execution access.');
@@ -54,7 +56,21 @@ final readonly class ExecutionAccess
             $safe[$project] = array_values(array_unique($ids));
         }
 
-        return new self($safe);
+        $phases = [];
+        foreach ($phaseGrants as $project => $ids) {
+            if (!array_key_exists($project, $safe) || !is_array($ids) || !array_is_list($ids) || count($ids) > 100) {
+                throw new DomainException('Invalid execution phase access.');
+            }
+
+            $validated = [];
+            foreach ($ids as $id) {
+                $validated[] = ObservationFields::reference($id);
+            }
+
+            $phases[$project] = array_values(array_unique($validated));
+        }
+
+        return new self($safe, $phases);
     }
 
     /**
@@ -65,5 +81,15 @@ final readonly class ExecutionAccess
     public function projects(): array
     {
         return $this->projects;
+    }
+
+    /**
+     * Returns optional project-scoped phase restrictions, never additional session authority
+     *
+     * @return array<string, list<string>>
+     */
+    public function phaseGrants(): array
+    {
+        return $this->phaseGrants;
     }
 }
