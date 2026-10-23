@@ -2,7 +2,7 @@
 id: TICKET-00042
 epic: EPIC-00009
 title: Inspect and remove protected captured detail
-status: ready-for-agent
+status: done
 ---
 
 # Inspect and remove protected captured detail
@@ -100,7 +100,7 @@ promises preserved. These are future acceptance obligations, not checks already 
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00153](../tasks/00153-TASK.md) | Inspect separately authorized captured detail | done |
-| [TASK-00154](../tasks/00154-TASK.md) | Remove protected detail while preserving execution evidence | ready-for-agent |
+| [TASK-00154](../tasks/00154-TASK.md) | Remove protected detail while preserving execution evidence | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

@@ -67,4 +67,20 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
             'payload'        => json_encode($content->toArray(), JSON_THROW_ON_ERROR)
         ]);
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function removeFor(Observation $detail): void
+    {
+        $this->transaction->requireOwnedTransaction();
+        if ($detail->detail() === null) {
+            throw new DomainException('Expected a protected detail observation.');
+        }
+
+        $this->transaction->connection()->delete('fight_execution_contents', [
+            'producer_id'    => $detail->producerId(),
+            'observation_id' => $detail->id()->toString()
+        ]);
+    }
 }

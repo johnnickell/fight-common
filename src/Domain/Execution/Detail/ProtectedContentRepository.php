@@ -22,4 +22,11 @@ interface ProtectedContentRepository
      * Adds content within the same transaction as its safe identity and link
      */
     public function add(Observation $detail, ProtectedContent $content): void;
+
+    /**
+     * Removes protected content while retaining safe identity and links in the shared transaction
+     *
+     * An already missing protected row is a no-op, not recording replay or permission
+     */
+    public function removeFor(Observation $detail): void;
 }
