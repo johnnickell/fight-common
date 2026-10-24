@@ -22,10 +22,11 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 candidate `47de0c036a037b123de9fcc97ffef65051735d5d`.
 [PR #231](https://github.com/johnnickell/fight-common/pull/231) merged into develop at
 2026-10-23T22:28:09Z as `9b201ab945b3faac55b0224dd91185f02c902fa5`; its human review/merge handoff is complete.
-[TASK-00155](00155-TASK.md) is now in progress in the selected main checkout, including John's approved
+[TASK-00155](00155-TASK.md) is `done` after independent Review acceptance and required QA PASS for candidate
+`a03a5d562ce358833fd847b4c2b0ac113d6e3e06`, including John's approved
 [stale delivery-handoff check](00155-TASK.md#approved-follow-up--stale-delivery-handoff-check).
-Implementation and the complete local gate passed; the current handoff is independent Review, then required QA.
-TASK remains `in-progress`. No independent verdict, publication, release or deployment is claimed.
+Its verified [PR #232](https://github.com/johnnickell/fight-common/pull/232) is open against `develop`; the current
+handoff is human review and merge. No PR approval, merge, release or deployment is claimed.
 
 [TASK-00172](00172-TASK.md#completion-notes) has independent Review acceptance and required QA PASS.
 [PR #220](https://github.com/johnnickell/fight-common/pull/220) merged into develop at
@@ -65,7 +66,7 @@ local pass alone does not establish delivery freshness.
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00155](00155-TASK.md) | Awaiting human review/merge | [https://github.com/johnnickell/fight-common/pull/232](https://github.com/johnnickell/fight-common/pull/232) |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -73,12 +74,13 @@ local pass alone does not establish delivery freshness.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
+| — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
@@ -88,7 +90,6 @@ local pass alone does not establish delivery freshness.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | [TASK-00155](00155-TASK.md) | — |
 | — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
 | — | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
 | — | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00160](00160-TASK.md), [TASK-00159](00159-TASK.md) | — |
@@ -177,6 +178,7 @@ local pass alone does not establish delivery freshness.
 | — | [TASK-00152](00152-TASK.md) | Inspect phase activity and safe detail references | [TICKET-00041 — Inspect execution summaries and activity](../tickets/00041-TICKET.md) | done | — | [PR #229](https://github.com/johnnickell/fight-common/pull/229) |
 | — | [TASK-00153](00153-TASK.md) | Inspect separately authorized captured detail | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | done | — | [PR #230](https://github.com/johnnickell/fight-common/pull/230) |
 | — | [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | [TICKET-00042 — Inspect and remove protected captured detail](../tickets/00042-TICKET.md) | done | — | [PR #231](https://github.com/johnnickell/fight-common/pull/231) |
+| — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #232](https://github.com/johnnickell/fight-common/pull/232) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 <!-- /planning:board -->

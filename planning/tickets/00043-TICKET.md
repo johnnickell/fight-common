@@ -99,7 +99,7 @@ compatibility classification for additions. No implementation or product test su
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00155](../tasks/00155-TASK.md) | Inspect execution summaries and activity through MCP | in-progress |
+| [TASK-00155](../tasks/00155-TASK.md) | Inspect execution summaries and activity through MCP | done |
 | [TASK-00156](../tasks/00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent |
 <!-- /planning:children -->
 
