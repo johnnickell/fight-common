@@ -18,44 +18,23 @@ TASKs awaiting independent Review/QA remain active, not done; historical termina
 For `/ask-matt` or an unqualified "What's next?", report the current Human Action or Needs Info decision and the
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
 
-[TASK-00154](00154-TASK.md#delivery-closeout) has independent Review acceptance and required QA PASS for
-candidate `47de0c036a037b123de9fcc97ffef65051735d5d`.
-[PR #231](https://github.com/johnnickell/fight-common/pull/231) merged into develop at
-2026-10-23T22:28:09Z as `9b201ab945b3faac55b0224dd91185f02c902fa5`; its human review/merge handoff is complete.
-[TASK-00155](00155-TASK.md) is `done` after independent Review acceptance and required QA PASS for candidate
-`a03a5d562ce358833fd847b4c2b0ac113d6e3e06`, including John's approved
-[stale delivery-handoff check](00155-TASK.md#approved-follow-up--stale-delivery-handoff-check).
-Its verified [PR #232](https://github.com/johnnickell/fight-common/pull/232) is open against `develop`; the current
-handoff is human review and merge. No PR approval, merge, release or deployment is claimed.
+<!-- planning:next -->
+| Route | TASK | Title | Status | Blocked by |
+|---|---|---|---|---|
+| Active Work | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | in-progress | — |
+<!-- /planning:next -->
 
-[TASK-00172](00172-TASK.md#completion-notes) has independent Review acceptance and required QA PASS.
-[PR #220](https://github.com/johnnickell/fight-common/pull/220) merged into develop at
-2026-10-21T00:17:09Z; its earlier human review/merge handoff is complete. No release or deployment is claimed.
+This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
+records as the sections below. Inspect each selected TASK's current handoff and independent evidence to choose
+its workflow stage; metadata alone does not establish Review, QA or delivery. Do not add competing current-status
+prose here. Historical completion and delivery evidence remain in the owning TASK records.
 
-The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) has complete
-approved planning: EPIC-00009–00012, TICKET-00040–00052 and TASK-00147–00171 (25 TASKs). Its current handoff is
-Board-based execution selection, not automatic implementation. [TASK-00147](00147-TASK.md) is done after independent
-Review acceptance and affected QA PASS for its ordinary Session, Phase and Observation aggregate-root revision;
-no event-sourcing inheritance was introduced. Its existing [PR #221](https://github.com/johnnickell/fight-common/pull/221)
-is integrated into develop at the TASK-00148 Work intake. [TASK-00148](00148-TASK.md#current-correction--user-amendment-after-publication)
-is done: its corrected provisional version-one candidate has independent Review acceptance (R-01 resolved) and
-affected QA PASS. Existing [PR #222](https://github.com/johnnickell/fight-common/pull/222) is merged and integrated
-at TASK-00149 intake; dependent TASKs are unblocked. [TASK-00149](00149-TASK.md) is `done` after
-independent Review acceptance and required QA PASS; [PR #224](https://github.com/johnnickell/fight-common/pull/224)
-merged into develop at 2026-10-23T00:18:01Z. Its earlier human review/merge handoff is complete; no release or
-deployment is claimed. This is not a return to Work, Review, or QA.
-[TASK-00150](00150-TASK.md#combined-placement-acceptance-and-administrative-closeout) is `done` after independent
-Review acceptance and affected QA PASS for John's combined DBAL/Service/Data placement amendments. Existing
-[PR #227](https://github.com/johnnickell/fight-common/pull/227) is merged and integrated at TASK-00151's verified
-Work base; earlier placement candidates and reports remain historical. [TASK-00151](00151-TASK.md#delivery-closeout)
-is `done` after independent Review acceptance and required QA PASS for candidate
-`d0f6ad82add2d6a754645e34e60022b3791a1c08`; administrative closeout does not claim publication, PR approval, merge,
-release or deployment. [TASK-00173](00173-TASK.md) separately plans
-getter-based deprecation for released runtime properties, excluding Standards; it is not started.
-TASK-00157/00158/00166's Ready Frontier entries reflect satisfied dependencies, not execution authority. No global
-priority is inferred. TASK-00168's approved protocol activation
-has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
-still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input-intent race integration.
+## Current planning handoff
+
+The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
+its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
+belongs to the generated Board, not automatic implementation. The [Roadmap planning frontier](../ROADMAP.md#planning-frontier)
+separately identifies decomposition work.
 
 ## Current delivery handoffs
 
@@ -66,7 +45,7 @@ local pass alone does not establish delivery freshness.
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00155](00155-TASK.md) | Awaiting human review/merge | [https://github.com/johnnickell/fight-common/pull/232](https://github.com/johnnickell/fight-common/pull/232) |
+| None | — | — |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -74,7 +53,7 @@ local pass alone does not establish delivery freshness.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

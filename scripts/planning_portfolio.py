@@ -166,9 +166,8 @@ def complete_parents(records: dict) -> dict[Path, str]:
     return pending
 
 
-def projections(records: dict) -> dict[tuple[Path, str], str]:
-    views = {}
-    board = PLANNING / "tasks/BOARD.md"
+def task_groups(records: dict) -> dict[str, list]:
+    """One authoritative ordering and state classification for every TASK view."""
     tasks = [(key, path, data) for key, (path, data) in records.items()
              if key.startswith("TASK-") and "archive" not in path.parts]
     tasks.sort(key=lambda row: (int(row[2].get("order") or 999999), row[0]))
@@ -178,16 +177,50 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
         status = data["status"]
         group = {"in-progress": "Active Work", "needs-info": "Needs Info", "ready-for-human": "Human Action", "needs-triage": "Needs Triage"}.get(status)
         group = group or ("Recently Closed" if status in TERMINAL else "Waiting" if blockers else "Ready Frontier")
-        parent = data.get("ticket")
-        parent_label = linked(board, records[parent][0], f'{parent} — {records[parent][1]["title"]}') if parent else "— (standalone " + data.get("kind", "task") + ")"
-        groups[group].append([
-            cell(data.get("order", "")), linked(board, path, identifier), cell(data["title"]), parent_label,
-            cell(status), ", ".join(linked(board, records[key][0], key) for key in blockers) or "—",
-            f'[PR #{data["pr"].rsplit("/", 1)[1]}]({data["pr"]})' if data.get("pr") else "—",
-        ])
-    views[board, "board"] = "\n\n".join(f"## {name}\n\n" + table(
-        ["Order", "TASK ID", "Title", "Parent TICKET", "Status", "Blocked by", "PR"], rows
-    ) for name, rows in groups.items())
+        groups[group].append((identifier, path, data, blockers))
+    return groups
+
+
+def routing_summary(source: Path, groups: dict[str, list], records: dict) -> str:
+    """Select current work, not a workflow verdict or inferred delivery state."""
+    selected = [(name, task) for name in ("Human Action", "Needs Info") for task in groups[name]]
+    active, ready = groups["Active Work"], groups["Ready Frontier"]
+    if active:
+        selected.extend(("Active Work", task) for task in active)
+    elif ready:
+        selected.append(("Ready Frontier", ready[0]))
+    else:
+        for name in ("Needs Triage", "Waiting"):
+            selected.extend((name, task) for task in groups[name][:1])
+    rows = [[name, linked(source, path, identifier), cell(data["title"]), cell(data["status"]),
+             ", ".join(linked(source, records[key][0], key) for key in blockers) or "—"]
+            for name, (identifier, path, data, blockers) in selected]
+    summary = table(["Route", "TASK", "Title", "Status", "Blocked by"], rows)
+    if not active and not ready:
+        summary += "\n\nNo TASK is currently executable; unresolved work may remain."
+    return summary
+
+
+def projections(records: dict) -> dict[tuple[Path, str], str]:
+    views = {}
+    board = PLANNING / "tasks/BOARD.md"
+    groups = task_groups(records)
+    sections = []
+    for name, tasks in groups.items():
+        rows = []
+        for identifier, path, data, blockers in tasks:
+            parent = data.get("ticket")
+            parent_label = linked(board, records[parent][0], f'{parent} — {records[parent][1]["title"]}') if parent else "— (standalone " + data.get("kind", "task") + ")"
+            rows.append([
+                cell(data.get("order", "")), linked(board, path, identifier), cell(data["title"]), parent_label,
+                cell(data["status"]), ", ".join(linked(board, records[key][0], key) for key in blockers) or "—",
+                f'[PR #{data["pr"].rsplit("/", 1)[1]}]({data["pr"]})' if data.get("pr") else "—",
+            ])
+        sections.append(f"## {name}\n\n" + table(
+            ["Order", "TASK ID", "Title", "Parent TICKET", "Status", "Blocked by", "PR"], rows
+        ))
+    views[board, "board"] = "\n\n".join(sections)
+    views[board, "next"] = routing_summary(board, groups, records)
 
     handoffs = current_delivery(records)
     views[board, "delivery"] = table(["TASK", "Current delivery", "PR"], [
@@ -208,6 +241,7 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
             views[source, "records"] = table(["ID", "Title", "Status", "Parent"], rows)
 
     roadmap = PLANNING / "ROADMAP.md"
+    views[roadmap, "execution"] = routing_summary(roadmap, groups, records)
     rows = [[linked(roadmap, path, identifier), cell(data["title"]), cell(data.get("target", "")), cell(data["status"])]
             for identifier, (path, data) in sorted(records.items())
             if identifier.startswith("EPIC-") and "archive" not in path.parts]
