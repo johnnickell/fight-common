@@ -531,6 +531,13 @@ object, a PHP list with typed object children for an array, or the scalar itself
 not arbitrary serializer objects. It creates no JSON-RPC response, error envelope, HTTP response, or partial result.
 The caller owns safe projection; `McpToolInvoker` enforces output-schema conformance before emitting success.
 
+`McpToolOutput::boundedStructured($publicData, $maxEncodedResponseBytes)` optionally bounds the **complete final
+JSON-RPC success response**, default 1 MiB (positive 1–64 MiB range). The central response boundary checks actual
+encoded bytes after text duplication, escaping, request identity and current server metadata. Overflow fails safely
+without truncation; existing unbounded factories retain their behavior. The five opt-in
+[safe execution inspection Tools](../../mcp-execution-inspection.md) use this bound plus finite projection/schema
+limits over shared authorized Queries, without protected-body or mutation exposure.
+
 ### Combined Tool, Resource and Skill journey
 
 A consumer can compose `McpToolDiscovery` and `McpToolInvocation` over one `McpToolRegistry`,
@@ -563,7 +570,8 @@ historical URIs. Cursors, link possession, authentication, immutable bytes, priv
 `cacheScope: private` by default) and previously returned manifests are not read grants. Resource and Skill
 metadata/raw/encoded budgets must fit the configured revision, including JSON/Base64 and central result metadata;
 invalid overrides or inconsistent providers fail rather than emitting a partial success. Do not treat the
-Tool output as subject to the Resource content budget; it retains its existing schema/StrictJson bounds.
+Tool output as subject to the Resource content budget; its schema/StrictJson validation and any explicitly
+selected `boundedStructured()` final-response budget are independent.
 
 `tests/Functional/McpCombinedJourneyTest.php` exercises this single guarded handler with real query dispatch,
 linked document reads and lazy structured Skill files. This package fixture is not an installed Agent OS/Pi

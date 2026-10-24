@@ -121,7 +121,11 @@ Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Buil
 [shared workflow binding](shared-workflows.md) for target substitutions, authority, handoffs and evidence.
 EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
-After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
+After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. These are offline local
+consistency checks, not delivery freshness. Routing uses the separate read-only `--check-delivery` mode under
+[Conventions](../CONVENTIONS.md#current-delivery-handoffs); Land marks the current published human handoff with
+TASK `delivery: awaiting-merge` and its verified PR URL. Clear that marker only after the planning owner reconciles
+verified merge/closure; preserve historical delivery evidence. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
 
 New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
 

@@ -293,7 +293,7 @@ final readonly class McpToolInvoker
         return McpResult::complete([
             'content'           => $output->contentItems(),
             'structuredContent' => $content
-        ]);
+        ])->withResponseLimit($output->maxEncodedResponseBytes());
     }
 
     /**

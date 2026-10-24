@@ -6,9 +6,12 @@ For “What's next?”, `next`, or an unqualified `/ask-matt`, use the routing e
 This read-only path precedes general orientation; full implementation, review, QA and delivery requirements
 still apply when the selected workflow is invoked.
 
-1. Run the documented read-only planning validator once when available. Failure stops selection with the
-   actual error and planning-owner handoff; do not refresh views. Without a validator, disclose that limitation
-   and check selected record metadata against the authored Board; do not claim generated freshness.
+1. Run `./bin/planning-check --check-delivery` once before selection or recommending a current publication/merge
+   handoff. It checks local consistency and live state for explicitly marked current delivery handoffs only.
+   Failure or unavailable hosted evidence stops selection with the actual incomplete/stale identity and
+   planning-owner handoff; do not refresh views or infer a merge. An ordinary offline `./bin/planning-check`
+   pass is not delivery freshness. Without a validator, disclose that limitation and check selected metadata
+   against the authored Board; do not claim generated or hosted freshness.
 2. Read only the Board's current human decision, active work, and (if no active work) first ready entry.
    Use local section names and authoritative order. Return all active TASKs, not a new winner. Inspect selected
    TASK metadata and its current handoff, plus blocker metadata only as needed. An unresolved contradiction
@@ -84,6 +87,27 @@ TICKETs require an `epic: EPIC-NNNNN` parent. TASKs use `ticket: TICKET-NNNNN`, 
 `blocked_by` holds comma-separated TASK IDs. Preserve edges after completion; unfinished blockers are derived.
 `order` is an optional positive priority number, lower first. Unranked rows come last, with IDs breaking ties
 only for deterministic display. `pr` is an optional full PR URL, not an assertion about live GitHub merge state.
+
+### Current delivery handoffs
+
+On a live TASK, set optional `delivery: awaiting-merge` only when its verified `pr` URL is the **current** human
+review/merge handoff. Omit or clear it when that handoff ends. Neither `done`, a PR link nor historical completion
+prose creates a current delivery claim. The Board's generated `planning:delivery` block mirrors exactly these
+records; preserve historical prose as evidence, not a second current delivery authority. Land's publication
+closeout sets the marker; the planning owner reconciles it after human merge or closure and refreshes the views.
+
+Local validation checks marker/TASK/PR/origin identity and Board consistency without network access. Explicit
+`./bin/planning-check --check-delivery` additionally uses existing `gh` operator access to read at most 16 current
+PRs, with one 15-second read-only request per PR. GitHub URL, number, repository and TASK-prefixed PR title must
+agree. OPEN permits the human handoff; MERGED and CLOSED WITHOUT MERGE reject it with distinct planning-owner
+corrections. Clear the marker and reconcile the owning record/Board after verified completion; correctly
+reconciled merged work needs no hosted query and does not block the next TASK. The check never scans historical
+prose/PRs, infers acceptance, checks CI, fetches, publishes, merges or rewrites records.
+
+Missing CLI/authentication, API/network failure, malformed or contradictory metadata and identity mismatch are
+incomplete verification, never a fresh pass or inferred merge. Recover authoritative evidence before routing.
+`--check-delivery` and `--write` are mutually exclusive. Ordinary planning checks, including the planning step
+in `./bin/build`, remain network-independent; dependency/image preparation retains the build's existing behavior.
 
 | Status | Meaning |
 |---|---|

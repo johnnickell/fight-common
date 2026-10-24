@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
@@ -17,8 +18,11 @@ final readonly class McpToolOutput
      *
      * @phpstan-param list<McpResourceInfo> $resources
      */
-    private function __construct(private StrictJson $content, private array $resources = [])
-    {
+    private function __construct(
+        private StrictJson $content,
+        private array $resources = [],
+        private ?int $maxEncodedResponseBytes = null
+    ) {
     }
 
     /**
@@ -34,6 +38,21 @@ final readonly class McpToolOutput
     }
 
     /**
+     * Creates structured output with an opt-in final encoded JSON-RPC response budget
+     *
+     * The invoker and central response factory retain this bound through text duplication,
+     * escaping, request identity and actual server metadata. Overflow fails before disclosure.
+     */
+    public static function boundedStructured(mixed $content, int $maxEncodedResponseBytes = 1048576): self
+    {
+        if ($maxEncodedResponseBytes < 1 || $maxEncodedResponseBytes > 67108864) {
+            throw new DomainException('Invalid Tool response budget.');
+        }
+
+        return new self(StrictJson::fromData($content), [], $maxEncodedResponseBytes);
+    }
+
+    /**
      * Creates complete structured output with validated standard Resource links
      *
      * A link is not a Resource read grant. The consumer must project safe metadata and the
@@ -42,6 +61,14 @@ final readonly class McpToolOutput
     public static function structuredWithResourceLinks(mixed $content, McpResourceInfo ...$resources): self
     {
         return new self(StrictJson::fromData($content), $resources);
+    }
+
+    /**
+     * Returns the optional complete encoded response budget
+     */
+    public function maxEncodedResponseBytes(): ?int
+    {
+        return $this->maxEncodedResponseBytes;
     }
 
     /**

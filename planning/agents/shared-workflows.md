@@ -85,7 +85,9 @@ human decision/prerequisite. Never output placeholder IDs as runnable commands. 
 - Missing evidence or QA INCOMPLETE: its evidence/prerequisite owner, not speculative source edits.
 - Current independent acceptance plus satisfied QA or justified overall N/A: authorized Land; otherwise name
   the missing publication authority. Land owns administrative completion and delivery metadata, not new acceptance.
-- Successful Land: human review/merge of the actual PR URL, then stop.
+- Successful Land: record TASK `delivery: awaiting-merge` with the verified PR URL, refresh its generated Board
+  handoff under [Conventions](../CONVENTIONS.md#current-delivery-handoffs), then human review/merge and stop.
+  Later routing must use `./bin/planning-check --check-delivery`; an offline local pass is not live PR evidence.
 - Planning: follow [map-wide order](../CONVENTIONS.md#map-wide-planning-order). Use Wayfinder for an available
   decision, Grill for one approved EPIC destination, then To Tickets, To Tasks and finally Next. Required human
   acceptance remains a stopping point. TASK closure rolls eligible parents up in the same operation.

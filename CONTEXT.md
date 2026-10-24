@@ -140,6 +140,17 @@ These are distinct capabilities. Avoid using their names interchangeably.
 
 ## Execution observation language
 
+**Safe MCP execution inspection:** Five explicit opt-in `Application\Mcp\Execution` Tools (`execution.summarize`,
+`execution.list`, `execution.get`, `execution.phases`, `execution.activity`) call the shared Queries through
+`QueryBus::fetch()`, preserving typed safe results, full-selection totals, live pages, current trusted admission,
+recording-time/full-UUID order and source precision. Tool availability is independent and fresh. No protected
+bodies, mutations, events or extra MCP capability dependency is introduced. Exact schemas and the 262,144-byte
+projection limit supplement application validation; opt-in `McpToolOutput::boundedStructured()` retains a
+1,048,576-byte complete JSON-RPC success-response bound through text duplication/escaping, request identity and
+actual central metadata. Overflow uses the existing sanitized failure path, not truncation or empty success.
+Existing unbounded Tool output remains unchanged. See [MCP execution inspection](docs/mcp-execution-inspection.md)
+for composition, catalog, schemas, bounds, null/empty meanings and compatibility.
+
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Authorized execution overview** | Opt-in `Domain\Execution\Session\Query` summary/list payloads describe Session inspection; `Application\Execution\Session\QueryHandler` coordinates them. `Read` is a technical responsibility, not an aggregate boundary. Application Session `Service` owns `ExecutionReadAdmission`, `ExecutionReader` and typed `ExecutionAccess` project/session constraints; `Data` owns the safe `ExecutionPage`, `ExecutionSummary` and `ExecutionView` results. Current consumer-supplied grants are intersected with finite `ExecutionSelection` before DBAL counts/rows. `SummarizeExecutions` scans the full authorized retained selection in bounded batches, counting sessions once, choosing latest session-observation outcome and preserving exact usage groups by metric/unit/provenance with explicit missing/completeness counts. `ListExecutions` uses `Pagination::strict()` plus finite bounds and fixed fields, ordered by latest retained recording time then bytewise project/session. `Domain\Execution\Usage\UsageTotal` owns compatible measurement arithmetic beside `UsageMeasurement`. `Adapter\Execution\Dbal\DbalExecutionReader` sits alongside the DBAL recording adapters without a separate `Reader` namespace and starts no transaction or business mutation; multi-statement responses and separate requests are live, not snapshots. Freshness describes persisted evidence encountered, never complete capture, Workflow authority or a global checkpoint. Protected bodies are never read. See [execution reads](docs/execution-reads.md) for limits, ordering, failure, composition and compatibility. |

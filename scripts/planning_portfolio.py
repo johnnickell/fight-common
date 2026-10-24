@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import datetime
+import json
 import os
 import re
 import subprocess
@@ -85,6 +87,11 @@ def load_records() -> tuple[dict, list[str]]:
                     raise ValueError("pr must be a pull-request URL")
                 if "archive" in path.parts and data["status"] not in TERMINAL:
                     raise ValueError("archived record is not terminal")
+                if data.get("delivery"):
+                    if kind != "TASK" or data["delivery"] != "awaiting-merge" or "archive" in path.parts:
+                        raise ValueError("delivery must be awaiting-merge on a live TASK, or empty")
+                    if not data.get("pr"):
+                        raise ValueError("an awaiting-merge delivery handoff requires its PR URL")
                 records[identifier] = (path, data)
             except ValueError as exception:
                 errors.append(f"{path.relative_to(ROOT)}: {exception}")
@@ -182,6 +189,12 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
         ["Order", "TASK ID", "Title", "Parent TICKET", "Status", "Blocked by", "PR"], rows
     ) for name, rows in groups.items())
 
+    handoffs = current_delivery(records)
+    views[board, "delivery"] = table(["TASK", "Current delivery", "PR"], [
+        [linked(board, path, identifier), "Awaiting human review/merge", f'[{data["pr"]}]({data["pr"]})']
+        for identifier, path, data in handoffs
+    ])
+
     for directory, kind in KINDS.items():
         for archived in (False, True):
             source = PLANNING / directory / ("archive/README.md" if archived else "README.md")
@@ -247,9 +260,78 @@ def projections(records: dict) -> dict[tuple[Path, str], str]:
     return views
 
 
+def current_delivery(records: dict) -> list[tuple[str, Path, dict]]:
+    """Select explicit current handoffs only, never historical prose or terminal status."""
+    return [(identifier, path, data) for identifier, (path, data) in sorted(records.items())
+            if data.get("delivery") == "awaiting-merge"]
+
+
+def delivery_identity(records: dict) -> tuple[list[tuple[str, Path, dict]], str | None, list[str]]:
+    handoffs = current_delivery(records)
+    if not handoffs:
+        return handoffs, None, []
+    if len(handoffs) > 16:
+        return handoffs, None, ["at most 16 current delivery handoffs may be verified per invocation"]
+    try:
+        origin = subprocess.run(["git", "-c", f"safe.directory={ROOT.resolve()}", "remote", "get-url", "origin"],
+                                cwd=ROOT, capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return handoffs, None, ["delivery identity incomplete: cannot read the target origin; planning owner must resolve it"]
+    match = re.fullmatch(r"(?:git@github\.com:|https://github\.com/)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?", origin)
+    if not match:
+        return handoffs, None, ["delivery identity incomplete: origin must identify one GitHub repository"]
+    repository = match[1]
+    errors = []
+    for identifier, path, data in handoffs:
+        if not re.fullmatch(rf"https://github\.com/{re.escape(repository)}/pull/[1-9][0-9]*", data["pr"]):
+            errors.append(f"{path.relative_to(ROOT)} ({identifier}): delivery PR identity does not match target origin")
+    return handoffs, repository, errors
+
+
+def verify_delivery(handoffs: list[tuple[str, Path, dict]], repository: str | None) -> list[str]:
+    """Read bounded authoritative PR metadata without publishing or rewriting planning."""
+    errors = []
+    for identifier, path, data in handoffs:
+        label = f"{path.relative_to(ROOT)} ({identifier})"
+        number = int(data["pr"].rsplit("/", 1)[1])
+        try:
+            result = subprocess.run(
+                ["gh", "pr", "view", str(number), "--repo", repository, "--json", "number,url,title,state,mergedAt"],
+                cwd=ROOT, capture_output=True, text=True, timeout=15, check=True,
+                env={**os.environ, "GH_PROMPT_DISABLED": "1"},
+            )
+            if len(result.stdout) > 16384:
+                raise ValueError("oversized metadata")
+            pr = json.loads(result.stdout)
+            if (not isinstance(pr, dict) or type(pr.get("number")) is not int or pr["number"] != number
+                    or pr.get("url") != data["pr"] or not isinstance(pr.get("title"), str)
+                    or not pr["title"].startswith(identifier + " — ")):
+                raise ValueError("identity mismatch")
+            state = pr.get("state")
+            if state not in {"OPEN", "MERGED", "CLOSED"} or "mergedAt" not in pr:
+                raise ValueError("invalid state")
+            if state == "MERGED":
+                if not isinstance(pr["mergedAt"], str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", pr["mergedAt"]):
+                    raise ValueError("invalid merge time")
+                datetime.datetime.fromisoformat(pr["mergedAt"].replace("Z", "+00:00"))
+                errors.append(f"{label}: stale awaiting-merge handoff; PR #{number} is MERGED. Planning owner must reconcile delivery and refresh the Board.")
+            elif pr["mergedAt"] is not None:
+                raise ValueError("contradictory merge evidence")
+            elif state == "CLOSED":
+                errors.append(f"{label}: stale awaiting-merge handoff; PR #{number} is CLOSED WITHOUT MERGE. Planning owner must correct the handoff and refresh the Board.")
+            else:
+                print(f"Delivery fresh: {identifier} PR #{number} is OPEN; human review/merge remains pending.")
+        except (OSError, subprocess.SubprocessError, ValueError, TypeError):
+            # Raw CLI/API output may contain credentials or private diagnostics; never echo it.
+            errors.append(f"{label}: delivery verification INCOMPLETE (tooling/authentication/API/metadata or identity unavailable); planning owner must recover authoritative evidence. No fresh pass or merge is inferred.")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--write", action="store_true", help="close eligible parents and refresh generated views after validating records")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--write", action="store_true", help="close eligible parents and refresh generated views after validating records")
+    mode.add_argument("--check-delivery", action="store_true", help="read-only local validation plus live verification of explicit current delivery handoffs")
     args = parser.parse_args()
     records, errors = load_records()
     for path in PLANNING.rglob("*.md"):
@@ -260,6 +342,8 @@ def main() -> int:
             if destination.endswith(".md") and not destination.startswith(("/", "http:", "https:", "mailto:")):
                 if not (path.parent / destination).is_file():
                     errors.append(f"{path.relative_to(ROOT)}: broken local Markdown link {target}")
+    handoffs, repository, identity_errors = delivery_identity(records)
+    errors.extend(identity_errors)
     ignored = subprocess.run(["git", "-c", f"safe.directory={ROOT.resolve()}", "check-ignore", "-q", ".runs/planning-check"], cwd=ROOT, check=False)
     if ignored.returncode:
         errors.append(".runs/ must be gitignored")
@@ -295,7 +379,17 @@ def main() -> int:
             print(f"- {error}")
         return 1
     active = sum(data["status"] not in TERMINAL for _, data in records.values())
-    print(f"Planning validation passed: {len(records)} records, {active} active; generated views {'refreshed' if args.write else 'current'}")
+    print(f"Local planning validation passed (offline): {len(records)} records, {active} active; generated views {'refreshed' if args.write else 'current'}")
+    if not args.check_delivery:
+        print("Delivery freshness NOT CHECKED; routing publication/merge handoffs requires --check-delivery.")
+        return 0
+    delivery_errors = verify_delivery(handoffs, repository)
+    if delivery_errors:
+        print("Delivery verification failed or incomplete:")
+        for error in delivery_errors:
+            print(f"- {error}")
+        return 1
+    print(f"Delivery verification passed: {len(handoffs)} explicit current handoff(s); no historical PRs queried.")
     return 0
 
 
