@@ -78,5 +78,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | ready-for-agent | — |
 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | done | — |
 | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | done | — |
-| [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | in-progress | — |
+| [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | done | — |
 <!-- /planning:records -->
