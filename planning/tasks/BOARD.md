@@ -45,7 +45,7 @@ local pass alone does not establish delivery freshness.
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00176](00176-TASK.md) | Awaiting human review/merge | [https://github.com/johnnickell/fight-common/pull/233](https://github.com/johnnickell/fight-common/pull/233) |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -160,7 +160,7 @@ local pass alone does not establish delivery freshness.
 | — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #232](https://github.com/johnnickell/fight-common/pull/232) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
-| — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | — |
+| — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #233](https://github.com/johnnickell/fight-common/pull/233) |
 <!-- /planning:board -->
 
 ## Wayfinder
