@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 use JsonException;
 
@@ -30,7 +31,13 @@ final readonly class McpJsonResponse implements Arrayable
      */
     public static function success(int|string $id, McpResult $result): self
     {
-        return new self($id, $result->toArray(), null);
+        $response = new self($id, $result->toArray(), null);
+        $limit = $result->maxEncodedResponseBytes();
+        if ($limit !== null && strlen($response->toJson()) > $limit) {
+            throw new DomainException('The MCP response exceeds its encoded response budget.');
+        }
+
+        return $response;
     }
 
     /**

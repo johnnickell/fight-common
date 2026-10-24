@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Five opt-in read-only MCP execution inspection Tools over shared authorized Queries, with bounded safe
+  summaries, live execution/phase/activity pages and no protected bodies or mutation exposure.
+- Opt-in `McpToolOutput::boundedStructured()` final encoded JSON-RPC success-response budgets, including text,
+  escaping, request identity and central metadata; existing output factories remain unbounded.
+
+### Fixed
+
+- Explicit current delivery handoffs now have read-only `planning-check --check-delivery` verification for
+  routing, distinguishing open, merged, closed-unmerged and unavailable evidence. The ordinary build's planning
+  validation remains network-independent.
+
 ## [1.4.0] - 2026-10-12
 
 ### Added

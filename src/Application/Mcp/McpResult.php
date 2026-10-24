@@ -18,8 +18,11 @@ final readonly class McpResult implements Arrayable
      *
      * @param array<string, mixed> $data
      */
-    private function __construct(private array $data, private ?int $maxEncodedBytes = null)
-    {
+    private function __construct(
+        private array $data,
+        private ?int $maxEncodedBytes = null,
+        private ?int $maxEncodedResponseBytes = null
+    ) {
         if (
             $maxEncodedBytes !== null
             && ($maxEncodedBytes < 1 || strlen(json_encode($data, JSON_THROW_ON_ERROR)) > $maxEncodedBytes)
@@ -77,7 +80,31 @@ final readonly class McpResult implements Arrayable
      */
     public function withMetadata(array $metadata): self
     {
-        return new self([...$this->data, '_meta' => $metadata], $this->maxEncodedBytes);
+        return new self([...$this->data, '_meta' => $metadata], $this->maxEncodedBytes, $this->maxEncodedResponseBytes);
+    }
+
+    /**
+     * Returns a result retaining the selected Tool's final response budget
+     *
+     * @internal
+     */
+    public function withResponseLimit(?int $maxEncodedResponseBytes): self
+    {
+        if ($maxEncodedResponseBytes !== null && $maxEncodedResponseBytes < 1) {
+            throw new DomainException('Invalid MCP response budget.');
+        }
+
+        return new self($this->data, $this->maxEncodedBytes, $maxEncodedResponseBytes);
+    }
+
+    /**
+     * Returns the optional final JSON-RPC response budget
+     *
+     * @internal
+     */
+    public function maxEncodedResponseBytes(): ?int
+    {
+        return $this->maxEncodedResponseBytes;
     }
 
     /**

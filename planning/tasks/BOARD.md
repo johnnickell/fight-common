@@ -19,9 +19,13 @@ For `/ask-matt` or an unqualified "What's next?", report the current Human Actio
 active TASK. Otherwise return the first executable TASK in Ready Frontier. Do not select by ID alone.
 
 [TASK-00154](00154-TASK.md#delivery-closeout) has independent Review acceptance and required QA PASS for
-candidate `47de0c036a037b123de9fcc97ffef65051735d5d`; administrative closeout is complete and
-[PR #231](https://github.com/johnnickell/fight-common/pull/231) is open. Human review and merge are the only next
-steps. No second TASK is selected.
+candidate `47de0c036a037b123de9fcc97ffef65051735d5d`.
+[PR #231](https://github.com/johnnickell/fight-common/pull/231) merged into develop at
+2026-10-23T22:28:09Z as `9b201ab945b3faac55b0224dd91185f02c902fa5`; its human review/merge handoff is complete.
+[TASK-00155](00155-TASK.md) is now in progress in the selected main checkout, including John's approved
+[stale delivery-handoff check](00155-TASK.md#approved-follow-up--stale-delivery-handoff-check).
+Implementation and the complete local gate passed; the current handoff is independent Review, then required QA.
+TASK remains `in-progress`. No independent verdict, publication, release or deployment is claimed.
 
 [TASK-00172](00172-TASK.md#completion-notes) has independent Review acceptance and required QA PASS.
 [PR #220](https://github.com/johnnickell/fight-common/pull/220) merged into develop at
@@ -52,18 +56,29 @@ priority is inferred. TASK-00168's approved protocol activation
 has all blockers allocated: TASK-00166, TASK-00169 and TASK-00170. Its needs-info condition is resolved; implementation
 still waits for those suppliers. TASK-00170 consumes TASK-00169 for actual input-intent race integration.
 
+## Current delivery handoffs
+
+Only explicit TASK `delivery: awaiting-merge` metadata owns a current delivery handoff. Historical prose and PR
+links below do not. Routing checks these handoffs with `./bin/planning-check --check-delivery`; an offline
+local pass alone does not establish delivery freshness.
+
+<!-- planning:delivery -->
+| TASK | Current delivery | PR |
+|---|---|---|
+| None | — | — |
+<!-- /planning:delivery -->
+
 <!-- planning:board -->
 ## Active Work
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
