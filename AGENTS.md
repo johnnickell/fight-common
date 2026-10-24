@@ -48,4 +48,9 @@ path above takes precedence over broad orientation reads; it does not waive engi
 
 ## Fight Common project binding
 
-Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
+Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. At authorized Work,
+Land or substantive planning intake on the selected feature branch, run `./bin/planning-check --reconcile-delivery`
+before record edits under [the delivery contract](planning/CONVENTIONS.md#current-delivery-handoffs). It retires only
+verified merged/integrated `done` markers with durable evidence; no new routine cleanup request is needed.
+Routing, Review and QA stay read-only; routing continues after verified merged/integrated handoffs without waiting
+for retirement. Real uncertainty still stops. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.

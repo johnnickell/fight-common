@@ -43,8 +43,13 @@ Common's merge-commit GitFlow; shared reconciliation examples are not new rebase
 Build records a reusable private project-context file alongside its ledger: target/provider identities, resolved
 absolute instruction paths, selected checkout and canonical base, selected Common records, substitutions,
 commands, completion policy and original authority. Pass its path and the owning skill path to every fresh role.
-Children verify their target identity and read this binding before applying provider references. Missing resources
-or an unresolved conflict hold only the affected action; never fall back to provider plans or weaken Common rules.
+Children verify their target identity and read this binding before applying provider references. At authorized
+Work, Land or substantive planning intake on the selected feature branch, run
+`./bin/planning-check --reconcile-delivery` before other record edits under
+[the bounded reconciliation contract](../CONVENTIONS.md#current-delivery-handoffs). This administrative retirement
+of verified merged/integrated `done` markers is included in those scopes, not a new cleanup request to John.
+Read-only routing, Review and QA do not run it. Missing resources or unresolved evidence hold the affected action;
+never fall back to provider plans or weaken Common rules.
 
 ## Entry points and authority
 
@@ -103,28 +108,31 @@ These Common-specific steps apply to every Land invocation and delegated Land ag
 closeout resumed after acceptance. They supplement the provider's local planning/build checks; they do not change
 technical acceptance, QA, optional hosted CI, or publication authority.
 
-1. At Land intake and immediately before any push/PR publication, run `./bin/planning-check --check-delivery` in
-   the selected checkout. It checks the Board/Roadmap against authoritative records and live PR state for all
-   explicit current handoffs. A previous offline build or earlier successful delivery check cannot substitute.
-2. On stale MERGED/CLOSED handoffs, verify the reported PR's exact identity and actual merge/closure evidence.
-   Within authorized planning scope, reconcile the owning TASK's current handoff and clear the ended marker;
-   preserve its historical acceptance/delivery facts. Closed without merge is not merged or implemented anew.
-   Inspect local integration separately; PR merge does not prove the checkout contains it. Refresh with
-   `./bin/planning-check --write`, inspect the resulting Board/Roadmap and parent changes, then rerun the live check.
-   Missing authority or unverifiable metadata stops publication with the precise owner/evidence handoff. No
-   automatic merge, fetch, status inference, historical PR scan or silent repair is authorized by the check.
+1. At Land intake run `./bin/planning-check --reconcile-delivery`, inspect its administrative record/view diff,
+   then `./bin/planning-check --check-delivery`. Immediately before any push/PR publication rerun the read-only
+   live check. These inspect authoritative records and marked PRs; a previous offline build or earlier live
+   snapshot cannot substitute. Intake retirement is already within authorized Land scope.
+2. Exact MERGED, already-`done`, locally integrated handoffs resolve successfully; no routine planning-owner
+   cleanup request is needed. Reconciliation retains merge/head/time/ancestry evidence and retires the markers;
+   the read-only check reports the same resolved disposition without mutation if a merge occurs after intake.
+   CLOSED WITHOUT MERGE, non-terminal scope, unintegrated merge or unavailable/mismatched evidence still stop
+   publication with the real decision/evidence/integration prerequisite. Closed without merge is not implemented
+   anew. Recover only through authorized work, inspect any record/view changes and rerun the live check.
+   No automatic merge, fetch, status inference, historical PR scan or silent checking-side repair is authorized.
 3. After publishing, verify the owned PR's repository/TASK/base/head identity and OPEN state before recording
    `delivery: awaiting-merge` and its actual URL. Refresh generated views, verify the administrative-only diff and
    applicable local checks, and rerun the live check before any metadata push and after the final metadata changes
    and publication. Save the command, result and observation time in the delivery receipt. A failed or unavailable
    result blocks a successful Land handoff; do not claim freshness from the offline gate. A concurrent merge or
    closure routes back to reconciliation, not a stale request for human merge.
-4. Return human review/merge only for the verified open PR. A later human merge can make that snapshot stale:
-   subsequent routing/Land must recheck and the planning owner must reconcile it. No pre-submit check can predict
-   that future event or update tracked planning after the agent has stopped.
+4. Return human review/merge only for the verified open PR. A later human merge changes that snapshot:
+   subsequent read-only routing verifies merge plus local integration and continues, without a routine cleanup
+   handoff to John. The next authorized Work/planning/Land intake retires the marker through the explicit command.
+   No agent must predict a future merge or run after stopping; uncertain outcomes still fail closed.
 
-The build remains network-independent for planning. This mandatory delivery boundary uses the existing bounded
-read-only GitHub metadata check, not hosted test success, and never runs `--write` as a checking side effect.
+The build remains network-independent for planning. Live checks use bounded read-only GitHub metadata, not hosted
+test success. Only explicit `--reconcile-delivery` writes retirement evidence/views; neither a check nor routing
+runs `--write` or another mutation as a side effect.
 
 ## Ignored evidence
 

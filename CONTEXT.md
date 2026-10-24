@@ -432,8 +432,12 @@ is separate. Historical completion records retain the meaning of their original 
 TASK-routing summaries derive from the same ordered records; their authored planning/dependency narratives are
 not competing current status. The offline build rejects stale summaries without rewriting them. Land separately
 checks explicit current delivery handoffs against live PR metadata before publication and at final handoff under
-the [workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff); later human merges
-still require verified planning-owner reconciliation, not an inferred or automatically written merge state.
+the [workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). After human merge,
+read-only routing resolves exact verified merged/integrated `done` handoffs and continues without asking John for
+routine cleanup. Authorized Work/planning/Land intake explicitly runs `--reconcile-delivery` to retire those markers,
+retain merge/head/time/local-ancestry evidence and refresh views. These are separate observed merge/integration facts,
+not inferred acceptance or checking-side mutation. OPEN remains a human handoff; closed-unmerged, non-terminal scope,
+unintegrated or unverifiable outcomes still stop for real evidence/decision recovery.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained

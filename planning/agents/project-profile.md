@@ -126,11 +126,15 @@ Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Buil
 [shared workflow binding](shared-workflows.md) for target substitutions, authority, handoffs and evidence.
 EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
-After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. These are offline local
-consistency checks, not delivery freshness. Routing and Land use the separate read-only `--check-delivery` mode under
-[Conventions](../CONVENTIONS.md#current-delivery-handoffs); Land marks the current published human handoff with
-TASK `delivery: awaiting-merge` and its verified PR URL. Clear that marker only after the planning owner reconciles
-verified merge/closure; preserve historical delivery evidence. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.
+At authorized Work, Land or substantive planning intake on the selected feature branch, run
+`./bin/planning-check --reconcile-delivery` before record edits. Under
+[Conventions](../CONVENTIONS.md#current-delivery-handoffs), this explicitly retires verified merged/integrated
+`done` publication markers and retains exact delivery evidence, without another routine cleanup request to John.
+Read-only routing uses `--check-delivery`: OPEN retains the human handoff; verified merged/integrated work resolves
+and selection continues even before retirement. CLOSED-unmerged, uncertain identity/evidence or missing integration
+still stop. Review/QA never reconcile records. After other record changes, run `--write`, then the ordinary check;
+those remain offline and are not live freshness evidence. Archive only on explicit request, with an inspected
+`./bin/archive-planning` dry run before apply.
 
 New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.
 
