@@ -34,9 +34,12 @@ a deeper audit. Do not read append-only task histories, other worktrees' entire 
 or all receiving skills to produce a recommendation. Return TASK, WAYFINDER, and relevant PLANNING/HUMAN INPUT;
 stop without invoking a workflow or changing files. Missing indexes are reported, not fabricated.
 
-During authorized planning updates, keep current Board/Roadmap handoffs source-linked and concise: target,
-phase, pending decision/owner. Keep Wayfinder inventory/frontier pointers current. These are navigation aids,
-not another backlog or proof of delivery. Preserve generated sections and all historical decisions.
+During authorized planning updates, keep current planning/decomposition handoffs source-linked and concise:
+target, phase, pending decision/owner. Current TASK selection belongs only in the generated Board `next` and
+Roadmap `execution` blocks; do not duplicate mutable TASK status, blockers or merge claims in authored routing
+prose. TASK records own stage/evidence details and the generated Board delivery block owns current merge handoffs.
+Keep Wayfinder inventory/frontier pointers current. These are navigation aids, not another backlog or proof of
+delivery. Preserve historical decisions in their owning records and label historical strategy/dependency prose.
 
 Routing sources: [TASK Board](tasks/BOARD.md), [Wayfinder inventory](wayfinder/README.md), [Roadmap](ROADMAP.md).
 
@@ -96,7 +99,10 @@ prose creates a current delivery claim. The Board's generated `planning:delivery
 records; preserve historical prose as evidence, not a second current delivery authority. Land's publication
 closeout sets the marker; the planning owner reconciles it after human merge or closure and refreshes the views.
 
-Local validation checks marker/TASK/PR/origin identity and Board consistency without network access. Explicit
+Local validation checks marker/TASK/PR/origin identity and Board consistency without network access. Land must
+run the live check at intake, immediately before publication and after final delivery metadata/view changes under
+the [workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). This is a delivery
+freshness requirement, not hosted CI or a new pre-publication technical-acceptance requirement. Explicit
 `./bin/planning-check --check-delivery` additionally uses existing `gh` operator access to read at most 16 current
 PRs, with one 15-second read-only request per PR. GitHub URL, number, repository and TASK-prefixed PR title must
 agree. OPEN permits the human handoff; MERGED and CLOSED WITHOUT MERGE reject it with distinct planning-owner
@@ -153,7 +159,12 @@ For "What's next?" or `/ask-matt`, return the current human decision/question an
 the first executable TASK in Ready Frontier. Do not start a second TASK merely because its ID is lower. If there
 is no executable work, say so. Execution priority is authored in record metadata rather than generated rows.
 
-`ROADMAP.md` retains strategy and milestone narrative; its EPIC status table and separate Planning frontier are
+The Board's `next` block and Roadmap's `execution` block share the Board's record-derived classification and
+ordering. Both surface Human Action and Needs Info, then all Active Work or the first Ready Frontier row. If neither
+exists they state no TASK is executable and show the first Needs Triage and Waiting rows when present. They do not
+select a workflow stage, infer independent acceptance or query PR state. The complete Board remains authoritative.
+
+`ROADMAP.md` retains historical strategy and milestone narrative; its EPIC status table and separate Planning frontier are
 generated. The frontier shows non-terminal EPICs without TICKETs and TICKETs without TASKs for decomposition,
 counting live and archived children. [Automatic parent completion](#automatic-parent-completion) removes eligible
 parents from unfinished planning work. Do not put decomposition in executable TASK Board rows. Parent
@@ -169,10 +180,13 @@ Generated sections use `<!-- planning:NAME -->` and `<!-- /planning:NAME -->`. A
 ```
 
 The first command validates records and links, closes eligible parents, then refreshes marked sections. The second
-is read-only and fails on pending parent completion, stale views, invalid identifiers/parents, missing links, and
-dependency cycles. Validation errors prevent writes to parent records and generated views. `./bin/build` already runs
-the read-only check and must not rewrite planning as a side effect. Verify documentation and tooling directly;
-do not add tests of Markdown, wrappers, configuration text, or planning tooling to the product suite.
+is read-only and fails on pending parent completion, stale views (including current TASK summaries), invalid
+identifiers/parents, missing links and dependency cycles.
+Validation errors prevent writes to parent records and generated views. `./bin/build` runs the read-only check
+before expensive preparation and again after product/docs verification; neither check rewrites planning or queries
+hosted PRs. A failure requires an explicit owner edit/regeneration followed by a fresh read-only check. Verify
+documentation and tooling directly; do not add tests of Markdown, wrappers, configuration text, or planning
+tooling to the product suite.
 
 ## Wayfinder
 

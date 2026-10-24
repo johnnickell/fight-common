@@ -428,7 +428,12 @@ frontier displays decomposition. [Automatic parent completion](planning/CONVENTI
 closes eligible TICKETs and EPICs in the child-completion operation, counting live and archived children. TASK `done`
 requires implementation acceptance, required verification, independent Review acceptance and satisfied required QA
 (or justified overall N/A). Implementation awaiting Review/QA stays non-terminal with its handoff explicit; delivery
-is separate. Historical completion records retain the meaning of their original policy.
+is separate. Historical completion records retain the meaning of their original policy. Current Board/Roadmap
+TASK-routing summaries derive from the same ordered records; their authored planning/dependency narratives are
+not competing current status. The offline build rejects stale summaries without rewriting them. Land separately
+checks explicit current delivery handoffs against live PR metadata before publication and at final handoff under
+the [workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff); later human merges
+still require verified planning-owner reconciliation, not an inferred or automatically written merge state.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained

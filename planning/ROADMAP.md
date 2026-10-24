@@ -26,10 +26,24 @@ closes eligible parents during the child-completion operation. Execution remains
 | None | — | — | — |
 <!-- /planning:frontier -->
 
-## Strategy and next decisions
+## Current TASK handoff
+
+<!-- planning:execution -->
+| Route | TASK | Title | Status | Blocked by |
+|---|---|---|---|---|
+| Ready Frontier | [TASK-00156](tasks/00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent | — |
+<!-- /planning:execution -->
+
+This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
+or proof of acceptance/delivery. Inspect the selected TASK's handoff for its next stage. Current human merge
+handoffs live in the [Board delivery view](tasks/BOARD.md#current-delivery-handoffs), not the historical narrative below.
+
+## Approved planning history
 
 The [TASK Board](tasks/BOARD.md) owns current implementation status. Release preparation remains a separately
-authorized operation, not an unfinished product EPIC.
+authorized operation, not an unfinished product EPIC. The decomposition narrative below records approved scope
+and dependency edges at planning time, not current blockers or implementation status. Completed dependencies
+remain history; the Board derives unfinished blockers from TASK records.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),
@@ -72,7 +86,8 @@ TICKET-00043's complete two-TASK split is now also accepted and written:
 [TASK-00156](tasks/00156-TASK.md) separately protected MCP inspection (blocked by TASK-00155/00153).
 Both reuse shared Queries and guarded HTTP/Tool contracts; final encoded bounds include text duplication and
 protocol overhead. Removed-content protocol fixtures require no TASK-00154 dependency or removal Tool.
-EPIC-00009's complete TASK decomposition is accepted/written, not implemented.
+EPIC-00009's complete TASK decomposition is accepted/written. This is a planning-completion statement only;
+current implementation and unfinished blockers are derived from TASK records on the [Board](tasks/BOARD.md).
 TICKET-00044's complete single-TASK decomposition is now also accepted and written as
 [TASK-00157](tasks/00157-TASK.md), with no unfinished blockers. It owns the full Prompt list/get HTTP journey:
 bounded explicit catalog, lazy selected providers, string arguments, authenticated stateless continuation,

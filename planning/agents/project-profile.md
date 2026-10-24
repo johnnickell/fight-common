@@ -65,6 +65,11 @@ local-evidence equivalence assessment.
 
 `./bin/build` is the complete pre-submit gate: Composer validation, syntax, PHPCS, Deptrac, PHPStan, Rector dry run, Unit with exact coverage, Integration, Functional, documentation and read-only planning checks. Run it for implementation/build-input changes before commit/PR. Documentation-only follow-ups may retain verified earlier full-gate evidence with current targeted checks under [Testing](../../docs/engineering/standards/Testing.md). Save the local build log, actual exit result and tested-content mapping in an ignored run receipt linked from the TASK handoff. Apply Testing's local-acceptance boundary regardless of repository visibility; optional hosted results are reported after publication, with any specifically required hosted check treated according to its accepted scope or actual host rule. Let commit hooks complete; never use `--no-verify` or disable them because they are slow or inconvenient.
 
+The build validates record-derived Board/Roadmap routing both before expensive preparation and at completion;
+these checks stay offline and never rewrite records. Land additionally runs the mandatory live
+[delivery pre-submit and final-handoff checks](shared-workflows.md#delivery-pre-submit-and-final-handoff).
+They verify current PR metadata, not hosted CI success, and are not technical-acceptance prerequisites for Work/Review.
+
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
 Tooling runs in the project's `fight-common` PHP container. For focused, noninteractive checks from the selected checkout:
@@ -122,7 +127,7 @@ Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Buil
 EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
 After record changes, run `./bin/planning-check --write`, then `./bin/planning-check`. These are offline local
-consistency checks, not delivery freshness. Routing uses the separate read-only `--check-delivery` mode under
+consistency checks, not delivery freshness. Routing and Land use the separate read-only `--check-delivery` mode under
 [Conventions](../CONVENTIONS.md#current-delivery-handoffs); Land marks the current published human handoff with
 TASK `delivery: awaiting-merge` and its verified PR URL. Clear that marker only after the planning owner reconciles
 verified merge/closure; preserve historical delivery evidence. Archive only on an explicit request, with an inspected `./bin/archive-planning` dry run before apply.

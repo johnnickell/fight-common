@@ -27,7 +27,7 @@ Apply these substitutions throughout provider instructions, including nested ref
 | Execution, branches, reconciliation, publication and cleanup | [Delivery](../../docs/engineering/standards/Delivery.md) and the profile |
 | Review criteria and canonical report | [Review](../../docs/engineering/standards/Review.md); preserve its current catalog and legacy history |
 | QA applicability, dispositions and report | [QA](../../docs/engineering/standards/QA.md) and its [template](../../docs/engineering/QA_REPORT_TEMPLATE.md) |
-| Gate and runtime commands | Actual Common `./bin/*` and the profile; `./bin/build` is the complete local gate |
+| Gate and runtime commands | Actual Common `./bin/*` and the profile; `./bin/build` is the complete local gate; Land also requires [delivery pre-submit](#delivery-pre-submit-and-final-handoff) |
 | PR body | [Common PR template](../../.github/pull_request_template.md) |
 | Handoffs and scratch | Sections below; retain existing evidence locations |
 | Package release | [Release guide](../../release/README.md), [ADR 0028](../adr/0028-clear-package-release-decisions.md) and the profile |
@@ -85,9 +85,9 @@ human decision/prerequisite. Never output placeholder IDs as runnable commands. 
 - Missing evidence or QA INCOMPLETE: its evidence/prerequisite owner, not speculative source edits.
 - Current independent acceptance plus satisfied QA or justified overall N/A: authorized Land; otherwise name
   the missing publication authority. Land owns administrative completion and delivery metadata, not new acceptance.
-- Successful Land: record TASK `delivery: awaiting-merge` with the verified PR URL, refresh its generated Board
-  handoff under [Conventions](../CONVENTIONS.md#current-delivery-handoffs), then human review/merge and stop.
-  Later routing must use `./bin/planning-check --check-delivery`; an offline local pass is not live PR evidence.
+- Successful Land: complete [delivery pre-submit and final handoff](#delivery-pre-submit-and-final-handoff), then
+  human review/merge and stop. Later routing must also use `./bin/planning-check --check-delivery`; an offline
+  local pass is not live PR evidence.
 - Planning: follow [map-wide order](../CONVENTIONS.md#map-wide-planning-order). Use Wayfinder for an available
   decision, Grill for one approved EPIC destination, then To Tickets, To Tasks and finally Next. Required human
   acceptance remains a stopping point. TASK closure rolls eligible parents up in the same operation.
@@ -96,6 +96,35 @@ human decision/prerequisite. Never output placeholder IDs as runnable commands. 
 administrative closeout. Historical `done` records retain their earlier meaning; never infer current review/QA
 from a terminal status alone. Explicit hosted-evidence exceptions follow the accepted target requirement and
 publication plan rather than creating a circular review-before-publication prerequisite.
+
+## Delivery pre-submit and final handoff
+
+These Common-specific steps apply to every Land invocation and delegated Land agent, including administrative
+closeout resumed after acceptance. They supplement the provider's local planning/build checks; they do not change
+technical acceptance, QA, optional hosted CI, or publication authority.
+
+1. At Land intake and immediately before any push/PR publication, run `./bin/planning-check --check-delivery` in
+   the selected checkout. It checks the Board/Roadmap against authoritative records and live PR state for all
+   explicit current handoffs. A previous offline build or earlier successful delivery check cannot substitute.
+2. On stale MERGED/CLOSED handoffs, verify the reported PR's exact identity and actual merge/closure evidence.
+   Within authorized planning scope, reconcile the owning TASK's current handoff and clear the ended marker;
+   preserve its historical acceptance/delivery facts. Closed without merge is not merged or implemented anew.
+   Inspect local integration separately; PR merge does not prove the checkout contains it. Refresh with
+   `./bin/planning-check --write`, inspect the resulting Board/Roadmap and parent changes, then rerun the live check.
+   Missing authority or unverifiable metadata stops publication with the precise owner/evidence handoff. No
+   automatic merge, fetch, status inference, historical PR scan or silent repair is authorized by the check.
+3. After publishing, verify the owned PR's repository/TASK/base/head identity and OPEN state before recording
+   `delivery: awaiting-merge` and its actual URL. Refresh generated views, verify the administrative-only diff and
+   applicable local checks, and rerun the live check before any metadata push and after the final metadata changes
+   and publication. Save the command, result and observation time in the delivery receipt. A failed or unavailable
+   result blocks a successful Land handoff; do not claim freshness from the offline gate. A concurrent merge or
+   closure routes back to reconciliation, not a stale request for human merge.
+4. Return human review/merge only for the verified open PR. A later human merge can make that snapshot stale:
+   subsequent routing/Land must recheck and the planning owner must reconcile it. No pre-submit check can predict
+   that future event or update tracked planning after the agent has stopped.
+
+The build remains network-independent for planning. This mandatory delivery boundary uses the existing bounded
+read-only GitHub metadata check, not hosted test success, and never runs `--write` as a checking side effect.
 
 ## Ignored evidence
 

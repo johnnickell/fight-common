@@ -42,6 +42,10 @@ fi
 
 cd "${ROOT_DIR}"
 
+# Fail fast on stale Board/Roadmap routing before expensive preparation.
+# Live PR freshness belongs to Land's separate --check-delivery check.
+./bin/planning-check
+
 # shellcheck source=bin/.disposable-database-runtime
 source "${ROOT_DIR}/bin/.disposable-database-runtime"
 
