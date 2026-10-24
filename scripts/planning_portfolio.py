@@ -170,7 +170,7 @@ def task_groups(records: dict) -> dict[str, list]:
     """One authoritative ordering and state classification for every TASK view."""
     tasks = [(key, path, data) for key, (path, data) in records.items()
              if key.startswith("TASK-") and "archive" not in path.parts]
-    tasks.sort(key=lambda row: (int(row[2].get("order") or 999999), row[0]))
+    tasks.sort(key=lambda row: (not row[2].get("order"), int(row[2].get("order") or 0), row[0]))
     groups = {name: [] for name in ("Active Work", "Ready Frontier", "Waiting", "Needs Info", "Human Action", "Needs Triage", "Recently Closed")}
     for identifier, path, data in tasks:
         blockers = [key for key in dependencies(data) if records[key][1]["status"] not in TERMINAL]
