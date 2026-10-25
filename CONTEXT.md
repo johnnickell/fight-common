@@ -265,9 +265,32 @@ recipient, type, producer/author/causes and half-open recording/occurrence insta
 Direct detail freshly authorizes independently of listing; unknown/denied/disappeared is the same null, not expiry.
 Fixed `NoticeReadFailed` differs from successful empty results. Actual three-database reads scan bounded 100-row
 batches with finite retained output, no business mutation/event, transaction or snapshot/catch-up promise.
-No schema/index, polling/MCP Tool, stream/UI/Mercure or consumer-policy change is introduced. See
+No schema/index, stream/UI/Mercure or consumer-policy change is introduced by inspection. See
 [notice inspection](docs/notice-inspection.md) for composition, finite bounds, full-selection semantics, linear-scan
-cost, live consistency and additive compatibility classification; TASK-00161 separately owns recovery.
+cost, live consistency and additive compatibility classification.
+
+**Authorized retained-notice recovery:** `Domain\Notice\Query\RecoverNotices` routes through
+`Application\Notice\QueryHandler\RecoverNoticesHandler`, fresh `NoticeReadAdmission` and `Service\NoticeRecovery`.
+The same `NoticeAccess` snapshot supplies optional trusted `NoticeRecoveryIdentity` (caller, nullable policy epoch,
+explicit namespace-evidence permission). Missing caller rejects; unproven epoch or concealed global evidence always
+reports uncertain. Canonical selection/grants/caller/epoch/serving parameters bind a confidential authenticated
+continuation; changes reject and require restart so newly eligible older data cannot be silently skipped.
+`NoticeStore::readWindow` accepts one scope or 0–16 scopes, merging 1–100 retained rows in committed-position order
+under one coherent lock with namespace/high-water/loss evidence. `Data\NoticeRecoveryBatch` returns 1–32 bounded
+whole safe notices (or empty), complete/incomplete/uncertain and an opaque examined-boundary continuation, including
+for subsequent polls after completion. Scan exhaustion is not catch-up; known loss stays sticky, removed final rows
+are not expiry, missing evidence fails and retired namespaces reject. No raw counters/gap details, deleted bodies,
+retention lease, processing acknowledgment, mutation or read-side event is supplied.
+`NoticeContinuationProtector` is an inward port; optional Adapter `SodiumNoticeContinuationProtector` uses dedicated
+rotating 32-byte keys, XChaCha20-Poly1305 and padded fixed 1,432-byte tokens, with a 300-second default TTL (1–900).
+Explicit `Application\Mcp\Notice\RecoverNoticesTool` registers only `notices.recover` on the existing guarded HTTP
+composition through QueryBus; Tool availability and Query access remain independent. Default Query projection is
+65,536 bytes (configurable 2,048–262,144) and complete encoded MCP response 1,048,576 bytes including structured/text
+duplication, escaping, ID and actual central metadata. Oversized single notices/results and storage/output failures
+return no advanced continuation, never truncation or empty success. Consumers own cadence/current-data reload,
+policy epochs, safe capture, routes and deployment. See [notice recovery](docs/notice-recovery.md) for composition,
+exact APIs/bounds, completion and restart meanings, compatibility and actual three-database guarded HTTP evidence;
+controlled publication failure is not live MCP/Mercure or deployed-client qualification.
 
 ## Access control language
 

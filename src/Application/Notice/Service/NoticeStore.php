@@ -40,8 +40,10 @@ interface NoticeStore extends TransactionalUnitOfWork
      *
      * Requires an idle store and owns actual commit; unavailable evidence fails closed
      * Neither raw namespace counters nor global loss changes may be publicly disclosed across concealed scopes
+     *
+     * @param string|list<string> $scope
      */
-    public function readWindow(string $scope, int $position, int $limit): NoticeRecoveryWindow;
+    public function readWindow(string|array $scope, int $position, int $limit): NoticeRecoveryWindow;
 
     /**
      * Returns at most 100 retained notices after an exclusive position in ascending committed order

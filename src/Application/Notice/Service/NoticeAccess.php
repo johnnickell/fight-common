@@ -17,7 +17,7 @@ final readonly class NoticeAccess
     /**
      * Constructs NoticeAccess
      */
-    private function __construct(private NoticeSelection $selection)
+    private function __construct(private NoticeSelection $selection, private ?NoticeRecoveryIdentity $recoveryIdentity)
     {
     }
 
@@ -29,9 +29,20 @@ final readonly class NoticeAccess
      * @param array<mixed> $scopes
      * @param array<array-key, mixed> $filters
      */
-    public static function create(array $scopes, array $filters = []): self
+    public static function create(
+        array $scopes,
+        array $filters = [],
+        ?NoticeRecoveryIdentity $recoveryIdentity = null
+    ): self {
+        return new self(NoticeSelection::create($scopes, $filters), $recoveryIdentity);
+    }
+
+    /**
+     * Returns trusted recovery context from the same current admission snapshot as these grants
+     */
+    public function recoveryIdentity(): ?NoticeRecoveryIdentity
     {
-        return new self(NoticeSelection::create($scopes, $filters));
+        return $this->recoveryIdentity;
     }
 
     /**

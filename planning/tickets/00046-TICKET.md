@@ -2,7 +2,7 @@
 id: TICKET-00046
 epic: EPIC-00011
 title: Poll and inspect retained notices
-status: ready-for-agent
+status: done
 ---
 
 # Poll and inspect retained notices
@@ -98,7 +98,7 @@ checks, not proof of a deployed browser/MCP client or implementation already acc
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00160](../tasks/00160-TASK.md) | Summarize and inspect authorized retained notices | done |
-| [TASK-00161](../tasks/00161-TASK.md) | Recover retained notices through shared Queries and MCP | ready-for-agent |
+| [TASK-00161](../tasks/00161-TASK.md) | Recover retained notices through shared Queries and MCP | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
