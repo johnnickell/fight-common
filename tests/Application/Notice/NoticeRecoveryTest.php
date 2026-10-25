@@ -152,6 +152,24 @@ final class NoticeRecoveryTest extends UnitTestCase
         $handler->handle($message);
     }
 
+    public function test_that_live_start_establishes_current_boundary_without_replay_or_inherited_historical_loss(): void
+    {
+        $store = $this->mock(NoticeStore::class); $codec = $this->codec();
+        $store->shouldReceive('readWindow')->with(['scope'], 0, 100)->andReturn(new NoticeRecoveryWindow(self::NS, 50, 40, [$this->row(41)]));
+        $store->shouldReceive('readWindow')->with(['scope'], 50, 100)->andReturn(new NoticeRecoveryWindow(self::NS, 50, 40, []));
+        $recovery = new NoticeRecovery($store, $codec); $selection = NoticeSelection::create(['scope']);
+        $query = new RecoverNotices($selection, startAtCurrent: true);
+        self::assertTrue($query->startAtCurrent());
+        self::assertTrue(RecoverNotices::fromArray($query->toArray())->startAtCurrent());
+        $start = $recovery->recover($query, $this->access());
+        self::assertSame([], $start->notices()); self::assertSame('complete', $start->status());
+        self::assertSame(50, json_decode($codec->open($start->continuation()), true)['position']);
+        self::assertSame('complete', $recovery->recover(new RecoverNotices($selection, $start->continuation()), $this->access())->status());
+        foreach ([static fn () => new RecoverNotices($selection, 'token', startAtCurrent: true), static fn () => RecoverNotices::fromArray(array_replace($query->toArray(), ['start_at_current' => 1]))] as $invalid) {
+            try { $invalid(); self::fail('Invalid current-boundary request'); } catch (DomainException) { self::assertTrue(true); }
+        }
+    }
+
     private function row(int $position, string $topic = 'catalog/tools'): RecordedNotice { return new RecordedNotice(Notice::fromArray(NoticeFixture::data(['id' => 'n'.$position, 'topic' => $topic])), $position, '2026-10-25T00:00:00.000000Z'); }
     private function access(): NoticeAccess { return NoticeAccess::create(['scope'], recoveryIdentity: new NoticeRecoveryIdentity('caller', 'revision', true)); }
     private function codec(): SodiumNoticeContinuationProtector { return new SodiumNoticeContinuationProtector(['testkey1' => str_repeat('k', 32)], 'testkey1'); }

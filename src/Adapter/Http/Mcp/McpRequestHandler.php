@@ -30,7 +30,7 @@ final readonly class McpRequestHandler implements RequestHandlerInterface
      * Constructs McpRequestHandler
      */
     public function __construct(
-        McpCapabilityRegistry $registry,
+        private McpCapabilityRegistry $registry,
         private McpOriginPolicy $originPolicy,
         private McpInvocationGuard $guard,
         private McpResponseFactory $responses,
@@ -86,6 +86,11 @@ final readonly class McpRequestHandler implements RequestHandlerInterface
                     $message->id(),
                     McpProtocolError::invocationLimit()
                 ));
+            }
+
+            $subscriptions = $this->registry->subscriptions();
+            if ($message->method() === 'subscriptions/listen' && $subscriptions !== null) {
+                return $this->responses->stream($message, $this->responder, $subscriptions->execution($message));
             }
 
             if (

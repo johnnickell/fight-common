@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
@@ -65,8 +66,11 @@ final readonly class McpCapabilityRegistry
      *
      * @phpstan-param array<array-key, mixed> $capabilities
      */
-    public function __construct(private ?McpServerInfo $serverInfo, array $capabilities)
-    {
+    public function __construct(
+        private ?McpServerInfo $serverInfo,
+        array $capabilities,
+        private ?McpSubscriptions $subscriptions = null
+    ) {
         if ($this->serverInfo === null) {
             throw new DomainException('An MCP server identity is required.');
         }
@@ -92,11 +96,34 @@ final readonly class McpCapabilityRegistry
 
         $this->validateStandardCapabilityMandatoryMethods($capabilitiesByMethod, $advertisedCapabilities);
         $this->validateSubscriptionCapabilityFlags($advertisedCapabilities);
+        if ($this->subscriptions !== null) {
+            foreach ($this->subscriptions->supported() as $filter) {
+                [$family, $property] = match ($filter) {
+                    'toolsListChanged' => ['tools', 'listChanged'],
+                    'resourcesListChanged' => ['resources', 'listChanged'],
+                    'resourceSubscriptions' => ['resources', 'subscribe']
+                };
+                if (!isset($advertisedCapabilities[$family])) {
+                    throw new DomainException('Subscriptions require the corresponding serving capability.');
+                }
+
+                $advertisedCapabilities[$family][$property] = true;
+            }
+        }
+
         $this->validateSkills($capabilitiesByMethod, $advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
         $this->mirrorDeclarationsByMethod = $mirrorDeclarationsByMethod;
+    }
+
+    /**
+     * Returns explicit HTTP subscription composition without inventing a new advertised family
+     */
+    public function subscriptions(): ?McpSubscriptions
+    {
+        return $this->subscriptions;
     }
 
     /**
@@ -171,8 +198,13 @@ final readonly class McpCapabilityRegistry
                 throw new DomainException('An MCP capability method must be a non-empty string.');
             }
 
-            if ($method === McpResponder::DISCOVER_METHOD) {
-                throw new DomainException('The server/discover method is reserved for the MCP responder.');
+            if (
+                $method === McpResponder::DISCOVER_METHOD
+                || ($method === 'subscriptions/listen' && $this->subscriptions !== null)
+            ) {
+                throw new DomainException(
+                    'The MCP discovery and subscription methods are reserved for their package owners.'
+                );
             }
 
             if (array_key_exists($method, $capabilitiesByMethod)) {
