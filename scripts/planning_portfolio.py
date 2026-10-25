@@ -25,7 +25,11 @@ BLOCK = re.compile(r"<!-- planning:([a-z-]+) -->\n[\s\S]*?<!-- /planning:\1 -->"
 
 
 def frontmatter(path: Path) -> dict[str, str]:
-    text = path.read_text(encoding="utf-8")
+    return parse_frontmatter(path.read_text(encoding="utf-8"))
+
+
+def parse_frontmatter(text: str) -> dict[str, str]:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     if not text.startswith("---\n") or "\n---\n" not in text[4:]:
         raise ValueError("missing frontmatter")
     block = text[4:].split("\n---\n", 1)[0]
@@ -397,10 +401,17 @@ def reconcile_delivery(records: dict, resolved: list) -> dict[Path, str]:
     pending = {}
     observed = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     for identifier, path, pr in resolved:
-        text = path.read_text()
-        header, body = text[4:].split("\n---\n", 1)
-        header = re.sub(r"^delivery:[^\n]*\n?", "", header, count=1, flags=re.MULTILINE).rstrip("\n")
-        pending[path] = f"---\n{header}\n---\n{body.rstrip()}\n\n" + (
+        text = path.read_bytes().decode("utf-8")
+        header, boundary, body = re.split(r"((?:\r\n|\r|\n)---(?:\r\n|\r|\n))", text, maxsplit=1)
+        end = boundary.index("---")
+        # Match the reader's stripped-key semantics, retaining other bytes and line endings.
+        header = "".join(line for line in (header + boundary[:end]).splitlines(keepends=True)
+                         if line.partition(":")[0].strip() != "delivery")
+        retired = header + boundary[end:] + body
+        expected = {key: value for key, value in records[identifier][1].items() if key != "delivery"}
+        if parse_frontmatter(retired) != expected:
+            raise ValueError(f"{path.relative_to(ROOT)}: planned delivery retirement did not preserve the expected frontmatter")
+        pending[path] = retired + "\n\n" + (
             f"### Delivery reconciliation — PR #{pr['number']}\n\n"
             f"Observed {observed}: {pr['url']} is MERGED into `{pr['baseRefName']}` at "
             f"`{pr['mergedAt']}`. Published head `{pr['headRefOid']}` is an ancestor of merge "
@@ -442,7 +453,10 @@ def main() -> int:
             resolved, delivery_errors = verify_delivery(handoffs, repository)
             errors.extend(delivery_errors)
             if not errors:
-                pending.update(reconcile_delivery(records, resolved))
+                try:
+                    pending.update(reconcile_delivery(records, resolved))
+                except ValueError as exception:
+                    errors.append(str(exception))
         if not writing:
             for path in closures:
                 errors.append(f"{path.relative_to(ROOT)}: parent completion out of sync; run ./bin/planning-check --write")
