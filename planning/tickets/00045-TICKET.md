@@ -97,7 +97,7 @@ These are future acceptance obligations, not checks already run or proof of cons
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00158](../tasks/00158-TASK.md) | Record durable safe change notices | done |
-| [TASK-00159](../tasks/00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent |
+| [TASK-00159](../tasks/00159-TASK.md) | Remove retained notices without concealing history loss | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

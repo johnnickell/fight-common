@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Opt-in retained-notice removal Commands with independent current admission, finite incarnation-pinned selections,
+  atomic relationship/comparison deletion and bounded empty-feed history-loss evidence on SQLite/MySQL/PostgreSQL.
+  Trusted coherent storage recovery remains separate from public polling; consumers own retention policy.
+  See [safe notices](docs/safe-notices.md#bounded-authorized-removal).
 - Five opt-in read-only MCP execution inspection Tools over shared authorized Queries, with bounded safe
   summaries, live execution/phase/activity pages and no protected bodies or mutation exposure.
 - Opt-in `McpToolOutput::boundedStructured()` final encoded JSON-RPC success-response budgets, including text,

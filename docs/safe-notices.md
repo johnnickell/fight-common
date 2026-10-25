@@ -3,7 +3,8 @@
 This opt-in capability records bounded change **notices**, not authoritative application state, execution
 observations or an Event Store. `Domain\Notice\Command\RecordNotice` uses the existing void
 `CommandBus::execute()` contract. Callers supply a stable notice ID; successful return follows actual commit.
-No public history/recovery Query, removal Command, MCP/Mercure adapter, automatic capture or outbox is provided.
+`RemoveNotices` supplies independently authorized bounded removal. No public history/recovery Query, MCP mutation
+Tool, MCP/Mercure adapter, automatic capture, retention-policy engine or outbox is provided.
 
 ## Representation and bounds
 
@@ -19,7 +20,9 @@ No public history/recovery Query, removal Command, MCP/Mercure adapter, automati
 | `relationships` | `NoticeRelationships`: exactly `subject`, `recipients`, `author`, `command`, `event`, `action`; each non-null individual reference uses the same 96-byte reference contract |
 | Recipients | Null means unknown; empty list explicitly means broadcast/no named recipients; otherwise at most 32 unique references, sorted bytewise as an unordered set |
 | Complete notice | At most **6,144 encoded bytes** in `Notice::comparison()`, including relationships, keys, JSON escaping and version |
-| Recovery read | `readAfter(scope, position, limit)`: exclusive position 0–2,147,483,647, limit 1–100; at most 100 bounded records, never an unbounded iterator |
+| Reconstruction | `readAfter(scope, position, limit)` and `readWindow(scope, position, limit)`: exclusive position 0–2,147,483,647, limit 1–100; at most 100 bounded records, never an unbounded iterator |
+| Removal selection | `NoticeRemovalSelection::fromArray()`: exactly integer `version: 1`, `namespace` (32 lowercase hexadecimal characters), and a list of 1–100 exact targets |
+| Removal target | Exactly `scope`, `producer`, `id` (the same 1–96-byte reference contract) and integer `position` (1–2,147,483,647); duplicate positions or tuple identities reject |
 
 Subject Agent, intended recipient Agents, author, instrumentation producer, and each causation Command/event/action
 remain independently supplied references. All may be unknown except producer/scope/identity/topic/type. There is no
@@ -64,7 +67,7 @@ change. Acquiring the database lock itself executes a no-change state-row UPDATE
 after acquiring that lock, so consumer policy must be read freshly rather than cached when the request started.
 There is no allow-all implementation or implicit principal resolution.
 
-Admission, reference validation and recording are distinct from any future read/removal authorization. Public
+Admission, reference validation and recording are distinct from read/removal authorization. Public
 exceptions and fact references must still be projected under the consumer's disclosure policy; do not expose exception
 causes or traces to clients. Admission implementers must not throw private diagnostic text as public denial.
 
@@ -74,16 +77,18 @@ causes or traces to clients. Admission implementers must not throw private diagn
 so application composition cannot accidentally enlist a different repository connection. The DBAL adapter supports
 actual SQLite, MySQL and PostgreSQL only. Its reserved schema namespace is:
 
-- `fight_notice_state`: singleton version and last allocated position, also the shared serialization lock;
+- `fight_notice_state`: singleton version, last allocated position, random namespace incarnation and conservative
+  `lost_through` boundary, also the shared serialization lock;
 - `fight_notices`: tuple identity, immutable server time, bounded scalar notice content and dedicated position;
 - `fight_notice_relationships`: separate bounded explicit relationship representation;
 - `fight_notice_comparisons`: version plus complete exact canonical comparison bytes, not merely an identity or hash.
 
 Related writes and position update commit atomically. Foreign keys cascade dependent relationship/comparison rows
-when a future authorized removal deletes a notice. MySQL uses InnoDB and binary collation; accepted ASCII references
+when authorized removal deletes a notice. MySQL uses InnoDB and binary collation; accepted ASCII references
 have no whitespace/padding ambiguity. SQLite enables foreign keys; consumers configure busy/lock timeouts. Schema
 composition uses public DBAL schema-manager APIs, without a new internal-API exception, migration or dependency floor.
-`addTo()` supports consumer-owned deployment schemas; seed singleton `(1, 1, 0)` when managing deployment yourself.
+`addTo()` supports consumer-owned deployment schemas; seed singleton `1`, version `1`, last position `0`, a fresh
+`bin2hex(random_bytes(16))` namespace and loss boundary `0` when managing a new deployment yourself.
 `install()` creates an empty namespace or validates the current version marker and identity/recovery indexes; it is
 not an exhaustive drift repair/fingerprint or online migration. Partial schemas/unsupported versions reject. MySQL
 DDL may partially succeed: stop and recover exclusively rather than rerun recording against incomplete storage.
@@ -144,18 +149,104 @@ claim or lease. It does not authorize identities/topics or report current retain
 not complete catch-up. Future TICKET-00046 owns public selection/access/token/completeness semantics. No reverse
 dependency on that implementation exists.
 
-TASK-00159 must use the **same** `DbalNoticeStore::commitTransactional()` lock and shared `connection()` maintenance
-seam to atomically delete bounded selected notices and update bounded access-safe history-loss evidence, including
-an empty feed. It must retain the position high-water mark and coordinate all three related rows/comparison lifetime.
-This TASK supplies no public deletion or speculative history-loss claims. Current comparison evidence lives only
-with the retained notice and is not a perpetual tombstone/archive. Removing it ends duplicate suppression; a later
-explicit admitted same-ID submission is new recording at a new server time/position, not restoration of the removed
-notice or its recovery history. Consumers own retention duration, eligibility, legal holds, scheduling, archival,
-resource timeouts and operational recovery. Never purge rows directly and claim complete recovery.
+## Bounded authorized removal
+
+Compose the same store with an **independent** current permission implementation:
+
+```php
+$remover = new NoticeRemover($store, $trustedRemovalAdmission);
+$router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler($remover));
+$selection = NoticeRemovalSelection::fromArray([
+    'version' => 1,
+    'namespace' => $trustedStorageWindow->namespace(),
+    'targets' => [
+        ['scope' => 'project-a', 'producer' => 'catalog', 'id' => 'change-42', 'position' => 42]
+    ]
+]);
+$commandBus->execute(new RemoveNotices($selection));
+```
+
+Additional imports beneath `Fight\Common\` are Domain `Notice\NoticeRemovalSelection` and
+`Notice\Command\RemoveNotices`, Application `Notice\Service\{NoticeRemover,NoticeRemovalAdmission}` and
+`Notice\CommandHandler\RemoveNoticesHandler`. Selection normally comes from trusted storage/consumer selection;
+no public selection Query or continuation token is introduced here. Never give an untrusted caller raw global
+storage state merely to construct this Command.
+
+`NoticeRemovalAdmission::admit(selection)` must authorize **every** selected tuple using fresh trusted invocation
+context before any identity lookup, even for missing/repeated targets. `admitRetained(Notice)` must independently
+validate all currently permitted retained content/scope/relationships. Both run under recording's shared lock;
+all matching retained records are admitted **before any deletion**. Throw fixed `NoticeRemovalRejected` on denial.
+Recording/read grants, IDs, topics, `SUPER_ADMIN`, claimed cleanup identity and cutoffs are not removal grants.
+There is no cutoff/predicate input or unbounded sweep. Consumers own retention eligibility, duration, legal holds,
+scheduling, archival, resource timeouts and cleanup-job recovery.
+
+The handler returns no existence/affected count. Missing tuples, wrong positions, replaced identities, stale
+namespaces and permission denial all share fixed `NoticeRemovalRejected` **without any selected mutation**. This
+avoids distinguishing a concealed retained notice from an unknown one through a successful missing-record no-op.
+Current permission is required again on every repeat, including after revocation. A repeat after successful deletion
+therefore rejects safely, just like unknown/denied; it is not a receipt and cannot explain whether the earlier request
+committed. After a lost reply, inspect only separately authorized current state or reselect explicitly under consumer
+policy. Matching tuple **and position** pins one incarnation: repeating old removal cannot delete a subsequent same-ID
+recording. Targets in other producer/scope namespaces and unselected survivors remain unchanged.
+
+One actual transaction deletes all matching notices, cascades relationships/comparison rows and advances
+`lost_through` to the maximum of its prior value and positions actually deleted. It never resets/decrements
+`last_position`. Any precommit failure rolls back the entire selection and loss evidence, including earlier
+selected deletions. Commit/rollback uncertainty uses `NoticeStorageFailed::outcomeUncertain()` and closes the store
+as for recording. Enclosing transactions reject before admission/writes without touching caller work. Success is
+actual commit, not savepoint release. The comparison bytes live **only while the notice remains retained**: before
+removal identical admitted retries deduplicate and conflicting ones reject; after committed removal both identical
+and changed submissions can be explicitly re-admitted as **new** recording at a later position/new server time.
+No old time/position or original retained notice is restored. There is no indefinite duplicate suppression or body
+archive. A rolled-back removal retains the original comparison guarantees.
+
+**No removal event is defined.** The void Command proves neither subscriber receipt nor processing, expiry,
+business success or Workflow state. No dispatcher/replay/outbox is added; later consumer publisher failures cannot
+undo successful removal and must not be described as storage rollback.
+
+## Qualified storage recovery contract
+
+`NoticeStore::readWindow(scope, position, limit)` returns Application `Notice\Data\NoticeRecoveryWindow` with
+`notices()`, `namespace()`, `highWater()`, `lostThrough()` and `hasUnbrokenHistoryAfter(namespace, examinedPosition)`.
+It is a **trusted internal storage seam**, not a public Query, access grant or continuation format. On an idle store,
+it owns the same real transaction/serialization lock as recording/removal and reads rows plus validated state
+coherently. A snapshot cannot mix pre-deletion rows with post-deletion loss state, or vice versa; its immutable row
+list detaches caller-owned PHP array references. The read transaction performs a no-change lock UPDATE; it mutates
+no business evidence. No lease survives its return. Ordinary idle
+`readAfter()` remains available, but its rows alone cannot establish recovery continuity.
+
+The single global loss boundary and namespace survive an entirely empty feed. Constant storage is **one state row**
+with five bounded scalar columns; removal adds no per-ID/per-scope rows, deleted bodies, relationships, counts,
+timestamps or comparison copies. The boundary deliberately overapproximates affected history: loss in an unrelated
+scope can invalidate a global storage proof. `hasUnbrokenHistoryAfter()` is false for another namespace, an examined
+position before loss, a negative position or one beyond high water. True establishes only that this namespace has
+not lost retained storage **after** that already established boundary. It does not prove the caller examined all
+eligible data, maintained the same current access/selection, exhausted a batch, received a notice or observed every
+application change. A loss at the examined position itself does not invalidate the suffix after it.
+
+**Access-safe projection is mandatory.** These namespace-wide counters and predicate results are not public data.
+They must never disclose concealed activity, identities, counts or scopes through raw values, token plaintext or
+state-dependent gap responses. If the caller is not authorized for the complete namespace, or continuity of its
+selection/access is unproven, public recovery must conservatively report **uncertain independently of concealed
+removals** unless TICKET-00046 establishes an access-safe narrower proof. For example, a scope-A-only caller cannot
+be told that a scope-B deletion occurred; neither the raw watermark nor a new gap flag may reveal it. It may receive
+the same conservative uncertainty before and after that concealed activity. Only a suitably authorized whole-namespace
+composition can directly use the global proof, still requiring protected continuation, fresh admission, bounded
+scanning/output and an identified examined boundary. TICKET-00046 owns those public semantics, including changed
+permissions; this storage contract supplies no token/public completeness guarantee or reverse dependency.
+
+Missing/corrupt evidence raises a failure, **never complete empty history**. Persisted positions are validated before
+casting, so malformed SQLite values cannot turn unavailable loss evidence into zero. No ordinary operation retires
+the state row, resets its loss boundary or reuses ordering. If exclusive operator recovery must retire loss evidence, preserve
+high water, rotate to a fresh namespace and conservatively set loss through high water; old continuations become
+uncertain/restart and stale removal selections reject. Unavailable state remains a failure until safely recovered.
+Database recreation/loss invalidates continuity entirely; a new namespace is not proof of the previous history.
+Unsupported direct SQL purges bypassing this contract cannot be certified complete. Empty results/absence alone
+prove neither catch-up, expiry nor delivery.
 
 ## Compatibility and public surface
 
-All **17 new declarations** are additive opt-in public APIs classified in `compatibility/manifest.json`:
+The initial **17 recording declarations** are additive opt-in public APIs classified in `compatibility/manifest.json`:
 
 - Domain: `Notice`, `NoticeMetadata`, `NoticeRelationships`, `NoticeOccurrence`, `RecordedNotice`,
   `Command\RecordNotice`, `Event\NoticeRecorded` (seven final immutable classes).
@@ -163,6 +254,14 @@ All **17 new declarations** are additive opt-in public APIs classified in `compa
   `Service\NoticeRecorder`, `CommandHandler\RecordNoticeHandler`, and four final exceptions
   `NoticeRejected`, `NoticeConflict`, `NoticeStorageFailed`, `CommittedNoticeDispatchFailed` (eight declarations).
 - Adapter: `Dbal\DbalNoticeSchema`, `Dbal\DbalNoticeStore` (two final composition/persistence classes).
+
+Removal adds **seven** opt-in public declarations: Domain `NoticeRemovalSelection` and `Command\RemoveNotices`;
+Application `Service\NoticeRemovalAdmission`, `Service\NoticeRemover`, `CommandHandler\RemoveNoticesHandler`,
+`Exception\NoticeRemovalRejected` and `Data\NoticeRecoveryWindow`. The admission interface is consumer-implementable;
+the six classes are final with their documented factories/construction and callable methods. `NoticeStore`'s two new
+methods and the current version-one state schema revise **unreleased provisional** APIs directly. No development
+migration, compatibility alias or historical schema codec is required; existing partial/old development schemas
+must be recreated or recovered exclusively, not silently accepted. There are now 24 Notice declarations in total.
 
 All classes support their documented public construction/factories and callable methods, not subclass extension;
 interfaces promise implementation, not class construction/extension. Private state is not a serialization contract.
@@ -179,4 +278,10 @@ Commands through the real handler and actual disposable SQLite/MySQL/PostgreSQL,
 failures across all related writes/commit, and uses independent processes paused after allocation but before commit.
 Those workers prove concurrent equal/conflicting retries, fresh admission after waiting, rollback/retry positions
 and prefix-safe recovery. Mocks alone or skipped server cases do not qualify an adapter. See TASK-00158 for the
-current local build receipt and independent-review/QA state; tests do not establish delivery or consumer deployment.
+recording build receipt and independent-review/QA state. `NoticeRemovalSelectionTest` and `DbalNoticeRemovalTest`
+directly qualify removal bounds, immutability, preflight admission, rollback, storage loss, stale targets and handlers.
+`NoticeRemovalJourneyTest` uses actual disposable SQLite/MySQL/PostgreSQL, seeds through the real recording Command,
+checks survivors and empty reconstruction, performs 128 record/remove cycles per backend, injects deletion/loss/
+commit faults including lost acknowledgment, preserves caller transactions and tests both lock orders with independent
+processes. Its coherent-window race supplies downstream recovery fixtures without public polling. TASK-00159 owns
+that removal build receipt and independent Review/QA handoff; tests do not establish delivery or consumer deployment.

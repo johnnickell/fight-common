@@ -10,10 +10,13 @@ use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\TransactionIsolationLevel;
+use Fight\Common\Application\Notice\Data\NoticeRecoveryWindow;
+use Fight\Common\Application\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Application\Notice\Exception\NoticeStorageFailed;
 use Fight\Common\Application\Notice\Service\NoticeStore;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Notice\Notice;
+use Fight\Common\Domain\Notice\NoticeRemovalSelection;
 use Fight\Common\Domain\Notice\RecordedNotice;
 use InvalidArgumentException;
 use LogicException;
@@ -128,9 +131,9 @@ final class DbalNoticeStore implements NoticeStore
     }
 
     /**
-     * Returns the shared connection for trusted future atomic history-loss maintenance
+     * Returns the shared connection for trusted storage composition
      *
-     * Maintenance must run inside commitTransactional and preserve the position high-water mark
+     * Direct writers must preserve the serialization, ordering and history-loss contract
      * This seam is not a public removal operation or an authorization grant
      */
     public function connection(): Connection
@@ -201,17 +204,70 @@ final class DbalNoticeStore implements NoticeStore
     /**
      * @inheritDoc
      */
+    public function remove(NoticeRemovalSelection $selection): void
+    {
+        $this->requireOwnedTransaction();
+        $state = $this->recoveryState();
+        if ($selection->namespace() !== $state->namespace()) {
+            throw new NoticeRemovalRejected();
+        }
+
+        $lost = $state->lostThrough();
+        foreach ($selection->targets() as $target) {
+            $removed = $this->connection->delete('fight_notices', [
+                'scope'     => $target['scope'],
+                'producer'  => $target['producer'],
+                'notice_id' => $target['id'],
+                'position'  => $target['position']
+            ]);
+            if ((int) $removed !== 1) {
+                throw new NoticeRemovalRejected();
+            }
+
+            $lost = max($lost, $target['position']);
+        }
+
+        if ($lost !== $state->lostThrough()) {
+            $this->connection->update('fight_notice_state', ['lost_through' => $lost], ['singleton' => 1]);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function readWindow(string $scope, int $position, int $limit): NoticeRecoveryWindow
+    {
+        $this->validateRead($scope, $position, $limit);
+
+        return $this->commitTransactional(function () use ($scope, $position, $limit): NoticeRecoveryWindow {
+            try {
+                $state = $this->recoveryState();
+                $sql = self::SELECT.' WHERE n.scope = ? AND n.position > ? ORDER BY n.position ASC';
+                $sql = $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit);
+                $rows = $this->connection->fetchAllAssociative($sql, [$scope, $position]);
+
+                return new NoticeRecoveryWindow(
+                    $state->namespace(),
+                    $state->highWater(),
+                    $state->lostThrough(),
+                    array_map($this->hydrate(...), $rows)
+                );
+            } catch (Throwable $throwable) {
+                throw new NoticeStorageFailed(false, $throwable);
+            }
+        });
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function readAfter(string $scope, int $position, int $limit): array
     {
         if ($this->closed || $this->connection->isTransactionActive()) {
             throw new LogicException('Notice reconstruction requires an idle, open store.');
         }
 
-        Notice::reference($scope);
-        if ($position < 0 || $position > RecordedNotice::MAX_POSITION || $limit < 1 || $limit > 100) {
-            throw new DomainException('Invalid notice reconstruction bounds.');
-        }
-
+        $this->validateRead($scope, $position, $limit);
         $this->requireCommittedIsolation();
 
         try {
@@ -222,6 +278,53 @@ final class DbalNoticeStore implements NoticeStore
             return array_map($this->hydrate(...), $rows);
         } catch (Throwable $throwable) {
             throw new NoticeStorageFailed(false, $throwable);
+        }
+    }
+
+    /**
+     * Returns validated bounded evidence without inferring completeness from a missing state row
+     */
+    private function recoveryState(): NoticeRecoveryWindow
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT namespace, last_position, lost_through FROM fight_notice_state WHERE singleton = 1'
+        );
+        if ($row === false) {
+            throw new RuntimeException('Missing notice recovery evidence.');
+        }
+
+        return new NoticeRecoveryWindow(
+            $row['namespace'],
+            $this->storedPosition($row['last_position']),
+            $this->storedPosition($row['lost_through']),
+            []
+        );
+    }
+
+    /**
+     * Validates persisted integers before casting so unavailable evidence cannot become zero
+     */
+    private function storedPosition(mixed $value): int
+    {
+        if (
+            (!is_int($value) && !is_string($value))
+            || preg_match('/\A(?:0|[1-9][0-9]{0,9})\z/D', (string) $value) !== 1
+            || (int) $value > RecordedNotice::MAX_POSITION
+        ) {
+            throw new RuntimeException('Invalid notice recovery position.');
+        }
+
+        return (int) $value;
+    }
+
+    /**
+     * Validates finite reconstruction bounds before any database work
+     */
+    private function validateRead(string $scope, int $position, int $limit): void
+    {
+        Notice::reference($scope);
+        if ($position < 0 || $position > RecordedNotice::MAX_POSITION || $limit < 1 || $limit > 100) {
+            throw new DomainException('Invalid notice reconstruction bounds.');
         }
     }
 
