@@ -47,7 +47,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| None | — | — |
+| [TASK-00159](00159-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/238](https://github.com/johnnickell/fight-common/pull/238) |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -159,7 +159,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 | — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #235](https://github.com/johnnickell/fight-common/pull/235) |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | done | — | [PR #236](https://github.com/johnnickell/fight-common/pull/236) |
 | — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | done | — | [PR #237](https://github.com/johnnickell/fight-common/pull/237) |
-| — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | done | — | — |
+| — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | done | — | [PR #238](https://github.com/johnnickell/fight-common/pull/238) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 | — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
