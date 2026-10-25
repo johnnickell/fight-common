@@ -62,7 +62,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | done | [TICKET-00044](../tickets/00044-TICKET.md) |
 | [TASK-00158](00158-TASK.md) | Record durable safe change notices | done | [TICKET-00045](../tickets/00045-TICKET.md) |
 | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | done | [TICKET-00045](../tickets/00045-TICKET.md) |
-| [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | ready-for-agent | [TICKET-00046](../tickets/00046-TICKET.md) |
+| [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | in-progress | [TICKET-00046](../tickets/00046-TICKET.md) |
 | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | ready-for-agent | [TICKET-00046](../tickets/00046-TICKET.md) |
 | [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |

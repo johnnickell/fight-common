@@ -97,7 +97,7 @@ checks, not proof of a deployed browser/MCP client or implementation already acc
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00160](../tasks/00160-TASK.md) | Summarize and inspect authorized retained notices | ready-for-agent |
+| [TASK-00160](../tasks/00160-TASK.md) | Summarize and inspect authorized retained notices | in-progress |
 | [TASK-00161](../tasks/00161-TASK.md) | Recover retained notices through shared Queries and MCP | ready-for-agent |
 <!-- /planning:children -->
 

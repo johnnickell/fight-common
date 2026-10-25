@@ -3,8 +3,9 @@
 This opt-in capability records bounded change **notices**, not authoritative application state, execution
 observations or an Event Store. `Domain\Notice\Command\RecordNotice` uses the existing void
 `CommandBus::execute()` contract. Callers supply a stable notice ID; successful return follows actual commit.
-`RemoveNotices` supplies independently authorized bounded removal. No public history/recovery Query, MCP mutation
-Tool, MCP/Mercure adapter, automatic capture, retention-policy engine or outbox is provided.
+`RemoveNotices` supplies independently authorized bounded removal. [Authorized inspection](notice-inspection.md)
+adds public summary/history/detail Queries with fresh independent read admission. No polling/recovery Query, MCP
+mutation Tool, MCP/Mercure adapter, automatic capture, retention-policy engine or outbox is provided.
 
 ## Representation and bounds
 
@@ -146,8 +147,8 @@ a notice. A retained notice cannot repair an earlier event/change that never rec
 `NoticeStore::readAfter()` is a trusted storage-level bounded reconstruction seam: exact scope, ascending exclusive
 committed position, live retained records. It is **not** a public authorized Query, opaque continuation, completeness
 claim or lease. It does not authorize identities/topics or report current retained-history loss; an empty result is
-not complete catch-up. Future TICKET-00046 owns public selection/access/token/completeness semantics. No reverse
-dependency on that implementation exists.
+not complete catch-up. [Inspection Queries](notice-inspection.md) separately enforce public selection/current access;
+TASK-00161 owns polling/token/completeness semantics. No reverse dependency on recovery exists.
 
 ## Bounded authorized removal
 
@@ -169,7 +170,8 @@ $commandBus->execute(new RemoveNotices($selection));
 Additional imports beneath `Fight\Common\` are Domain `Notice\NoticeRemovalSelection` and
 `Notice\Command\RemoveNotices`, Application `Notice\Service\{NoticeRemover,NoticeRemovalAdmission}` and
 `Notice\CommandHandler\RemoveNoticesHandler`. Selection normally comes from trusted storage/consumer selection;
-no public selection Query or continuation token is introduced here. Never give an untrusted caller raw global
+inspection results intentionally omit storage positions/namespace and cannot construct removal targets by themselves.
+No public continuation token is introduced here. Never give an untrusted caller raw global
 storage state merely to construct this Command.
 
 `NoticeRemovalAdmission::admit(selection)` must authorize **every** selected tuple using fresh trusted invocation
@@ -261,14 +263,15 @@ Application `Service\NoticeRemovalAdmission`, `Service\NoticeRemover`, `CommandH
 the six classes are final with their documented factories/construction and callable methods. `NoticeStore`'s two new
 methods and the current version-one state schema revise **unreleased provisional** APIs directly. No development
 migration, compatibility alias or historical schema codec is required; existing partial/old development schemas
-must be recreated or recovered exclusively, not silently accepted. There are now 24 Notice declarations in total.
+must be recreated or recovered exclusively, not silently accepted. These recording/removal APIs comprise 24 declarations; [inspection](notice-inspection.md#compatibility-and-public-surface)
+adds 15 separate opt-in read declarations, for 39 Notice declarations in total.
 
 All classes support their documented public construction/factories and callable methods, not subclass extension;
 interfaces promise implementation, not class construction/extension. Private state is not a serialization contract.
 Version-one payload/schema are provisional until first tagged, with no development compatibility aliases/migrations.
 Existing released CQRS, UnitOfWork, DBAL/Event Store, MCP and framework contracts are unchanged. No Composer constraint,
 PHPStan suppression, coverage exclusion or consumer policy is added. Package evidence is not deployed-consumer,
-public polling, MCP stream or Mercure/hub proof.
+polling recovery, MCP stream or Mercure/hub proof.
 
 ## Verification
 

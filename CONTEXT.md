@@ -252,6 +252,23 @@ high water; no ordinary retirement/reset API is supplied. Consumers own safe cap
 See [safe notices](docs/safe-notices.md) for composition, all numeric bounds, qualified recovery, compatibility and
 failure semantics. Notice additions remain provisional against tags; no development schema migration is promised.
 
+**Authorized retained-notice inspection:** `Domain\Notice\NoticeSelection` and
+`Query\{SummarizeNotices,ListNotices,GetNotice}` route through Application Notice handlers and fresh
+`Service\NoticeReadAdmission` to separate `NoticeReader`/`Adapter\Notice\Dbal\DbalNoticeReader`. Trusted
+`NoticeAccess` scope grants and optional exact restrictions intersect caller selection before counts/projection;
+whole safe metadata and all relationships require permission, never a supplied ID/topic/recipient/SUPER_ADMIN label.
+`Data\NoticeSummary` counts all encountered admitted matches once with complete bounded topic/type dimensions
+(128 each), explicit audience/unknown counts and time extrema. `NoticePage` uses strict live page/per-page 1/32,
+size at most 32, offset at most 1,000,000, recorded_at ASC/DESC with private position ties; `NoticeView` exposes
+safe content and server time, not global positions/state/comparison. Filters cover topic, subject Agent, intended
+recipient, type, producer/author/causes and half-open recording/occurrence instants without altering source precision.
+Direct detail freshly authorizes independently of listing; unknown/denied/disappeared is the same null, not expiry.
+Fixed `NoticeReadFailed` differs from successful empty results. Actual three-database reads scan bounded 100-row
+batches with finite retained output, no business mutation/event, transaction or snapshot/catch-up promise.
+No schema/index, polling/MCP Tool, stream/UI/Mercure or consumer-policy change is introduced. See
+[notice inspection](docs/notice-inspection.md) for composition, finite bounds, full-selection semantics, linear-scan
+cost, live consistency and additive compatibility classification; TASK-00161 separately owns recovery.
+
 ## Access control language
 
 | Term | Meaning in Fight AccessControl planning |
