@@ -229,11 +229,28 @@ causality, cross-store order or delivery. Occurrence retains zero through six so
 `NoticeRecorded` contains only safe recording references after commit. `CommittedNoticeDispatchFailed::event()`
 distinguishes failed later fact dispatch from retained persistence; retries never replay publication. Storage uncertainty
 closes the boundary without claiming rollback/absence. Trusted bounded idle `readAfter()` reconstructs retained rows,
-not public authorization or complete catch-up. The shared transaction/connection seam lets TASK-00159 atomically
-coordinate later removal/history-loss evidence without resetting position high water; no removal/public Query or
-implicit outbox is implemented here. Comparison lives only with retained evidence; deletion ends deduplication, and
-new same-ID admission is new recording, not restoration. Consumers own safe capture, access, retention and operations.
-See [safe notices](docs/safe-notices.md) for composition, all numeric bounds, compatibility and failure semantics.
+not public authorization or complete catch-up. `RemoveNotices` selects 1–100 exact scope/producer/ID/position tuples
+bound to the namespace incarnation. `NoticeRemover` and its routed handler invoke independent current
+`NoticeRemovalAdmission` for the whole selection before lookup and all matching retained content/relationships
+before deletion. Unknown, denied, repeated, stale-position and stale-namespace targets share fixed rejection with
+no selected mutation; no existence/count response distinguishes a concealed record from a missing one. The same
+actual transaction/lock atomically cascades notice/relationship/comparison deletion and advances
+one bounded global `lost_through` watermark while retaining ordering high water, even when the feed becomes empty.
+No removal event, receipt, cleanup eligibility, archive, public mutation Tool or outbox is defined. Comparison lives
+only with retained evidence; deletion ends deduplication, and new admitted same-ID content is a later recording,
+not restoration. Old removal targets cannot delete that new incarnation.
+
+Trusted `readWindow()` returns `Application\Notice\Data\NoticeRecoveryWindow` with coherently locked bounded rows,
+namespace, committed high water and conservative global loss boundary. Its continuity predicate is storage proof
+only: missing/corrupt state fails, and changed/retired namespace invalidates old proof. No per-ID/per-scope tombstones,
+body/comparison archive or unbounded loss log remains. Global counters and loss changes must never be projected
+across concealed scopes; partial/unproven access requires conservative public uncertainty independent of concealed
+activity unless a narrower safe proof is established. TICKET-00046 owns protected continuation, current access/
+selection continuity and public completeness semantics. Empty rows alone never establish catch-up, expiry or receipt.
+Exclusive loss-evidence retirement preserves high water, rotates namespace and conservatively marks loss through
+high water; no ordinary retirement/reset API is supplied. Consumers own safe capture, access, retention and operations.
+See [safe notices](docs/safe-notices.md) for composition, all numeric bounds, qualified recovery, compatibility and
+failure semantics. Notice additions remain provisional against tags; no development schema migration is promised.
 
 ## Access control language
 

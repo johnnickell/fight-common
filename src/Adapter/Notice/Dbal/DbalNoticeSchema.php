@@ -28,6 +28,8 @@ final readonly class DbalNoticeSchema
         $state->addColumn('singleton', 'integer');
         $state->addColumn('version', 'integer');
         $state->addColumn('last_position', 'integer');
+        $state->addColumn('namespace', 'string', ['length' => 32]);
+        $state->addColumn('lost_through', 'integer');
         $state->setPrimaryKey(['singleton']);
 
         $notices = $schema->createTable(self::TABLES[1]);
@@ -84,6 +86,8 @@ final readonly class DbalNoticeSchema
             if (
                 (int) $version !== 1 || !$notices->hasIndex('fight_notice_identity')
                 || !$notices->hasIndex('fight_notice_recovery')
+                || !$manager->introspectTable(self::TABLES[0])->hasColumn('namespace')
+                || !$manager->introspectTable(self::TABLES[0])->hasColumn('lost_through')
             ) {
                 throw new RuntimeException('Unsupported notice schema.');
             }
@@ -97,6 +101,12 @@ final readonly class DbalNoticeSchema
             $manager->createTable($schema->getTable($name));
         }
 
-        $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1, 'last_position' => 0]);
+        $connection->insert(self::TABLES[0], [
+            'singleton'     => 1,
+            'version'       => 1,
+            'last_position' => 0,
+            'namespace'     => bin2hex(random_bytes(16)),
+            'lost_through'  => 0
+        ]);
     }
 }

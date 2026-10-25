@@ -2,7 +2,7 @@
 id: TICKET-00045
 epic: EPIC-00011
 title: Record and retain safe change notices
-status: ready-for-agent
+status: done
 ---
 
 # Record and retain safe change notices
@@ -97,7 +97,7 @@ These are future acceptance obligations, not checks already run or proof of cons
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00158](../tasks/00158-TASK.md) | Record durable safe change notices | done |
-| [TASK-00159](../tasks/00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent |
+| [TASK-00159](../tasks/00159-TASK.md) | Remove retained notices without concealing history loss | done |
 <!-- /planning:children -->
 
 ## Decisions and progress

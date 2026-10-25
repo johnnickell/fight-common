@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Notice\Service;
 
+use Fight\Common\Application\Notice\Data\NoticeRecoveryWindow;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Notice\Notice;
+use Fight\Common\Domain\Notice\NoticeRemovalSelection;
 use Fight\Common\Domain\Notice\RecordedNotice;
 
 /**
@@ -24,6 +26,22 @@ interface NoticeStore extends TransactionalUnitOfWork
      * Adds related content, comparison and position inside the store-owned transaction
      */
     public function append(Notice $notice, string $recordedAt): RecordedNotice;
+
+    /**
+     * Removes exact selected incarnations and their comparisons while atomically advancing bounded loss evidence
+     *
+     * Requires the owned transaction and prior complete removal admission
+     * Missing, replaced or denied targets and mismatched namespaces share fixed rejection
+     */
+    public function remove(NoticeRemovalSelection $selection): void;
+
+    /**
+     * Returns bounded rows and global loss evidence under one coherent serialization boundary
+     *
+     * Requires an idle store and owns actual commit; unavailable evidence fails closed
+     * Neither raw namespace counters nor global loss changes may be publicly disclosed across concealed scopes
+     */
+    public function readWindow(string $scope, int $position, int $limit): NoticeRecoveryWindow;
 
     /**
      * Returns at most 100 retained notices after an exclusive position in ascending committed order
