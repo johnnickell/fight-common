@@ -50,8 +50,9 @@ is no implicit field-level redaction: exclude notices whose complete content can
 and optional exact-filter grant model is not a universal policy language; if a consumer cannot express a safe grant,
 it must deny or partition its safe-notice scopes, not broaden access. Common supplies no allow-all admission or
 secret detector. Consumers still own capture/redaction, trusted identity, vocabulary and actual permission policy.
-The immutable inward selection/access/read contracts can be reused by subsequent recovery work without depending
-on it. No continuation, access-fingerprint or recovery promise is implemented here.
+The immutable inward selection/access/read contracts are reused by [bounded recovery](notice-recovery.md), without
+adding recovery promises to these inspection Queries. `NoticeAccess` can additionally hold trusted recovery identity;
+ordinary inspection remains unchanged.
 
 ## Selection, order and finite bounds
 
@@ -136,8 +137,8 @@ or a field cache. Already returned bytes are not retracted.
 No empty page/absent detail proves expiry, receipt, complete capture, complete catch-up or successful application
 processing. Successfully recorded retained notices are all that can be inspected; changes that never recorded a notice
 are not inferred. There is no frozen search, retention lease, browser page reset policy, acknowledgment ledger,
-mutation Tool or automatic fetch of referenced resources. TASK-00161 separately owns polling/continuation and
-qualified history-loss recovery; inspection neither exposes its private storage evidence nor blocks on that work.
+mutation Tool or automatic fetch of referenced resources. [Bounded recovery](notice-recovery.md) separately supplies
+polling/continuation and qualified history-loss recovery; inspection does not expose its private storage evidence.
 
 ## Compatibility and public surface
 
@@ -153,7 +154,8 @@ Public classes promise their documented construction/factories and callable meth
 Interfaces promise implementation, not construction. No released declaration, existing schema/index, dependency
 constraint, runtime/framework integration, CQRS message/bus/event or write-store API changes. Notice APIs remain
 provisional until first tagged; there are no development compatibility aliases, migrations or historical codecs.
-The earlier 24 recording/removal declarations remain intact (39 Notice declarations in total). This package proof
+The earlier 24 recording/removal declarations remain intact; [recovery](notice-recovery.md#compatibility-and-evidence-boundary)
+adds eight further public declarations and revises provisional admission/storage seams. This package proof
 does not qualify a deployed consumer, SUPER_ADMIN interface, browser, MCP client or Mercure hub.
 
 ## Verification

@@ -4,8 +4,9 @@ This opt-in capability records bounded change **notices**, not authoritative app
 observations or an Event Store. `Domain\Notice\Command\RecordNotice` uses the existing void
 `CommandBus::execute()` contract. Callers supply a stable notice ID; successful return follows actual commit.
 `RemoveNotices` supplies independently authorized bounded removal. [Authorized inspection](notice-inspection.md)
-adds public summary/history/detail Queries with fresh independent read admission. No polling/recovery Query, MCP
-mutation Tool, MCP/Mercure adapter, automatic capture, retention-policy engine or outbox is provided.
+adds public summary/history/detail Queries with fresh independent read admission. [Bounded recovery](notice-recovery.md)
+adds the shared recovery Query and explicit guarded MCP polling Tool. No MCP mutation Tool, live MCP/Mercure adapter,
+automatic capture, retention-policy engine or outbox is provided.
 
 ## Representation and bounds
 
@@ -148,7 +149,7 @@ a notice. A retained notice cannot repair an earlier event/change that never rec
 committed position, live retained records. It is **not** a public authorized Query, opaque continuation, completeness
 claim or lease. It does not authorize identities/topics or report current retained-history loss; an empty result is
 not complete catch-up. [Inspection Queries](notice-inspection.md) separately enforce public selection/current access;
-TASK-00161 owns polling/token/completeness semantics. No reverse dependency on recovery exists.
+[Bounded recovery](notice-recovery.md) supplies polling/token/completeness semantics. No reverse dependency on recovery exists.
 
 ## Bounded authorized removal
 
@@ -208,7 +209,8 @@ undo successful removal and must not be described as storage rollback.
 
 ## Qualified storage recovery contract
 
-`NoticeStore::readWindow(scope, position, limit)` returns Application `Notice\Data\NoticeRecoveryWindow` with
+`NoticeStore::readWindow(scope, position, limit)` accepts a string scope or list of 0–16 scopes for a coherent
+merged committed-order window, and returns Application `Notice\Data\NoticeRecoveryWindow` with
 `notices()`, `namespace()`, `highWater()`, `lostThrough()` and `hasUnbrokenHistoryAfter(namespace, examinedPosition)`.
 It is a **trusted internal storage seam**, not a public Query, access grant or continuation format. On an idle store,
 it owns the same real transaction/serialization lock as recording/removal and reads rows plus validated state
@@ -264,14 +266,15 @@ the six classes are final with their documented factories/construction and calla
 methods and the current version-one state schema revise **unreleased provisional** APIs directly. No development
 migration, compatibility alias or historical schema codec is required; existing partial/old development schemas
 must be recreated or recovered exclusively, not silently accepted. These recording/removal APIs comprise 24 declarations; [inspection](notice-inspection.md#compatibility-and-public-surface)
-adds 15 separate opt-in read declarations, for 39 Notice declarations in total.
+adds 15 separate opt-in read declarations. [Recovery](notice-recovery.md#compatibility-and-evidence-boundary) adds eight
+public declarations and one internal schema helper; its provisional store method also accepts coherent scope lists.
 
 All classes support their documented public construction/factories and callable methods, not subclass extension;
 interfaces promise implementation, not class construction/extension. Private state is not a serialization contract.
 Version-one payload/schema are provisional until first tagged, with no development compatibility aliases/migrations.
 Existing released CQRS, UnitOfWork, DBAL/Event Store, MCP and framework contracts are unchanged. No Composer constraint,
 PHPStan suppression, coverage exclusion or consumer policy is added. Package evidence is not deployed-consumer,
-polling recovery, MCP stream or Mercure/hub proof.
+MCP stream or Mercure/hub proof; polling has its own [recovery evidence](notice-recovery.md#compatibility-and-evidence-boundary).
 
 ## Verification
 

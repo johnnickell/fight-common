@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | ready-for-agent | — |
+| Active Work | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -47,7 +47,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00160](00160-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/239](https://github.com/johnnickell/fight-common/pull/239) |
+| None | — | — |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -55,13 +55,12 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | ready-for-agent | — | — |
 

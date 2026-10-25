@@ -17,6 +17,7 @@ use Fight\Common\Application\Notice\Service\NoticeStore;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Notice\Notice;
 use Fight\Common\Domain\Notice\NoticeRemovalSelection;
+use Fight\Common\Domain\Notice\NoticeSelection;
 use Fight\Common\Domain\Notice\RecordedNotice;
 use InvalidArgumentException;
 use LogicException;
@@ -235,16 +236,22 @@ final class DbalNoticeStore implements NoticeStore
     /**
      * @inheritDoc
      */
-    public function readWindow(string $scope, int $position, int $limit): NoticeRecoveryWindow
+    public function readWindow(string|array $scope, int $position, int $limit): NoticeRecoveryWindow
     {
-        $this->validateRead($scope, $position, $limit);
+        $scopes = NoticeSelection::create(is_string($scope) ? [$scope] : $scope)->scopes();
+        $this->validateRead('recovery', $position, $limit);
 
-        return $this->commitTransactional(function () use ($scope, $position, $limit): NoticeRecoveryWindow {
+        return $this->commitTransactional(function () use ($scopes, $position, $limit): NoticeRecoveryWindow {
             try {
                 $state = $this->recoveryState();
-                $sql = self::SELECT.' WHERE n.scope = ? AND n.position > ? ORDER BY n.position ASC';
+                $where = '1 = 0';
+                if ($scopes !== []) {
+                    $where = 'n.scope IN ('.implode(', ', array_fill(0, count($scopes), '?')).')';
+                }
+
+                $sql = self::SELECT.' WHERE '.$where.' AND n.position > ? ORDER BY n.position ASC';
                 $sql = $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit);
-                $rows = $this->connection->fetchAllAssociative($sql, [$scope, $position]);
+                $rows = $this->connection->fetchAllAssociative($sql, [...$scopes, $position]);
 
                 return new NoticeRecoveryWindow(
                     $state->namespace(),
