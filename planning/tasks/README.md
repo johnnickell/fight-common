@@ -59,7 +59,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00154](00154-TASK.md) | Remove protected detail while preserving execution evidence | done | [TICKET-00042](../tickets/00042-TICKET.md) |
 | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | done | [TICKET-00043](../tickets/00043-TICKET.md) |
 | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | done | [TICKET-00043](../tickets/00043-TICKET.md) |
-| [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | ready-for-agent | [TICKET-00044](../tickets/00044-TICKET.md) |
+| [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | done | [TICKET-00044](../tickets/00044-TICKET.md) |
 | [TASK-00158](00158-TASK.md) | Record durable safe change notices | ready-for-agent | [TICKET-00045](../tickets/00045-TICKET.md) |
 | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent | [TICKET-00045](../tickets/00045-TICKET.md) |
 | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | ready-for-agent | [TICKET-00046](../tickets/00046-TICKET.md) |

@@ -26,7 +26,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00041](00041-TICKET.md) | Inspect execution summaries and activity | done | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00042](00042-TICKET.md) | Inspect and remove protected captured detail | done | [EPIC-00009](../epics/00009-EPIC.md) |
 | [TICKET-00043](00043-TICKET.md) | Inspect execution evidence through MCP | done | [EPIC-00009](../epics/00009-EPIC.md) |
-| [TICKET-00044](00044-TICKET.md) | Discover and retrieve authorized MCP Prompts | ready-for-agent | [EPIC-00010](../epics/00010-EPIC.md) |
+| [TICKET-00044](00044-TICKET.md) | Discover and retrieve authorized MCP Prompts | done | [EPIC-00010](../epics/00010-EPIC.md) |
 | [TICKET-00045](00045-TICKET.md) | Record and retain safe change notices | ready-for-agent | [EPIC-00011](../epics/00011-EPIC.md) |
 | [TICKET-00046](00046-TICKET.md) | Poll and inspect retained notices | ready-for-agent | [EPIC-00011](../epics/00011-EPIC.md) |
 | [TICKET-00047](00047-TICKET.md) | Follow MCP changes and inspect current subscribers | ready-for-agent | [EPIC-00011](../epics/00011-EPIC.md) |
