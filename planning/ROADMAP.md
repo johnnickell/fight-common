@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00158](tasks/00158-TASK.md) | Record durable safe change notices | ready-for-agent | — |
+| Ready Frontier | [TASK-00159](tasks/00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
