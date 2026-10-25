@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00158](00158-TASK.md) | Record durable safe change notices | in-progress | — |
+| Ready Frontier | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -55,12 +55,14 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
+| — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | ready-for-agent | — | — |
 
@@ -68,8 +70,6 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
-| — | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00158](00158-TASK.md) | — |
 | — | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | [TICKET-00046 — Poll and inspect retained notices](../tickets/00046-TICKET.md) | ready-for-agent | [TASK-00160](00160-TASK.md), [TASK-00159](00159-TASK.md) | — |
 | — | [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | ready-for-agent | [TASK-00161](00161-TASK.md) | — |
 | — | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | ready-for-agent | [TASK-00162](00162-TASK.md) | — |
@@ -159,6 +159,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 | — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #232](https://github.com/johnnickell/fight-common/pull/232) |
 | — | [TASK-00156](00156-TASK.md) | Inspect separately protected execution detail through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #235](https://github.com/johnnickell/fight-common/pull/235) |
 | — | [TASK-00157](00157-TASK.md) | Discover and retrieve authorized MCP Prompts | [TICKET-00044 — Discover and retrieve authorized MCP Prompts](../tickets/00044-TICKET.md) | done | — | [PR #236](https://github.com/johnnickell/fight-common/pull/236) |
+| — | [TASK-00158](00158-TASK.md) | Record durable safe change notices | [TICKET-00045 — Record and retain safe change notices](../tickets/00045-TICKET.md) | done | — | — |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 | — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
