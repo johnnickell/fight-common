@@ -2,7 +2,7 @@
 id: TICKET-00044
 epic: EPIC-00010
 title: Discover and retrieve authorized MCP Prompts
-status: in-progress
+status: done
 ---
 
 # Discover and retrieve authorized MCP Prompts
@@ -131,7 +131,7 @@ with independent Review/QA still separate.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00157](../tasks/00157-TASK.md) | Discover and retrieve authorized MCP Prompts | in-progress |
+| [TASK-00157](../tasks/00157-TASK.md) | Discover and retrieve authorized MCP Prompts | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
