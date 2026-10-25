@@ -1,9 +1,10 @@
-# Safe execution inspection through MCP
+# Execution inspection through MCP
 
 Opt in to five read-only Tools over the [shared execution Queries](execution-reads.md). They use the existing
 [guarded MCP HTTP endpoint](components/mcp/index.md), not a new endpoint or generic CQRS bridge. Recording and
-removal remain trusted application Commands. Protected-body Tools, Prompts, Subscriptions, asynchronous Tasks,
-a dashboard and actual Agent OS/Pi deployment are not part of this slice.
+removal remain trusted application Commands. Two separately opted-in [protected-detail Tools](#protected-detail-opt-in-and-compatibility)
+complete the journey through the shared protected Queries. Prompts, Subscriptions, asynchronous Tasks, a dashboard
+and actual Agent OS/Pi deployment are not required or qualified by this package evidence.
 
 ## Composition and trusted context
 
@@ -133,6 +134,87 @@ no Tool interface signature, released alias, Query/admission/DBAL contract, depe
 recording format or transaction guarantee changes. The Execution API remains provisional until tagged; no codecs,
 aliases or migrations for earlier development snapshots are introduced. The pre-existing release-manifest
 operation fingerprint reconciliation remains release-owned; this product build is not release certification.
+
+## Protected detail opt-in and compatibility
+
+Register `GetCapturedDetailTool` and/or `ListCapturedMessagesTool` explicitly in the **same** registry above.
+Neither is enabled by the five safe Tools. They invoke only `QueryBus::fetch()` with the existing
+[protected Queries](execution-protected-reads.md), not SQL, a Resource reader, file access or a mutation bus.
+First register `GetCapturedDetailHandler` and `ListCapturedMessagesHandler` with `DbalDetailReader` and a
+consumer implementation of **`DetailReadAdmission`**, separate from `ExecutionReadAdmission`:
+
+```php
+use Fight\Common\Application\Mcp\Execution\GetCapturedDetailTool;
+use Fight\Common\Application\Mcp\Execution\ListCapturedMessagesTool;
+
+// Add to the explicitly selected safe Tool instances before constructing McpToolRegistry.
+$selectedTools[] = new ListCapturedMessagesTool($queries);
+$selectedTools[] = new GetCapturedDetailTool($queries);
+```
+
+Availability and detail admission remain **independent and fresh on every page/chunk**. Consumers resolve current
+trusted caller context (including human/Agent differences) outside the arguments. `DetailAccess` separately
+constrains project/session/phase, metadata and bodies. An endpoint grant, available Tool, prior read, safe timeline
+result, ID, `_meta` or continuation is not protected-content authority. Registration/discovery reads no bodies.
+No new route, principal, permission strings, authentication mechanism or optional capability is introduced.
+
+### Protected catalog and schemas
+
+Both input objects forbid extra fields and require the exact flat selection `project_id`, `session_id`, `phase_id`,
+`producer_id`, `activity_id`. Project/session/phase/producer use the existing 1–128-byte reference grammar;
+activity and detail IDs are full canonical lowercase UUIDs (schema length exactly 36, Domain validates syntax).
+They select a complete relationship, never grant scope. Cross-project/session/phase/producer/activity or kind
+mismatches and missing/metadata-denied identities produce the same JSON **null** with matching text `null`.
+
+| Tool | Shared Query | Additional required fields | Optional fields and defaults |
+| --- | --- | --- | --- |
+| `execution.messages` | `ListCapturedMessages` | None | `page` 1, `per_page` 32 (1–32), `direction` DESC (ASC/DESC) |
+| `execution.detail` | `GetCapturedDetail` | `detail_id`, `kind`: message/tool_arguments/tool_result/process_output | `offset` 0 (0–65,536), `length` 4,096 (1–4,096 raw bytes) |
+
+Message pages use `recorded_at` ordering only; schema page is 1–1,000,001 and shared validation limits the actual
+offset to 1,000,000. They preserve full metadata-permitted totals, immutable receipt microseconds/full UUID order,
+and supplied occurrence precision. No filters/cursor/frozen browsing state is added. Each message has at most its
+first 1,024 raw bytes; use `execution.detail` to continue. An admitted activity without messages gives an empty
+page; out-of-range pages retain total. Safe activity references provide detail IDs/kinds; take the activity UUID
+and producer from the activity row, not the detail ID. Every request resupplies the full selection.
+
+Output is the typed Query's exact `toArray()` plus matching JSON text, validated by the declared schema:
+`messages, total, page, per_page` for pages, or `reference, body_permitted, chunk` for individual detail. References
+use the same safe capture/availability representation as activity. Metadata-only permission gives
+`body_permitted: false, chunk: null`; a body grant without metadata grants reveals nothing.
+
+A chunk is exactly `encoding: "base64", data, offset, bytes, total_bytes, next_offset`. Base64 contains at most
+5,464 characters for at most 4,096 raw bytes. Coordinates are relative to this captured body, not an absolute
+process stream; the reference separately retains stream/index/absolute offset. Decode strictly and concatenate
+bytes before interpreting text: a chunk may cut a multibyte character. Declared media types and CRLF survive;
+recording still requires UTF-8 and does not gain arbitrary binary capture. Captured content is untrusted data,
+not instructions to execute. An empty captured body or exact-end offset yields a real empty final chunk.
+Offsets beyond actual retained length fail safely, never silently clamp or fabricate bytes.
+
+Complete/partial describe historical capture, not current availability. Retained body removal yields `missing`
+with unknown reason and null chunk; supplied absent/unavailable/expired markers remain distinct even after row
+removal. A missing detail identity gives null, not an invented expiry. Null `next_offset` proves only the end of
+this retained body/segment, not complete process output/transcript or continuity. Separate statements and calls
+are live: insertion/removal can change totals or repeat/skip rows, content can disappear between chunks, and
+revocation applies to later requests. There is no snapshot, content lease, permission cache or retraction of
+already returned bytes. Safe activity no longer marks removed body rows retained.
+
+The shared **262,144-byte projection** and **1,048,576-byte complete success-response** bounds apply unchanged,
+including structured content, its matching text, escaping, protocol identity and actual central metadata. The
+schemas bound message arrays to 32 and chunk coordinates/body lengths to existing recording limits. Even a valid
+application result can fail the final protocol budget. No truncation, successful-empty substitution, inferred
+completeness or partial successful response is used. Invalid arguments use existing safe Tool errors; malformed
+projections, Query/storage failures and budget overflow use sanitized internal errors. Redaction-aware diagnostics
+must not log raw bodies, Query results or private exception causes. Only separately authorized successful detail
+responses may contain protected content. Reads dispatch no mutation Commands/events and open no transaction.
+
+Compatibility against tagged releases: **two additive final public classes**, `GetCapturedDetailTool` and
+`ListCapturedMessagesTool`, permit construction with `QueryBus` and calls to their declared handles, not extension
+or implementation. The manifest adds both and increases the Application inventory by two. Existing internal
+`ExecutionToolSchemas`/`ExecutionToolOutput` gain protected schema/result support; no released public signature,
+Tool/HTTP contract, Query policy, database schema/index, dependency, recording or transaction behavior changes.
+Never-released Execution additions remain provisional, without migration promises for development snapshots.
+The inherited release-wide operation fingerprint reconciliation remains release-owned, not newly certified here.
 
 Package evidence uses trusted recording Commands, the real guarded HTTP composition and shared Queries on
 SQLite/MySQL/PostgreSQL. It proves read-only behavior and equivalent safe output, not actual consumer/Agent OS/Pi

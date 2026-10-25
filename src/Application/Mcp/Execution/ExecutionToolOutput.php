@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
+use Fight\Common\Application\Execution\Detail\Data\CapturedDetail;
+use Fight\Common\Application\Execution\Detail\Data\MessagePage;
 use Fight\Common\Application\Execution\Observation\Data\ActivityPage;
 use Fight\Common\Application\Execution\Phase\Data\PhasePage;
 use Fight\Common\Application\Execution\Session\Data\ExecutionInspection;
@@ -20,12 +22,13 @@ use Fight\Common\Domain\Exception\DomainException;
 final class ExecutionToolOutput
 {
     /**
-     * Creates a bounded projection exclusively from typed safe Query results
+     * Creates a bounded projection exclusively from typed admitted Query results
      *
      * Missing or concealed selected evidence remains null, not a fabricated empty history.
      */
     public static function create(
-        ExecutionSummary|ExecutionPage|ExecutionInspection|PhasePage|ActivityPage|null $result
+        ExecutionSummary|ExecutionPage|ExecutionInspection|PhasePage|ActivityPage|MessagePage
+        |CapturedDetail|null $result
     ): McpToolOutput {
         $data = $result?->toArray();
         if (strlen(json_encode($data, JSON_THROW_ON_ERROR)) > 262144) {

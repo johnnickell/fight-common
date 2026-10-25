@@ -100,7 +100,7 @@ compatibility classification for additions. No implementation or product test su
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00155](../tasks/00155-TASK.md) | Inspect execution summaries and activity through MCP | done |
-| [TASK-00156](../tasks/00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent |
+| [TASK-00156](../tasks/00156-TASK.md) | Inspect separately protected execution detail through MCP | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

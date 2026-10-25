@@ -5,7 +5,9 @@ not a new capture system. `Domain\Execution\Detail\Query\ListCapturedMessages` a
 Application Detail handlers and `Service\DetailReader`; `Adapter\Execution\Dbal\DbalDetailReader` implements
 actual SQLite/MySQL/PostgreSQL reads. These Queries are independent of [safe inspection](execution-reads.md).
 [Ordinary authorized removal](execution-detail-removal.md) shares this storage; it is separate from these read-only
-Queries. No MCP removal Tool, UI, hidden reasoning or retention engine is included.
+Queries. [Explicit protected MCP Tools](mcp-execution-inspection.md#protected-detail-opt-in-and-compatibility)
+reuse these same Queries with independent Tool availability and detail admission; neither the reference nor Tool
+availability grants body access. No MCP removal Tool, UI, hidden reasoning or retention engine is included.
 
 ## Selection and current permission
 
@@ -159,4 +161,5 @@ The compatibility manifest classifies each addition and the inventory delta. The
 new dependencies, migrations, aliases, historical codecs or removals. Existing tagged CQRS, recording, safe-read,
 DBAL 4.4+ and Pagination contracts remain unchanged. Execution remains provisional until tagged; compatibility is
 against actual releases, not development snapshots. Existing release-wide manifest/operation-fingerprint follow-ups
-remain release-owned; this is not certification, MCP/dashboard or deployed-consumer qualification.
+remain release-owned; this is not certification, dashboard or deployed-consumer qualification. The separate
+protected MCP presentation supplies package-owned guarded HTTP evidence, not actual consumer-client acceptance.

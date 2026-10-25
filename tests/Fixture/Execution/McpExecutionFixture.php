@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Execution\Dbal\DbalActivityReader;
+use Fight\Common\Adapter\Execution\Dbal\DbalDetailReader;
 use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
@@ -24,6 +25,10 @@ use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Application\Execution\Detail\QueryHandler\GetCapturedDetailHandler;
+use Fight\Common\Application\Execution\Detail\QueryHandler\ListCapturedMessagesHandler;
+use Fight\Common\Application\Execution\Detail\Service\DetailAccess;
+use Fight\Common\Application\Execution\Detail\Service\DetailReadAdmission;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
 use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
@@ -36,7 +41,9 @@ use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandle
 use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
 use Fight\Common\Application\Execution\Session\Service\ExecutionAccess;
 use Fight\Common\Application\Execution\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Mcp\Execution\GetCapturedDetailTool;
 use Fight\Common\Application\Mcp\Execution\GetExecutionTool;
+use Fight\Common\Application\Mcp\Execution\ListCapturedMessagesTool;
 use Fight\Common\Application\Mcp\Execution\ListExecutionPhasesTool;
 use Fight\Common\Application\Mcp\Execution\ListExecutionsTool;
 use Fight\Common\Application\Mcp\Execution\ListPhaseActivityTool;
@@ -51,6 +58,7 @@ use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+use Fight\Common\Domain\Execution\Detail\DetailSelection;
 use Fight\Common\Domain\Execution\Detail\ProtectedContent;
 use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
@@ -69,15 +77,21 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
     public Connection $db;
     public RoutingQueryBus $queries;
     public ExecutionAccess $access;
+    public DetailAccess $detailAccess;
+    public int $detailAdmissionCalls = 0;
+    public int $commandCalls = 0;
+    public array $availabilitySequence = [];
     public bool $available = true;
     public bool $guard = true;
     public int $admissionCalls = 0;
     public int $events = 0;
     public array $diagnostics = [];
     public McpRequestHandler $endpoint;
+    public string $lastResponse = '';
+    public string $requestId = 'inspection-雪';
     private RoutingCommandBus $commands;
 
-    public function __construct(string $backend)
+    public function __construct(string $backend, bool $protected = false, string $serverName = 'Execution fixture')
     {
         $params = ['driver' => 'pdo_sqlite', 'memory' => true];
         if ($backend !== 'sqlite') {
@@ -101,15 +115,27 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
         $router = new InMemoryQueryRouter();
         foreach ([new SummarizeExecutionsHandler($this, $reader), new ListExecutionsHandler($this, $reader), new GetExecutionHandler($this, $reader), new ListExecutionPhasesHandler($this, new DbalPhaseReader($this->db)), new ListPhaseActivityHandler($this, new DbalActivityReader($this->db))] as $handler) { $router->registerHandler($handler::queryRegistration(), $handler); }
         $this->queries = new RoutingQueryBus($router);
-        $tools = new McpToolRegistry([new SummarizeExecutionsTool($this->queries), new ListExecutionsTool($this->queries), new GetExecutionTool($this->queries), new ListExecutionPhasesTool($this->queries), new ListPhaseActivityTool($this->queries)]);
-        $capabilities = new McpCapabilityRegistry(new McpServerInfo('Execution fixture', '1'), [new McpToolDiscovery($tools, $this, str_repeat('catalog-key-', 4), pageSize: 2), new McpToolInvocation(new McpToolInvoker($tools, $this))]);
+        $this->detailAccess = DetailAccess::create(['project' => null], metadataGrants: ['project' => null], bodyGrants: ['project' => null]);
+        $detailAdmission = new class($this) implements DetailReadAdmission {
+            public function __construct(private McpExecutionFixture $fixture) {}
+            public function currentAccess(DetailSelection $selection): DetailAccess {
+                ++$this->fixture->detailAdmissionCalls;
+                return $this->fixture->detailAccess;
+            }
+        };
+        $reader = new DbalDetailReader($this->db);
+        foreach ([new GetCapturedDetailHandler($detailAdmission, $reader), new ListCapturedMessagesHandler($detailAdmission, $reader)] as $handler) { $router->registerHandler($handler::queryRegistration(), $handler); }
+        $registered = [new SummarizeExecutionsTool($this->queries), new ListExecutionsTool($this->queries), new GetExecutionTool($this->queries), new ListExecutionPhasesTool($this->queries), new ListPhaseActivityTool($this->queries)];
+        if ($protected) { $registered[] = new ListCapturedMessagesTool($this->queries); $registered[] = new GetCapturedDetailTool($this->queries); }
+        $tools = new McpToolRegistry($registered);
+        $capabilities = new McpCapabilityRegistry(new McpServerInfo($serverName, '1'), [new McpToolDiscovery($tools, $this, str_repeat('catalog-key-', 4), pageSize: 2), new McpToolInvocation(new McpToolInvoker($tools, $this))]);
         $factory = new HttpFactory();
         $this->endpoint = new McpRequestHandler($capabilities, new ExactMcpOriginPolicy(['https://client.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }
 
     public function admit(Observation $observation): void {}
     public function currentAccess(ExecutionSelection $selection): ExecutionAccess { ++$this->admissionCalls; return $this->access; }
-    public function isAvailable(McpToolInfo $tool): bool { return $this->available; }
+    public function isAvailable(McpToolInfo $tool): bool { return $this->availabilitySequence !== [] ? array_shift($this->availabilitySequence) : $this->available; }
     public function allows(string $method, ?string $name): bool { return $this->guard; }
     public function record(Throwable $failure): void { $this->diagnostics[] = 'sanitized_failure'; }
 
@@ -118,6 +144,7 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
         if ($content !== null) { $command = new RecordProtectedDetail($observation, $content); }
         elseif ($observation->phase() === null) { $command = new RecordSessionObservation($observation); }
         else { $command = new RecordPhaseObservation($observation); }
+        ++$this->commandCalls;
         $this->commands->execute($command);
     }
 
@@ -130,9 +157,10 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
     {
         $headers += ['Content-Type' => 'application/json', 'Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2026-07-28', 'Mcp-Method' => $method, 'Origin' => 'https://client.test'];
         if ($method === 'tools/call') { $headers += ['Mcp-Name' => $params['name']]; }
-        $body = json_encode(['jsonrpc' => '2.0', 'id' => 'inspection-雪', 'method' => $method, 'params' => $params + ['_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR);
+        $body = json_encode(['jsonrpc' => '2.0', 'id' => $this->requestId, 'method' => $method, 'params' => $params + ['_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR);
         $response = $this->endpoint->handle(new ServerRequest('POST', 'https://server.test/consumer/mcp', $headers, $body));
-        return ['status' => $response->getStatusCode(), 'body' => json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR)];
+        $this->lastResponse = (string) $response->getBody();
+        return ['status' => $response->getStatusCode(), 'body' => json_decode($this->lastResponse, true, flags: JSON_THROW_ON_ERROR)];
     }
 
     public function state(): array
