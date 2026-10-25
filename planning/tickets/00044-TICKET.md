@@ -2,7 +2,7 @@
 id: TICKET-00044
 epic: EPIC-00010
 title: Discover and retrieve authorized MCP Prompts
-status: ready-for-agent
+status: in-progress
 ---
 
 # Discover and retrieve authorized MCP Prompts
@@ -122,15 +122,16 @@ Document public APIs, opt-in composition, content subset, pagination/cache behav
 ownership boundaries; align CONTEXT.md when implemented. Each implementation TASK owns applicable product tests,
 exact owned-production coverage, public compatibility classification and the complete local `./bin/build` gate under
 the [project profile](../agents/project-profile.md). Package tests prove Common behavior, not Agent OS/Pi or browser
-qualification; consumer deployment is separately owned and is not an extra Common acceptance gate. These are future
-requirements, not product checks already run for this capability.
+qualification; consumer deployment is separately owned and is not an extra Common acceptance gate. This section
+records accepted requirements; TASK-00157's current implementation checkpoint and Work receipt own actual checks,
+with independent Review/QA still separate.
 
 ## TASKs
 
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00157](../tasks/00157-TASK.md) | Discover and retrieve authorized MCP Prompts | ready-for-agent |
+| [TASK-00157](../tasks/00157-TASK.md) | Discover and retrieve authorized MCP Prompts | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -157,7 +158,9 @@ details to document. No mandatory database/template engine or dependency on unfi
 The TASK owns applicable tests, compatibility, docs/CONTEXT.md, exact coverage and full local build. No global
 execution priority or worktree choice is assigned; choose main checkout or isolated worktree explicitly before
 implementation. `ready-for-agent` records accepted planning, not implementation or authority to bypass map-wide
-planning. No implementation, consumer amendments, commit or publication have occurred; release target is unassigned.
+planning. At that approval checkpoint no implementation, consumer amendments, commit or publication had occurred;
+release target remains unassigned. TASK-00157 now owns implemented Work and its local evidence, pending independent
+Review and required QA; see its current implementation checkpoint rather than treating approval prose as live status.
 
 EPIC-00011's complete four-TICKET split is now approved and written as TICKET-00045–00048.
 EPIC-00012's complete four-TICKET split is also approved and written as TICKET-00049–00052, completing all map

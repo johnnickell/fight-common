@@ -121,6 +121,16 @@ Skills methods without their extension declaration fail composition. The built-i
 requires its exact shared Resource capability to own `resources/read`, not another nominally readable handler.
 This is bounded extension-ID composition, not a plugin framework.
 
+## Authorized Prompt discovery and retrieval
+
+[`Application\\Mcp\\Prompt`](../../mcp-prompts.md) supplies explicit lazy registration, currently authorized
+`prompts/list` and direct `prompts/get` through this same guarded endpoint. Declared string arguments precede
+selected provider processing; complete user/assistant text or Resource-link messages retain independent later
+Resource authorization. Stateless authenticated visible-catalog pagination, private zero-TTL defaults and finite
+catalog/input/output/result/full encoded-response budgets apply. No automatic execution, link fetching, Skill
+activation, interaction, Completion or list-change delivery is introduced. See the focused guide for public APIs,
+opt-in wiring, exact limits, safe failures, ownership and compatibility.
+
 ## Authorized Resource discovery
 
 `Application\Mcp\Resource` supplies `resources/list`, an empty complete `resources/templates/list`, and
