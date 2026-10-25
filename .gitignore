@@ -16,3 +16,4 @@ __pycache__/
 /*.sublime-project
 /*.sublime-workspace
 /.merge-plan.php
+/var/*
