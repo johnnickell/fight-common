@@ -38,14 +38,16 @@ separately identifies decomposition work.
 
 ## Current delivery handoffs
 
-Only explicit TASK `delivery: awaiting-merge` metadata owns a current delivery handoff. Historical prose and PR
-links below do not. Routing checks these handoffs with `./bin/planning-check --check-delivery`; an offline
-local pass alone does not establish delivery freshness.
+Explicit TASK `delivery: awaiting-merge` metadata records the OPEN publication snapshot, not perpetual live state.
+Historical prose and PR links alone do not create handoffs. Routing uses `./bin/planning-check --check-delivery`:
+OPEN remains a human action; exact verified merged/integrated `done` work resolves and routing continues without
+routine cleanup requests. The next authorized intake retires ended markers with `--reconcile-delivery` under
+[Conventions](../CONVENTIONS.md#current-delivery-handoffs). Offline validation alone proves no live PR state.
 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00176](00176-TASK.md) | Awaiting human review/merge | [https://github.com/johnnickell/fight-common/pull/233](https://github.com/johnnickell/fight-common/pull/233) |
+| [TASK-00176](00176-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/234](https://github.com/johnnickell/fight-common/pull/234) |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -160,7 +162,7 @@ local pass alone does not establish delivery freshness.
 | — | [TASK-00155](00155-TASK.md) | Inspect execution summaries and activity through MCP | [TICKET-00043 — Inspect execution evidence through MCP](../tickets/00043-TICKET.md) | done | — | [PR #232](https://github.com/johnnickell/fight-common/pull/232) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
-| — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #233](https://github.com/johnnickell/fight-common/pull/233) |
+| — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
 <!-- /planning:board -->
 
 ## Wayfinder

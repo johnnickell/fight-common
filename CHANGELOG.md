@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Explicit current delivery handoffs now have read-only `planning-check --check-delivery` verification for
-  routing, distinguishing open, merged, closed-unmerged and unavailable evidence. The ordinary build's planning
-  validation remains network-independent.
+  routing, distinguishing open, merged, closed-unmerged and unavailable evidence. Exact merged/integrated accepted
+  work no longer blocks next-work routing for routine cleanup; explicit `--reconcile-delivery` at authorized intake
+  retires ended markers with durable evidence. The ordinary build's planning validation remains offline/read-only.
 
 ## [1.4.0] - 2026-10-12
 
