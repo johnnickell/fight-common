@@ -210,6 +210,31 @@ version-one payload includes nullable activity for session/phase evidence; unsup
 No historical codecs, envelope aliases or development-format migrations are supplied. Existing released audit, CQRS,
 transactional unit-of-work and Event Store guarantees remain unchanged.
 
+## Retained safe notice language
+
+`Domain\Notice\Notice` is a bounded immutable change notice, not authoritative application state, an execution
+observation, protocol identity or an Event Store event. `NoticeMetadata`, `NoticeRelationships` and
+`NoticeOccurrence` preserve bounded scalar safe labels, distinct subject/recipient/author/causation references,
+explicit unknowns/broadcasts and supplied UTC precision. Consumer `NoticeAdmission` freshly validates trusted
+producer/scope/content/references on originals and retries; submitted fields never grant access.
+
+`RecordNotice` routes through `RecordNoticeHandler` and `NoticeRecorder` to Application `NoticeStore`, which extends
+`TransactionalUnitOfWork`. `Adapter\Notice\Dbal\DbalNoticeStore` owns dedicated actual SQLite/MySQL/PostgreSQL
+transactions, rejecting enclosing transactions before writes. One state-row lock serializes allocation through
+actual commit of content, relationships and exact versioned comparison. Scope/producer/ID-bound identical retries
+deduplicate while retained; changed admitted content conflicts without overwrite. `RecordedNotice` keeps immutable
+server time separate from its namespace-local positive signed-32-bit commit-ordered position; neither establishes
+causality, cross-store order or delivery. Occurrence retains zero through six source fractional digits or null unknown.
+
+`NoticeRecorded` contains only safe recording references after commit. `CommittedNoticeDispatchFailed::event()`
+distinguishes failed later fact dispatch from retained persistence; retries never replay publication. Storage uncertainty
+closes the boundary without claiming rollback/absence. Trusted bounded idle `readAfter()` reconstructs retained rows,
+not public authorization or complete catch-up. The shared transaction/connection seam lets TASK-00159 atomically
+coordinate later removal/history-loss evidence without resetting position high water; no removal/public Query or
+implicit outbox is implemented here. Comparison lives only with retained evidence; deletion ends deduplication, and
+new same-ID admission is new recording, not restoration. Consumers own safe capture, access, retention and operations.
+See [safe notices](docs/safe-notices.md) for composition, all numeric bounds, compatibility and failure semantics.
+
 ## Access control language
 
 | Term | Meaning in Fight AccessControl planning |
