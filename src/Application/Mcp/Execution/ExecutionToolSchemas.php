@@ -83,6 +83,37 @@ final class ExecutionToolSchemas
             ]
         ]
     ];
+    public const array UUID = ['type' => 'string', 'minLength' => 36, 'maxLength' => 36];
+    public const array DETAIL_SELECTION = self::EXACT + [
+        'phase_id'    => self::REFERENCE,
+        'producer_id' => self::REFERENCE,
+        'activity_id' => self::UUID
+    ];
+    public const array MESSAGE_PAGE = [
+        'page'     => self::PAGE['page'],
+        'per_page' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 32]
+    ];
+    public const array MESSAGES_INPUT = [
+        'type'                 => 'object',
+        'additionalProperties' => false,
+        'required'             => ['project_id', 'session_id', 'phase_id', 'producer_id', 'activity_id'],
+        'properties'           => self::DETAIL_SELECTION + self::MESSAGE_PAGE + [
+            'direction' => ['enum' => ['ASC', 'DESC']]
+        ]
+    ];
+    public const array DETAIL_INPUT = [
+        'type'                 => 'object',
+        'additionalProperties' => false,
+        'required'             => [
+            'project_id', 'session_id', 'phase_id', 'producer_id', 'activity_id', 'detail_id', 'kind'
+        ],
+        'properties'           => self::DETAIL_SELECTION + [
+            'detail_id' => self::UUID,
+            'kind'      => ['enum' => ['message', 'tool_arguments', 'tool_result', 'process_output']],
+            'offset'    => ['type' => 'integer', 'minimum' => 0, 'maximum' => 65536],
+            'length'    => ['type' => 'integer', 'minimum' => 1, 'maximum' => 4096]
+        ]
+    ];
     public const array COUNTS = [
         'type'                 => 'object',
         'additionalProperties' => false,
@@ -261,6 +292,38 @@ final class ExecutionToolSchemas
                     'segment'      => self::SEGMENT
                 ]
             ]
+        ]
+    ];
+    public const array CHUNK = [
+        'type'                 => ['object', 'null'],
+        'additionalProperties' => false,
+        'required'             => ['encoding', 'data', 'offset', 'bytes', 'total_bytes', 'next_offset'],
+        'properties'           => [
+            'encoding'    => ['const' => 'base64'],
+            'data'        => ['type' => 'string', 'maxLength' => 5464],
+            'offset'      => ['type' => 'integer', 'minimum' => 0, 'maximum' => 65536],
+            'bytes'       => ['type' => 'integer', 'minimum' => 0, 'maximum' => 4096],
+            'total_bytes' => ['type' => 'integer', 'minimum' => 0, 'maximum' => 65536],
+            'next_offset' => ['type' => ['integer', 'null'], 'minimum' => 0, 'maximum' => 65536]
+        ]
+    ];
+    public const array CAPTURED_DETAIL = [
+        'type'                 => ['object', 'null'],
+        'additionalProperties' => false,
+        'required'             => ['reference', 'body_permitted', 'chunk'],
+        'properties'           => [
+            'reference'      => self::DETAIL,
+            'body_permitted' => ['type' => 'boolean'],
+            'chunk'          => self::CHUNK
+        ]
+    ];
+    public const array MESSAGES_OUTPUT = [
+        'type'                 => ['object', 'null'],
+        'additionalProperties' => false,
+        'required'             => ['messages', 'total', 'page', 'per_page'],
+        'properties'           => self::MESSAGE_PAGE + [
+            'total'    => self::COUNT,
+            'messages' => ['type' => 'array', 'items' => self::CAPTURED_DETAIL, 'maxItems' => 32]
         ]
     ];
     public const array ACTIVITY = [

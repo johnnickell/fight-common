@@ -8,7 +8,7 @@
 | [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | done |
 | [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | done |
 | [EPIC-00008](epics/00008-EPIC.md) | Strengthen Value Objects and Validation Invariants | next-minor | done |
-| [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | ready-for-agent |
+| [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | done |
 | [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | ready-for-agent |
 | [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | ready-for-agent |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | ready-for-agent |
@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00156](tasks/00156-TASK.md) | Inspect separately protected execution detail through MCP | ready-for-agent | — |
+| Ready Frontier | [TASK-00157](tasks/00157-TASK.md) | Discover and retrieve authorized MCP Prompts | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
