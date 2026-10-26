@@ -30,7 +30,7 @@ final class RecoverNoticesToolTest extends UnitTestCase
         foreach ([['scopes' => ['scope']], ['scopes' => ['scope'], 'filters' => ['topic' => 'catalog/tools'], 'batch_size' => 1, 'scan_limit' => 2, 'continuation' => 'previous']] as $input) {
             $bus = $this->mock(QueryBus::class);
             $bus->shouldReceive('fetch')->once()->withArgs(static function (RecoverNotices $query) use ($input): bool {
-                self::assertSame(['selection' => ['scopes' => ['scope'], 'filters' => $input['filters'] ?? []], 'continuation' => $input['continuation'] ?? null, 'batch_size' => $input['batch_size'] ?? 32, 'scan_limit' => $input['scan_limit'] ?? 100], $query->toArray());
+                self::assertSame(['selection' => ['scopes' => ['scope'], 'filters' => $input['filters'] ?? []], 'continuation' => $input['continuation'] ?? null, 'batch_size' => $input['batch_size'] ?? 32, 'scan_limit' => $input['scan_limit'] ?? 100, 'start_at_current' => false], $query->toArray());
                 return true;
             })->andReturn($result);
             $output = (new RecoverNoticesTool($bus))->handle(new ApplicationData(StrictJson::fromData($input)->properties()), new NullMcpProgressReporter());

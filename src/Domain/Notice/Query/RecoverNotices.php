@@ -20,11 +20,12 @@ final readonly class RecoverNotices implements Query
         private NoticeSelection $selection,
         private ?string $continuation = null,
         private int $batchSize = 32,
-        private int $scanLimit = 100
+        private int $scanLimit = 100,
+        private bool $startAtCurrent = false
     ) {
         if (
             $batchSize < 1 || $batchSize > 32 || $scanLimit < 1 || $scanLimit > 100
-            || ($continuation !== null && (strlen($continuation) > 2048 || $continuation === ''))
+            || ($continuation !== null && (strlen($continuation) > 2048 || $continuation === '' || $startAtCurrent))
         ) {
             throw new DomainException('Invalid notice recovery bounds.');
         }
@@ -35,10 +36,12 @@ final readonly class RecoverNotices implements Query
      */
     public static function fromArray(array $data): static
     {
-        NoticeSelection::structure($data, ['selection', 'continuation', 'batch_size', 'scan_limit']);
+        NoticeSelection::structure($data, [
+            'selection', 'continuation', 'batch_size', 'scan_limit', 'start_at_current'
+        ]);
         if (
             !is_array($data['selection']) || (!is_string($data['continuation']) && $data['continuation'] !== null)
-            || !is_int($data['batch_size']) || !is_int($data['scan_limit'])
+            || !is_int($data['batch_size']) || !is_int($data['scan_limit']) || !is_bool($data['start_at_current'])
         ) {
             throw new DomainException('Invalid notice recovery query.');
         }
@@ -47,7 +50,8 @@ final readonly class RecoverNotices implements Query
             NoticeSelection::fromArray($data['selection']),
             $data['continuation'],
             $data['batch_size'],
-            $data['scan_limit']
+            $data['scan_limit'],
+            $data['start_at_current']
         );
     }
 
@@ -84,15 +88,24 @@ final readonly class RecoverNotices implements Query
     }
 
     /**
+     * Returns whether to establish only the current committed boundary without historical replay
+     */
+    public function startAtCurrent(): bool
+    {
+        return $this->startAtCurrent;
+    }
+
+    /**
      * @inheritDoc
      */
     public function toArray(): array
     {
         return [
-            'selection'    => $this->selection->toArray(),
-            'continuation' => $this->continuation,
-            'batch_size'   => $this->batchSize,
-            'scan_limit'   => $this->scanLimit
+            'selection'        => $this->selection->toArray(),
+            'continuation'     => $this->continuation,
+            'batch_size'       => $this->batchSize,
+            'scan_limit'       => $this->scanLimit,
+            'start_at_current' => $this->startAtCurrent
         ];
     }
 }

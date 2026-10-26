@@ -61,8 +61,13 @@ selection compares instants without changing the returned source occurrence prec
 storage reads before reconstruction; other trusted and caller predicates filter each bounded candidate before projection.
 This bounds reconstructed work, not database query-planner cost or response latency; consumers own statement/lock timeouts.
 
-Query constructor: `(NoticeSelection, ?string continuation = null, int batchSize = 32, int scanLimit = 100)`.
-`fromArray()` requires exactly `selection`, `continuation`, `batch_size`, `scan_limit`. Null starts/restarts from position
+Query constructor: `(NoticeSelection, ?string continuation = null, int batchSize = 32, int scanLimit = 100,
+bool startAtCurrent = false)`.
+`fromArray()` requires exactly `selection`, `continuation`, `batch_size`, `scan_limit`, `start_at_current`.
+The opt-in current-boundary mode returns no historical notices and excludes earlier loss from the new interval;
+it cannot accompany a continuation. It is used by [live subscriptions](mcp-subscriptions.md), not exposed by the
+ordinary polling Tool. Its continuation remains bound to the ordinary batch/scan/selection/access configuration.
+Null with the default false starts/restarts from position
 zero over **current retained data**, not a live-only high-water shortcut. Empty token rejects. There is no caller-supplied
 raw position. Use unchanged selection, batch and scan settings for continuation; changing any requires a new start.
 

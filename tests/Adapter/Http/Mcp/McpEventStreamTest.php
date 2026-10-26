@@ -173,6 +173,23 @@ final class McpEventStreamTest extends UnitTestCase
         self::assertFalse($stopped);
     }
 
+    public function test_that_close_during_tool_work_returns_no_new_bytes_from_the_in_progress_read(): void
+    {
+        $stream = null;
+        $fixture = new ProgressEndpoint(new ProgressTool(static function (McpProgressReporter $reporter) use (&$stream): McpToolOutput {
+            $stream->close();
+            self::assertTrue($reporter->isCancelled());
+            $reporter->report(1);
+            return McpToolOutput::structured('not delivered');
+        }));
+        $stream = $fixture->handler->handle(ProgressEndpoint::request())->getBody();
+        self::assertSame('', $stream->read(8192));
+        self::assertSame(0, $stream->tell());
+        self::assertTrue($stream->eof());
+        self::assertFalse($stream->isReadable());
+        self::assertSame([], $fixture->diagnostics);
+    }
+
     public function test_that_close_before_first_read_never_invokes_the_tool(): void
     {
         $fixture = $this->fixture();

@@ -22,7 +22,9 @@ foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation
 }
 $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $directory, $config, $connection): void {
     if ($role === 'first') {
-        file_put_contents($directory.'/first-precommit', (string) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
+        // Publish the complete barrier atomically: existence alone is the parent's readiness signal.
+        file_put_contents($directory.'/first-precommit.tmp', (string) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
+        rename($directory.'/first-precommit.tmp', $directory.'/first-precommit');
         $deadline = microtime(true) + 15;
         while (!file_exists($directory.'/release')) {
             if (microtime(true) > $deadline) { throw new RuntimeException('Worker barrier timeout.'); }

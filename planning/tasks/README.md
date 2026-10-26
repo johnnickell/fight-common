@@ -64,7 +64,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00159](00159-TASK.md) | Remove retained notices without concealing history loss | done | [TICKET-00045](../tickets/00045-TICKET.md) |
 | [TASK-00160](00160-TASK.md) | Summarize and inspect authorized retained notices | done | [TICKET-00046](../tickets/00046-TICKET.md) |
 | [TASK-00161](00161-TASK.md) | Recover retained notices through shared Queries and MCP | done | [TICKET-00046](../tickets/00046-TICKET.md) |
-| [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
+| [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | done | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | ready-for-agent | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent | [TICKET-00048](../tickets/00048-TICKET.md) |

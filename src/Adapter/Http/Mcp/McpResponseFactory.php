@@ -9,6 +9,7 @@ use Fight\Common\Application\Mcp\McpJsonResponse;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -50,14 +51,17 @@ final readonly class McpResponseFactory
     /**
      * Creates a lazy request-scoped SSE response after HTTP safeguards have passed
      */
-    public function stream(McpRequest $request, McpResponder $responder): ResponseInterface
-    {
+    public function stream(
+        McpRequest $request,
+        McpResponder $responder,
+        ?McpSubscriptionExecution $subscription = null
+    ): ResponseInterface {
         return $this->responses->createResponse(200)
             ->withHeader('Content-Type', 'text/event-stream')
             ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
             ->withHeader('X-Accel-Buffering', 'no')
             ->withoutHeader('Content-Length')
-            ->withBody(new McpEventStream($request, $responder, $this->diagnostics));
+            ->withBody(new McpEventStream($request, $responder, $this->diagnostics, $subscription));
     }
 
     /**

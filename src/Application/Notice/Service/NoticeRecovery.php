@@ -54,9 +54,17 @@ final readonly class NoticeRecovery
         }
 
         $loss = ($state['loss'] ?? false) || !$window->hasUnbrokenHistoryAfter($window->namespace(), $position);
+        $rows = $window->notices();
+        if ($query->startAtCurrent()) {
+            // Opening a live follow explicitly excludes history, including earlier known loss.
+            $position = $window->highWater();
+            $loss = false;
+            $rows = [];
+        }
+
         $notices = [];
         $examined = 0;
-        foreach ($window->notices() as $recorded) {
+        foreach ($rows as $recorded) {
             if (
                 $recorded->position() <= $position || $recorded->position() > $window->highWater()
                 || !in_array($recorded->notice()->scope(), $scopes, true)
@@ -79,8 +87,8 @@ final readonly class NoticeRecovery
             ++$examined;
         }
 
-        $exhausted = $examined === count($window->notices())
-            && (count($window->notices()) < $query->scanLimit() || $position === $window->highWater());
+        $exhausted = $examined === count($rows)
+            && (count($rows) < $query->scanLimit() || $position === $window->highWater());
         if ($exhausted) {
             $position = $window->highWater();
         }

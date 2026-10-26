@@ -8,6 +8,7 @@ use Fiber;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Tool\McpToolExecution;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
@@ -24,7 +25,7 @@ final class McpEventStream implements StreamInterface
      * @var Fiber<mixed, mixed, void, mixed>
      */
     private readonly Fiber $producer;
-    private readonly McpToolExecution $execution;
+    private readonly McpToolExecution|McpSubscriptionExecution $execution;
     private string $pending = '';
     private int $position = 0;
     private bool $closed = false;
@@ -32,8 +33,22 @@ final class McpEventStream implements StreamInterface
     /**
      * Constructs McpEventStream
      */
-    public function __construct(McpRequest $request, McpResponder $responder, McpDiagnostics $diagnostics)
-    {
+    public function __construct(
+        McpRequest $request,
+        McpResponder $responder,
+        McpDiagnostics $diagnostics,
+        ?McpSubscriptionExecution $subscription = null
+    ) {
+        if ($subscription !== null) {
+            $this->execution = $subscription;
+            $this->producer = new Fiber(fn() => $subscription->run(function (string $frame): void {
+                $this->pending = $frame;
+                Fiber::suspend();
+            }, $diagnostics));
+
+            return;
+        }
+
         $this->execution = new McpToolExecution($request, function (array $message): void {
             $this->pending = 'data: '.json_encode($message, JSON_THROW_ON_ERROR)."\n\n";
             Fiber::suspend();
@@ -150,11 +165,14 @@ final class McpEventStream implements StreamInterface
         }
 
         if ($this->pending === '') {
-            if ($this->producer->isStarted()) {
-                $this->producer->resume();
-            } else {
-                $this->producer->start();
-            }
+            $this->produce();
+        }
+
+        // Consumer callbacks may close this body while start/resume is still on the read stack.
+        if ($this->closed) {
+            $this->pending = '';
+
+            return '';
         }
 
         $chunk = substr($this->pending, 0, $length);
@@ -187,6 +205,18 @@ final class McpEventStream implements StreamInterface
     public function getMetadata(?string $key = null): mixed
     {
         return $key === null ? [] : null;
+    }
+
+    /**
+     * Runs producer callbacks that may reenter and close this body before returning
+     */
+    private function produce(): void
+    {
+        if ($this->producer->isStarted()) {
+            $this->producer->resume();
+        } else {
+            $this->producer->start();
+        }
     }
 
     /**

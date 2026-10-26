@@ -72,9 +72,11 @@ family without its mandatory anchor method, non-JSON capability definitions, and
 declarations during composition.
 
 The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
-subscription-driven delivery behavior. TASK-00104 supplies neither the subscription contract nor its long-lived
-delivery lifecycle, so this foundation rejects those flags when `true`. A later capability must introduce and prove
-that contract before it may advertise the flags.
+subscription-driven delivery behavior. Arbitrary declarations of those flags as `true` still reject. Explicit
+request-scoped [live Tool/Resource subscriptions](../../mcp-subscriptions.md) supplied as the optional third
+registry argument derive only the proven enabled Tool/Resource flags and require matching serving capabilities.
+Prompt flags remain unsupported. The guarded HTTP handler owns this live path; a semantic responder alone does
+not become a subscription transport. Default direct JSON and separately opted-in Tool progress remain unchanged.
 
 ## Composition
 
@@ -137,7 +139,8 @@ opt-in wiring, exact limits, safe failures, ownership and compatibility.
 [opt-in exact reads](#exact-authorized-resource-reads). `McpResourceDiscovery` remains the single method owner:
 its original constructor defaults preserve discovery-only consumers; supplying `readLimits` enables
 `resources/read` on the same provider objects and availability boundary. `server/discover` advertises `resources`
-with `subscribe: false` and `listChanged: false`. Template resolution and subscriptions remain unsupported.
+with `subscribe: false` and `listChanged: false` by default. Template resolution remains unsupported;
+[live subscriptions](../../mcp-subscriptions.md) are a separate explicit registry/HTTP composition.
 A discovery-only composition still cannot return content; explicitly opt in to deliver a readable endpoint.
 
 ### Metadata and provider ownership
@@ -273,7 +276,8 @@ Pinned official conformance source `modelcontextprotocol/conformance` at
 read, missing-resource, wire-schema and cache-hint checks. TASK-00118 records passing Resource checks and the
 missing-resource warning for deliberately omitted URI error data. The broader caching scenario still fails its
 uncomposed Tools/Prompts checks; all Resource cache checks pass. Neither those failures nor the warning are hidden
-behind a blanket conformance badge. Template expansion/subscriptions are excluded, not passed. Owned tests fill
+behind a blanket conformance badge. Template expansion and subscriptions were excluded from that Resource-only evidence, not passed;
+[live subscription qualification](../../mcp-subscriptions.md) is separate. Owned tests fill
 harness gaps in current authorization, exact Unicode/CRLF/empty bytes, independent lookup, ownership conflicts,
 encoded bounds, provider failures, pagination and cache isolation. The real guarded-handler journey includes
 consumer authentication composition and rejection-before-opening proof. This is package evidence, not Skills,

@@ -117,6 +117,7 @@ nav:
       - Messaging (CQRS): components/messaging/index.md
       - Durable Safe Notices: safe-notices.md
       - Retained Notice Recovery: notice-recovery.md
+      - Live MCP Subscriptions: mcp-subscriptions.md
       - MCP Protocol Semantics: components/mcp/index.md
       - Validation: components/validation/index.md
       - Application Failures: application-failures.md
