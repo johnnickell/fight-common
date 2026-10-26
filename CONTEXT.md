@@ -219,8 +219,27 @@ subscription metadata. Random owner-bound technical identities remain separate. 
 Queries establish a current committed boundary (`startAtCurrent: true`, no historical replay), then source bounded
 cross-process batches. Uncertain/incomplete/lost continuity ends delivery, never silently reports healthy catch-up.
 Consumer `McpSubscriptionAdmission` independently authorizes the whole signal directly before each queued emission;
-no protected notice fields become arbitrary wire payloads. Prompt/Task/Mercure delivery and public subscriber Queries
-remain independent future compositions.
+no protected notice fields become arbitrary wire payloads. Prompt/Task/Mercure delivery remains independent.
+
+**Current subscriber inspection:** `Domain\Subscription\SubscriberSelection` and
+`Query\{SummarizeSubscribers,ListSubscribers}` route through `Application\Mcp\Subscription\QueryHandler` to separate
+current `Service\SubscriberReadAdmission` / `SubscriberAccess` and `SubscriberReader` /
+`Adapter\Mcp\Subscription\DbalSubscriberReader`. Complete-metadata grants cover every requested/accepted filter,
+identity and reference; a stream's full nonempty opening scope set must fit both selected and granted scopes, with
+optional exact registration restrictions. Counts/extrema include only admitted matches: distinct technical
+registrations versus distinct trusted subscriber strings, plus three fixed observed-state buckets. No join
+multiplication or page-local summary. `Data\SubscriberSummary`, `SubscriberPage`, `SubscriberView` and
+`SubscriberReadScope` retain explicit store visibility, invocation clock, complete opening filters and honest
+recently-observed/disconnected/stale-uncertain state, never connectivity, continuing permission or receipt evidence.
+Strict live pages default 1/16, maximum size 16/offset 1,000,000, opened_at ASC/DESC with bytewise full-ID ties.
+Direct existing SQLite/MySQL/PostgreSQL tracking scans use 32-row batches, at most 8,192 examined rows under churn,
+bounded distinct-identity memory and 262,144-byte encoded pages; overflow/failure is fixed `SubscriberReadFailed`,
+not empty success. No read-side heartbeat/cleanup/transaction/event, duplicate store, schema/index change,
+Prompt dependency, MCP Tool, dashboard, historical audience or consumer policy is introduced. Empty authorized
+selections reveal no concealed global freshness; multi-statement reads and later pages remain live. Cleanup stays
+with the lifecycle owner, and absence does not prove no previous stream. See
+[subscriber inspection](docs/subscriber-inspection.md) for APIs, complete-row permission, all finite bounds,
+unknown/failure meanings, cross-process runtime evidence and tagged-release compatibility.
 
 `Adapter\Mcp\Subscription\DbalSubscriptionSchema`/`DbalSubscriptionStore` own actual SQLite/MySQL/PostgreSQL
 version-one technical registrations, requested/accepted filters, trusted subscriber/scope, random ownership and

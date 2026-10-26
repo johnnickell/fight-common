@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00163](tasks/00163-TASK.md) | Summarize and inspect current MCP subscribers | ready-for-agent | — |
+| Ready Frontier | [TASK-00164](tasks/00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority

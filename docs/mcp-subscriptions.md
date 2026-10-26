@@ -4,7 +4,8 @@ Explicit `Application\Mcp\Subscription\McpSubscriptions` composition enables MCP
 [`subscriptions/listen`](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
 on the **same guarded POST endpoint**. The default remains direct JSON, with separately opt-in Tool progress.
 No GET subscription endpoint, `resources/subscribe`, Prompt/Task notification, automatic Resource read, broker,
-Mercure dependency, subscriber-inspection Query or saved resumable subscription is introduced.
+Mercure dependency or saved resumable subscription is introduced. Separate opt-in
+[subscriber-inspection Queries](subscriber-inspection.md) read the same tracking with independent current permission.
 
 ## Compose the complete path
 
@@ -143,7 +144,7 @@ Reserved version-one `fight_mcp_subscription_state` serializes short capacity/li
 requested/accepted filters, opened/observed/expiry/closed timestamps. No credentials, protected bodies, JSON-RPC ID
 or per-notice historical audience is saved. SQLite, MySQL/InnoDB/binary collation and PostgreSQL use public DBAL 4.4+
 schema APIs. The expiry index supports bounded cleanup. No development-schema migration or historical audience API
-is supplied; future inspection must apply separate authorization.
+is supplied; [shared inspection](subscriber-inspection.md) applies separate current authorization without lifecycle writes.
 
 - Default at most **256 fresh observed open registrations** per namespace; `maxActive` accepts 1–256. Total retained
   registrations are capped at **4,096**, including abandoned/closed rows. Capacity checks serialize with writes.
