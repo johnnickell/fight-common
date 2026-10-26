@@ -108,7 +108,7 @@ owned, not a new Common acceptance prerequisite. No implementation evidence is c
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00162](../tasks/00162-TASK.md) | Follow Tool and Resource changes through live MCP | done |
+| [TASK-00162](../tasks/00162-TASK.md) | Follow Tool and Resource changes through live MCP | in-progress |
 | [TASK-00163](../tasks/00163-TASK.md) | Summarize and inspect current MCP subscribers | ready-for-agent |
 | [TASK-00164](../tasks/00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | ready-for-agent |
 <!-- /planning:children -->
