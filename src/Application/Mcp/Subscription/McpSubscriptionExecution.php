@@ -30,6 +30,7 @@ final class McpSubscriptionExecution
     private bool $cancelled = false;
     private bool $started = false;
     private int $checks = 0;
+    private int $expiresAt = 0;
 
     /**
      * Constructs McpSubscriptionExecution
@@ -95,21 +96,30 @@ final class McpSubscriptionExecution
                 return;
             }
 
+            $now = time();
+            $this->expiresAt = $now + 5;
             $this->store->open($id, $owner, [
                 'subscriber' => $subscriber,
                 'selection'  => $this->selection->toArray(),
                 'requested'  => $this->requested->toArray(),
                 'accepted'   => $accepted
-            ], time(), time() + 5);
+            ], $now, $this->expiresAt);
             $opened = true;
             if ($this->shouldStop($deadline)) {
                 return;
             }
 
+            $this->requireFreshness();
             if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
                 throw new RuntimeException('Subscription permission changed during opening.');
             }
 
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
+            // Admission may outlast tracking or lose its row; opening permission alone is not a live lease.
+            $this->renew($id, $owner);
             if ($this->shouldStop($deadline)) {
                 return;
             }
@@ -124,7 +134,7 @@ final class McpSubscriptionExecution
             ]));
             $continuation = $batch->continuation();
             while (!$this->shouldStop($deadline)) {
-                $this->store->heartbeat($id, $owner, time(), time() + 5);
+                $this->renew($id, $owner);
                 if ($this->shouldStop($deadline)) {
                     break;
                 }
@@ -135,7 +145,7 @@ final class McpSubscriptionExecution
                         break;
                     }
 
-                    $this->store->heartbeat($id, $owner, time(), time() + 5);
+                    $this->renew($id, $owner);
                     if ($this->shouldStop($deadline)) {
                         break;
                     }
@@ -146,6 +156,11 @@ final class McpSubscriptionExecution
                     }
 
                     if ($message !== null) {
+                        $this->renew($id, $owner);
+                        if ($this->shouldStop($deadline)) {
+                            break;
+                        }
+
                         $emit($this->frame($message));
                     }
                 }
@@ -158,7 +173,7 @@ final class McpSubscriptionExecution
                         break;
                     }
 
-                    $this->store->heartbeat($id, $owner, time(), time() + 5);
+                    $this->renew($id, $owner);
                     if ($this->shouldStop($deadline)) {
                         break;
                     }
@@ -203,8 +218,32 @@ final class McpSubscriptionExecution
      */
     private function finish(string $id, string $owner): void
     {
-        $this->store->heartbeat($id, $owner, time(), time() + 5);
+        $this->renew($id, $owner);
         $this->store->close($id, $owner, time());
+        $this->requireFreshness();
+    }
+
+    /**
+     * Validates ownership and freshness across a returned tracking callback without reviving an expired lease
+     */
+    private function renew(string $id, string $owner): void
+    {
+        $this->requireFreshness();
+        $now = time();
+        $expires = $now + 5;
+        $this->store->heartbeat($id, $owner, $now, $expires);
+        $this->expiresAt = $expires;
+        $this->requireFreshness();
+    }
+
+    /**
+     * Validates the independent technical lease after cooperative callbacks return
+     */
+    private function requireFreshness(): void
+    {
+        if (time() >= $this->expiresAt) {
+            throw new RuntimeException('Subscription tracking freshness lost.');
+        }
     }
 
     /**

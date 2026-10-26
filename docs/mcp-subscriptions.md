@@ -126,9 +126,10 @@ coherent window/loss contract; namespace retirement, revoked grants/changed epoc
 state or source failure ends delivery. Recording after an exhausted boundary may appear in the next poll; there is
 no retained snapshot, permission lease or promise to bridge the interval before opening. A batch contains at most
 32 whole safe notices, with at most 100 examined rows and the recovery service's default 65,536 encoded-byte result
-budget. Only one bounded batch and one frame are pending. Permission is checked after tracking heartbeat and directly
-before each mapped emission, including rows fetched before a previous frame paused the producer. Previously sent
-bytes cannot be retracted.
+budget. Only one bounded batch and one frame are pending. Permission is checked for each mapped emission,
+including rows fetched before a previous frame paused the producer. After admission returns, owner-bound tracking
+is validated again before acknowledgment or change output; technical renewal never grants or caches permission.
+Previously sent bytes cannot be retracted.
 
 Stream failure **never removes retained notices**. Reconnect creates a new independent registration and acknowledgment,
 not replay. Use `notices.recover` or the shared recovery Query with its independent current authorization and qualified
@@ -149,6 +150,10 @@ is supplied; future inspection must apply separate authorization.
 - Timestamps use supplied shared-wall-clock integer seconds in 1–2,147,483,647. The stream renews a **five-second**
   observation lease on source/delivery boundaries. Heartbeats require matching owner, open row, nondecreasing time
   and unexpired freshness. A same-second heartbeat is valid on MySQL even if its affected-row count is zero.
+  The execution also checks the exact supplied lease after store callbacks return and before renewal: elapsed
+  admission, source, store or write-resume work cannot revive expired tracking or produce a new healthy frame.
+  This five-second prerequisite is independent of the longer stream lifetime; a slow final close suppresses
+  completion if its validated lease expires before it returns.
 - `close(id, owner, now)` is owner-bound and idempotent; late heartbeats never reopen closed/expired rows. Reconnect
   always gets new identities. Abrupt death without finally leaves `closed_at = 0`; once `expires_at <= now` it is
   **stale/uncertain**, not confidently active or confirmed connected. Recent observation proves neither connectivity

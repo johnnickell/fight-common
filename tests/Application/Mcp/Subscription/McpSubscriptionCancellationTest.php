@@ -99,7 +99,8 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
         $store->shouldReceive('open')->andReturnUsing(static function () use ($hit): void { $hit('open'); });
         $heartbeats = 0;
         $store->shouldReceive('heartbeat')->andReturnUsing(static function () use ($hit, &$heartbeats, $boundary): void {
-            $hit(in_array($boundary, ['completion-heartbeat', 'close'], true) ? 'completion-heartbeat' : match (++$heartbeats) { 1 => 'source-heartbeat', 2 => 'notice-heartbeat', default => 'keepalive-heartbeat' });
+            ++$heartbeats;
+            $hit($heartbeats === 1 ? 'opening-heartbeat' : (in_array($boundary, ['completion-heartbeat', 'close'], true) ? 'completion-heartbeat' : match ($heartbeats) { 2 => 'source-heartbeat', 3 => 'notice-heartbeat', 4 => 'delivery-heartbeat', default => 'keepalive-heartbeat' }));
         });
         $store->shouldReceive('close')->andReturnUsing(static function () use ($hit): void { $hit('close'); });
         $queries = $this->mock(QueryBus::class);
@@ -132,11 +133,11 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
 
     public static function cancellationBoundaries(): iterable
     {
-        foreach (['subscriber', 'initial-admission', 'opening-source', 'open', 'opening-recheck'] as $boundary) {
-            yield $boundary => [$boundary, false, in_array($boundary, ['open', 'opening-recheck'], true)];
-            yield $boundary.'-expiry' => [$boundary, false, in_array($boundary, ['open', 'opening-recheck'], true), true];
+        foreach (['subscriber', 'initial-admission', 'opening-source', 'open', 'opening-recheck', 'opening-heartbeat'] as $boundary) {
+            yield $boundary => [$boundary, false, in_array($boundary, ['open', 'opening-recheck', 'opening-heartbeat'], true)];
+            yield $boundary.'-expiry' => [$boundary, false, in_array($boundary, ['open', 'opening-recheck', 'opening-heartbeat'], true), true];
         }
-        foreach (['source-heartbeat', 'live-source', 'notice-heartbeat', 'notice-admission', 'completion-heartbeat', 'close'] as $boundary) {
+        foreach (['source-heartbeat', 'live-source', 'notice-heartbeat', 'notice-admission', 'delivery-heartbeat', 'completion-heartbeat', 'close'] as $boundary) {
             yield $boundary => [$boundary, true, true];
             if (!in_array($boundary, ['completion-heartbeat', 'close'], true)) {
                 yield $boundary.'-expiry' => [$boundary, true, true, true];
@@ -152,8 +153,8 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
         $store->shouldReceive('open')->once();
         $store->shouldReceive('close')->once();
         $heartbeats = 0;
-        $store->shouldReceive('heartbeat')->twice()->andReturnUsing(static function () use (&$heartbeats, &$execution): void {
-            if (++$heartbeats === 2) { $execution->cancel(); }
+        $store->shouldReceive('heartbeat')->times(3)->andReturnUsing(static function () use (&$heartbeats, &$execution): void {
+            if (++$heartbeats === 3) { $execution->cancel(); }
         });
         $queries = $this->mock(QueryBus::class);
         $queries->shouldReceive('fetch')->twice()->andReturn(new NoticeRecoveryBatch([], 'complete', 'opaque'));

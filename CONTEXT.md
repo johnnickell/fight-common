@@ -230,7 +230,9 @@ lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-r
 audience/receipt ledger is added. The existing lazy event stream/emitter and native integrations carry subscriptions
 without buffering. Finite lifetime/waits, one bounded Query batch/frame and actual encoded-frame checks constrain work;
 consumer worker/SQL/SAPI/proxy timeouts remain necessary because PHP cannot preempt blocked I/O. Returned callbacks
-must pass fresh cancellation/deadline checks before new output; expired opening produces no acknowledgment, and body
+must pass fresh cancellation/deadline and independent five-second tracking checks before new output. Owner-bound
+tracking is revalidated after admission, without reviving expired ownership or caching permission; even a returned
+store callback cannot make an already elapsed lease healthy. Expired opening produces no acknowledgment, and body
 closure during production suppresses bytes from the in-progress read. Failure preserves
 retained notices for independently authorized polling; reconnect starts a new live registration, not replay.
 See [live MCP subscriptions](docs/mcp-subscriptions.md) for exact composition, safe type mapping, numeric limits,
