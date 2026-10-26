@@ -142,6 +142,76 @@ final class McpSubscriptionJourneyTest extends TestCase
         $this->evidence['unavailable'] = $unavailable;
     }
 
+    #[DataProvider('databases')]
+    public function test_that_actual_prompt_serving_and_live_notifications_have_independent_current_authority_and_retained_recovery(string $backend): void
+    {
+        $this->setupDatabase($backend);
+        $leftServer = $this->server('scope'); $rightServer = $this->server('scope-2'); $retrievalServer = $this->server('scope');
+        $enabled = 'psr&prompts=1&servePrompts=1&lifetime=4';
+        $ordinary = $this->rpc($retrievalServer, 'prompts/list', [], 'servePrompts=1');
+        self::assertSame(['review'], array_column($ordinary['result']['prompts'], 'name'));
+        $get = $this->rpc($retrievalServer, 'prompts/get', ['name' => 'review', 'arguments' => ['note' => 'PRIVATE ARGUMENT']], 'servePrompts=1');
+        self::assertSame('Safe review', $get['result']['messages'][0]['content']['text']);
+        $discovery = $this->rpc($retrievalServer, 'server/discover', [], 'servePrompts=1&prompts=1');
+        self::assertTrue($discovery['result']['capabilities']['prompts']['listChanged']);
+        $disabled = $this->rpc($retrievalServer, 'server/discover', [], 'servePrompts=1');
+        self::assertFalse($disabled['result']['capabilities']['prompts']['listChanged']);
+        $absent = $this->rpc($retrievalServer, 'server/discover', []);
+        self::assertArrayNotHasKey('prompts', $absent['result']['capabilities']);
+        $left = $this->open($leftServer, ['promptsListChanged' => true, 'toolsListChanged' => true, 'resourcesListChanged' => true], $enabled, '7');
+        $right = $this->open($rightServer, ['promptsListChanged' => true], $enabled);
+        $ackLeft = $this->nextFrame($left); $ackRight = $this->nextFrame($right);
+        self::assertSame(['promptsListChanged' => true, 'toolsListChanged' => true, 'resourcesListChanged' => true], $ackLeft['params']['notifications']);
+        self::assertSame(['promptsListChanged' => true], $ackRight['params']['notifications']);
+        $this->worker(['operation' => 'record', 'notices' => [
+            ['id' => 'hidden-prompt', 'type' => 'mcp.prompts.list_changed', 'metadata' => ['app/concealed' => true, 'app/private' => 'PRIVATE DEFINITION']],
+            ['id' => 'prompt-a', 'type' => 'mcp.prompts.list_changed', 'metadata' => ['app/private' => 'PRIVATE BODY ARGUMENT']],
+            ['id' => 'tool-a', 'type' => 'mcp.tools.list_changed'],
+            ['id' => 'resource-a', 'type' => 'mcp.resources.list_changed'],
+            ['id' => 'prompt-b', 'scope' => 'scope-2', 'type' => 'mcp.prompts.list_changed']
+        ]]);
+        $updates = [$this->nextFrame($left), $this->nextFrame($left), $this->nextFrame($left), $this->nextFrame($right)];
+        self::assertSame(['notifications/prompts/list_changed', 'notifications/tools/list_changed', 'notifications/resources/list_changed', 'notifications/prompts/list_changed'], array_column($updates, 'method'));
+        foreach (array_slice($updates, 0, 3) as $update) { self::assertSame('7', $update['params']['_meta']['io.modelcontextprotocol/subscriptionId']); }
+        self::assertSame(7, $updates[3]['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
+        foreach ([$updates[0], $updates[3]] as $update) { self::assertSame(['_meta'], array_keys($update['params'])); }
+        touch($this->directory.'/hide-prompts-scope');
+        self::assertSame([], $this->rpc($retrievalServer, 'prompts/list', [], 'servePrompts=1')['result']['prompts']);
+        self::assertSame(-32602, $this->rpc($retrievalServer, 'prompts/get', ['name' => 'review'], 'servePrompts=1')['error']['code']);
+        touch($this->directory.'/deny-prompt-signals-scope');
+        $this->worker(['operation' => 'record', 'notices' => [['id' => 'revoked-prompt', 'type' => 'mcp.prompts.list_changed']]]);
+        $tailLeft = $this->drain($left); $tailRight = $this->drain($right);
+        self::assertCount(1, $tailLeft); self::assertCount(1, $tailRight); self::assertSame('complete', $tailLeft[0]['result']['resultType']);
+        $runtime = json_decode(file_get_contents($this->directory.'/closed-scope.json'), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame([], $runtime['prompt_calls']); self::assertSame([], $runtime['hidden_prompt_calls']); self::assertSame(1, $runtime['prompt_metadata_calls']);
+        self::assertSame([], $runtime['diagnostics']);
+        $rows = $this->db->fetchAllAssociative('SELECT context FROM fight_mcp_subscriptions');
+        self::assertCount(2, $rows);
+        foreach ($rows as $row) { $context = json_decode($row['context'], true, flags: JSON_THROW_ON_ERROR); self::assertTrue($context['requested']['promptsListChanged']); self::assertTrue($context['accepted']['promptsListChanged']); }
+        // Generic inspection uses the existing routed Queries, with no Prompt-specific presentation path.
+        $inspection = $this->inspectSubscribers([['query' => 'page', 'scopes' => ['scope'], 'granted_scopes' => ['scope']]]);
+        self::assertTrue($inspection['results'][0]['subscribers'][0]['accepted']['promptsListChanged']);
+        unlink($this->directory.'/deny-prompt-signals-scope'); unlink($this->directory.'/hide-prompts-scope');
+        $failed = $this->open($leftServer, ['promptsListChanged' => true], $enabled);
+        $this->nextFrame($failed); touch($this->directory.'/source-failure');
+        $this->worker(['operation' => 'record', 'notices' => [['id' => 'retained-prompt', 'type' => 'mcp.prompts.list_changed']]]);
+        self::assertSame([], $this->drain($failed)); unlink($this->directory.'/source-failure');
+        $recovered = (new NoticeRecoveryFixture($this->db))->call(['scopes' => ['scope']])['body']['result']['structuredContent'];
+        self::assertContains('retained-prompt', array_column($recovered['notices'], 'id')); self::assertSame('complete', $recovered['status']);
+        // Requested but disabled, absent and enabled-but-unrequested remain distinct truthful compositions.
+        foreach (['psr&servePrompts=1', 'psr', $enabled] as $composition) {
+            $filter = $composition === $enabled ? ['toolsListChanged' => true] : ['promptsListChanged' => true];
+            $socket = $this->open($leftServer, $filter, $composition);
+            $ack = $this->nextFrame($socket); self::assertArrayNotHasKey('promptsListChanged', $ack['params']['notifications']);
+            stream_socket_shutdown($socket, STREAM_SHUT_RDWR); fclose($socket);
+            usleep(100000);
+        }
+        $this->evidence['prompt_wire'] = compact('ackLeft', 'ackRight', 'updates', 'tailLeft', 'tailRight');
+        self::assertStringNotContainsString('PRIVATE', json_encode($this->evidence['prompt_wire']));
+        $this->evidence['prompt_serving'] = compact('ordinary', 'get', 'discovery', 'disabled', 'absent');
+        $this->evidence['prompt_runtime'] = $runtime; $this->evidence['prompt_recovery'] = $recovered; $this->evidence['prompt_tracking'] = $inspection;
+    }
+
     #[DataProvider('compositions')]
     public function test_that_supported_native_compositions_emit_before_close_and_idle_disconnect_is_observed(string $composition): void
     {
@@ -356,10 +426,10 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::fail('Server did not start: '.$process->getErrorOutput());
     }
 
-    private function open(string $address, array $filter, string $composition = 'psr')
+    private function open(string $address, array $filter, string $composition = 'psr', int|string $id = 7)
     {
         $socket = stream_socket_client('tcp://'.$address, $errno, $error, 5); self::assertIsResource($socket, $error); stream_set_timeout($socket, 5);
-        $request = SubscriptionFixture::request($filter); $body = (string) $request->getBody();
+        $request = SubscriptionFixture::request($filter, $id); $body = (string) $request->getBody();
         $wire = "POST /mcp?composition=$composition HTTP/1.1\r\nHost: $address\r\nConnection: close\r\nContent-Length: ".strlen($body)."\r\n";
         foreach ($request->getHeaders() as $name => $values) { foreach ($values as $value) { $wire .= "$name: $value\r\n"; } }
         fwrite($socket, $wire."\r\n".$body); $headers = '';
@@ -368,6 +438,18 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertStringContainsString(str_contains($composition, 'buffered') ? '500' : '200 OK', $headers);
         if (!str_contains($composition, 'buffered')) { self::assertStringContainsString('text/event-stream', $headers); }
         return $socket;
+    }
+
+    private function rpc(string $address, string $method, array $params, string $composition = ''): array
+    {
+        $socket = stream_socket_client('tcp://'.$address, $errno, $error, 5); self::assertIsResource($socket, $error); stream_set_timeout($socket, 5);
+        $body = json_encode(['jsonrpc' => '2.0', 'id' => 9, 'method' => $method, 'params' => (object) ($params + ['_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]])], JSON_THROW_ON_ERROR);
+        $wire = "POST /mcp?$composition HTTP/1.1\r\nHost: $address\r\nConnection: close\r\nOrigin: https://client.test\r\nContent-Type: application/json\r\nAccept: application/json, text/event-stream\r\nMCP-Protocol-Version: 2026-07-28\r\nMcp-Method: $method\r\nContent-Length: ".strlen($body)."\r\n";
+        if (isset($params['name'])) { $wire .= 'Mcp-Name: '.$params['name']."\r\n"; }
+        fwrite($socket, $wire."\r\n".$body);
+        while (($line = fgets($socket)) !== false && $line !== "\r\n") {}
+        $result = stream_get_contents($socket); self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
+        return json_decode($result, true, flags: JSON_THROW_ON_ERROR);
     }
 
     private function nextFrame($socket): array

@@ -100,6 +100,7 @@ final readonly class McpCapabilityRegistry
             foreach ($this->subscriptions->supported() as $filter) {
                 [$family, $property] = match ($filter) {
                     'toolsListChanged' => ['tools', 'listChanged'],
+                    'promptsListChanged' => ['prompts', 'listChanged'],
                     'resourcesListChanged' => ['resources', 'listChanged'],
                     'resourceSubscriptions' => ['resources', 'subscribe']
                 };

@@ -27,8 +27,13 @@ $scope = getenv('MCP_SUBSCRIPTION_SCOPE');
 $params = json_decode(file_get_contents($directory.'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
 $db = DriverManager::getConnection($params);
 if ($db->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $db->executeStatement('PRAGMA busy_timeout = 3000'); }
-$fixture = new SubscriptionFixture($db, $scope, (int) ($_GET['lifetime'] ?? 2));
-$fixture->policy = static function () use ($directory, $scope): bool { clearstatcache(); return !file_exists($directory.'/revoke-'.$scope); };
+$fixture = new SubscriptionFixture($db, $scope, (int) ($_GET['lifetime'] ?? 2), (int) ($_GET['frameBytes'] ?? 16384), prompts: ($_GET['prompts'] ?? '0') === '1', servePrompts: ($_GET['servePrompts'] ?? '0') === '1');
+$fixture->policy = static function ($filter, $uri, $notice) use ($directory, $scope): bool {
+    clearstatcache();
+    if ($filter === 'promptsListChanged' && ($notice?->metadata()->toArray()['app/concealed'] ?? false)) { return false; }
+    return !file_exists($directory.'/revoke-'.$scope) && ($filter !== 'promptsListChanged' || !file_exists($directory.'/deny-prompt-signals-'.$scope));
+};
+$fixture->promptPolicy = static function () use ($directory, $scope): bool { clearstatcache(); return !file_exists($directory.'/hide-prompts-'.$scope); };
 $fixture->queryPolicy = static function () use ($directory): void {
     clearstatcache();
     if (file_exists($directory.'/source-failure')) { throw new RuntimeException('PRIVATE SOURCE SENTINEL'); }
@@ -68,5 +73,5 @@ try {
     while (ob_get_level() > 0) { ob_end_clean(); }
     http_response_code(500);
 } finally {
-    file_put_contents($directory.'/closed-'.$scope.'.json', json_encode(['time' => microtime(true), 'diagnostics' => $fixture->diagnostics, 'sapi' => PHP_SAPI, 'buffering' => ini_get('output_buffering'), 'compression' => ini_get('zlib.output_compression')], JSON_THROW_ON_ERROR));
+    file_put_contents($directory.'/closed-'.$scope.'.json', json_encode(['time' => microtime(true), 'diagnostics' => $fixture->diagnostics, 'sapi' => PHP_SAPI, 'buffering' => ini_get('output_buffering'), 'compression' => ini_get('zlib.output_compression'), 'prompt_calls' => $fixture->visiblePrompt->calls, 'hidden_prompt_calls' => $fixture->hiddenPrompt->calls, 'prompt_metadata_calls' => $fixture->visiblePrompt->metadataCalls], JSON_THROW_ON_ERROR));
 }

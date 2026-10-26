@@ -28,10 +28,11 @@ final readonly class McpSubscriptions
         private bool $resources = true,
         private int $lifetimeSeconds = 30,
         private int $waitMicroseconds = 200000,
-        private int $maxFrameBytes = 16384
+        private int $maxFrameBytes = 16384,
+        private bool $prompts = false
     ) {
         if (
-            (!$tools && !$resources) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
+            (!$tools && !$resources && !$prompts) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
             || $waitMicroseconds < 10000 || $waitMicroseconds > 1000000
             || $maxFrameBytes < 256 || $maxFrameBytes > 65536
         ) {
@@ -42,13 +43,14 @@ final readonly class McpSubscriptions
     /**
      * Returns only actually implemented notification families
      *
-     * @return list<'toolsListChanged'|'resourcesListChanged'|'resourceSubscriptions'>
+     * @return list<'toolsListChanged'|'resourcesListChanged'|'resourceSubscriptions'|'promptsListChanged'>
      */
     public function supported(): array
     {
         return [
             ...($this->tools ? ['toolsListChanged'] : []),
-            ...($this->resources ? ['resourcesListChanged', 'resourceSubscriptions'] : [])
+            ...($this->resources ? ['resourcesListChanged', 'resourceSubscriptions'] : []),
+            ...($this->prompts ? ['promptsListChanged'] : [])
         ];
     }
 

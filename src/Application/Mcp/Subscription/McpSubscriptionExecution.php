@@ -23,6 +23,7 @@ final class McpSubscriptionExecution
     private const string META = 'io.modelcontextprotocol/subscriptionId';
     private const array CHANGES = [
         'mcp.tools.list_changed'     => ['toolsListChanged', 'notifications/tools/list_changed'],
+        'mcp.prompts.list_changed'   => ['promptsListChanged', 'notifications/prompts/list_changed'],
         'mcp.resources.list_changed' => ['resourcesListChanged', 'notifications/resources/list_changed'],
         'mcp.resources.updated'      => ['resourceSubscriptions', 'notifications/resources/updated']
     ];
@@ -161,7 +162,16 @@ final class McpSubscriptionExecution
                             break;
                         }
 
-                        $emit($this->frame($message));
+                        // Tracking callbacks may wait or change current policy; they are not a disclosure lease.
+                        $message = $this->notification($view->notice(), $accepted, $subscriber);
+                        $this->requireFreshness();
+                        if ($this->shouldStop($deadline)) {
+                            break;
+                        }
+
+                        if ($message !== null) {
+                            $emit($this->frame($message));
+                        }
                     }
                 }
 

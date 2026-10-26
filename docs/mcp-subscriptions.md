@@ -1,9 +1,9 @@
-# Live MCP Tool and Resource changes
+# Live MCP Tool, Resource and optional Prompt changes
 
 Explicit `Application\Mcp\Subscription\McpSubscriptions` composition enables MCP `2026-07-28`
 [`subscriptions/listen`](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
 on the **same guarded POST endpoint**. The default remains direct JSON, with separately opt-in Tool progress.
-No GET subscription endpoint, `resources/subscribe`, Prompt/Task notification, automatic Resource read, broker,
+No GET subscription endpoint, `resources/subscribe`, Task notification, automatic Prompt/Resource retrieval, broker,
 Mercure dependency or saved resumable subscription is introduced. Separate opt-in
 [subscriber-inspection Queries](subscriber-inspection.md) read the same tracking with independent current permission.
 
@@ -42,9 +42,10 @@ Mercure dependency or saved resumable subscription is introduced. Separate opt-i
    Import these names from `Fight\Common\Adapter\Mcp\Subscription` and
    `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
-   at least one must be enabled. Existing serving capabilities continue to declare their ordinary false flags;
-   the registry derives `tools.listChanged`, `resources.listChanged` and `resources.subscribe` from this actual
-   composition. Arbitrary true declarations, contradictory same-family metadata, unsupported Prompt flags and
+   at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
+   Existing serving capabilities continue to declare their ordinary false flags;
+   the registry derives `tools.listChanged`, `resources.listChanged`, `resources.subscribe` and optional
+   `prompts.listChanged` from this actual composition. Arbitrary true declarations, contradictory same-family metadata and
    consumer ownership of `subscriptions/listen` when the live composition is enabled still reject. No global registry validation is disabled.
 6. Construct the existing `Adapter\Http\Mcp\McpRequestHandler` and response factory/emitter normally. The registry's
    exact composition is used by that handler; no additional progressive flag is required for subscriptions.
@@ -62,10 +63,11 @@ Send `notifications` as an object in `subscriptions/listen` parameters. All fiel
 | Requested field | Accepted when | Safe recorded type | Emitted method |
 | --- | --- | --- | --- |
 | `toolsListChanged: true` | Tools enabled and currently permitted | `mcp.tools.list_changed` | `notifications/tools/list_changed` |
+| `promptsListChanged: true` | Prompts explicitly enabled, serving and currently permitted | `mcp.prompts.list_changed` | `notifications/prompts/list_changed` |
 | `resourcesListChanged: true` | Resources enabled and currently permitted | `mcp.resources.list_changed` | `notifications/resources/list_changed` |
 | `resourceSubscriptions: [uri, …]` | Resources enabled and each exact URI currently permitted | `mcp.resources.updated` with `mcp/uri` metadata | `notifications/resources/updated` |
 
-These three explicit notice-type conventions select **safe changes**, not arbitrary wire payloads. Consumers still
+These four explicit notice-type conventions select **safe changes**, not arbitrary wire payloads. Consumers still
 own their notice topics, recording permission and vocabulary. No fields except the exact matched Resource URI are
 copied to the wire: no notice body, topic, ID, producer, recipient, cause, metadata extension or server exception.
 The admission receives the whole safe notice for independent current disclosure permission. Unknown types and
@@ -75,8 +77,8 @@ are separate checks; neither is replaced by the other.
 `notifications/subscriptions/acknowledged` is always the first frame of a successfully opened stream. Its
 `notifications` object is only the supported/currently permitted requested subset. `false`, omitted fields and
 empty arrays request nothing; duplicates are collapsed in first-occurrence order. The requested tracking snapshot
-preserves false/empty distinctions (with duplicate URI canonicalization). Prompts are structurally recognized but
-never accepted in this slice. Unknown filter names, wrong types, extra parameters and oversized references reject.
+preserves false/empty distinctions (with duplicate URI canonicalization). Prompt support defaults to disabled,
+even when ordinary Prompt serving is composed. Unknown filter names, wrong types, extra parameters and oversized references reject.
 Empty, unsupported and denied requests may acknowledge `{}` identically; this does not disclose why a case was omitted.
 Permission changing during opening prevents acknowledgment rather than emitting an obsolete accepted set.
 
@@ -104,6 +106,39 @@ complete application capture or successful recovery. Disconnect/cancellation sup
 tracking, permission-provider or framing failure closes without a successful completion; unexpected private
 failures go only to the consumer redaction-aware `McpDiagnostics`. A broken diagnostic sink emits nothing.
 
+## Optional Prompt catalog signals
+
+Compose the actual [Prompt catalog/providers](mcp-prompts.md) in the same registry and set `prompts: true` on
+`McpSubscriptions`. The final optional constructor argument defaults to `false`; Tool/Resource settings and
+positional arguments are unchanged. Prompt-only support uses `tools: false, resources: false, prompts: true`.
+Missing serving capability rejects composition; disabled or absent Prompts are never advertised/acknowledged as
+notification support. Ordinary Prompt list/get needs no subscriptions, tracking, retained store or notification grant.
+
+Only an explicitly recorded `mcp.prompts.list_changed` Notice maps to the standard catalog signal. It needs no
+Prompt name, body, argument, revision or special metadata; no source fields are copied. Validated Notice shape and
+shared recovery integrity checks still apply. Malformed retained data fails the source safely; a lookalike/unknown
+type is ignored, not turned into a new notification. Structural validation is not redaction: consumers must record
+only safe source metadata and explicitly capture catalog changes. Common neither monitors providers nor guarantees
+every mutation/access change was recorded. No new Prompt database, event or business Command is introduced by listening.
+
+`McpSubscriptionAdmission::allows()` must independently authorize **whole Prompt catalog activity**, including the
+complete supplied notice, not merely the family or some visible Prompt. Null-notice opening grants and fresh per-notice
+grants are distinct from `McpPromptAvailability`. Recheck current visibility/policy in the consumer's signal admission;
+concealed changes must be denied even if another Prompt is retrievable. Queued notices reauthorize individually and
+again after the final tracking callback, with freshness/deadline/cancellation checks before emission. Admission can run
+more than once and must not assume a one-call lease. Revocation omits later signals; policy exceptions close safely.
+Previously emitted bytes cannot be retracted.
+
+Listening never calls `McpPrompt::get()`, reconstructs bodies, refreshes catalog metadata through providers, fetches
+linked Resources, runs Tools/models or dispatches business Commands/events. Catalog registration snapshots `info()`
+once when composing ordinary serving. A later list/get request independently checks current availability and can be
+denied after a successful signal; no body/revision consistency, receipt/processing or complete change-capture guarantee
+is inferred. The existing bounded generic requested/accepted tracking and independently authorized subscriber Queries
+already retain `promptsListChanged`; no Prompt-specific inspection API or reverse dependency is needed.
+
+All ordinary lifetime, queue, frame, failure and retained-recovery limits below apply unchanged. Notifications contain
+only the standard method and typed subscription metadata, never central result metadata or arbitrary notice payloads.
+
 ## Shared source, start boundary and recovery
 
 `McpSubscriptions` fetches the shared authorized `RecoverNotices` Query through `QueryBus::fetch()`, never HTTP-layer
@@ -129,7 +164,8 @@ no retained snapshot, permission lease or promise to bridge the interval before 
 32 whole safe notices, with at most 100 examined rows and the recovery service's default 65,536 encoded-byte result
 budget. Only one bounded batch and one frame are pending. Permission is checked for each mapped emission,
 including rows fetched before a previous frame paused the producer. After admission returns, owner-bound tracking
-is validated again before acknowledgment or change output; technical renewal never grants or caches permission.
+is validated again before acknowledgment or change output. Change disclosure then rechecks signal admission after
+that callback, with no further consumer callback before framing/emission; technical renewal never grants or caches permission.
 Previously sent bytes cannot be retracted.
 
 Stream failure **never removes retained notices**. Reconnect creates a new independent registration and acknowledgment,
@@ -210,6 +246,11 @@ a claim of saturated-kernel backpressure or instant disconnect detection. Unit t
 frames, queued reauthorization/cancellation and source/tracking failure. Clean independent-process capacity-lock
 journeys additionally exercise timely, old-but-not-proposed-expired, overlong and SQL-timeout renewals through the
 actual body/emitter on all three databases, with unchanged expired rows and authorized retained recovery.
+The optional Prompt journey additionally composes actual visible/hidden Prompt providers, list/get and live streams
+on all three databases: mixed families, concurrent scopes/typed IDs, concealed signals, changed retrieval visibility,
+notification revocation, provider call counters, generic inspection and source-failure recovery. Exact escaped frame
+bounds, unsupported/unrequested cases, queued revocation and policy failure have direct tests. These are actual
+package HTTP journeys, not in-memory transcripts; no new DBAL behavior/schema is introduced.
 Existing direct JSON and opt-in Tool-progress
 journeys remain in the complete product gate. These are package proofs, not deployed Agent OS/Pi, proxy/server,
 client receipt or application processing qualification.
@@ -230,3 +271,12 @@ custom same-named capability remains usable without the live composition, and ar
 were already rejected. Notice Query/recovery APIs were not in v1.4.0 and remain provisional:
 the current version-one Query directly includes `start_at_current`, with no obsolete snapshot codec, alias or
 migration. Existing released CQRS, Tools, Resources, progress and native integration contracts remain intact.
+
+TASK-00164 adds no declarations or consumer interface methods. The provisional `McpSubscriptions` constructor gains
+only optional trailing `prompts: false`; `supported()` may include `promptsListChanged` only when explicitly enabled.
+The public final registry derives the optional flag while preserving its released constructor/default validations;
+true consumer-declared flags still reject. `McpSubscriptionAdmission`/`McpSubscriptionStore` signatures and generic
+tracking/recovery formats are unchanged. The internal execution gains a fixed mapping and final fresh admission
+check for all mapped families. Against v1.4.0 this is additive opt-in behavior, not a migration or compatibility
+alias for unreleased snapshots. The existing manifest classifications (public final callable/constructible composition
+and registry; public implementable admission/store; internal execution) remain unchanged.

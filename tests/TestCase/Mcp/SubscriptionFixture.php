@@ -20,6 +20,10 @@ use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Notice\RecoverNoticesTool;
+use Fight\Common\Application\Mcp\Prompt\McpPromptAvailability;
+use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
+use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;
+use Fight\Common\Application\Mcp\Prompt\McpPromptOutput;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -37,6 +41,7 @@ use Fight\Common\Application\Notice\Service\NoticeReadAdmission;
 use Fight\Common\Application\Notice\Service\NoticeRecovery;
 use Fight\Common\Domain\Notice\Notice;
 use Fight\Common\Domain\Notice\NoticeSelection;
+use Fight\Test\Common\Fixture\Mcp\PromptProvider;
 use Fight\Test\Common\TestCase\Notice\NoticeRecoveryFixture;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -49,13 +54,17 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public bool $admit = true;
     public ?Closure $policy = null;
     public ?Closure $queryPolicy = null;
+    public ?Closure $promptPolicy = null;
+    public bool $promptPermitted = true;
+    public readonly PromptProvider $visiblePrompt;
+    public readonly PromptProvider $hiddenPrompt;
     public readonly McpRequestHandler $endpoint;
     public readonly McpSubscriptions $subscriptions;
     public readonly RoutingQueryBus $queries;
     public readonly DbalSubscriptionStore $store;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true)
+    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false)
     {
         (new DbalNoticeSchema())->install($db);
         (new DbalSubscriptionSchema())->install($db);
@@ -64,15 +73,23 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeStore($db), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);
-        $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes);
+        $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };
         $toolRegistry = new McpToolRegistry([new RecoverNoticesTool($this->queries)]);
+        $this->visiblePrompt = new PromptProvider(McpPromptInfo::fromArray(['name' => 'review', 'arguments' => [['name' => 'note']]]));
+        $this->visiblePrompt->output = McpPromptOutput::fromArray(['messages' => [['role' => 'user', 'content' => ['type' => 'text', 'text' => 'Safe review']]]]);
+        $this->hiddenPrompt = new PromptProvider(McpPromptInfo::fromArray(['name' => 'CONCEALED', 'description' => 'PRIVATE DEFINITION']));
+        $promptAccess = new class($this) implements McpPromptAvailability {
+            public function __construct(private SubscriptionFixture $fixture) {}
+            public function isAvailable(McpPromptInfo $prompt): bool { return $this->fixture->promptPermitted && $prompt->name() !== 'CONCEALED' && ($this->fixture->promptPolicy === null || ($this->fixture->promptPolicy)()); }
+        };
         $this->registry = new McpCapabilityRegistry(new McpServerInfo('Live fixture', '1'), [
             new McpToolDiscovery($toolRegistry, $availability, str_repeat('key', 16)),
             new McpToolInvocation(new McpToolInvoker($toolRegistry, $availability)),
-            new McpResourceDiscovery([], $availability, str_repeat('key', 16), 'live')
+            new McpResourceDiscovery([], $availability, str_repeat('key', 16), 'live'),
+            ...($servePrompts ? [new McpPromptDiscovery([$this->visiblePrompt, $this->hiddenPrompt], $promptAccess, str_repeat('prompt', 8), 'live')] : [])
         ], $this->subscriptions);
         $factory = new HttpFactory();
         $guard = new class($this) implements McpInvocationGuard {
