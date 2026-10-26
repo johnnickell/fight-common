@@ -27,7 +27,7 @@ $scope = getenv('MCP_SUBSCRIPTION_SCOPE');
 $params = json_decode(file_get_contents($directory.'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
 $db = DriverManager::getConnection($params);
 if ($db->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $db->executeStatement('PRAGMA busy_timeout = 3000'); }
-$fixture = new SubscriptionFixture($db, $scope, 2);
+$fixture = new SubscriptionFixture($db, $scope, (int) ($_GET['lifetime'] ?? 2));
 $fixture->policy = static function () use ($directory, $scope): bool { clearstatcache(); return !file_exists($directory.'/revoke-'.$scope); };
 $fixture->queryPolicy = static function () use ($directory): void {
     clearstatcache();

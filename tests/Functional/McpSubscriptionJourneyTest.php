@@ -83,6 +83,65 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertFalse($this->db->isTransactionActive());
     }
 
+    #[DataProvider('databases')]
+    public function test_that_independent_routed_operator_queries_summarize_then_page_actual_streams_with_current_inspection_grants(string $backend): void
+    {
+        $this->setupDatabase($backend);
+        $left = $this->open($this->server('scope'), ['toolsListChanged' => true, 'promptsListChanged' => true, 'resourceSubscriptions' => ['file:///allowed', 'file:///hidden']], 'psr&lifetime=15');
+        $ackLeft = $this->nextFrame($left);
+        $right = $this->open($this->server('scope'), ['toolsListChanged' => true], 'psr&lifetime=15');
+        $ackRight = $this->nextFrame($right);
+        $hidden = $this->open($this->server('CONCEALED'), ['toolsListChanged' => true], 'psr&lifetime=15');
+        $this->nextFrame($hidden);
+        self::assertSame(7, $ackLeft['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
+        self::assertSame(7, $ackRight['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
+        $before = $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions ORDER BY registration_id');
+        $base = ['scopes' => ['scope', 'CONCEALED'], 'granted_scopes' => ['scope']];
+        $inspection = $this->inspectSubscribers([
+            $base + ['query' => 'summary'], $base + ['query' => 'page', 'page' => 1], $base + ['query' => 'page', 'page' => 2],
+            ['query' => 'summary', 'scopes' => ['scope', 'CONCEALED'], 'granted_scopes' => []],
+            $base + ['query' => 'page', 'filters' => ['subscriber' => 'SUPER_ADMIN']]
+        ]);
+        self::assertNotSame(getmypid(), $inspection['process']); self::assertSame(5, $inspection['admissions']); self::assertFalse($inspection['transaction_active']);
+        [$summary, $first, $second, $revoked, $notAuthority] = $inspection['results'];
+        self::assertSame(2, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']); self::assertSame(2, $summary['states']['recently_observed']);
+        self::assertSame(2, $first['total']); self::assertSame(2, $second['total']);
+        self::assertNotSame($first['subscribers'][0]['registration_id'], $second['subscribers'][0]['registration_id']);
+        $views = [...$first['subscribers'], ...$second['subscribers']];
+        $withResources = array_values(array_filter($views, static fn ($view) => isset($view['requested']['resourceSubscriptions'])))[0];
+        self::assertSame(['file:///allowed', 'file:///hidden'], $withResources['requested']['resourceSubscriptions']);
+        self::assertSame(['file:///allowed'], $withResources['accepted']['resourceSubscriptions']);
+        self::assertTrue($withResources['requested']['promptsListChanged']); self::assertArrayNotHasKey('promptsListChanged', $withResources['accepted']);
+        self::assertSame(0, $revoked['subscriptions']); self::assertNull($revoked['latest_observed_at']); self::assertSame(0, $notAuthority['total']);
+        self::assertStringNotContainsString('CONCEALED', json_encode($inspection)); self::assertStringNotContainsString('owner', json_encode($inspection));
+        $after = $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions ORDER BY registration_id');
+        // Heartbeats may advance concurrently; reads must not manufacture closure or change opening/filter identity.
+        foreach ($after as $index => $row) { self::assertSame($before[$index]['context'], $row['context']); self::assertSame($before[$index]['opened_at'], $row['opened_at']); self::assertSame(0, (int) $row['closed_at']); }
+        stream_socket_shutdown($left, STREAM_SHUT_RDWR); fclose($left);
+        $deadline = microtime(true) + 4;
+        do { $closed = (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at > 0'); if ($closed > 0) { break; } usleep(10000); } while (microtime(true) < $deadline);
+        self::assertSame(1, $closed);
+        $lifecycle = $this->inspectSubscribers([$base + ['query' => 'summary']]);
+        self::assertSame(1, $lifecycle['results'][0]['states']['disconnected']);
+        self::assertSame(1, $lifecycle['results'][0]['states']['recently_observed']);
+        $allowedId = $first['subscribers'][0]['registration_id'];
+        $restricted = $this->inspectSubscribers([$base + ['query' => 'summary', 'granted_registrations' => [$allowedId]]]);
+        self::assertSame(1, $restricted['results'][0]['subscriptions']);
+        stream_socket_shutdown($right, STREAM_SHUT_RDWR); fclose($right); stream_socket_shutdown($hidden, STREAM_SHUT_RDWR); fclose($hidden);
+        $this->evidence['operator_before'] = $inspection; $this->evidence['operator_after_disconnect'] = $lifecycle; $this->evidence['restricted'] = $restricted;
+        $emptySocket = $this->open($this->server('scope'), []); $this->nextFrame($emptySocket);
+        $emptyMap = $this->inspectSubscribers([$base + ['query' => 'page', 'per_page' => 16]]);
+        // Same-second openings sort by random registration ID, not by insertion order.
+        $emptyViews = array_values(array_filter($emptyMap['results'][0]['subscribers'], static fn ($view) => $view['requested'] === []));
+        self::assertCount(1, $emptyViews); self::assertSame([], $emptyViews[0]['accepted']);
+        $this->evidence['empty_maps'] = $emptyMap;
+        stream_socket_shutdown($emptySocket, STREAM_SHUT_RDWR); fclose($emptySocket);
+        $this->db->executeStatement('UPDATE fight_mcp_subscription_state SET version = 2');
+        $unavailable = $this->inspectSubscribers([$base + ['query' => 'summary'], $base + ['query' => 'page']]);
+        foreach ($unavailable['results'] as $result) { self::assertSame('Subscriber inspection unavailable.', $result['message']); self::assertArrayNotHasKey('subscriptions', $result); }
+        $this->evidence['unavailable'] = $unavailable;
+    }
+
     #[DataProvider('compositions')]
     public function test_that_supported_native_compositions_emit_before_close_and_idle_disconnect_is_observed(string $composition): void
     {
@@ -126,8 +185,16 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertNotSame(0, $exit);
         self::assertSame($row['expires_at'], $this->db->fetchOne('SELECT expires_at FROM fight_mcp_subscriptions'));
         $this->evidence['abandoned'] = $row;
+        $operation = ['query' => 'summary', 'scopes' => ['scope'], 'granted_scopes' => ['scope']];
+        $unchanged = $this->db->fetchAssociative('SELECT * FROM fight_mcp_subscriptions');
+        $stale = $this->inspectSubscribers([$operation]);
+        self::assertSame(1, $stale['results'][0]['states']['stale_uncertain']);
+        self::assertSame(0, $stale['results'][0]['states']['disconnected']);
+        self::assertSame($unchanged, $this->db->fetchAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection neither renews nor cleans an abandoned row');
         self::assertSame(1, (new DbalSubscriptionStore($this->db))->cleanup(time(), 1));
         self::assertSame(0, (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+        $cleaned = $this->inspectSubscribers([$operation]); self::assertSame(0, $cleaned['results'][0]['subscriptions']); self::assertNull($cleaned['results'][0]['latest_observed_at']);
+        $this->evidence['operator_stale'] = $stale; $this->evidence['operator_cleaned'] = $cleaned;
     }
 
     #[DataProvider('databases')]
@@ -317,6 +384,14 @@ final class McpSubscriptionJourneyTest extends TestCase
         while (($line = fgets($socket)) !== false) { if (str_starts_with($line, 'data: ')) { $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); } }
         self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
         return $frames;
+    }
+
+    private function inspectSubscribers(array $operations): array
+    {
+        file_put_contents($this->directory.'/inspection.json', json_encode($operations, JSON_THROW_ON_ERROR));
+        $process = new Process([PHP_BINARY, 'tests/Fixture/Mcp/subscriber-inspection-worker.php', $this->directory], dirname(__DIR__, 2));
+        self::assertSame(0, $process->run(), $process->getErrorOutput());
+        return json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR);
     }
 
     private function worker(array $operation, bool $success = true): int
