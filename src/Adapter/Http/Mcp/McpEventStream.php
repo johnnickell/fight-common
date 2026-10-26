@@ -165,11 +165,14 @@ final class McpEventStream implements StreamInterface
         }
 
         if ($this->pending === '') {
-            if ($this->producer->isStarted()) {
-                $this->producer->resume();
-            } else {
-                $this->producer->start();
-            }
+            $this->produce();
+        }
+
+        // Consumer callbacks may close this body while start/resume is still on the read stack.
+        if ($this->closed) {
+            $this->pending = '';
+
+            return '';
         }
 
         $chunk = substr($this->pending, 0, $length);
@@ -202,6 +205,18 @@ final class McpEventStream implements StreamInterface
     public function getMetadata(?string $key = null): mixed
     {
         return $key === null ? [] : null;
+    }
+
+    /**
+     * Runs producer callbacks that may reenter and close this body before returning
+     */
+    private function produce(): void
+    {
+        if ($this->producer->isStarted()) {
+            $this->producer->resume();
+        } else {
+            $this->producer->start();
+        }
     }
 
     /**

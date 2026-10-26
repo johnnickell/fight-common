@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Http\Mcp;
 
+use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
 use Fight\Common\Adapter\Http\Symfony\McpResponseFactory;
 use Fight\Common\Application\Mcp\McpProgressReporter;
@@ -11,6 +12,8 @@ use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;
 use Fight\Test\Common\Fixture\Mcp\SapiDouble;
+use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
+use Fight\Test\Common\TestCase\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -49,6 +52,33 @@ final class McpResponseEmitterTest extends UnitTestCase
         self::assertContains(['Content-Type: text/event-stream', false], SapiDouble::$headers);
         self::assertFalse(SapiDouble::$ignoreAbort);
         self::assertTrue($response->getBody()->eof());
+    }
+
+    public function test_that_callback_body_close_never_writes_a_new_subscription_notification(): void
+    {
+        $fixture = new SubscriptionFixture(DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]));
+        $response = $fixture->endpoint->handle(SubscriptionFixture::request());
+        $fixture->queryPolicy = static function () use ($fixture): void {
+            // The first Query establishes the boundary before this independently recorded live change.
+            static $reads = 0;
+            if (++$reads === 2) { (new NoticeFixture($fixture->db))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']); }
+        };
+        $fixture->policy = static function ($filter, $uri, $notice) use ($response): bool {
+            if ($notice !== null) { $response->getBody()->close(); }
+            return true;
+        };
+        ob_start();
+        try { new McpResponseEmitter()->emitBody($response); $wire = ob_get_contents(); }
+        finally { ob_end_clean(); }
+        self::assertSame(1, substr_count($wire, 'data: '));
+        self::assertStringContainsString('acknowledged', $wire);
+        self::assertStringNotContainsString('list_changed', $wire);
+        self::assertStringNotContainsString('resultType', $wire);
+        self::assertTrue($response->getBody()->eof());
+        self::assertGreaterThan(0, (int) $fixture->db->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
+        self::assertSame(1, (int) $fixture->db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        self::assertFalse(SapiDouble::$ignoreAbort);
+        self::assertSame([], $fixture->diagnostics);
     }
 
     public function test_that_preexisting_disconnect_does_not_start_a_tool_and_restores_abort_policy(): void

@@ -164,8 +164,11 @@ is supplied; future inspection must apply separate authorization.
   reject before begin. No implicit retry can disguise uncertain tracking.
 - Stream lifetime defaults to **30 seconds**, configurable **1–120**. Wait defaults to **200,000 microseconds**,
   configurable **10,000–1,000,000**. A hard **12,000 work checks** also bounds production even independently of the
-  clock. Deadline/cancellation is checked between source calls and queued items. Recovery's default token TTL is
-  300 seconds, longer than the maximum stream lifetime; consumers must preserve a sufficient configured TTL.
+  clock. Deadline/cancellation is rechecked after opening, source, admission and tracking callbacks return, and
+  after waits, before new acknowledgment/change/keepalive output. An expired opening cannot establish a fresh
+  acknowledged stream; any registration already created is closed. An acknowledged stream may complete gracefully
+  at expiry, but cancellation during final tracking/closure suppresses that completion too. Recovery's default token
+  TTL is 300 seconds, longer than the maximum stream lifetime; preserve a sufficient configured TTL.
 - Maximum actual JSON/SSE frame defaults to **16,384 bytes**, configurable **256–65,536**, including escaping,
   multibyte request identity and metadata/framing. Over-limit frames fail, never truncate. The transport comment is
   13 bytes. A producer pauses after one frame until the emitter resumes; no unbounded queue or catch-up buffer.
@@ -174,7 +177,9 @@ These are cooperative **library work and observed-state bounds**, not preemptibl
 sockets. Consumers must also bound worker/process/socket admission, request/SQL/write timeouts, proxy buffers and
 memory. A blocked SAPI write or consumer Query/policy callback cannot be interrupted by PHP's next lifetime check.
 A stalled writer can outlive freshness; it must successfully renew before producing another frame when resumed.
-Kernel/proxy/client buffering can retain already written bytes and is not permission-cached production.
+Kernel/proxy/client buffering can retain already written bytes and is not permission-cached production. Closing
+an event-stream body during a producer callback also prevents that in-progress read from returning new bytes; it
+neither advances the read position nor retracts bytes returned by earlier reads.
 
 ## Live/native runtime qualification
 

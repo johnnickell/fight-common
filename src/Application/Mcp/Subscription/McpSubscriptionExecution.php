@@ -80,9 +80,21 @@ final class McpSubscriptionExecution
 
         try {
             $subscriber = Notice::reference($this->admission->subscriber());
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
             $accepted = $this->requested->accepted($this->supported, $this->admission, $subscriber);
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
             // Even an unsupported/denied request may acknowledge an empty subset, without revealing why.
             $batch = $this->batch(null, true);
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
             $this->store->open($id, $owner, [
                 'subscriber' => $subscriber,
                 'selection'  => $this->selection->toArray(),
@@ -90,8 +102,16 @@ final class McpSubscriptionExecution
                 'accepted'   => $accepted
             ], time(), time() + 5);
             $opened = true;
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
             if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
                 throw new RuntimeException('Subscription permission changed during opening.');
+            }
+
+            if ($this->shouldStop($deadline)) {
+                return;
             }
 
             $emit($this->frame([
@@ -105,6 +125,10 @@ final class McpSubscriptionExecution
             $continuation = $batch->continuation();
             while (!$this->shouldStop($deadline)) {
                 $this->store->heartbeat($id, $owner, time(), time() + 5);
+                if ($this->shouldStop($deadline)) {
+                    break;
+                }
+
                 $batch = $this->batch($continuation);
                 foreach ($batch->notices() as $view) {
                     if ($this->shouldStop($deadline)) {
@@ -112,7 +136,15 @@ final class McpSubscriptionExecution
                     }
 
                     $this->store->heartbeat($id, $owner, time(), time() + 5);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
                     $message = $this->notification($view->notice(), $accepted, $subscriber);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
                     if ($message !== null) {
                         $emit($this->frame($message));
                     }
@@ -122,15 +154,27 @@ final class McpSubscriptionExecution
                 if (!$this->shouldStop($deadline)) {
                     // A finite transport comment permits idle disconnect observation without a new MCP event.
                     usleep($this->waitMicroseconds);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
                     $this->store->heartbeat($id, $owner, time(), time() + 5);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
                     $emit(": keepalive\n\n");
                 }
             }
 
             if (!$this->cancelled) {
-                $this->store->heartbeat($id, $owner, time(), time() + 5);
-                $this->store->close($id, $owner, time());
+                $this->finish($id, $owner);
                 $opened = false;
+                // Expiry may complete an acknowledged stream, but callbacks can still cancel that final write.
+                if ($this->cancelled) {
+                    return;
+                }
+
                 $emit($this->frame([
                     'jsonrpc' => '2.0',
                     'id'      => $this->requestId,
@@ -152,6 +196,15 @@ final class McpSubscriptionExecution
                 }
             }
         }
+    }
+
+    /**
+     * Completes owned tracking before graceful output without treating callbacks as a permission lease
+     */
+    private function finish(string $id, string $owner): void
+    {
+        $this->store->heartbeat($id, $owner, time(), time() + 5);
+        $this->store->close($id, $owner, time());
     }
 
     /**
