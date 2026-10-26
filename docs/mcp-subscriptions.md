@@ -149,7 +149,13 @@ is supplied; future inspection must apply separate authorization.
   registrations are capped at **4,096**, including abandoned/closed rows. Capacity checks serialize with writes.
 - Timestamps use supplied shared-wall-clock integer seconds in 1–2,147,483,647. The stream renews a **five-second**
   observation lease on source/delivery boundaries. Heartbeats require matching owner, open row, nondecreasing time
-  and unexpired freshness. A same-second heartbeat is valid on MySQL even if its affected-row count is zero.
+  and unexpired freshness **at the serialized renewal boundary**, not merely before a capacity-lock wait.
+  `heartbeat(now, expires)` treats `now` as current at invocation, including an explicitly supplied clock epoch:
+  after acquiring the capacity lock, DBAL adds the nonnegative host wall-clock integer-second delta since invocation
+  to that supplied value. It checks old ownership against this advanced time and records that observation, keeping
+  the proposed `expires` unchanged. A wait crossing old expiry rejects without reviving the row even if the proposed
+  expiry is still future; an elapsed proposed expiry also rejects. It does not replace a supplied clock with the
+  host epoch or grant a new five seconds after waiting. A timely same-second MySQL no-op remains valid.
   The execution also checks the exact supplied lease after store callbacks return and before renewal: elapsed
   admission, source, store or write-resume work cannot revive expired tracking or produce a new healthy frame.
   This five-second prerequisite is independent of the longer stream lifetime; a slow final close suppresses
@@ -200,7 +206,10 @@ recording processes and actual SQLite/MySQL/PostgreSQL state. They observe ackno
 simultaneous scoped reused IDs, fresh revocation, source interruption with polling recovery, native delivery, idle
 socket closure and abrupt process death followed by stale/late-owner checks and cleanup. A paused client test is not
 a claim of saturated-kernel backpressure or instant disconnect detection. Unit tests separately prove bounded encoded
-frames, queued reauthorization/cancellation and source/tracking failure. Existing direct JSON and opt-in Tool-progress
+frames, queued reauthorization/cancellation and source/tracking failure. Clean independent-process capacity-lock
+journeys additionally exercise timely, old-but-not-proposed-expired, overlong and SQL-timeout renewals through the
+actual body/emitter on all three databases, with unchanged expired rows and authorized retained recovery.
+Existing direct JSON and opt-in Tool-progress
 journeys remain in the complete product gate. These are package proofs, not deployed Agent OS/Pi, proxy/server,
 client receipt or application processing qualification.
 

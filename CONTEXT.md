@@ -232,7 +232,10 @@ without buffering. Finite lifetime/waits, one bounded Query batch/frame and actu
 consumer worker/SQL/SAPI/proxy timeouts remain necessary because PHP cannot preempt blocked I/O. Returned callbacks
 must pass fresh cancellation/deadline and independent five-second tracking checks before new output. Owner-bound
 tracking is revalidated after admission, without reviving expired ownership or caching permission; even a returned
-store callback cannot make an already elapsed lease healthy. Expired opening produces no acknowledgment, and body
+store callback cannot make an already elapsed lease healthy. DBAL renewal advances the invocation-supplied clock
+by elapsed host wall-clock seconds after acquiring the capacity lock, checks old expiry at that serialized boundary
+and keeps the proposed expiry unchanged; lock waits cannot resurrect ownership. Supplied epochs remain supported
+under synchronized/no-rollback wall-clock assumptions. Expired opening produces no acknowledgment, and body
 closure during production suppresses bytes from the in-progress read. Failure preserves
 retained notices for independently authorized polling; reconnect starts a new live registration, not replay.
 See [live MCP subscriptions](docs/mcp-subscriptions.md) for exact composition, safe type mapping, numeric limits,

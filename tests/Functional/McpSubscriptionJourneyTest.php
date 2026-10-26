@@ -13,9 +13,11 @@ use Fight\Common\Adapter\Notice\Dbal\DbalNoticeSchema;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
 use Fight\Test\Common\TestCase\Notice\NoticeRecoveryFixture;
 use Fight\Test\Common\TestCase\Notice\NoticeRemovalFixture;
+use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
@@ -159,6 +161,83 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertSame('notifications/subscriptions/acknowledged', $this->nextFrame($socket)['method']);
         $tail = $this->drain($socket); self::assertCount(1, $tail); self::assertSame('complete', $tail[0]['result']['resultType']);
         $this->evidence['recovery_after_loss_and_overload'] = [$first, $second];
+    }
+
+    #[DataProvider('contentionCases')]
+    public function test_that_real_capacity_lock_waits_preserve_freshness_and_retained_recovery(string $backend, string $mode, string $transport): void
+    {
+        $this->setupDatabase($backend);
+        $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport], dirname(__DIR__, 2));
+        $this->processes[] = $process;
+        self::assertSame(0, $process->run(), $process->getErrorOutput());
+        $result = json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR);
+        $wire = $process->getOutput();
+        $this->evidence['contention'] = compact('mode', 'transport', 'wire', 'result');
+        self::assertSame(0, $result['worker_exit'], $result['worker_error']);
+        self::assertFalse($result['transaction_active']);
+        self::assertSame(1, $result['retained']);
+        self::assertSame(['status' => 'complete', 'ids' => ['retained']], $result['recovery']);
+        preg_match_all('/^data: (.+)$/m', $wire, $matches);
+        $frames = array_map(static fn ($json) => json_decode($json, true, flags: JSON_THROW_ON_ERROR), $matches[1]);
+        self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
+        foreach ($frames as $frame) { self::assertSame('7', $frame['params']['_meta']['io.modelcontextprotocol/subscriptionId']); }
+        self::assertSame((int) $result['original']['expires_at'], (int) $result['locked']['row']['expires_at']);
+        if ($mode === 'timeout') {
+            self::assertGreaterThan($result['started'] + 0.9, $result['returned']);
+            self::assertLessThan($result['locked']['at'], $result['returned'], 'SQL timeout returns before the independent lock holder releases');
+        } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process genuinely delayed renewal'); }
+        if ($mode === 'fast') {
+            self::assertLessThan((int) $result['original']['expires_at'], $result['locked']['at']);
+            self::assertSame(['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'], array_column($frames, 'method'));
+        } else {
+            self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['locked']['at']);
+            if ($mode !== 'overlong') { self::assertLessThan((int) $result['started'] + 5, $result['returned'], 'The proposed lease remains future'); }
+            else { self::assertGreaterThanOrEqual((int) $result['started'] + 5, $result['returned']); }
+            self::assertCount(1, $frames, 'No new change or completion after the acknowledgment');
+            self::assertStringNotContainsString('resultType', $wire);
+            self::assertStringNotContainsString('keepalive', $wire);
+            self::assertSame((int) $result['original']['observed_at'], (int) $result['row']['observed_at']);
+            self::assertSame((int) $result['original']['expires_at'], (int) $result['row']['expires_at'], 'No revival before suppressing output');
+            self::assertSame($result['position_before'], $result['position_after']);
+            self::assertTrue($result['eof']);
+            self::assertNotEmpty($result['diagnostics']);
+        }
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_same_second_noops_and_lost_ownership_preserve_dedicated_transaction_contracts(string $backend): void
+    {
+        $this->setupDatabase($backend);
+        $store = new DbalSubscriptionStore($this->db);
+        $id = str_repeat('1', 32); $owner = str_repeat('2', 32);
+        $context = ['subscriber' => 'caller', 'selection' => [], 'requested' => [], 'accepted' => []];
+        $store->open($id, $owner, $context, 100, 105);
+        $store->heartbeat($id, $owner, 101, 106);
+        $store->heartbeat($id, $owner, 101, 106);
+        self::assertSame(101, (int) $this->db->fetchOne('SELECT observed_at FROM fight_mcp_subscriptions'));
+        foreach (['foreign', 'expired', 'closed', 'cleaned'] as $condition) {
+            if ($condition === 'closed') { $store->close($id, $owner, 102); }
+            if ($condition === 'cleaned') { self::assertSame(1, $store->cleanup(102, 1)); }
+            try {
+                (new DbalSubscriptionStore($this->db))->heartbeat($id, $condition === 'foreign' ? str_repeat('3', 32) : $owner, $condition === 'expired' ? 106 : 102, $condition === 'expired' ? 111 : 107);
+                self::fail('Lost ownership must reject: '.$condition);
+            } catch (RuntimeException) { self::assertFalse($this->db->isTransactionActive()); }
+        }
+        $this->db->beginTransaction();
+        $this->db->insert('fight_mcp_subscriptions', ['registration_id' => $id, 'owner' => $owner, 'context' => '{}', 'opened_at' => 100, 'observed_at' => 100, 'expires_at' => 105, 'closed_at' => 0]);
+        try { (new DbalSubscriptionStore($this->db))->heartbeat($id, $owner, 101, 106); self::fail('Caller work'); }
+        catch (LogicException) { self::assertTrue($this->db->isTransactionActive()); }
+        $this->db->rollBack();
+        self::assertSame(0, (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+    }
+
+    public static function contentionCases(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach (['fast', 'expired', 'overlong', 'timeout'] as $mode) {
+                foreach (['body', 'emitter'] as $transport) { yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport]; }
+            }
+        }
     }
 
     public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }

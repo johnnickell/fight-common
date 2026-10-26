@@ -14,7 +14,9 @@ use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 #[CoversClass(DbalSubscriptionStore::class)]
@@ -107,6 +109,63 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         foreach (DbalSubscriptionSchema::TABLES as $table) { $model->dropTable($table); }
         $schema->addTo($model, new MySQL84Platform());
         self::assertSame('InnoDB', $model->getTable('fight_mcp_subscriptions')->getOption('engine'));
+    }
+
+    #[DataProvider('lockWaits')]
+    public function test_that_serialized_renewal_uses_elapsed_supplied_time_without_resurrecting_expired_ownership(string $mode, int $hold): void
+    {
+        $directory = sys_get_temp_dir().'/fight-subscription-lock-'.bin2hex(random_bytes(8));
+        self::assertTrue(mkdir($directory, 0700));
+        $params = ['driver' => 'pdo_sqlite', 'path' => $directory.'/db.sqlite'];
+        file_put_contents($directory.'/connection.json', json_encode($params, JSON_THROW_ON_ERROR));
+        $db = DriverManager::getConnection($params);
+        $db->executeStatement('PRAGMA busy_timeout = 7000');
+        (new DbalSubscriptionSchema())->install($db);
+        $store = new DbalSubscriptionStore($db);
+        // A non-host epoch is supported: advance the supplied clock, do not replace it with time().
+        $oldExpiry = $mode === 'fast' ? 105 : 101;
+        $store->open(self::ID, self::OWNER, self::context(), 100, $oldExpiry);
+        $worker = new Process([PHP_BINARY, 'tests/Fixture/Mcp/subscription-lock-worker.php', $directory, (string) $hold], dirname(__DIR__, 4));
+        try {
+            $worker->start();
+            $deadline = microtime(true) + 3;
+            while (!file_exists($directory.'/lock-ready') && microtime(true) < $deadline) { usleep(1000); }
+            self::assertFileExists($directory.'/lock-ready', $worker->getErrorOutput());
+            $started = time();
+            $failure = null;
+            try { $store->heartbeat(self::ID, self::OWNER, 100, 105); } catch (RuntimeException $error) { $failure = $error; }
+            $returned = time();
+            self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            $locked = json_decode(file_get_contents($directory.'/locked-state.json'), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame($oldExpiry, (int) $locked['row']['expires_at']);
+            self::assertGreaterThanOrEqual(1, (int) $locked['at'] - $started);
+            $row = $db->fetchAssociative('SELECT observed_at, expires_at, closed_at FROM fight_mcp_subscriptions');
+            if ($mode === 'fast') {
+                self::assertNull($failure);
+                self::assertGreaterThanOrEqual(100 + (int) $locked['at'] - $started, (int) $row['observed_at']);
+                self::assertLessThanOrEqual(100 + $returned - $started, (int) $row['observed_at']);
+                self::assertSame(105, (int) $row['expires_at'], 'Contention never extends the proposed lease');
+            } else {
+                if ($mode === 'expired') { self::assertLessThan(105, 100 + $returned - $started, 'Old but not proposed lease elapsed'); }
+                self::assertInstanceOf(RuntimeException::class, $failure, 'Expired ownership must fail at storage, not merely suppress a frame');
+                self::assertSame(100, (int) $row['observed_at']);
+                self::assertSame($oldExpiry, (int) $row['expires_at']);
+            }
+            self::assertSame(0, (int) $row['closed_at']);
+            self::assertFalse($db->isTransactionActive());
+        } finally {
+            $worker->stop(1);
+            $db->close();
+            foreach (glob($directory.'/*') as $file) { unlink($file); }
+            rmdir($directory);
+        }
+    }
+
+    public static function lockWaits(): iterable
+    {
+        yield 'expired' => ['expired', 1200000];
+        yield 'fast' => ['fast', 1200000];
+        yield 'overlong' => ['overlong', 5200000];
     }
 
     public static function context(): array { return ['subscriber' => 'caller', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => ['toolsListChanged' => true], 'accepted' => ['toolsListChanged' => true]]; }

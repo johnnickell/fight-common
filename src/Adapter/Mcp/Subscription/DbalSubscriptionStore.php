@@ -78,9 +78,16 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
      */
     public function heartbeat(string $id, string $owner, int $now, int $expires): void
     {
+        $startedAt = time();
         $this->identity($id, $owner, $now);
         $this->expiry($now, $expires);
-        $this->transaction(function () use ($id, $owner, $now, $expires): void {
+        $this->transaction(function () use ($id, $owner, $now, $expires, $startedAt): void {
+            // The supplied clock is as of invocation, not acquisition of the serialized write boundary.
+            $now += max(0, time() - $startedAt);
+            if ($expires <= $now) {
+                throw new RuntimeException('Subscription freshness elapsed while awaiting renewal.');
+            }
+
             $changed = $this->connection->executeStatement(
                 <<<'SQL'
                 UPDATE fight_mcp_subscriptions SET observed_at = ?, expires_at = ?

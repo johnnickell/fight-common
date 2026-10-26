@@ -18,6 +18,8 @@ interface McpSubscriptionStore
 
     /**
      * Updates only a still-fresh open registration owned by this execution
+     *
+     * The supplied clock is current at invocation; a serialized renewal must account for elapsed waiting time.
      */
     public function heartbeat(string $id, string $owner, int $now, int $expires): void;
 
