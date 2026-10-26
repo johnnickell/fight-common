@@ -51,6 +51,26 @@ of verified merged/integrated `done` markers is included in those scopes, not a 
 Read-only routing, Review and QA do not run it. Missing resources or unresolved evidence hold the affected action;
 never fall back to provider plans or weaken Common rules.
 
+## Integrated delivery and resource retirement
+
+For TASK publication, resolve the live GitHub default branch against Common's `develop` policy and the existing
+subject PR before reconciliation, immediately before publication and at final handoff. Use the resolved provider's
+`.pi/skills/land/scripts/bind-target.py` with the selected target `--root`, actual `--policy develop`, and existing
+`--pr`/`--head` when present. Retain its observation; use that bound base throughout, never stale `origin/HEAD` or
+a provider literal. A default/policy/PR conflict requires explicit owner disposition, not silent retargeting.
+
+Consume the provider's `docs/engineering/LANDING.md` cleanup-only intake, inventory/preservation, live-consumer,
+Git/Docker retirement and postcondition/resume sections (TASK-00534 plus qualified TASK-00537 contract). These
+apply alongside Common gates, replacing no package/release guarantees. Publication, authored/generated handoff
+synchronization and eligible local retirement are separate required obligations: a held resource means incomplete
+cleanup. Cleanup-only after verified merge needs no metadata-correction PR or repeated implementation gate.
+Discover orphan stacks independently of worktrees; corroborate paths/topology/source and data ownership, never
+names/labels alone. After an owned worker exits, continue from a verified safe checkout with the original model/
+ledger/authority; preserve a genuinely active coordinator. Positively qualify Docker VM read-only sharing against
+all containers (including stopped), parent mounts, host cwd/writers and stable preserved manifests; ambiguous
+readers remain held, never stop a shared VM. Preserve active/dirty/shared resources, reports, credentials and
+durable data. Reobserve current consumers and resume only missing effects with exact postconditions/finite holds.
+
 ## Entry points and authority
 
 Confirm skill availability through installed metadata/bindings. These commands describe supported shared
