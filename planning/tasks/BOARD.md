@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | in-progress | — |
+| Ready Frontier | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -58,22 +58,21 @@ empty. Offline validation alone proves no live PR state; no watcher or later aut
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | [TICKET-00050 — Supply requested input to asynchronous operations](../tickets/00050-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md) | — |
-| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00169](00169-TASK.md), [TASK-00170](00170-TASK.md) | — |
-| — | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | [TICKET-00050 — Supply requested input to asynchronous operations](../tickets/00050-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md) | — |
-| — | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | [TICKET-00051 — Request cooperative cancellation of asynchronous operations](../tickets/00051-TICKET.md) | ready-for-agent | [TASK-00166](00166-TASK.md), [TASK-00169](00169-TASK.md) | — |
+| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | [TASK-00169](00169-TASK.md), [TASK-00170](00170-TASK.md) | — |
+| — | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | [TICKET-00051 — Request cooperative cancellation of asynchronous operations](../tickets/00051-TICKET.md) | ready-for-agent | [TASK-00169](00169-TASK.md) | — |
 | — | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | [TICKET-00052 — Follow live Task state and recover after reconnecting](../tickets/00052-TICKET.md) | ready-for-agent | [TASK-00168](00168-TASK.md) | — |
 
 ## Needs Info
@@ -162,6 +161,7 @@ empty. Offline validation alone proves no live PR state; no watcher or later aut
 | — | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | done | — | [PR #243](https://github.com/johnnickell/fight-common/pull/243) |
 | — | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | done | — | [PR #245](https://github.com/johnnickell/fight-common/pull/245) |
 | — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | done | — | [PR #246](https://github.com/johnnickell/fight-common/pull/246) |
+| — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | — |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | done | — | [PR #247](https://github.com/johnnickell/fight-common/pull/247) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |

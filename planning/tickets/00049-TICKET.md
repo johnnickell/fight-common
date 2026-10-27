@@ -102,7 +102,7 @@ implemented. These are future obligations, not checks already run or actual Agen
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | in-progress |
+| [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | done |
 | [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent |
 | [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent |
 <!-- /planning:children -->
@@ -174,16 +174,8 @@ Task polling gains no dependency on Subscriptions/Mercure.
 
 ## Current implementation handoff
 
-TASK-00166 now supplies the reusable lifecycle, direct three-database persistence and protected current-state Query,
-with local verification recorded in its [Work checkpoint](../tasks/00166-TASK.md#work-implementation-checkpoint).
-Independent Review accepted the earlier integrated head `51bb3966ebf3389e2da5cea6eac6f3e35ed69b7e`; QA remains
-INCOMPLETE with no confirmed defect. The
-[latest checkpoint](../tasks/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy) records the newer
-verified develop merge, permanent no-post-merge-Board-chore policy, fresh full/focused gates and preserved isolated
-three-database fixtures. This latest base/policy subject needs fresh independent Review, then required QA; the TICKET
-is not implementation-complete. Removal and complete MCP activation remain with
-TASK-00167/00168 and their actual suppliers. No Tasks extension advertisement or consumer runtime qualification follows
-from the lifecycle alone. The statements above about no implementation/publication describe planning approval, not the
-current Task implementation checkpoint.
-
-Next: `/skill:review TASK-00166` in a fresh independent session, then independent QA of the integrated subject.
+TASK-00166 supplies the reusable lifecycle, direct three-database persistence and protected current-state Query.
+Its [acceptance checkpoint](../tasks/00166-TASK.md#acceptance-checkpoint-before-publication) records independent
+Review and QA for the current candidate. This TICKET remains incomplete: removal and complete MCP activation remain
+with TASK-00167/00168 and their suppliers. No Tasks extension advertisement or consumer runtime qualification follows
+from the lifecycle alone. Statements above about no implementation/publication describe planning approval.
