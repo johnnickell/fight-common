@@ -67,7 +67,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00162](00162-TASK.md) | Follow Tool and Resource changes through live MCP | done | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00163](00163-TASK.md) | Summarize and inspect current MCP subscribers | done | [TICKET-00047](../tickets/00047-TICKET.md) |
 | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | done | [TICKET-00047](../tickets/00047-TICKET.md) |
-| [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent | [TICKET-00048](../tickets/00048-TICKET.md) |
+| [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | in-progress | [TICKET-00048](../tickets/00048-TICKET.md) |
 | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
 | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
 | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent | [TICKET-00049](../tickets/00049-TICKET.md) |
