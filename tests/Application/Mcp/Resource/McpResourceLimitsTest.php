@@ -15,11 +15,12 @@ final class McpResourceLimitsTest extends UnitTestCase
 {
     public function test_that_defaults_and_consistent_boundary_overrides_are_retained(): void
     {
-        self::assertSame([4096, 16384, 100, 10000, 32, 1048576], array_values(get_object_vars(new McpResourceLimits())));
+        $defaults = new McpResourceLimits();
+        self::assertSame([4096, 16384, 100, 10000, 32, 1048576], [$defaults->maxUriBytes(), $defaults->maxDescriptorBytes(), $defaults->pageSize(), $defaults->maxDescriptors(), $defaults->maxProviders(), $defaults->maxResultBytes()]);
         $limits = new McpResourceLimits(1, 33, 1, 1, 1, 289);
-        self::assertSame([1, 33, 1, 1, 1, 289], array_values(get_object_vars($limits)));
+        self::assertSame([1, 33, 1, 1, 1, 289], [$limits->maxUriBytes(), $limits->maxDescriptorBytes(), $limits->pageSize(), $limits->maxDescriptors(), $limits->maxProviders(), $limits->maxResultBytes()]);
         $maximum = new McpResourceLimits(1048576, 16777216, 1000, 1000000, 256, 67108864);
-        self::assertSame(67108864, $maximum->maxResultBytes);
+        self::assertSame(67108864, $maximum->maxResultBytes());
     }
 
     #[DataProvider('invalidLimits')]

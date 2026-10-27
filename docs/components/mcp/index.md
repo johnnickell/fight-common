@@ -57,6 +57,12 @@ atlas_local_contents:
     href: "#consumer-wiring"
 ---
 
+Read released MCP limit values through typed property-name getters such as `maxBytes()`, `maxDepth()`,
+`pageSize()` and `maxResultBytes()`. Skill members likewise expose `path()`, `bytes()`, `mimeType()`, `text()`
+and `digest()`. Their old public readonly properties remain supported with documentation-only deprecation;
+see the [complete getter migration and release window](../../maintenance/public-property-getters.md).
+No budget, validation or wire representation changes with getter adoption.
+
 ## Ownership
 
 `Application\Mcp` implements framework-neutral MCP `2026-07-28` semantics. It decodes a JSON-RPC request,

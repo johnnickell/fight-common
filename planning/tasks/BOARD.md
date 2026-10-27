@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent | — |
+| Active Work | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -47,7 +47,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00164](00164-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/245](https://github.com/johnnickell/fight-common/pull/245) |
+| None | — | — |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -55,7 +55,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -63,7 +63,6 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 |---|---|---|---|---|---|---|
 | — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
-| — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 

@@ -37,13 +37,13 @@ final class OAuthHttpTest extends UnitTestCase
         $factory = new HttpFactory();
         $metadata = OAuthFixture::metadata();
         $handler = new OAuthMetadataHandler($metadata, new OAuthResponseFactory($factory, $factory));
-        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl));
+        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl()));
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
         self::assertSame($metadata->toJson(), (string) $response->getBody());
         self::assertFalse($response->hasHeader('Set-Cookie'));
         foreach (['POST', 'HEAD', 'OPTIONS'] as $method) {
-            $response = $handler->handle(new ServerRequest($method, $metadata->metadataUrl));
+            $response = $handler->handle(new ServerRequest($method, $metadata->metadataUrl()));
             self::assertSame(405, $response->getStatusCode());
             self::assertSame('GET', $response->getHeaderLine('Allow'));
             self::assertSame('', (string) $response->getBody());
@@ -56,7 +56,7 @@ final class OAuthHttpTest extends UnitTestCase
         $issuers = ['https://second.test/tenant', OAuthFixture::ISSUER];
         $metadata = OAuthResourceMetadata::fromConfiguration(OAuthFixture::RESOURCE, $issuers, OAuthScopeSet::fromArray([]));
         $handler = new OAuthMetadataHandler($metadata, new OAuthResponseFactory($factory, $factory));
-        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl));
+        $response = $handler->handle(new ServerRequest('GET', $metadata->metadataUrl()));
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
         self::assertSame([

@@ -72,8 +72,8 @@ final class OAuthMcpJourneyTest extends TestCase
         $handoff->expects(in_array($scenario, ['valid', 'handoff', 'endpoint-failure'], true) ? self::once() : self::never())->method('accept')->willReturnCallback(function (OAuthValidatedClaims $claims) use ($scenario, &$handoffCalls, &$sequence): void {
             ++$handoffCalls;
             $sequence[] = 'handoff';
-            self::assertSame('fixture-subject', $claims->claims->get('sub'));
-            self::assertFalse($claims->claims->has('credential'));
+            self::assertSame('fixture-subject', $claims->claims()->get('sub'));
+            self::assertFalse($claims->claims()->has('credential'));
             if ($scenario === 'handoff') { throw new RuntimeException('private-claim context resolution failure'); }
         });
         $diagnostics = new class implements OAuthDiagnostics {
@@ -105,7 +105,7 @@ final class OAuthMcpJourneyTest extends TestCase
             'body' => $request->withoutHeader('Authorization')->withHeader('Content-Type', 'application/x-www-form-urlencoded')->withBody($factory->createStream('access_token=secret-token')),
             'hmac' => $request->withHeader('Authorization', 'HMAC-SHA256'), default => $request
         };
-        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata, $responses))->handle(new ServerRequest('GET', $requirements->metadata->metadataUrl));
+        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata(), $responses))->handle(new ServerRequest('GET', $requirements->metadata()->metadataUrl()));
         self::assertSame(200, $metadataResponse->getStatusCode());
         self::assertSame(OAuthFixture::RESOURCE, json_decode((string) $metadataResponse->getBody(), true)['resource']);
         $response = $middleware->process($request, $endpoint);
@@ -119,8 +119,8 @@ final class OAuthMcpJourneyTest extends TestCase
             if ($classification === OAuthFailure::INTERNAL_ERROR) { self::assertNotEmpty($diagnostics->records[0]['trace']); }
         }
         if ($status === 400 || $status === 401 || $status === 403) {
-            self::assertStringContainsString('resource_metadata="'.$requirements->metadata->metadataUrl.'"', $response->getHeaderLine('WWW-Authenticate'));
-            self::assertStringContainsString('scope="'.implode(' ', $scopes->values).'"', $response->getHeaderLine('WWW-Authenticate'));
+            self::assertStringContainsString('resource_metadata="'.$requirements->metadata()->metadataUrl().'"', $response->getHeaderLine('WWW-Authenticate'));
+            self::assertStringContainsString('scope="'.implode(' ', $scopes->values()).'"', $response->getHeaderLine('WWW-Authenticate'));
             if ($error === null) { self::assertStringNotContainsString('error=', $response->getHeaderLine('WWW-Authenticate')); }
             else { self::assertStringContainsString('error="'.$error.'"', $response->getHeaderLine('WWW-Authenticate')); }
         }

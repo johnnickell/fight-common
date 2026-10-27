@@ -18,10 +18,26 @@ final readonly class McpSkillLimits
      * Resource limits independently constrain individual files and their complete encoded read results.
      */
     public function __construct(
+        /**
+         * @deprecated Use maxFiles() instead; retained until a future major after at least one released minor
+         */
         public int $maxFiles = 512,
+        /**
+         * @deprecated Use maxTotalBytes() instead; retained until a future major after at least one released minor
+         */
         public int $maxTotalBytes = 16777216,
+        /**
+         * @deprecated Use maxFrontmatterBytes() instead
+         * Retained until a future major after at least one released minor
+         */
         public int $maxFrontmatterBytes = 65536,
+        /**
+         * @deprecated Use maxDepth() instead; retained until a future major after at least one released minor
+         */
         public int $maxDepth = 32,
+        /**
+         * @deprecated Use maxEntryBytes() instead; retained until a future major after at least one released minor
+         */
         public int $maxEntryBytes = 4194304
     ) {
         if (
@@ -33,5 +49,45 @@ final readonly class McpSkillLimits
         ) {
             throw new DomainException('Skill limits must be finite and within the static interoperability envelope.');
         }
+    }
+
+    /**
+     * Returns the maximum revision member count
+     */
+    public function maxFiles(): int
+    {
+        return $this->maxFiles;
+    }
+
+    /**
+     * Returns the total raw revision byte budget
+     */
+    public function maxTotalBytes(): int
+    {
+        return $this->maxTotalBytes;
+    }
+
+    /**
+     * Returns the JSON frontmatter byte budget
+     */
+    public function maxFrontmatterBytes(): int
+    {
+        return $this->maxFrontmatterBytes;
+    }
+
+    /**
+     * Returns the frontmatter parsing depth limit
+     */
+    public function maxDepth(): int
+    {
+        return $this->maxDepth;
+    }
+
+    /**
+     * Returns the encoded complete entry byte budget
+     */
+    public function maxEntryBytes(): int
+    {
+        return $this->maxEntryBytes;
     }
 }

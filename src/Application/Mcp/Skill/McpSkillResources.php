@@ -134,12 +134,12 @@ final readonly class McpSkillResources implements McpProtectedResourceProvider
         }
 
         $file = $this->owners[$resource->uri()]->file($resource->uri());
-        $stream = $this->streams->createStream($file->bytes);
+        $stream = $this->streams->createStream($file->bytes());
 
-        if ($file->text) {
-            return McpResourceContent::text($resource, $stream, $file->digest);
+        if ($file->text()) {
+            return McpResourceContent::text($resource, $stream, $file->digest());
         }
 
-        return McpResourceContent::binary($resource, $stream, $file->digest);
+        return McpResourceContent::binary($resource, $stream, $file->digest());
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Auth\OAuth;
 
+use Error;
+use ErrorException;
 use Fight\Common\Application\Auth\OAuth\OAuthResourceMetadata;
 use Fight\Common\Application\Auth\OAuth\OAuthScopeSet;
 use Fight\Common\Application\Auth\OAuth\OAuthTokenRequirements;
@@ -25,8 +27,8 @@ final class OAuthConfigurationTest extends UnitTestCase
     {
         $issuers = ['https://second.test/tenant', OAuthFixture::ISSUER];
         $metadata = OAuthFixture::metadata($issuers);
-        self::assertSame($issuers, $metadata->authorizationServers);
-        self::assertSame('https://resource.test/.well-known/oauth-protected-resource/mcp', $metadata->metadataUrl);
+        self::assertSame($issuers, $metadata->authorizationServers());
+        self::assertSame('https://resource.test/.well-known/oauth-protected-resource/mcp', $metadata->metadataUrl());
         self::assertSame(['resource' => OAuthFixture::RESOURCE, 'authorization_servers' => $issuers, 'scopes_supported' => ['mcp:read'], 'bearer_methods_supported' => ['header']], json_decode($metadata->toJson(), true));
         $requirements = OAuthTokenRequirements::fromConfiguration($metadata, 'at+jwt', ['RS256'], ['https://second.test/tenant' => ['tenant-key'], OAuthFixture::ISSUER => ['current']], ['sub' => 'string']);
         self::assertTrue($requirements->accepts(OAuthFixture::claims(), time()));
@@ -49,9 +51,9 @@ final class OAuthConfigurationTest extends UnitTestCase
     public function test_that_well_known_path_insertion_preserves_resource_identity(string $resource, string $expected): void
     {
         $metadata = OAuthResourceMetadata::fromConfiguration($resource, [OAuthFixture::ISSUER], OAuthScopeSet::fromArray([]));
-        self::assertSame($resource, $metadata->resource);
-        self::assertSame($expected, $metadata->metadataUrl);
-        self::assertSame('https://metadata.test/custom', OAuthResourceMetadata::fromConfiguration($resource, [OAuthFixture::ISSUER], OAuthScopeSet::fromArray([]), 'https://metadata.test/custom')->metadataUrl);
+        self::assertSame($resource, $metadata->resource());
+        self::assertSame($expected, $metadata->metadataUrl());
+        self::assertSame('https://metadata.test/custom', OAuthResourceMetadata::fromConfiguration($resource, [OAuthFixture::ISSUER], OAuthScopeSet::fromArray([]), 'https://metadata.test/custom')->metadataUrl());
     }
 
     public static function metadataLocations(): iterable
@@ -84,7 +86,7 @@ final class OAuthConfigurationTest extends UnitTestCase
     public function test_that_scopes_are_sorted_case_sensitive_sets_with_no_policy_inference(): void
     {
         $scopes = OAuthScopeSet::fromArray(['write', 'Read', '0', 'read']);
-        self::assertSame(['0', 'Read', 'read', 'write'], $scopes->values);
+        self::assertSame(['0', 'Read', 'read', 'write'], $scopes->values());
         self::assertTrue($scopes->includes(OAuthScopeSet::fromArray(['read', 'write'])));
         self::assertTrue($scopes->includes(OAuthScopeSet::fromArray([])));
         self::assertFalse($scopes->includes(OAuthScopeSet::fromArray(['admin'])));
@@ -149,8 +151,8 @@ final class OAuthConfigurationTest extends UnitTestCase
             self::assertFalse($requirements->accepts(OAuthFixture::claims(array_replace($values, [$name => null])), 90));
         }
         $values['context']->id = 'mutated';
-        self::assertSame('private', $claims->claims->get('context')->get('id'));
-        self::assertSame('overlap', $claims->keyId);
+        self::assertSame('private', $claims->claims()->get('context')->get('id'));
+        self::assertSame('overlap', $claims->keyId());
     }
 
     public function test_that_configuration_snapshots_do_not_retain_caller_array_references(): void
@@ -165,11 +167,71 @@ final class OAuthConfigurationTest extends UnitTestCase
         $issuer = 'http://changed.test';
         $keys = ['attacker-key'];
         $type = 'integer';
-        self::assertSame([OAuthFixture::ISSUER], $metadata->authorizationServers);
-        self::assertSame([OAuthFixture::ISSUER => ['current']], $requirements->activeKeyIds);
-        self::assertSame(['sub' => 'string'], $requirements->requiredClaimTypes);
+        self::assertSame([OAuthFixture::ISSUER], $metadata->authorizationServers());
+        self::assertSame([OAuthFixture::ISSUER => ['current']], $requirements->activeKeyIds());
+        self::assertSame(['sub' => 'string'], $requirements->requiredClaimTypes());
         self::assertTrue($requirements->accepts(OAuthFixture::claims(), time()));
         self::assertFalse($requirements->accepts(OAuthFixture::claims(key: 'attacker-key'), time()));
+    }
+
+    public function test_that_getters_preserve_every_legacy_value_identity_and_serialized_state(): void
+    {
+        $scopes = OAuthScopeSet::fromArray(['write', 'read']);
+        $metadata = OAuthResourceMetadata::fromConfiguration(resource: OAuthFixture::RESOURCE, authorizationServers: [OAuthFixture::ISSUER], scopesSupported: $scopes, metadataUrl: 'https://metadata.test/custom');
+        $requirements = OAuthTokenRequirements::fromConfiguration(metadata: $metadata, tokenType: 'at+jwt', allowedAlgorithms: ['RS256'], activeKeyIds: [OAuthFixture::ISSUER => ['current']], requiredClaimTypes: ['sub' => 'string'], clockSkewSeconds: 10);
+        $snapshot = StrictJson::fromObject(['sub' => 'private', 'active' => false, 'items' => []]);
+        $claims = OAuthValidatedClaims::fromVerifiedToken(claims: $snapshot, algorithm: 'RS256', keyId: 'current', tokenType: 'at+jwt', grantedScopes: $scopes);
+        $cases = [
+            [$scopes, ['values' => ['read', 'write']]],
+            [$metadata, ['resource' => OAuthFixture::RESOURCE, 'metadataUrl' => 'https://metadata.test/custom', 'authorizationServers' => [OAuthFixture::ISSUER], 'scopesSupported' => $scopes]],
+            [$requirements, ['metadata' => $metadata, 'tokenType' => 'at+jwt', 'allowedAlgorithms' => ['RS256'], 'activeKeyIds' => [OAuthFixture::ISSUER => ['current']], 'requiredClaimTypes' => ['sub' => 'string'], 'clockSkewSeconds' => 10]],
+            [$claims, ['claims' => $snapshot, 'algorithm' => 'RS256', 'keyId' => 'current', 'tokenType' => 'at+jwt', 'grantedScopes' => $scopes]]
+        ];
+        set_error_handler(static function (int $severity, string $message): never {
+            throw new ErrorException($message, 0, $severity);
+        });
+        try {
+            foreach ($cases as [$value, $expected]) {
+                $serialized = serialize($value);
+                $json = json_encode($value, JSON_THROW_ON_ERROR);
+                self::assertSame($expected, get_object_vars($value));
+                foreach ($expected as $property => $state) {
+                    // Deliberate legacy-contract probes, not ordinary OAuth callers.
+                    self::assertSame($state, $value->$property);
+                    self::assertSame($state, $value->$property());
+                    try {
+                        $value->$property = $state;
+                        self::fail('Legacy OAuth state must remain readonly.');
+                    } catch (Error $error) {
+                        self::assertStringContainsString('readonly property', $error->getMessage());
+                    }
+                }
+                self::assertSame($serialized, serialize($value));
+                self::assertSame($json, json_encode(unserialize($serialized), JSON_THROW_ON_ERROR));
+                $restored = unserialize($serialized);
+                foreach ($expected as $property => $state) {
+                    self::assertEquals($state, $restored->$property());
+                }
+            }
+        } finally {
+            restore_error_handler();
+        }
+        $issuers = $metadata->authorizationServers();
+        $issuers[0] = 'https://attacker.test';
+        $algorithms = $requirements->allowedAlgorithms();
+        $algorithms[] = 'none';
+        $keys = $requirements->activeKeyIds();
+        $keys[OAuthFixture::ISSUER][0] = 'attacker';
+        $types = $requirements->requiredClaimTypes();
+        $types['sub'] = 'integer';
+        $tokens = $scopes->values();
+        $tokens[] = 'admin';
+        self::assertSame([OAuthFixture::ISSUER], $metadata->authorizationServers());
+        self::assertSame(['RS256'], $requirements->allowedAlgorithms());
+        self::assertSame([OAuthFixture::ISSUER => ['current']], $requirements->activeKeyIds());
+        self::assertSame(['sub' => 'string'], $requirements->requiredClaimTypes());
+        self::assertSame(['read', 'write'], $scopes->values());
+        self::assertSame([], OAuthScopeSet::fromArray([])->values());
     }
 
     public function test_that_validated_claims_require_an_object_and_complete_verification_identifiers(): void

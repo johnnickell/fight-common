@@ -18,9 +18,22 @@ final readonly class OAuthResourceMetadata
      * @phpstan-param non-empty-list<string> $authorizationServers
      */
     private function __construct(
+        /**
+         * @deprecated Use resource() instead; retained until a future major after at least one released minor
+         */
         public string $resource,
+        /**
+         * @deprecated Use metadataUrl() instead; retained until a future major after at least one released minor
+         */
         public string $metadataUrl,
+        /**
+         * @deprecated Use authorizationServers() instead
+         * Retained until a future major after at least one released minor
+         */
         public array $authorizationServers,
+        /**
+         * @deprecated Use scopesSupported() instead; retained until a future major after at least one released minor
+         */
         public OAuthScopeSet $scopesSupported
     ) {
     }
@@ -68,6 +81,40 @@ final readonly class OAuthResourceMetadata
     }
 
     /**
+     * Returns the configured protected resource identifier
+     */
+    public function resource(): string
+    {
+        return $this->resource;
+    }
+
+    /**
+     * Returns the configured metadata URL
+     */
+    public function metadataUrl(): string
+    {
+        return $this->metadataUrl;
+    }
+
+    /**
+     * Returns the configured authorization servers
+     *
+     * @phpstan-return non-empty-list<string>
+     */
+    public function authorizationServers(): array
+    {
+        return $this->authorizationServers;
+    }
+
+    /**
+     * Returns the configured supported scopes
+     */
+    public function scopesSupported(): OAuthScopeSet
+    {
+        return $this->scopesSupported;
+    }
+
+    /**
      * Returns only configured public metadata with header-only Bearer transport
      */
     public function toJson(): string
@@ -76,8 +123,8 @@ final readonly class OAuthResourceMetadata
             'resource'              => $this->resource,
             'authorization_servers' => $this->authorizationServers
         ];
-        if ($this->scopesSupported->values !== []) {
-            $metadata['scopes_supported'] = $this->scopesSupported->values;
+        if ($this->scopesSupported->values() !== []) {
+            $metadata['scopes_supported'] = $this->scopesSupported->values();
         }
 
         $metadata['bearer_methods_supported'] = ['header'];
