@@ -17,8 +17,17 @@ final readonly class SafeHttpMetadata
      * Constructs SafeHttpMetadata
      */
     public function __construct(
+        /**
+         * @deprecated Use challenge() instead; retained until a future major after at least one released minor
+         */
         public ?string $challenge = null,
+        /**
+         * @deprecated Use allow() instead; retained until a future major after at least one released minor
+         */
         public ?string $allow = null,
+        /**
+         * @deprecated Use retryAfterSeconds() instead; retained until a future major after at least one released minor
+         */
         public ?int $retryAfterSeconds = null
     ) {
         if ($challenge !== null && !$this->validChallenge($challenge)) {
@@ -33,6 +42,30 @@ final readonly class SafeHttpMetadata
         if ($retryAfterSeconds !== null && $retryAfterSeconds < 0) {
             throw new InvalidArgumentException('Invalid Retry-After seconds.');
         }
+    }
+
+    /**
+     * Returns the selected authentication challenge
+     */
+    public function challenge(): ?string
+    {
+        return $this->challenge;
+    }
+
+    /**
+     * Returns the selected Allow methods
+     */
+    public function allow(): ?string
+    {
+        return $this->allow;
+    }
+
+    /**
+     * Returns the selected retry delay in seconds
+     */
+    public function retryAfterSeconds(): ?int
+    {
+        return $this->retryAfterSeconds;
     }
 
     /**

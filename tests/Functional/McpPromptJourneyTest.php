@@ -199,7 +199,7 @@ final class McpPromptJourneyTest extends TestCase
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $get['messages'][1]['content']['uri']])['error']['code']);
         self::assertSame([], $documents->opened);
         $resourceAccess->allowed = true;
-        self::assertSame($revision->file($skillUri)->bytes, $this->response($app, 'resources/read', ['uri' => $skillUri])['result']['contents'][0]['text']);
+        self::assertSame($revision->file($skillUri)->bytes(), $this->response($app, 'resources/read', ['uri' => $skillUri])['result']['contents'][0]['text']);
         self::assertNotEmpty($this->response($app, 'resources/list')['result']['resources']);
         self::assertSame($skillUri, $this->response($app, 'skills/get', ['uri' => $skillUri])['result']['skill']['uri']);
         self::assertCount(1, $this->response($app, 'skills/list')['result']['skills']);

@@ -75,7 +75,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | ready-for-agent | [TICKET-00051](../tickets/00051-TICKET.md) |
 | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent | [TICKET-00052](../tickets/00052-TICKET.md) |
 | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | done | — |
-| [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | ready-for-agent | — |
+| [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | done | — |
 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | done | — |
 | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | done | — |
 | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | done | — |

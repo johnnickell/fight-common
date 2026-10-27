@@ -6,6 +6,11 @@ Explicitly compose `McpSkillDiscovery` for complete `skills/list`, exact `skills
 `io.modelcontextprotocol/skills` advertisement. Directory RPC, subscriptions, rendering, execution, catalog storage
 and host activation are not provided.
 
+Use typed getters for member state (`path()`, `bytes()`, `mimeType()`, `text()`, `digest()`) and limits
+(e.g. `maxFiles()`, `maxFrontmatterBytes()`, `maxEntryBytes()`). Public readonly properties remain supported,
+deprecated in documentation only; see the [complete migration and release window](../../maintenance/public-property-getters.md).
+`text()` returns the Boolean classification, while `bytes()` preserves the original content without new I/O or hashing.
+
 ## Snapshot and integrity contract
 
 **Contract: `fight-common.behavior.mcp-skill-revisions`**

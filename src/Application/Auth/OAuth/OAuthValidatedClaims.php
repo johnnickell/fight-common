@@ -20,10 +20,25 @@ final readonly class OAuthValidatedClaims
      * Constructs OAuthValidatedClaims
      */
     private function __construct(
+        /**
+         * @deprecated Use claims() instead; retained until a future major after at least one released minor
+         */
         public StrictJson $claims,
+        /**
+         * @deprecated Use algorithm() instead; retained until a future major after at least one released minor
+         */
         public string $algorithm,
+        /**
+         * @deprecated Use keyId() instead; retained until a future major after at least one released minor
+         */
         public string $keyId,
+        /**
+         * @deprecated Use tokenType() instead; retained until a future major after at least one released minor
+         */
         public string $tokenType,
+        /**
+         * @deprecated Use grantedScopes() instead; retained until a future major after at least one released minor
+         */
         public OAuthScopeSet $grantedScopes
     ) {
     }
@@ -46,5 +61,45 @@ final readonly class OAuthValidatedClaims
         }
 
         return new self($claims, $algorithm, $keyId, $tokenType, $grantedScopes);
+    }
+
+    /**
+     * Returns the immutable verified claims snapshot
+     */
+    public function claims(): StrictJson
+    {
+        return $this->claims;
+    }
+
+    /**
+     * Returns the verified signature algorithm
+     */
+    public function algorithm(): string
+    {
+        return $this->algorithm;
+    }
+
+    /**
+     * Returns the verified key identifier
+     */
+    public function keyId(): string
+    {
+        return $this->keyId;
+    }
+
+    /**
+     * Returns the verified token purpose
+     */
+    public function tokenType(): string
+    {
+        return $this->tokenType;
+    }
+
+    /**
+     * Returns the trusted effective scopes
+     */
+    public function grantedScopes(): OAuthScopeSet
+    {
+        return $this->grantedScopes;
     }
 }

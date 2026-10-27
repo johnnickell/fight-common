@@ -21,7 +21,7 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
      */
     public function parse(string $yaml, McpSkillLimits $limits): StrictJson
     {
-        if (strlen($yaml) > $limits->maxFrontmatterBytes || !mb_check_encoding($yaml, 'UTF-8')) {
+        if (strlen($yaml) > $limits->maxFrontmatterBytes() || !mb_check_encoding($yaml, 'UTF-8')) {
             throw new DomainException('Skill frontmatter exceeds its raw budget or is not UTF-8.');
         }
 
@@ -30,14 +30,14 @@ final readonly class SymfonyMcpSkillFrontmatterParser implements McpSkillFrontma
             // No object, constant or custom-tag execution flags are enabled. Aliases fail before expansion.
             $flags = Yaml::PARSE_OBJECT_FOR_MAP | Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE;
             $flags |= Yaml::PARSE_EXCEPTION_ON_ALIAS | Yaml::PARSE_DATETIME;
-            $this->validateMappingKeys($yaml, $flags, $limits->maxDepth);
-            $value = Yaml::parse($yaml, $flags, $limits->maxDepth, 0);
+            $this->validateMappingKeys($yaml, $flags, $limits->maxDepth());
+            $value = Yaml::parse($yaml, $flags, $limits->maxDepth(), 0);
         } catch (Throwable $throwable) {
             throw new DomainException('Skill frontmatter requires safe unambiguous YAML.', previous: $throwable);
         }
 
-        $data = StrictJson::fromData($value, $limits->maxDepth);
-        if (!$data->isObject() || strlen($data->toString()) > $limits->maxFrontmatterBytes) {
+        $data = StrictJson::fromData($value, $limits->maxDepth());
+        if (!$data->isObject() || strlen($data->toString()) > $limits->maxFrontmatterBytes()) {
             throw new DomainException('Skill frontmatter must be a bounded JSON object.');
         }
 

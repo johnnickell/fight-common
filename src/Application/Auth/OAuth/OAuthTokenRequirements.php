@@ -24,11 +24,29 @@ final readonly class OAuthTokenRequirements
      * @phpstan-param non-empty-array<string, 'string'|'integer'|'boolean'|'number'|'object'|'list'> $requiredClaimTypes
      */
     private function __construct(
+        /**
+         * @deprecated Use metadata() instead; retained until a future major after at least one released minor
+         */
         public OAuthResourceMetadata $metadata,
+        /**
+         * @deprecated Use tokenType() instead; retained until a future major after at least one released minor
+         */
         public string $tokenType,
+        /**
+         * @deprecated Use allowedAlgorithms() instead; retained until a future major after at least one released minor
+         */
         public array $allowedAlgorithms,
+        /**
+         * @deprecated Use activeKeyIds() instead; retained until a future major after at least one released minor
+         */
         public array $activeKeyIds,
+        /**
+         * @deprecated Use requiredClaimTypes() instead; retained until a future major after at least one released minor
+         */
         public array $requiredClaimTypes,
+        /**
+         * @deprecated Use clockSkewSeconds() instead; retained until a future major after at least one released minor
+         */
         public int $clockSkewSeconds
     ) {
     }
@@ -57,12 +75,12 @@ final readonly class OAuthTokenRequirements
             throw new DomainException('Unsigned OAuth tokens are not supported.');
         }
 
-        if (count($activeKeyIds) !== count($metadata->authorizationServers)) {
+        if (count($activeKeyIds) !== count($metadata->authorizationServers())) {
             throw new DomainException('OAuth requires active keys for every configured issuer.');
         }
 
         $keys = [];
-        foreach ($metadata->authorizationServers as $issuer) {
+        foreach ($metadata->authorizationServers() as $issuer) {
             $keys[$issuer] = self::validateNames($activeKeyIds[$issuer] ?? []);
         }
 
@@ -93,19 +111,73 @@ final readonly class OAuthTokenRequirements
     }
 
     /**
+     * Returns the configured resource metadata
+     */
+    public function metadata(): OAuthResourceMetadata
+    {
+        return $this->metadata;
+    }
+
+    /**
+     * Returns the required token purpose
+     */
+    public function tokenType(): string
+    {
+        return $this->tokenType;
+    }
+
+    /**
+     * Returns the allowed signature algorithms
+     *
+     * @phpstan-return non-empty-list<string>
+     */
+    public function allowedAlgorithms(): array
+    {
+        return $this->allowedAlgorithms;
+    }
+
+    /**
+     * Returns the active issuer-bound key identifiers
+     *
+     * @phpstan-return array<string, non-empty-list<string>>
+     */
+    public function activeKeyIds(): array
+    {
+        return $this->activeKeyIds;
+    }
+
+    /**
+     * Returns the required normalized claim types
+     *
+     * @phpstan-return non-empty-array<string, 'string'|'integer'|'boolean'|'number'|'object'|'list'>
+     */
+    public function requiredClaimTypes(): array
+    {
+        return $this->requiredClaimTypes;
+    }
+
+    /**
+     * Returns the permitted clock skew in seconds
+     */
+    public function clockSkewSeconds(): int
+    {
+        return $this->clockSkewSeconds;
+    }
+
+    /**
      * Returns whether trusted normalized claims satisfy every non-cryptographic requirement
      *
      * This defense in depth never replaces the consumer validator's cryptographic verification.
      */
     public function accepts(#[SensitiveParameter] OAuthValidatedClaims $validated, int $now): bool
     {
-        $claims = $validated->claims;
+        $claims = $validated->claims();
         $issuer = $claims->get('iss');
         if (
-            !is_string($issuer) || !in_array($issuer, $this->metadata->authorizationServers, true)
-            || $validated->tokenType !== $this->tokenType
-            || !in_array($validated->algorithm, $this->allowedAlgorithms, true)
-            || !in_array($validated->keyId, $this->activeKeyIds[$issuer], true)
+            !is_string($issuer) || !in_array($issuer, $this->metadata->authorizationServers(), true)
+            || $validated->tokenType() !== $this->tokenType
+            || !in_array($validated->algorithm(), $this->allowedAlgorithms, true)
+            || !in_array($validated->keyId(), $this->activeKeyIds[$issuer], true)
         ) {
             return false;
         }
@@ -115,7 +187,7 @@ final readonly class OAuthTokenRequirements
             $audiences = [$audiences];
         }
 
-        if (!is_array($audiences) || !in_array($this->metadata->resource, $audiences, true)) {
+        if (!is_array($audiences) || !in_array($this->metadata->resource(), $audiences, true)) {
             return false;
         }
 

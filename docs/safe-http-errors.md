@@ -64,6 +64,12 @@ cannot claim the diagnostic was delivered. Projector or primary response-creatio
 safe 500 without recursively reporting. If both primary and fallback PSR factories fail, the middleware throws a
 new sanitized `RuntimeException` without a cause; a broken response factory cannot supply a PSR response.
 
+Read `SafeHttpFailure`, `SafeHttpMetadata` and `SafeHttpPresentation` through typed property-name getters:
+`status()`, `metadata()`, `challenge()`, `allow()`, `retryAfterSeconds()`, `message()` and `data()` as applicable.
+The original public readonly fields remain supported and deprecated in documentation only. See the
+[complete getter migration and release window](maintenance/public-property-getters.md). This does not expand
+public data or change status/header policy.
+
 ## Mapping and public data
 
 | Failure | Status | JSend |

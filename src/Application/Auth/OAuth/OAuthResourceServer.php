@@ -16,11 +16,22 @@ final readonly class OAuthResourceServer
      * Constructs OAuthResourceServer
      */
     public function __construct(
+        /**
+         * @deprecated Use requirements() instead; retained until a future major after at least one released minor
+         */
         public OAuthTokenRequirements $requirements,
         private OAuthTokenValidator $validator,
         private OAuthClaimsHandoff $handoff,
         private OAuthDiagnostics $diagnostics
     ) {
+    }
+
+    /**
+     * Returns the configured token requirements
+     */
+    public function requirements(): OAuthTokenRequirements
+    {
+        return $this->requirements;
     }
 
     /**
@@ -72,7 +83,7 @@ final readonly class OAuthResourceServer
                 return $this->reject(OAuthFailure::INVALID_TOKEN);
             }
 
-            if (!$claims->grantedScopes->includes($requiredScopes)) {
+            if (!$claims->grantedScopes()->includes($requiredScopes)) {
                 return $this->reject(OAuthFailure::INSUFFICIENT_SCOPE);
             }
 

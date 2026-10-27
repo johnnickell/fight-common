@@ -15,10 +15,25 @@ final readonly class McpSkillFile
      * Constructs McpSkillFile
      */
     private function __construct(
+        /**
+         * @deprecated Use path() instead; retained until a future major after at least one released minor
+         */
         public string $path,
+        /**
+         * @deprecated Use bytes() instead; retained until a future major after at least one released minor
+         */
         public string $bytes,
+        /**
+         * @deprecated Use mimeType() instead; retained until a future major after at least one released minor
+         */
         public string $mimeType,
+        /**
+         * @deprecated Use text() instead; retained until a future major after at least one released minor
+         */
         public bool $text,
+        /**
+         * @deprecated Use digest() instead; retained until a future major after at least one released minor
+         */
         public string $digest
     ) {
     }
@@ -72,6 +87,46 @@ final readonly class McpSkillFile
         ) {
             throw new DomainException('Skill members require unambiguous contained relative paths.');
         }
+    }
+
+    /**
+     * Returns the exact decoded relative member path
+     */
+    public function path(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * Returns the original member bytes
+     */
+    public function bytes(): string
+    {
+        return $this->bytes;
+    }
+
+    /**
+     * Returns the declared media type
+     */
+    public function mimeType(): string
+    {
+        return $this->mimeType;
+    }
+
+    /**
+     * Returns whether the member contains validated UTF-8 text
+     */
+    public function text(): bool
+    {
+        return $this->text;
+    }
+
+    /**
+     * Returns the captured raw-byte digest
+     */
+    public function digest(): string
+    {
+        return $this->digest;
     }
 
     /**

@@ -73,9 +73,9 @@ final readonly class McpResourceContent
 
             $bytes = '';
             do {
-                $length = min(8192, $limits->maxContentBytes - strlen($bytes) + 1);
+                $length = min(8192, $limits->maxContentBytes() - strlen($bytes) + 1);
                 $chunk = $this->body->read($length);
-                if (strlen($chunk) > $length || strlen($bytes) + strlen($chunk) > $limits->maxContentBytes) {
+                if (strlen($chunk) > $length || strlen($bytes) + strlen($chunk) > $limits->maxContentBytes()) {
                     throw new DomainException('Resource content exceeds its raw byte budget.');
                 }
 

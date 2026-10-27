@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Deprecated
+
+- Direct reads of 50 public readonly properties across 14 released HTTP/OAuth/MCP classes, in documentation only.
+  Use the matching typed property-name getters instead. Storage, construction, named arguments, validation,
+  serialization and wire/security behavior remain unchanged; no runtime notices are emitted. The first
+  deprecating release is unassigned. Retain at least one released minor before separately authorized removal
+  in a future major; Standards is entirely excluded. See the [complete migration map](docs/maintenance/public-property-getters.md).
+
 ### Added
 
 - Opt-in retained-notice removal Commands with independent current admission, finite incarnation-pinned selections,
