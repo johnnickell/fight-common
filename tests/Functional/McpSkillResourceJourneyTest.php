@@ -127,7 +127,7 @@ final class McpSkillResourceJourneyTest extends TestCase
             foreach ($manifest as $member) {
                 $content = $this->responseResult($app, 'resources/read', ['uri' => $member['uri']])['contents'][0];
                 $bytes = $content['text'] ?? base64_decode($content['blob'], true);
-                self::assertSame($snapshot->file($member['uri'])->bytes, $bytes);
+                self::assertSame($snapshot->file($member['uri'])->bytes(), $bytes);
                 self::assertSame($member['size'], strlen($bytes));
                 self::assertSame($member['digest'], 'sha256:'.hash('sha256', $bytes));
             }

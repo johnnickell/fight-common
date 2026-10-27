@@ -30,7 +30,7 @@ final class McpRequestBodyReader
             }
 
             $json = '';
-            $remaining = $limits->maxBytes;
+            $remaining = $limits->maxBytes();
             do {
                 $length = min(8192, $remaining + 1);
                 $chunk = $body->read($length);

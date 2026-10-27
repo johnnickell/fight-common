@@ -101,8 +101,8 @@ final readonly class McpResourceInfo implements Arrayable
     public function validateLimits(McpResourceLimits $limits): void
     {
         if (
-            strlen($this->uri()) > $limits->maxUriBytes
-            || strlen(json_encode($this->metadata, JSON_THROW_ON_ERROR)) > $limits->maxDescriptorBytes
+            strlen($this->uri()) > $limits->maxUriBytes()
+            || strlen(json_encode($this->metadata, JSON_THROW_ON_ERROR)) > $limits->maxDescriptorBytes()
         ) {
             throw new DomainException('Resource metadata exceeds its configured byte limits.');
         }

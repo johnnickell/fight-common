@@ -39,7 +39,11 @@ final readonly class OAuthMiddleware implements MiddlewareInterface
             $this->unsupportedTransport($request)
         );
         if ($failure !== null) {
-            return $this->responses->rejection($failure, $this->server->requirements->metadata, $this->requiredScopes);
+            return $this->responses->rejection(
+                $failure,
+                $this->server->requirements()->metadata(),
+                $this->requiredScopes
+            );
         }
 
         // Downstream owns its error diagnostics; do not catch and log those failures a second time.

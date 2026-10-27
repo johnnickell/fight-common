@@ -61,7 +61,7 @@ final readonly class OAuthResponseFactory
             return $response;
         }
 
-        $parameters = ['resource_metadata='.$this->quote($metadata->metadataUrl)];
+        $parameters = ['resource_metadata='.$this->quote($metadata->metadataUrl())];
         if ($this->realm !== null) {
             $parameters[] = 'realm='.$this->quote($this->realm);
         }
@@ -70,8 +70,8 @@ final readonly class OAuthResponseFactory
             $parameters[] = 'error='.$this->quote(strtolower($failure->name));
         }
 
-        if ($requiredScopes->values !== []) {
-            $parameters[] = 'scope='.$this->quote(implode(' ', $requiredScopes->values));
+        if ($requiredScopes->values() !== []) {
+            $parameters[] = 'scope='.$this->quote(implode(' ', $requiredScopes->values()));
         }
 
         return $response->withHeader('WWW-Authenticate', 'Bearer '.implode(', ', $parameters));

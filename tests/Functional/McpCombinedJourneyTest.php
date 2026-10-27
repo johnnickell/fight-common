@@ -158,7 +158,7 @@ final class McpCombinedJourneyTest extends TestCase
         $root = $this->responseResult($app, 'resources/read', ['uri' => $skillUri])['contents'][0]['text'];
         $nestedUri = 'skill://catalog/v2/work/references/guide.md';
         $nested = $this->responseResult($app, 'resources/read', ['uri' => $nestedUri])['contents'][0]['text'];
-        self::assertSame([$old->file($skillUri)->bytes, $old->file($nestedUri)->bytes], $streams->opened);
+        self::assertSame([$old->file($skillUri)->bytes(), $old->file($nestedUri)->bytes()], $streams->opened);
         foreach ([$skillUri => $root, $nestedUri => $nested] as $uri => $content) {
             $manifest = array_column($entry['resources'], null, 'uri');
             self::assertSame(strlen($content), $manifest[$uri]['size']);

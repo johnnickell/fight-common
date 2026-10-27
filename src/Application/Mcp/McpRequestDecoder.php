@@ -33,12 +33,12 @@ final readonly class McpRequestDecoder
      */
     public function decode(string $json): McpRequest
     {
-        if (strlen($json) > $this->limits->maxBytes) {
+        if (strlen($json) > $this->limits->maxBytes()) {
             throw new McpProtocolException(McpProtocolError::invalidRequest(), null);
         }
 
         try {
-            $decoded = json_decode($json, false, $this->limits->maxDepth, JSON_THROW_ON_ERROR);
+            $decoded = json_decode($json, false, $this->limits->maxDepth(), JSON_THROW_ON_ERROR);
             $data = StrictJson::fromData($decoded, maxDepth: 511);
         } catch (DomainException | JsonException) {
             throw new McpProtocolException(McpProtocolError::parseError(), null);

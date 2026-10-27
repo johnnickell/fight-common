@@ -52,7 +52,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             throw new DomainException('Skill cache hints require a safe integer TTL and private/public scope.');
         }
 
-        if (count($provider->entries()) > $limits->maxEntries) {
+        if (count($provider->entries()) > $limits->maxEntries()) {
             throw new DomainException('Skill discovery exceeds its complete catalog budget.');
         }
 
@@ -103,7 +103,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
             if (
                 array_diff(array_keys($parameters), ['uri']) !== []
                 || !is_string($parameters['uri'] ?? null)
-                || strlen($parameters['uri']) > $this->limits->maxUriBytes
+                || strlen($parameters['uri']) > $this->limits->maxUriBytes()
                 || Uri::parse($parameters['uri'])?->getScheme() === null
             ) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
@@ -181,8 +181,8 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     {
         foreach ($this->provider->entries() as $uri => $entry) {
             if (
-                strlen($uri) > $this->limits->maxUriBytes
-                || strlen($entry->toString()) > $this->limits->maxEntryBytes
+                strlen($uri) > $this->limits->maxUriBytes()
+                || strlen($entry->toString()) > $this->limits->maxEntryBytes()
             ) {
                 throw new DomainException('Skill entry exceeds its URI or complete metadata budget.');
             }
@@ -241,7 +241,10 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
                 // Match McpResult's encoder, not StrictJson's fraction-preserving catalog fingerprint.
                 // Catalog validation guarantees one entry plus this metadata/cursor wrapper always fits.
                 $bytes = strlen(json_encode($entry, JSON_THROW_ON_ERROR)) + (count($page) === 0 ? 0 : 1);
-                if (count($page) >= $this->limits->pageSize || $pageBytes + $bytes > $this->limits->maxResultBytes) {
+                if (
+                    count($page) >= $this->limits->pageSize()
+                    || $pageBytes + $bytes > $this->limits->maxResultBytes()
+                ) {
                     $full = true;
                 } else {
                     $page[] = $entry;
@@ -283,7 +286,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     {
         return McpResult::boundedComplete(
             [...$data, 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
-            $this->limits->maxResultBytes
+            $this->limits->maxResultBytes()
         );
     }
 
@@ -294,7 +297,7 @@ final readonly class McpSkillDiscovery implements McpMetadataAwareCapability
     {
         return hash_hmac('sha256', implode(':', [
             'mcp-skills-v1', strlen($this->cursorScope), $this->cursorScope,
-            $this->limits->pageSize, $this->limits->maxResultBytes, $offset, $snapshot
+            $this->limits->pageSize(), $this->limits->maxResultBytes(), $offset, $snapshot
         ]), $this->cursorKey, true);
     }
 }
