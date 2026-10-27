@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00173](tasks/00173-TASK.md) | Deprecate released public properties in favor of getters | in-progress | — |
+| Ready Frontier | [TASK-00165](tasks/00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
