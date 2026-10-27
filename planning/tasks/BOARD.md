@@ -47,7 +47,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00173](00173-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/247](https://github.com/johnnickell/fight-common/pull/247) |
+| None | — | — |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
