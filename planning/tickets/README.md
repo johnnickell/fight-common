@@ -30,7 +30,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00045](00045-TICKET.md) | Record and retain safe change notices | done | [EPIC-00011](../epics/00011-EPIC.md) |
 | [TICKET-00046](00046-TICKET.md) | Poll and inspect retained notices | done | [EPIC-00011](../epics/00011-EPIC.md) |
 | [TICKET-00047](00047-TICKET.md) | Follow MCP changes and inspect current subscribers | done | [EPIC-00011](../epics/00011-EPIC.md) |
-| [TICKET-00048](00048-TICKET.md) | Keep browser notice feeds live through optional Mercure | ready-for-agent | [EPIC-00011](../epics/00011-EPIC.md) |
+| [TICKET-00048](00048-TICKET.md) | Keep browser notice feeds live through optional Mercure | done | [EPIC-00011](../epics/00011-EPIC.md) |
 | [TICKET-00049](00049-TICKET.md) | Start durable asynchronous operations and retrieve their outcomes | ready-for-agent | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00050](00050-TICKET.md) | Supply requested input to asynchronous operations | ready-for-agent | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00051](00051-TICKET.md) | Request cooperative cancellation of asynchronous operations | ready-for-agent | [EPIC-00012](../epics/00012-EPIC.md) |

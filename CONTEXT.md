@@ -387,6 +387,24 @@ policy epochs, safe capture, routes and deployment. See [notice recovery](docs/n
 exact APIs/bounds, completion and restart meanings, compatibility and actual three-database guarded HTTP evidence;
 controlled publication failure is not live MCP/Mercure or deployed-client qualification.
 
+**Optional retained-notice publication:** `Application\Notice\Publication\RecordNoticeAndPublish` executes the
+synchronous recording Command before `NoticePublication::publish(GetNotice)`. The latter reconstructs currently
+admitted committed content through the shared Query, then independently asks consumer `NoticePublicationPolicy`
+for a fresh whole-audience `NoticePublicationGrant`. One permitted topic, explicit public/private mode and selected
+retained fields map through existing Publisher/PrivatePublisher and optional Mercure adapters. Mandatory versioned
+scope/producer/notice identity, distinct selected relationships and null-versus-empty recipients stay truthful;
+no target read, arbitrary body, MCP envelope or full Task state is sent. Topics use a deliberate 256-byte HTTPS
+DNS/path subset, lists select at most 10 fields/16 existing metadata keys, references count at most 32 and actual
+escaped encoded data at most 4,096 bytes. Invalid/denied/missing-private cases never fall back to public.
+Recording exceptions propagate before optional output; committed publication failures return fixed safe statuses
+and cannot undo data. Private redaction-aware diagnostics may fail without changing a failed outcome to success.
+Repeated attempts reauthorize and can duplicate sends, including deduplicated recording retries; no outbox, delivery
+ledger, automatic retry, eventual-send or receipt/processing guarantee exists. Shared inspection/recovery/polling
+reauthorize independently and remain Mercure-free; consumers own topic/browser/hub policy, scheduling and reload.
+The six additive public declarations are provisional against tags; existing ports/schema/dependencies stay unchanged.
+See [notice publication](docs/notice-publication.md) for composition, precise limits, exception/uncertainty semantics,
+compatibility and actual three-database/controlled-HubInterface evidence, not deployed browser qualification.
+
 ## Access control language
 
 | Term | Meaning in Fight AccessControl planning |

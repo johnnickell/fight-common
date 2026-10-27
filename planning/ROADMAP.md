@@ -10,7 +10,7 @@
 | [EPIC-00008](epics/00008-EPIC.md) | Strengthen Value Objects and Validation Invariants | next-minor | done |
 | [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | done |
 | [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | done |
-| [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | ready-for-agent |
+| [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | done |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
