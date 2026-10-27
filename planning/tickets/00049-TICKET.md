@@ -176,10 +176,12 @@ Task polling gains no dependency on Subscriptions/Mercure.
 
 TASK-00166 now supplies the reusable lifecycle, direct three-database persistence and protected current-state Query,
 with local verification recorded in its [Work checkpoint](../tasks/00166-TASK.md#work-implementation-checkpoint).
-Original independent Review accepted the pre-integration candidate; QA is INCOMPLETE with no confirmed defect.
-The [integration checkpoint](../tasks/00166-TASK.md#integration-and-evidence-recovery) records the verified develop merge,
-fresh full/focused gates and recovered isolated three-database fixtures. The integrated subject awaits fresh independent
-Review, then required QA; the TICKET is not implementation-complete. Removal and complete MCP activation remain with
+Independent Review accepted the earlier integrated head `51bb3966ebf3389e2da5cea6eac6f3e35ed69b7e`; QA remains
+INCOMPLETE with no confirmed defect. The
+[latest checkpoint](../tasks/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy) records the newer
+verified develop merge, permanent no-post-merge-Board-chore policy, fresh full/focused gates and preserved isolated
+three-database fixtures. This latest base/policy subject needs fresh independent Review, then required QA; the TICKET
+is not implementation-complete. Removal and complete MCP activation remain with
 TASK-00167/00168 and their actual suppliers. No Tasks extension advertisement or consumer runtime qualification follows
 from the lifecycle alone. The statements above about no implementation/publication describe planning approval, not the
 current Task implementation checkpoint.

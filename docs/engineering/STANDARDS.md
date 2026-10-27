@@ -24,20 +24,20 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | Document | SHA-256 |
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
-| `AGENTS.md installed` | `14923f325dc7809669bcc6096aa65f101bf8ade19eae259710ce6a9757bc004b` |
+| `AGENTS.md installed` | `649bc9bcbda0b9410151aad4559422cf13623734cc589d49b38a0f311b37b99e` |
 | `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
-| `standards/Delivery.md` | `7f96b532a54ec95d9265487de500f08791019fb43fb979158b729fa981d9ea33` |
+| `standards/Delivery.md` | `9b550463bf71f716bd19db6c2f367a5ac4ff5bb00d87437d3cda77d331df63aa` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `edb5ea685253c45638930ae9f41a5e0dd12caa1f143dcd9b7ca207013eb350c2` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| `standards/Planning.md` | `016d9bc84f26bf710074fb6cd4bc9f732186902627a29b2cf54e785de561c4fe` |
+| `standards/Planning.md` | `e1f071c1b40eec8486be8d47134a01ca4c7cd15d63ef759ef91cf0e5d2479ea4` |
 | `standards/Review.md` | `cd86ecfa4f1a9b7a73394ff14c97dbf12def59ebb3bdea084f18253be5f21277` |
-| `standards/Testing.md` | `410c6447aec8ec7a95e668e8dd698d597e52955f73b49291a4e31e27422f593b` |
+| `standards/Testing.md` | `8f6c417fbf69b4a2394bd741df6101b06b99c54ca475774c08cc8aa27e570259` |
 | `standards/QA.md` | `715aa0bb9caf81c03f5949cca0c4d2cecad1cc1b82b30c1b55cd38fe111c3258` |
 | `QA_REPORT_TEMPLATE.md` | `1e71e01157b297abdfef19fc146fb18cfc36337abb1fcd984f2dd7b7bf8aa7e6` |
-| `planning/agents/shared-workflows.md` | `32ab451ea924c9f3678f42154d0fc9c524088f95faa342943da0338159a3317f` |
+| `planning/agents/shared-workflows.md` | `f6b7c482469fe2599d4ea695d4b4c7d00ac85eb982df8a63672e077be638446f` |
 
 ## Project scope and unresolved work
 
@@ -150,3 +150,19 @@ validate Common-specific documentation and required local checks without new wor
 Independent Review and applicable local documentation QA remain separate, pending evidence rather than implied
 by this adoption record. Exact coverage, compatibility, gate/reuse policy, advisory hosted CI, GitFlow, release
 certification/signing and human merge control remain intact. The digests above identify the current local copies.
+
+## No post-merge Board chore — 2026-10-27
+
+During [TASK-00166](../../planning/tasks/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy), John
+rejected persistent merge-handoff notes and even a renamed post-merge burden, then directed that the docs be fixed.
+[Conventions](../../planning/CONVENTIONS.md#current-delivery-handoffs) owns the permanent Common rule: ordinary Land
+records verified PR URL and historical acceptance/publication, but creates no new delivery marker, tracked current
+merge note or Board row. No post-merge Board cleanup request or routine retirement TASK/corrective PR. This local
+amendment overrides conflicting provider examples without changing any provider/global installation.
+
+Exact live owned-PR checks before publication and at final handoff still apply with zero legacy markers. Existing
+legacy marker verification/authorized retirement preserves historical merge/integration evidence and read-only
+routing/Review/QA. Independent Review, required QA/full verification, human-only merge and ownership-qualified Land
+cleanup remain intact. No watcher or promise of execution after stopping is introduced. The affected installed
+AGENTS, Delivery, Planning, Testing and binding digests above are refreshed; original baseline provenance and
+historical decisions/receipts remain. This records approval and implementation, not fresh independent acceptance.
