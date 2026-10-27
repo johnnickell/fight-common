@@ -2,7 +2,7 @@
 id: TICKET-00047
 epic: EPIC-00011
 title: Follow MCP changes and inspect current subscribers
-status: ready-for-agent
+status: done
 ---
 
 # Follow MCP changes and inspect current subscribers
@@ -110,10 +110,13 @@ owned, not a new Common acceptance prerequisite. No implementation evidence is c
 |---|---|---|
 | [TASK-00162](../tasks/00162-TASK.md) | Follow Tool and Resource changes through live MCP | done |
 | [TASK-00163](../tasks/00163-TASK.md) | Summarize and inspect current MCP subscribers | done |
-| [TASK-00164](../tasks/00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | in-progress |
+| [TASK-00164](../tasks/00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+The following decomposition narrative records the planning checkpoint, not current implementation or delivery status.
+See the child TASK records and Board for current evidence.
 
 John approved this third requirement area in EPIC-00011's four-TICKET split, keeping live lifecycle and current
 subscriber inspection together. The [official subscription contract](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
