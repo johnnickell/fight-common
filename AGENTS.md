@@ -51,6 +51,9 @@ path above takes precedence over broad orientation reads; it does not waive engi
 Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. At authorized Work,
 Land or substantive planning intake on the selected feature branch, run `./bin/planning-check --reconcile-delivery`
 before record edits under [the delivery contract](planning/CONVENTIONS.md#current-delivery-handoffs). It retires only
-verified merged/integrated `done` markers with durable evidence; no new routine cleanup request is needed.
-Routing, Review and QA stay read-only; routing continues after verified merged/integrated handoffs without waiting
-for retirement. Real uncertainty still stops. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
+existing legacy merged/integrated `done` markers with durable evidence. Ordinary Land records the verified PR URL
+and historical acceptance/publication, but creates no `delivery: awaiting-merge`, persistent current merge note or
+Board row, and assigns John no post-merge Board cleanup. This local policy overrides provider marker examples;
+exact live owned-PR checks before publication and at final handoff, human-only merge and qualified cleanup remain.
+Routing, Review and QA stay read-only; routing continues after verified merged/integrated legacy handoffs without
+waiting for retirement. Real uncertainty still stops. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.

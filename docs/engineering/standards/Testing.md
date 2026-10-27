@@ -36,6 +36,11 @@ product defect still requires repair and independent review; optional CI is not 
 defect. Never label missing, skipped or failed checks passed. Host-enforced merge checks remain binding and may
 not be bypassed. This separation does not authorize agent merge, release or deployment.
 
+Common's [no-new-marker policy](../../../planning/CONVENTIONS.md#current-delivery-handoffs) removes a persistent
+merge-handoff chore, not verification: full/focused gate evidence, independent Review/QA and direct exact owned-PR
+live checks before publication and at final handoff remain required. A successful offline planning check or zero
+legacy markers proves no live PR state. Validate workflow prose/links directly, not with new product text tests.
+
 A future exception requiring hosted proof before technical acceptance needs a new explicit human decision, a named
 requirement and a publication plan. Historical workflow/ADR wording does not by itself establish a current hosted
 delivery gate: apply the accepted project/TASK policy and actual host restrictions. Do not recreate a circular

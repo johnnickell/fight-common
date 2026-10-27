@@ -639,14 +639,17 @@ requires implementation acceptance, required verification, independent Review ac
 (or justified overall N/A). Implementation awaiting Review/QA stays non-terminal with its handoff explicit; delivery
 is separate. Historical completion records retain the meaning of their original policy. Current Board/Roadmap
 TASK-routing summaries derive from the same ordered records; their authored planning/dependency narratives are
-not competing current status. The offline build rejects stale summaries without rewriting them. Land separately
-checks explicit current delivery handoffs against live PR metadata before publication and at final handoff under
-the [workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). After human merge,
-read-only routing resolves exact verified merged/integrated `done` handoffs and continues without asking John for
-routine cleanup. Authorized Work/planning/Land intake explicitly runs `--reconcile-delivery` to retire those markers,
-retain merge/head/time/local-ancestry evidence and refresh views. These are separate observed merge/integration facts,
-not inferred acceptance or checking-side mutation. OPEN remains a human handoff; closed-unmerged, non-terminal scope,
-unintegrated or unverifiable outcomes still stop for real evidence/decision recovery.
+not competing current status. The offline build rejects stale summaries without rewriting them. Ordinary Land
+records the verified PR URL and historical acceptance/publication, without a new delivery marker, persistent current
+merge note/Board row, or post-merge Board cleanup for John. Land still directly checks the exact owned PR before
+publication and at final handoff under the
+[workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), even with zero markers.
+Existing legacy snapshots remain bounded: read-only routing resolves exact verified merged/integrated `done` work
+and continues; authorized Work/planning/Land intake runs `--reconcile-delivery` to retire those markers and preserve
+merge/head/time/local-ancestry evidence. These are observed merge/integration facts, not inferred acceptance or
+checking-side mutation. Closed-unmerged, non-terminal scope, unintegrated or unverifiable outcomes still hold the
+affected action for real recovery. Human-only merge, independent Review/QA/full verification and qualified resource
+cleanup remain; no background watcher or execution after stopping is promised.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained

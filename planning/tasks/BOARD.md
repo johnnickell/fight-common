@@ -38,16 +38,19 @@ separately identifies decomposition work.
 
 ## Current delivery handoffs
 
-Explicit TASK `delivery: awaiting-merge` metadata records the OPEN publication snapshot, not perpetual live state.
-Historical prose and PR links alone do not create handoffs. Routing uses `./bin/planning-check --check-delivery`:
-OPEN remains a human action; exact verified merged/integrated `done` work resolves and routing continues without
-routine cleanup requests. The next authorized intake retires ended markers with `--reconcile-delivery` under
-[Conventions](../CONVENTIONS.md#current-delivery-handoffs). Offline validation alone proves no live PR state.
+Ordinary Land records the verified PR URL and historical acceptance/publication, but creates no new delivery
+marker, persistent current merge note or row here; John has no post-merge Board cleanup chore. The block below
+is retained only for existing legacy `delivery: awaiting-merge` snapshots, not perpetual live state or a new queue.
+Routing checks those with `./bin/planning-check --check-delivery`: verified merged/integrated `done` work resolves
+without a cleanup request; authorized intake retires it with `--reconcile-delivery` under
+[Conventions](../CONVENTIONS.md#current-delivery-handoffs). Historical prose/PR links create no current handoff.
+Land still directly verifies the exact owned PR before publication and at final handoff even if this block is
+empty. Offline validation alone proves no live PR state; no watcher or later automatic execution is promised.
 
 <!-- planning:delivery -->
 | TASK | Current delivery | PR |
 |---|---|---|
-| [TASK-00165](00165-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/246](https://github.com/johnnickell/fight-common/pull/246) |
+| None | — | — |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
