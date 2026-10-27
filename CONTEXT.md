@@ -257,8 +257,10 @@ audience/receipt ledger is added. The existing lazy event stream/emitter and nat
 without buffering. Finite lifetime/waits, one bounded Query batch/frame and actual encoded-frame checks constrain work;
 consumer worker/SQL/SAPI/proxy timeouts remain necessary because PHP cannot preempt blocked I/O. Returned callbacks
 must pass fresh cancellation/deadline and independent five-second tracking checks before new output. Owner-bound
-tracking is revalidated after admission, without reviving expired ownership or caching permission; even a returned
-store callback cannot make an already elapsed lease healthy. DBAL renewal advances the invocation-supplied clock
+tracking is revalidated after admission, without reviving expired ownership or caching permission. Opening then
+rechecks the complete accepted subset after final tracking, with no later consumer callback before acknowledgment;
+changed permission closes without acknowledgment. Local freshness/cancellation/deadline checks still apply, and even
+a returned store callback cannot make an already elapsed lease healthy. DBAL renewal advances the invocation-supplied clock
 by elapsed host wall-clock seconds after acquiring the capacity lock, checks old expiry at that serialized boundary
 and keeps the proposed expiry unchanged; lock waits cannot resurrect ownership. Supplied epochs remain supported
 under synchronized/no-rollback wall-clock assumptions. Expired opening produces no acknowledgment, and body

@@ -125,6 +125,16 @@ final class McpSubscriptionExecution
                 return;
             }
 
+            // Tracking can change policy; final admission must have no later consumer callback before disclosure.
+            if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
+                throw new RuntimeException('Subscription permission changed during opening.');
+            }
+
+            $this->requireFreshness();
+            if ($this->shouldStop($deadline)) {
+                return;
+            }
+
             $emit($this->frame([
                 'jsonrpc' => '2.0',
                 'method'  => 'notifications/subscriptions/acknowledged',

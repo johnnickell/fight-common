@@ -164,8 +164,10 @@ no retained snapshot, permission lease or promise to bridge the interval before 
 32 whole safe notices, with at most 100 examined rows and the recovery service's default 65,536 encoded-byte result
 budget. Only one bounded batch and one frame are pending. Permission is checked for each mapped emission,
 including rows fetched before a previous frame paused the producer. After admission returns, owner-bound tracking
-is validated again before acknowledgment or change output. Change disclosure then rechecks signal admission after
-that callback, with no further consumer callback before framing/emission; technical renewal never grants or caches permission.
+is validated again before acknowledgment or change output. Opening disclosure then rechecks the entire accepted
+subset after the final tracking callback; a changed subset closes without acknowledgment. Change disclosure likewise
+rechecks signal admission after tracking. Both retain local freshness, cancellation and deadline checks, with no
+further consumer callback before framing/emission; technical renewal never grants or caches permission.
 Previously sent bytes cannot be retracted.
 
 Stream failure **never removes retained notices**. Reconnect creates a new independent registration and acknowledgment,
