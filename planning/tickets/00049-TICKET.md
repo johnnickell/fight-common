@@ -102,12 +102,12 @@ implemented. These are future obligations, not checks already run or actual Agen
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | ready-for-agent |
+| [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | in-progress |
 | [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent |
 | [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent |
 <!-- /planning:children -->
 
-## Decisions and progress
+## Decisions and planning approval history
 
 John approved this first requirement area in EPIC-00012's complete four-TICKET split. It preserves
 [WF-048](../wayfinder/tickets/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md)'s durable-handle
@@ -172,4 +172,13 @@ TICKET-00048's complete optional-Mercure TASK-00165 is accepted/written, complet
 TICKET-00050/00051/00052's TASK-00169/00170/00171 are complete approved/written decompositions; all map planning is complete. Ordinary asynchronous
 Task polling gains no dependency on Subscriptions/Mercure.
 
-Next: `/skill:next`
+## Current implementation handoff
+
+TASK-00166 now supplies the reusable lifecycle, direct three-database persistence and protected current-state Query,
+with local verification recorded in its [Work checkpoint](../tasks/00166-TASK.md#work-implementation-checkpoint).
+Independent Review and QA remain pending; the TICKET is not implementation-complete. Removal and complete MCP activation
+remain with TASK-00167/00168 and their actual suppliers. No Tasks extension advertisement or consumer runtime qualification
+follows from the lifecycle alone. The statements above about no implementation/publication describe planning approval,
+not the current Task implementation checkpoint.
+
+Next: `/skill:review TASK-00166` in an independent session.
