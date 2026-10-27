@@ -2,7 +2,7 @@
 id: TICKET-00048
 epic: EPIC-00011
 title: Keep browser notice feeds live through optional Mercure
-status: ready-for-agent
+status: done
 ---
 
 # Keep browser notice feeds live through optional Mercure
@@ -93,7 +93,7 @@ owned-code coverage, compatibility classification and the full local `./bin/buil
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00165](../tasks/00165-TASK.md) | Publish retained safe notices through optional Mercure | in-progress |
+| [TASK-00165](../tasks/00165-TASK.md) | Publish retained safe notices through optional Mercure | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
