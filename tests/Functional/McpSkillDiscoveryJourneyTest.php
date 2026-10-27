@@ -132,7 +132,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             foreach ($entry['resources'] as $member) {
                 $content = $this->responseResult($app, 'resources/read', ['uri' => $member['uri']])['contents'][0];
                 $bytes = $content['text'] ?? base64_decode($content['blob'], true);
-                self::assertSame($revision->file($member['uri'])->bytes, $bytes);
+                self::assertSame($revision->file($member['uri'])->bytes(), $bytes);
                 self::assertSame($member['size'], strlen($bytes));
                 self::assertSame($member['digest'], 'sha256:'.hash('sha256', $bytes));
             }

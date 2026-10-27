@@ -97,7 +97,7 @@ final class SymfonyMcpSkillFrontmatterParserTest extends UnitTestCase
         $uri = 'skill://catalog/r1/work/SKILL.md';
         $revision = McpSkillRevision::fromFiles($uri, [McpSkillFile::fromBytes('SKILL.md', $bytes)], $parser);
         self::assertSame(['name' => 'work', 'description' => 'test'] + $expected, json_decode($revision->entry()->get('frontmatter')->toString(), true));
-        self::assertSame($bytes, $revision->file($uri)->bytes);
+        self::assertSame($bytes, $revision->file($uri)->bytes());
         self::assertSame('sha256:'.hash('sha256', $bytes), $revision->entry()->get('resources')[0]->get('digest'));
     }
 

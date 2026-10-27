@@ -66,6 +66,12 @@ repository is process-local; the Doctrine repository provides a durable shared b
 consumer ports and resource-server orchestration. `Adapter\Http\OAuth` supplies optional PSR-15/PSR-17 adapters.
 There is no OAuth authorization server, key fetcher, JWT validator, route, identity model or permission policy.
 
+Read OAuth value/configuration state through typed property-name getters such as
+`$requirements->metadata()->resource()`, `$claims->claims()` and `$claims->grantedScopes()->values()`.
+The old public readonly properties remain supported with documentation-only deprecation. The complete map and
+release window are documented in `docs/maintenance/public-property-getters.md`.
+Getter access does not validate a token or make claims safe to publish.
+
 ### Resource metadata and composition
 
 `OAuthResourceMetadata::fromConfiguration()` requires an exact HTTPS resource identifier, a nonempty ordered

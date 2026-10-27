@@ -19,14 +19,38 @@ final readonly class McpResourceReadLimits
      * validates the exact result/cache wrapper and actual central metadata before advertisement or content I/O;
      * McpResult retains an independent final encoded-result guard.
      */
-    public function __construct(public int $maxContentBytes = 1048576, public int $maxResultBytes = 8388608)
-    {
+    public function __construct(
+        /**
+         * @deprecated Use maxContentBytes() instead; retained until a future major after at least one released minor
+         */
+        public int $maxContentBytes = 1048576,
+        /**
+         * @deprecated Use maxResultBytes() instead; retained until a future major after at least one released minor
+         */
+        public int $maxResultBytes = 8388608
+    ) {
         if (
             $maxContentBytes < 1 || $maxContentBytes > 8388608
             || $maxResultBytes < 6 * $maxContentBytes + 256 || $maxResultBytes > 67108864
         ) {
             throw new DomainException('Resource read limits must bound raw content and its worst-case encoding.');
         }
+    }
+
+    /**
+     * Returns the raw content byte budget
+     */
+    public function maxContentBytes(): int
+    {
+        return $this->maxContentBytes;
+    }
+
+    /**
+     * Returns the complete encoded result byte budget
+     */
+    public function maxResultBytes(): int
+    {
+        return $this->maxResultBytes;
     }
 
     /**

@@ -196,7 +196,7 @@ final class McpSkillDiscoveryTest extends UnitTestCase
         foreach ($revisions as $index => $revision) {
             $page = $this->response($responder, 'skills/list', $params)['result'];
             self::assertSame([$this->entry($revision->entry())], $page['skills']);
-            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($page)));
+            self::assertLessThanOrEqual($limits->maxResultBytes(), strlen(json_encode($page)));
             self::assertSame($page['skills'][0], $this->response($responder, 'skills/get', ['uri' => $revision->entry()->get('uri')])['result']['skill']);
             if ($index < 2) { $params = ['cursor' => $page['nextCursor']]; }
             else { self::assertArrayNotHasKey('nextCursor', $page); }
@@ -233,7 +233,7 @@ final class McpSkillDiscoveryTest extends UnitTestCase
             unset($permitted['skill']);
             $permitted['skills'] = [$expected];
             $permitted['nextCursor'] = str_repeat('x', 48);
-            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($permitted, JSON_THROW_ON_ERROR)));
+            self::assertLessThanOrEqual($limits->maxResultBytes(), strlen(json_encode($permitted, JSON_THROW_ON_ERROR)));
             $response = $this->response($responder, 'skills/list', $params);
             self::assertArrayHasKey('result', $response);
             $page = $response['result'];
@@ -242,7 +242,7 @@ final class McpSkillDiscoveryTest extends UnitTestCase
             self::assertSame('complete', $page['resultType']);
             self::assertSame('private', $page['cacheScope']);
             self::assertSame(0, $page['ttlMs']);
-            self::assertLessThanOrEqual($limits->maxResultBytes, strlen(json_encode($page, JSON_THROW_ON_ERROR)));
+            self::assertLessThanOrEqual($limits->maxResultBytes(), strlen(json_encode($page, JSON_THROW_ON_ERROR)));
             if ($index + 1 < $count) {
                 self::assertArrayHasKey('nextCursor', $page);
                 self::assertNotContains($page['nextCursor'], $cursors);

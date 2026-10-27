@@ -48,6 +48,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 | TASK | Current delivery | PR |
 |---|---|---|
 | [TASK-00165](00165-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/246](https://github.com/johnnickell/fight-common/pull/246) |
+| [TASK-00173](00173-TASK.md) | Published; verify live state | [https://github.com/johnnickell/fight-common/pull/247](https://github.com/johnnickell/fight-common/pull/247) |
 <!-- /planning:delivery -->
 
 <!-- planning:board -->
@@ -62,7 +63,6 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
-| — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
@@ -161,6 +161,7 @@ routine cleanup requests. The next authorized intake retires ended markers with 
 | — | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | done | — | [PR #245](https://github.com/johnnickell/fight-common/pull/245) |
 | — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | done | — | [PR #246](https://github.com/johnnickell/fight-common/pull/246) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
+| — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | done | — | [PR #247](https://github.com/johnnickell/fight-common/pull/247) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 | — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
 <!-- /planning:board -->

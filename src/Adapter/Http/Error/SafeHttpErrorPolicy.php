@@ -43,7 +43,7 @@ final readonly class SafeHttpErrorPolicy
     public function status(Throwable $failure): int
     {
         return match (true) {
-            $failure instanceof SafeHttpFailure => $failure->status,
+            $failure instanceof SafeHttpFailure => $failure->status(),
             $failure instanceof AuthenticationRequired => 401,
             $failure instanceof PermissionDenied => 403,
             $failure instanceof ResourceNotFound => 404,
@@ -68,14 +68,14 @@ final readonly class SafeHttpErrorPolicy
     {
         $status = $this->status($failure);
         $message = $this->defaultMessage($status);
-        if ($projection !== null && $projection->message !== null) {
-            $message = $projection->message;
+        if ($projection !== null && $projection->message() !== null) {
+            $message = $projection->message();
         }
 
-        $data = $projection?->data;
-        $metadata = $projection?->metadata;
+        $data = $projection?->data();
+        $metadata = $projection?->metadata();
         if ($metadata === null && $failure instanceof SafeHttpFailure) {
-            $metadata = $failure->metadata;
+            $metadata = $failure->metadata();
         }
 
         $headers = $this->headers($status, $metadata, $failure);
@@ -129,9 +129,9 @@ final readonly class SafeHttpErrorPolicy
      */
     private function headers(int $status, ?SafeHttpMetadata $metadata, Throwable $failure): array
     {
-        $challenge = $metadata?->challenge;
-        $allow = $metadata?->allow;
-        $retry = $metadata?->retryAfterSeconds;
+        $challenge = $metadata?->challenge();
+        $allow = $metadata?->allow();
+        $retry = $metadata?->retryAfterSeconds();
 
         if (
             $challenge !== null && $status !== 401 || $allow !== null && $status !== 405 ||

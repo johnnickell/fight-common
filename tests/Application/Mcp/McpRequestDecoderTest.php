@@ -19,8 +19,8 @@ final class McpRequestDecoderTest extends UnitTestCase
     public function test_that_default_and_explicit_limits_preserve_existing_decoder_calls(): void
     {
         $decoder = new McpRequestDecoder();
-        self::assertSame(1048576, $decoder->limits()->maxBytes);
-        self::assertSame(512, $decoder->limits()->maxDepth);
+        self::assertSame(1048576, $decoder->limits()->maxBytes());
+        self::assertSame(512, $decoder->limits()->maxDepth());
         self::assertSame('request-é', $decoder->decode($this->json())->id());
         $limits = new McpRequestLimits(maxBytes: 67108864, maxDepth: 1);
         self::assertSame($limits, (new McpRequestDecoder($limits))->limits());

@@ -52,7 +52,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
             throw new DomainException('Resource cache hints require a safe integer TTL and private/public scope.');
         }
 
-        if (!array_is_list($providers) || count($providers) > $limits->maxProviders) {
+        if (!array_is_list($providers) || count($providers) > $limits->maxProviders()) {
             throw new DomainException('Resource discovery requires a bounded list of explicit providers.');
         }
 
@@ -150,7 +150,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
             if (
                 array_diff(array_keys($parameters), ['uri']) !== []
                 || !is_string($parameters['uri'] ?? null)
-                || strlen($parameters['uri']) > $this->limits->maxUriBytes
+                || strlen($parameters['uri']) > $this->limits->maxUriBytes()
                 || Uri::parse($parameters['uri'])?->getScheme() === null
             ) {
                 throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
@@ -199,14 +199,14 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
         if ($request->method() === 'resources/templates/list') {
             return McpResult::boundedComplete(
                 ['resourceTemplates' => [], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
-                $this->limits->maxResultBytes
+                $this->limits->maxResultBytes()
             );
         }
 
         $cursor = $request->parameters()['cursor'] ?? '';
         $raw = $cursor === '' ? '' : base64_decode(strtr($cursor, '-_', '+/'), true);
         $offset = $raw === '' ? 0 : unpack('Noffset', substr($raw, 0, 4))['offset'];
-        if ($raw !== '' && ($offset < 1 || $offset % $this->limits->pageSize !== 0)) {
+        if ($raw !== '' && ($offset < 1 || $offset % $this->limits->pageSize() !== 0)) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }
 
@@ -227,9 +227,9 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
                 $encoded = json_encode($definition, JSON_THROW_ON_ERROR);
                 // Length framing prevents ambiguous boundaries without retaining the entire catalog.
                 hash_update($hash, strlen($encoded).':'.$encoded);
-                if ($visible >= $offset && count($page) < $this->limits->pageSize) {
+                if ($visible >= $offset && count($page) < $this->limits->pageSize()) {
                     $pageBytes += strlen($encoded) + 1;
-                    if ($pageBytes > $this->limits->maxResultBytes) {
+                    if ($pageBytes > $this->limits->maxResultBytes()) {
                         throw new DomainException('Resource discovery exceeds its encoded result budget.');
                     }
 
@@ -261,7 +261,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
             );
         }
 
-        return McpResult::boundedComplete($result, $this->limits->maxResultBytes);
+        return McpResult::boundedComplete($result, $this->limits->maxResultBytes());
     }
 
     /**
@@ -302,7 +302,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
                 break;
             }
 
-            if ($info->uri() === $previous || ++$count > $this->limits->maxDescriptors) {
+            if ($info->uri() === $previous || ++$count > $this->limits->maxDescriptors()) {
                 throw new DomainException('Resource URI ownership is ambiguous or enumeration exceeds its budget.');
             }
 
@@ -379,7 +379,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
 
                 return McpResult::boundedComplete(
                     ['contents' => [$content], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
-                    $limits->maxResultBytes
+                    $limits->maxResultBytes()
                 );
             }
         } catch (McpProtocolException $mcpProtocolException) {
@@ -406,10 +406,10 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
         $content = array_intersect_key($resource->toArray(), array_flip(['uri', 'mimeType']));
         $result = McpResult::boundedComplete(
             ['contents' => [[...$content, 'text' => '']], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],
-            $limits->maxResultBytes
+            $limits->maxResultBytes()
         )->withMetadata($metadata);
-        $encodedBound = strlen(json_encode($result->toArray(), JSON_THROW_ON_ERROR)) + 6 * $limits->maxContentBytes;
-        if ($encodedBound > $limits->maxResultBytes) {
+        $encodedBound = strlen(json_encode($result->toArray(), JSON_THROW_ON_ERROR)) + 6 * $limits->maxContentBytes();
+        if ($encodedBound > $limits->maxResultBytes()) {
             throw new DomainException('Resource content cannot fit its complete encoded result budget.');
         }
     }
@@ -423,7 +423,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
             'sha256',
             implode(':', [
                 'mcp-resources-v1', strlen($this->cursorScope), $this->cursorScope,
-                $this->limits->pageSize, $offset, $snapshot
+                $this->limits->pageSize(), $offset, $snapshot
             ]),
             $this->cursorKey,
             true
