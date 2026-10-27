@@ -47,7 +47,11 @@ $registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$prom
 
 Pass this registry to the existing [guarded HTTP composition](components/mcp/index.md#guarded-http).
 Tools, Resources and Skills may be explicitly registered alongside it, but none is required by Prompts. Common
-advertises `prompts: {listChanged: false}` only when composed. There is no Completion, multimedia, interaction,
+advertises `prompts: {listChanged: false}` only when composed. Explicit optional
+[`McpSubscriptions(..., prompts: true)` composition](mcp-subscriptions.md#optional-prompt-catalog-signals) derives
+`listChanged: true` only with the actual serving family and guarded live path. It authorizes catalog signals
+separately and never calls content providers; ordinary list/get has no subscription dependency.
+There is no Completion, multimedia, interaction,
 subscription or asynchronous Tasks claim. No new framework wiring is needed. Continue to supply authentication,
 Origin policy, invocation guard and redaction-aware diagnostics. `prompts/get` requires `Mcp-Name` matching its
 body `name`, plus the normal protocol-version/method mirrors. Client `_meta` and arguments carry no authority.
@@ -187,4 +191,6 @@ These are additive opt-in package promises, classified in `compatibility/manifes
 until tagged, not backward-compatibility obligations to earlier development snapshots. No existing public signature,
 Tools/Resources/Skills behavior, Composer dependency, schema, persistence format or endpoint is changed. Existing
 bounded-result/actual-central-metadata/final-response seams are reused without shared production changes. No release
-version, notification delivery or consumer deployment qualification is implied.
+version or consumer deployment qualification is implied. Optional catalog-change delivery is separately documented
+and qualified under [live subscriptions](mcp-subscriptions.md); it does not change these serving interfaces or grant
+later retrieval access.

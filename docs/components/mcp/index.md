@@ -73,9 +73,9 @@ declarations during composition.
 
 The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
 subscription-driven delivery behavior. Arbitrary declarations of those flags as `true` still reject. Explicit
-request-scoped [live Tool/Resource subscriptions](../../mcp-subscriptions.md) supplied as the optional third
-registry argument derive only the proven enabled Tool/Resource flags and require matching serving capabilities.
-Prompt flags remain unsupported. The guarded HTTP handler owns this live path; a semantic responder alone does
+request-scoped [live Tool/Resource and optional Prompt subscriptions](../../mcp-subscriptions.md) supplied as the
+optional third registry argument derive only enabled flags and require matching serving capabilities. Prompt
+list changes additionally require explicit `prompts: true`; ordinary Prompt list/get remains independent. The guarded HTTP handler owns this live path; a semantic responder alone does
 not become a subscription transport. Default direct JSON and separately opted-in Tool progress remain unchanged.
 
 ## Composition
