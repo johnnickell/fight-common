@@ -2,7 +2,7 @@
 id: TICKET-00048
 epic: EPIC-00011
 title: Keep browser notice feeds live through optional Mercure
-status: ready-for-agent
+status: done
 ---
 
 # Keep browser notice feeds live through optional Mercure
@@ -93,7 +93,7 @@ owned-code coverage, compatibility classification and the full local `./bin/buil
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00165](../tasks/00165-TASK.md) | Publish retained safe notices through optional Mercure | ready-for-agent |
+| [TASK-00165](../tasks/00165-TASK.md) | Publish retained safe notices through optional Mercure | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -124,8 +124,10 @@ deployed browser delivery/processing receipt, and no deployed receipt is require
 The TASK owns compatibility, docs/CONTEXT.md, meaningful behavior tests, exact coverage and full local build. EPIC-00011's
 complete TASK decomposition is accepted/written, not implemented. No global priority or checkout/worktree choice is
 assigned; choose main checkout or isolated worktree explicitly before implementation. Release target remains unassigned.
-`ready-for-agent` means accepted planning, not execution authority. No implementation, consumer amendment, commit or
-publication has occurred.
+At that planning checkpoint, `ready-for-agent` meant accepted planning, not execution authority; no implementation,
+consumer amendment, commit or publication had occurred. Current implementation/verification and the next independent
+stage are owned by [TASK-00165's completion notes](../tasks/00165-TASK.md#completion-notes), not this historical
+planning narrative.
 
 All map TICKET decompositions are accepted and written. TICKET-00040's complete three-TASK split is now accepted
 and written as TASK-00147–00149. The

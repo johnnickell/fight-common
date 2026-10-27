@@ -5,8 +5,10 @@ observations or an Event Store. `Domain\Notice\Command\RecordNotice` uses the ex
 `CommandBus::execute()` contract. Callers supply a stable notice ID; successful return follows actual commit.
 `RemoveNotices` supplies independently authorized bounded removal. [Authorized inspection](notice-inspection.md)
 adds public summary/history/detail Queries with fresh independent read admission. [Bounded recovery](notice-recovery.md)
-adds the shared recovery Query and explicit guarded MCP polling Tool. No MCP mutation Tool, live MCP/Mercure adapter,
-automatic capture, retention-policy engine or outbox is provided.
+adds the shared recovery Query and explicit guarded MCP polling Tool. Separately composed
+[live MCP subscriptions](mcp-subscriptions.md) and [optional Mercure output](notice-publication.md) consume the
+shared feed without becoming recording dependencies. Recording itself provides no MCP mutation Tool, automatic
+capture, retention-policy engine or outbox.
 
 ## Representation and bounds
 
@@ -268,6 +270,8 @@ migration, compatibility alias or historical schema codec is required; existing 
 must be recreated or recovered exclusively, not silently accepted. These recording/removal APIs comprise 24 declarations; [inspection](notice-inspection.md#compatibility-and-public-surface)
 adds 15 separate opt-in read declarations. [Recovery](notice-recovery.md#compatibility-and-evidence-boundary) adds eight
 public declarations and one internal schema helper; its provisional store method also accepts coherent scope lists.
+[Optional publication](notice-publication.md#compatibility-and-evidence) adds six independent public Application
+declarations without changing storage or publisher contracts.
 
 All classes support their documented public construction/factories and callable methods, not subclass extension;
 interfaces promise implementation, not class construction/extension. Private state is not a serialization contract.
