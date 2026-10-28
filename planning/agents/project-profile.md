@@ -69,9 +69,10 @@ The build validates record-derived Board/Roadmap routing both before expensive p
 these checks stay offline and never rewrite records. Land additionally runs the mandatory live
 [delivery pre-submit and final-handoff checks](shared-workflows.md#delivery-pre-submit-and-final-handoff).
 They verify current PR metadata, not hosted CI success, and are not technical-acceptance prerequisites for Work/Review.
-Ordinary Land records the verified PR URL and historical acceptance/publication only: no new delivery marker,
-persistent current merge note/Board row, or post-merge Board cleanup request to John. This Common policy overrides
-provider marker examples; direct exact owned-PR live checks remain mandatory even with zero legacy markers.
+Land closes the accepted TASK, eligible parents and applicable current Board/Roadmap/README/docs during delivery,
+records the verified PR URL as publication history, and retires eligible owned local Git/Docker/storage resources.
+No delivery marker/table, persistent merge queue or recurring post-merge planning chore remains. This Common
+policy overrides provider marker examples; direct exact owned-PR/default/base/head checks remain mandatory.
 
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
@@ -129,15 +130,11 @@ Read [CONVENTIONS.md](../CONVENTIONS.md). Shared skills and every delegated Buil
 [shared workflow binding](shared-workflows.md) for target substitutions, authority, handoffs and evidence.
 EPIC → TICKET → TASK; normally one TASK per PR. The generated [Board](../tasks/BOARD.md) exposes the active task/human decision and executable ready frontier. The [Roadmap](../ROADMAP.md#planning-frontier) separately derives decomposition work from live and archived children. [Automatic parent completion](../CONVENTIONS.md#automatic-parent-completion) closes eligible TICKETs and EPICs in the same child-completion operation. TASK metadata owns state, priority, blockers and PR references. [MIGRATION.md](../MIGRATION.md) preserves legacy identities.
 
-At authorized Work, Land or substantive planning intake on the selected feature branch, run
-`./bin/planning-check --reconcile-delivery` before record edits. Under
-[Conventions](../CONVENTIONS.md#current-delivery-handoffs), this explicitly retires existing legacy merged/integrated
-`done` publication markers and retains exact delivery evidence, without another routine cleanup request to John.
-Read-only routing uses `--check-delivery` for those legacy markers: OPEN retains the observed human handoff;
-verified merged/integrated work resolves
-and selection continues even before retirement. CLOSED-unmerged, uncertain identity/evidence or missing integration
-still stop. Review/QA never reconcile records. After other record changes, run `--write`, then the ordinary check;
-those remain offline and are not live freshness evidence. Archive only on explicit request, with an inspected
+Routing uses offline read-only `./bin/planning-check`; historical publication checkpoints do not create current
+merge actions or require historical PR scans. [Publication closeout](../CONVENTIONS.md#publication-closeout)
+belongs to Land for its exact subject, not recurring Work/planning intake reconciliation. After authorized record
+changes, run `./bin/planning-check --write`, then the ordinary check; both stay offline and are not live PR evidence.
+Review/QA do not change records. Archive only on explicit request, with an inspected
 `./bin/archive-planning` dry run before apply.
 
 New TASK branches use `feature/task-NNNNN-<slug>` from develop to develop with merge commits; new TASK PR titles use `TASK-NNNNN — <TASK title>`. Preserve established branch/PR identities and release/patch conventions. No direct commits to develop or main. Release branches start from develop and merge to main; then main merges back into develop. Released library repairs use patch branches and the approved supported-line policy rather than application hotfix branches. Read actual release tooling and accepted ADRs before any release mutation.

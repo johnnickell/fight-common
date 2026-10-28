@@ -35,9 +35,9 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
-or proof of acceptance/delivery. Inspect the selected TASK's handoff for its next stage. The
-[Board delivery view](tasks/BOARD.md#current-delivery-handoffs) retains legacy markers only; ordinary Land creates
-no persistent current merge handoff or post-merge Board chore. Historical PR references below are not live actions.
+or proof of acceptance/delivery. Inspect the selected TASK's handoff for its next stage. Land owns
+[publication closeout](CONVENTIONS.md#publication-closeout) during delivery; no tracked merge queue or recurring
+post-merge planning chore remains. Historical PR references below are not live actions.
 
 ## Approved planning history
 

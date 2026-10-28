@@ -21,11 +21,12 @@ Adopted statuses: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-hu
 
 Use `blocked_by` for TASK dependencies; preserve edges after completion and derive unfinished blockers. Use deliberate priority (`order`, lower first), then stable IDs only as display tie-breakers. Record PR URLs without treating them as evidence of live merge state. An external blocker belongs in an explicit decision/evidence requirement rather than a fake TASK ID.
 
-Under Common's [delivery policy](../../../planning/CONVENTIONS.md#current-delivery-handoffs), ordinary Land records
-the verified PR URL and historical acceptance/publication without a new delivery marker, persistent current merge
-note or Board row. No post-merge Board chore for John or routine retirement TASK/corrective PR. Retain bounded
-verification/retirement of existing legacy markers during authorized intake; routing/Review/QA remain read-only.
-Exact live owned-PR checks and qualified Land resource cleanup remain separate requirements.
+Under Common's [publication closeout](../../../planning/CONVENTIONS.md#publication-closeout), Land closes accepted
+TASKs/eligible parents and applicable current docs during delivery, records the verified PR URL as publication
+history and retires eligible owned local resources. No tracked delivery marker/table, persistent merge queue or
+recurring post-merge planning chore remains. Preserve historical acceptance/publication and independent reports.
+Planning checks stay offline; routing/Review/QA remain read-only. Exact live owned-PR/default/base/head checks
+and qualified Land resource cleanup remain separate requirements; human merge stays separate.
 
 ## Generated navigation
 

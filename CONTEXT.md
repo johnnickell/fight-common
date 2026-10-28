@@ -643,13 +643,14 @@ not competing current status. The offline build rejects stale summaries without 
 records the verified PR URL and historical acceptance/publication, without a new delivery marker, persistent current
 merge note/Board row, or post-merge Board cleanup for John. Land still directly checks the exact owned PR before
 publication and at final handoff under the
-[workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), even with zero markers.
-Existing legacy snapshots remain bounded: read-only routing resolves exact verified merged/integrated `done` work
-and continues; authorized Work/planning/Land intake runs `--reconcile-delivery` to retire those markers and preserve
-merge/head/time/local-ancestry evidence. These are observed merge/integration facts, not inferred acceptance or
-checking-side mutation. Closed-unmerged, non-terminal scope, unintegrated or unverifiable outcomes still hold the
-affected action for real recovery. Human-only merge, independent Review/QA/full verification and qualified resource
-cleanup remain; no background watcher or execution after stopping is promised.
+[workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). Land closes the
+accepted TASK/eligible parents and applicable current docs before final publication and retires eligible owned
+local Git/Docker/storage. The tracked delivery marker/table/check/reconciliation mechanism is removed, including
+legacy scans and recurring Work/planning intake/post-merge obligations. Planning/routing stays offline; preserve
+historical acceptance/publication/reconciliation and independent reports. Closed-unmerged, non-terminal scope,
+unintegrated or unverifiable outcomes still hold the affected action for its real owner. Human-only merge,
+open-PR remote-head preservation, independent Review/QA/full verification and qualified resource cleanup remain;
+no background watcher or execution after stopping is promised.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained
@@ -658,6 +659,36 @@ TASK; a report's accept/revise verdict is distinct from QA and delivery authorit
 report is `<base-worktree>/.runs/qa/<TASK-ID>/qa.md` under the [QA contract](docs/engineering/standards/QA.md).
 The [shared workflow binding](planning/agents/shared-workflows.md) owns provider/target substitutions and prospective
 Build/task-run paths without relocating historical evidence.
+
+## Disposable database tooling
+
+The project image copies its public `local.ini` with explicit readable permissions. A restrictive checkout
+umask must not make that root-owned image configuration unreadable to the non-root gate user: doing so silently
+loses the intended coverage mode and 512 MiB memory setting. No host trust, global settings or runtime protections
+are changed.
+
+`bin/build` and complete `bin/phpunit` own isolated MySQL/PostgreSQL fixtures through
+`bin/.disposable-database-runtime` and its Python lifecycle. Creation intent, returned IDs and image-declared
+anonymous mounts are saved privately before starting databases. Allocation uncertainty is saved before each
+create; returned IDs and complete creator observations are durable before fallible image/volume inspection.
+Cleanup establishes exact coverage of every original creator mount before removing any creator. An interrupted
+capture resumes only against that same still-present fingerprinted creator and its original mounts; missing
+identity/authority or a lost return value holds all destructive effects. Original receipts/failed attempts remain,
+not rewritten into success or recovered by names. EXIT/INT/TERM cleanup normally stops exact owned
+containers, removes them without force, then separately qualifies volumes against all consumers (including
+stopped containers) and verifies absence. Cleanup failure makes an otherwise successful caller fail; an earlier
+workload failure retains its original nonzero exit. Images/shared builder caches are accounted for and retained,
+not deleted by workload association. No global prune or shared service shutdown is used.
+
+Receipts default to the Git-common-directory parent’s ignored `.runs/database-runs/`, outside linked worktrees.
+`FIGHT_COMMON_DATABASE_RECEIPT_DIR` may select another private retained evidence directory before creation.
+After an interrupted run, inspect that exact receipt and resolve its named holds, then run
+`python3 bin/.disposable-database-lifecycle.py cleanup --receipt /absolute/path/to/the-recorded-receipt.json`
+from an intact owning checkout. Use `--docker` only for the same qualified Docker endpoint/tool. Never rerun
+creation against an existing receipt. Changed identity, inspection failure, shared/stopped consumers and creation
+interrupted before returned-ID capture remain finite holds; names alone never authorize deletion. Preserve
+receipts through review/delivery. This is trusted local tooling, not a hostile-code sandbox or atomic protection
+against unrelated concurrent Docker mutation.
 
 ## Decisions
 
