@@ -115,6 +115,7 @@ nav:
       - Utilities: components/utilities/index.md
     - Coordinate Application Behavior:
       - Messaging (CQRS): components/messaging/index.md
+      - Durable Asynchronous Tasks: durable-tasks.md
       - Durable Safe Notices: safe-notices.md
       - Retained Notice Recovery: notice-recovery.md
       - Optional Notice Publication: notice-publication.md

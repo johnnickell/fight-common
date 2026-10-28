@@ -7,7 +7,7 @@ This read-only path precedes general orientation; full implementation, review, Q
 still apply when the selected workflow is invoked.
 
 1. Run `./bin/planning-check --check-delivery` once before selection or recommending a current publication/merge
-   handoff. It checks local consistency and live state for explicitly marked current delivery handoffs only.
+   handoff. It checks local consistency and live state for existing legacy delivery markers only.
    OPEN retains the human merge handoff. A verified MERGED, accepted (`done`) and locally integrated handoff
    is resolved for this observation: continue selection without asking John for routine cleanup, even if its
    recorded marker remains. Report that observed result rather than repeating the Board's publication snapshot.
@@ -40,7 +40,8 @@ stop without invoking a workflow or changing files. Missing indexes are reported
 During authorized planning updates, keep current planning/decomposition handoffs source-linked and concise:
 target, phase, pending decision/owner. Current TASK selection belongs only in the generated Board `next` and
 Roadmap `execution` blocks; do not duplicate mutable TASK status, blockers or merge claims in authored routing
-prose. TASK records own stage/evidence details and the generated Board delivery block owns current merge handoffs.
+prose. TASK records own stage/evidence details; the generated Board delivery block displays legacy markers only.
+Ordinary Land creates no persistent merge-handoff note or row, and no post-merge Board chore for John.
 Keep Wayfinder inventory/frontier pointers current. These are navigation aids, not another backlog or proof of
 delivery. Preserve historical decisions in their owning records and label historical strategy/dependency prose.
 
@@ -96,14 +97,21 @@ only for deterministic display. `pr` is an optional full PR URL, not an assertio
 
 ### Current delivery handoffs
 
-On a live TASK, Land sets optional `delivery: awaiting-merge` and the verified `pr` URL at the OPEN human
-review/merge handoff. This is a **publication snapshot**, not a perpetual assertion that the PR is still open.
-Neither `done`, a PR link nor historical completion prose creates a current delivery claim. The Board's generated
-`planning:delivery` block mirrors recorded markers as "Published; verify live state"; only a fresh live check
-establishes the current action. Keep historical acceptance/publication facts, not competing current claims.
+**Common policy, approved 2026-10-27:** ordinary Land records the actual verified `pr` URL and historical
+acceptance/publication checkpoint, but does **not** create `delivery: awaiting-merge`, another persistent current
+merge-handoff note, or a Board delivery row. Do not rename the same burden, assign John post-merge Board cleanup,
+or create a new TASK/corrective PR for routine metadata retirement. The final human review/merge action belongs
+in the observed Land response and ignored receipt/PR, not a tracked claim that needs editing after merge.
+Independent Review, required QA, the full local gate, human-only merge and ownership-qualified Land cleanup remain.
+This local rule supersedes provider instructions/examples that would create a persistent marker or current note.
+
+Existing `delivery: awaiting-merge` markers are **legacy publication snapshots**, not perpetual live-state claims.
+The retained `planning:delivery` block mirrors only those markers; create no new ones. Neither `done`, a PR link
+nor historical completion prose creates a current delivery claim. Preserve historical facts and receipts rather
+than mass editing completed records. No background watcher or execution after an agent stops is promised.
 
 `./bin/planning-check --check-delivery` is read-only. It checks local consistency and uses existing `gh` operator
-access for at most 16 marked PRs, one 15-second request per PR. URL, number, repository, exact TASK/title,
+access for at most 16 legacy-marked PRs, one 15-second request per PR. URL, number, repository, exact TASK/title,
 TASK feature branch, develop base and full head OID must agree. OPEN retains the human handoff. MERGED resolves
 it **without blocking selection or requiring a cleanup request** only when merge time/OID are valid, the TASK
 is already `done`, the exact published head is an ancestor of that merge and that merge is an ancestor of local
@@ -126,8 +134,11 @@ verification. All such failures stop routing/reconciliation with the actual miss
 clear markers, or rewrite even stale views. Validation/live-evidence errors prevent all planned writes. Unexpected
 write/I/O failures require inspecting actual disk state before retry; this is not a filesystem transaction.
 
-Land also requires live checks immediately before publication and after final metadata changes under the
-[workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), not hosted CI success.
+Land also requires live checks immediately before publication and at final handoff after final metadata changes
+under the [workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), not hosted CI success.
+Even with zero legacy markers, Land must directly verify the exact owned PR's repository/TASK/base/branch/head
+and live state; an empty checker result is not that proof. Routing does not scan unmarked historical PRs. If a
+current merge action is explicitly requested, verify that exact PR read-only rather than creating a marker.
 All three modes are mutually exclusive. The checker never scans unmarked historical PRs, changes TASK acceptance,
 checks CI, publishes, approves, merges or archives. Ordinary checks and both planning steps in `./bin/build`
 remain offline/read-only; dependency/image preparation retains the build's existing behavior.

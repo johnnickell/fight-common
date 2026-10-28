@@ -21,6 +21,12 @@ Adopted statuses: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-hu
 
 Use `blocked_by` for TASK dependencies; preserve edges after completion and derive unfinished blockers. Use deliberate priority (`order`, lower first), then stable IDs only as display tie-breakers. Record PR URLs without treating them as evidence of live merge state. An external blocker belongs in an explicit decision/evidence requirement rather than a fake TASK ID.
 
+Under Common's [delivery policy](../../../planning/CONVENTIONS.md#current-delivery-handoffs), ordinary Land records
+the verified PR URL and historical acceptance/publication without a new delivery marker, persistent current merge
+note or Board row. No post-merge Board chore for John or routine retirement TASK/corrective PR. Retain bounded
+verification/retirement of existing legacy markers during authorized intake; routing/Review/QA remain read-only.
+Exact live owned-PR checks and qualified Land resource cleanup remain separate requirements.
+
 ## Generated navigation
 
 The Board uses consistent columns: **Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR**. Parent and blocker links show actual IDs; parents also show titles. Include active work, ready frontier, waiting, missing information, human action, triage, and recently closed sections. For next work, first surface current human decisions and the active TASK, otherwise the first executable ready TASK.

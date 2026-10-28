@@ -31,12 +31,13 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00166](tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | ready-for-agent | — |
+| Ready Frontier | [TASK-00167](tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
-or proof of acceptance/delivery. Inspect the selected TASK's handoff for its next stage. Current human merge
-handoffs live in the [Board delivery view](tasks/BOARD.md#current-delivery-handoffs), not the historical narrative below.
+or proof of acceptance/delivery. Inspect the selected TASK's handoff for its next stage. The
+[Board delivery view](tasks/BOARD.md#current-delivery-handoffs) retains legacy markers only; ordinary Land creates
+no persistent current merge handoff or post-merge Board chore. Historical PR references below are not live actions.
 
 ## Approved planning history
 

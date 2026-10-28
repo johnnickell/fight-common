@@ -210,6 +210,42 @@ version-one payload includes nullable activity for session/phase evidence; unsup
 No historical codecs, envelope aliases or development-format migrations are supplied. Existing released audit, CQRS,
 transactional unit-of-work and Event Store guarantees remain unchanged.
 
+## Durable asynchronous Task language
+
+`Domain\Task\Task` owns coherent working/input_required/completed/failed/cancelled state, original immutable
+`TaskDefinition`, server millisecond timestamps, immutable creation-duration TTL, optional polling advice and a
+Task-local version fence. `TaskState` owns status-specific input/result/error invariants and finite encoded bounds.
+Completed Tool `isError: true` remains completed; failed holds a safely mapped JSON-RPC execution error. Neither
+silence, disconnect, expiry nor a handle establishes execution, cancellation, business success or Workflow authority.
+
+Shared `CreateTask` / `RecordTaskState` Commands and `GetTask` Query route through Application Task handlers and
+`TaskLifecycle`. Independent current creation, producer-update and read admissions are consumer-supplied; possession,
+capability declarations and submitted labels grant nothing. Required `TaskPayloadPolicy` validates retained original
+contract context without executing work and freshly authorizes whole-state safe disclosure. Concrete
+`ToolTaskPayloadPolicy` validates captured Tool schemas, supported flat forms/text results and exact constant public
+execution errors; explicit disclosure remains consumer-owned. Protected data is never replaced with empty success.
+
+`Adapter\Task\Dbal\DbalTaskStore` implements Application `TaskStore` / `TransactionalUnitOfWork` directly on its
+own idle DBAL connection, not an unrelated ORM transaction. Dedicated version-one `fight_task_state` / `fight_tasks`
+storage supports SQLite/MySQL/PostgreSQL. A namespace lock serializes mutation/admission through actual commit;
+state/payload/comparison changes are atomic. Enclosing transactions and dirty reads reject before writes without
+committing or rolling back caller work. Unknown begin/commit/rollback closes the boundary with explicit storage
+uncertainty; fresh authorized polling reconciles possible committed state. Reference-only `TaskChanged` follows
+commit; `CommittedTaskDispatchFailed` cannot erase persistence. No outbox/replay/general-notice-feed guarantee exists.
+
+Creation retains one SHA-256 original-content digest; exact encoded-content repeats are admitted no-ops while
+retained, including after progress. Updates retain only the latest transition digest plus expected version; only
+an immediately matching retry is a no-op. Conflicting/stale updates and all new terminal replacements reject.
+Comparison memory is bounded, private and removed with the row; future removal ends those guarantees, with no hidden
+historical archive or exactly-once job promise. `GetTask` projects one immutable coherent bounded `StrictJson` view,
+never definition/comparison material. Denied/missing/cross-scope/expired/withheld is null with unknown absence reason;
+storage failure is explicit. Reads emit/mutate nothing and never renew TTL or remove state. Consumer clocks, retention,
+permissions, safe evidence, workers, scheduling and external-effect recovery remain consumer-owned.
+
+This lifecycle does not advertise MCP Tasks, change Tool return contracts, admit client input, request cancellation,
+remove data or supply live delivery. Later suppliers integrate through these invariants. See
+[durable Tasks](docs/durable-tasks.md) for exact composition, numeric bounds, retry lifetime, schema and compatibility.
+
 ## Live MCP subscription language
 
 Explicit `Application\Mcp\Subscription\McpSubscriptions` enables guarded POST `subscriptions/listen` for requested
@@ -603,14 +639,17 @@ requires implementation acceptance, required verification, independent Review ac
 (or justified overall N/A). Implementation awaiting Review/QA stays non-terminal with its handoff explicit; delivery
 is separate. Historical completion records retain the meaning of their original policy. Current Board/Roadmap
 TASK-routing summaries derive from the same ordered records; their authored planning/dependency narratives are
-not competing current status. The offline build rejects stale summaries without rewriting them. Land separately
-checks explicit current delivery handoffs against live PR metadata before publication and at final handoff under
-the [workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). After human merge,
-read-only routing resolves exact verified merged/integrated `done` handoffs and continues without asking John for
-routine cleanup. Authorized Work/planning/Land intake explicitly runs `--reconcile-delivery` to retire those markers,
-retain merge/head/time/local-ancestry evidence and refresh views. These are separate observed merge/integration facts,
-not inferred acceptance or checking-side mutation. OPEN remains a human handoff; closed-unmerged, non-terminal scope,
-unintegrated or unverifiable outcomes still stop for real evidence/decision recovery.
+not competing current status. The offline build rejects stale summaries without rewriting them. Ordinary Land
+records the verified PR URL and historical acceptance/publication, without a new delivery marker, persistent current
+merge note/Board row, or post-merge Board cleanup for John. Land still directly checks the exact owned PR before
+publication and at final handoff under the
+[workflow binding](planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), even with zero markers.
+Existing legacy snapshots remain bounded: read-only routing resolves exact verified merged/integrated `done` work
+and continues; authorized Work/planning/Land intake runs `--reconcile-delivery` to retire those markers and preserve
+merge/head/time/local-ancestry evidence. These are observed merge/integration facts, not inferred acceptance or
+checking-side mutation. Closed-unmerged, non-terminal scope, unintegrated or unverifiable outcomes still hold the
+affected action for real recovery. Human-only merge, independent Review/QA/full verification and qualified resource
+cleanup remain; no background watcher or execution after stopping is promised.
 
 Coordination and evidence live under ignored `.runs/` directories and are not committed project history. The
 current independent review handoff is `<base-worktree>/.runs/reviews/<TASK-ID>/review.md`, resolved and retained
