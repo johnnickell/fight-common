@@ -659,6 +659,31 @@ report is `<base-worktree>/.runs/qa/<TASK-ID>/qa.md` under the [QA contract](doc
 The [shared workflow binding](planning/agents/shared-workflows.md) owns provider/target substitutions and prospective
 Build/task-run paths without relocating historical evidence.
 
+## Disposable database tooling
+
+The project image copies its public `local.ini` with explicit readable permissions. A restrictive checkout
+umask must not make that root-owned image configuration unreadable to the non-root gate user: doing so silently
+loses the intended coverage mode and 512 MiB memory setting. No host trust, global settings or runtime protections
+are changed.
+
+`bin/build` and complete `bin/phpunit` own isolated MySQL/PostgreSQL fixtures through
+`bin/.disposable-database-runtime` and its Python lifecycle. Creation intent, returned IDs and image-declared
+anonymous mounts are saved privately before starting databases. EXIT/INT/TERM cleanup normally stops exact owned
+containers, removes them without force, then separately qualifies volumes against all consumers (including
+stopped containers) and verifies absence. Cleanup failure makes an otherwise successful caller fail; an earlier
+workload failure retains its original nonzero exit. Images/shared builder caches are accounted for and retained,
+not deleted by workload association. No global prune or shared service shutdown is used.
+
+Receipts default to the Git-common-directory parent’s ignored `.runs/database-runs/`, outside linked worktrees.
+`FIGHT_COMMON_DATABASE_RECEIPT_DIR` may select another private retained evidence directory before creation.
+After an interrupted run, inspect that exact receipt and resolve its named holds, then run
+`python3 bin/.disposable-database-lifecycle.py cleanup --receipt /absolute/path/to/the-recorded-receipt.json`
+from an intact owning checkout. Use `--docker` only for the same qualified Docker endpoint/tool. Never rerun
+creation against an existing receipt. Changed identity, inspection failure, shared/stopped consumers and creation
+interrupted before returned-ID capture remain finite holds; names alone never authorize deletion. Preserve
+receipts through review/delivery. This is trusted local tooling, not a hostile-code sandbox or atomic protection
+against unrelated concurrent Docker mutation.
+
 ## Decisions
 
 Architectural decisions live in `planning/adr/`. Public Event Sourcing integration documentation lives in `docs/event-sourcing.md`.
