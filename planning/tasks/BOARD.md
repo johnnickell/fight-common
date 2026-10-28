@@ -36,22 +36,10 @@ its approved map-wide decomposition handoff. Its planning is complete through TA
 belongs to the generated Board, not automatic implementation. The [Roadmap planning frontier](../ROADMAP.md#planning-frontier)
 separately identifies decomposition work.
 
-## Current delivery handoffs
-
-Ordinary Land records the verified PR URL and historical acceptance/publication, but creates no new delivery
-marker, persistent current merge note or row here; John has no post-merge Board cleanup chore. The block below
-is retained only for existing legacy `delivery: awaiting-merge` snapshots, not perpetual live state or a new queue.
-Routing checks those with `./bin/planning-check --check-delivery`: verified merged/integrated `done` work resolves
-without a cleanup request; authorized intake retires it with `--reconcile-delivery` under
-[Conventions](../CONVENTIONS.md#current-delivery-handoffs). Historical prose/PR links create no current handoff.
-Land still directly verifies the exact owned PR before publication and at final handoff even if this block is
-empty. Offline validation alone proves no live PR state; no watcher or later automatic execution is promised.
-
-<!-- planning:delivery -->
-| TASK | Current delivery | PR |
-|---|---|---|
-| None | — | — |
-<!-- /planning:delivery -->
+Land owns [publication closeout](../CONVENTIONS.md#publication-closeout) during delivery: accepted TASK/current-doc
+closure, exact live own-PR validation and eligible owned local resource retirement. Human merge is separate;
+no tracked pending-merge queue or recurring post-merge planning chore remains. Historical checkpoints stay in
+their owning records; routing and planning checks stay offline.
 
 <!-- planning:board -->
 ## Active Work

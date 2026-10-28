@@ -79,6 +79,75 @@ class Lifecycle:
         ids = self.run('container', 'ls', '--all', '--no-trunc', '--quiet').splitlines()
         return [self.inspect('container', identity) for identity in ids]
 
+    def allocate(self, kind, name, *options):
+        # Persist uncertainty BEFORE the command can allocate anything. A lost return
+        # value is an evidence hold, never permission to discover/delete by name.
+        allocation = {'kind': kind, 'name': name, 'id': None}
+        self.state.setdefault('allocations', []).append(allocation)
+        self.save()
+        identity = self.run(kind, 'create', *options)
+        allocation['id'] = identity
+        self.save()
+        return identity
+
+    def capture_mounts(self, entry):
+        require(self.state.get('authority') and self.state.get('data') == 'disposable', 'missing original discard authority/data classification')
+        original = entry.get('created_observation')
+        require(original and entry.get('identity') == container_identity(original)
+            and original['Id'] == entry['id'] and original['Name'] == entry['name']
+            and original['Mounts'] == entry['mounts'], 'missing/contradictory original creator identity and mounts')
+        intents = self.state.get('creation_intent', {})
+        require(any(isinstance(value, dict) and '/' + value.get('name', '') == entry['name']
+            and value.get('image') == original['Config']['Image'] for value in intents.values()), 'creator does not match original allocation intent')
+        mounts = entry['mounts']
+        require(all(mount['Type'] == 'volume' and mount.get('Name') for mount in mounts), 'unexpected/unknown database mount')
+        expected = {(mount['Name'], mount['Destination']) for mount in mounts}
+        require(len(expected) == len(mounts), 'ambiguous original mounts')
+        require(set(original['Config'].get('Volumes') or {}) == {mount['Destination'] for mount in mounts}, 'mounts differ from original declarations')
+        recorded = [volume for volume in self.state['volumes'] if volume['creator'] == entry['id']]
+        require(len(recorded) == len({(volume['name'], volume['destination']) for volume in recorded})
+            and all((volume['name'], volume['destination']) in expected for volume in recorded), 'contradictory volume inventory')
+        missing = expected - {(volume['name'], volume['destination']) for volume in recorded}
+        # Version-1 receipts that already captured every mount and its identity
+        # remain recoverable after creator loss; absence of a new flag alone does
+        # not erase that original complete evidence. Explicit false remains a hold.
+        image_recorded = any(item['id'] == original['Image'] for item in self.state['images'])
+        incomplete = (missing or any(not volume.get('identity') for volume in recorded)
+            or entry.get('capture_complete') is False or not image_recorded)
+        if incomplete:
+            # Only the SAME still-present, fingerprinted creator can complete an
+            # interrupted capture. Never infer a replacement volume after its loss.
+            current = self.inspect('container', entry['id'])
+            require(container_identity(current) == entry['identity'], 'original creator changed; capture remains incomplete')
+            entry['capture_complete'] = False
+            for name, destination in sorted(missing):
+                self.state['volumes'].append({'name': name, 'creator': entry['id'],
+                    'destination': destination, 'identity': None, 'data': 'disposable'})
+            self.save()
+            image = self.inspect('image', original['Image'])
+            require(set(original['Config'].get('Volumes') or {}) == {mount['Destination'] for mount in mounts}
+                and set(image['Config'].get('Volumes') or {}) == {mount['Destination'] for mount in mounts}, 'mounts differ from original image declarations')
+            if not any(item['id'] == original['Image'] for item in self.state['images']):
+                self.state['images'].append({'id': original['Image'], 'size_bytes': image['Size'],
+                    'use': entry.get('image_use', 'unknown'), 'disposition': 'retain',
+                    'reason': 'base image and shared layers are not disposable by workload association'})
+                self.save()
+            for volume in self.state['volumes']:
+                if volume['creator'] != entry['id']:
+                    continue
+                observed = volume_identity(self.inspect('volume', volume['name']))
+                require(not volume.get('identity') or observed == volume['identity'], 'original volume identity changed during capture')
+                if not volume.get('identity'):
+                    volume['identity'] = observed
+                    self.save()
+            require(container_identity(self.inspect('container', entry['id'])) == entry['identity'], 'creator changed during capture')
+            entry['capture_complete'] = True
+            self.save()
+        recorded = [volume for volume in self.state['volumes'] if volume['creator'] == entry['id']]
+        require({(volume['name'], volume['destination']) for volume in recorded} == expected
+            and len(recorded) == len(expected) and all(volume.get('identity') and volume.get('data') == 'disposable' for volume in recorded), 'original mount coverage incomplete')
+        return 'qualified'
+
     def start(self):
         require(self.state is None, 'receipt already exists; never replay creation, resume cleanup explicitly')
         self.state = {'version': 1, 'run': self.args.run, 'source': str(Path(__file__).resolve()),
@@ -92,7 +161,7 @@ class Lifecycle:
         require(network_name not in self.run('network', 'ls', '--format', '{{.Name}}').splitlines(), 'network name exists')
         self.state['creation_intent'] = {'network': network_name, 'run': self.args.run, 'time': time.time()}
         self.save()
-        network_id = self.run('network', 'create', network_name)
+        network_id = self.allocate('network', network_name, network_name)
         network = self.inspect('network', network_id)
         self.state['network'] = {'id': network_id, 'name': network_name, 'created': network['Created']}
         self.save()
@@ -108,21 +177,15 @@ class Lifecycle:
                 '--health-cmd=' + health, '--health-interval=2s', '--health-timeout=5s', '--health-retries=30']
             for value in variables:
                 options += ['--env', value]
-            identity = self.run(*options, image)
+            identity = self.allocate('container', name, *options[2:], image)
             current = self.inspect('container', identity)
-            entry = {'id': identity, 'name': current['Name'], 'identity': container_identity(current), 'mounts': current['Mounts'], 'created_observation': current}
+            entry = {'id': identity, 'name': current['Name'], 'identity': container_identity(current),
+                'mounts': current['Mounts'], 'created_observation': current, 'capture_complete': False,
+                'image_use': 'reused' if current['Image'] in before_images else 'pulled'}
             self.state['containers'].append(entry)
-            observed_image = self.inspect('image', current['Image'])
-            self.state['images'].append({'id': current['Image'], 'size_bytes': observed_image['Size'],
-                'use': 'reused' if current['Image'] in before_images else 'pulled', 'disposition': 'retain',
-                'reason': 'base image and shared layers are not disposable by workload association'})
-            # Capture image-declared anonymous mounts while the creating container still exists.
-            for mount in current['Mounts']:
-                require(mount['Type'] == 'volume', 'unexpected non-volume database mount')
-                observed = self.inspect('volume', mount['Name'])
-                self.state['volumes'].append({'name': mount['Name'], 'creator': identity,
-                    'destination': mount['Destination'], 'identity': volume_identity(observed), 'data': 'disposable'})
+            # Save the complete creator observation BEFORE any fallible image/volume inspection.
             self.save()
+            self.capture_mounts(entry)
             self.run('container', 'start', identity)
             deadline = time.monotonic() + 90
             while time.monotonic() < deadline:
@@ -141,6 +204,7 @@ class Lifecycle:
         attempt = {'time': time.time(), 'results': [], 'complete': False}
         self.state['attempts'].append(attempt)
         self.save()
+        require(self.state.get('authority') and self.state.get('data') == 'disposable', 'missing original discard authority/data classification')
         def effect(kind, identity, operation):
             result = {'kind': kind, 'identity': identity, 'status': 'pending'}
             attempt['results'].append(result)
@@ -150,6 +214,23 @@ class Lifecycle:
             except (Hold, OSError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
                 result.update(status='held', reason=str(error) if isinstance(error, Hold) else 'inspection unavailable')
             self.save()
+        # Establish coverage for EVERY original creator before any destructive effect.
+        # Legacy partial receipts can recover only while their corroborated creator exists.
+        for entry in self.state['containers']:
+            effect('capture', entry['id'], lambda entry=entry: self.capture_mounts(entry))
+        expected = len([key for key in self.state.get('creation_intent', {}) if key in ('mysql', 'postgresql')])
+        network = self.state['network']
+        allocations = self.state.get('allocations', [])
+        uncertain = (expected != len(self.state['containers'])
+            or bool(self.state.get('creation_intent') and not network)
+            or any(not item.get('id') for item in allocations)
+            or {item['id'] for item in allocations if item['kind'] == 'container'} - {entry['id'] for entry in self.state['containers']}
+            or any(item['kind'] == 'network' and (not network or item['id'] != network['id']) for item in allocations))
+        attempt['creation_uncertain'] = bool(uncertain)
+        self.save()
+        require(not uncertain and all(item['status'] == 'qualified' for item in attempt['results']),
+            'allocation/mount capture incomplete; retain creators and original receipt; recover only corroborated original mounts')
+        require({volume['creator'] for volume in self.state['volumes']} <= {entry['id'] for entry in self.state['containers']}, 'volume has no original creator')
         for entry in self.state['containers']:
             def remove_container(entry=entry):
                 inventory = self.containers()
@@ -199,11 +280,7 @@ class Lifecycle:
                 require(network['id'] not in self.run('network', 'ls', '--no-trunc', '--quiet').splitlines(), 'network removal unverified')
                 return 'removed'
             effect('network', network['id'], remove_network)
-        # Uncertain creation before ID capture is never silently complete or deleted by name.
-        expected = len([key for key in self.state.get('creation_intent', {}) if key in ('mysql', 'postgresql')])
-        uncertain = expected != len(self.state['containers']) or (self.state.get('creation_intent') and not network)
-        attempt['complete'] = not uncertain and all(item['status'] in ('removed', 'absent') for item in attempt['results'])
-        attempt['creation_uncertain'] = uncertain
+        attempt['complete'] = all(item['status'] in ('qualified', 'removed', 'absent') for item in attempt['results'])
         self.save()
         require(attempt['complete'], 'cleanup incomplete; resolve exact receipt holds, then rerun cleanup with the same receipt')
 

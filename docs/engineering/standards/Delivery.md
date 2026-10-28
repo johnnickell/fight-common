@@ -75,16 +75,15 @@ Tracked completion notes describe implementation and verification at an explicit
 
 Record a verified PR URL in TASK metadata once it exists; never predict a PR number or require publication details before publication. Include an existing PR link before the final gate where possible. When first publication requires a follow-up metadata/view change, verify and deliver that change through normal project gates. This does not require another tracked update to describe the metadata commit itself.
 
-For Common, ordinary Land retains historical acceptance/publication but creates no `delivery: awaiting-merge`,
-persistent current merge-handoff note or Board delivery row. Do not rename that burden, assign John post-merge
-Board cleanup, or create a routine retirement TASK/corrective PR. This overrides provider marker-setting examples.
-Use the [binding's live checks](../../../planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff)
-for the exact owned PR before publication and at final handoff even with zero legacy markers. The human-only merge
-request is an observed response/ignored receipt/PR fact, not a tracked future cleanup obligation. Existing legacy
-markers still require bounded verified retirement at authorized intake under
-[Conventions](../../../planning/CONVENTIONS.md#current-delivery-handoffs); preserve their historical evidence and
-read-only routing/Review/QA safety. No watcher or automatic execution after stopping is promised. Independent
-Review, required QA/full verification and ownership-qualified resource cleanup are unchanged.
+For Common, Land closes the accepted TASK, eligible parents and applicable current Board/Roadmap/README/docs
+before final publication, retaining historical acceptance/publication and independent reports. The tracked delivery
+marker/table/check/reconciliation mechanism is removed, not renamed: no pending-merge queue, recurring intake
+scan or post-merge planning chore. This overrides provider marker-setting examples. Use the
+[binding's live checks](../../../planning/agents/shared-workflows.md#delivery-pre-submit-and-final-handoff) for the
+exact owned PR/default/base/head before publication and at final handoff. Human merge is an observed response/
+ignored receipt/PR fact, not a tracked future cleanup obligation; preserve open-PR remote heads. Planning stays
+offline, routing/Review/QA read-only. No watcher or automatic execution after stopping is promised. Independent
+Review, required QA/full verification and ownership-qualified local Git/Docker/storage cleanup are unchanged.
 
 After commit/push/PR creation, record the actual resulting commit, PR, publication outcome and verification references in ignored run/handoff artifacts. Use Git to verify publication. Land records any required hosted delivery results for the published head separately from the accepted local candidate. Builders report hosted CI as unchecked unless explicitly tasked with checking it. A pre-commit gate identifies the tested tree or content snapshot; after committing, link that evidence to the resulting commit after confirming the tested content was preserved, or document the input equivalence and targeted checks required by Testing’s documentation-only evidence-reuse rule. A tracked file must never be required to contain its own enclosing commit hash or future CI outcome. Do not create recursive bookkeeping commits merely to restate each new head. Real content changes still require applicable verification and review.
 

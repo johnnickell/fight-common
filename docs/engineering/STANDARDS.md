@@ -24,20 +24,20 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 | Document | SHA-256 |
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
-| `AGENTS.md installed` | `649bc9bcbda0b9410151aad4559422cf13623734cc589d49b38a0f311b37b99e` |
+| `AGENTS.md installed` | `187248c51307fce8ba3fb3d3df24c15eaceee1c3a208f5d8aac372548984d444` |
 | `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
-| `standards/Delivery.md` | `9b550463bf71f716bd19db6c2f367a5ac4ff5bb00d87437d3cda77d331df63aa` |
+| `standards/Delivery.md` | `edea87ae0c622b604bf81bbb457d65fa563105445a98886cdb8f12d17b2010e8` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `edb5ea685253c45638930ae9f41a5e0dd12caa1f143dcd9b7ca207013eb350c2` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
 | `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
-| `standards/Planning.md` | `e1f071c1b40eec8486be8d47134a01ca4c7cd15d63ef759ef91cf0e5d2479ea4` |
+| `standards/Planning.md` | `3977009d18e64afe804a80fa3f6dcef5ff062ea9694f890717a3b8b84bc22c66` |
 | `standards/Review.md` | `cd86ecfa4f1a9b7a73394ff14c97dbf12def59ebb3bdea084f18253be5f21277` |
-| `standards/Testing.md` | `8f6c417fbf69b4a2394bd741df6101b06b99c54ca475774c08cc8aa27e570259` |
+| `standards/Testing.md` | `f893cb8525d526987f0fe9f98909afff05575c29829eb4fb5814a00d39ac9519` |
 | `standards/QA.md` | `715aa0bb9caf81c03f5949cca0c4d2cecad1cc1b82b30c1b55cd38fe111c3258` |
 | `QA_REPORT_TEMPLATE.md` | `1e71e01157b297abdfef19fc146fb18cfc36337abb1fcd984f2dd7b7bf8aa7e6` |
-| `planning/agents/shared-workflows.md` | `f6b7c482469fe2599d4ea695d4b4c7d00ac85eb982df8a63672e077be638446f` |
+| `planning/agents/shared-workflows.md` | `f1522da4c0ba1cd77839135a1fd26253bfa123d0145a9c9e96230d1b5c9ef166` |
 
 ## Project scope and unresolved work
 
@@ -151,11 +151,11 @@ Independent Review and applicable local documentation QA remain separate, pendin
 by this adoption record. Exact coverage, compatibility, gate/reuse policy, advisory hosted CI, GitFlow, release
 certification/signing and human merge control remain intact. The digests above identify the current local copies.
 
-## No post-merge Board chore — 2026-10-27
+## No post-merge Board chore — historical 2026-10-27 checkpoint
 
 During [TASK-00166](../../planning/tasks/00166-TASK.md#latest-base-integration-and-permanent-delivery-policy), John
 rejected persistent merge-handoff notes and even a renamed post-merge burden, then directed that the docs be fixed.
-[Conventions](../../planning/CONVENTIONS.md#current-delivery-handoffs) owns the permanent Common rule: ordinary Land
+[The checkpoint conventions](https://github.com/johnnickell/fight-common/blob/9c66408eea782b2a975f893e0a0442e58ac2d536/planning/CONVENTIONS.md#current-delivery-handoffs) recorded the then-current Common rule: ordinary Land
 records verified PR URL and historical acceptance/publication, but creates no new delivery marker, tracked current
 merge note or Board row. No post-merge Board cleanup request or routine retirement TASK/corrective PR. This local
 amendment overrides conflicting provider examples without changing any provider/global installation.
@@ -166,3 +166,15 @@ routing/Review/QA. Independent Review, required QA/full verification, human-only
 cleanup remain intact. No watcher or promise of execution after stopping is introduced. The affected installed
 AGENTS, Delivery, Planning, Testing and binding digests above are refreshed; original baseline provenance and
 historical decisions/receipts remain. This records approval and implementation, not fresh independent acceptance.
+
+## Complete delivery mechanism removal — central TASK-00542
+
+The October 28 explicit amendment removes the retained legacy delivery marker/table/generator/live-check/
+reconciliation mechanism and its routing/intake duties, superseding that part of the historical checkpoint above.
+[Publication closeout](../../planning/CONVENTIONS.md#publication-closeout) is current: Land closes accepted TASKs,
+eligible parents and applicable current docs during delivery, verifies its exact live own PR/default/base/head
+and retires eligible owned local Git/Docker/storage. Preserve historical acceptance/publication/reconciliation
+and independent reports, human-only merge and open-PR remote heads. No renamed queue or recurring post-merge
+planning chore replaces the removed mechanism. Planning/routing stays offline; uncertainty holds the affected
+effect. No local TASK, publication or independent acceptance is created by this central repair. Current installed
+digests above identify the amended documents, not fresh upstream provider qualification.

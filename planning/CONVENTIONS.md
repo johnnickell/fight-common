@@ -6,15 +6,11 @@ For “What's next?”, `next`, or an unqualified `/ask-matt`, use the routing e
 This read-only path precedes general orientation; full implementation, review, QA and delivery requirements
 still apply when the selected workflow is invoked.
 
-1. Run `./bin/planning-check --check-delivery` once before selection or recommending a current publication/merge
-   handoff. It checks local consistency and live state for existing legacy delivery markers only.
-   OPEN retains the human merge handoff. A verified MERGED, accepted (`done`) and locally integrated handoff
-   is resolved for this observation: continue selection without asking John for routine cleanup, even if its
-   recorded marker remains. Report that observed result rather than repeating the Board's publication snapshot.
-   Failure or unavailable evidence stops selection with the actual identity and missing evidence/integration or
-   decision owner; do not refresh views or infer a merge. An ordinary offline `./bin/planning-check`
-   pass is not delivery freshness. Without a validator, disclose that limitation and check selected metadata
-   against the authored Board; do not claim generated or hosted freshness.
+1. Run offline read-only `./bin/planning-check` once before selection. Failure stops selection with the actual
+   planning-owner/input gap; do not refresh views. Historical publication checkpoints do not create current
+   merge actions, historical PR scans or recurring post-merge planning work. An explicitly requested delivery
+   observation is read-only and exact-subject-specific under the workflow binding. Without a validator,
+   disclose that limitation and check selected metadata against the authored Board; do not claim generated freshness.
 2. Read only the Board's current human decision, active work, and (if no active work) first ready entry.
    Use local section names and authoritative order. Return all active TASKs, not a new winner. Inspect selected
    TASK metadata and its current handoff, plus blocker metadata only as needed. An unresolved contradiction
@@ -40,8 +36,8 @@ stop without invoking a workflow or changing files. Missing indexes are reported
 During authorized planning updates, keep current planning/decomposition handoffs source-linked and concise:
 target, phase, pending decision/owner. Current TASK selection belongs only in the generated Board `next` and
 Roadmap `execution` blocks; do not duplicate mutable TASK status, blockers or merge claims in authored routing
-prose. TASK records own stage/evidence details; the generated Board delivery block displays legacy markers only.
-Ordinary Land creates no persistent merge-handoff note or row, and no post-merge Board chore for John.
+prose. TASK records own stage/evidence details. Land closes accepted TASKs/current docs during delivery;
+no tracked delivery table, persistent merge queue or recurring post-merge planning chore remains.
 Keep Wayfinder inventory/frontier pointers current. These are navigation aids, not another backlog or proof of
 delivery. Preserve historical decisions in their owning records and label historical strategy/dependency prose.
 
@@ -95,53 +91,27 @@ TICKETs require an `epic: EPIC-NNNNN` parent. TASKs use `ticket: TICKET-NNNNN`, 
 `order` is an optional positive priority number, lower first. Unranked rows come last, with IDs breaking ties
 only for deterministic display. `pr` is an optional full PR URL, not an assertion about live GitHub merge state.
 
-### Current delivery handoffs
+### Publication closeout
 
-**Common policy, approved 2026-10-27:** ordinary Land records the actual verified `pr` URL and historical
-acceptance/publication checkpoint, but does **not** create `delivery: awaiting-merge`, another persistent current
-merge-handoff note, or a Board delivery row. Do not rename the same burden, assign John post-merge Board cleanup,
-or create a new TASK/corrective PR for routine metadata retirement. The final human review/merge action belongs
-in the observed Land response and ignored receipt/PR, not a tracked claim that needs editing after merge.
-Independent Review, required QA, the full local gate, human-only merge and ownership-qualified Land cleanup remain.
-This local rule supersedes provider instructions/examples that would create a persistent marker or current note.
+Land closes the independently accepted TASK, eligible parents and applicable current Board/Roadmap/README/docs
+before final publication. Record the verified `pr` URL as historical publication metadata, not a pending-merge
+queue or live-state claim. Keep exact own-PR/repository/default/base/head/remote observations and required delivery
+checks in the ignored receipt and actual PR under the
+[workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff). Human review/merge stays
+separate; preserve open-PR remote heads. No tracked marker/table, live planning-check/reconciliation mode,
+recurring Work/planning intake scan or routine post-merge planning chore remains. This complete-removal amendment
+under central Agent OS TASK-00542 supersedes the former retained-legacy mechanism, not its historical evidence.
 
-Existing `delivery: awaiting-merge` markers are **legacy publication snapshots**, not perpetual live-state claims.
-The retained `planning:delivery` block mirrors only those markers; create no new ones. Neither `done`, a PR link
-nor historical completion prose creates a current delivery claim. Preserve historical facts and receipts rather
-than mass editing completed records. No background watcher or execution after an agent stops is promised.
+Land also retires eligible owned local worktrees/refs and disposable Docker/storage with durable creation/mount
+provenance, fresh identity/all-consumer checks and verified postconditions. Unknown/shared/durable/excluded or
+unavailable inspection holds the affected effect without force/prune, shared shutdown or alternate deletion.
+Resume only missing authorized effects; no watcher or execution after stopping is promised.
 
-`./bin/planning-check --check-delivery` is read-only. It checks local consistency and uses existing `gh` operator
-access for at most 16 legacy-marked PRs, one 15-second request per PR. URL, number, repository, exact TASK/title,
-TASK feature branch, develop base and full head OID must agree. OPEN retains the human handoff. MERGED resolves
-it **without blocking selection or requiring a cleanup request** only when merge time/OID are valid, the TASK
-is already `done`, the exact published head is an ancestor of that merge and that merge is an ancestor of local
-HEAD. Local Git inspection is bounded, disables replacement objects/lazy fetching and never fetches or merges.
-Report merge and integration as distinct verified facts, not as inferred acceptance or QA. A resolved snapshot
-permits normal next-work routing even before a later authorized write retires the marker.
-
-At authorized Work, Land or substantive planning intake, run `./bin/planning-check --reconcile-delivery` on the
-selected feature branch before other record edits. This project-owned administrative operation is included in
-those workflow scopes; do not ask John for another routine cleanup authorization. It performs the same live
-verification, retires only verified merged/integrated `done` markers, appends exact merge/head/time/local-integration
-evidence to each owning TASK, and regenerates views/eligible parents. OPEN markers remain unchanged. Repeated
-use is idempotent; retired PRs are no longer queried, so normal work does not accumulate stale markers or require
-historical scans. Review/QA and read-only routing never invoke this writing mode. Plain `--write` stays offline.
-
-CLOSED WITHOUT MERGE requires a real disposition decision, not automatic completion. A merged PR with a
-non-terminal TASK or missing local ancestry requires scope/integration recovery through authorized work. Missing
-CLI/authentication, API/network failure, malformed/contradictory metadata and identity mismatch remain incomplete
-verification. All such failures stop routing/reconciliation with the actual missing fact; they never infer merge,
-clear markers, or rewrite even stale views. Validation/live-evidence errors prevent all planned writes. Unexpected
-write/I/O failures require inspecting actual disk state before retry; this is not a filesystem transaction.
-
-Land also requires live checks immediately before publication and at final handoff after final metadata changes
-under the [workflow binding](agents/shared-workflows.md#delivery-pre-submit-and-final-handoff), not hosted CI success.
-Even with zero legacy markers, Land must directly verify the exact owned PR's repository/TASK/base/branch/head
-and live state; an empty checker result is not that proof. Routing does not scan unmarked historical PRs. If a
-current merge action is explicitly requested, verify that exact PR read-only rather than creating a marker.
-All three modes are mutually exclusive. The checker never scans unmarked historical PRs, changes TASK acceptance,
-checks CI, publishes, approves, merges or archives. Ordinary checks and both planning steps in `./bin/build`
-remain offline/read-only; dependency/image preparation retains the build's existing behavior.
+`./bin/planning-check` and `--write` stay offline: validation/view freshness and authorized parent rollup/view
+refresh only. Routing, Review and QA remain read-only and do not query historical PRs. Preserve exact historical
+acceptance/publication/reconciliation checkpoints and independent reports. An explicitly requested delivery
+observation checks its exact PR, not a historical portfolio. CLOSED-unmerged, uncertain identity or missing
+integration holds the affected action for its real decision/evidence owner; never infer acceptance or merge.
 
 | Status | Meaning |
 |---|---|

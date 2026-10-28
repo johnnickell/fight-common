@@ -28,10 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Explicit current delivery handoffs now have read-only `planning-check --check-delivery` verification for
-  routing, distinguishing open, merged, closed-unmerged and unavailable evidence. Exact merged/integrated accepted
-  work no longer blocks next-work routing for routine cleanup; explicit `--reconcile-delivery` at authorized intake
-  retires ended markers with durable evidence. The ordinary build's planning validation remains offline/read-only.
+- Disposable database allocation/mount capture now retains uncertainty before fallible inspection. Cleanup
+  establishes complete original mount coverage before creator removal; interrupted capture recovers only against
+  the original corroborated creator or holds safely, never reporting completion with unknown storage.
+- Removed the tracked delivery marker/table/live-check/reconciliation mechanism and recurring intake/post-merge
+  bookkeeping. Land owns accepted TASK/current-doc closeout, exact live own-PR validation and eligible local
+  resource retirement; historical evidence and human merge remain separate. Planning/routing stays offline.
 
 ## [1.4.0] - 2026-10-12
 

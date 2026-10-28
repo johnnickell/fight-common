@@ -43,14 +43,12 @@ Common's merge-commit GitFlow; shared reconciliation examples are not new rebase
 Build records a reusable private project-context file alongside its ledger: target/provider identities, resolved
 absolute instruction paths, selected checkout and canonical base, selected Common records, substitutions,
 commands, completion policy and original authority. Pass its path and the owning skill path to every fresh role.
-Children verify their target identity and read this binding before applying provider references. At authorized
-Work, Land or substantive planning intake on the selected feature branch, run
-`./bin/planning-check --reconcile-delivery` before other record edits under
-[the bounded reconciliation contract](../CONVENTIONS.md#current-delivery-handoffs). This administrative retirement
-of existing legacy merged/integrated `done` markers is included in those scopes, not a new cleanup request to John.
-Common's no-new-persistent-marker policy there overrides all provider examples that set a delivery marker or
-tracked current merge note; keep verified PR URLs and historical acceptance/publication, not a post-merge chore.
-Read-only routing, Review and QA do not run it. Missing resources or unresolved evidence hold the affected action;
+Children verify their target identity and read this binding before applying provider references.
+[Publication closeout](../CONVENTIONS.md#publication-closeout) replaces the entire tracked delivery mechanism,
+including legacy-marker checks/reconciliation and routine Work/planning intake obligations. Keep verified PR URLs
+as publication history and exact live subject evidence in Land's ignored receipt/actual PR, not a tracked queue
+or recurring post-merge chore. This policy overrides stale provider marker examples. Planning checks stay offline;
+routing, Review and QA remain read-only. Missing resources or unresolved evidence hold the affected action;
 never fall back to provider plans or weaken Common rules.
 
 ## Integrated delivery and resource retirement
@@ -113,9 +111,8 @@ human decision/prerequisite. Never output placeholder IDs as runnable commands. 
 - Current independent acceptance plus satisfied QA or justified overall N/A: authorized Land; otherwise name
   the missing publication authority. Land owns administrative completion and delivery metadata, not new acceptance.
 - Successful Land: complete [delivery pre-submit and final handoff](#delivery-pre-submit-and-final-handoff), then
-  human review/merge of the exact verified PR and stop, without a tracked current merge note or post-merge Board
-  cleanup request. Later routing checks only legacy markers with `./bin/planning-check --check-delivery`; an
-  offline pass or zero markers is not live evidence for an explicitly requested PR action.
+  human review/merge of the exact verified PR and stop, without a tracked queue or recurring post-merge planning
+  chore. Later routing stays offline; an explicitly requested PR observation checks only its exact live subject.
 - Planning: follow [map-wide order](../CONVENTIONS.md#map-wide-planning-order). Use Wayfinder for an available
   decision, Grill for one approved EPIC destination, then To Tickets, To Tasks and finally Next. Required human
   acceptance remains a stopping point. TASK closure rolls eligible parents up in the same operation.
@@ -131,17 +128,19 @@ These Common-specific steps apply to every Land invocation and delegated Land ag
 closeout resumed after acceptance. They supplement the provider's local planning/build checks; they do not change
 technical acceptance, QA, optional hosted CI, or publication authority.
 
-1. At Land intake run `./bin/planning-check --reconcile-delivery`, inspect its administrative record/view diff,
-   then `./bin/planning-check --check-delivery`. Rerun the read-only check immediately before any push/PR
-   publication and at final handoff. These commands cover existing legacy markers only; a previous offline build,
-   earlier snapshot or zero marked records cannot prove the owned PR's current identity/state.
+1. At Land intake run offline read-only `./bin/planning-check`. Close the independently accepted TASK/eligible
+   parents and applicable current Board/Roadmap/README/docs during delivery; inspect the administrative diff,
+   refresh with `--write` and validate read-only. No delivery markers/tables, live planner modes or recurring
+   intake/post-merge bookkeeping remain. Offline checks cannot prove the owned PR's current identity/state.
+   Bind the exact live default/base/head under [integrated delivery](#integrated-delivery-and-resource-retirement)
+   at intake, immediately before publication and at final handoff; keep remote heads of open PRs.
 2. Independently resolve the uniquely owned PR at intake and immediately before creation/publication under
    [Delivery](../../docs/engineering/standards/Delivery.md#git-and-pr-identity). For an existing PR, use a bounded
    exact lookup such as `gh pr view <actual-PR-URL> --repo johnnickell/fight-common --json url,number,state,title,headRefName,headRefOid,baseRefName,mergedAt,mergeCommit`.
    Bind the actual URL/number/repository, exact TASK/title, feature branch, `develop` base and full remote head
    to the intended candidate/provenance. Use at most one 15-second lookup per relevant PR per checkpoint, no
    retry/history scan. Before first creation establish absence of a uniquely matching existing PR; after creation
-   and at final handoff the exact owned-PR lookup is mandatory, even when there are no legacy markers.
+   and at final handoff the exact owned-PR lookup is mandatory.
 3. After publication record the actual verified `pr` URL and historical acceptance/publication checkpoint only.
    Do **not** set `delivery: awaiting-merge`, substitute another tracked current merge note, or add a Board row.
    Refresh generated views and verify the administrative-only diff and applicable local checks. Before any metadata
@@ -149,17 +148,17 @@ technical acceptance, QA, optional hosted CI, or publication authority.
    published candidate. Save commands, results and observation times in the ignored delivery receipt. Failed,
    unavailable or mismatched evidence blocks successful Land handoff, not an invitation to invent a marker.
 4. Return human review/merge only for the exact verified OPEN PR. A concurrent MERGED, already-`done`, integrated
-   subject resolves with exact head/merge/time/ancestry evidence; retire any existing legacy marker through the
-   explicit reconciliation command. CLOSED WITHOUT MERGE, non-terminal scope, missing integration or uncertain
+   subject resolves with exact head/merge/time/ancestry evidence, without a tracked post-merge update.
+   CLOSED WITHOUT MERGE, non-terminal scope, missing integration or uncertain
    evidence holds the affected action for its real decision/evidence owner; do not reopen or implement it anew.
    Preserve historical acceptance/publication and independent reports. No post-merge Board cleanup request, new
    TASK/corrective PR, renamed metadata ceremony, background watcher or promised execution after stopping.
    Subsequent routing remains read-only and does not scan unmarked historical PRs. Qualified resource cleanup
    remains a separate Land obligation, not a merge-marker retirement chore.
 
-The build remains network-independent for planning. Live checks use bounded read-only GitHub metadata, not hosted
-test success. Only explicit `--reconcile-delivery` writes retirement evidence/views; neither a check nor routing
-runs `--write` or another mutation as a side effect.
+The build remains network-independent for planning. Live Land checks use bounded exact-subject read-only GitHub
+metadata, not hosted test success. Planning validation/view refresh stays offline; a check or routing never
+runs `--write` or another mutation as a side effect. Resource retirement remains a separate Land obligation.
 
 ## Ignored evidence
 

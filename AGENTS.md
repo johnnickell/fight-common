@@ -48,12 +48,10 @@ path above takes precedence over broad orientation reads; it does not waive engi
 
 ## Fight Common project binding
 
-Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. At authorized Work,
-Land or substantive planning intake on the selected feature branch, run `./bin/planning-check --reconcile-delivery`
-before record edits under [the delivery contract](planning/CONVENTIONS.md#current-delivery-handoffs). It retires only
-existing legacy merged/integrated `done` markers with durable evidence. Ordinary Land records the verified PR URL
-and historical acceptance/publication, but creates no `delivery: awaiting-merge`, persistent current merge note or
-Board row, and assigns John no post-merge Board cleanup. This local policy overrides provider marker examples;
-exact live owned-PR checks before publication and at final handoff, human-only merge and qualified cleanup remain.
-Routing, Review and QA stay read-only; routing continues after verified merged/integrated legacy handoffs without
-waiting for retirement. Real uncertainty still stops. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
+Read [the project profile](planning/agents/project-profile.md) for namespaces, dependency boundaries, commands, coverage, release procedures and documented exceptions. Read [planning conventions](planning/CONVENTIONS.md) for record identity and generated views. Land owns
+[publication closeout](planning/CONVENTIONS.md#publication-closeout): accepted TASK/eligible-parent/current-doc
+closure, exact live owned-PR/default/base/head verification and eligible local Git/Docker/storage retirement.
+Human merge and open-PR remote heads remain separate. There is no tracked delivery marker/table, persistent
+pending-merge queue or recurring post-merge planning chore; preserve historical acceptance/publication and reports.
+Planning checks stay offline; routing, Review and QA remain read-only. Real uncertainty holds the affected action.
+This local policy overrides provider marker examples. The [adoption record](docs/engineering/STANDARDS.md) identifies the local standards baseline.
