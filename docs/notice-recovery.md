@@ -1,6 +1,6 @@
 # Bounded retained-notice recovery
 
-`Domain\Notice\Query\RecoverNotices` returns a typed `Application\Notice\Data\NoticeRecoveryBatch` through
+`Domain\Mcp\Notice\Query\RecoverNotices` returns a typed `Application\Mcp\Notice\Data\NoticeRecoveryBatch` through
 `QueryBus::fetch()`. Explicit `Application\Mcp\Notice\RecoverNoticesTool` registration supplies `notices.recover`
 on the existing guarded MCP HTTP endpoint. It is **not** `subscriptions/poll`, a stream, Resource read, acknowledgment,
 mutation Tool or Mercure adapter. Only successfully recorded, still-retained [safe notices](safe-notices.md) can be
@@ -11,14 +11,14 @@ returned. An application change whose recording failed cannot be recovered.
 Imports below are beneath `Fight\Common\`:
 
 ```php
-$store = new Adapter\Notice\Dbal\DbalNoticeStore($dedicatedIdleConnection);
-$protector = new Adapter\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
-$recovery = new Application\Notice\Service\NoticeRecovery($store, $protector);
-$handler = new Application\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $recovery);
-$router->registerHandler(Domain\Notice\Query\RecoverNotices::class, $handler);
-$selection = Domain\Notice\NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
-$batch = $queryBus->fetch(new Domain\Notice\Query\RecoverNotices($selection));
-$next = $queryBus->fetch(new Domain\Notice\Query\RecoverNotices($selection, $batch->continuation()));
+$store = new Adapter\Mcp\Notice\Dbal\DbalNoticeStore($dedicatedIdleConnection);
+$protector = new Adapter\Mcp\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
+$recovery = new Application\Mcp\Notice\Service\NoticeRecovery($store, $protector);
+$handler = new Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $recovery);
+$router->registerHandler(Domain\Mcp\Notice\Query\RecoverNotices::class, $handler);
+$selection = Domain\Mcp\Notice\NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
+$batch = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection));
+$next = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection, $batch->continuation()));
 $tool = new Application\Mcp\Notice\RecoverNoticesTool($queryBus);
 ```
 

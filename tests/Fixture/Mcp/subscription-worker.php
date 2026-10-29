@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
-use Fight\Test\Common\TestCase\Notice\NoticeFixture;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 $params = json_decode(file_get_contents($argv[1].'/connection.json'), true, flags: JSON_THROW_ON_ERROR);

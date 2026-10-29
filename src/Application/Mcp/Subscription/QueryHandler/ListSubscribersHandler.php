@@ -9,8 +9,8 @@ use Fight\Common\Application\Mcp\Subscription\Exception\SubscriberReadFailed;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReadAdmission;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReader;
 use Fight\Common\Application\Messaging\Query\QueryHandler;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
-use Fight\Common\Domain\Subscription\Query\ListSubscribers;
 use Throwable;
 
 /**

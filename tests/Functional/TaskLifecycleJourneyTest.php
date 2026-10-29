@@ -7,19 +7,19 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Application\Task\Exception\CommittedTaskDispatchFailed;
-use Fight\Common\Application\Task\Exception\TaskConflict;
-use Fight\Common\Application\Task\Exception\TaskRejected;
-use Fight\Common\Application\Task\Exception\TaskStorageFailed;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
+use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
+use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
+use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
+use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
+use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
+use Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved;
+use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
-use Fight\Common\Domain\Task\Command\CreateTask;
-use Fight\Common\Domain\Task\Event\TaskChanged;
-use Fight\Common\Domain\Task\Event\TaskDataRemoved;
-use Fight\Common\Domain\Task\TaskState;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Value\Basic\StrictJson;
-use Fight\Test\Common\TestCase\Task\TaskFixture;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -50,7 +50,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         foreach ([TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $index => $terminal) {
             $id = str_repeat((string) ($index + 1), 32);
             $fresh->create(id: $id);
-            $fresh->commands->execute(new \Fight\Common\Domain\Task\Command\RecordTaskState('scope', $id, 'producer', 1, $terminal));
+            $fresh->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', $id, 'producer', 1, $terminal));
             self::assertSame($terminal->data()->toString(), (new TaskFixture($this->connect($params)))->get($id)->get('state')->toString());
         }
         $snapshot = $reconnected->get()->toString(); $reconnected->readAllowed = false; self::assertNull($reconnected->get());
@@ -110,16 +110,16 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
     public function test_that_timestamp_ceiling_retries_preserve_retention_and_maximum_polling_advice(string $backend): void
     {
         $connection = $this->database($backend); $fixture = new TaskFixture($connection);
-        $fixture->now = \Fight\Common\Domain\Task\Task::MAX_TIME - 100;
+        $fixture->now = \Fight\Common\Domain\Mcp\Task\Task::MAX_TIME - 100;
         $fixture->create(100, 2147483647);
         $before = $fixture->get()->toString();
-        $fixture->now = \Fight\Common\Domain\Task\Task::MAX_TIME - 1;
+        $fixture->now = \Fight\Common\Domain\Mcp\Task\Task::MAX_TIME - 1;
         $fixture->create(100, 2147483647);
         $fresh = new TaskFixture($this->connect($connection->getParams()));
         $fresh->now = $fixture->now;
         self::assertSame($before, $fresh->get()->toString());
         self::assertSame(2147483647, $fresh->get()->get('poll_interval'));
-        $fixture->now = \Fight\Common\Domain\Task\Task::MAX_TIME;
+        $fixture->now = \Fight\Common\Domain\Mcp\Task\Task::MAX_TIME;
         self::assertNull($fixture->get());
         try { $fixture->create(100, 2147483647); self::fail('Expired retry must not renew retention.'); }
         catch (TaskRejected) { self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks')); }
@@ -148,8 +148,8 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         if (!$isCreation) { $fixture->create(); }
         $directory = $this->directory(); $config = $directory.'/config.json';
         file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/state-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/state-worker.php', $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.'/first-precommit', $first);
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(150000);
@@ -242,8 +242,8 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         if ($mode !== 'create-remove') { $fixture->create(); }
         $directory = $this->directory(); $config = $directory.'/config.json';
         file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/state-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/state-worker.php', $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.'/first-precommit', $first);
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(150000);

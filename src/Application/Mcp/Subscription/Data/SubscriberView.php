@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription\Data;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Notice\Notice;
-use Fight\Common\Domain\Notice\NoticeSelection;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**

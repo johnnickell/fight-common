@@ -7,7 +7,7 @@ namespace Fight\Common\Application\Mcp\Subscription;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
 
 /**
  * Class McpSubscriptions

@@ -8,12 +8,12 @@ use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
+use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Messaging\Command\CommandBus;
-use Fight\Common\Application\Task\Exception\TaskConflict;
-use Fight\Common\Application\Task\Exception\TaskRejected;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Task\Command\SupplyTaskInput;
-use Fight\Common\Domain\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\Command\SupplyTaskInput;
+use Fight\Common\Domain\Mcp\Task\TaskDefinition;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
 

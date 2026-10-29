@@ -7,15 +7,15 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Application\Task\Exception\CommittedTaskDispatchFailed;
-use Fight\Common\Application\Task\Exception\TaskConflict;
-use Fight\Common\Application\Task\Exception\TaskRejected;
-use Fight\Common\Application\Task\Exception\TaskStorageFailed;
-use Fight\Common\Domain\Task\Event\TaskChanged;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
+use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
+use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
+use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
+use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Utility\ClassName;
-use Fight\Test\Common\TestCase\Task\TaskCheckConnection;
-use Fight\Test\Common\TestCase\Task\TaskFixture;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskCheckConnection;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -123,7 +123,7 @@ final class TaskInputJourneyTest extends UnitTestCase
     {
         $c = $this->database($backend); $f = new TaskFixture($c); $f->create(); $f->issue(confirmation: true, count: 2);
         $f->supply([TaskFixture::KEY_1 => self::accept('partial')]);
-        $f->commands->execute(new \Fight\Common\Domain\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1));
         $f = new TaskFixture($this->connect($c->getParams())); $f->issue(expectedVersion: 4);
         self::assertSame([TaskFixture::KEY_3], array_keys($f->get()->get('state')->get('input')->properties()));
         $before = $c->fetchOne('SELECT payload FROM fight_tasks');
@@ -134,13 +134,13 @@ final class TaskInputJourneyTest extends UnitTestCase
         $f->now += 1000; $f->supply([TaskFixture::KEY_3 => self::accept('expired')]);
         self::assertTrue($f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('expired'));
         self::assertSame([], $f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('answers')->properties());
-        $f->commands->execute(new \Fight\Common\Domain\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 5, TaskFixture::KEY_3));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 5, TaskFixture::KEY_3));
         // Seed the documented near-exhaustion value; direct units additionally execute all 1,024 rounds.
         $data = $f->store->read('scope', TaskFixture::ID)->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
-        $f->store->commitTransactional(fn () => $f->store->save(\Fight\Common\Domain\Task\Task::fromArray($data)));
+        $f->store->commitTransactional(fn () => $f->store->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
         $f->issue(expectedVersion: 6); $last = TaskFixture::KEY_PREFIX.'1024';
         self::assertSame([$last], array_keys($f->get()->get('state')->get('input')->properties()));
-        $f->commands->execute(new \Fight\Common\Domain\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 7, $last));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 7, $last));
         $fresh = new TaskFixture($this->connect($c->getParams())); $before = $c->fetchOne('SELECT payload FROM fight_tasks');
         try { $fresh->issue(expectedVersion: 8); self::fail('Lifetime exhaustion cannot wrap after payload retirement.'); }
         catch (TaskConflict) { self::assertSame($before, $c->fetchOne('SELECT payload FROM fight_tasks')); }
@@ -155,8 +155,8 @@ final class TaskInputJourneyTest extends UnitTestCase
         if ($mode === 'acquire') { $f->supply([TaskFixture::KEY_1 => self::accept('first-answer')]); }
         $directory = $this->directory(); $config = $directory.'/config.json';
         file_put_contents($config, json_encode(['params' => $c->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
-        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/input-worker.php', $config, 'first'], timeout: 25);
-        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/input-worker.php', $config, 'second'], timeout: 25);
+        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'second'], timeout: 25);
         try {
             $first->start(); $this->waitFor($directory.'/first-precommit', $first);
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(120000);

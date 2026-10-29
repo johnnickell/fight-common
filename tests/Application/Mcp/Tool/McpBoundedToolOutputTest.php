@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
-use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Execution\SummarizeExecutionsTool;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;

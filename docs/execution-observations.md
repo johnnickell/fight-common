@@ -1,7 +1,7 @@
 # Durable execution observations
 
-An opt-in recording slice in `Domain\Execution`, `Application\Execution` and
-`Adapter\Execution\Dbal` records trusted **evidence**, not authoritative Workflow state. Recording a phase named
+An opt-in recording slice in `Domain\Mcp`, `Application\Mcp\Execution` and
+`Adapter\Mcp\Execution\Dbal` records trusted **evidence**, not authoritative Workflow state. Recording a phase named
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
 includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
@@ -13,9 +13,9 @@ Queries are documented separately in [authorized execution overviews](execution-
 
 Execution contains three ordinary DDD aggregate roots, not one graph and not event-sourced aggregates:
 
-- `Domain\Execution\Session\Session` owns project-scoped session identity and its stable consumer relationship.
-- `Domain\Execution\Phase\Phase` owns project-scoped phase identity, session/parent, performing Agent, name and attempt.
-- `Domain\Execution\Observation\Observation` owns producer-scoped immutable evidence and its server recording time.
+- `Domain\Mcp\Session\Session` owns project-scoped session identity and its stable consumer relationship.
+- `Domain\Mcp\Phase\Phase` owns project-scoped phase identity, session/parent, performing Agent, name and attempt.
+- `Domain\Mcp\Observation\Observation` owns producer-scoped immutable evidence and its server recording time.
   It contains an `ObservationId`, producer reference, `SessionReference`, optional `PhaseReference`, occurrence time,
   nullable observed start/end times, explicit `ObservationOutcome` and immutable `ObservationExtensions`.
 
@@ -118,10 +118,10 @@ metric vocabulary, capture accuracy and whether independently reported observati
 implies no aggregation or unit conversion; [overview Queries](execution-reads.md) explicitly group compatible evidence.
 
 ```php
-use Fight\Common\Domain\Execution\Activity\PhaseActivity;
-use Fight\Common\Domain\Execution\Observation\ObservationOccurrence;
-use Fight\Common\Domain\Execution\Usage\UsageCompleteness;
-use Fight\Common\Domain\Execution\Usage\UsageMeasurement;
+use Fight\Common\Domain\Mcp\Activity\PhaseActivity;
+use Fight\Common\Domain\Mcp\Observation\ObservationOccurrence;
+use Fight\Common\Domain\Mcp\Usage\UsageCompleteness;
+use Fight\Common\Domain\Mcp\Usage\UsageMeasurement;
 
 $activity = PhaseActivity::create('consumer/model-call', 'Completed provider request', 'model:one', [
     UsageMeasurement::create('provider/output', 'token', 'provider-response', UsageCompleteness::PARTIAL, '12'),
@@ -172,12 +172,12 @@ permission. All values are immutable with private state and typed accessors. Uns
 invalid UTF-8, inconsistent absence, bad coordinates and oversized bodies reject with fixed text, never submitted bytes.
 
 ```php
-use Fight\Common\Domain\Execution\Detail\CaptureCompleteness;
-use Fight\Common\Domain\Execution\Detail\DetailCapture;
-use Fight\Common\Domain\Execution\Detail\DetailKind;
-use Fight\Common\Domain\Execution\Detail\OutputSegment;
-use Fight\Common\Domain\Execution\Detail\ProtectedContent;
-use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
+use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
+use Fight\Common\Domain\Mcp\Detail\DetailCapture;
+use Fight\Common\Domain\Mcp\Detail\DetailKind;
+use Fight\Common\Domain\Mcp\Detail\OutputSegment;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
+use Fight\Common\Domain\Mcp\Observation\Command\RecordProtectedDetail;
 
 // After the activity example has committed, using the composition below:
 $capture = DetailCapture::create(
@@ -202,8 +202,8 @@ policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, 
 `RecordSessionObservation` and `RecordPhaseObservation` keep their payloads private and expose them through
 `observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
 use the single current version-one observation shape. Commands live in
-`Domain\Execution\Observation\Command`; the safe Event lives in `Domain\Execution\Observation\Event`.
-Handlers, recording failures and the recorder live in `Application\Execution\Observation\CommandHandler`,
+`Domain\Mcp\Observation\Command`; the safe Event lives in `Domain\Mcp\Observation\Event`.
+Handlers, recording failures and the recorder live in `Application\Mcp\Execution\Observation\CommandHandler`,
 `Exception` and `Service`, respectively. Admission and the shared transaction port remain Application responsibilities.
 
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
@@ -224,26 +224,26 @@ inconsistent relationships share `InvalidObservationRelationship` without disclo
 new attempt with a different performing identity, use a new phase subject ID and the intended attempt number.
 
 ```php
-use Fight\Common\Adapter\Execution\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Execution\Dbal\DbalObservationSchema;
-use Fight\Common\Adapter\Execution\Dbal\DbalPhaseRepository;
-use Fight\Common\Adapter\Execution\Dbal\DbalProtectedContentRepository;
-use Fight\Common\Adapter\Execution\Dbal\DbalRecordingTransaction;
-use Fight\Common\Adapter\Execution\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
-use Fight\Common\Application\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
-use Fight\Common\Application\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
-use Fight\Common\Application\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
-use Fight\Common\Application\Execution\Observation\Service\ObservationRecorder;
-use Fight\Common\Domain\Execution\Observation\Command\RecordPhaseObservation;
-use Fight\Common\Domain\Execution\Observation\Command\RecordProtectedDetail;
-use Fight\Common\Domain\Execution\Observation\Command\RecordSessionObservation;
-use Fight\Common\Domain\Execution\Observation\Observation;
-use Fight\Common\Domain\Execution\Observation\ObservationId;
-use Fight\Common\Domain\Execution\Phase\PhaseReference;
-use Fight\Common\Domain\Execution\Session\SessionReference;
+use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
+use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
+use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
+use Fight\Common\Domain\Mcp\Observation\Command\RecordProtectedDetail;
+use Fight\Common\Domain\Mcp\Observation\Command\RecordSessionObservation;
+use Fight\Common\Domain\Mcp\Observation\Observation;
+use Fight\Common\Domain\Mcp\Observation\ObservationId;
+use Fight\Common\Domain\Mcp\Phase\PhaseReference;
+use Fight\Common\Domain\Mcp\Session\SessionReference;
 
 // Deployment/setup only, using a dedicated idle Doctrine DBAL connection:
 (new DbalObservationSchema())->install($connection);
@@ -470,8 +470,8 @@ unreleased snapshots. The compatibility manifest classifies the new surface and 
 session/phase/activity Commands and safe Event behavior remain supported; no unrelated released API changes.
 
 Message envelope `payload_type` and code-facing handler/subscriber registrations follow the PHP namespaces:
-`Fight.Common.Domain.Execution.Observation.Command.RecordSessionObservation`, the corresponding
-`RecordPhaseObservation`, and `Fight.Common.Domain.Execution.Observation.Event.ObservationRecorded`. Register the
+`Fight.Common.Domain.Mcp.Observation.Command.RecordSessionObservation`, the corresponding
+`RecordPhaseObservation`, and `Fight.Common.Domain.Mcp.Observation.Event.ObservationRecorded`. Register the
 handler classes and subscriber Event FQCN/canonical name together. No compatibility mapping for superseded
 development envelope names is supplied or required. No released message identity changes or release
 certification is implied.

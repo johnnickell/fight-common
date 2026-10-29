@@ -16,7 +16,7 @@ There are no development-format migrations, automatic cleanup or schema changes 
 
 Construct these explicit collaborators (names below are under `Fight\Common`):
 
-- `Adapter\Task\Dbal\DbalTaskStore($connection)`, implementing Application `TaskStore` and
+- `Adapter\Mcp\Task\Dbal\DbalTaskStore($connection)`, implementing Application `TaskStore` and
   `TransactionalUnitOfWork` on that **same** connection.
 - Independent request/producer-scoped `TaskCreationAdmission`, `TaskUpdateAdmission`, `TaskReadAdmission` and
   `TaskRemovalAdmission`.
@@ -27,22 +27,22 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
   projection where consumer policy requires. Returning false withholds the entire view; never substitute an empty result.
 - Existing `EventDispatcher` and a trusted `Closure(): int` server epoch-millisecond clock. For example,
   `static fn (): int => (int) floor(microtime(true) * 1000)`. Synchronize clocks; logical expiry depends on that clock.
-- `Application\Task\Service\TaskLifecycle($store, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
+- `Application\Mcp\Task\Service\TaskLifecycle($store, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
 
 Register `CreateTaskHandler`, `RecordTaskStateHandler` and `RemoveTasksHandler` with the existing Command router, and `GetTaskHandler`
-with the Query router, all sharing that lifecycle. Handler namespaces are `Application\Task\CommandHandler` and
-`Application\Task\QueryHandler`. Their Domain payloads are `Domain\Task\Command\{CreateTask,RecordTaskState}` and
-`Domain\Task\Query\GetTask`; removal uses `Domain\Task\Command\RemoveTasks`. See `tests/TestCase/Task/TaskFixture.php` for executable explicit bus composition.
+with the Query router, all sharing that lifecycle. Handler namespaces are `Application\Mcp\Task\CommandHandler` and
+`Application\Mcp\Task\QueryHandler`. Their Domain payloads are `Domain\Mcp\Task\Command\{CreateTask,RecordTaskState}` and
+`Domain\Mcp\Task\Query\GetTask`; removal uses `Domain\Mcp\Task\Command\RemoveTasks`. See `tests/TestCase/Mcp/Task/TaskFixture.php` for executable explicit bus composition.
 The existing bus signatures remain `CommandBus::execute(): void`, `QueryBus::fetch()` and `EventDispatcher::trigger()`.
 
 A typical application sequence, after composing `$commands` and `$queries`, is:
 
 ```php
-use Fight\Common\Domain\Task\Command\CreateTask;
-use Fight\Common\Domain\Task\Command\RecordTaskState;
-use Fight\Common\Domain\Task\Query\GetTask;
-use Fight\Common\Domain\Task\TaskDefinition;
-use Fight\Common\Domain\Task\TaskState;
+use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
+use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
+use Fight\Common\Domain\Mcp\Task\Query\GetTask;
+use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
 $id = TaskDefinition::newId(); // Generate before the void Command; possession grants nothing.
@@ -129,8 +129,8 @@ before any such explicit recreation. Common does not promise cross-lifetime dedu
 ## Independently authorized bounded removal
 
 ```php
-use Fight\Common\Domain\Task\Command\RemoveTasks;
-use Fight\Common\Domain\Task\TaskSelection;
+use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
+use Fight\Common\Domain\Mcp\Task\TaskSelection;
 
 $commands->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$id])));
 // A fresh GetTask under independent read permission now returns null, with no asserted absence reason.
@@ -171,7 +171,7 @@ An unsupported enclosing transaction rejects before admission/writes and leaves 
 Pre-commit failure rolls the entire selection back; uncertain commit/response loss needs a fresh authorized Query,
 not an invented deletion receipt. Retry always rechecks current permission, including after revocation.
 
-After actual commit, one `Domain\Task\Event\TaskDataRemoved` contains only `scope` and the supplied-order IDs of rows
+After actual commit, one `Domain\Mcp\Task\Event\TaskDataRemoved` contains only `scope` and the supplied-order IDs of rows
 actually deleted. Missing identities produce no false facts; there is no reason/status/body/digest/history ledger.
 References can themselves need consumer disclosure policy. `CommittedTaskDispatchFailed::event()` now carries either
 TaskChanged or TaskDataRemoved. Later publisher/subscriber failure cannot restore deleted data or become rollback;

@@ -13,10 +13,10 @@ use Fight\Common\Application\Mcp\Subscription\QueryHandler\SummarizeSubscribersH
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReadAdmission;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReader;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\Query\SummarizeSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
-use Fight\Common\Domain\Subscription\Query\ListSubscribers;
-use Fight\Common\Domain\Subscription\Query\SummarizeSubscribers;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;

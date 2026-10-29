@@ -1068,9 +1068,44 @@ produce centralized JSON-RPC protocol errors without selecting a capability. If 
 the error retains it; otherwise the semantic response has no ID. An unexpected capability failure produces the
 generic internal protocol error and exposes no exception detail.
 
+## Canonical adapter namespaces and 1.x compatibility
+
+MCP-specific runtime adapters live together under `Fight\Common\Adapter\Mcp`. Update imports and configured
+class/service names using this complete map; constructor argument names and HTTP/wire behavior are unchanged.
+Paths below omit the common `Fight\Common\` prefix.
+
+| Deprecated name | Canonical name |
+| --- | --- |
+| `Adapter\Http\Mcp\DenyAllMcpOriginPolicy` | `Adapter\Mcp\Http\DenyAllMcpOriginPolicy` |
+| `Adapter\Http\Mcp\ExactMcpOriginPolicy` | `Adapter\Mcp\Http\ExactMcpOriginPolicy` |
+| `Adapter\Http\Mcp\McpOrigin` | `Adapter\Mcp\Http\McpOrigin` |
+| `Adapter\Http\Mcp\McpHeaderValidator` | `Adapter\Mcp\Http\McpHeaderValidator` |
+| `Adapter\Http\Mcp\McpResponseEmitter` | `Adapter\Mcp\Http\McpResponseEmitter` |
+| `Adapter\Http\Mcp\McpRequestHandler` | `Adapter\Mcp\Http\McpRequestHandler` |
+| `Adapter\Http\Mcp\McpResponseFactory` | `Adapter\Mcp\Http\McpResponseFactory` |
+| `Adapter\Http\Symfony\McpResponseFactory` | `Adapter\Mcp\Symfony\McpResponseFactory` |
+| `Adapter\Http\CodeIgniter\McpResponse` | `Adapter\Mcp\CodeIgniter\McpResponse` |
+
+All nine deprecated names remain functional throughout 1.x, with PHPDoc/documentation-only deprecation and no
+runtime notices. The first deprecating release is unassigned; removal requires separate future-major authorization
+and at least one released minor of deprecation. Existing consumers need not change immediately. Native Symfony
+responses remain usable by Laravel; no extra Laravel adapter or container auto-registration is introduced.
+
+Eight legacy classes are final compatibility subclasses of their canonical implementations. The canonical parents
+are non-final only to preserve these released names; consumer inheritance is **not** a promised extension point.
+`McpOrigin` instead retains an explicit final legacy value implementation: validation delegates to the final canonical
+value while its factory still returns the old concrete class and preserves its original serialized private value.
+The old and canonical Origin values are distinct classes with the same normalized text, not interchangeable type aliases.
+Private serialization of service graphs is not a migration format or a new compatibility promise.
+
+The internal `McpEventStream` and `McpRequestBodyReader` move directly to `Adapter\Mcp\Http`. Their old names carry
+no public compatibility promise. The manifest adds nine public names without removing the nine released public
+names; the two helpers remain internal. This relocation adds no protocol methods, dependencies, permission policy,
+transaction guarantee or consumer runtime qualification. Existing product contracts and release probes remain intact.
+
 ## Guarded HTTP
 
-`Adapter\Http\Mcp\McpRequestHandler` implements PSR-15's `RequestHandlerInterface`. A consumer-owned route
+`Adapter\Mcp\Http\McpRequestHandler` implements PSR-15's `RequestHandlerInterface`. A consumer-owned route
 passes a PSR-7 server request to it and receives a PSR-7 response created through PSR-17 factories. No HTTP framework
 is required. Its constructor requires a registry, `McpOriginPolicy`, `McpInvocationGuard`, and `McpResponseFactory`;
 the response factory requires `McpDiagnostics`. Missing policies fail composition. There is no default allow-all
@@ -1248,7 +1283,7 @@ JSON, discovery, denied Origin, complete mirrors, invocation denial, and sanitiz
 
 ## Progressive HTTP delivery
 
-Enable `McpRequestHandler(..., progressive: true)` only with `Adapter\Http\Mcp\McpResponseEmitter` or the
+Enable `McpRequestHandler(..., progressive: true)` only with `Adapter\Mcp\Http\McpResponseEmitter` or the
 native translations below. A string/integer token on `tools/call` selects one lazy SSE response **after** Origin,
 negotiation, decode, mirrors, version and invocation-guard validation. Zero and empty-string tokens are preserved.
 No-token calls still execute immediately with a fresh no-op reporter and unchanged complete JSON; other methods
@@ -1310,9 +1345,9 @@ reproduce only part of mirror validation in a framework Action.
 ### Shared composition and framework-free PSR
 
 ```php
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use GuzzleHttp\Psr7\HttpFactory;
@@ -1359,7 +1394,7 @@ owns authentication and authorization in either framework.
 For `progressive: true`, use the shared emitter at the consumer-owned send boundary:
 
 ```php
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 
 // Framework-free, or Yii's consumer-owned emitter integration:
 (new McpResponseEmitter())->emit($endpoint->handle($serverRequest));
@@ -1393,7 +1428,7 @@ The generic response bridge is for **direct JSON only**. With `progressive: true
 with the Common native factory, which also handles ordinary JSON:
 
 ```php
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory as NativeMcpResponses;
+use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory as NativeMcpResponses;
 
 return (new NativeMcpResponses())->fromResponse($endpoint->handle($psrRequest));
 ```
@@ -1433,7 +1468,7 @@ that lost multiplicity was validated. The string-body conversion above is **dire
 For progressive delivery replace that native conversion with:
 
 ```php
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
+use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 
 return new McpResponse($endpoint->handle($psrRequest));
 ```

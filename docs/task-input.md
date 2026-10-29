@@ -13,7 +13,7 @@ The protocol reference is the official [2026-07-28 Tasks contract](https://githu
 
 ## Composition and authority
 
-Create `Application\Task\Service\TaskInputLifecycle($store, $producers, $admission, $payloads, $events, $clock)` using
+Create `Application\Mcp\Task\Service\TaskInputLifecycle($store, $producers, $admission, $payloads, $events, $clock)` using
 the **same** `TaskStore`, producer `TaskUpdateAdmission`, payload policy, event dispatcher and server-millisecond
 clock as the ordinary lifecycle. `TaskInputAdmission` supplies three independent current decisions:
 
@@ -26,10 +26,10 @@ permission or administrator label is not a grant. Consumers own the policy and m
 operation and its arguments at continuation, not infer permission from an accepted answer. Decisions must be local,
 bounded and must not change connection ownership or execute consumer work inside the transaction.
 
-Register `Application\Task\CommandHandler\{RequestTaskInputHandler,SupplyTaskInputHandler,AcquireTaskInputHandler,RetireTaskInputHandler}`
-and `Application\Task\QueryHandler\GetTaskInputHandler` with the existing routers. Each takes the input lifecycle.
+Register `Application\Mcp\Task\CommandHandler\{RequestTaskInputHandler,SupplyTaskInputHandler,AcquireTaskInputHandler,RetireTaskInputHandler}`
+and `Application\Mcp\Task\QueryHandler\GetTaskInputHandler` with the existing routers. Each takes the input lifecycle.
 Commands use `CommandBus::execute()`, Queries `QueryBus::fetch()` and reference-only facts `EventDispatcher::trigger()`.
-No auto-discovery, outer transaction filter or consumer scheduler is installed. `tests/TestCase/Task/TaskFixture.php`
+No auto-discovery, outer transaction filter or consumer scheduler is installed. `tests/TestCase/Mcp/Task/TaskFixture.php`
 shows complete explicit registration; it is a test consumer, not production authorization policy.
 
 Producer issuance/retirement recheck `TaskUpdateAdmission` under the namespace lock **before lookup**, and check the
@@ -45,9 +45,9 @@ form-elicitation support. Task negotiation alone never enables arbitrary server-
 ```php
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequest;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
-use Fight\Common\Application\Task\Service\TaskInputForms;
-use Fight\Common\Domain\Task\Command\RequestTaskInput;
-use Fight\Common\Domain\Task\Query\GetTask;
+use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
+use Fight\Common\Domain\Mcp\Task\Command\RequestTaskInput;
+use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 
 $form = McpInputRequest::form('Choose a public label', [
     'type' => 'object',
@@ -120,8 +120,8 @@ Refusal is typed input, not whole-Task cancellation. Ordinary decline/cancel rem
 and does not retire unrelated ordinary forms.
 
 ```php
-use Fight\Common\Domain\Task\Command\AcquireTaskInput;
-use Fight\Common\Domain\Task\Query\GetTaskInput;
+use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
+use Fight\Common\Domain\Mcp\Task\Query\GetTaskInput;
 
 $observed = $queries->fetch(new GetTaskInput('project:example', $id, 'caller:example'));
 // Inspect the exact group and its answers under current consumer authorization.

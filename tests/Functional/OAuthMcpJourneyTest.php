@@ -6,9 +6,9 @@ namespace Fight\Test\Common\Functional;
 
 use Fight\Common\Adapter\Auth\Hmac\HmacAuthenticator;
 use Fight\Common\Adapter\Auth\Hmac\HmacRequestService;
-use Fight\Common\Adapter\Http\Mcp\DenyAllMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Http\OAuth\OAuthMetadataHandler;
 use Fight\Common\Adapter\Http\OAuth\OAuthMiddleware;
 use Fight\Common\Adapter\Http\OAuth\OAuthResponseFactory;

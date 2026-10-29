@@ -1,8 +1,8 @@
 # Separately authorized captured detail
 
 Protected inspection uses the existing Command/Query buses and [recording storage](execution-observations.md),
-not a new capture system. `Domain\Execution\Detail\Query\ListCapturedMessages` and `GetCapturedDetail` have
-Application Detail handlers and `Service\DetailReader`; `Adapter\Execution\Dbal\DbalDetailReader` implements
+not a new capture system. `Domain\Mcp\Detail\Query\ListCapturedMessages` and `GetCapturedDetail` have
+Application Detail handlers and `Service\DetailReader`; `Adapter\Mcp\Execution\Dbal\DbalDetailReader` implements
 actual SQLite/MySQL/PostgreSQL reads. These Queries are independent of [safe inspection](execution-reads.md).
 [Ordinary authorized removal](execution-detail-removal.md) shares this storage; it is separate from these read-only
 Queries. [Explicit protected MCP Tools](mcp-execution-inspection.md#protected-detail-opt-in-and-compatibility)
@@ -19,7 +19,7 @@ identity are additionally required for individual reads. Guessed, cross-project,
 cross-activity, cross-producer, absent and concealed targets return the same **null**, without body or metadata.
 A kind mismatch also returns null. Invalid stored relationships fail closed, never fabricate a link.
 
-Consumers implement **`Application\Execution\Detail\Service\DetailReadAdmission`**. Each handler calls
+Consumers implement **`Application\Mcp\Execution\Detail\Service\DetailReadAdmission`**. Each handler calls
 `currentAccess(DetailSelection): DetailAccess` afresh for **every** page/chunk, including saved envelopes and
 missing targets. This is a distinct port, not `ExecutionReadAdmission` or recording admission. The consumer owns
 authentication, current policy, human/Agent differences and synchronization of revocation. The decision must
@@ -45,7 +45,7 @@ count; the activity's summary, usage, model and parent relationship are not retu
 ## Exact Queries and finite bounds
 
 `ListCapturedMessages(selection, page: null, perPage: 32, orderings: [])` returns nullable
-`Application\Execution\Detail\Data\MessagePage`. Pagination is strict: defaults **1/32** (explicit null size
+`Application\Mcp\Execution\Detail\Data\MessagePage`. Pagination is strict: defaults **1/32** (explicit null size
 also means 32), size **1–32**, offset **0–1,000,000**. Integer overflow rejects before multiplication. Only
 `recorded_at` ASC/DESC ordering is accepted; there are no arbitrary filters. It lists **message** captures linked
 to the selected activity, with the full current metadata-permitted message total, `page`, `per_page` and typed
@@ -138,12 +138,12 @@ Compose a consumer implementation of `DetailReadAdmission` separately from safe 
 handlers on the ordinary Query router:
 
 ```php
-use Fight\Common\Adapter\Execution\Dbal\DbalDetailReader;
-use Fight\Common\Application\Execution\Detail\QueryHandler\GetCapturedDetailHandler;
-use Fight\Common\Application\Execution\Detail\QueryHandler\ListCapturedMessagesHandler;
-use Fight\Common\Domain\Execution\Detail\DetailSelection;
-use Fight\Common\Domain\Execution\Detail\Query\GetCapturedDetail;
-use Fight\Common\Domain\Execution\Detail\Query\ListCapturedMessages;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalDetailReader;
+use Fight\Common\Application\Mcp\Execution\Detail\QueryHandler\GetCapturedDetailHandler;
+use Fight\Common\Application\Mcp\Execution\Detail\QueryHandler\ListCapturedMessagesHandler;
+use Fight\Common\Domain\Mcp\Detail\DetailSelection;
+use Fight\Common\Domain\Mcp\Detail\Query\GetCapturedDetail;
+use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
 
 $protectedReader = new DbalDetailReader($connection);
 $router->registerHandler(GetCapturedDetail::class, new GetCapturedDetailHandler($protectedAdmission, $protectedReader));

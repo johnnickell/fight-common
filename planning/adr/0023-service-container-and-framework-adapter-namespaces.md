@@ -44,6 +44,39 @@ deprecated without runtime warnings throughout `1.x`; their removal is reserved 
 whose correct adapter requires an inward contract break is deferred individually to `2.0.0` rather than
 weakening the compatibility policy for the full release.
 
+## MCP-specific runtime namespace amendment — TASK-00177
+
+John explicitly requested that the nine released MCP HTTP adapters move to canonical `Adapter\Mcp` locations,
+with their existing locations deprecated rather than removed. MCP-specific shared HTTP adapters therefore use
+`Adapter\Mcp\Http`; native MCP response integration uses `Adapter\Mcp\Symfony` and `Adapter\Mcp\CodeIgniter`.
+This is a scoped exception to the HTTP framework destinations above. Generic HTTP responses/controllers and
+framework service-container extension points keep their existing canonical ownership.
+
+Existing public names stay functional throughout 1.x without runtime deprecation warnings; future-major removal
+needs separate authorization after at least one released minor of deprecation. Compatibility subclasses preserve
+released concrete identities and constructor signatures. Their canonical parents are non-final only for this
+compatibility mechanism, with no consumer extension promise. The immutable Origin retains a final compatibility
+implementation to preserve its self-returning factory and old serialized value. Internal helpers relocate directly.
+
+The [MCP migration map](../../docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
+identifies all nine names. The initial adapter-only checkpoint is superseded by John's expanded decision below.
+
+### Complete agent subsystem amendment and develop-base correction
+
+John expanded TASK-00177 to all agent/MCP-owned classes. Execution concepts move directly beneath `Domain\Mcp`;
+Notice, Task and Subscription retain concept branches there. Whole Application and Adapter Execution/Notice/Task
+capabilities move beneath `Mcp`, alongside existing protocol-facing branches. The
+[complete map](../../docs/mcp-namespaces.md) records the destinations. Shared Commands/Queries do not require MCP
+transport; generic values, messaging, validation, authentication, HTTP clients and Socket/Mercure remain independent.
+
+Scope is every relevant class actually present on develop, not unaccepted classes from TASK-00169. The erroneous
+mixed-branch prerequisite is superseded by John's explicit clean develop-based correction. Durable Task-input
+feature behavior is excluded; existing stateless forms and confirmation remain unchanged. Provisional tracking
+paths move directly without development aliases. Three legacy AI APIs gain equally deprecated `Mcp\Operation`
+homes and released-name bridges, preserving their original 1.2 deprecation and 2.0 sunset without feature revival.
+The move changes no inward layer boundaries, HTTP safeguards, streaming, storage/schema, admission, transaction,
+delivery guarantees, optional dependencies or consumer policy ownership.
+
 ## Consequences
 
 ADR 0019's capability-first rule remains the default for runtime adapters, but no longer governs framework
