@@ -79,5 +79,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | done | — |
 | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | done | — |
 | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | done | — |
-| [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | in-progress | — |
+| [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | done | — |
 <!-- /planning:records -->
