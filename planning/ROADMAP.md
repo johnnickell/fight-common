@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00169](tasks/00169-TASK.md) | Supply and admit durable Task input | in-progress | — |
+| Ready Frontier | [TASK-00170](tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority

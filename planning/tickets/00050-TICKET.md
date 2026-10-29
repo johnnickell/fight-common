@@ -2,7 +2,7 @@
 id: TICKET-00050
 epic: EPIC-00012
 title: Supply requested input to asynchronous operations
-status: ready-for-agent
+status: done
 ---
 
 # Supply requested input to asynchronous operations
@@ -103,7 +103,7 @@ separate and no implementation acceptance is claimed.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00169](../tasks/00169-TASK.md) | Supply and admit durable Task input | in-progress |
+| [TASK-00169](../tasks/00169-TASK.md) | Supply and admit durable Task input | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
