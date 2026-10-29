@@ -1,7 +1,7 @@
 # Durable safe change notices
 
 This opt-in capability records bounded change **notices**, not authoritative application state, execution
-observations or an Event Store. `Domain\Notice\Command\RecordNotice` uses the existing void
+observations or an Event Store. `Domain\Mcp\Notice\Command\RecordNotice` uses the existing void
 `CommandBus::execute()` contract. Callers supply a stable notice ID; successful return follows actual commit.
 `RemoveNotices` supplies independently authorized bounded removal. [Authorized inspection](notice-inspection.md)
 adds public summary/history/detail Queries with fresh independent read admission. [Bounded recovery](notice-recovery.md)
@@ -56,9 +56,9 @@ $router->registerHandler(RecordNotice::class, $handler);
 $commandBus->execute(RecordNotice::fromArray($safeNoticeData));
 ```
 
-Imports are `Adapter\Notice\Dbal\{DbalNoticeSchema,DbalNoticeStore}`,
-`Application\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeStore}`,
-`Application\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Notice\Command\RecordNotice`, beneath
+Imports are `Adapter\Mcp\Notice\Dbal\{DbalNoticeSchema,DbalNoticeStore}`,
+`Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeStore}`,
+`Application\Mcp\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Mcp\Notice\Command\RecordNotice`, beneath
 `Fight\Common\`. `$router` may be `InMemoryCommandRouter`, paired with `RoutingCommandBus`. No automatic container
 registration is implied. Supply a dedicated DBAL connection, not an unrelated ORM unit of work.
 
@@ -136,7 +136,7 @@ that boundary/connection, reconstruct storage, and retry explicitly under curren
 for an uncertain acknowledgment. Read/hydration failures use fixed `NoticeStorageFailed`; corrupt/unsupported
 comparison or mismatched identity evidence fails closed, never successful empty history.
 
-For a newly acknowledged commit only, `Domain\Notice\Event\NoticeRecorded` passes through existing
+For a newly acknowledged commit only, `Domain\Mcp\Notice\Event\NoticeRecorded` passes through existing
 `EventDispatcher::trigger()`. Its exact version-one payload contains `id`, `producer`, `scope`, `position`, `recorded_at`
 and `version`, **not** topic, labels, recipients, causation, protected data or Command envelope metadata. It describes
 recording, not the change's causation. This is a trusted fact, not permission to broadcast even its references.

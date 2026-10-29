@@ -13,13 +13,13 @@
             <exclude>tests/Functional</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalDetailReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalDetailReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</exclude>
@@ -62,13 +62,13 @@
         <testsuite name="Integration">
             <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalActivityReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalDetailReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</file>
-            <file>tests/Adapter/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalActivityReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalDetailReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</file>

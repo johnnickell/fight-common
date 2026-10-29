@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Detail\Data\MessagePage;
+use Fight\Common\Application\Mcp\Execution\Detail\Data\MessagePage;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Execution\Detail\DetailSelection;
-use Fight\Common\Domain\Execution\Detail\Query\ListCapturedMessages;
+use Fight\Common\Domain\Mcp\Detail\DetailSelection;
+use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
 
 /**
  * Class ListCapturedMessagesTool

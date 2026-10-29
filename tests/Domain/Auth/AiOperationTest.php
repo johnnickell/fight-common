@@ -16,8 +16,10 @@ class AiOperationTest extends UnitTestCase
     {
         $op = AiOperation::fromArray(['action' => 'health_check', 'payload' => ['env' => 'prod']]);
 
+        self::assertSame(AiOperation::class, $op::class);
         self::assertSame('health_check', $op->action());
         self::assertSame(['env' => 'prod'], $op->payload());
+        self::assertSame('{"action":"health_check","payload":{"env":"prod"}}', json_encode($op));
     }
 
     public function test_that_from_array_defaults_payload_to_empty_array(): void
@@ -52,6 +54,7 @@ class AiOperationTest extends UnitTestCase
         $json = json_encode(['action' => 'deploy', 'payload' => ['version' => '1.2.3']]);
         $op = AiOperation::fromJson($json);
 
+        self::assertSame(AiOperation::class, $op::class);
         self::assertSame('deploy', $op->action());
         self::assertSame(['version' => '1.2.3'], $op->payload());
     }

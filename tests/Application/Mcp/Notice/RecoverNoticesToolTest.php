@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Notice;
 
+use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Notice\Data\NoticeView;
 use Fight\Common\Application\Mcp\Notice\NoticeToolSchemas;
 use Fight\Common\Application\Mcp\Notice\RecoverNoticesTool;
 use Fight\Common\Application\Mcp\Tool\McpToolSchemaValidator;
 use Fight\Common\Application\Mcp\Tool\NullMcpProgressReporter;
 use Fight\Common\Application\Messaging\Query\QueryBus;
-use Fight\Common\Application\Notice\Data\NoticeRecoveryBatch;
-use Fight\Common\Application\Notice\Data\NoticeView;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Notice\Notice;
-use Fight\Common\Domain\Notice\Query\RecoverNotices;
+use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
 use Fight\Common\Domain\Value\Basic\StrictJson;
-use Fight\Test\Common\TestCase\Notice\NoticeFixture;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 

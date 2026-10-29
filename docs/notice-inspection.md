@@ -24,12 +24,12 @@ $detail = $queryBus->fetch(new GetNotice('project-a', 'catalog', 'change-42'));
 
 Imports beneath `Fight\Common\` are:
 
-- `Adapter\Notice\Dbal\DbalNoticeReader`;
-- `Domain\Notice\NoticeSelection` and `Domain\Notice\Query\{SummarizeNotices,ListNotices,GetNotice}`;
-- `Application\Notice\QueryHandler\{SummarizeNoticesHandler,ListNoticesHandler,GetNoticeHandler}`;
-- `Application\Notice\Service\{NoticeReadAdmission,NoticeAccess,NoticeReader}`;
-- results `Application\Notice\Data\{NoticeSummary,NoticePage,NoticeView}` and
-  `Application\Notice\Exception\NoticeReadFailed`.
+- `Adapter\Mcp\Notice\Dbal\DbalNoticeReader`;
+- `Domain\Mcp\Notice\NoticeSelection` and `Domain\Mcp\Notice\Query\{SummarizeNotices,ListNotices,GetNotice}`;
+- `Application\Mcp\Notice\QueryHandler\{SummarizeNoticesHandler,ListNoticesHandler,GetNoticeHandler}`;
+- `Application\Mcp\Notice\Service\{NoticeReadAdmission,NoticeAccess,NoticeReader}`;
+- results `Application\Mcp\Notice\Data\{NoticeSummary,NoticePage,NoticeView}` and
+  `Application\Mcp\Notice\Exception\NoticeReadFailed`.
 
 `$router` can be `Adapter\Messaging\Query\Routing\InMemoryQueryRouter`, with
 `Adapter\Messaging\Query\RoutingQueryBus`. No automatic registration or principal lookup is implied. Install the

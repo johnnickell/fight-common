@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Session\Data\ExecutionInspection;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionInspection;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Execution\Session\Query\GetExecution;
+use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 
 /**
  * Class GetExecutionTool

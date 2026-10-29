@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Observation\Data\ActivityPage;
-use Fight\Common\Application\Execution\Observation\Data\ActivityView;
-use Fight\Common\Application\Execution\Phase\Data\PhasePage;
-use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
-use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Execution\ExecutionToolInput;
 use Fight\Common\Application\Mcp\Execution\ExecutionToolOutput;
 use Fight\Common\Application\Mcp\Execution\GetExecutionTool;
 use Fight\Common\Application\Mcp\Execution\ListExecutionPhasesTool;
 use Fight\Common\Application\Mcp\Execution\ListExecutionsTool;
 use Fight\Common\Application\Mcp\Execution\ListPhaseActivityTool;
+use Fight\Common\Application\Mcp\Execution\Observation\Data\ActivityPage;
+use Fight\Common\Application\Mcp\Execution\Observation\Data\ActivityView;
+use Fight\Common\Application\Mcp\Execution\Phase\Data\PhasePage;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionPage;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Execution\SummarizeExecutionsTool;
 use Fight\Common\Application\Mcp\Tool\McpToolSchemaValidator;
 use Fight\Common\Application\Mcp\Tool\NullMcpProgressReporter;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Execution\Activity\PhaseActivity;
+use Fight\Common\Domain\Mcp\Activity\PhaseActivity;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Value\Basic\StrictJson;
-use Fight\Test\Common\TestCase\Execution\ObservationFixture;
+use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 

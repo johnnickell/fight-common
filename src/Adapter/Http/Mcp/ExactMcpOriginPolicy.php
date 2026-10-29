@@ -4,36 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Http\Mcp;
 
-use Fight\Common\Application\Mcp\McpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy as CanonicalExactMcpOriginPolicy;
 
 /**
  * Class ExactMcpOriginPolicy
+ *
+ * @deprecated Use \Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy instead; retained throughout 1.x
  */
-final readonly class ExactMcpOriginPolicy implements McpOriginPolicy
+final readonly class ExactMcpOriginPolicy extends CanonicalExactMcpOriginPolicy
 {
-    /**
-     * @var list<string>
-     */
-    private array $origins;
-
-    /**
-     * Constructs ExactMcpOriginPolicy
-     *
-     * @phpstan-param list<string> $origins
-     */
-    public function __construct(array $origins)
-    {
-        $this->origins = array_map(
-            static fn (string $origin): string => McpOrigin::fromString($origin)->toString(),
-            $origins
-        );
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function allows(string $origin): bool
-    {
-        return in_array($origin, $this->origins, true);
-    }
 }

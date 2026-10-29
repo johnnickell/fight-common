@@ -6,8 +6,8 @@ namespace Fight\Common\Application\Mcp\Subscription\Service;
 
 use Fight\Common\Application\Mcp\Subscription\Data\SubscriberPage;
 use Fight\Common\Application\Mcp\Subscription\Data\SubscriberSummary;
-use Fight\Common\Domain\Subscription\Query\ListSubscribers;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 
 /**
  * Interface SubscriberReader

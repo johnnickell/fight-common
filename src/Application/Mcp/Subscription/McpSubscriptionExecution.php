@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription;
 
 use Fight\Common\Application\Mcp\McpDiagnostics;
+use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
 use Fight\Common\Application\Messaging\Query\QueryBus;
-use Fight\Common\Application\Notice\Data\NoticeRecoveryBatch;
-use Fight\Common\Domain\Notice\Notice;
-use Fight\Common\Domain\Notice\NoticeSelection;
-use Fight\Common\Domain\Notice\Query\RecoverNotices;
+use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
 use RuntimeException;
 use Throwable;
 

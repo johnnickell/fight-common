@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
