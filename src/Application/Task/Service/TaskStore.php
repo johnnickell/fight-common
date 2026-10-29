@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Task\Service;
 
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Task\Task;
+use Fight\Common\Domain\Task\TaskSelection;
 
 /**
  * Interface TaskStore
@@ -21,6 +22,13 @@ interface TaskStore extends TransactionalUnitOfWork
      * Writes the complete current state atomically under the owned transaction
      */
     public function save(Task $task): void;
+
+    /**
+     * Removes whole rows and comparison material under the owned mutation transaction
+     *
+     * Returns only actually removed identities, or null for an entirely missing selection
+     */
+    public function remove(TaskSelection $selection): ?TaskSelection;
 
     /**
      * Returns committed protected state on an idle connection without mutation

@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00167](tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | — |
+| Ready Frontier | [TASK-00169](tasks/00169-TASK.md) | Supply and admit durable Task input | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority

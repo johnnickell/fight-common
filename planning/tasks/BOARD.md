@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent | — |
+| Ready Frontier | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -52,7 +52,6 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | [TICKET-00050 — Supply requested input to asynchronous operations](../tickets/00050-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
@@ -150,6 +149,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00164](00164-TASK.md) | Follow authorized Prompt catalog changes through MCP | [TICKET-00047 — Follow MCP changes and inspect current subscribers](../tickets/00047-TICKET.md) | done | — | [PR #245](https://github.com/johnnickell/fight-common/pull/245) |
 | — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | done | — | [PR #246](https://github.com/johnnickell/fight-common/pull/246) |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | [PR #248](https://github.com/johnnickell/fight-common/pull/248) |
+| — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | [PR #250](https://github.com/johnnickell/fight-common/pull/250) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |
 | — | [TASK-00173](00173-TASK.md) | Deprecate released public properties in favor of getters | — (standalone chore) | done | — | [PR #247](https://github.com/johnnickell/fight-common/pull/247) |
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |

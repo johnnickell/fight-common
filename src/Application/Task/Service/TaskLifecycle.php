@@ -12,7 +12,9 @@ use Fight\Common\Application\Task\Exception\TaskRejected;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Task\Command\CreateTask;
 use Fight\Common\Domain\Task\Command\RecordTaskState;
+use Fight\Common\Domain\Task\Command\RemoveTasks;
 use Fight\Common\Domain\Task\Event\TaskChanged;
+use Fight\Common\Domain\Task\Event\TaskDataRemoved;
 use Fight\Common\Domain\Task\Query\GetTask;
 use Fight\Common\Domain\Task\Task;
 use Fight\Common\Domain\Task\TaskDefinition;
@@ -37,7 +39,8 @@ final readonly class TaskLifecycle
         private TaskReadAdmission $reads,
         private TaskPayloadPolicy $payloads,
         private EventDispatcher $events,
-        private Closure $clock
+        private Closure $clock,
+        private TaskRemovalAdmission $removals
     ) {
     }
 
@@ -112,6 +115,33 @@ final readonly class TaskLifecycle
     }
 
     /**
+     * Removes an independently admitted complete selection without inferring cancellation
+     */
+    public function remove(RemoveTasks $command): void
+    {
+        $removed = $this->store->commitTransactional(function () use ($command): ?TaskDataRemoved {
+            $selection = $command->selection();
+            // Check every grant before existence or deletion, including repeats and missing rows.
+            foreach ($selection->ids() as $id) {
+                try {
+                    $allowed = $this->removals->allowsRemoval($selection->scope(), $id);
+                } catch (Throwable) {
+                    throw new TaskRejected();
+                }
+
+                if (!$allowed) {
+                    throw new TaskRejected();
+                }
+            }
+
+            $actual = $this->store->remove($selection);
+
+            return $actual === null ? null : new TaskDataRemoved($actual);
+        });
+        $this->dispatch($removed);
+    }
+
+    /**
      * Returns whole safe current state or indistinguishable denied missing expired unavailability
      */
     public function get(GetTask $query): ?StrictJson
@@ -148,13 +178,13 @@ final readonly class TaskLifecycle
     /**
      * Dispatches reference-only facts after actual commit without a replay promise
      */
-    private function dispatch(?Task $task): void
+    private function dispatch(Task|TaskDataRemoved|null $task): void
     {
         if ($task === null) {
             return;
         }
 
-        $event = TaskChanged::fromTask($task);
+        $event = $task instanceof Task ? TaskChanged::fromTask($task) : $task;
         try {
             $this->events->trigger($event);
         } catch (Throwable $throwable) {

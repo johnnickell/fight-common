@@ -14,25 +14,32 @@ use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Adapter\Task\Dbal\DbalTaskStore;
 use Fight\Common\Application\Task\CommandHandler\CreateTaskHandler;
 use Fight\Common\Application\Task\CommandHandler\RecordTaskStateHandler;
+use Fight\Common\Application\Task\CommandHandler\RemoveTasksHandler;
 use Fight\Common\Application\Task\QueryHandler\GetTaskHandler;
 use Fight\Common\Application\Task\Service\TaskCreationAdmission;
 use Fight\Common\Application\Task\Service\TaskLifecycle;
 use Fight\Common\Application\Task\Service\TaskReadAdmission;
+use Fight\Common\Application\Task\Service\TaskRemovalAdmission;
 use Fight\Common\Application\Task\Service\TaskUpdateAdmission;
 use Fight\Common\Application\Task\Service\ToolTaskPayloadPolicy;
 use Fight\Common\Domain\Task\Command\CreateTask;
 use Fight\Common\Domain\Task\Command\RecordTaskState;
+use Fight\Common\Domain\Task\Command\RemoveTasks;
 use Fight\Common\Domain\Task\Query\GetTask;
 use Fight\Common\Domain\Task\TaskDefinition;
+use Fight\Common\Domain\Task\TaskSelection;
 use Fight\Common\Domain\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
-final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, TaskReadAdmission
+final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, TaskReadAdmission, TaskRemovalAdmission
 {
     public const string ID = '0123456789abcdef0123456789abcdef';
     public bool $createAllowed = true;
     public bool $updateAllowed = true;
     public bool $readAllowed = true;
+    public bool $removeAllowed = true;
+    public array $removalChecks = [];
+    public array $deniedRemovalIds = [];
     public bool $discloseAllowed = true;
     public int $now = 1793059200000;
     public int $admissions = 0;
@@ -47,10 +54,11 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     {
         $this->store = new DbalTaskStore($connection);
         $this->events = new SimpleEventDispatcher();
-        $this->lifecycle = new TaskLifecycle($this->store, $this, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now);
+        $this->lifecycle = new TaskLifecycle($this->store, $this, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
         $commands = new InMemoryCommandRouter();
         $commands->registerHandler(CreateTask::class, new CreateTaskHandler($this->lifecycle));
         $commands->registerHandler(RecordTaskState::class, new RecordTaskStateHandler($this->lifecycle));
+        $commands->registerHandler(RemoveTasks::class, new RemoveTasksHandler($this->lifecycle));
         $this->commands = new RoutingCommandBus($commands);
         $queries = new InMemoryQueryRouter();
         $queries->registerHandler(GetTask::class, new GetTaskHandler($this->lifecycle));
@@ -83,6 +91,19 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public function record(TaskState $state, int $expectedVersion = 1, ?int $poll = null): void
     {
         $this->commands->execute(new RecordTaskState('scope', self::ID, 'producer', $expectedVersion, $state, $poll));
+    }
+
+    public function remove(array $ids = [self::ID], string $scope = 'scope'): void
+    {
+        $this->commands->execute(new RemoveTasks(TaskSelection::fromIds($scope, $ids)));
+    }
+
+    public function allowsRemoval(string $scope, string $id): bool
+    {
+        ++$this->admissions;
+        $this->removalChecks[] = [$scope, $id];
+        ($this->onAdmission ?? static fn () => null)();
+        return $this->removeAllowed && $scope === 'scope' && !in_array($id, $this->deniedRemovalIds, true);
     }
 
     public function get(string $id = self::ID, string $scope = 'scope'): ?StrictJson

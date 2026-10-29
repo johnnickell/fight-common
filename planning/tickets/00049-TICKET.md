@@ -103,7 +103,7 @@ implemented. These are future obligations, not checks already run or actual Agen
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | done |
-| [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent |
+| [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | done |
 | [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent |
 <!-- /planning:children -->
 
@@ -176,6 +176,7 @@ Task polling gains no dependency on Subscriptions/Mercure.
 
 TASK-00166 supplies the reusable lifecycle, direct three-database persistence and protected current-state Query.
 Its [acceptance checkpoint](../tasks/00166-TASK.md#acceptance-checkpoint-before-publication) records independent
-Review and QA for the current candidate. This TICKET remains incomplete: removal and complete MCP activation remain
-with TASK-00167/00168 and their suppliers. No Tasks extension advertisement or consumer runtime qualification follows
-from the lifecycle alone. Statements above about no implementation/publication describe planning approval.
+Review and QA. TASK-00167's [acceptance checkpoint](../tasks/00167-TASK.md#acceptance-checkpoint-before-publication)
+records accepted bounded removal. This TICKET remains incomplete: complete MCP activation remains with TASK-00168
+and its suppliers. No Tasks extension advertisement or consumer runtime qualification follows from these slices.
+Statements above about no implementation/publication describe planning approval.

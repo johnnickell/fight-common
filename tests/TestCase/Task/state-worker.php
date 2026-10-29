@@ -26,19 +26,28 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connect
             if (microtime(true) > $deadline) { throw new RuntimeException('Barrier timeout'); }
             usleep(10000);
         }
-        if ($mode === 'rollback') { throw new RuntimeException('Injected precommit failure'); }
+        if (in_array($mode, ['rollback', 'remove-rollback-update'], true)) { throw new RuntimeException('Injected precommit failure'); }
     }
     $connection->commit();
 });
 $fixture = new TaskFixture($proxy); $events = 0;
-$fixture->events->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore(\Fight\Common\Domain\Task\Event\TaskChanged::class), static function () use (&$events): void { ++$events; });
+foreach ([\Fight\Common\Domain\Task\Event\TaskChanged::class, \Fight\Common\Domain\Task\Event\TaskDataRemoved::class] as $event) {
+    $fixture->events->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore($event), static function () use (&$events): void { ++$events; });
+}
 $fixture->onAdmission = static function () use ($fixture, $directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'ready');
-    if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->createAllowed = false; $fixture->updateAllowed = false; }
+    if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->createAllowed = false; $fixture->updateAllowed = false; $fixture->removeAllowed = false; }
 };
 file_put_contents($directory.'/'.$role.'-started', 'ready');
 try {
-    if (in_array($mode, ['duplicate', 'conflict', 'rollback', 'revoked'], true)) {
+    if (in_array($mode, ['remove-progress', 'remove-outcome', 'update-remove', 'create-remove', 'remove-repeat', 'remove-revoked', 'remove-rollback-update', 'remove-create'], true)) {
+        $removes = $role === 'first'
+            ? !in_array($mode, ['update-remove', 'create-remove'], true)
+            : in_array($mode, ['update-remove', 'create-remove', 'remove-repeat', 'remove-revoked'], true);
+        if ($removes) { $fixture->remove(); }
+        elseif (($role === 'first' && $mode === 'create-remove') || ($role === 'second' && $mode === 'remove-create')) { $fixture->create(); }
+        else { $fixture->record($mode === 'remove-progress' ? TaskState::create('working', 'Late progress') : TaskFixture::completed()); }
+    } elseif (in_array($mode, ['duplicate', 'conflict', 'rollback', 'revoked'], true)) {
         $fixture->create($role === 'second' && $mode === 'conflict' ? 1000 : null);
     } else {
         $state = TaskFixture::completed(true);

@@ -15,6 +15,7 @@ use Fight\Common\Application\Task\Exception\TaskStorageFailed;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Task\Command\CreateTask;
 use Fight\Common\Domain\Task\Event\TaskChanged;
+use Fight\Common\Domain\Task\Event\TaskDataRemoved;
 use Fight\Common\Domain\Task\TaskState;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -171,6 +172,109 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
             self::assertSame($isCreation ? 'working' : 'completed', $current->get('state')->get('status'));
             self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
         } finally { file_put_contents($directory.'/release', 'yes'); $first->stop(); $second->stop(); }
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_removal_lost_ack_postcommit_failure_and_fresh_retries_never_restore_removed_bodies(string $backend): void
+    {
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection); $params = $connection->getParams();
+        $fixture->create(1000); $fixture->record(TaskFixture::input());
+        $before = $fixture->get()->toString();
+        $proxy = $this->proxy($connection);
+        $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($connection): void { $connection->commit(); throw new RuntimeException('Lost removal acknowledgment'); });
+        $uncertain = new TaskFixture($proxy);
+        try { $uncertain->remove(); self::fail('Actual committed deletion with lost acknowledgment required.'); }
+        catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
+        self::assertTrue($uncertain->store->isClosed());
+        $fresh = new TaskFixture($this->connect($params));
+        self::assertNull($fresh->get()); self::assertStringContainsString('input_required', $before);
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+        $fresh->remove(); $fresh->removeAllowed = false;
+        try { $fresh->remove(); self::fail('Missing repeat must freshly authorize.'); } catch (TaskRejected) { self::assertCount(2, $fresh->removalChecks); }
+        try { $fresh->record(TaskFixture::completed()); self::fail('Late update cannot recreate work.'); } catch (TaskRejected) { self::assertNull($fresh->get()); }
+        $fresh->removeAllowed = true; $fresh->now += 500; $fresh->create(2000);
+        self::assertSame(1, $fresh->get()->get('version')); self::assertSame($fresh->now, $fresh->get()->get('created_at'));
+        $facts = [];
+        $fresh->events->addHandler(ClassName::underscore(TaskDataRemoved::class), static function (EventMessage $message) use ($params, &$facts): void {
+            $other = DriverManager::getConnection($params);
+            try { self::assertNull((new TaskFixture($other))->get()); self::assertSame(0, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_tasks')); }
+            finally { $other->close(); }
+            $facts[] = $message->payload()->toArray(); throw new RuntimeException('Private publication failure');
+        });
+        try { $fresh->remove(); self::fail('Dispatch failure required after commit.'); }
+        catch (CommittedTaskDispatchFailed $failure) { self::assertSame(['scope' => 'scope', 'ids' => [TaskFixture::ID]], $failure->event()->toArray()); }
+        $fresh->remove(); self::assertCount(1, $facts); self::assertNull((new TaskFixture($this->connect($params)))->get());
+    }
+
+    #[DataProvider('databases')]
+    public function test_that_independent_removal_policy_and_expiry_never_skip_denied_members_or_touch_caller_work(string $backend): void
+    {
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection); $other = str_repeat('a', 32);
+        $fixture->create(10); $fixture->record(TaskFixture::completed()); $fixture->create(id: $other);
+        $before = $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id');
+        $fixture->deniedRemovalIds = [$other];
+        try { $fixture->remove([TaskFixture::ID, $other]); self::fail('One denied member rejects the whole operation.'); }
+        catch (TaskRejected) { self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id')); }
+        try { $fixture->remove([TaskFixture::ID], 'SUPER_ADMIN'); self::fail('Labels do not authorize cross-scope removal.'); }
+        catch (TaskRejected $failure) { self::assertSame('Task operation rejected.', $failure->getMessage()); }
+        $fixture->deniedRemovalIds = [];
+        $connection->executeStatement('CREATE TABLE task_caller_work (id INTEGER)');
+        $connection->beginTransaction(); $connection->insert('task_caller_work', ['id' => 7]); $checks = count($fixture->removalChecks);
+        try { $fixture->remove(); self::fail('Removal cannot enlist caller work.'); }
+        catch (LogicException) {
+            self::assertSame($checks, count($fixture->removalChecks)); self::assertTrue($connection->isTransactionActive());
+            self::assertSame(7, (int) $connection->fetchOne('SELECT id FROM task_caller_work'));
+            self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id'));
+        }
+        $connection->commit(); self::assertSame(7, (int) $this->connect($connection->getParams())->fetchOne('SELECT id FROM task_caller_work'));
+        $connection->executeStatement('DROP TABLE task_caller_work');
+        $fixture->now += 10; self::assertNull($fixture->get()); self::assertNotNull($fixture->get($other));
+        self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id'), 'Reads never clean expired rows or comparison material.');
+        $fixture->createAllowed = false; $fixture->updateAllowed = false; $fixture->readAllowed = false;
+        $fixture->remove([TaskFixture::ID, $other]); self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+        $fixture->readAllowed = true; self::assertNull($fixture->get()); self::assertNull($fixture->get($other));
+    }
+
+    #[DataProvider('removalRaces')]
+    public function test_that_real_removal_races_hold_current_admission_and_preserve_coherent_reads_through_commit(string $backend, string $mode): void
+    {
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection);
+        if ($mode !== 'create-remove') { $fixture->create(); }
+        $directory = $this->directory(); $config = $directory.'/config.json';
+        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
+        $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'first'], timeout: 25);
+        $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Task/state-worker.php', $config, 'second'], timeout: 25);
+        try {
+            $first->start(); $this->waitFor($directory.'/first-precommit', $first);
+            $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(150000);
+            self::assertTrue($second->isRunning(), $second->getErrorOutput().$second->getOutput());
+            self::assertFileDoesNotExist($directory.'/second-admitted');
+            $before = (new TaskFixture($this->connect($connection->getParams())))->get();
+            if ($mode === 'create-remove') { self::assertNull($before); }
+            else { self::assertSame('working', $before->get('state')->get('status')); self::assertSame(1, $before->get('version')); }
+            if ($mode === 'remove-revoked') { file_put_contents($directory.'/revoked', 'yes'); }
+            file_put_contents($directory.'/release', 'yes');
+            self::assertSame(0, $first->wait(), $first->getErrorOutput()); self::assertSame(0, $second->wait(), $second->getErrorOutput());
+            $one = json_decode($first->getOutput(), true, flags: JSON_THROW_ON_ERROR); $two = json_decode($second->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame($mode === 'remove-rollback-update' ? TaskStorageFailed::class : 'committed', $one['status']);
+            self::assertSame(in_array($mode, ['remove-progress', 'remove-outcome', 'remove-revoked'], true) ? TaskRejected::class : 'committed', $two['status']);
+            self::assertSame(1, $two['admissions']);
+            self::assertSame($mode === 'remove-rollback-update' ? 0 : 1, $one['events']);
+            self::assertSame(in_array($mode, ['update-remove', 'create-remove', 'remove-rollback-update', 'remove-create'], true) ? 1 : 0, $two['events']);
+            $current = (new TaskFixture($this->connect($connection->getParams())))->get();
+            if (in_array($mode, ['remove-rollback-update', 'remove-create'], true)) {
+                self::assertSame($mode === 'remove-create' ? 'working' : 'completed', $current->get('state')->get('status'));
+                self::assertSame($mode === 'remove-create' ? 1 : 2, $current->get('version'));
+            } else { self::assertNull($current); }
+            self::assertSame($current === null ? 0 : 1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+        } finally { file_put_contents($directory.'/release', 'yes'); $first->stop(); $second->stop(); }
+    }
+
+    public static function removalRaces(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach (['remove-progress', 'remove-outcome', 'update-remove', 'create-remove', 'remove-repeat', 'remove-revoked', 'remove-rollback-update', 'remove-create'] as $mode) { yield $backend.'-'.$mode => [$backend, $mode]; }
+        }
     }
 
     public static function databases(): iterable
