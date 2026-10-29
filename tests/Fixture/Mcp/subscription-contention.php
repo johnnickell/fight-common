@@ -6,10 +6,10 @@ require dirname(__DIR__, 3).'/vendor/autoload.php';
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
-use Fight\Common\Domain\Notice\NoticeSelection;
-use Fight\Common\Domain\Notice\Query\RecoverNotices;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
-use Fight\Test\Common\TestCase\Notice\NoticeFixture;
 use Symfony\Component\Process\Process;
 
 [$script, $directory, $mode, $transport] = $argv;

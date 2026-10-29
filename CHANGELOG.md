@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Group all agent/MCP-owned execution tracking, notices, durable Task lifecycle and subscription concepts present
+  on develop beneath `Domain\Mcp`, `Application\Mcp` and `Adapter\Mcp`. Provisional tracking APIs move directly
+  without development aliases; existing CQRS, authorization, storage, stateless input and protocol behavior remain
+  unchanged. Legacy AI-operation/webhook APIs receive equally deprecated MCP homes while their released names
+  remain functional with the original sunset. See the [complete namespace map](docs/mcp-namespaces.md).
+
 ### Deprecated
 
 - The nine released MCP HTTP adapter names under `Adapter\Http\Mcp`, `Adapter\Http\Symfony` and

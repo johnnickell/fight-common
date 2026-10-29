@@ -1,6 +1,6 @@
 # Optional retained-notice publication
 
-`Application\Notice\Publication` adds one explicit, synchronous, single-topic attempt through the existing
+`Application\Mcp\Notice\Publication` adds one explicit, synchronous, single-topic attempt through the existing
 `Application\Socket\Publisher::push()` / `PrivatePublisher::pushPrivate()` ports. Optional
 `Adapter\Socket\MercureHubPublisher` and `PrivateMercureHubPublisher` translate it into a Symfony Mercure `Update`.
 There is no automatic registration, new business Command/event, socket abstraction, store, outbox or retry worker.
@@ -18,8 +18,8 @@ caller-asserted saved payloads. These collaborators are trusted composition, not
 ```php
 use Fight\Common\Adapter\Socket\MercureHubPublisher;
 use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
-use Fight\Common\Application\Notice\Publication\NoticePublication;
-use Fight\Common\Application\Notice\Publication\RecordNoticeAndPublish;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublication;
+use Fight\Common\Application\Mcp\Notice\Publication\RecordNoticeAndPublish;
 
 // $commands and $queries have the synchronous/shared handlers described above.
 // $policy and $diagnostics are consumer implementations; $hub is a HubInterface.
@@ -58,7 +58,7 @@ on every attempt, including retries. It must authorize the mandatory scope/produ
 For example, after the consumer's independent whole-audience check, return:
 
 ```php
-use Fight\Common\Application\Notice\Publication\NoticePublicationGrant;
+use Fight\Common\Application\Mcp\Notice\Publication\NoticePublicationGrant;
 
 $grant = NoticePublicationGrant::create(
     'https://feed.example/notices',

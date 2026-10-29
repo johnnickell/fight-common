@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00177](00177-TASK.md) | Consolidate released MCP HTTP adapters under Mcp | in-progress | — |
+| Active Work | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -46,7 +46,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00177](00177-TASK.md) | Consolidate released MCP HTTP adapters under Mcp | — (standalone chore) | in-progress | — | — |
+| — | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 

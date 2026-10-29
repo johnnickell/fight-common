@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription\Service;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Notice\NoticeSelection;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 
 /**
  * Class SubscriberAccess

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription\Data;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\Notice;
 
 /**
  * Class SubscriberReadScope

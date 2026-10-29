@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription\Data;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Subscription\Query\ListSubscribers;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 
 /**
  * Class SubscriberPage

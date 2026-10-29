@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Subscription\Service;
 
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 
 /**
  * Interface SubscriberReadAdmission

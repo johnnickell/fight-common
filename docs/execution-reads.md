@@ -1,8 +1,8 @@
 # Authorized execution inspection
 
-`Domain\Execution\Session\Query` supplies `SummarizeExecutions` and `ListExecutions`; their
-`Application\Execution\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
-`Adapter\Execution\Dbal\DbalExecutionReader` reads the
+`Domain\Mcp\Session\Query` supplies `SummarizeExecutions` and `ListExecutions`; their
+`Application\Mcp\Execution\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
+`Adapter\Mcp\Execution\Dbal\DbalExecutionReader` reads the
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
 views, not authoritative Workflow state. Selected-execution summaries and phase pages use the same current
 admission. Phase activity and permitted detail-reference metadata reuse that admission through `ListPhaseActivity`.
@@ -17,25 +17,25 @@ new aggregate nor adds read methods to their write repositories.
 
 | Owner | Declarations and responsibility |
 | --- | --- |
-| `Domain\Execution\Session` | `ExecutionSelection` validates selection; `Query\ListExecutions`, `Query\SummarizeExecutions` and `Query\GetExecution` are Domain payloads, not Application coordinators. |
-| `Domain\Execution\Phase` | `Query\ListExecutionPhases` owns bounded phase selection within an exact selected Session. |
-| `Domain\Execution\Usage` | `UsageTotal` owns compatible exact measurement arithmetic beside `UsageMeasurement`; it is a supporting value, not a new aggregate. |
-| `Application\Execution\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
-| `Application\Execution\Session\Data` | `ExecutionView`, `ExecutionPage`, `ExecutionSummary` and `ExecutionInspection` are safe use-case projections, not aggregate roots. |
-| `Application\Execution\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
-| `Application\Execution\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
-| `Application\Execution\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
-| `Domain\Execution\Observation\Query` | `ListPhaseActivity` selects activity evidence owned by Observation within an exact phase. |
-| `Application\Execution\Observation` | `Service\ActivityReader`, its Query handler, `Data\ActivityPage` and `Data\ActivityView` own safe activity browsing. |
-| `Application\Execution\Detail\Data` | `DetailReference` projects permitted capture/availability metadata, never content or permission to read it. |
-| `Application\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
-| `Adapter\Execution\Dbal` | `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
+| `Domain\Mcp\Session` | `ExecutionSelection` validates selection; `Query\ListExecutions`, `Query\SummarizeExecutions` and `Query\GetExecution` are Domain payloads, not Application coordinators. |
+| `Domain\Mcp\Phase` | `Query\ListExecutionPhases` owns bounded phase selection within an exact selected Session. |
+| `Domain\Mcp\Usage` | `UsageTotal` owns compatible exact measurement arithmetic beside `UsageMeasurement`; it is a supporting value, not a new aggregate. |
+| `Application\Mcp\Execution\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
+| `Application\Mcp\Execution\Session\Data` | `ExecutionView`, `ExecutionPage`, `ExecutionSummary` and `ExecutionInspection` are safe use-case projections, not aggregate roots. |
+| `Application\Mcp\Execution\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
+| `Application\Mcp\Execution\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
+| `Application\Mcp\Execution\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
+| `Domain\Mcp\Observation\Query` | `ListPhaseActivity` selects activity evidence owned by Observation within an exact phase. |
+| `Application\Mcp\Execution\Observation` | `Service\ActivityReader`, its Query handler, `Data\ActivityPage` and `Data\ActivityView` own safe activity browsing. |
+| `Application\Mcp\Execution\Detail\Data` | `DetailReference` projects permitted capture/availability metadata, never content or permission to read it. |
+| `Application\Mcp\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
+| `Adapter\Mcp\Execution\Dbal` | `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
 
 Queries and their selection have no Application dependencies. Caller grants stay outside Domain payloads.
 Summary results may include related phase/activity evidence without transferring those aggregates' ownership to
 Session. Selected-session Queries belong with Session; phase/activity Queries belong with their actual
 Phase or Observation owner, not a generic `Read` peer. The DBAL adapters stay together under
-`Adapter\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
+`Adapter\Mcp\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
 adapter grouping before a tagged release if that directory grows enough to justify it.
 
 **Readers are not replacement repositories.** Domain `SessionRepository`, `PhaseRepository`,
@@ -209,7 +209,7 @@ cross-request frozen result. Consumer transaction isolation may be stronger but 
 
 ## Phase activity and permitted detail references
 
-`Domain\Execution\Observation\Query\ListPhaseActivity(projectId, sessionId, phaseId, page: null, perPage: null,
+`Domain\Mcp\Observation\Query\ListPhaseActivity(projectId, sessionId, phaseId, page: null, perPage: null,
 filters: [], orderings: [])` returns nullable Application `ActivityPage`. The exact Query array contains those
 three IDs, normalized `page`, `per_page`, `filters` and `orderings`, never authority. Strict defaults are **1/100**,
 maximum size **100**, maximum offset **1,000,000**. Supported filters are exact `producer_id`, namespaced `kind`
@@ -292,15 +292,15 @@ Use the same installed version-one recording namespace and consumer-owned connec
 projection workers or Event Store are required. Compose the current caller admission and reader explicitly:
 
 ```php
-use Fight\Common\Adapter\Execution\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
-use Fight\Common\Application\Execution\Session\QueryHandler\ListExecutionsHandler;
-use Fight\Common\Application\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
-use Fight\Common\Application\Execution\Session\Service\ExecutionReadAdmission;
-use Fight\Common\Domain\Execution\Session\ExecutionSelection;
-use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
-use Fight\Common\Domain\Execution\Session\Query\SummarizeExecutions;
+use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\ListExecutionsHandler;
+use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Mcp\Execution\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
+use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
+use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
 
 /** @var ExecutionReadAdmission $currentCallerAdmission Consumer implementation, not Query input */
 $reader = new DbalExecutionReader($connection);
@@ -316,11 +316,11 @@ $page = $queries->fetch(new ListExecutions($selection, page: 1, perPage: 20));
 For selected navigation, add these explicit registrations to the same router/admission and connection:
 
 ```php
-use Fight\Common\Adapter\Execution\Dbal\DbalPhaseReader;
-use Fight\Common\Application\Execution\Phase\QueryHandler\ListExecutionPhasesHandler;
-use Fight\Common\Application\Execution\Session\QueryHandler\GetExecutionHandler;
-use Fight\Common\Domain\Execution\Phase\Query\ListExecutionPhases;
-use Fight\Common\Domain\Execution\Session\Query\GetExecution;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseReader;
+use Fight\Common\Application\Mcp\Execution\Phase\QueryHandler\ListExecutionPhasesHandler;
+use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\GetExecutionHandler;
+use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
+use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 
 $router->registerHandler(GetExecution::class, new GetExecutionHandler($currentCallerAdmission, $reader));
 $router->registerHandler(
@@ -334,9 +334,9 @@ $phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1,
 For activity, register this handler on the same router with the same current admission:
 
 ```php
-use Fight\Common\Adapter\Execution\Dbal\DbalActivityReader;
-use Fight\Common\Application\Execution\Observation\QueryHandler\ListPhaseActivityHandler;
-use Fight\Common\Domain\Execution\Observation\Query\ListPhaseActivity;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalActivityReader;
+use Fight\Common\Application\Mcp\Execution\Observation\QueryHandler\ListPhaseActivityHandler;
+use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
 
 $router->registerHandler(
     ListPhaseActivity::class,
@@ -360,7 +360,7 @@ TASK-00150 introduced **14** additive opt-in public declarations: `ExecutionSele
 Only its two ports promise consumer implementation; final classes do not promise extension. Named factories own
 selection/access/usage construction; result/Query/handler/adapter constructors are callable as declared. All state
 is private. Existing tagged APIs, QueryBus envelopes/metadata, recording payloads, schema and Pagination behavior
-are unchanged. The pre-release ownership correction replaces the earlier `Application\Execution\Read` names
+are unchanged. The pre-release ownership correction replaces the earlier `Application\Mcp\Execution\Read` names
 and relocates the DBAL reader directly; no backward shim for a never-released development snapshot is introduced.
 Query envelope payload-type identifiers and handler registrations use the new Domain Session FQCNs. Discard or
 recreate envelopes from the earlier development snapshot; those provisional type names are not released aliases.

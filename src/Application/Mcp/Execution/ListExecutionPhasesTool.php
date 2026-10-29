@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Phase\Data\PhasePage;
+use Fight\Common\Application\Mcp\Execution\Phase\Data\PhasePage;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Execution\Phase\Query\ListExecutionPhases;
+use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
 
 /**
  * Class ListExecutionPhasesTool

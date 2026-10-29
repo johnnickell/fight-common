@@ -122,6 +122,7 @@ nav:
       - Live MCP Subscriptions: mcp-subscriptions.md
       - Subscriber Inspection: subscriber-inspection.md
       - MCP Protocol Semantics: components/mcp/index.md
+      - Agent and MCP Namespaces: mcp-namespaces.md
       - Validation: components/validation/index.md
       - Application Failures: application-failures.md
       - Serialization: components/serialization/index.md

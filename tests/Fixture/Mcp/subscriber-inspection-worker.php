@@ -11,9 +11,9 @@ use Fight\Common\Application\Mcp\Subscription\QueryHandler\ListSubscribersHandle
 use Fight\Common\Application\Mcp\Subscription\QueryHandler\SummarizeSubscribersHandler;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReadAdmission;
-use Fight\Common\Domain\Subscription\Query\ListSubscribers;
-use Fight\Common\Domain\Subscription\Query\SummarizeSubscribers;
-use Fight\Common\Domain\Subscription\SubscriberSelection;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\Query\SummarizeSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 

@@ -1,13 +1,13 @@
 # Inspect current MCP subscriber observations
 
-`Domain\Subscription\Query\SummarizeSubscribers` and `ListSubscribers` run through ordinary
+`Domain\Mcp\Subscription\Query\SummarizeSubscribers` and `ListSubscribers` run through ordinary
 `QueryBus::fetch()`. They inspect the **existing** [live MCP tracking](mcp-subscriptions.md) records, not a second
 lifecycle store, a dashboard, MCP Tool, saved subscription or notice-delivery ledger. No Prompt capability is needed.
 Queries perform no heartbeat, cleanup, transaction, Command, event or notice/content read.
 
 ## Composition and independent current permission
 
-Import selection/Queries from `Fight\Common\Domain\Subscription` / `Query`, handlers from
+Import selection/Queries from `Fight\Common\Domain\Mcp\Subscription` / `Query`, handlers from
 `Fight\Common\Application\Mcp\Subscription\QueryHandler`, permission/reader contracts from its `Service`
 namespace, results from `Data`, and `DbalSubscriberReader` from `Fight\Common\Adapter\Mcp\Subscription`.
 

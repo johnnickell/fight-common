@@ -9,11 +9,11 @@ Mercure dependency or saved resumable subscription is introduced. Separate opt-i
 
 ## Compose the complete path
 
-1. Install `Adapter\Notice\Dbal\DbalNoticeSchema` and
+1. Install `Adapter\Mcp\Notice\Dbal\DbalNoticeSchema` and
    `Adapter\Mcp\Subscription\DbalSubscriptionSchema` on an exclusive **idle deployment connection**.
    These are separate reserved namespaces. Installation is not a per-request migration or a live-stream transaction.
    Partial installations need operator recovery; MySQL DDL is not atomic.
-2. Route `Domain\Notice\Query\RecoverNotices` to `Application\Notice\QueryHandler\RecoverNoticesHandler`, using
+2. Route `Domain\Mcp\Notice\Query\RecoverNotices` to `Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler`, using
    current consumer `NoticeReadAdmission`, `NoticeRecovery`, a dedicated `DbalNoticeStore` connection and a shared
    dedicated `NoticeContinuationProtector` key set. See [retained recovery](notice-recovery.md).
 3. Supply `McpSubscriptionAdmission` and a trusted request-scoped `NoticeSelection`. Neither comes from the listen

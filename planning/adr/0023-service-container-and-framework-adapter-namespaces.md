@@ -59,8 +59,23 @@ compatibility mechanism, with no consumer extension promise. The immutable Origi
 implementation to preserve its self-returning factory and old serialized value. Internal helpers relocate directly.
 
 The [MCP migration map](../../docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
-identifies all nine names. This TASK does not implement the broader agent-tracking namespace proposal or change
-inward layer boundaries, HTTP safeguards, streaming behavior, optional dependencies or policy ownership.
+identifies all nine names. The initial adapter-only checkpoint is superseded by John's expanded decision below.
+
+### Complete agent subsystem amendment and develop-base correction
+
+John expanded TASK-00177 to all agent/MCP-owned classes. Execution concepts move directly beneath `Domain\Mcp`;
+Notice, Task and Subscription retain concept branches there. Whole Application and Adapter Execution/Notice/Task
+capabilities move beneath `Mcp`, alongside existing protocol-facing branches. The
+[complete map](../../docs/mcp-namespaces.md) records the destinations. Shared Commands/Queries do not require MCP
+transport; generic values, messaging, validation, authentication, HTTP clients and Socket/Mercure remain independent.
+
+Scope is every relevant class actually present on develop, not unaccepted classes from TASK-00169. The erroneous
+mixed-branch prerequisite is superseded by John's explicit clean develop-based correction. Durable Task-input
+feature behavior is excluded; existing stateless forms and confirmation remain unchanged. Provisional tracking
+paths move directly without development aliases. Three legacy AI APIs gain equally deprecated `Mcp\Operation`
+homes and released-name bridges, preserving their original 1.2 deprecation and 2.0 sunset without feature revival.
+The move changes no inward layer boundaries, HTTP safeguards, streaming, storage/schema, admission, transaction,
+delivery guarantees, optional dependencies or consumer policy ownership.
 
 ## Consequences
 

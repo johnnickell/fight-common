@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionPage;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Application\Validation\Data\ApplicationData;
-use Fight\Common\Domain\Execution\Session\ExecutionSelection;
-use Fight\Common\Domain\Execution\Session\Query\ListExecutions;
+use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
+use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 
 /**
  * Class ListExecutionsTool

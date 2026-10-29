@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Subscription;
 
-use Fight\Common\Domain\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\Notice;
 
 /**
  * Interface McpSubscriptionAdmission

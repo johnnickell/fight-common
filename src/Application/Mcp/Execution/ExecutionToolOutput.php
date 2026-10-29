@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Execution;
 
-use Fight\Common\Application\Execution\Detail\Data\CapturedDetail;
-use Fight\Common\Application\Execution\Detail\Data\MessagePage;
-use Fight\Common\Application\Execution\Observation\Data\ActivityPage;
-use Fight\Common\Application\Execution\Phase\Data\PhasePage;
-use Fight\Common\Application\Execution\Session\Data\ExecutionInspection;
-use Fight\Common\Application\Execution\Session\Data\ExecutionPage;
-use Fight\Common\Application\Execution\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Mcp\Execution\Detail\Data\CapturedDetail;
+use Fight\Common\Application\Mcp\Execution\Detail\Data\MessagePage;
+use Fight\Common\Application\Mcp\Execution\Observation\Data\ActivityPage;
+use Fight\Common\Application\Mcp\Execution\Phase\Data\PhasePage;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionInspection;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionPage;
+use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Domain\Exception\DomainException;
 

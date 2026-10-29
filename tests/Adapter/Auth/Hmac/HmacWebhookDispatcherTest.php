@@ -6,8 +6,10 @@ namespace Fight\Test\Common\Adapter\Auth\Hmac;
 
 use Fight\Common\Adapter\Auth\Hmac\HmacWebhookDispatcher;
 use Fight\Common\Application\Auth\RequestService;
+use Fight\Common\Application\Auth\WebhookDispatcher;
 use Fight\Common\Application\HttpClient\Message\MessageFactory;
 use Fight\Common\Application\HttpClient\Transport\HttpClient;
+use Fight\Common\Application\Mcp\Operation\WebhookDispatcher as McpWebhookDispatcher;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use Mockery\MockInterface;
@@ -52,6 +54,9 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $client->shouldReceive('send')->with($signedRequest)->once()->andReturn($response);
 
         $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
+        self::assertSame(HmacWebhookDispatcher::class, $dispatcher::class);
+        self::assertInstanceOf(WebhookDispatcher::class, $dispatcher);
+        self::assertInstanceOf(McpWebhookDispatcher::class, $dispatcher);
         $dispatcher->dispatch($url, 'health_check');
     }
 

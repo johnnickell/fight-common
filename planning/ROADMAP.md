@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00177](tasks/00177-TASK.md) | Consolidate released MCP HTTP adapters under Mcp | in-progress | — |
+| Active Work | [TASK-00177](tasks/00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | in-progress | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
