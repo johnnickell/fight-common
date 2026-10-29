@@ -12,7 +12,9 @@ use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
+use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
+use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Utility\ClassName;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskCheckConnection;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
@@ -67,6 +69,48 @@ final class TaskInputJourneyTest extends UnitTestCase
         self::assertSame('current', $fresh->observe(id: $other)->get('groups')->get($otherKey)->get('answers')->get($otherKey)->get('content')->get('answer'));
         $fresh->remove([TaskFixture::ID, $other]); self::assertNull((new TaskFixture($this->connect($params)))->observe());
         self::assertSame(0, (int) $c->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+    }
+
+    #[DataProvider('statusMessages')]
+    public function test_that_reconstructed_query_preserves_producer_message_while_input_remains_without_mutating_storage(string $backend, ?string $message): void
+    {
+        $connection = $this->database($backend);
+        $fixture = new TaskFixture($connection);
+        $fixture->create();
+        $issuedAt = $fixture->now;
+        $fixture->issue(expiresAt: $issuedAt + 100);
+        $fixture->issue(expectedVersion: 2, expiresAt: $issuedAt + 200);
+        $requests = $fixture->get()->get('state')->get('input');
+        $fixture->commands->execute(new RecordTaskState(
+            'scope', TaskFixture::ID, 'producer', 3, TaskState::create('input_required', $message, $requests)
+        ));
+        $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
+        $stored = $fixture->store->read('scope', TaskFixture::ID);
+        self::assertSame($message, $stored->state()->data()->get('message'));
+
+        foreach ([0, 99, 100, 199, 200] as $elapsed) {
+            $fresh = new TaskFixture($this->connect($connection->getParams()));
+            $fresh->now = $issuedAt + $elapsed;
+            $view = $fresh->get();
+            $state = $view->get('state');
+            $expectedKeys = [TaskFixture::KEY_1, TaskFixture::KEY_2];
+            if ($elapsed >= 100) {
+                $expectedKeys = [TaskFixture::KEY_2];
+            }
+            if ($elapsed >= 200) {
+                $expectedKeys = [];
+            }
+            self::assertSame($elapsed < 200 ? 'input_required' : 'working', $state->get('status'));
+            self::assertSame($elapsed < 200 ? $message : null, $state->get('message'));
+            $input = $state->get('input');
+            self::assertSame($expectedKeys, $input === null ? [] : array_keys($input->properties()));
+            foreach ($expectedKeys as $key) {
+                self::assertSame($requests->get($key)->toString(), $state->get('input')->get($key)->toString());
+            }
+            self::assertSame(4, $view->get('version'));
+            self::assertSame($issuedAt, $view->get('updated_at'));
+            self::assertSame($before, $connection->fetchOne('SELECT payload FROM fight_tasks'));
+        }
     }
 
     #[DataProvider('databases')]
@@ -177,6 +221,15 @@ final class TaskInputJourneyTest extends UnitTestCase
             if ($mode === 'partial-refusal') { self::assertTrue($group->get('refused')); }
             if ($mode === 'acquire') { self::assertTrue($group->get('consumed')); }
         } finally { file_put_contents($directory.'/release', 'yes'); $first->stop(); $second->stop(); }
+    }
+
+    public static function statusMessages(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach (['nonempty' => 'Waiting for both authorized answers', 'empty' => '', 'null' => null] as $name => $message) {
+                yield $backend.'-'.$name => [$backend, $message];
+            }
+        }
     }
 
     public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }

@@ -284,7 +284,7 @@ final readonly class Task
             $outstanding = $this->inputs->outstanding(self::timestamp($now));
             $state = TaskState::create('working');
             if ($outstanding->properties() !== []) {
-                $state = TaskState::create('input_required', input: $outstanding);
+                $state = TaskState::create('input_required', $this->state->data()->get('message'), $outstanding);
             }
         }
 

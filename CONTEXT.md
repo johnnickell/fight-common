@@ -281,7 +281,8 @@ Keys `input-<scoped-Task namespace>-1` through counter 1,024 never repeat within
 another Task/scope's request, even after explicit payload retirement;
 at most 16 retained requests/groups and fixed encoded bounds prevent hidden archives. Whole-row removal removes
 this bookkeeping too. Queries are read-only, expose no private rules and do not renew expiry. Producer state cannot
-replace contracts or clear unanswered forms. Public projection omits expired forms without a read-side mutation.
+replace contracts or clear unanswered forms. Public projection omits expired forms without a read-side mutation,
+preserving the admitted producer message (including empty string versus null) while any forms remain outstanding.
 `Application\\Mcp\\Task\\McpTaskInput` implements actual per-request negotiated, bounded `tasks/update` Command
 handling and an empty complete acknowledgment, with no independent capability advertisement. Ordinary stateless
 exact-key/replay and existing confirmation-store behavior are unchanged. See [Task input](docs/task-input.md).

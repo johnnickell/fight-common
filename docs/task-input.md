@@ -155,7 +155,9 @@ acknowledgment or observed `consumed` flag is **not** an execution receipt or au
   No connection is shared concurrently, and no external effect is claimed atomic with the Task transaction.
 
 Expired active forms disappear from fresh public projection without a read-side write/fact; version is a mutation
-fence, not an expiry lease. Expired answers never acquire. Consumers can explicitly retire and issue a fresh group,
+fence, not an expiry lease. While any requests remain outstanding, polling preserves the admitted producer status
+message exactly, including empty string versus null, even when some requests expire. Once all requests expire, the
+existing projection is `working` with no message or input; stored producer state is unchanged. Expired answers never acquire. Consumers can explicitly retire and issue a fresh group,
 with new keys/current authority, rather than revive a confirmation. Task TTL may make the entire row unavailable first.
 
 ## Actual tasks/update implementation
