@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\CodeIgniter;
+namespace Fight\Test\Common\Adapter\Mcp\CodeIgniter;
 
-use Fight\Common\Adapter\Http\CodeIgniter\McpResponse;
+use Fight\Common\Adapter\Http\CodeIgniter\McpResponse as LegacyMcpResponse;
+use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
@@ -12,15 +13,24 @@ use Fight\Test\Common\Fixture\Mcp\ProgressTool;
 use Fight\Test\Common\Fixture\Mcp\SapiDouble;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 #[CoversClass(McpResponse::class)]
+#[CoversClass(LegacyMcpResponse::class)]
 final class McpResponseTest extends UnitTestCase
 {
+    public static function responseClasses(): iterable
+    {
+        yield 'canonical' => [McpResponse::class];
+        yield 'legacy' => [LegacyMcpResponse::class];
+    }
+
+    #[DataProvider('responseClasses')]
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function test_that_native_response_defers_guarded_output_until_send_and_does_not_append_framework_content(): void
+    public function test_that_native_response_defers_guarded_output_until_send_and_does_not_append_framework_content(string $responseClass): void
     {
         require dirname(__DIR__, 3).'/Fixture/Mcp/SapiDouble.php';
         require dirname(__DIR__, 3).'/Fixture/Mcp/codeigniter.php';
@@ -31,7 +41,8 @@ final class McpResponseTest extends UnitTestCase
                 return McpToolOutput::structured('done');
             }));
             $response = $fixture->handler->handle(ProgressEndpoint::request($token));
-            $native = new McpResponse($response);
+            $native = new $responseClass($response);
+            self::assertSame($responseClass, $native::class);
             self::assertSame($token === null ? 1 : 0, $fixture->tool->calls);
             self::assertSame(200, $native->getStatusCode());
             self::assertSame($response->getHeaderLine('Content-Type'), $native->getHeaderLine('Content-Type'));

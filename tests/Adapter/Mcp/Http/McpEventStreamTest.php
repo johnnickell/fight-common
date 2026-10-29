@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\Mcp;
+namespace Fight\Test\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Adapter\Http\Mcp\McpEventStream;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\McpEventStream;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;

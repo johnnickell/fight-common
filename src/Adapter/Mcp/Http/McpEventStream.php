@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Adapter\Http\Mcp;
+namespace Fight\Common\Adapter\Mcp\Http;
 
 use Fiber;
 use Fight\Common\Application\Mcp\McpDiagnostics;

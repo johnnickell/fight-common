@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;

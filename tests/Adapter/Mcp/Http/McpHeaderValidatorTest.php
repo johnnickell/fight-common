@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\Mcp;
+namespace Fight\Test\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Adapter\Http\Mcp\McpHeaderValidator;
+use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpProtocolError;

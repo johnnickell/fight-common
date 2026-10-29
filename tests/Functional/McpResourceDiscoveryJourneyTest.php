@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpInvocationGuard;

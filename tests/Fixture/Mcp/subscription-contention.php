@@ -5,7 +5,7 @@ declare(strict_types=1);
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Domain\Notice\NoticeSelection;
 use Fight\Common\Domain\Notice\Query\RecoverNotices;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;

@@ -26,7 +26,7 @@ namespace Fight\Test\Common\Fixture\Mcp {
 }
 
 // Runtime-function doubles are loaded only by the unit test, never by the live-server fixture.
-namespace Fight\Common\Adapter\Http\Mcp {
+namespace Fight\Common\Adapter\Mcp\Http {
     use Fight\Test\Common\Fixture\Mcp\SapiDouble;
     function headers_sent(): bool { return SapiDouble::$headersSent; }
     function header(string $value, bool $replace = true): void { SapiDouble::$headers[] = [$value, $replace]; }

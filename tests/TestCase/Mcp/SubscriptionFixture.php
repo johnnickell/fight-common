@@ -6,9 +6,9 @@ namespace Fight\Test\Common\TestCase\Mcp;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;

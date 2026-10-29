@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\Mcp\McpEventStream;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpEventStream;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequestDecoder;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\Mcp;
+namespace Fight\Test\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Adapter\Http\Mcp\McpRequestBodyReader;
+use Fight\Common\Adapter\Mcp\Http\McpRequestBodyReader;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequestLimits;

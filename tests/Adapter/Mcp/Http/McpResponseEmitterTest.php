@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\Mcp;
+namespace Fight\Test\Common\Adapter\Mcp\Http;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\Mcp\McpResponseEmitter;
-use Fight\Common\Adapter\Http\Symfony\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
@@ -19,12 +18,10 @@ use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 require_once dirname(__DIR__, 3).'/Fixture/Mcp/SapiDouble.php';
 
 #[CoversClass(McpResponseEmitter::class)]
-#[CoversClass(McpResponseFactory::class)]
 final class McpResponseEmitterTest extends UnitTestCase
 {
     protected function setUp(): void { parent::setUp(); SapiDouble::reset(); }
@@ -124,36 +121,6 @@ final class McpResponseEmitterTest extends UnitTestCase
     {
         yield [1, '0', null]; yield [0, '1', null]; yield [0, 'On', null];
         yield [0, 'off', 'Content-Length']; yield [0, '', 'Content-Encoding'];
-    }
-
-    public function test_that_native_translation_is_lazy_single_use_and_has_no_framework_sentinel(): void
-    {
-        $fixture = $this->fixture();
-        $response = $fixture->handler->handle(ProgressEndpoint::request());
-        $native = new McpResponseFactory()->fromResponse($response);
-        self::assertInstanceOf(StreamedResponse::class, $native);
-        self::assertSame(0, $fixture->tool->calls);
-        self::assertSame('text/event-stream', $native->headers->get('Content-Type'));
-        self::assertSame('no', $native->headers->get('X-Accel-Buffering'));
-        ob_start();
-        try { $native->sendContent(); $native->sendContent(); $wire = ob_get_contents(); }
-        finally { ob_end_clean(); }
-        self::assertSame(1, $fixture->tool->calls);
-        self::assertSame(2, substr_count($wire, 'data: '));
-        self::assertStringNotContainsString('event:', $wire);
-        self::assertStringNotContainsString('</stream>', $wire);
-        self::assertSame(3, SapiDouble::$flushes);
-        self::assertFalse(SapiDouble::$ignoreAbort);
-    }
-
-    public function test_that_native_direct_json_translation_preserves_status_body_and_headers(): void
-    {
-        $native = new McpResponseFactory()->fromResponse(new Response(400, ['Content-Type' => 'application/json', 'X-Test' => ['a', 'b']], '{"error":"safe"}', '1.0'));
-        self::assertNotInstanceOf(StreamedResponse::class, $native);
-        self::assertSame(400, $native->getStatusCode());
-        self::assertSame('{"error":"safe"}', $native->getContent());
-        self::assertSame(['a', 'b'], $native->headers->all('X-Test'));
-        self::assertSame('1.0', $native->getProtocolVersion());
     }
 
     private function fixture(): ProgressEndpoint

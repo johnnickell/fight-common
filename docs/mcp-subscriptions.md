@@ -47,7 +47,7 @@ Mercure dependency or saved resumable subscription is introduced. Separate opt-i
    the registry derives `tools.listChanged`, `resources.listChanged`, `resources.subscribe` and optional
    `prompts.listChanged` from this actual composition. Arbitrary true declarations, contradictory same-family metadata and
    consumer ownership of `subscriptions/listen` when the live composition is enabled still reject. No global registry validation is disabled.
-6. Construct the existing `Adapter\Http\Mcp\McpRequestHandler` and response factory/emitter normally. The registry's
+6. Construct the canonical `Adapter\Mcp\Http\McpRequestHandler` and response factory/emitter normally. The registry's
    exact composition is used by that handler; no additional progressive flag is required for subscriptions.
    The semantic responder alone is **not** a subscription transport. Keep authentication outside the handler;
    Origin, body/depth bounds, mirror validation, protocol version, POST negotiation and invocation admission run

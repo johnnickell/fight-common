@@ -44,6 +44,24 @@ deprecated without runtime warnings throughout `1.x`; their removal is reserved 
 whose correct adapter requires an inward contract break is deferred individually to `2.0.0` rather than
 weakening the compatibility policy for the full release.
 
+## MCP-specific runtime namespace amendment — TASK-00177
+
+John explicitly requested that the nine released MCP HTTP adapters move to canonical `Adapter\Mcp` locations,
+with their existing locations deprecated rather than removed. MCP-specific shared HTTP adapters therefore use
+`Adapter\Mcp\Http`; native MCP response integration uses `Adapter\Mcp\Symfony` and `Adapter\Mcp\CodeIgniter`.
+This is a scoped exception to the HTTP framework destinations above. Generic HTTP responses/controllers and
+framework service-container extension points keep their existing canonical ownership.
+
+Existing public names stay functional throughout 1.x without runtime deprecation warnings; future-major removal
+needs separate authorization after at least one released minor of deprecation. Compatibility subclasses preserve
+released concrete identities and constructor signatures. Their canonical parents are non-final only for this
+compatibility mechanism, with no consumer extension promise. The immutable Origin retains a final compatibility
+implementation to preserve its self-returning factory and old serialized value. Internal helpers relocate directly.
+
+The [MCP migration map](../../docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)
+identifies all nine names. This TASK does not implement the broader agent-tracking namespace proposal or change
+inward layer boundaries, HTTP safeguards, streaming behavior, optional dependencies or policy ownership.
+
 ## Consequences
 
 ADR 0019's capability-first rule remains the default for runtime adapters, but no longer governs framework

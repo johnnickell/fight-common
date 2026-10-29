@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Adapter\Http\Mcp;
+namespace Fight\Test\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Adapter\Http\Mcp\DenyAllMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpOrigin;
+use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpOrigin;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;

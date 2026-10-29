@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
-use Fight\Common\Adapter\Http\Mcp\McpHeaderValidator;
+use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;

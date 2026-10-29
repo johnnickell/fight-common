@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Notice;
 
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Http\Mcp\ExactMcpOriginPolicy;
-use Fight\Common\Adapter\Http\Mcp\McpRequestHandler;
-use Fight\Common\Adapter\Http\Mcp\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
+use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Adapter\Notice\Dbal\DbalNoticeSchema;

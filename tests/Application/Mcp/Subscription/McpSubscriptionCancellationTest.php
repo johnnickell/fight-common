@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Closure;
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Http\Mcp\McpEventStream;
+use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionAdmission;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;

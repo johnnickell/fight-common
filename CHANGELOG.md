@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- The nine released MCP HTTP adapter names under `Adapter\Http\Mcp`, `Adapter\Http\Symfony` and
+  `Adapter\Http\CodeIgniter`. Use their canonical `Adapter\Mcp\Http`, `Adapter\Mcp\Symfony` and
+  `Adapter\Mcp\CodeIgniter` names instead. Old public names remain functional throughout 1.x without runtime
+  notices; removal requires a separately authorized future major after at least one released minor of deprecation.
+  See the [complete adapter migration map](docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility).
 - Direct reads of 50 public readonly properties across 14 released HTTP/OAuth/MCP classes, in documentation only.
   Use the matching typed property-name getters instead. Storage, construction, named arguments, validation,
   serialization and wire/security behavior remain unchanged; no runtime notices are emitted. The first
@@ -17,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Canonical MCP HTTP and native framework adapter names grouped under `Adapter\Mcp`, preserving endpoint guards,
+  direct JSON, lazy progressive delivery and native response behavior. Internal HTTP helpers move alongside them.
 - Opt-in retained-notice removal Commands with independent current admission, finite incarnation-pinned selections,
   atomic relationship/comparison deletion and bounded empty-feed history-loss evidence on SQLite/MySQL/PostgreSQL.
   Trusted coherent storage recovery remains separate from public polling; consumers own retention policy.
