@@ -103,7 +103,7 @@ separate and no implementation acceptance is claimed.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00169](../tasks/00169-TASK.md) | Supply and admit durable Task input | ready-for-agent |
+| [TASK-00169](../tasks/00169-TASK.md) | Supply and admit durable Task input | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

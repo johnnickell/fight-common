@@ -47,7 +47,7 @@ final class TaskTest extends UnitTestCase
         $query = new GetTask('scope', TaskFixture::ID);
         self::assertSame($query->toArray(), GetTask::fromArray($query->toArray())->toArray());
         self::assertSame('scope', $query->scope()); self::assertSame(TaskFixture::ID, $query->id());
-        foreach ([TaskFixture::input(), TaskFixture::completed(), TaskFixture::completed(true), TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $state) {
+        foreach ([TaskFixture::completed(), TaskFixture::completed(true), TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $state) {
             self::assertEquals($state->toArray(), TaskState::fromArray($state->toArray())->toArray());
             $update = new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, $state, 5);
             self::assertEquals($update->toArray(), RecordTaskState::fromArray($update->toArray())->toArray());
@@ -62,8 +62,8 @@ final class TaskTest extends UnitTestCase
             self::assertSame($fact->toArray(), TaskChanged::fromArray($fact->toArray())->toArray());
             self::assertArrayNotHasKey('creation_digest', $next->view());
         }
-        $input = $task->transition('producer', 1, TaskFixture::input(), null, 200);
-        $resumed = $input->transition('producer', 2, TaskState::create('working'), null, 201);
+        $input = $task->requestInput(\Fight\Common\Application\Task\Service\TaskInputForms::batch(\Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired::fromRequests(['form' => TaskFixture::form()]), 'caller', 1000), 1, 200);
+        $resumed = $input->retireInput(TaskFixture::KEY_1, 2, 201);
         self::assertSame('working', $resumed->state()->status());
     }
 

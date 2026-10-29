@@ -86,6 +86,18 @@ final readonly class McpProtocolError implements Arrayable
     }
 
     /**
+     * Creates the missing Tasks capability error without consumer context
+     */
+    public static function missingTasks(): self
+    {
+        return new self(
+            self::MISSING_REQUIRED_CLIENT_CAPABILITY,
+            'Missing required client capability.',
+            ['requiredCapabilities' => ['extensions' => ['io.modelcontextprotocol/tasks' => StrictJson::fromObject()]]]
+        );
+    }
+
+    /**
      * Creates a generic internal error
      */
     public static function internalError(): self

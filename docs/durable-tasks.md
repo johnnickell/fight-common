@@ -1,8 +1,9 @@
 # Durable asynchronous Task state
 
 This opt-in shared lifecycle persists and retrieves asynchronous operation state. It does **not** enable or
-advertise MCP Tasks, change `McpTool::handle()`, run a worker, admit client input or request cancellation.
-Independently authorized explicit removal is supplied below; other capabilities consume this lifecycle. A Task is neither a planning TASK,
+advertise MCP Tasks, change `McpTool::handle()`, run a worker or request cancellation.
+[Durable Task input](task-input.md) extends this same lifecycle with retained forms/confirmation, partial admission,
+protected observation and single-use continuation. Independently authorized explicit removal is supplied below. A Task is neither a planning TASK,
 consumer job, Workflow nor execution authority. Polling has no Subscriptions, Mercure or Event Store dependency.
 
 ## Explicit composition
@@ -81,9 +82,9 @@ qualified alternative policies. All policy validation diagnostics are concealed 
 
 Input-required state stores 1–16 keyed outstanding request objects. The base invariant supports only `form` and
 `confirmation`; the concrete policy validates a bounded message and the existing flat elicitation schema profile.
-It does not issue or consume confirmation, admit responses, allocate lifetime request keys or authorize continuation.
-The input supplier must integrate those additional invariants with the same state/version/transaction, not a second
-store. Production inputs and results must already be consumer-projected safe evidence where appropriate; JSON/schema
+[The input lifecycle](task-input.md) owns issuance, lifetime keys, partial responses and separately authorized
+single-use continuation, using this same state/version/transaction rather than a second store. Raw producer
+`RecordTaskState` cannot create/replace input contracts or clear unanswered forms with `working`. Production inputs and results must already be consumer-projected safe evidence where appropriate; JSON/schema
 validation alone is not redaction. The concrete policy's required disclosure closure decides current safety/access
 for the entire view, not just its final body. No default public-read policy exists.
 
@@ -157,8 +158,8 @@ TTL and terminal status: working, outstanding input, completed result, failed er
 rows can all be removed under consumer permission. It does not force a terminal outcome, stop a job, undo external
 effects or authorize compensation. Corrupt payloads can be removed without decoding them.
 
-Whole-row deletion removes original context, current state/input/result/error, retention metadata and both comparison
-digests atomically. `fight_task_state` retains only the constant schema-version lock row, not identity/payload history.
+Whole-row deletion removes original context, current state/input/result/error, private input contracts/answers/
+consumption/lifetime-key bookkeeping, retention metadata and both comparison digests atomically. `fight_task_state` retains only the constant schema-version lock row, not identity/payload history.
 This is logical database deletion, not a promise of forensic erasure from engine pages, transaction logs, backups,
 replicas, consumer caches or consumer-authored event storage. Consumers own those retention boundaries.
 
