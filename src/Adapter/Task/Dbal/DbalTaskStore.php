@@ -14,6 +14,7 @@ use Fight\Common\Application\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Task\Service\TaskStore;
 use Fight\Common\Domain\Task\Task;
 use Fight\Common\Domain\Task\TaskDefinition;
+use Fight\Common\Domain\Task\TaskSelection;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
@@ -130,6 +131,22 @@ final class DbalTaskStore implements TaskStore
         // The namespace lock makes replacement atomic across every supported backend without an upsert dialect.
         $this->connection->delete('fight_tasks', $key);
         $this->connection->insert('fight_tasks', [...$key, 'payload' => $payload]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function remove(TaskSelection $selection): ?TaskSelection
+    {
+        $this->requireOwned();
+        $removed = [];
+        foreach ($selection->ids() as $id) {
+            if ($this->connection->delete('fight_tasks', ['scope' => $selection->scope(), 'task_id' => $id]) === 1) {
+                $removed[] = $id;
+            }
+        }
+
+        return $removed === [] ? null : TaskSelection::fromIds($selection->scope(), $removed);
     }
 
     /**

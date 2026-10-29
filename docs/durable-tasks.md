@@ -1,8 +1,8 @@
 # Durable asynchronous Task state
 
 This opt-in shared lifecycle persists and retrieves asynchronous operation state. It does **not** enable or
-advertise MCP Tasks, change `McpTool::handle()`, run a worker, admit client input, request cancellation or remove
-retained data. Those separately supplied capabilities consume this lifecycle. A Task is neither a planning TASK,
+advertise MCP Tasks, change `McpTool::handle()`, run a worker, admit client input or request cancellation.
+Independently authorized explicit removal is supplied below; other capabilities consume this lifecycle. A Task is neither a planning TASK,
 consumer job, Workflow nor execution authority. Polling has no Subscriptions, Mercure or Event Store dependency.
 
 ## Explicit composition
@@ -17,7 +17,8 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
 
 - `Adapter\Task\Dbal\DbalTaskStore($connection)`, implementing Application `TaskStore` and
   `TransactionalUnitOfWork` on that **same** connection.
-- Independent request/producer-scoped `TaskCreationAdmission`, `TaskUpdateAdmission`, `TaskReadAdmission`.
+- Independent request/producer-scoped `TaskCreationAdmission`, `TaskUpdateAdmission`, `TaskReadAdmission` and
+  `TaskRemovalAdmission`.
   Each decision uses trusted consumer context, never a submitted producer label as a credential. Mutation admission
   occurs after acquiring the namespace lock, before identity lookup, including retries. Read admission precedes lookup.
 - `TaskPayloadPolicy`, which validates the retained **original** operation contract without executing it and supplies
@@ -25,12 +26,12 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
   projection where consumer policy requires. Returning false withholds the entire view; never substitute an empty result.
 - Existing `EventDispatcher` and a trusted `Closure(): int` server epoch-millisecond clock. For example,
   `static fn (): int => (int) floor(microtime(true) * 1000)`. Synchronize clocks; logical expiry depends on that clock.
-- `Application\Task\Service\TaskLifecycle($store, $creation, $updates, $reads, $payloads, $events, $clock)`.
+- `Application\Task\Service\TaskLifecycle($store, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
 
-Register `CreateTaskHandler` and `RecordTaskStateHandler` with the existing Command router, and `GetTaskHandler`
+Register `CreateTaskHandler`, `RecordTaskStateHandler` and `RemoveTasksHandler` with the existing Command router, and `GetTaskHandler`
 with the Query router, all sharing that lifecycle. Handler namespaces are `Application\Task\CommandHandler` and
 `Application\Task\QueryHandler`. Their Domain payloads are `Domain\Task\Command\{CreateTask,RecordTaskState}` and
-`Domain\Task\Query\GetTask`. See `tests/TestCase/Task/TaskFixture.php` for executable explicit bus composition.
+`Domain\Task\Query\GetTask`; removal uses `Domain\Task\Command\RemoveTasks`. See `tests/TestCase/Task/TaskFixture.php` for executable explicit bus composition.
 The existing bus signatures remain `CommandBus::execute(): void`, `QueryBus::fetch()` and `EventDispatcher::trigger()`.
 
 A typical application sequence, after composing `$commands` and `$queries`, is:
@@ -95,7 +96,7 @@ are server-owned, nondecreasing per Task, and not concurrency fences. Cancelled 
 not client disconnect, silence, expiry or a cancellation request.
 
 One version-row write lock serializes mutations across the namespace through **actual commit**, including concurrent
-creates, repeats and future removal. This favors simple correctness over write throughput; consumers own bounded SQL
+creates, repeats and removal. This favors simple correctness over write throughput; consumers own bounded SQL
 lock/statement timeouts. There is no automatic hidden retry. Current reads are one coherent committed row, no history
 or snapshot across requests. Do not share the connection concurrently or mutate transaction state in policy callbacks.
 Callbacks must be local bounded validation, never execute consumer jobs inside the transaction.
@@ -116,10 +117,65 @@ business idempotency or exactly-once consumer effects. Version exhaustion reject
 matching retry. Digests are protected comparison material and never projected publicly.
 
 Creation, latest-update comparison and payload live in the same retained row. Physical removal ends those guarantees;
-no hidden tombstone or historical comparison archive remains. This slice does not supply removal. After deliberate
-whole-identity removal, a fresh admitted creation could reuse a tuple; consumers must never rely on old retries beyond
-retention/removal or deliberately reuse random IDs. The removal supplier must serialize deletion with this lock and
-remove all comparison material atomically; it must define its own no-resurrection admission/lifetime policy truthfully.
+no hidden tombstone or historical comparison archive remains. A producer update to an absent tuple always rejects;
+it never inserts, restores a body or treats absence as completion. A separately **admitted CreateTask** after removal,
+even a delayed matching creation retry, creates a new working lifetime at revision 1 with new creation time/TTL.
+There is no permanent identity memory to recognize that old creation. Consumers must use fresh random IDs for new
+operations and bound creation retries to their known retained lifetime. If they deliberately reuse a removed tuple,
+old producer version fences may match the new lifetime: quiesce/revoke old producers and reconcile uncertain work
+before any such explicit recreation. Common does not promise cross-lifetime deduplication or job cancellation.
+
+## Independently authorized bounded removal
+
+```php
+use Fight\Common\Domain\Task\Command\RemoveTasks;
+use Fight\Common\Domain\Task\TaskSelection;
+
+$commands->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$id])));
+// A fresh GetTask under independent read permission now returns null, with no asserted absence reason.
+```
+
+`TaskSelection::fromIds()` accepts one exact scope and a list of **1–100 distinct IDs**. Scope/ID bounds are the same
+as creation. Empty, associative, duplicate, non-string, malformed and over-limit selections reject with DomainException
+before database work; nothing is silently dropped or truncated. The same immutable selection is used by the store
+and reference-only fact. One request is one atomic all-or-nothing transaction, not 100 independently committed actions.
+Database work is bounded by the namespace lock/check and at most 100 indexed whole-row DELETE statements, with no
+payload loading, eligibility scan or retained archive. Consumers supply finite lock/statement timeouts.
+
+Inside that transaction, after obtaining the same serialization lock as create/update, Common calls
+`TaskRemovalAdmission::allowsRemoval(scope, id)` afresh for every selected identity **before any existence check or
+deletion**. False or a throwing admission rejects the entire selection with fixed TaskRejected, without a private
+cause. This check runs for missing/repeated selections too. Creation/update/read grants, ID possession, TTL expiry
+and submitted administrator labels confer no removal permission. Consumer composition owns trusted context,
+eligibility, holds and policy changes; callbacks must remain bounded/local and must not release transaction ownership.
+A denied later member cannot leave earlier members deleted. Cross-scope denial discloses no presence or payload.
+
+Authorized missing members are successful no-ops. Mixed present/missing selections remove every present member;
+an entirely missing repeat commits no data change and emits no fact. The void Command returns no per-ID existence
+receipt. Storage failure is explicit, never apparent successful partial removal. Removal is independent of logical
+TTL and terminal status: working, outstanding input, completed result, failed error, cancelled and expired/unlimited
+rows can all be removed under consumer permission. It does not force a terminal outcome, stop a job, undo external
+effects or authorize compensation. Corrupt payloads can be removed without decoding them.
+
+Whole-row deletion removes original context, current state/input/result/error, retention metadata and both comparison
+digests atomically. `fight_task_state` retains only the constant schema-version lock row, not identity/payload history.
+This is logical database deletion, not a promise of forensic erasure from engine pages, transaction logs, backups,
+replicas, consumer caches or consumer-authored event storage. Consumers own those retention boundaries.
+
+Racing reads see one coherent committed retained row or null, never a partially cleared payload. A read already in
+flight may return its previously read coherent state; removal cannot retract bytes. Update-first/removal-second
+removes that committed outcome. Removal-first/update-second rejects the update without resurrection. Create-first
+is removed; removal-first followed by **separately authorized creation** starts the explicitly described new lifetime.
+An unsupported enclosing transaction rejects before admission/writes and leaves unrelated caller work untouched.
+Pre-commit failure rolls the entire selection back; uncertain commit/response loss needs a fresh authorized Query,
+not an invented deletion receipt. Retry always rechecks current permission, including after revocation.
+
+After actual commit, one `Domain\Task\Event\TaskDataRemoved` contains only `scope` and the supplied-order IDs of rows
+actually deleted. Missing identities produce no false facts; there is no reason/status/body/digest/history ledger.
+References can themselves need consumer disclosure policy. `CommittedTaskDispatchFailed::event()` now carries either
+TaskChanged or TaskDataRemoved. Later publisher/subscriber failure cannot restore deleted data or become rollback;
+matching removal retries do not replay facts. Loss between commit and dispatch is possible: no automatic outbox,
+replay or permanent removal receipt is promised. Never copy protected data into removal diagnostics or event payloads.
 
 ## Durability and failures
 
@@ -167,13 +223,22 @@ must map exceptions safely; this slice adds no endpoint or generic exception-mes
 Zero/negative/overflow intervals reject; null does not invent a zero or default. TTL expiry occurs at
 `now >= created_at + ttl`, independent of progress. It makes the row logically unavailable, not physically deleted,
 completed or cancelled. Writes/retries to expired rows reject rather than renew retention. Consumers select retention
-policy/schedules; this slice supplies no cron, public removal or automatic expiration deletion. Encoded byte limits
+policy/schedules; this slice supplies no cron, automatic eligibility selection or expiration deletion. The explicit
+removal Command is not an HTTP/MCP method and reads never perform cleanup. Encoded byte limits
 include escaping and multibyte output; no final MCP envelope is constructed here. The protocol activation supplier
 must bound its complete envelope, central metadata and text companions independently.
 
 ## Compatibility and public surface
 
-23 additive opt-in lifecycle declarations are classified public in `compatibility/manifest.json`: seven Domain
+TASK-00167 adds five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
+Domain `TaskSelection`, `RemoveTasks`, `TaskDataRemoved`; Application `RemoveTasksHandler`, `TaskRemovalAdmission`.
+They are final/immutable concrete classes or a consumer-implementable admission port. The unreleased TaskLifecycle
+constructor gains required removal admission, TaskStore gains owned-transaction `remove(TaskSelection): ?TaskSelection`,
+and CommittedTaskDispatchFailed widens its fact type. These provisional APIs change directly without compatibility
+shims. No schema migration/version bump or dependency-floor/suppression change is needed: removal uses the existing
+version-one row and namespace lock. Tagged contracts, including bus signatures and framework integrations, are unchanged.
+
+The original 23 additive opt-in lifecycle declarations are classified public in `compatibility/manifest.json`: seven Domain
 values/messages (`Task`, `TaskDefinition`, `TaskState`, two Commands, Query, fact), fourteen Application declarations
 (five ports, lifecycle, concrete Tool policy, three handlers, four failures), and two DBAL adapters. Classes are final;
 ports are implementable; construction and callable contracts are explicit. Inventory totals also account for the
@@ -189,5 +254,7 @@ schema-manager introspection, not additional internal `Schema` constructors.
 
 Direct unit tests cover domain invariants, handlers, policy and DBAL storage/faults. Real three-database routed
 journeys reconstruct across connections and independent PHP workers, hold delayed writers through commit, revoke
-admission while waiting, race progress/input/cancellation outcomes and prove lost-ack/post-commit recovery. These
-are library behavior evidence, not consumer worker, deployed Agent OS/Pi, complete MCP extension or release certification.
+admission while waiting, race progress/input/cancellation outcomes and prove lost-ack/post-commit recovery. Removal evidence additionally covers the exact 100-ID boundary, current per-member grants, whole-row comparison/body
+deletion, real three-database rollback/lost commit acknowledgment, post-commit failure and independent-process
+create/update/remove/repeat/revocation races in both lock orders. These are library behavior evidence, not consumer
+worker, deployed Agent OS/Pi, complete MCP extension or release certification.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Task\Exception;
 
 use Fight\Common\Domain\Task\Event\TaskChanged;
+use Fight\Common\Domain\Task\Event\TaskDataRemoved;
 use RuntimeException;
 use Throwable;
 
@@ -16,7 +17,7 @@ final class CommittedTaskDispatchFailed extends RuntimeException
     /**
      * Constructs CommittedTaskDispatchFailed
      */
-    public function __construct(private readonly TaskChanged $event, Throwable $cause)
+    public function __construct(private readonly TaskChanged|TaskDataRemoved $event, Throwable $cause)
     {
         parent::__construct('Task committed; fact dispatch failed.', 0, $cause);
     }
@@ -24,7 +25,7 @@ final class CommittedTaskDispatchFailed extends RuntimeException
     /**
      * Returns the reference-only fact without pretending dispatch failure rolled back state
      */
-    public function event(): TaskChanged
+    public function event(): TaskChanged|TaskDataRemoved
     {
         return $this->event;
     }

@@ -103,7 +103,7 @@ implemented. These are future obligations, not checks already run or actual Agen
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | done |
-| [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | ready-for-agent |
+| [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | in-progress |
 | [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent |
 <!-- /planning:children -->
 

@@ -219,7 +219,7 @@ Completed Tool `isError: true` remains completed; failed holds a safely mapped J
 silence, disconnect, expiry nor a handle establishes execution, cancellation, business success or Workflow authority.
 
 Shared `CreateTask` / `RecordTaskState` Commands and `GetTask` Query route through Application Task handlers and
-`TaskLifecycle`. Independent current creation, producer-update and read admissions are consumer-supplied; possession,
+`TaskLifecycle`. Independent current creation, producer-update, read and removal admissions are consumer-supplied; possession,
 capability declarations and submitted labels grant nothing. Required `TaskPayloadPolicy` validates retained original
 contract context without executing work and freshly authorizes whole-state safe disclosure. Concrete
 `ToolTaskPayloadPolicy` validates captured Tool schemas, supported flat forms/text results and exact constant public
@@ -236,14 +236,25 @@ commit; `CommittedTaskDispatchFailed` cannot erase persistence. No outbox/replay
 Creation retains one SHA-256 original-content digest; exact encoded-content repeats are admitted no-ops while
 retained, including after progress. Updates retain only the latest transition digest plus expected version; only
 an immediately matching retry is a no-op. Conflicting/stale updates and all new terminal replacements reject.
-Comparison memory is bounded, private and removed with the row; future removal ends those guarantees, with no hidden
+Comparison memory is bounded, private and removed with the row; physical removal ends those guarantees, with no hidden
 historical archive or exactly-once job promise. `GetTask` projects one immutable coherent bounded `StrictJson` view,
 never definition/comparison material. Denied/missing/cross-scope/expired/withheld is null with unknown absence reason;
 storage failure is explicit. Reads emit/mutate nothing and never renew TTL or remove state. Consumer clocks, retention,
 permissions, safe evidence, workers, scheduling and external-effect recovery remain consumer-owned.
 
-This lifecycle does not advertise MCP Tasks, change Tool return contracts, admit client input, request cancellation,
-remove data or supply live delivery. Later suppliers integrate through these invariants. See
+`RemoveTasks(TaskSelection::fromIds(scope, ids))` selects 1–100 distinct explicit identities. Fresh independent
+`TaskRemovalAdmission` checks every member under the same namespace lock before any existence/deletion work,
+including missing/repeated requests. Denial rejects the whole selection. Authorized missing members are no-ops;
+whole-row deletion atomically removes state, original context, input/result/error, TTL and both comparison digests,
+without a hidden archive/tombstone. TTL expiry alone never deletes. A bounded reference-only `TaskDataRemoved` lists
+only actual deletions after commit; dispatch failure cannot restore data and repeats never replay facts. Late producer
+updates to absent state reject without upsert. Separately admitted creation after removal starts a new lifetime,
+even for an old creation retry; consumers use fresh random IDs and own bounded retries/old-producer quiescence for
+any deliberate tuple reuse. No permanent identity-memory, cross-lifetime version fence, forensic database erasure,
+job stop or external-effect rollback is promised. Removal owns its actual commit and rejects caller transactions.
+
+This lifecycle does not advertise MCP Tasks, change Tool return contracts, admit client input, request cancellation
+or supply live delivery. Later suppliers integrate through these invariants. See
 [durable Tasks](docs/durable-tasks.md) for exact composition, numeric bounds, retry lifetime, schema and compatibility.
 
 ## Live MCP subscription language

@@ -19,6 +19,7 @@
             <exclude>tests/Adapter/Execution/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Execution/Dbal/DbalDetailReaderIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</exclude>
@@ -67,6 +68,7 @@
             <file>tests/Adapter/Execution/Dbal/DbalActivityReaderIntegrationTest.php</file>
             <file>tests/Adapter/Execution/Dbal/DbalDetailReaderIntegrationTest.php</file>
             <file>tests/Adapter/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/MysqlDbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/PostgresqlDbalEventStoreTest.php</file>
