@@ -150,10 +150,10 @@ All agent-owned classes present on develop also live beneath `Mcp`: Domain uses 
 Application and adapters retain cohesive capability branches. Provisional tracking paths move directly without
 snapshot aliases. Legacy AI payload/webhook APIs gain equally deprecated `Mcp\Operation` homes while their
 released `Auth` names remain supported with their original 1.2 deprecation and 2.0 sunset. This does not revive
-or register retired AI Tools, change protocol identities, schema, admission or delivery, or include the separately
+or register retired AI Tools, change MCP method or Tool identifiers, schema, admission or delivery, or include the separately
 unaccepted durable Task-input feature. Existing stateless forms/confirmation remain unchanged. Generic
 infrastructure keeps its ownership. See the [complete namespace map](docs/mcp-namespaces.md).
-This bounded move does not relocate agent-tracking aggregates or change protocol, security or delivery contracts.
+This bounded move does not change protocol, security or delivery contracts.
 
 ## Execution observation language
 
