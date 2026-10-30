@@ -36,7 +36,8 @@ final readonly class TaskInputLifecycle
         private TaskInputAdmission $admission,
         private TaskPayloadPolicy $payloads,
         private EventDispatcher $events,
-        private Closure $clock
+        private Closure $clock,
+        private TaskCancellationAdmission $cancellations
     ) {
     }
 
@@ -116,6 +117,11 @@ final readonly class TaskInputLifecycle
                 $command->caller,
                 $command->group
             ));
+            $this->permit(fn(): bool => $this->cancellations->allowsCancellationObservation(
+                $command->scope,
+                $command->id,
+                $command->caller
+            ));
             $task = $this->load($command->scope, $command->id);
 
             return $task->acquireInput($command->group, $command->caller, $this->now());
@@ -144,7 +150,8 @@ final readonly class TaskInputLifecycle
     public function get(GetTaskInput $query): ?StrictJson
     {
         try {
-            $allowed = $this->admission->allowsObservation($query->scope, $query->id, $query->caller);
+            $allowed = $this->admission->allowsObservation($query->scope, $query->id, $query->caller)
+                && $this->cancellations->allowsCancellationObservation($query->scope, $query->id, $query->caller);
         } catch (Throwable) {
             return null;
         }
@@ -159,9 +166,11 @@ final readonly class TaskInputLifecycle
         }
 
         return StrictJson::fromObject([
-            'definition' => $task->definition()->toArray(),
-            'terminal'   => $task->state()->isTerminal(),
-            'groups'     => $task->inputs()->observe($query->caller, $this->now(), $task->state()->isTerminal())
+            'definition'   => $task->definition()->toArray(),
+            'terminal'     => $task->state()->isTerminal(),
+            'version'      => $task->version(),
+            'cancellation' => $task->cancellation(),
+            'groups'       => $task->inputs()->observe($query->caller, $this->now(), $task->state()->isTerminal())
         ], 72);
     }
 

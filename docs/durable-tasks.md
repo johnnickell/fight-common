@@ -1,7 +1,9 @@
 # Durable asynchronous Task state
 
 This opt-in shared lifecycle persists and retrieves asynchronous operation state. It does **not** enable or
-advertise MCP Tasks, change `McpTool::handle()`, run a worker or request cancellation.
+advertise MCP Tasks, change `McpTool::handle()` or run a worker.
+[Cooperative cancellation](task-cancellation.md) extends this same row/lock with durable intent, independent authority
+and actual tasks/cancel handling; intent never forces a terminal outcome.
 [Durable Task input](task-input.md) extends this same lifecycle with retained forms/confirmation, partial admission,
 protected observation and single-use continuation. Independently authorized explicit removal is supplied below. A Task is neither a planning TASK,
 consumer job, Workflow nor execution authority. Polling has no Subscriptions, Mercure or Event Store dependency.
@@ -159,7 +161,7 @@ rows can all be removed under consumer permission. It does not force a terminal 
 effects or authorize compensation. Corrupt payloads can be removed without decoding them.
 
 Whole-row deletion removes original context, current state/input/result/error, private input contracts/answers/
-consumption/lifetime-key bookkeeping, retention metadata and both comparison digests atomically. `fight_task_state` retains only the constant schema-version lock row, not identity/payload history.
+consumption/lifetime-key bookkeeping, cancellation intent, retention metadata and both comparison digests atomically. `fight_task_state` retains only the constant schema-version lock row, not identity/payload history.
 This is logical database deletion, not a promise of forensic erasure from engine pages, transaction logs, backups,
 replicas, consumer caches or consumer-authored event storage. Consumers own those retention boundaries.
 

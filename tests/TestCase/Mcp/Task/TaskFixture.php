@@ -16,11 +16,15 @@ use Fight\Common\Application\Mcp\Task\CommandHandler\AcquireTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\CreateTaskHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RecordTaskStateHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RemoveTasksHandler;
+use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RetireTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\SupplyTaskInputHandler;
+use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskInputHandler;
+use Fight\Common\Application\Mcp\Task\Service\TaskCancellationAdmission;
+use Fight\Common\Application\Mcp\Task\Service\TaskCancellationLifecycle;
 use Fight\Common\Application\Mcp\Task\Service\TaskCreationAdmission;
 use Fight\Common\Application\Mcp\Task\Service\TaskInputAdmission;
 use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
@@ -36,17 +40,19 @@ use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
 use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
+use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskInput;
 use Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput;
 use Fight\Common\Domain\Mcp\Task\Command\SupplyTaskInput;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
+use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskInput;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
 use Fight\Common\Domain\Mcp\Task\TaskSelection;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
-final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, TaskReadAdmission, TaskRemovalAdmission, TaskInputAdmission
+final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, TaskReadAdmission, TaskRemovalAdmission, TaskInputAdmission, TaskCancellationAdmission
 {
     public const string ID = '0123456789abcdef0123456789abcdef';
     public const string KEY_NAMESPACE = '5f13508bde106a136697ee60d5d1981b';
@@ -54,6 +60,10 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public const string KEY_1 = self::KEY_PREFIX.'1';
     public const string KEY_2 = self::KEY_PREFIX.'2';
     public const string KEY_3 = self::KEY_PREFIX.'3';
+    public bool $cancelAllowed = true;
+    public bool $cancelObserveAllowed = true;
+    public ?Closure $onCancellationAdmission = null;
+    public readonly TaskCancellationLifecycle $cancellationLifecycle;
     public bool $submitAllowed = true;
     public bool $observeAllowed = true;
     public bool $continueAllowed = true;
@@ -80,8 +90,10 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $this->store = new DbalTaskStore($connection);
         $this->events = new SimpleEventDispatcher();
         $this->lifecycle = new TaskLifecycle($this->store, $this, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
-        $this->inputLifecycle = new TaskInputLifecycle($this->store, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now);
+        $this->inputLifecycle = new TaskInputLifecycle($this->store, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
+        $this->cancellationLifecycle = new TaskCancellationLifecycle($this->store, $this, $this->events, fn () => $this->now);
         $commands = new InMemoryCommandRouter();
+        $commands->registerHandler(RequestTaskCancellation::class, new RequestTaskCancellationHandler($this->cancellationLifecycle));
         $commands->registerHandler(RequestTaskInput::class, new RequestTaskInputHandler($this->inputLifecycle));
         $commands->registerHandler(SupplyTaskInput::class, new SupplyTaskInputHandler($this->inputLifecycle));
         $commands->registerHandler(AcquireTaskInput::class, new AcquireTaskInputHandler($this->inputLifecycle));
@@ -91,6 +103,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $commands->registerHandler(RemoveTasks::class, new RemoveTasksHandler($this->lifecycle));
         $this->commands = new RoutingCommandBus($commands);
         $queries = new InMemoryQueryRouter();
+        $queries->registerHandler(GetTaskCancellation::class, new GetTaskCancellationHandler($this->cancellationLifecycle));
         $queries->registerHandler(GetTaskInput::class, new GetTaskInputHandler($this->inputLifecycle));
         $queries->registerHandler(GetTask::class, new GetTaskHandler($this->lifecycle));
         $this->queries = new RoutingQueryBus($queries);
@@ -154,6 +167,28 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public function acquire(string $group = self::KEY_1, string $caller = 'caller'): void
     {
         $this->commands->execute(new AcquireTaskInput('scope', self::ID, $caller, $group));
+    }
+
+    public function cancel(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): void
+    {
+        $this->commands->execute(new RequestTaskCancellation($scope, $id, $caller));
+    }
+
+    public function cancellation(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): ?StrictJson
+    {
+        return $this->queries->fetch(new GetTaskCancellation($scope, $id, $caller));
+    }
+
+    public function allowsCancellation(string $scope, string $id, string $caller): bool
+    {
+        ($this->onCancellationAdmission ?? static fn () => null)();
+        return $this->cancelAllowed && $scope === 'scope';
+    }
+
+    public function allowsCancellationObservation(string $scope, string $id, string $caller): bool
+    {
+        ($this->onCancellationAdmission ?? static fn () => null)();
+        return $this->cancelObserveAllowed && $scope === 'scope';
     }
 
     public function allowsSubmission(string $scope, string $id, string $caller): bool
