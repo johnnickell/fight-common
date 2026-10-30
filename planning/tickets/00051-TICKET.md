@@ -98,7 +98,7 @@ consumer deployment evidence already obtained.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00170](../tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | ready-for-agent |
+| [TASK-00170](../tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

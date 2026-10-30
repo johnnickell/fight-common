@@ -287,8 +287,20 @@ preserving the admitted producer message (including empty string versus null) wh
 handling and an empty complete acknowledgment, with no independent capability advertisement. Ordinary stateless
 exact-key/replay and existing confirmation-store behavior are unchanged. See [Task input](docs/task-input.md).
 
-This lifecycle does not advertise MCP Tasks, change Tool return contracts, request cancellation or supply live
-delivery. TASK-00168 owns complete activation/combined HTTP proof; TASK-00170 owns cancellation-intent races. See
+`RequestTaskCancellation` and protected `GetTaskCancellation` share this same row/lock through
+`TaskCancellationLifecycle`. Independent current cancellation/intent-observation grants never imply ordinary read,
+producer or worker-control authority. One bounded original timestamp/version records intent separately from actual
+outcome; commit and shared-read reconstruction precede initial acknowledgment. Repeats/known terminal requests
+reauthorize as no-ops without renewal, new stop obligations or payload changes. Missing/expired/removed state never
+resurrects or implies stopping. All input/producer changes preserve intent and terminal winners; consumed confirmation
+and accepted answers survive cancellation. Input continuation requires current business and intent-observation grants,
+and its protected Query exposes coherent current intent/version before the consumer's separate stopping decision.
+No worker/outbox, forced stop, guaranteed delivery or atomic external-effect/compensation promise is added.
+`McpTaskCancellation` implements negotiated bounded `tasks/cancel` with safe errors and empty complete acknowledgment,
+not a capability advertisement or stopped-job receipt. See [Task cancellation](docs/task-cancellation.md).
+
+This lifecycle does not advertise MCP Tasks, change Tool return contracts or supply live delivery.
+TASK-00168 owns complete activation/combined HTTP proof. See
 [durable Tasks](docs/durable-tasks.md) for exact composition, numeric bounds, retry lifetime, schema and compatibility.
 
 ## Live MCP subscription language

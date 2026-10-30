@@ -8,14 +8,17 @@ database, public status setter, business approval policy or exactly-once externa
 `Application\Mcp\Task\McpTaskInput` implements the actual `tasks/update` method. It intentionally does **not** implement
 a capability or advertise/register an incomplete Tasks extension. TASK-00168 owns complete extension activation,
 per-request serving capabilities, `Mcp-Name`/`taskId` HTTP mirrors, complete envelopes and combined Tool-start HTTP
-journeys. TASK-00170 owns actual cancellation-intent races; trusted producer terminal outcomes are covered here.
+journeys. [Cooperative cancellation](task-cancellation.md) supplies actual intent/input races and current-intent
+continuation exposure; trusted producer terminal outcomes remain separately reported.
 The protocol reference is the official [2026-07-28 Tasks contract](https://github.com/modelcontextprotocol/ext-tasks/blob/main/specification/2026-07-28/tasks.md).
 
 ## Composition and authority
 
-Create `Application\Mcp\Task\Service\TaskInputLifecycle($store, $producers, $admission, $payloads, $events, $clock)` using
+Create `Application\Mcp\Task\Service\TaskInputLifecycle($store, $producers, $admission, $payloads, $events, $clock, $cancellations)` using
 the **same** `TaskStore`, producer `TaskUpdateAdmission`, payload policy, event dispatcher and server-millisecond
-clock as the ordinary lifecycle. `TaskInputAdmission` supplies three independent current decisions:
+clock as the ordinary lifecycle. `$cancellations` is current `TaskCancellationAdmission`: acquisition and protected
+input observation additionally require its independent intent-observation grant, so denial cannot masquerade as
+absent intent. `TaskInputAdmission` supplies three independent current decisions:
 
 - `allowsSubmission(scope, id, caller)` authorizes input admission, including empty/repeated submissions.
 - `allowsObservation(scope, id, caller)` authorizes protected consumer observation, not ordinary Task disclosure.
@@ -127,11 +130,14 @@ $observed = $queries->fetch(new GetTaskInput('project:example', $id, 'caller:exa
 // Inspect the exact group and its answers under current consumer authorization.
 // If ready, issue acquisition before any consumer continuation:
 $commands->execute(new AcquireTaskInput('project:example', $id, 'caller:example', $group));
-// A successful return admits this invocation once. Consumer work happens separately.
+// A successful return admits this invocation once. Fetch current intent before deciding how to continue:
+$current = $queries->fetch(new GetTaskInput('project:example', $id, 'caller:example'));
+// Unavailable/revoked is not absence of intent or permission to execute. Consumer work happens separately.
 ```
 
 `GetTaskInput` returns null for denied/missing/expired state; an authorized existing Task with no matching groups has
-an empty map. It returns the immutable original definition and `terminal` flag plus matching `groups`, keyed by the
+an empty map. It returns the immutable original definition, `terminal` flag, current `version`, nullable
+`cancellation` (original requested_at/version), plus matching `groups`, keyed by the
 first request ID. Each group exposes durable typed `answers`, generated-key-to-original-form `names`, `confirmation`,
 `expires_at`, `expired`, `refused`, `consumed` and current `ready`. It returns no runtime rules and performs no mutation,
 event, cleanup or acquisition. It is a protected consumer Query, never a general notice feed or public tasks/get view.

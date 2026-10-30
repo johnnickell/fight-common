@@ -29,7 +29,9 @@ final readonly class Task
         private ?int $pollInterval,
         private string $creationDigest,
         private ?string $lastDigest,
-        private TaskInputs $inputs
+        private TaskInputs $inputs,
+        private ?int $cancellationRequestedAt,
+        private ?int $cancellationVersion
     ) {
         self::timestamp($createdAt);
         self::timestamp($updatedAt);
@@ -42,6 +44,11 @@ final readonly class Task
             || ($lastDigest !== null && preg_match('/\A[0-9a-f]{64}\z/D', $lastDigest) !== 1)
             || (($version === 1) !== ($lastDigest === null))
             || !$inputs->belongsTo($definition->scope(), $definition->id())
+            || (($cancellationRequestedAt === null) !== ($cancellationVersion === null))
+            || ($cancellationRequestedAt !== null && (
+                $cancellationRequestedAt < $createdAt || $cancellationRequestedAt > $updatedAt
+                || $cancellationVersion < 2 || $cancellationVersion > $version
+            ))
         ) {
             throw new DomainException('Invalid retained Task metadata.');
         }
@@ -73,7 +80,9 @@ final readonly class Task
             $pollInterval,
             $digest,
             null,
-            TaskInputs::empty($definition->scope(), $definition->id())
+            TaskInputs::empty($definition->scope(), $definition->id()),
+            null,
+            null
         );
     }
 
@@ -86,7 +95,7 @@ final readonly class Task
     {
         $keys = [
             'schema', 'definition', 'state', 'version', 'created_at', 'updated_at', 'ttl', 'poll_interval',
-            'creation_digest', 'last_digest', 'inputs'
+            'creation_digest', 'last_digest', 'inputs', 'cancellation_requested_at', 'cancellation_version'
         ];
         if (count($data) !== count($keys) || array_diff($keys, array_keys($data)) !== [] || $data['schema'] !== 1) {
             throw new DomainException('Unsupported Task representation.');
@@ -102,7 +111,9 @@ final readonly class Task
             $data['poll_interval'],
             $data['creation_digest'],
             $data['last_digest'],
-            TaskInputs::fromData(StrictJson::fromData($data['inputs']))
+            TaskInputs::fromData(StrictJson::fromData($data['inputs'])),
+            $data['cancellation_requested_at'],
+            $data['cancellation_version']
         );
     }
 
@@ -196,7 +207,9 @@ final readonly class Task
             $pollInterval,
             $this->creationDigest,
             $digest,
-            $this->inputs
+            $this->inputs,
+            $this->cancellationRequestedAt,
+            $this->cancellationVersion
         );
     }
 
@@ -238,6 +251,53 @@ final readonly class Task
         }
 
         return $this->withInputs($this->inputs->retire($group), $now);
+    }
+
+    /**
+     * Records one bounded cooperative intent without replacing actual state or input evidence
+     */
+    public function requestCancellation(int $now): ?self
+    {
+        self::timestamp($now);
+        if ($this->state->isTerminal() || $this->cancellationRequestedAt !== null) {
+            return null;
+        }
+
+        if ($this->version === self::MAX_VERSION) {
+            throw new DomainException('Task cancellation version exhausted.');
+        }
+
+        $admittedAt = max($this->updatedAt, $now);
+
+        return new self(
+            $this->definition,
+            $this->state,
+            $this->version + 1,
+            $this->createdAt,
+            $admittedAt,
+            $this->ttl,
+            $this->pollInterval,
+            $this->creationDigest,
+            self::digest(['cancellation', $this->version, $admittedAt]),
+            $this->inputs,
+            $admittedAt,
+            $this->version + 1
+        );
+    }
+
+    /**
+     * Returns original intent evidence only for independently admitted protected observations
+     */
+    public function cancellation(): ?StrictJson
+    {
+        if ($this->cancellationRequestedAt === null) {
+            return null;
+        }
+
+        return StrictJson::fromObject([
+            'requested_at' => $this->cancellationRequestedAt,
+            'version'      => $this->cancellationVersion
+        ]);
     }
 
     /**
@@ -307,17 +367,19 @@ final readonly class Task
     public function toArray(): array
     {
         return [
-            'schema'          => 1,
-            'definition'      => $this->definition->toArray(),
-            'state'           => $this->state->toArray(),
-            'version'         => $this->version,
-            'created_at'      => $this->createdAt,
-            'updated_at'      => $this->updatedAt,
-            'ttl'             => $this->ttl,
-            'poll_interval'   => $this->pollInterval,
-            'creation_digest' => $this->creationDigest,
-            'last_digest'     => $this->lastDigest,
-            'inputs'          => $this->inputs->data()
+            'schema'                    => 1,
+            'definition'                => $this->definition->toArray(),
+            'state'                     => $this->state->toArray(),
+            'version'                   => $this->version,
+            'created_at'                => $this->createdAt,
+            'updated_at'                => $this->updatedAt,
+            'ttl'                       => $this->ttl,
+            'poll_interval'             => $this->pollInterval,
+            'creation_digest'           => $this->creationDigest,
+            'last_digest'               => $this->lastDigest,
+            'inputs'                    => $this->inputs->data(),
+            'cancellation_requested_at' => $this->cancellationRequestedAt,
+            'cancellation_version'      => $this->cancellationVersion
         ];
     }
 
@@ -356,7 +418,9 @@ final readonly class Task
             $this->pollInterval,
             $this->creationDigest,
             self::digest([$inputs->data(), $this->version]),
-            $inputs
+            $inputs,
+            $this->cancellationRequestedAt,
+            $this->cancellationVersion
         );
     }
 }
