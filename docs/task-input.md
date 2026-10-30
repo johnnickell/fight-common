@@ -6,9 +6,9 @@ supports protected answer observation and single-use continuation admission. It 
 database, public status setter, business approval policy or exactly-once external-effect mechanism.
 
 `Application\Mcp\Task\McpTaskInput` implements the actual `tasks/update` method. It intentionally does **not** implement
-a capability or advertise/register an incomplete Tasks extension. TASK-00168 owns complete extension activation,
-per-request serving capabilities, `Mcp-Name`/`taskId` HTTP mirrors, complete envelopes and combined Tool-start HTTP
-journeys. [Cooperative cancellation](task-cancellation.md) supplies actual intent/input races and current-intent
+a capability or advertise/register an incomplete Tasks extension. Complete [MCP Tasks](mcp-tasks.md) composition
+supplies extension activation, per-request serving capabilities, `Mcp-Name`/`taskId` HTTP mirrors, complete envelopes
+and combined Tool-start HTTP journeys. [Cooperative cancellation](task-cancellation.md) supplies actual intent/input races and current-intent
 continuation exposure; trusted producer terminal outcomes remain separately reported.
 The protocol reference is the official [2026-07-28 Tasks contract](https://github.com/modelcontextprotocol/ext-tasks/blob/main/specification/2026-07-28/tasks.md).
 

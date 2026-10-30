@@ -11,6 +11,9 @@ use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Task\McpTaskHandle;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Task\McpTaskTool;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputResponses;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInteractiveTool;
@@ -38,8 +41,19 @@ final readonly class McpToolInvoker
         private ValidationService $validation = new ValidationService(),
         private McpToolFailureMap $failures = new McpToolFailureMap(),
         private ?McpToolMetadataFilter $metadata = null,
-        private ?McpToolInteraction $interaction = null
+        private ?McpToolInteraction $interaction = null,
+        private ?McpTasks $tasks = null
     ) {
+    }
+
+    /**
+     * Returns explicit complete Task composition for registry identity validation
+     *
+     * @internal
+     */
+    public function tasks(): ?McpTasks
+    {
+        return $this->tasks;
     }
 
     /**
@@ -101,6 +115,13 @@ final readonly class McpToolInvoker
         ?McpRequest $request
     ): McpResult {
         [$tool, $info] = $this->select($name);
+        if ($tool instanceof McpTaskTool) {
+            McpTasks::requireSupport($request);
+            if ($this->tasks === null) {
+                throw new DomainException('Task Tools require explicit complete Tasks composition.');
+            }
+        }
+
         $this->requireCapability($info, $request);
 
         try {
@@ -264,6 +285,8 @@ final readonly class McpToolInvoker
         try {
             if ($responses !== null && $tool instanceof McpInteractiveTool) {
                 $output = $tool->resume($validated, $responses, $progress);
+            } elseif ($tool instanceof McpTaskTool) {
+                $output = $tool->start($validated, $progress);
             } else {
                 $output = $tool->handle($validated, $progress);
             }
@@ -274,6 +297,10 @@ final readonly class McpToolInvoker
             }
 
             throw new DomainException('Tool invocation failed.', 0, $throwable);
+        }
+
+        if ($output instanceof McpTaskHandle) {
+            return $this->tasks->created($output);
         }
 
         if ($output instanceof McpInputRequired) {

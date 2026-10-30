@@ -1,7 +1,8 @@
 # Durable asynchronous Task state
 
-This opt-in shared lifecycle persists and retrieves asynchronous operation state. It does **not** enable or
-advertise MCP Tasks, change `McpTool::handle()` or run a worker.
+This opt-in shared lifecycle persists and retrieves asynchronous operation state. It does **not** independently
+enable or advertise MCP Tasks, change `McpTool::handle()` or run a worker. Explicit [MCP Tasks](mcp-tasks.md)
+composition now supplies complete guarded start/get/update/cancel activation and HTTP reconnect proof.
 [Cooperative cancellation](task-cancellation.md) extends this same row/lock with durable intent, independent authority
 and actual tasks/cancel handling; intent never forces a terminal outcome.
 [Durable Task input](task-input.md) extends this same lifecycle with retained forms/confirmation, partial admission,

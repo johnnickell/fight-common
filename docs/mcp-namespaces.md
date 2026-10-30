@@ -6,6 +6,8 @@ retained notices, durable Task lifecycle, subscription tracking, protocol servin
 Skills and the legacy AI-operation/webhook APIs. MCP is the subsystem boundary, not just the transport facade.
 TASK-00177 established this map for the develop capabilities; durable Task-input additions follow the same
 `Domain\Mcp\Task` and `Application\Mcp\Task` homes. See [durable Task input](task-input.md).
+Complete [MCP Tasks serving](mcp-tasks.md) adds `McpTasks`, `McpTaskTool` and `McpTaskHandle` under
+`Application\Mcp\Task`, preserving the released ordinary Tool and interactive resume signatures.
 Ordinary stateless form elicitation and destructive confirmation remain unchanged.
 
 Domain remains framework-free and organized by its actual concepts. Application coordinates through inward

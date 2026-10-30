@@ -16,6 +16,12 @@ use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\McpTaskCancellation;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
+use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
+use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
+use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -70,21 +76,18 @@ final class McpTaskCancellationTest extends UnitTestCase
         catch (RuntimeException $actual) { self::assertSame($failure, $actual); }
     }
 
-    public function test_that_real_method_internal_failure_is_sanitized_by_the_existing_semantic_responder_without_advertising_tasks(): void
+    public function test_that_real_method_internal_failure_is_sanitized_by_the_existing_semantic_responder_with_complete_task_composition(): void
     {
         $failure = new RuntimeException('private database detail');
         $bus = $this->mock(CommandBus::class); $bus->shouldReceive('execute')->once()->andThrow($failure);
-        $method = new McpTaskCancellation($bus, 'scope', 'caller');
-        // Test-only method routing is not production extension activation or guarded HTTP qualification.
-        $capability = $this->mock(McpCapability::class);
-        $capability->shouldReceive('methods')->andReturn(['tasks/cancel']);
-        $capability->shouldReceive('capabilities')->andReturn(['example' => []]);
-        $capability->shouldReceive('mirrorDeclarations')->andReturn([]);
-        $capability->shouldReceive('validate')->once();
-        $capability->shouldReceive('handle')->once()->andReturnUsing(fn ($request) => $method->handle($request));
+        $tasks = new McpTasks($this->fixture()->queries, $bus, 'scope', 'caller');
+        $tools = new McpToolRegistry([]); $availability = $this->mock(McpToolAvailability::class);
         $diagnostics = $this->mock(McpDiagnostics::class); $diagnostics->shouldReceive('record')->once()->with($failure);
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [$capability]);
-        self::assertSame(['example' => []], $registry->advertisedCapabilities());
+        $registry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
+            $tasks, new McpToolInvocation(new McpToolInvoker($tools, $availability, tasks: $tasks)),
+            new McpToolDiscovery($tools, $availability, str_repeat('key-', 16))
+        ]);
+        self::assertArrayHasKey('io.modelcontextprotocol/tasks', $registry->advertisedCapabilities()['extensions']);
         $reply = (new McpResponder($registry, diagnostics: $diagnostics))->respond(json_encode([
             'jsonrpc' => '2.0', 'id' => 'cancel-failed', 'method' => 'tasks/cancel', 'params' => [
                 'taskId' => TaskFixture::ID, '_meta' => [McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28', McpRequestMetadata::CLIENT_CAPABILITIES_KEY => (object) ['extensions' => (object) ['io.modelcontextprotocol/tasks' => (object) []]]]

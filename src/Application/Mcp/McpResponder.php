@@ -89,13 +89,16 @@ final readonly class McpResponder
 
         $capability->validate($request);
         if ($capability instanceof McpMetadataAwareCapability) {
-            return $this->success(
-                $request->id(),
-                $capability->handleWithMetadata($request, $this->resultMetadata())
-            );
+            $result = $capability->handleWithMetadata($request, $this->resultMetadata());
+        } else {
+            $result = $capability->handle($request);
         }
 
-        return $this->success($request->id(), $capability->handle($request));
+        if ($result->toArray()['resultType'] === 'task' && !$capability instanceof McpToolInvocation) {
+            throw new DomainException('Only configured Tool invocation can return a Task result.');
+        }
+
+        return $this->success($request->id(), $result);
     }
 
     /**

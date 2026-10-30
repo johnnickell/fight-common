@@ -47,6 +47,7 @@ readonly class McpHeaderValidator
         $property = match ($request->method()) {
             'tools/call', 'prompts/get' => 'name',
             'resources/read' => 'uri',
+            'tasks/get', 'tasks/update', 'tasks/cancel' => 'taskId',
             default => null,
         };
         if ($property !== null) {

@@ -299,9 +299,21 @@ No worker/outbox, forced stop, guaranteed delivery or atomic external-effect/com
 `McpTaskCancellation` implements negotiated bounded `tasks/cancel` with safe errors and empty complete acknowledgment,
 not a capability advertisement or stopped-job receipt. See [Task cancellation](docs/task-cancellation.md).
 
-This lifecycle does not advertise MCP Tasks, change Tool return contracts or supply live delivery.
-TASK-00168 owns complete activation/combined HTTP proof. See
-[durable Tasks](docs/durable-tasks.md) for exact composition, numeric bounds, retry lifetime, schema and compatibility.
+Explicit `Application\Mcp\Task\McpTasks` now composes the actual start/get/update/cancel path and advertises the
+single empty `io.modelcontextprotocol/tasks` extension only alongside its identically bound Tool invoker. Additive
+`McpTaskTool::start()` can return a bounded `McpTaskHandle` or ordinary output/input; released `McpTool::handle()` and
+interactive `resume()` returns are unchanged. Availability and current per-request support precede entry/effects,
+including direct invocations without negotiation. A returned handle is independently reconstructed through shared
+`GetTask` with fresh scope/read/whole-state disclosure before acknowledgment. Creation is flat `resultType:task`;
+get is complete detailed state with original result/error or all outstanding elicitation forms. Internal context,
+versions, answers and cancellation intent stay private. Exact UTC millisecond metadata and optional fields retain
+meaning. All Task responses have a default 65,536-byte complete encoded envelope bound (configurable 1–65,536),
+including central metadata, ID and escaping; overflow is safe failure, never truncated input or empty success.
+Guarded get/update/cancel mirror Mcp-Name to taskId and retain independent supplier mutation authority. Connection
+loss does not request durable cancellation; workers/submission/external-effect reconciliation remain consumer-owned.
+No live Task delivery is supplied. See [MCP Tasks](docs/mcp-tasks.md) for complete composition, compatibility and real
+three-database HTTP/reconnect evidence, and [durable Tasks](docs/durable-tasks.md) for shared lifecycle bounds,
+retry lifetime, schema and compatibility. Package proof is not deployed Pi/Agent OS/client qualification.
 
 ## Live MCP subscription language
 
