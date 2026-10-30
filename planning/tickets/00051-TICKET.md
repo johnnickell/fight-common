@@ -2,7 +2,7 @@
 id: TICKET-00051
 epic: EPIC-00012
 title: Request cooperative cancellation of asynchronous operations
-status: ready-for-agent
+status: done
 ---
 
 # Request cooperative cancellation of asynchronous operations
@@ -74,8 +74,8 @@ mechanics remain downstream design within the accepted guarantees.
 TASK-00170 owns real cancellation intent/observation and method handling, with focused shared-use-case/method proof;
 it depends on TASK-00166 and TASK-00169, never TASK-00168. TASK-00168 consumes actual input/cancel suppliers and owns complete extension activation
 and combined Tool-start/cancellation HTTP evidence below. Preserve that required evidence there rather than imposing
-a circular completion gate here. TASK-00170 is now an actual blocker on TASK-00168 alongside TASK-00166 and TASK-00169;
-all supplier identities are resolved and TASK-00168 is ready-for-agent but still implementation-blocked. TASK-00170
+a circular completion gate here. TASK-00170 is a recorded dependency of TASK-00168 alongside TASK-00166 and TASK-00169;
+all supplier identities are resolved. Current executability follows the TASK records and Board. TASK-00170
 owns actual cancellation-intent versus TASK-00169 input-admission race evidence, without a reverse input blocker. TASK-00169 covers input versus producer terminal transitions; TASK-00168 owns the
 combined final HTTP journeys.
 
@@ -98,7 +98,7 @@ consumer deployment evidence already obtained.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00170](../tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | in-progress |
+| [TASK-00170](../tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -107,8 +107,8 @@ John approved this third requirement area in EPIC-00012's four-TICKET split, pre
 forced cancellation. The [official Tasks overview](https://modelcontextprotocol.io/extensions/tasks/overview)
 and [WF-048](../wayfinder/tickets/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md) support that
 boundary. `ready-for-agent` records accepted requirements only. All map TICKET decompositions are accepted and
-written. TICKET-00040's complete three-TASK split is now accepted and written as TASK-00147–00149. No implementation,
-consumer amendments, commit or publication have occurred.
+written. TICKET-00040's complete three-TASK split is now accepted and written as TASK-00147–00149. At this planning checkpoint no implementation,
+consumer amendments, commit or publication had occurred.
 
 Follow the [map handoff](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) into Board-based execution
 selection after complete map-wide decomposition through TASK-00171, not automatic execution. TICKET-00041's complete split is
@@ -150,8 +150,8 @@ no-ops; private state/diagnostics cannot leak through acknowledgment, intent obs
 
 TASK-00170 owns real SQLite/MySQL/PostgreSQL cancellation/observation/outcome and method evidence, including actual
 TASK-00169 input/confirmation races. TASK-00168 owns complete activation/guards/mirrors/final serving envelope and combined
-Tool-start/cancel/get HTTP journeys. It now has the full blocker set TASK-00166, TASK-00169, TASK-00170 and is ready-for-agent,
-not implemented or executable with unfinished blockers. No reverse activation/removal/live/Mercure dependency is added.
+Tool-start/cancel/get HTTP journeys. Its recorded blockers are TASK-00166, TASK-00169 and TASK-00170;
+current executability follows the TASK records and Board. No reverse activation/removal/live/Mercure dependency is added.
 
 Compatibility/schema effects, docs/CONTEXT.md, exact coverage and full build stay in TASK-00170. Exact APIs/fields/limits/
 versioning remain implementation details; no global priority/release target/worktree choice is assigned. TICKET-00052's complete TASK-00171

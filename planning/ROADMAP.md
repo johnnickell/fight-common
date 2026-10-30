@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00170](tasks/00170-TASK.md) | Request and observe cooperative Task cancellation | in-progress | — |
+| Ready Frontier | [TASK-00168](tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -123,7 +123,7 @@ TICKET-00049's complete three-TASK split is accepted/written: [TASK-00166](tasks
 (no unfinished blockers), [TASK-00167](tasks/00167-TASK.md) bounded removal (00166), and
 [TASK-00168](tasks/00168-TASK.md) complete MCP activation/combined journeys (00166, 00169, 00170). The extension has no polling-only capability flag. TICKET-00050/00051 supply behavior/method handling
 from 00166; 00168 owns final activation and combined Tool-start/input/cancel evidence, without a circular supplier
-blocker. All 00168 supplier identities are now resolved; it is ready-for-agent with unfinished blockers. Removal is independent.
+blocker. All 00168 supplier identities are resolved; current executability is derived from the Board and TASK records. Removal is independent.
 TICKET-00050's complete single [TASK-00169](tasks/00169-TASK.md) is accepted/written, blocked only by 00166. It owns retained
 forms/confirmation, lifetime request identity, partial/mixed response admission, atomic duplicate protection and actual
 tasks/update handling without partial extension advertisement. It owns input/producer-terminal races; TICKET-00051 owns
@@ -133,7 +133,7 @@ input-intent integration. It owns durable bounded cancellation intent, cross-pro
 repeats/terminal no-ops, actual tasks/cancel handling and three-database race/failure evidence. Intent is not actual
 stopping or compensation; consumers decide stopping and report outcomes. Preserve accepted input/confirmation and terminal
 winners. 00168 owns final activation/combined HTTP proof; no reverse activation/removal/live dependency is introduced.
-No implementation or global execution priority is assigned; worktree choice remains explicit.
+This paragraph records the planning allocation, not a current implementation or delivery status; consult the TASK record.
 TICKET-00052's complete single [TASK-00171](tasks/00171-TASK.md) is accepted/written, blocked only by 00162 and 00168.
 It owns live taskIds integration, complete currently authorized state/baseline through shared Queries, atomically bound
 Task-scoped get/live revision comparison, bounded coalescing and current-state reconnect recovery. Full state stays out
