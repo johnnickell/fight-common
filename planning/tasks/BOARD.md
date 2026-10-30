@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | in-progress | — |
+| Ready Frontier | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -46,19 +46,19 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | [TICKET-00052 — Follow live Task state and recover after reconnecting](../tickets/00052-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | [TICKET-00052 — Follow live Task state and recover after reconnecting](../tickets/00052-TICKET.md) | ready-for-agent | [TASK-00168](00168-TASK.md) | — |
+| None | — | — | — | — | — | — |
 
 ## Needs Info
 
@@ -148,6 +148,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | [TICKET-00048 — Keep browser notice feeds live through optional Mercure](../tickets/00048-TICKET.md) | done | — | [PR #246](https://github.com/johnnickell/fight-common/pull/246) |
 | — | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | [PR #248](https://github.com/johnnickell/fight-common/pull/248) |
 | — | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | [PR #250](https://github.com/johnnickell/fight-common/pull/250) |
+| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | done | — | — |
 | — | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | [TICKET-00050 — Supply requested input to asynchronous operations](../tickets/00050-TICKET.md) | done | — | [PR #252](https://github.com/johnnickell/fight-common/pull/252) |
 | — | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | [TICKET-00051 — Request cooperative cancellation of asynchronous operations](../tickets/00051-TICKET.md) | done | — | [PR #253](https://github.com/johnnickell/fight-common/pull/253) |
 | — | [TASK-00172](00172-TASK.md) | Bind Fight Common to shared workflows and independent QA | — (standalone chore) | done | — | [PR #220](https://github.com/johnnickell/fight-common/pull/220) |

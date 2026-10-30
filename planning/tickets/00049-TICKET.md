@@ -2,7 +2,7 @@
 id: TICKET-00049
 epic: EPIC-00012
 title: Start durable asynchronous operations and retrieve their outcomes
-status: ready-for-agent
+status: done
 ---
 
 # Start durable asynchronous operations and retrieve their outcomes
@@ -104,7 +104,7 @@ implemented. These are future obligations, not checks already run or actual Agen
 |---|---|---|
 | [TASK-00166](../tasks/00166-TASK.md) | Record and retrieve durable asynchronous Task state | done |
 | [TASK-00167](../tasks/00167-TASK.md) | Remove retained asynchronous Task data safely | done |
-| [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | in-progress |
+| [TASK-00168](../tasks/00168-TASK.md) | Start and recover asynchronous operations through MCP | done |
 <!-- /planning:children -->
 
 ## Decisions and planning approval history
@@ -177,6 +177,6 @@ Task polling gains no dependency on Subscriptions/Mercure.
 TASK-00166 supplies the reusable lifecycle, direct three-database persistence and protected current-state Query.
 Its [acceptance checkpoint](../tasks/00166-TASK.md#acceptance-checkpoint-before-publication) records independent
 Review and QA. TASK-00167's [acceptance checkpoint](../tasks/00167-TASK.md#acceptance-checkpoint-before-publication)
-records accepted bounded removal. This TICKET remains incomplete: complete MCP activation remains with TASK-00168
-and its suppliers. No Tasks extension advertisement or consumer runtime qualification follows from these slices.
-Statements above about no implementation/publication describe planning approval.
+records accepted bounded removal. [TASK-00168](../tasks/00168-TASK.md#acceptance-checkpoint-before-publication)
+completes MCP activation and the combined journeys with independent Review and QA. This package acceptance does not
+qualify consumer runtimes. Statements above about no implementation/publication describe planning approval.

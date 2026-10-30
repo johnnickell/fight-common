@@ -70,7 +70,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00165](00165-TASK.md) | Publish retained safe notices through optional Mercure | done | [TICKET-00048](../tickets/00048-TICKET.md) |
 | [TASK-00166](00166-TASK.md) | Record and retrieve durable asynchronous Task state | done | [TICKET-00049](../tickets/00049-TICKET.md) |
 | [TASK-00167](00167-TASK.md) | Remove retained asynchronous Task data safely | done | [TICKET-00049](../tickets/00049-TICKET.md) |
-| [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | in-progress | [TICKET-00049](../tickets/00049-TICKET.md) |
+| [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | done | [TICKET-00049](../tickets/00049-TICKET.md) |
 | [TASK-00169](00169-TASK.md) | Supply and admit durable Task input | done | [TICKET-00050](../tickets/00050-TICKET.md) |
 | [TASK-00170](00170-TASK.md) | Request and observe cooperative Task cancellation | done | [TICKET-00051](../tickets/00051-TICKET.md) |
 | [TASK-00171](00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent | [TICKET-00052](../tickets/00052-TICKET.md) |
