@@ -6,6 +6,8 @@ namespace Fight\Common\Application\Mcp;
 
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
+use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
@@ -113,6 +115,7 @@ final readonly class McpCapabilityRegistry
         }
 
         $this->validateSkills($capabilitiesByMethod, $advertisedCapabilities);
+        $this->validateTasks($capabilitiesByMethod, $advertisedCapabilities);
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
         $this->advertisedCapabilities = $advertisedCapabilities;
@@ -364,6 +367,37 @@ final readonly class McpCapabilityRegistry
             ) {
                 throw new DomainException('Skills and file reads must share the configured Resources capability.');
             }
+        }
+    }
+
+    /**
+     * Requires the actual complete Task methods and the same Tool-start composition before advertisement
+     *
+     * @param array<string, McpCapability> $methods
+     * @param array<string, array<mixed>> $capabilities
+     */
+    private function validateTasks(array $methods, array $capabilities): void
+    {
+        $settings = $capabilities['extensions'][McpTasks::EXTENSION] ?? null;
+        $invocation = $methods['tools/call'] ?? null;
+        $tasks = $methods['tasks/get'] ?? null;
+        if ($settings === null) {
+            if (
+                isset($methods['tasks/get']) || isset($methods['tasks/update']) || isset($methods['tasks/cancel'])
+                || ($invocation instanceof McpToolInvocation && $invocation->tasks() !== null)
+            ) {
+                throw new DomainException('Task composition requires the complete Tasks extension.');
+            }
+
+            return;
+        }
+
+        if (
+            $settings->properties() !== [] || !$tasks instanceof McpTasks
+            || ($methods['tasks/update'] ?? null) !== $tasks || ($methods['tasks/cancel'] ?? null) !== $tasks
+            || !$invocation instanceof McpToolInvocation || $invocation->tasks() !== $tasks
+        ) {
+            throw new DomainException('Tasks requires shared start, get, input and cancellation composition.');
         }
     }
 

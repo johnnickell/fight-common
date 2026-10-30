@@ -958,6 +958,15 @@ instance; `McpInputRequestTest` proves schema, envelope, typed response and runt
 `SodiumMcpStateProtectorTest` proves AEAD round trips, tampering, limits and rotation. These are package fixtures,
 not external SDK certification, a consumer authorization receipt or framework-starter qualification.
 
+## Durable asynchronous Tasks
+
+Explicit [MCP Tasks serving](../../mcp-tasks.md) composes negotiated Tool start, durable handle acknowledgment,
+current-state polling, input and cancellation on this same guarded endpoint. Its additive `McpTaskTool::start()`
+entry preserves ordinary `McpTool::handle()` and interactive resume contracts. Creation is acknowledged only after
+shared protected Query reconstruction; independent producer work remains recoverable after connection loss.
+Complete composition, current permissions and final encoded bounds are mandatory. No worker, live Task stream,
+Subscriptions/Mercure dependency or deployed-client qualification is implied.
+
 ## Request-scoped progress and cancellation
 
 `McpToolInvoker::invoke($name, $arguments, $progress)` accepts an optional `McpProgressReporter`. Omission preserves

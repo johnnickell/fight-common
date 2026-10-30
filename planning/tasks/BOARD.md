@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | ready-for-agent | — |
+| Active Work | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -46,13 +46,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00168](00168-TASK.md) | Start and recover asynchronous operations through MCP | [TICKET-00049 — Start durable asynchronous operations and retrieve their outcomes](../tickets/00049-TICKET.md) | ready-for-agent | — | — |
+| None | — | — | — | — | — | — |
 
 ## Waiting
 

@@ -46,6 +46,22 @@ final readonly class McpResult implements Arrayable
     }
 
     /**
+     * Creates a flat Task result from freshly authorized shared state
+     *
+     * @param array<string, mixed> $data
+     *
+     * @internal
+     */
+    public static function task(array $data): self
+    {
+        if (array_key_exists('resultType', $data)) {
+            throw new DomainException('An MCP result payload cannot override resultType.');
+        }
+
+        return new self(['resultType' => 'task', ...$data]);
+    }
+
+    /**
      * Creates a complete result with a byte budget retained when central metadata is added
      *
      * The positive budget covers the final JSON-encoded result, not the outer JSON-RPC envelope. Existing

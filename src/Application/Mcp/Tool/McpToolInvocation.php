@@ -10,6 +10,7 @@ use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpRequestMirrors;
 use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Task\McpTasks;
 
 /**
  * Class McpToolInvocation
@@ -23,6 +24,16 @@ final readonly class McpToolInvocation implements McpCapability, McpRequestMirro
      */
     public function __construct(private McpToolInvoker $invoker, private ?McpToolExecution $execution = null)
     {
+    }
+
+    /**
+     * Returns the invoker's explicit Task composition for complete activation checks
+     *
+     * @internal
+     */
+    public function tasks(): ?McpTasks
+    {
+        return $this->invoker->tasks();
     }
 
     /**

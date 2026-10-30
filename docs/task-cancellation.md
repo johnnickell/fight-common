@@ -121,7 +121,7 @@ propagate to the existing central sanitized `-32603` diagnostic path, never a su
 
 Success is exactly `{"resultType":"complete"}`. It is neither current Task data nor proof of stopping. The semantic
 result budget is 128 encoded bytes, including subsequently added metadata; overflow rejects rather than truncating.
-TASK-00168 owns complete activation/advertisement, actual outer-envelope bounds, guarded HTTP composition,
+Complete [MCP Tasks](mcp-tasks.md) supplies activation/advertisement, actual outer-envelope bounds, guarded HTTP composition,
 `Mcp-Name`/taskId and `Mcp-Method` mirrors and combined Tool-start/cancel/outcome-get journeys. This helper alone
 implements no capability and advertises no partial extension. Request-scoped `McpToolExecution::cancel()`, stream
 closure and progress cancellation remain unchanged. `notifications/cancelled` is never used for durable Tasks.

@@ -115,6 +115,7 @@ nav:
       - Utilities: components/utilities/index.md
     - Coordinate Application Behavior:
       - Messaging (CQRS): components/messaging/index.md
+      - MCP Task Serving: mcp-tasks.md
       - Durable Asynchronous Tasks: durable-tasks.md
       - Durable Task Input: task-input.md
       - Cooperative Task Cancellation: task-cancellation.md
