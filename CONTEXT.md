@@ -150,8 +150,8 @@ All agent-owned classes present on develop also live beneath `Mcp`: Domain uses 
 Application and adapters retain cohesive capability branches. Provisional tracking paths move directly without
 snapshot aliases. Legacy AI payload/webhook APIs gain equally deprecated `Mcp\Operation` homes while their
 released `Auth` names remain supported with their original 1.2 deprecation and 2.0 sunset. This does not revive
-or register retired AI Tools, change MCP method or Tool identifiers, schema, admission or delivery, or include the separately
-unaccepted durable Task-input feature. Existing stateless forms/confirmation remain unchanged. Generic
+or register retired AI Tools, or change MCP method or Tool identifiers, schema, admission or delivery. Durable Task-input
+additions use these same canonical Mcp homes as described below. Existing stateless forms/confirmation remain unchanged. Generic
 infrastructure keeps its ownership. See the [complete namespace map](docs/mcp-namespaces.md).
 This bounded move does not change protocol, security or delivery contracts.
 
@@ -269,8 +269,26 @@ even for an old creation retry; consumers use fresh random IDs and own bounded r
 any deliberate tuple reuse. No permanent identity-memory, cross-lifetime version fence, forensic database erasure,
 job stop or external-effect rollback is promised. Removal owns its actual commit and rejects caller transactions.
 
-This lifecycle does not advertise MCP Tasks, change Tool return contracts, admit client input, request cancellation
-or supply live delivery. Later suppliers integrate through these invariants. See
+`TaskInputBatch` / `TaskInputs` extend the same retained row with immutable caller-bound form/confirmation groups,
+private original schema/runtime contracts, durable accepted answers and a lifetime high-water key counter. The
+Application `TaskInputLifecycle` routes `RequestTaskInput`, `SupplyTaskInput`, `AcquireTaskInput`, `RetireTaskInput`
+and protected `GetTaskInput` through existing buses/storage. Independent current submission, observation and business
+continuation decisions remain separate from producer/read grants. All active validation precedes atomic partial-batch
+admission; inactive keys ignore content under finite whole-envelope bounds. Unanswered forms stay outstanding; any
+active confirmation refusal retires only that group, and complete unexpired non-refused groups acquire once before
+consumer continuation. Consumer failures/uncertain acknowledgment never restore consumed input or prove execution.
+Keys `input-<scoped-Task namespace>-1` through counter 1,024 never repeat within a retained lifetime or identify
+another Task/scope's request, even after explicit payload retirement;
+at most 16 retained requests/groups and fixed encoded bounds prevent hidden archives. Whole-row removal removes
+this bookkeeping too. Queries are read-only, expose no private rules and do not renew expiry. Producer state cannot
+replace contracts or clear unanswered forms. Public projection omits expired forms without a read-side mutation,
+preserving the admitted producer message (including empty string versus null) while any forms remain outstanding.
+`Application\\Mcp\\Task\\McpTaskInput` implements actual per-request negotiated, bounded `tasks/update` Command
+handling and an empty complete acknowledgment, with no independent capability advertisement. Ordinary stateless
+exact-key/replay and existing confirmation-store behavior are unchanged. See [Task input](docs/task-input.md).
+
+This lifecycle does not advertise MCP Tasks, change Tool return contracts, request cancellation or supply live
+delivery. TASK-00168 owns complete activation/combined HTTP proof; TASK-00170 owns cancellation-intent races. See
 [durable Tasks](docs/durable-tasks.md) for exact composition, numeric bounds, retry lifetime, schema and compatibility.
 
 ## Live MCP subscription language

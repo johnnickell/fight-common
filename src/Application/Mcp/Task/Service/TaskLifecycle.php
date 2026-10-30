@@ -160,7 +160,7 @@ final readonly class TaskLifecycle
             return null;
         }
 
-        return StrictJson::fromObject($task->view(), 40);
+        return StrictJson::fromObject($task->view(Task::timestamp(($this->clock)())), 40);
     }
 
     /**

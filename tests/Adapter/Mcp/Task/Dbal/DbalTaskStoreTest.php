@@ -70,7 +70,7 @@ final class DbalTaskStoreTest extends UnitTestCase
         $fixture->readAllowed = false; self::assertNull($fixture->get());
         $fixture->readAllowed = true; $fixture->discloseAllowed = false; self::assertNull($fixture->get());
         $fixture->discloseAllowed = true; $fixture->updateAllowed = true; $fixture->createAllowed = true;
-        $fixture->now += 2; $fixture->record(TaskFixture::input()); $fixture->record(TaskFixture::input());
+        $fixture->now += 2; $fixture->record(TaskFixture::input());
         self::assertSame('input_required', $fixture->get()->get('state')->get('status'));
         $fixture->record(TaskFixture::completed(true), 2);
         self::assertSame('completed', $fixture->get()->get('state')->get('status'));
@@ -177,7 +177,9 @@ final class DbalTaskStoreTest extends UnitTestCase
         yield ['null']; yield ['{']; yield ['{}']; yield ['[]'];
         yield ['{"definition":null,"state":null}']; yield [str_repeat('x', 65537)];
         $task = (new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(1)->toArray();
-        $task['definition']['id'] = str_repeat('f', 32); yield [json_encode($task, JSON_THROW_ON_ERROR)];
+        $task['definition']['id'] = str_repeat('f', 32);
+        $task['inputs'] = \Fight\Common\Domain\Mcp\Task\TaskInputs::empty('scope', str_repeat('f', 32))->data();
+        yield [json_encode($task, JSON_THROW_ON_ERROR)];
     }
 
     public function test_that_schema_is_exclusive_idempotent_and_supports_only_the_documented_backends(): void

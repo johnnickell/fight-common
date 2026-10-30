@@ -4,7 +4,8 @@ All agent tracking and MCP-owned runtime capabilities have canonical homes under
 `Fight\Common\Application\Mcp` and `Fight\Common\Adapter\Mcp`. This includes recording and inspecting execution,
 retained notices, durable Task lifecycle, subscription tracking, protocol serving, Tools, Resources, Prompts,
 Skills and the legacy AI-operation/webhook APIs. MCP is the subsystem boundary, not just the transport facade.
-This map covers classes present on develop; the separately unaccepted durable Task-input feature is not included.
+TASK-00177 established this map for the develop capabilities; durable Task-input additions follow the same
+`Domain\Mcp\Task` and `Application\Mcp\Task` homes. See [durable Task input](task-input.md).
 Ordinary stateless form elicitation and destructive confirmation remain unchanged.
 
 Domain remains framework-free and organized by its actual concepts. Application coordinates through inward

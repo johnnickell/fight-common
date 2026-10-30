@@ -36,12 +36,13 @@ final class DbalTaskRemovalIntegrationTest extends UnitTestCase
                 3 => TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])),
                 4 => TaskState::create('cancelled')
             };
-            $fixture->commands->execute(new RecordTaskState('scope', $id, 'producer', 1, $state));
+            if ($state->status() === 'input_required') { $fixture->issue(id: $id); }
+            else { $fixture->commands->execute(new RecordTaskState('scope', $id, 'producer', 1, $state)); }
         }
         $protected = $connection->fetchOne('SELECT payload FROM fight_tasks WHERE scope = ? AND task_id = ?', ['scope', $ids[1]]);
         self::assertStringContainsString('creation_digest', $protected);
         self::assertStringContainsString('last_digest', $protected);
-        self::assertStringContainsString('request-1', $protected);
+        self::assertStringContainsString('input-', $protected);
         $connection->insert('fight_tasks', ['scope' => 'other', 'task_id' => $ids[0], 'payload' => 'unrelated protected data']);
         $fixture->remove($ids);
         foreach ($ids as $id) { self::assertNull($fixture->get($id)); }

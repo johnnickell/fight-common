@@ -44,7 +44,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $fresh->record(TaskFixture::input());
         $reconnected = new TaskFixture($this->connect($params));
         self::assertSame('input_required', $reconnected->get()->get('state')->get('status'));
-        self::assertSame('form', $reconnected->get()->get('state')->get('input')->get('request-1')->get('type'));
+        self::assertSame('form', $reconnected->get()->get('state')->get('input')->get(TaskFixture::KEY_1)->get('type'));
         $reconnected->record(TaskFixture::completed(true), 2);
         self::assertTrue((new TaskFixture($this->connect($params)))->get()->get('state')->get('result')->get('isError'));
         foreach ([TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $index => $terminal) {
