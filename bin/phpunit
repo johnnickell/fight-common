@@ -1,43 +1,8 @@
-#!/usr/bin/env bash
-
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DOCKER_BIN="${DOCKER_BIN:-docker}"
-PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
-
-# shellcheck source=bin/.disposable-database-runtime
-source "${ROOT_DIR}/bin/.disposable-database-runtime"
-
-mode="complete"
-if [[ "${1:-}" == "--fast" ]]; then
-    mode="fast"
+#!/usr/bin/env sh
+set -eu
+cd "$(dirname "$0")/.."
+if [ "${1:-}" = --fast ]; then
     shift
+    set -- --exclude-group server-database "$@"
 fi
-
-fight_common_install_disposable_database_cleanup
-
-cd "${ROOT_DIR}"
-
-"${DOCKER_BIN}" build --pull -t "${PHP_IMAGE}" ./etc/docker/php/
-
-if [[ "${mode}" == "fast" ]]; then
-    exec "${DOCKER_BIN}" container run \
-        --rm \
-        -v "${ROOT_DIR}:/app:delegated" \
-        -w /app \
-        "${PHP_IMAGE}" \
-        php vendor/bin/phpunit --exclude-group server-database --fail-on-skipped "$@"
-fi
-
-fight_common_start_disposable_databases
-
-"${DOCKER_BIN}" container run \
-    --rm \
-    --network "${FIGHT_COMMON_DATABASE_NETWORK}" \
-    -v "${ROOT_DIR}:/app:delegated" \
-    -w /app \
-    --env "FIGHT_COMMON_MYSQL_DSN=${FIGHT_COMMON_MYSQL_DSN}" \
-    --env "FIGHT_COMMON_POSTGRESQL_DSN=${FIGHT_COMMON_POSTGRESQL_DSN}" \
-    "${PHP_IMAGE}" \
-    php vendor/bin/phpunit --fail-on-skipped "$@"
+exec ./bin/exec php vendor/bin/phpunit --fail-on-skipped "$@"

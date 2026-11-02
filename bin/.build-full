@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+./bin/runtime docker compose exec -T php ./bin/quality
+./bin/docs validate
+./bin/planning-check

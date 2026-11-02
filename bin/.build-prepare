@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+./bin/runtime up --worktree "$PWD"
+case "${FIGHT_COMMON_DEPENDENCY_PROFILE:-default}" in
+    default) args=() ;;
+    resolved) test -f composer.lock; args=(--lock) ;;
+    *) echo 'Unknown dependency profile' >&2; exit 2 ;;
+esac
+./bin/runtime docker compose exec -T php composer update --no-interaction --no-progress --prefer-dist ${args[@]+"${args[@]}"}
+docker build --pull --provenance=false -t "$(./bin/runtime image-name docs)" ./etc/docker/python/
