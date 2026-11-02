@@ -163,6 +163,28 @@ final readonly class TaskInputs
     }
 
     /**
+     * Returns distinct expiry boundaries that change outstanding public requests
+     *
+     * @return list<int>
+     */
+    public function expirations(int $after, int $through): array
+    {
+        $times = [];
+        foreach ($this->groups as $group) {
+            $batch = $group->get('batch');
+            $expiry = $batch->get('expires_at');
+            if (
+                !$group->get('consumed') && !$group->get('retired') && $expiry > $after && $expiry <= $through
+                && count($group->get('answers')->properties()) < count($batch->get('requests')->properties())
+            ) {
+                $times[] = $expiry;
+            }
+        }
+
+        return array_values(array_unique($times));
+    }
+
+    /**
      * Records a fully validated active batch without replacing earlier answers
      */
     public function answer(StrictJson $responses, string $caller, int $now): self

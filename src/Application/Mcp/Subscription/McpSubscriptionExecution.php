@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Subscription;
 
+use Closure;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
@@ -48,7 +50,9 @@ final class McpSubscriptionExecution
         private readonly NoticeSelection $selection,
         private readonly int $lifetimeSeconds,
         private readonly int $waitMicroseconds,
-        private readonly int $maxFrameBytes
+        private readonly int $maxFrameBytes,
+        private readonly ?McpTasks $tasks = null,
+        private readonly ?McpTaskDisclosureGuard $taskDisclosure = null
     ) {
     }
 
@@ -63,15 +67,19 @@ final class McpSubscriptionExecution
     /**
      * Runs one bounded live follow without deleting or acknowledging retained notices
      *
-     * @param callable(string): void $emit
+     * @phpstan-param callable(string): void $emit
+     * @phpstan-param null|callable(McpSubscriptionDelivery): void $schedule
      */
-    public function run(callable $emit, McpDiagnostics $diagnostics): void
+    public function run(callable $emit, McpDiagnostics $diagnostics, ?callable $schedule = null): void
     {
         if ($this->started) {
             return;
         }
 
         $this->started = true;
+        $deliver = $schedule ?? static function (McpSubscriptionDelivery $delivery) use ($emit): void {
+            $delivery->send($emit);
+        };
         $id = bin2hex(random_bytes(16));
         $owner = bin2hex(random_bytes(16));
         $opened = false;
@@ -86,13 +94,17 @@ final class McpSubscriptionExecution
                 return;
             }
 
-            $accepted = $this->requested->accepted($this->supported, $this->admission, $subscriber);
+            $accepted = $this->accepted($subscriber);
             if ($this->shouldStop($deadline)) {
                 return;
             }
 
             // Even an unsupported/denied request may acknowledge an empty subset, without revealing why.
-            $batch = $this->batch(null, true);
+            $notices = array_intersect(
+                array_keys($accepted),
+                ['toolsListChanged', 'promptsListChanged', 'resourcesListChanged', 'resourceSubscriptions']
+            ) !== [];
+            $batch = $notices ? $this->batch(null, true) : null;
             if ($this->shouldStop($deadline)) {
                 return;
             }
@@ -111,7 +123,7 @@ final class McpSubscriptionExecution
             }
 
             $this->requireFreshness();
-            if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
+            if ($accepted !== $this->accepted($subscriber)) {
                 throw new RuntimeException('Subscription permission changed during opening.');
             }
 
@@ -125,33 +137,142 @@ final class McpSubscriptionExecution
                 return;
             }
 
-            // Tracking can change policy; final admission must have no later consumer callback before disclosure.
-            if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
-                throw new RuntimeException('Subscription permission changed during opening.');
+            $acknowledged = false;
+            $acknowledge = function (callable $write) use (
+                $accepted,
+                $subscriber,
+                $id,
+                $owner,
+                $deadline,
+                &$acknowledged
+            ): void {
+                $states = [];
+                if ($accepted !== $this->accepted($subscriber, $states)) {
+                    throw new RuntimeException('Subscription permission changed during opening.');
+                }
+
+                $this->requireFreshness();
+                if ($this->shouldStop($deadline)) {
+                    return;
+                }
+
+                $this->disclose($subscriber, $states, function () use (
+                    $write,
+                    $accepted,
+                    $id,
+                    $owner,
+                    $deadline,
+                    &$acknowledged
+                ): void {
+                    if ($this->shouldStop($deadline)) {
+                        return;
+                    }
+
+                    if ($this->tasks !== null) {
+                        $this->renew($id, $owner);
+                    }
+
+                    if (!$this->shouldStop($deadline)) {
+                        $write($this->frame([
+                            'jsonrpc' => '2.0',
+                            'method'  => 'notifications/subscriptions/acknowledged',
+                            'params'  => [
+                                '_meta'         => [self::META => $this->requestId],
+                                'notifications' => (object) $accepted
+                            ]
+                        ]));
+                        $acknowledged = true;
+                    }
+                });
+            };
+            if ($this->tasks !== null) {
+                $deliver(new McpSubscriptionDelivery($acknowledge));
+            } else {
+                $acknowledge($emit);
             }
 
-            $this->requireFreshness();
-            if ($this->shouldStop($deadline)) {
+            if (!$acknowledged) {
                 return;
             }
 
-            $emit($this->frame([
-                'jsonrpc' => '2.0',
-                'method'  => 'notifications/subscriptions/acknowledged',
-                'params'  => [
-                    '_meta'         => [self::META => $this->requestId],
-                    'notifications' => (object) $accepted
-                ]
-            ]));
-            $continuation = $batch->continuation();
+            $continuation = $batch?->continuation();
+            $revisions = [];
             while (!$this->shouldStop($deadline)) {
                 $this->renew($id, $owner);
                 if ($this->shouldStop($deadline)) {
                     break;
                 }
 
-                $batch = $this->batch($continuation);
-                foreach ($batch->notices() as $view) {
+                foreach ($accepted['taskIds'] ?? [] as $taskId) {
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $this->renew($id, $owner);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    // Schedule work, not an authorized snapshot: the transport invokes this at its byte handoff.
+                    $deliver(new McpSubscriptionDelivery(function (callable $write) use (
+                        $taskId,
+                        $subscriber,
+                        $id,
+                        $owner,
+                        $deadline,
+                        &$revisions
+                    ): void {
+                        $state = $this->task($taskId, $subscriber);
+                        $revision = $state['_meta'][McpTasks::REVISION];
+                        $previous = $revisions[$taskId] ?? null;
+                        if ($previous !== null) {
+                            if (
+                                $previous->get('scope') !== $revision->get('scope')
+                                || $previous->get('value') > $revision->get('value')
+                            ) {
+                                throw new RuntimeException('Task comparison requires restart.');
+                            }
+                        }
+
+                        $this->disclose($subscriber, [$taskId => $state], function () use (
+                            $write,
+                            $state,
+                            $revision,
+                            $previous,
+                            $taskId,
+                            $id,
+                            $owner,
+                            $deadline,
+                            &$revisions
+                        ): void {
+                            if ($this->shouldStop($deadline)) {
+                                return;
+                            }
+
+                            $this->renew($id, $owner);
+                            if ($this->shouldStop($deadline)) {
+                                return;
+                            }
+
+                            // Coalescing suppresses duplicate bytes, never current authority/readiness checks.
+                            if ($previous !== null && $previous->get('value') === $revision->get('value')) {
+                                return;
+                            }
+
+                            $state['_meta'][self::META] = $this->requestId;
+                            if (
+                                $write($this->frame([
+                                    'jsonrpc' => '2.0', 'method' => 'notifications/tasks', 'params' => $state
+                                ]))
+                            ) {
+                                $revisions[$taskId] = $revision;
+                            }
+                        });
+                    }));
+                }
+
+                $batch = $notices ? $this->batch($continuation) : null;
+                foreach ($batch?->notices() ?? [] as $view) {
                     if ($this->shouldStop($deadline)) {
                         break;
                     }
@@ -185,7 +306,7 @@ final class McpSubscriptionExecution
                     }
                 }
 
-                $continuation = $batch->continuation();
+                $continuation = $batch?->continuation();
                 if (!$this->shouldStop($deadline)) {
                     // A finite transport comment permits idle disconnect observation without a new MCP event.
                     usleep($this->waitMicroseconds);
@@ -231,6 +352,63 @@ final class McpSubscriptionExecution
                 }
             }
         }
+    }
+
+    /**
+     * Returns the complete current accepted subset with independent Task Query authorization
+     *
+     * @phpstan-param array<string, array<string, mixed>> $states
+     *
+     * @return array<string, mixed>
+     */
+    private function accepted(string $subscriber, array &$states = []): array
+    {
+        return $this->requested->accepted($this->supported, $this->admission, $subscriber, $this->tasks, $states);
+    }
+
+    /**
+     * Executes a consumer-guarded bounded byte handoff without caching a decision or yielding under protection
+     *
+     * @phpstan-param array<string, array<string, mixed>> $states
+     * @phpstan-param Closure(): void $write
+     */
+    private function disclose(string $subscriber, array $states, Closure $write): void
+    {
+        if ($this->tasks === null) {
+            $write();
+
+            return;
+        }
+
+        if ($this->taskDisclosure === null) {
+            throw new RuntimeException('Task disclosure guard unavailable.');
+        }
+
+        $action = new McpDisclosureAction($write);
+        try {
+            $this->taskDisclosure->run($subscriber, $states, $action->invoke(...));
+        } finally {
+            $action->finish();
+        }
+    }
+
+    /**
+     * Returns freshly authorized full state immediately before framing without arbitrary notice publication
+     *
+     * @return array<string, mixed>
+     */
+    private function task(string $id, string $subscriber): array
+    {
+        if (!$this->admission->allows($subscriber, 'taskIds', $id, null)) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        $state = $this->tasks?->current($id);
+        if ($state === null) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        return $state;
     }
 
     /**

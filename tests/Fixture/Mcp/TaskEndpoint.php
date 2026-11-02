@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Fixture\Mcp;
 
+use Closure;
+
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
@@ -36,16 +38,16 @@ final class TaskEndpoint implements McpDiagnostics, McpInvocationGuard, McpToolA
     public readonly McpCapabilityRegistry $registry;
     public readonly McpRequestHandler $handler;
 
-    public function __construct(TaskFixture $fixture, int $budget = McpTasks::MAX_RESPONSE_BYTES)
+    public function __construct(TaskFixture $fixture, int $budget = McpTasks::MAX_RESPONSE_BYTES, ?Closure $subscriptions = null, string $scope = 'scope')
     {
         $this->tool = new TaskTool($fixture);
-        $this->tasks = new McpTasks($fixture->queries, $fixture->commands, 'scope', 'caller', $budget);
+        $this->tasks = new McpTasks($fixture->queries, $fixture->commands, $scope, 'caller', $budget);
         $tools = new McpToolRegistry([$this->tool]);
         $this->invoker = new McpToolInvoker($tools, $this, tasks: $this->tasks);
         $this->invocation = new McpToolInvocation($this->invoker);
         $this->registry = new McpCapabilityRegistry(new McpServerInfo('Task fixture', '1'), [
             new McpToolDiscovery($tools, $this, str_repeat('task-fixture-key-', 4)), $this->invocation, $this->tasks
-        ]);
+        ], $subscriptions === null ? null : $subscriptions($this->tasks));
         $factory = new HttpFactory();
         $this->handler = new McpRequestHandler($this->registry, new ExactMcpOriginPolicy(['https://example.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }

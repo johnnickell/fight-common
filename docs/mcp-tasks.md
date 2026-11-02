@@ -4,7 +4,8 @@ Explicit `Application\Mcp\Task\McpTasks` composition enables the complete
 [`2026-07-28` Tasks extension](https://github.com/modelcontextprotocol/ext-tasks/blob/main/specification/2026-07-28/tasks.md)
 on the existing guarded endpoint. It supplies start/get/update/cancel, not a worker or Workflow engine.
 Polling needs no Subscriptions, Mercure, execution-inspection capability or original connection.
-There is no tasks/list, tasks/result, live Task notification, automatic retry or job-control integration.
+There is no tasks/list, tasks/result, automatic retry or job-control integration. Optional
+[live Task subscriptions](mcp-task-live.md) reuse this same authorized projection with state-bound reconnect revisions.
 
 ## Composition
 
@@ -83,6 +84,8 @@ other request methods cannot use the Task discriminator.
 Creation is a flat `resultType: "task"` plus `taskId`, `status`, ISO-8601 UTC millisecond `createdAt` and
 `lastUpdatedAt`, `ttlMs` (duration from creation, or null), optional `pollIntervalMs` and optional `statusMessage`.
 No private definition, comparison digest, internal version, cancellation intent or nested state is disclosed.
+Server-owned `_meta["org.fight/taskRevision"]` supplies comparable state-bound revisions under the
+[visibility-context and merge contract](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
 The message preserves an explicit empty string; absent optional fields are omitted rather than fabricated.
 
 `tasks/get` accepts exactly `{ "taskId": "<32 lowercase hex characters>" }` and returns `resultType: "complete"`
@@ -152,7 +155,8 @@ destructive confirmation, progress and native adapters retain their released pat
 
 The optional trailing `McpToolInvoker` Task collaborator is additive; its accessors, matching invocation accessor,
 `McpTasks::created()` and `McpResult::task()` are package-internal composition/result seams. No dependency floor,
-public bus signature, schema, suppression or runtime boundary changes. Provisional supplier APIs stay in their
+public bus signature, suppression or runtime boundary changes. The later [live integration](mcp-task-live.md)
+directly extends the provisional version-one row and current comparison-context admission. Provisional supplier APIs stay in their
 current Mcp homes without development compatibility aliases. Complete activation reserves the Tasks methods and
 empty extension contract; previous supplier test-only partial routing is not production extension support.
 

@@ -11,5 +11,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [EPIC-00009](00009-EPIC.md) | Execution introspection | done | — |
 | [EPIC-00010](00010-EPIC.md) | Generic MCP Prompts | done | — |
 | [EPIC-00011](00011-EPIC.md) | Generic MCP Subscriptions | done | — |
-| [EPIC-00012](00012-EPIC.md) | Generic MCP Tasks | ready-for-agent | — |
+| [EPIC-00012](00012-EPIC.md) | Generic MCP Tasks | done | — |
 <!-- /planning:records -->

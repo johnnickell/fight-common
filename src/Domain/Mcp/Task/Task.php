@@ -16,6 +16,10 @@ final readonly class Task
     public const int MAX_TIME = 253402300799999;
     public const int MAX_STORED_BYTES = 40960;
 
+    private const int REVISION_STRIDE = 32;
+
+    private StrictJson $revision;
+
     /**
      * Constructs Task
      */
@@ -31,7 +35,9 @@ final readonly class Task
         private ?string $lastDigest,
         private TaskInputs $inputs,
         private ?int $cancellationRequestedAt,
-        private ?int $cancellationVersion
+        private ?int $cancellationVersion,
+        ?StrictJson $revision = null,
+        ?self $previous = null
     ) {
         self::timestamp($createdAt);
         self::timestamp($updatedAt);
@@ -52,6 +58,32 @@ final readonly class Task
         ) {
             throw new DomainException('Invalid retained Task metadata.');
         }
+
+        if ($revision === null) {
+            $counter = 1;
+            $incarnation = bin2hex(random_bytes(16));
+            if ($previous !== null) {
+                $incarnation = $previous->revision->get('incarnation');
+                $counter = (int) $previous->revision->get('counter');
+                if ($this->publicState($updatedAt) !== $previous->publicState($updatedAt)) {
+                    ++$counter;
+                }
+            }
+
+            $revision = StrictJson::fromObject(['incarnation' => $incarnation, 'counter' => $counter]);
+        }
+
+        if (
+            count($revision->properties()) !== 2
+            || !is_string($revision->get('incarnation'))
+            || preg_match('/\A[0-9a-f]{32}\z/D', $revision->get('incarnation')) !== 1
+            || !is_int($revision->get('counter')) || $revision->get('counter') < 1
+            || $revision->get('counter') > self::MAX_VERSION
+        ) {
+            throw new DomainException('Invalid Task disclosure revision.');
+        }
+
+        $this->revision = $revision;
     }
 
     /**
@@ -95,7 +127,7 @@ final readonly class Task
     {
         $keys = [
             'schema', 'definition', 'state', 'version', 'created_at', 'updated_at', 'ttl', 'poll_interval',
-            'creation_digest', 'last_digest', 'inputs', 'cancellation_requested_at', 'cancellation_version'
+            'creation_digest', 'last_digest', 'inputs', 'cancellation_requested_at', 'cancellation_version', 'revision'
         ];
         if (count($data) !== count($keys) || array_diff($keys, array_keys($data)) !== [] || $data['schema'] !== 1) {
             throw new DomainException('Unsupported Task representation.');
@@ -113,7 +145,8 @@ final readonly class Task
             $data['last_digest'],
             TaskInputs::fromData(StrictJson::fromData($data['inputs'])),
             $data['cancellation_requested_at'],
-            $data['cancellation_version']
+            $data['cancellation_version'],
+            StrictJson::fromData($data['revision'])
         );
     }
 
@@ -209,7 +242,8 @@ final readonly class Task
             $digest,
             $this->inputs,
             $this->cancellationRequestedAt,
-            $this->cancellationVersion
+            $this->cancellationVersion,
+            previous: $this
         );
     }
 
@@ -281,7 +315,8 @@ final readonly class Task
             self::digest(['cancellation', $this->version, $admittedAt]),
             $this->inputs,
             $admittedAt,
-            $this->version + 1
+            $this->version + 1,
+            previous: $this
         );
     }
 
@@ -379,8 +414,37 @@ final readonly class Task
             'last_digest'               => $this->lastDigest,
             'inputs'                    => $this->inputs->data(),
             'cancellation_requested_at' => $this->cancellationRequestedAt,
-            'cancellation_version'      => $this->cancellationVersion
+            'cancellation_version'      => $this->cancellationVersion,
+            'revision'                  => $this->revision
         ];
+    }
+
+    /**
+     * Returns an atomically state-bound public revision under a trusted current visibility context
+     */
+    public function revision(string $context, int $now): StrictJson
+    {
+        self::timestamp($now);
+        TaskDefinition::reference($context);
+        if ($now < $this->updatedAt) {
+            throw new DomainException('Task comparison clock moved backwards.');
+        }
+
+        $key = $this->revision->get('incarnation');
+        $offset = "\0".substr(hash_hmac('sha256', "offset\0".$context, $key, true), 0, 16);
+        $carry = $this->revisionValue($now);
+        // A context-specific additive mask preserves order without exposing a counter across visibility epochs.
+        // The leading zero reserves carry space, so the fixed-width 136-bit value cannot wrap.
+        for ($index = 16; $index >= 0; --$index) {
+            $sum = ord($offset[$index]) + ($carry & 255);
+            $offset[$index] = chr($sum & 255);
+            $carry = ($carry >> 8) + ($sum >> 8);
+        }
+
+        return StrictJson::fromObject([
+            'scope' => hash_hmac('sha256', "scope\0".$context, $key),
+            'value' => 'v1:'.bin2hex($offset)
+        ]);
     }
 
     /**
@@ -391,6 +455,32 @@ final readonly class Task
     private static function digest(array $data): string
     {
         return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
+    }
+
+    /**
+     * Returns a public write order with bounded expiry sub-order, never private mutation gaps
+     */
+    private function revisionValue(int $now): int
+    {
+        $expiry = 0;
+        if ($this->state->status() === 'input_required') {
+            $expiry = count($this->inputs->expirations($this->updatedAt, $now));
+        }
+
+        // At most 16 retained groups can expire. A committed public write dominates every earlier expiry view,
+        // even when independent reader/writer clocks straddle an expiry boundary.
+        return (int) $this->revision->get('counter') * self::REVISION_STRIDE + $expiry;
+    }
+
+    /**
+     * Returns exact readable state for comparison without the private concurrency fence
+     */
+    private function publicState(int $now): string
+    {
+        $view = $this->view($now);
+        unset($view['version']);
+
+        return StrictJson::fromObject($view, 40)->toString();
     }
 
     /**
@@ -420,7 +510,8 @@ final readonly class Task
             self::digest([$inputs->data(), $this->version]),
             $inputs,
             $this->cancellationRequestedAt,
-            $this->cancellationVersion
+            $this->cancellationVersion,
+            previous: $this
         );
     }
 }

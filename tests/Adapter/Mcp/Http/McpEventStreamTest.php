@@ -78,6 +78,18 @@ final class McpEventStreamTest extends UnitTestCase
         self::assertSame([], $fixture->diagnostics);
     }
 
+    public function test_that_native_emission_preserves_ordinary_progress_fragments_and_closed_body_semantics(): void
+    {
+        $fixture = $this->fixture();
+        $body = $fixture->handler->handle(ProgressEndpoint::request('native'))->getBody();
+        $prefix = $body->read(6); $wire = '';
+        $body->emitNext(static function (string $bytes) use (&$wire): void { $wire .= $bytes; });
+        self::assertSame('notifications/progress', $this->frame($prefix.$wire)['method']);
+        $body->close();
+        $body->emitNext(static fn () => self::fail('Closed body emitted'));
+        self::assertSame([], $fixture->diagnostics);
+    }
+
     public static function tokens(): iterable { yield ['']; yield [0]; yield ['0']; yield [-1]; yield ['token']; }
 
     public function test_that_direct_json_and_legacy_opt_out_keep_noop_behavior(): void

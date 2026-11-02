@@ -77,8 +77,10 @@ readonly class McpResponseEmitter
         $previous = ignore_user_abort(true);
         try {
             while (!$body->eof() && connection_aborted() === 0) {
-                echo $body->read(8192);
-                flush();
+                $body->emitNext(static function (string $bytes): void {
+                    echo $bytes;
+                    flush();
+                });
             }
         } finally {
             try {

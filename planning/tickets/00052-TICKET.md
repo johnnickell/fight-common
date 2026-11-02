@@ -2,7 +2,7 @@
 id: TICKET-00052
 epic: EPIC-00012
 title: Follow live Task state and recover after reconnecting
-status: ready-for-agent
+status: done
 ---
 
 # Follow live Task state and recover after reconnecting
@@ -103,10 +103,12 @@ requirements; no implementation evidence is claimed here.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00171](../tasks/00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent |
+| [TASK-00171](../tasks/00171-TASK.md) | Follow authorized Task state and recover after reconnecting | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+Current completion and independent acceptance are recorded in [TASK-00171](../tasks/00171-TASK.md); the following decomposition narrative records the earlier planning checkpoint, not current implementation status.
 
 John explicitly selected optional full-state Task notifications and current-state recovery in EPIC-00012, then
 approved this fourth requirement area. The [official Tasks overview](https://modelcontextprotocol.io/extensions/tasks/overview)
