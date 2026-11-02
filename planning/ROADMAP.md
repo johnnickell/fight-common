@@ -31,9 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Ready Frontier | [TASK-00178](tasks/00178-TASK.md) | Separate MCP metadata grammar machinery | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -47,6 +45,12 @@ The [TASK Board](tasks/BOARD.md) owns current implementation status. Release pre
 authorized operation, not an unfinished product EPIC. The decomposition narrative below records approved scope
 and dependency edges at planning time, not current blockers or implementation status. Completed dependencies
 remain history; the Board derives unfinished blockers from TASK records.
+
+On 2026-11-02 John approved standalone chores for [metadata grammars](tasks/00178-TASK.md),
+[registry composition](tasks/00179-TASK.md), [MCP test organization](tasks/00180-TASK.md),
+[additive canonical namespaces](tasks/00181-TASK.md) and [validation construction](tasks/00182-TASK.md).
+Released relocated names alone receive functional deprecated bridges; removal belongs to a separately authorized
+future major. The linked TASK records own the scopes; the Board owns execution selection.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),
