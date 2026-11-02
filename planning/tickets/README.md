@@ -34,5 +34,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00049](00049-TICKET.md) | Start durable asynchronous operations and retrieve their outcomes | done | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00050](00050-TICKET.md) | Supply requested input to asynchronous operations | done | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00051](00051-TICKET.md) | Request cooperative cancellation of asynchronous operations | done | [EPIC-00012](../epics/00012-EPIC.md) |
-| [TICKET-00052](00052-TICKET.md) | Follow live Task state and recover after reconnecting | ready-for-agent | [EPIC-00012](../epics/00012-EPIC.md) |
+| [TICKET-00052](00052-TICKET.md) | Follow live Task state and recover after reconnecting | done | [EPIC-00012](../epics/00012-EPIC.md) |
 <!-- /planning:records -->

@@ -268,4 +268,4 @@ abrupt death/late renewal and native PSR/Symfony/Laravel/CodeIgniter/Slim/Yii em
 journeys remain in the gate. Actual notice/tracking storage checks reject protected-state contamination; no publisher
 is composed or invoked. Unit interleavings, not sleeps alone, qualify ordering and queued revocation. No persistent
 HTTP stack or consumer deployment is introduced. Nonvisual wire/Query/storage traces, counts, warnings and gate receipts
-are linked from TASK-00171's Engineer handoff; independent Review and QA remain separate acceptance stages.
+are linked from TASK-00171's Engineer handoff. Independent Review and QA accepted the implementation at the pre-publication checkpoint recorded in [TASK-00171](../planning/tasks/00171-TASK.md); publication and consumer deployment remain separate.
