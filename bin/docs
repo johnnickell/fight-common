@@ -10,17 +10,17 @@ fi
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 ID_BIN="${ID_BIN:-id}"
-PYTHON_IMAGE="${FIGHT_COMMON_DOCS_PYTHON_IMAGE:-fight-common-docs-python-3.13.17}"
+PYTHON_IMAGE="${FIGHT_COMMON_DOCS_PYTHON_IMAGE:-$("${ROOT_DIR}/bin/runtime" image-name docs)}"
 
 cd "${ROOT_DIR}"
 
-"${DOCKER_BIN}" build --pull -t "${PYTHON_IMAGE}" ./etc/docker/python/
+"${DOCKER_BIN}" build --pull --provenance=false -t "${PYTHON_IMAGE}" ./etc/docker/python/
 
 case "${1}" in
     preview)
-        "${DOCKER_BIN}" container run \
+        "${ROOT_DIR}/bin/runtime" docker run \
             --rm \
-            -p 127.0.0.1:8000:8000 \
+            -p "127.0.0.1:${FIGHT_COMMON_DOCS_PORT:-0}:8000" \
             -v "${ROOT_DIR}:/app:delegated" \
             -w /app \
             --user "$("${ID_BIN}" -u):$("${ID_BIN}" -g)" \
@@ -29,7 +29,7 @@ case "${1}" in
         ;;
     build|validate)
         if [[ "${1}" == 'validate' ]]; then
-            "${DOCKER_BIN}" container run \
+            "${ROOT_DIR}/bin/runtime" docker run \
                 --rm \
                 -v "${ROOT_DIR}:/app:delegated" \
                 -w /app \
@@ -37,7 +37,7 @@ case "${1}" in
                 "${PYTHON_IMAGE}" \
                 python scripts/generate_identity_assets.py --check
 
-            "${DOCKER_BIN}" container run \
+            "${ROOT_DIR}/bin/runtime" docker run \
                 --rm \
                 -v "${ROOT_DIR}:/app:delegated" \
                 -w /app \
@@ -45,7 +45,7 @@ case "${1}" in
                 "${PYTHON_IMAGE}" \
                 python scripts/validate_identity_assets.py docs/assets/identity
 
-            "${DOCKER_BIN}" container run \
+            "${ROOT_DIR}/bin/runtime" docker run \
                 --rm \
                 -v "${ROOT_DIR}:/app:delegated" \
                 -w /app \
@@ -56,7 +56,7 @@ case "${1}" in
         fi
 
         rm -rf "${ROOT_DIR}/site"
-        "${DOCKER_BIN}" container run \
+        "${ROOT_DIR}/bin/runtime" docker run \
             --rm \
             -v "${ROOT_DIR}:/app:delegated" \
             -w /app \
@@ -65,7 +65,7 @@ case "${1}" in
             mkdocs build --strict --site-dir site
 
         if [[ "${1}" == 'validate' ]]; then
-            "${DOCKER_BIN}" container run \
+            "${ROOT_DIR}/bin/runtime" docker run \
                 --rm \
                 -v "${ROOT_DIR}:/app:delegated" \
                 -w /app \
@@ -73,7 +73,7 @@ case "${1}" in
                 "${PYTHON_IMAGE}" \
                 python scripts/validate_docs_artifact.py site
 
-            "${DOCKER_BIN}" container run \
+            "${ROOT_DIR}/bin/runtime" docker run \
                 --rm \
                 -v "${ROOT_DIR}:/app:delegated" \
                 -w /app \

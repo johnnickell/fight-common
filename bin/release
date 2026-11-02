@@ -5,9 +5,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 GIT_BIN="${GIT_BIN:-git}"
-PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-fight-common}"
+PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-}"
 WORKSPACE=''
 OUTCOMES=''
+LANES=()
 
 usage() {
     echo 'Usage: ./bin/release certify <version>' >&2
@@ -36,8 +37,49 @@ cleanup() {
     local intended_status=$?
 
     trap - EXIT
-    if [[ -n "${WORKSPACE}" && -d "${WORKSPACE}" ]]; then
-        find "${WORKSPACE}" -depth -delete
+    set +e
+    local cleanup_status=0 target
+    # Exported lanes are independent temporary repositories, never registered worktrees.
+    # Their unique native projects must be absent before deleting their source binds.
+    for target in ${LANES[@]+"${LANES[@]}"}; do
+        if ! (cd "${target}" && ./bin/down --worktree "${target}"); then
+            cleanup_status=1
+            continue
+        fi
+        if ! python3 -B - "${target}" <<'PY'
+import hashlib
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+sys.path.insert(0, str(root / 'scripts'))
+from local_tooling import runtime
+from local_tooling.resources import native_ids, require, run
+project = runtime.selected(root, str(root))[2]
+require(project == 'fight-common-release-' + hashlib.sha256(str(root).encode()).hexdigest()[:16],
+        'Release lane identity changed; retain source')
+runtime.guard(root, root, project)
+for volume in native_ids(root, 'volumes', project):
+    runtime.guard(root, root, project)
+    run(['docker', 'volume', 'rm', volume], root)
+for tag in sorted(runtime.image_tags(root, project)):
+    runtime.guard(root, root, project)
+    run(['docker', 'image', 'rm', tag], root)
+require(not any(native_ids(root, kind, project) for kind in ('containers', 'networks', 'volumes'))
+        and not runtime.image_tags(root, project), 'Release native retirement incomplete; retain source')
+PY
+        then
+            cleanup_status=1
+        fi
+    done
+    if (( cleanup_status == 0 )); then
+        if [[ -n "${WORKSPACE}" && -d "${WORKSPACE}" ]]; then
+            find "${WORKSPACE}" -depth -delete || cleanup_status=1
+        fi
+    else
+        printf 'bin/release: native cleanup incomplete; source and evidence retained at %s\n' "${WORKSPACE}" >&2
+    fi
+    if (( intended_status == 0 && cleanup_status != 0 )); then
+        intended_status=1
     fi
     exit "${intended_status}"
 }
@@ -165,6 +207,26 @@ mkdir -p "${ARTIFACT_ROOT}" "${CONSUMER_ROOT}"
 export_candidate "${DEFAULT_ROOT}"
 export_candidate "${LATEST_ROOT}"
 export_candidate "${LOWEST_ROOT}"
+# Only native runtime identity varies from the exact archived candidate. Each lane
+# is its own canonical repository, so qualify a unique project before any Docker use.
+for target in "${DEFAULT_ROOT}" "${LATEST_ROOT}" "${LOWEST_ROOT}"; do
+    python3 - "${target}" <<'PY'
+import hashlib
+import json
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+path = root / 'etc/local-tooling.json'
+config = json.loads(path.read_text())
+config['project'] = 'fight-common-release-' + hashlib.sha256(str(root).encode()).hexdigest()[:16]
+path.write_text(json.dumps(config, indent=2) + '\n')
+print(str(root) + '\t' + config['project'])
+PY
+    LANES+=("${target}")
+done > "${WORKSPACE}/lane-projects.tsv"
+run_step 'prepare-certifier-image' './bin/up --worktree selected --build-only' \
+    "${ROOT_DIR}" "${WORKSPACE}/prepare-image.log" ./bin/up --worktree "${ROOT_DIR}" --build-only
+PHP_IMAGE="${PHP_IMAGE:-$(./bin/runtime image-name php)}"
 run_step \
     'default-dependency-resolution' \
     'composer update' \
@@ -295,6 +357,7 @@ run_step \
 
 STAGED_HANDOFF="${WORKSPACE}/handoff"
 mkdir -p "${STAGED_HANDOFF}"
+cp "${WORKSPACE}/lane-projects.tsv" "${STAGED_HANDOFF}/"
 cp "${ARCHIVE}" "${STAGED_HANDOFF}/"
 "${DOCKER_BIN}" container run --rm \
     -v "${DEFAULT_ROOT}:/source:ro" \

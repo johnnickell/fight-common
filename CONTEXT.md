@@ -768,18 +768,15 @@ umask must not make that root-owned image configuration unreadable to the non-ro
 loses the intended coverage mode and 512 MiB memory setting. No host trust, global settings or runtime protections
 are changed.
 
-`bin/build` and complete `bin/phpunit` own isolated MySQL/PostgreSQL fixtures through
-`bin/.disposable-database-runtime` and its Python lifecycle. Creation intent, returned IDs and image-declared
-anonymous mounts are saved privately before starting databases. Allocation uncertainty is saved before each
-create; returned IDs and complete creator observations are durable before fallible image/volume inspection.
-Cleanup establishes exact coverage of every original creator mount before removing any creator. An interrupted
-capture resumes only against that same still-present fingerprinted creator and its original mounts; missing
-identity/authority or a lost return value holds all destructive effects. Original receipts/failed attempts remain,
-not rewritten into success or recovered by names. EXIT/INT/TERM cleanup normally stops exact owned
-containers, removes them without force, then separately qualifies volumes against all consumers (including
-stopped containers) and verifies absence. Cleanup failure makes an otherwise successful caller fail; an earlier
-workload failure retains its original nonzero exit. Images/shared builder caches are accounted for and retained,
-not deleted by workload association. No global prune or shared service shutdown is used.
+`bin/build` and `bin/phpunit` use the selected checkout's native Compose PHP, MySQL and PostgreSQL
+services. Follow [local tooling](docs/engineering/LOCAL_TOOLING.md) for explicit startup, freshly checked
+planning, application-evidence reuse and Docker-first guarded removal. MySQL/PostgreSQL fixture storage in
+isolated stacks is disposable; main data and unrelated consumers are preserved. `bin/down --worktree` retires
+only the selected project's qualified runtime. No global prune or shared-service shutdown is used.
+
+Historical per-run database receipts remain supported for recovery by the retained Python lifecycle below;
+new builds do not create per-run database containers or invoke the removed shell lifecycle. The local down
+adapter qualifies legacy receipts for the exact selected creator checkout before native stack teardown.
 
 Receipts default to the Git-common-directory parent’s ignored `.runs/database-runs/`, outside linked worktrees.
 `FIGHT_COMMON_DATABASE_RECEIPT_DIR` may select another private retained evidence directory before creation.

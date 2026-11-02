@@ -43,11 +43,11 @@ git pull --ff-only
 git switch -c feature/task-NNNNN-short-description
 ```
 
-For coordinated or concurrent work, use a linked checkout under the repository's ignored run area:
+For coordinated or concurrent work, use a linked checkout outside the repository's ignored run area:
 
 ```bash
 git worktree add -b feature/task-NNNNN-short-description \
-  .runs/worktrees/short-description develop
+  ../.worktrees/fight-common-short-description develop
 ```
 
 Run every command from the selected checkout. Keep investigation notes in `.runs/notes/`, reusable local handoffs
@@ -101,13 +101,16 @@ The canonical pre-submit gate is:
 ./bin/build
 ```
 
-It resolves and installs dependencies with `composer update`, validates the documentation artifact, provisions
-disposable MySQL and PostgreSQL services, and runs Composer validation, syntax checks, PHPCS, PHPStan, Deptrac,
-Rector's dry run, direct unit tests with exact statement coverage, integration tests, functional tests, and planning
-integrity. This library ignores `composer.lock`; every full build resolves its supported dependency constraints
-instead of reusing a stale local lock. A focused run provides iteration feedback; implementation completion requires
-the full gate. Documentation-only follow-ups may retain a verified earlier full pass with input-equivalence evidence
-and current targeted checks under `docs/engineering/standards/Testing.md`.
+It validates planning freshly and prepares dependencies with `composer update` on every invocation. It can
+reuse a verified successful application receipt only when source, dependencies, instructions, runtime,
+owned fixture data, artifacts and original evidence still match. Use `./bin/build --force` for deliberate fresh
+execution. See `docs/engineering/LOCAL_TOOLING.md` in the source checkout for startup and guarded teardown.
+
+On a cache miss the complete gate validates the documentation artifact and runs Composer validation, syntax
+checks, PHPCS, PHPStan, Deptrac, Rector's dry run, direct unit tests with exact statement coverage, integration
+tests and functional tests against this checkout's disposable MySQL/PostgreSQL services. This library ignores
+`composer.lock`; preparation resolves its supported constraints instead of reusing a stale local lock. Focused
+checks provide iteration feedback; report fresh planning separately from any reused application receipt.
 
 Hosted CI runs the same `./bin/build` command in the runner's Docker environment. Its result is separate hosted
 delivery evidence for the checked-out SHA, not a second dependency or quality lane. The workflow is **work → local
@@ -260,7 +263,7 @@ Use the pinned documentation runtime:
 ./bin/docs validate
 ```
 
-`preview` serves the local site at `127.0.0.1:8000`. `build` creates the disposable, ignored `site/` artifact.
+`preview` allocates a loopback port by default; set `FIGHT_COMMON_DOCS_PORT` for an explicit port and inspect the selected project with `./bin/runtime docker ps`. `build` creates the disposable, ignored `site/` artifact.
 `validate` performs the strict render and current artifact checks. Review changed routes in the supported viewport
 and color-scheme combinations before treating the documentation as accepted.
 
