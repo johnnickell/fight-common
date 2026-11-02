@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**

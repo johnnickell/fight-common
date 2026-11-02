@@ -60,6 +60,14 @@ method/Tool names, safe output schemas, stored table names, retention, current a
 post-commit ordering and documented failure/recovery guarantees are unchanged. A namespace move does not grant
 access or guarantee delivery/execution. Existing persisted development snapshots are not a supported migration format.
 
+## Internal metadata grammar homes
+
+The untagged `McpTraceContextGrammar` and `McpImplementationInfoGrammar` implementation details live directly in
+`Application\Mcp\Protocol`. Their short names and grammar behavior are unchanged; no old root aliases,
+deprecations or public validator promises are added. Released public `Application\Mcp\McpRequestMetadata` and
+all other released foundation declarations remain at their current names. TASK-00181 owns their future
+compatibility-preserving migration; this internal correction does not implement that broader map.
+
 ## Released names and legacy AI operations
 
 The [nine released HTTP adapter names](components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)

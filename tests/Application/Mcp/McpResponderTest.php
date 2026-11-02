@@ -6,7 +6,6 @@ namespace Fight\Test\Common\Application\Mcp;
 
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpImplementationInfoGrammar;
 use Fight\Common\Application\Mcp\McpJsonResponse;
 use Fight\Common\Application\Mcp\McpMetadataAwareCapability;
 use Fight\Common\Application\Mcp\McpMirrorDeclaration;
@@ -18,7 +17,8 @@ use Fight\Common\Application\Mcp\McpRequestMetadata;
 use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\McpResult;
 use Fight\Common\Application\Mcp\McpServerInfo;
-use Fight\Common\Application\Mcp\McpTraceContextGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;

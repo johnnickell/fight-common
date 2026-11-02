@@ -71,10 +71,13 @@ result or protocol error. It does not create a PSR response, choose an endpoint,
 principal, or make an authorization decision.
 
 `McpRequestMetadata::fromObject()` constructs the same immutable protocol context in one operation. Its internal
-`McpTraceContextGrammar` owns present traceparent/tracestate/baggage syntax; internal
-`McpImplementationInfoGrammar` owns implementation descriptor fields and their website/icon URI, MIME,
-percent-encoding and Base64 rules. Neither collaborator is a consumer validator API or an additional composition
-step. This extraction preserves accepted/rejected inputs, open objects and schema-permitted empty strings;
+`Protocol\McpTraceContextGrammar` owns present traceparent/tracestate/baggage syntax; internal
+`Protocol\McpImplementationInfoGrammar` owns implementation descriptor fields and their website/icon URI, MIME,
+percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
+as untagged internals, without root aliases or deprecations. Released public `McpRequestMetadata` and the other
+foundation declarations retain their current names pending TASK-00181's compatibility-preserving migration.
+Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
+accepted/rejected inputs, open objects and schema-permitted empty strings;
 metadata remains neither credentials nor authorization. Decoder byte/depth limits and usable error IDs remain
 with the decoder, and unexpected-failure diagnostics remain with the responder or guarded HTTP boundary.
 

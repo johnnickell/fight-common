@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Mcp;
+namespace Fight\Common\Application\Mcp\Protocol;
 
 /**
  * Class McpTraceContextGrammar
