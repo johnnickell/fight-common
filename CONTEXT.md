@@ -313,7 +313,17 @@ Guarded get/update/cancel mirror Mcp-Name to taskId and retain independent suppl
 loss does not request durable cancellation; workers/submission/external-effect reconciliation remain consumer-owned.
 Optional live Task delivery is explicitly composed through the same `McpTasks` instance and guarded subscription stream.
 `notifications.taskIds` accepts at most 16 finite requested identities with fresh signal and shared Task-read/whole-state
-permission. Acknowledgment precedes a current full DetailedTask baseline, including already-terminal state; subsequent
+permission. Task live composition additionally requires the neutral consumer-implemented `McpTaskDisclosureGuard`:
+it synchronizes fresh identity/credential, independent signal/Task/whole-state/field grants and application scope with
+every relevant writer through one bounded protected byte handoff. Common owns no auth policy or AccessControl types.
+The guard receives the exact proposed complete state(s), not a cached allow; unsupported synchronization denies.
+Common checks authoritative owner readiness after sourcing/guard admission, inside that action. Its Fiber pauses
+before guarded work; native echo/flush runs synchronously under protection, with no yield/queued bytes substituting
+for disclosure. Small explicit PSR reads re-source/re-guard every fragment and stop on a changed frame. Consumer
+buffering is not permission for a later network write. No guard spans stream lifetime/idle waits; finite lock/SQL/SAPI
+timeouts, writer participation and snapshot/scope eligibility remain consumer-qualified. No atomic network receipt,
+retraction or whole-stream authorization lease is promised. Acknowledgment precedes a current full DetailedTask
+baseline, including already-terminal state; subsequent
 bounded Queries observe independent producers without notice capture, replay or a protected snapshot queue. Task-only
 streams need no retained-notice recovery. Full state never enters notices, Mercure or subscriber storage. Unsafe
 permission/availability/source/tracking/frame changes close the whole stream without successful completion.
@@ -383,7 +393,10 @@ consumer worker/SQL/SAPI/proxy timeouts remain necessary because PHP cannot pree
 must pass fresh cancellation/deadline and independent five-second tracking checks before new output. Owner-bound
 tracking is revalidated after admission, without reviving expired ownership or caching permission. Opening then
 rechecks the complete accepted subset after final tracking, with no later consumer callback before acknowledgment;
-changed permission closes without acknowledgment. Local freshness/cancellation/deadline checks still apply, and even
+changed permission closes without acknowledgment. Task full-state/accepted-ID disclosure uses the additional
+[guarded boundary](docs/mcp-task-live.md#guarded-disclosure-boundary), not a Boolean alone: post-source authoritative
+readiness rejects native close/cleanup before new bytes. A later technical close can race an already admitted write;
+tracking is not atomic network delivery. Local freshness/cancellation/deadline checks still apply, and even
 a returned store callback cannot make an already elapsed lease healthy. DBAL renewal advances the invocation-supplied clock
 by elapsed host wall-clock seconds after acquiring the capacity lock, checks old expiry at that serialized boundary
 and keeps the proposed expiry unchanged; lock waits cannot resurrect ownership. Supplied epochs remain supported

@@ -11,8 +11,8 @@ correlation and completion. This is package support, not qualification of deploy
 ## Composition and authority
 
 Compose the complete Tasks capability and Tool invoker as in [MCP Tasks](mcp-tasks.md). Pass that **same** `$tasks`
-instance as the optional trailing `tasks:` collaborator of `McpSubscriptions`, then pass the subscriptions to the
-registry's third argument. For Task-only composition:
+instance as the optional `tasks:` collaborator of `McpSubscriptions`, together with the required consumer-implemented
+`taskDisclosure:` guard, then pass the subscriptions to the registry's third argument. For Task-only composition:
 
 ```php
 $subscriptions = new McpSubscriptions(
@@ -23,7 +23,8 @@ $subscriptions = new McpSubscriptions(
     tools: false,
     resources: false,
     maxFrameBytes: 65536,
-    tasks: $tasks
+    tasks: $tasks,
+    taskDisclosure: $taskDisclosureGuard
 );
 $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
 ```
@@ -47,7 +48,9 @@ signal/ID at opening and each disclosure. The existing `$uri` argument carries t
 there is no Resource read. Fresh `TaskReadAdmission::allowsRead()` and `TaskPayloadPolicy::mayDisclose()` additionally
 protect complete state and individual input/result/error/status fields through the shared Query. General notices,
 Tool/catalog permission, recipients, a previous get, an acknowledgment or a privilege label grant none of these.
-All callbacks must be bounded and use current trusted request context. No transaction spans stream/network waits.
+All callbacks must be bounded and use current trusted request context. Their Boolean results alone cannot authorize
+later bytes. Task live composition requires the neutral `McpTaskDisclosureGuard` contract below; there is no allow-all
+default. Common defines no identity, user, role or Permission policy and imports no AccessControl types.
 
 `TaskReadAdmission::comparisonScope(scope, id)` is a required **trusted visibility context**, not a permission:
 return a stable bounded reference (the ordinary 1–96 ASCII reference contract) binding caller, scope and visibility
@@ -57,6 +60,59 @@ never reuse an old epoch. Consumers own policy-epoch durability and detecting th
 unknown, fail comparison/read safely instead of inventing a stable scope or sharing another caller's context.
 The returned reference itself is never disclosed. Get checks current read and whole-state disclosure again after
 source, validation, projection, clock and comparison-context work; opening never freezes authority.
+
+## Guarded disclosure boundary
+
+`McpTaskDisclosureGuard::run(string $subscriber, array $states, Closure $disclose): void` receives trusted subscriber
+context and an exact Task-ID-to-complete-DetailedTask map. This map is proposed protected data, **not authority**.
+At opening it contains all finally accepted Task states, so no earlier member's grant can be invalidated by a later
+member's sourcing. For each baseline/update it contains one state. Preserve separate current signal, Task-read,
+whole-state and individual status/input/result/error/revision eligibility; never infer one from another.
+
+The consumer must synchronize current original identity/credential, applicable Permissions and application-owned
+Task relationships/scope with **every relevant writer** through the supplied synchronous bounded action. The guard
+must freshly approve each exact proposed state, including its visibility epoch and protected fields, or throw before
+calling the action. Do not authorize a previously eligible snapshot under a newly incompatible scope. Reads must be
+authoritative, not a cached principal/Boolean/check result. Coordinate concurrent **and reentrant** authority writes:
+writers winning before acquisition affect admission; conflicting writes during it wait/reject until release; writers
+after release affect the next disclosure. An unrelated reader lock is insufficient. An unsupported authority/scope
+participant makes that composition unsupported, not allowed. Common cannot verify that a trusted port tells the truth.
+
+Common prepares the coherent shared Query/projection before acquiring this guard. It then invokes the final
+owner-bound tracking heartbeat **inside** the admitted action, checks returned freshness/cancellation/deadline and
+encodes/measures the complete frame before handing bytes off. Thus owner close/cleanup during sourcing or guard
+admission prevents new output. Tracking never grants permission. A tracking implementation must not mutate protected
+authority outside the consumer's qualified synchronization. Tracking remains a short dedicated transaction; no
+tracking/Task transaction or authorization fence spans stream lifetime, idle waits or a scheduling pause. A concurrent
+technical close *after* that final serialized readiness check may race the already admitted write; tracking is an
+observation, not atomic network delivery. Every subsequent disclosure checks again.
+
+The existing Fiber pauses **before** this guarded operation, with no protected bytes or allow cached across that pause.
+The actual native `McpResponseEmitter` calls the operation with its synchronous **echo + flush** sink; neither queuing a
+frame nor `Fiber::suspend()` is the protected action. The guard remains held until that bounded write/flush returns or
+throws, then releases before the producer resumes or waits. Symfony/Laravel/CodeIgniter/Slim/Yii use that same emitter.
+Consumers must qualify finite SQL/lock/SAPI write timeouts and buffering/backpressure: PHP cannot preempt blocked I/O.
+This is admission to the SAPI byte handoff, **not** atomic TCP delivery, client receipt, processing or retraction.
+
+Explicit PSR `read(n)` instead admits the byte handoff into that caller's buffer, not its future network write.
+Each fragment re-sources and re-guards; only an offset/SHA-256 frame identity survives. A changed projection stops
+rather than splicing versions. A lifetime/work-budget interruption after a fragment fails without appending a
+successful completion to that incomplete frame. Revocation can leave an already delivered partial frame, never
+retract its prefix.
+`getContents()`/string conversion is explicit consumer buffering, not live authorization for a later write. Do not
+replace the native emitter with a generic read-then-send emitter and claim the same protected network boundary.
+
+Invoke the action exactly once synchronously on its calling Fiber, never save, retry, defer, yield or merely enqueue it.
+Common rejects omitted/repeated/late/foreign-Fiber actions; a broken guard may already have admitted the first write
+before a subsequent fault. Throwables go to the existing private diagnostic/closure owner; exceptions cannot prove no
+bytes were handed off or undo an effect. No silent retries, permission lease or graceful success after a fault.
+
+This seam is compatible with composing a consumer's synchronized bounded-action guard (for example AccessControl's
+`AgentContinuationGuard::run`) around `$disclose`, with exact trusted requirement/scope association and complete
+snapshot eligibility in that guard's scope checks. AccessControl owns credential/Permission checking; the application
+owns Task relationships, field policy, writer synchronization and wiring. This is an integration contract, not shipped
+AccessControl adoption, a Common authorization engine or a mandatory production consumer deployment gate. Controlled
+consumer fixtures prove package conformance; real locks/authorities/proxies require separate consumer qualification.
 
 ## Wire and finite filters
 
@@ -76,8 +132,9 @@ Mixed filters retain generic validation; malformed input never silently drops on
 The first successful frame is `notifications/subscriptions/acknowledged`, listing only supported, requested,
 currently readable and independently signal-permitted IDs. Missing/denied/expired/withheld identities are omitted
 identically, without reasons/counts/private diagnostics. Empty accepted objects reveal no absence cause. Full acceptance
-is checked again after final tracking callbacks; changed acceptance prevents acknowledgment. Task bodies are not queued
-by filter acceptance. After acknowledgment, fetch a fresh full-state baseline, **including already-terminal Tasks**,
+is checked again at final preparation; changed acceptance prevents acknowledgment. The complete proposed accepted
+set then passes guarded disclosure and final owned readiness; a source-side revocation cannot escape in acknowledgment.
+Task bodies never enter technical tracking or an asynchronous output queue. After acknowledgment, fetch a fresh full-state baseline, **including already-terminal Tasks**,
 then follow current state. Changes during opening/acknowledgment/baseline are therefore observed by the next Query.
 
 Every Task frame is `notifications/tasks` with the **flat DetailedTask** as params, not the tasks/get envelope and
@@ -147,10 +204,14 @@ producer expected-version, notice continuation, Workflow state nor acknowledgmen
 
 ## Bounded observation, failure and recovery
 
-- At most **16 accepted IDs**. Each cycle has at most one current shared Query per accepted ID; opening performs
-  up to three complete acceptance passes. Every disclosure checks signal permission and the shared Query **after**
-  owner renewal. There is no protected snapshot queue across tracking or write/flush pauses. Only the last revision
-  per ID is remembered, never full bodies. Intermediate changes may be coalesced. No every-update/replay promise.
+- At most **16 accepted IDs**. A normal native cycle uses one current shared Query per accepted ID; opening performs
+  up to three complete acceptance passes. Final preparation temporarily holds at most 16 bounded complete views for
+  the opening guard (each sourced from the existing 32,768-byte state/40,960-byte retained-row bounds); later delivery
+  holds one view/frame. No protected snapshot or permission survives a scheduling/write/flush pause. Only the last
+  revision per ID and, for small explicit PSR reads, one frame digest/offset persist. Each fragment incurs fresh
+  bounded Query/admission work and consumes the work/deadline budget. Intermediate changes may be coalesced; no
+  every-update/replay promise. Duplicate-state observations still pass the current guard/readiness boundary;
+  coalescing suppresses bytes, never revocation/fault checks or a safe failure before lifetime completion.
 - Existing defaults: **30-second** lifetime (1–120), **200,000-microsecond** wait (10,000–1,000,000), and at most
   **12,000 work checks**. For 16 IDs, cancellation/deadline is checked between IDs; callbacks consume the finite
   lifetime. The hard check count bounds Task Queries to fewer than 12,000 per stream (plus at most 48 opening
@@ -181,10 +242,12 @@ sent bytes cannot be recalled. Paused-client proof is not saturated-kernel/insta
 
 ## Compatibility and evidence
 
-No new production declaration, endpoint, dependency, event, publisher, store or table is added. Existing provisional
+One new public consumer-implementable interface, `McpTaskDisclosureGuard`, and two internal delivery/action helpers
+are added. No endpoint, dependency, event, publisher, store or table is added. Existing provisional
 Task row schema one directly gains incarnation/public counter, and provisional `TaskReadAdmission` gains required
 `comparisonScope()`. Existing Task/TaskInputs methods and McpTasks revision/current projection are directly extended;
-McpSubscriptions gains optional trailing Tasks and its accessor; generic admission/store/inspection formats remain.
+McpSubscriptions gains optional trailing Tasks, its accessor and the paired required disclosure guard when Tasks
+are enabled; generic admission/store/inspection formats remain.
 No development-snapshot aliases/migrations are supplied. Compatibility is against released tags through v1.4.0:
 all Task/subscription additions are opt-in and unreleased. Existing CQRS signatures, ordinary Tool/interactive return
 contracts, direct JSON, Tool progress and canonical/legacy native adapters remain. The compatibility manifest retains
@@ -194,6 +257,10 @@ DBAL 4.4/current public APIs and the four scoped internal-schema diagnostics rem
 `TaskRevisionTest` and `McpTaskSubscriptionsTest` qualify equal timestamps, expiry (including a failing-then-repaired independent-clock collision regression),
 hidden mutations, visibility scopes, exhaustion/rollback, baseline/read/live/reconnect races, coalescing, complete supplier projections, immediate revocation,
 tracking/source/transport faults, exact/over escaped final frames and cancellation at each disclosure boundary.
+Regression-first REV-01/REV-02 cases revoke signal or perform real native owner close/close+cleanup during the final
+opening Query, baseline and update. Guard conformance additionally exercises complete multi-ID admission, fresh whole-
+state/field denial, before/during/after-writer schedules, omission/deferred/repeated/foreign-Fiber actions, action faults,
+fragmented reads and exact in-guard native byte handoff.
 `McpTaskLiveJourneyTest` uses actual raw-socket HTTP and independent producer PHP processes on real SQLite/MySQL/
 PostgreSQL: simultaneous typed reused IDs, complete real confirmation/partial answers, cancellation intent and terminal
 Tool-error/JSON-RPC-error/cancelled outcomes, reconnect, source/tracking/payload revocation, disappearance, idle closure,

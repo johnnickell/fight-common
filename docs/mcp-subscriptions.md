@@ -45,8 +45,9 @@ Separate opt-in
    `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
    at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
-   Optional trailing `tasks: $tasks` requires the same complete Task capability; Task-only composition disables Tools/
-   Resources and needs no retained-notice Query. See [Task composition](mcp-task-live.md#composition-and-authority).
+   Optional `tasks: $tasks` requires the same complete Task capability **and** a consumer-implemented
+   `taskDisclosure: $taskDisclosureGuard`; no Boolean-only/allow-all default is supplied. Task-only composition disables
+   Tools/Resources and needs no retained-notice Query. See [Task composition](mcp-task-live.md#composition-and-authority).
    Existing serving capabilities continue to declare their ordinary false flags;
    the registry derives `tools.listChanged`, `resources.listChanged`, `resources.subscribe` and optional
    `prompts.listChanged` from this actual composition. Arbitrary true declarations, contradictory same-family metadata and
@@ -114,7 +115,7 @@ failures go only to the consumer redaction-aware `McpDiagnostics`. A broken diag
 ## Optional Prompt catalog signals
 
 Compose the actual [Prompt catalog/providers](mcp-prompts.md) in the same registry and set `prompts: true` on
-`McpSubscriptions`. The final optional constructor argument defaults to `false`; Tool/Resource settings and
+`McpSubscriptions`. The optional `prompts` constructor argument defaults to `false`; Tool/Resource settings and
 positional arguments are unchanged. Prompt-only support uses `tools: false, resources: false, prompts: true`.
 Missing serving capability rejects composition; disabled or absent Prompts are never advertised/acknowledged as
 notification support. Ordinary Prompt list/get needs no subscriptions, tracking, retained store or notification grant.
@@ -173,7 +174,9 @@ is validated again before acknowledgment or change output. Opening disclosure th
 subset after the final tracking callback; a changed subset closes without acknowledgment. Change disclosure likewise
 rechecks signal admission after tracking. Both retain local freshness, cancellation and deadline checks, with no
 further consumer callback before framing/emission; technical renewal never grants or caches permission.
-Previously sent bytes cannot be retracted.
+Previously sent bytes cannot be retracted. These notice-signal checks are not the full-state Task admission
+contract: [Task disclosure](mcp-task-live.md#guarded-disclosure-boundary) requires synchronized current consumer
+check-and-action through the actual byte handoff, plus post-source authoritative tracking readiness.
 
 Stream failure **never removes retained notices**. Reconnect creates a new independent registration and acknowledgment,
 not replay. Use `notices.recover` or the shared recovery Query with its independent current authorization and qualified
@@ -239,7 +242,10 @@ neither advances the read position nor retracts bytes returned by earlier reads.
 ## Live/native runtime qualification
 
 The existing single-use `McpEventStream` now drives either Tool execution or subscription execution; no adapter
-falls back to string-casting a subscription. `McpResponseEmitter` consumes frames through write/flush. Symfony and
+falls back to string-casting a subscription. `McpResponseEmitter` consumes frames through write/flush. Protected Task operations are scheduled before admission,
+then execute their final guard/readiness and synchronous write/flush together; no Fiber yield enqueues authorized
+bytes for a later send. Explicit buffering/PSR reads admit only their own in-process byte handoff, not a future network
+write. See [precise Task admission and backpressure limits](mcp-task-live.md#guarded-disclosure-boundary). Symfony and
 Laravel share native `StreamedResponse`; CodeIgniter retains the original body for its native send phase; Yii and
 Slim use the shared PSR emitter. Keep output buffering and zlib compression **disabled**, and do not attach
 Content-Length/Content-Encoding. Unsupported buffering is rejected before production. Casting/`getContents()` is

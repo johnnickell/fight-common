@@ -8,6 +8,7 @@ use Fiber;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptionDelivery;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Tool\McpToolExecution;
 use Psr\Http\Message\StreamInterface;
@@ -27,8 +28,10 @@ final class McpEventStream implements StreamInterface
     private readonly Fiber $producer;
     private readonly McpToolExecution|McpSubscriptionExecution $execution;
     private string $pending = '';
+    private ?McpSubscriptionDelivery $delivery = null;
     private int $position = 0;
     private bool $closed = false;
+    private bool $delivering = false;
 
     /**
      * Constructs McpEventStream
@@ -44,7 +47,10 @@ final class McpEventStream implements StreamInterface
             $this->producer = new Fiber(fn() => $subscription->run(function (string $frame): void {
                 $this->pending = $frame;
                 Fiber::suspend();
-            }, $diagnostics));
+            }, $diagnostics, function (McpSubscriptionDelivery $delivery): void {
+                $this->delivery = $delivery;
+                Fiber::suspend();
+            }));
 
             return;
         }
@@ -63,8 +69,9 @@ final class McpEventStream implements StreamInterface
     {
         $this->closed = true;
         $this->pending = '';
+        $this->delivery = null;
         $this->execution->cancel();
-        if ($this->producer->isSuspended()) {
+        if (!$this->delivering && $this->producer->isSuspended()) {
             $this->producer->resume();
         }
     }
@@ -100,7 +107,8 @@ final class McpEventStream implements StreamInterface
      */
     public function eof(): bool
     {
-        return $this->closed || ($this->pending === '' && $this->producer->isTerminated());
+        return $this->closed
+            || ($this->pending === '' && $this->delivery === null && $this->producer->isTerminated());
     }
 
     /**
@@ -164,8 +172,23 @@ final class McpEventStream implements StreamInterface
             return '';
         }
 
-        if ($this->pending === '') {
+        if ($this->pending === '' && $this->delivery === null) {
             $this->produce();
+        }
+
+        if ($this->delivery !== null) {
+            $chunk = '';
+            $this->sendDelivery(function (string $bytes) use (&$chunk): void {
+                if (!$this->closed) {
+                    $chunk = $bytes;
+                    $this->position += strlen($bytes);
+                }
+            }, $length);
+            if ($chunk === '' && !$this->eof()) {
+                return $this->read($length);
+            }
+
+            return $chunk;
         }
 
         // Consumer callbacks may close this body while start/resume is still on the read stack.
@@ -180,6 +203,37 @@ final class McpEventStream implements StreamInterface
         $this->position += strlen($chunk);
 
         return $chunk;
+    }
+
+    /**
+     * Sends one bounded native write directly inside any Task guard without a queued-byte or Fiber-yield gap
+     *
+     * @phpstan-param callable(string): void $emit
+     */
+    public function emitNext(callable $emit): void
+    {
+        if ($this->closed || $this->eof()) {
+            return;
+        }
+
+        if ($this->pending === '' && $this->delivery === null) {
+            $this->produce();
+        }
+
+        if ($this->delivery !== null) {
+            $this->sendDelivery(function (string $bytes) use ($emit): void {
+                if (!$this->closed) {
+                    $emit($bytes);
+                    $this->position += strlen($bytes);
+                }
+            }, 65536);
+
+            return;
+        }
+
+        if (!$this->closed) {
+            $emit($this->read(8192));
+        }
     }
 
     /**
@@ -205,6 +259,29 @@ final class McpEventStream implements StreamInterface
     public function getMetadata(?string $key = null): mixed
     {
         return $key === null ? [] : null;
+    }
+
+    /**
+     * Runs deferred protected work and returns faults to the execution's single safe reporting/closure owner
+     *
+     * @phpstan-param callable(string): void $emit
+     */
+    private function sendDelivery(callable $emit, int $length): void
+    {
+        $this->delivering = true;
+        try {
+            if ($this->delivery->send($emit, $length)) {
+                $this->delivery = null;
+            }
+        } catch (Throwable $throwable) {
+            $this->delivery = null;
+            $this->producer->throw($throwable);
+        } finally {
+            $this->delivering = false;
+            if ($this->closed && $this->producer->isSuspended()) {
+                $this->producer->resume();
+            }
+        }
     }
 
     /**

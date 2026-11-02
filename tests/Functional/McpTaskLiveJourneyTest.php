@@ -106,6 +106,34 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         $this->assertPrivateStorage();
     }
 
+    #[DataProvider('sourceRaces')]
+    public function test_that_native_http_source_races_deny_opening_baseline_and_update_after_revocation_or_owner_close(string $backend, string $fault, string $phase): void
+    {
+        $this->database($backend); $f = new TaskFixture($this->db); $f->create();
+        $server = $this->server();
+        $socket = $this->open($server, 'psr&fault='.$fault.'&phase='.$phase, ['taskIds' => [TaskFixture::ID]]);
+        if ($phase !== 'opening') { self::assertSame('notifications/subscriptions/acknowledged', $this->next($socket)['method']); }
+        if ($phase === 'update') {
+            self::assertSame('working', $this->next($socket)['params']['status']);
+            touch($this->directory.'/arm-fault'); $this->worker('failed');
+        }
+        self::assertSame([], $this->drain($socket), 'No new protected data or successful completion');
+        self::assertSame(0, (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0'));
+        $native = json_decode(file_get_contents(glob($this->directory.'/closed-*.json')[0]), true, flags: JSON_THROW_ON_ERROR);
+        self::assertTrue($native['faultTriggered']); self::assertTrue($native['guardReleased']); self::assertNotEmpty($native['diagnostics']);
+        self::assertSame($phase === 'update' ? 'failed' : 'working', $f->get()->get('state')->get('status'));
+        self::assertNull($f->cancellation()->get('cancellation')); $this->assertPrivateStorage();
+    }
+
+    public static function sourceRaces(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $db) {
+            foreach (['signal', 'close', 'cleanup'] as $fault) {
+                foreach (['opening', 'baseline', 'update'] as $phase) { yield $db.'-'.$fault.'-'.$phase => [$db, $fault, $phase]; }
+            }
+        }
+    }
+
     public static function compositions(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $db) { foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $db.'-'.$composition => [$db, $composition]; } } }
     public static function outcomes(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $db) { foreach (['failed', 'cancelled'] as $outcome) { yield $db.'-'.$outcome => [$db, $outcome]; } } }
     public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $db) { yield $db => [$db]; } }

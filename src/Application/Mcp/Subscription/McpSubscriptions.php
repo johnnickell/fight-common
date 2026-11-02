@@ -31,10 +31,12 @@ final readonly class McpSubscriptions
         private int $waitMicroseconds = 200000,
         private int $maxFrameBytes = 16384,
         private bool $prompts = false,
-        private ?McpTasks $tasks = null
+        private ?McpTasks $tasks = null,
+        private ?McpTaskDisclosureGuard $taskDisclosure = null
     ) {
         if (
-            (!$tools && !$resources && !$prompts && $tasks === null) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
+            (!$tools && !$resources && !$prompts && $tasks === null)
+            || (($tasks === null) !== ($taskDisclosure === null)) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
             || $waitMicroseconds < 10000 || $waitMicroseconds > 1000000
             || $maxFrameBytes < 256 || $maxFrameBytes > 65536
         ) {
@@ -81,7 +83,8 @@ final readonly class McpSubscriptions
             $this->lifetimeSeconds,
             $this->waitMicroseconds,
             $this->maxFrameBytes,
-            $this->tasks
+            $this->tasks,
+            $this->taskDisclosure
         );
     }
 }

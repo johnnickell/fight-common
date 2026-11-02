@@ -89,6 +89,7 @@ final readonly class McpSubscriptionFilter
      * Returns only enabled requested cases currently permitted for disclosure
      *
      * @phpstan-param list<string> $supported
+     * @phpstan-param array<string, array<string, mixed>> $states
      *
      * @return array<string, mixed>
      */
@@ -96,9 +97,11 @@ final readonly class McpSubscriptionFilter
         array $supported,
         McpSubscriptionAdmission $admission,
         string $subscriber,
-        ?McpTasks $tasks = null
+        ?McpTasks $tasks = null,
+        array &$states = []
     ): array {
         $accepted = [];
+        $states = [];
         foreach ($this->values as $filter => $value) {
             if (!in_array($filter, $supported, true)) {
                 continue;
@@ -107,8 +110,20 @@ final readonly class McpSubscriptionFilter
             if ($filter === 'taskIds') {
                 $ids = array_values(array_filter(
                     $value,
-                    static fn (string $id): bool => $admission->allows($subscriber, $filter, $id, null)
-                        && $tasks?->current($id) !== null
+                    static function (string $id) use ($admission, $subscriber, $filter, $tasks, &$states): bool {
+                        if (!$admission->allows($subscriber, $filter, $id, null)) {
+                            return false;
+                        }
+
+                        $state = $tasks?->current($id);
+                        if ($state === null) {
+                            return false;
+                        }
+
+                        $states[$id] = $state;
+
+                        return true;
+                    }
                 ));
                 if ($ids !== []) {
                     $accepted[$filter] = $ids;
