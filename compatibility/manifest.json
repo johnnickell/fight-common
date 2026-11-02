@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "d4774b9c9c3b0256aca9efa3c3195b8d1ae6d641225dbd8d3f31386cb6e3d54c",
+    "operation_shapes_sha256": "d1830bf0daac6f052cb7e2876ee48759f5a1a48b41cbcddf5b498daa3f8065fb",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 406,
+            "declarations": 408,
             "functions": 0
         },
         "Adapter": {
@@ -2567,6 +2567,32 @@
                         }
                     }
                 }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpImplementationInfoGrammar",
+            "source": "src/Application/Mcp/McpImplementationInfoGrammar.php",
+            "layer": "Application", "kind": "class", "classification": "internal",
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "TASK-00178 extracts implementation descriptor and icon URI/MIME/encoding syntax without creating a consumer validator API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal grammar."}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal grammar."}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal grammar."}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete internal grammar."}}
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Mcp\\McpTraceContextGrammar",
+            "source": "src/Application/Mcp/McpTraceContextGrammar.php",
+            "layer": "Application", "kind": "class", "classification": "internal",
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "TASK-00178 extracts reserved trace-context and baggage syntax without creating a consumer validator or trust API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal grammar."}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal grammar."}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal grammar."}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete internal grammar."}}
             }
         },
         {

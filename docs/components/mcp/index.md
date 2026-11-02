@@ -70,6 +70,14 @@ retains bounded per-request MCP metadata, validates the protocol version, and pr
 result or protocol error. It does not create a PSR response, choose an endpoint, authenticate a caller, resolve a
 principal, or make an authorization decision.
 
+`McpRequestMetadata::fromObject()` constructs the same immutable protocol context in one operation. Its internal
+`McpTraceContextGrammar` owns present traceparent/tracestate/baggage syntax; internal
+`McpImplementationInfoGrammar` owns implementation descriptor fields and their website/icon URI, MIME,
+percent-encoding and Base64 rules. Neither collaborator is a consumer validator API or an additional composition
+step. This extraction preserves accepted/rejected inputs, open objects and schema-permitted empty strings;
+metadata remains neither credentials nor authorization. Decoder byte/depth limits and usable error IDs remain
+with the decoder, and unexpected-failure diagnostics remain with the responder or guarded HTTP boundary.
+
 The consumer supplies `McpServerInfo` and one or more explicit `McpCapability` implementations through
 `McpCapabilityRegistry`. Each capability owns its methods, advertised metadata, outer-parameter validation, and
 handling. The registry rejects missing identity, capabilities without owned methods, duplicate method ownership,
