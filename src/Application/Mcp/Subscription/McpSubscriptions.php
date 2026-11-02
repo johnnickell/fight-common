@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Subscription;
 
 use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
@@ -29,10 +30,11 @@ final readonly class McpSubscriptions
         private int $lifetimeSeconds = 30,
         private int $waitMicroseconds = 200000,
         private int $maxFrameBytes = 16384,
-        private bool $prompts = false
+        private bool $prompts = false,
+        private ?McpTasks $tasks = null
     ) {
         if (
-            (!$tools && !$resources && !$prompts) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
+            (!$tools && !$resources && !$prompts && $tasks === null) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
             || $waitMicroseconds < 10000 || $waitMicroseconds > 1000000
             || $maxFrameBytes < 256 || $maxFrameBytes > 65536
         ) {
@@ -43,15 +45,24 @@ final readonly class McpSubscriptions
     /**
      * Returns only actually implemented notification families
      *
-     * @return list<'toolsListChanged'|'resourcesListChanged'|'resourceSubscriptions'|'promptsListChanged'>
+     * @return list<'toolsListChanged'|'resourcesListChanged'|'resourceSubscriptions'|'promptsListChanged'|'taskIds'>
      */
     public function supported(): array
     {
         return [
             ...($this->tools ? ['toolsListChanged'] : []),
             ...($this->resources ? ['resourcesListChanged', 'resourceSubscriptions'] : []),
-            ...($this->prompts ? ['promptsListChanged'] : [])
+            ...($this->prompts ? ['promptsListChanged'] : []),
+            ...($this->tasks !== null ? ['taskIds'] : [])
         ];
+    }
+
+    /**
+     * Returns the identically bound ordinary Task capability, never an alternate policy or store
+     */
+    public function tasks(): ?McpTasks
+    {
+        return $this->tasks;
     }
 
     /**
@@ -69,7 +80,8 @@ final readonly class McpSubscriptions
             $this->selection,
             $this->lifetimeSeconds,
             $this->waitMicroseconds,
-            $this->maxFrameBytes
+            $this->maxFrameBytes,
+            $this->tasks
         );
     }
 }

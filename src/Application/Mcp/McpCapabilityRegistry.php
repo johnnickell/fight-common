@@ -100,6 +100,14 @@ final readonly class McpCapabilityRegistry
         $this->validateSubscriptionCapabilityFlags($advertisedCapabilities);
         if ($this->subscriptions !== null) {
             foreach ($this->subscriptions->supported() as $filter) {
+                if ($filter === 'taskIds') {
+                    if ($this->subscriptions->tasks() !== ($capabilitiesByMethod['tasks/get'] ?? null)) {
+                        throw new DomainException('Task notifications require the same complete Task capability.');
+                    }
+
+                    continue;
+                }
+
                 [$family, $property] = match ($filter) {
                     'toolsListChanged' => ['tools', 'listChanged'],
                     'promptsListChanged' => ['prompts', 'listChanged'],

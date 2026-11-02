@@ -964,8 +964,10 @@ Explicit [MCP Tasks serving](../../mcp-tasks.md) composes negotiated Tool start,
 current-state polling, input and cancellation on this same guarded endpoint. Its additive `McpTaskTool::start()`
 entry preserves ordinary `McpTool::handle()` and interactive resume contracts. Creation is acknowledged only after
 shared protected Query reconstruction; independent producer work remains recoverable after connection loss.
-Complete composition, current permissions and final encoded bounds are mandatory. No worker, live Task stream,
-Subscriptions/Mercure dependency or deployed-client qualification is implied.
+Complete composition, current permissions and final encoded bounds are mandatory. Optional
+[live Task streams](../../mcp-task-live.md) reuse the same protected projection through `notifications.taskIds`, with
+state-bound privacy-safe revisions on get/live, acknowledgment-first baseline and current-state reconnect recovery.
+Polling/input/cancel remain independently usable. No worker, Mercure dependency or deployed-client qualification is implied.
 
 ## Request-scoped progress and cancellation
 

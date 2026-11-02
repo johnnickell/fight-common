@@ -7,6 +7,7 @@ namespace Fight\Common\Application\Mcp\Subscription;
 use Fight\Common\Application\Mcp\McpProtocolError;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Uri\Rfc3986\Uri;
 
@@ -37,7 +38,18 @@ final readonly class McpSubscriptionFilter
 
         $values = $value->properties();
         foreach ($values as $name => $item) {
-            if ($name === 'resourceSubscriptions') {
+            if ($name === 'taskIds') {
+                McpTasks::requireSupport($request);
+                if (
+                    !is_array($item) || !array_is_list($item) || count($item) > 16
+                    || !array_all($item, static fn ($id): bool => is_string($id)
+                        && preg_match('/\A[0-9a-f]{32}\z/D', $id) === 1)
+                ) {
+                    throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
+                }
+
+                $values[$name] = array_values(array_unique($item));
+            } elseif ($name === 'resourceSubscriptions') {
                 if (!is_array($item) || !array_is_list($item) || count($item) > 16) {
                     throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
                 }
@@ -80,15 +92,28 @@ final readonly class McpSubscriptionFilter
      *
      * @return array<string, mixed>
      */
-    public function accepted(array $supported, McpSubscriptionAdmission $admission, string $subscriber): array
-    {
+    public function accepted(
+        array $supported,
+        McpSubscriptionAdmission $admission,
+        string $subscriber,
+        ?McpTasks $tasks = null
+    ): array {
         $accepted = [];
         foreach ($this->values as $filter => $value) {
             if (!in_array($filter, $supported, true)) {
                 continue;
             }
 
-            if ($filter === 'resourceSubscriptions') {
+            if ($filter === 'taskIds') {
+                $ids = array_values(array_filter(
+                    $value,
+                    static fn (string $id): bool => $admission->allows($subscriber, $filter, $id, null)
+                        && $tasks?->current($id) !== null
+                ));
+                if ($ids !== []) {
+                    $accepted[$filter] = $ids;
+                }
+            } elseif ($filter === 'resourceSubscriptions') {
                 $uris = array_values(array_filter(
                     $value,
                     static fn (string $uri): bool => $admission->allows($subscriber, $filter, $uri, null)

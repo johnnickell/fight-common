@@ -3,8 +3,10 @@
 Explicit `Application\Mcp\Subscription\McpSubscriptions` composition enables MCP `2026-07-28`
 [`subscriptions/listen`](https://modelcontextprotocol.io/specification/2026-07-28/basic/patterns/subscriptions)
 on the **same guarded POST endpoint**. The default remains direct JSON, with separately opt-in Tool progress.
-No GET subscription endpoint, `resources/subscribe`, Task notification, automatic Prompt/Resource retrieval, broker,
-Mercure dependency or saved resumable subscription is introduced. Separate opt-in
+No GET subscription endpoint, `resources/subscribe`, automatic Prompt/Resource retrieval, broker,
+Mercure dependency or saved resumable subscription is introduced. Optional [Task full-state integration](mcp-task-live.md)
+adds `notifications.taskIds` with independent shared Task Queries and disclosure/reconnect revisions; it is not notice mapping.
+Separate opt-in
 [subscriber-inspection Queries](subscriber-inspection.md) read the same tracking with independent current permission.
 
 ## Compose the complete path
@@ -43,6 +45,8 @@ Mercure dependency or saved resumable subscription is introduced. Separate opt-i
    `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
    at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
+   Optional trailing `tasks: $tasks` requires the same complete Task capability; Task-only composition disables Tools/
+   Resources and needs no retained-notice Query. See [Task composition](mcp-task-live.md#composition-and-authority).
    Existing serving capabilities continue to declare their ordinary false flags;
    the registry derives `tools.listChanged`, `resources.listChanged`, `resources.subscribe` and optional
    `prompts.listChanged` from this actual composition. Arbitrary true declarations, contradictory same-family metadata and
@@ -66,6 +70,7 @@ Send `notifications` as an object in `subscriptions/listen` parameters. All fiel
 | `promptsListChanged: true` | Prompts explicitly enabled, serving and currently permitted | `mcp.prompts.list_changed` | `notifications/prompts/list_changed` |
 | `resourcesListChanged: true` | Resources enabled and currently permitted | `mcp.resources.list_changed` | `notifications/resources/list_changed` |
 | `resourceSubscriptions: [uri, …]` | Resources enabled and each exact URI currently permitted | `mcp.resources.updated` with `mcp/uri` metadata | `notifications/resources/updated` |
+| `taskIds: [id, …]` | Complete Tasks composed, client declared and each exact Task independently readable/permitted | No Notice: shared current Task Query | `notifications/tasks` |
 
 These four explicit notice-type conventions select **safe changes**, not arbitrary wire payloads. Consumers still
 own their notice topics, recording permission and vocabulary. No fields except the exact matched Resource URI are
@@ -141,7 +146,7 @@ only the standard method and typed subscription metadata, never central result m
 
 ## Shared source, start boundary and recovery
 
-`McpSubscriptions` fetches the shared authorized `RecoverNotices` Query through `QueryBus::fetch()`, never HTTP-layer
+For accepted generic notice families, `McpSubscriptions` fetches the shared authorized `RecoverNotices` Query through `QueryBus::fetch()`, never HTTP-layer
 SQL or an in-process event listener. The optional `startAtCurrent: true` Query argument establishes the coherent
 committed high-water boundary, returns **no historical notices**, and excludes earlier history loss from this new
 interval. It cannot accompany a continuation. Subsequent ordinary recovery calls reuse the returned confidential
@@ -149,7 +154,7 @@ continuation with the same selection, batch/scan sizes, caller, policy epoch, gr
 `start_at_current` is part of the provisional Query's serialized shape; the ordinary polling Tool remains unchanged
 and does not expose this option.
 
-A live stream requires qualified `complete` source assessment: trusted caller, current stable policy epoch and
+A notice-backed live stream requires qualified `complete` source assessment: trusted caller, current stable policy epoch and
 explicit permission to use the namespace-wide continuity evidence. **Do not grant global evidence merely to enable
 streaming**. Partial/unproven compositions report uncertainty and cannot open a healthy follow; use independent
 polling/current-data reload instead. The current implementation conservatively ends the stream on any incomplete

@@ -103,7 +103,7 @@ requirements; no implementation evidence is claimed here.
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00171](../tasks/00171-TASK.md) | Follow authorized Task state and recover after reconnecting | ready-for-agent |
+| [TASK-00171](../tasks/00171-TASK.md) | Follow authorized Task state and recover after reconnecting | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

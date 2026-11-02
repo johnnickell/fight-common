@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Mcp\Subscription;
 
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
@@ -48,7 +49,8 @@ final class McpSubscriptionExecution
         private readonly NoticeSelection $selection,
         private readonly int $lifetimeSeconds,
         private readonly int $waitMicroseconds,
-        private readonly int $maxFrameBytes
+        private readonly int $maxFrameBytes,
+        private readonly ?McpTasks $tasks = null
     ) {
     }
 
@@ -86,13 +88,17 @@ final class McpSubscriptionExecution
                 return;
             }
 
-            $accepted = $this->requested->accepted($this->supported, $this->admission, $subscriber);
+            $accepted = $this->accepted($subscriber);
             if ($this->shouldStop($deadline)) {
                 return;
             }
 
             // Even an unsupported/denied request may acknowledge an empty subset, without revealing why.
-            $batch = $this->batch(null, true);
+            $notices = array_intersect(
+                array_keys($accepted),
+                ['toolsListChanged', 'promptsListChanged', 'resourcesListChanged', 'resourceSubscriptions']
+            ) !== [];
+            $batch = $notices ? $this->batch(null, true) : null;
             if ($this->shouldStop($deadline)) {
                 return;
             }
@@ -111,7 +117,7 @@ final class McpSubscriptionExecution
             }
 
             $this->requireFreshness();
-            if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
+            if ($accepted !== $this->accepted($subscriber)) {
                 throw new RuntimeException('Subscription permission changed during opening.');
             }
 
@@ -126,7 +132,7 @@ final class McpSubscriptionExecution
             }
 
             // Tracking can change policy; final admission must have no later consumer callback before disclosure.
-            if ($accepted !== $this->requested->accepted($this->supported, $this->admission, $subscriber)) {
+            if ($accepted !== $this->accepted($subscriber)) {
                 throw new RuntimeException('Subscription permission changed during opening.');
             }
 
@@ -143,15 +149,53 @@ final class McpSubscriptionExecution
                     'notifications' => (object) $accepted
                 ]
             ]));
-            $continuation = $batch->continuation();
+            $continuation = $batch?->continuation();
+            $revisions = [];
             while (!$this->shouldStop($deadline)) {
                 $this->renew($id, $owner);
                 if ($this->shouldStop($deadline)) {
                     break;
                 }
 
-                $batch = $this->batch($continuation);
-                foreach ($batch->notices() as $view) {
+                foreach ($accepted['taskIds'] ?? [] as $taskId) {
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $this->renew($id, $owner);
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    // No protected snapshot is queued across tracking or a previous write/flush pause.
+                    $state = $this->task($taskId, $subscriber);
+                    $this->requireFreshness();
+                    if ($this->shouldStop($deadline)) {
+                        break;
+                    }
+
+                    $revision = $state['_meta'][McpTasks::REVISION];
+                    $previous = $revisions[$taskId] ?? null;
+                    if ($previous !== null) {
+                        if (
+                            $previous->get('scope') !== $revision->get('scope')
+                            || $previous->get('value') > $revision->get('value')
+                        ) {
+                            throw new RuntimeException('Task comparison requires restart.');
+                        }
+
+                        if ($previous->get('value') === $revision->get('value')) {
+                            continue;
+                        }
+                    }
+
+                    $state['_meta'][self::META] = $this->requestId;
+                    $emit($this->frame(['jsonrpc' => '2.0', 'method' => 'notifications/tasks', 'params' => $state]));
+                    $revisions[$taskId] = $revision;
+                }
+
+                $batch = $notices ? $this->batch($continuation) : null;
+                foreach ($batch?->notices() ?? [] as $view) {
                     if ($this->shouldStop($deadline)) {
                         break;
                     }
@@ -185,7 +229,7 @@ final class McpSubscriptionExecution
                     }
                 }
 
-                $continuation = $batch->continuation();
+                $continuation = $batch?->continuation();
                 if (!$this->shouldStop($deadline)) {
                     // A finite transport comment permits idle disconnect observation without a new MCP event.
                     usleep($this->waitMicroseconds);
@@ -231,6 +275,35 @@ final class McpSubscriptionExecution
                 }
             }
         }
+    }
+
+    /**
+     * Returns the complete current accepted subset with independent Task Query authorization
+     *
+     * @return array<string, mixed>
+     */
+    private function accepted(string $subscriber): array
+    {
+        return $this->requested->accepted($this->supported, $this->admission, $subscriber, $this->tasks);
+    }
+
+    /**
+     * Returns freshly authorized full state immediately before framing without arbitrary notice publication
+     *
+     * @return array<string, mixed>
+     */
+    private function task(string $id, string $subscriber): array
+    {
+        if (!$this->admission->allows($subscriber, 'taskIds', $id, null)) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        $state = $this->tasks?->current($id);
+        if ($state === null) {
+            throw new RuntimeException('Task delivery unavailable.');
+        }
+
+        return $state;
     }
 
     /**

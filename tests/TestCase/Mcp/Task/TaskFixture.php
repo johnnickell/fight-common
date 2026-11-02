@@ -72,6 +72,9 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public bool $createAllowed = true;
     public bool $updateAllowed = true;
     public bool $readAllowed = true;
+    public string $comparison = 'caller-visibility-v1';
+    public ?Closure $onRead = null;
+    public ?Closure $onComparison = null;
     public bool $removeAllowed = true;
     public array $removalChecks = [];
     public array $deniedRemovalIds = [];
@@ -241,8 +244,11 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         return $this->updateAllowed && $scope === 'scope' && $producer === 'producer';
     }
 
+    public function comparisonScope(string $scope, string $id): string { ($this->onComparison ?? static fn () => null)(); return $this->comparison; }
+
     public function allowsRead(string $scope, string $id): bool
     {
+        ($this->onRead ?? static fn () => null)();
         return $this->readAllowed && $scope === 'scope';
     }
 }

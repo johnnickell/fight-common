@@ -24,6 +24,7 @@ final readonly class McpTasks implements McpCapability
 {
     public const string EXTENSION = 'io.modelcontextprotocol/tasks';
     public const int MAX_RESPONSE_BYTES = 65536;
+    public const string REVISION = 'org.fight/taskRevision';
 
     private McpTaskInput $input;
     private McpTaskCancellation $cancellation;
@@ -137,6 +138,24 @@ final readonly class McpTasks implements McpCapability
     }
 
     /**
+     * Returns the same complete authorized DetailedTask for live observation without a result envelope
+     *
+     * @return array<string, mixed>|null
+     */
+    public function current(string $id): ?array
+    {
+        TaskDefinition::identity($id);
+        $view = $this->queries->fetch(new GetTask($this->scope, $id));
+        if ($view === null) {
+            return null;
+        }
+
+        $this->validateView($view, $id);
+
+        return $this->project($view, true);
+    }
+
+    /**
      * Retrieves current state through the shared Query rather than Tool catalog or adapter SQL
      */
     private function read(string $id): StrictJson
@@ -146,11 +165,22 @@ final readonly class McpTasks implements McpCapability
             throw new McpProtocolException(McpProtocolError::invalidParams(), null);
         }
 
-        if (!$view instanceof StrictJson || $view->get('id') !== $id) {
-            throw new DomainException('Invalid Task Query result.');
-        }
+        $this->validateView($view, $id);
 
         return $view;
+    }
+
+    /**
+     * Validates shared Query identity and mandatory atomically bound revision metadata
+     */
+    private function validateView(mixed $view, string $id): void
+    {
+        if (
+            !$view instanceof StrictJson || $view->get('id') !== $id
+            || !$view->get('revision') instanceof StrictJson
+        ) {
+            throw new DomainException('Invalid Task Query result.');
+        }
     }
 
     /**
@@ -166,7 +196,8 @@ final readonly class McpTasks implements McpCapability
             'status'        => $state->get('status'),
             'createdAt'     => $this->timestamp($view->get('created_at')),
             'lastUpdatedAt' => $this->timestamp($view->get('updated_at')),
-            'ttlMs'         => $view->get('ttl')
+            'ttlMs'         => $view->get('ttl'),
+            '_meta'         => [self::REVISION => $view->get('revision')]
         ];
         if ($state->get('message') !== null) {
             $data['statusMessage'] = $state->get('message');

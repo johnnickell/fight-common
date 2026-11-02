@@ -156,11 +156,21 @@ final readonly class TaskLifecycle
         }
 
         $this->validate($task->definition(), $task->state());
-        if (!$this->payloads->mayDisclose($task)) {
+        $context = $this->reads->comparisonScope($query->scope(), $query->id());
+        $now = Task::timestamp(($this->clock)());
+        $view = StrictJson::fromObject([
+            ...$task->view($now),
+            'revision' => $task->revision($context, $now)
+        ], 40);
+        // All source/projection/context callbacks precede the final independent whole-state disclosure checks.
+        if (
+            !$task->availableAt($now) || !$this->reads->allowsRead($query->scope(), $query->id())
+            || !$this->payloads->mayDisclose($task)
+        ) {
             return null;
         }
 
-        return StrictJson::fromObject($task->view(Task::timestamp(($this->clock)())), 40);
+        return $view;
     }
 
     /**

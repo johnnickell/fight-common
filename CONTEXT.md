@@ -311,7 +311,26 @@ meaning. All Task responses have a default 65,536-byte complete encoded envelope
 including central metadata, ID and escaping; overflow is safe failure, never truncated input or empty success.
 Guarded get/update/cancel mirror Mcp-Name to taskId and retain independent supplier mutation authority. Connection
 loss does not request durable cancellation; workers/submission/external-effect reconciliation remain consumer-owned.
-No live Task delivery is supplied. See [MCP Tasks](docs/mcp-tasks.md) for complete composition, compatibility and real
+Optional live Task delivery is explicitly composed through the same `McpTasks` instance and guarded subscription stream.
+`notifications.taskIds` accepts at most 16 finite requested identities with fresh signal and shared Task-read/whole-state
+permission. Acknowledgment precedes a current full DetailedTask baseline, including already-terminal state; subsequent
+bounded Queries observe independent producers without notice capture, replay or a protected snapshot queue. Task-only
+streams need no retained-notice recovery. Full state never enters notices, Mercure or subscriber storage. Unsafe
+permission/availability/source/tracking/frame changes close the whole stream without successful completion.
+
+Get/live share server-owned `org.fight/taskRevision` metadata, atomically derived from the coherent row/public projection,
+including input expiry. A separate bounded public-write counter and 0–16 expiry sub-order exclude private-only mutation
+gaps; each write reserves 32 slots so later committed state dominates earlier expiry views even across clock skew.
+A private random
+lifetime incarnation and trusted `TaskReadAdmission::comparisonScope()` caller/visibility epoch derive independent HMAC
+scope/additive mask. Fixed-width masked values compare bytewise only within the same Task/scope; equal means identical
+public state, older arrivals lose, and changed visibility/lifetime/unknown comparison requires safe restart. Epochs must
+rotate on revocation/regrant or other visibility discontinuities. Neither clocks, private producer version nor arrival
+order establishes freshness. Public-write exhaustion/clock rollback before the row's update fail safely without wrap. No public global/private
+mutation counter or cross-epoch counter difference is exposed. Reconnect get/new listen recovers current authorized
+retained state, not every missed frame, and never cancels/replays durable work. See
+[live Task state](docs/mcp-task-live.md) for exact composition, privacy/consumer merge contract, bounds and package proof.
+See [MCP Tasks](docs/mcp-tasks.md) for complete composition, compatibility and real
 three-database HTTP/reconnect evidence, and [durable Tasks](docs/durable-tasks.md) for shared lifecycle bounds,
 retry lifetime, schema and compatibility. Package proof is not deployed Pi/Agent OS/client qualification.
 
@@ -331,7 +350,7 @@ queued changes reauthorize again after tracking callbacks. Listening never calls
 or fetches links; registration alone snapshots metadata. Subsequent list/get independently reauthorizes, and generic
 tracking/inspection already retains requested/accepted Prompt filters. Consumers own safe change capture, not a new
 Prompt store or guaranteed complete catalog monitor. Ordinary serving and Tool/Resource subscriptions remain independent;
-Task/Mercure delivery is separate.
+Task full-state delivery is an explicit independent shared-Query composition on this same stream; Mercure remains separate.
 
 **Current subscriber inspection:** `Domain\Mcp\Subscription\SubscriberSelection` and
 `Query\{SummarizeSubscribers,ListSubscribers}` route through `Application\Mcp\Subscription\QueryHandler` to separate

@@ -24,7 +24,10 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
 - Independent request/producer-scoped `TaskCreationAdmission`, `TaskUpdateAdmission`, `TaskReadAdmission` and
   `TaskRemovalAdmission`.
   Each decision uses trusted consumer context, never a submitted producer label as a credential. Mutation admission
-  occurs after acquiring the namespace lock, before identity lookup, including retries. Read admission precedes lookup.
+  occurs after acquiring the namespace lock, before identity lookup, including retries. Read admission precedes lookup
+  and is checked again immediately before disclosure. Required `TaskReadAdmission::comparisonScope(scope, id)` binds
+  a stable trusted caller/visibility epoch across processes and rotates on any visibility discontinuity. See
+  [live/read revision privacy and comparison](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
 - `TaskPayloadPolicy`, which validates the retained **original** operation contract without executing it and supplies
   a fresh whole-state disclosure decision. Status/message, input, result and error each require permission and safe
   projection where consumer policy requires. Returning false withholds the entire view; never substitute an empty result.
@@ -93,8 +96,8 @@ for the entire view, not just its final body. No default public-read policy exis
 
 ## State, concurrency and retries
 
-Creation starts `working`, revision 1. Each accepted producer update replaces state/payload/polling advice atomically,
-advances the Task-local revision by one and preserves original definition, creation time and TTL. Both `working` and
+Creation starts `working`, private producer version 1. Each accepted producer update replaces state/payload/polling advice atomically,
+advances the private Task-local version by one and preserves original definition, creation time and TTL. Both `working` and
 `input_required` can move to any supported state; `completed`, `failed` and `cancelled` cannot be replaced. Timestamps
 are server-owned, nondecreasing per Task, and not concurrency fences. Cancelled means reported producer evidence,
 not client disconnect, silence, expiry or a cancellation request.
@@ -123,7 +126,8 @@ matching retry. Digests are protected comparison material and never projected pu
 Creation, latest-update comparison and payload live in the same retained row. Physical removal ends those guarantees;
 no hidden tombstone or historical comparison archive remains. A producer update to an absent tuple always rejects;
 it never inserts, restores a body or treats absence as completion. A separately **admitted CreateTask** after removal,
-even a delayed matching creation retry, creates a new working lifetime at revision 1 with new creation time/TTL.
+even a delayed matching creation retry, creates a new working lifetime at private version 1 with new creation time/TTL
+and a new incomparable public revision scope.
 There is no permanent identity memory to recognize that old creation. Consumers must use fresh random IDs for new
 operations and bound creation retries to their known retained lifetime. If they deliberately reuse a removed tuple,
 old producer version fences may match the new lifetime: quiesce/revoke old producers and reconcile uncertain work
@@ -199,7 +203,10 @@ responsibility; this is not a transaction with a job system, automatic submissio
   Persistence remains committed. A matching retry does not redispatch; loss after commit/before dispatch is possible.
   No outbox, automatic replay, completeness, receipt or delivery guarantee is implied.
 - Public Query results are immutable `StrictJson` objects containing ID, version, coherent state, created/updated
-  milliseconds, TTL and polling advice. Definition, producer/scope context and comparison digests are omitted.
+  milliseconds, TTL, polling advice and a state-bound public comparison revision. The producer version remains
+  trusted application concurrency context, never MCP wire metadata. Definition, producer/scope context and comparison
+  digests are omitted. Public revisions include outstanding-form expiry without read-side writes and exclude
+  private-only mutations; different visibility epochs/lifetimes are incomparable. See [the revision contract](mcp-task-live.md).
   Null unifies denied/unknown/cross-scope/expired/withheld state and does not identify an absence reason. Corrupt or
   failed storage raises fixed `TaskStorageFailed`, not null or empty success. Causes/stack traces remain private.
 
@@ -221,7 +228,7 @@ must map exceptions safely; this slice adds no endpoint or generic exception-mes
 | Epoch milliseconds | Integer 0–253402300799999, with creation-plus-TTL within that range |
 | TTL | Null unlimited, or integer 1–2147483647 milliseconds from original creation; immutable |
 | Polling advice | Null absent, or integer 1–2147483647 milliseconds; explicitly replaced on each update |
-| Task-local revision | Integer 1–2147483647; no wrap/reset |
+| Private Task-local version / public-state counter | Separate integers 1–2147483647; no wrap/reset; only masked public revisions reach MCP |
 | Error code / message | Signed 32-bit integer; nonempty UTF-8 message at most 1,024 bytes |
 
 Zero/negative/overflow intervals reject; null does not invent a zero or default. TTL expiry occurs at
@@ -252,6 +259,8 @@ Existing tagged CQRS, Tool, framework,
 transaction, notice and Event Store APIs remain unchanged. No dependency-floor change or new suppression is required.
 
 The new reserved `fight_task_state` / `fight_tasks` namespace is version one and provisional until first tagged.
+TASK-00171 directly adds a private random lifetime incarnation/public-state counter to its coherent row representation,
+required comparison-context admission, and read/live revision projection, without snapshot migrations or new tables.
 Compatibility is against tags, not earlier development snapshots. There is no migration of old experimental formats,
 release assignment or advertised/deployed client Tasks support. DBAL 4.4 and current APIs are preserved by using
 schema-manager introspection, not additional internal `Schema` constructors.
