@@ -21,9 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| None | — | — | — | — |
-
-No TASK is currently executable; unresolved work may remain.
+| Ready Frontier | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -32,6 +30,10 @@ its workflow stage; metadata alone does not establish Review, QA or delivery. Do
 prose here. Historical completion and delivery evidence remain in the owning TASK records.
 
 ## Current planning handoff
+
+John approved five bounded refactoring chores on 2026-11-02. Their TASK records own the accepted scopes;
+the [namespace TASK](00181-TASK.md#outcome-and-accepted-decision) records the released-name-only deprecation
+decision. Generated sections own execution routing.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
@@ -54,7 +56,11 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 1 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | — (standalone chore) | ready-for-agent | — | — |
+| 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | ready-for-agent | — | — |
+| 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | ready-for-agent | — | — |
+| 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
+| 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
