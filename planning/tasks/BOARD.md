@@ -35,6 +35,13 @@ John approved five bounded refactoring chores on 2026-11-02. Their TASK records 
 the [namespace TASK](00181-TASK.md#outcome-and-accepted-decision) records the released-name-only deprecation
 decision. Generated sections own execution routing.
 
+John approved a second bounded architectural correction sequence after that work. The
+[architecture-rule TASK](00183-TASK.md#outcome-and-accepted-decision) records the requirements and exceptions;
+[TASK-00184](00184-TASK.md) through [TASK-00192](00192-TASK.md) cover DBAL transactions, repositories,
+handler ownership, disclosure projection, domain values/identities, adapter namespaces and the codebase-wide
+descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
+existing five chores without turning independent work into artificial blockers. Planning only, not execution.
+
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
 belongs to the generated Board, not automatic implementation. The [Roadmap planning frontier](../ROADMAP.md#planning-frontier)
@@ -61,12 +68,21 @@ their owning records; routing and planning checks stay offline.
 | 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | ready-for-agent | — | — |
 | 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
 | 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | ready-for-agent | — | — |
+| 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 7 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | — (standalone chore) | ready-for-agent | [TASK-00183](00183-TASK.md) | — |
+| 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | ready-for-agent | [TASK-00184](00184-TASK.md) | — |
+| 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | ready-for-agent | [TASK-00184](00184-TASK.md) | — |
+| 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | ready-for-agent | [TASK-00185](00185-TASK.md) | — |
+| 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | ready-for-agent | [TASK-00187](00187-TASK.md) | — |
+| 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | [TASK-00188](00188-TASK.md) | — |
+| 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | ready-for-agent | [TASK-00184](00184-TASK.md), [TASK-00186](00186-TASK.md) | — |
+| 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | ready-for-agent | [TASK-00181](00181-TASK.md), [TASK-00189](00189-TASK.md), [TASK-00190](00190-TASK.md) | — |
+| 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | [TASK-00191](00191-TASK.md) | — |
 
 ## Needs Info
 
