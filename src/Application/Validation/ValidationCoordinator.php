@@ -7,60 +7,8 @@ namespace Fight\Common\Application\Validation;
 use Fight\Common\Application\Validation\Data\ApplicationData;
 use Fight\Common\Application\Validation\Data\ErrorData;
 use Fight\Common\Application\Validation\Data\InputData;
-use Fight\Common\Application\Validation\Rule\CountExact;
-use Fight\Common\Application\Validation\Rule\CountMax;
-use Fight\Common\Application\Validation\Rule\CountMin;
-use Fight\Common\Application\Validation\Rule\CountRange;
-use Fight\Common\Application\Validation\Rule\InList;
-use Fight\Common\Application\Validation\Rule\IsAlnum;
-use Fight\Common\Application\Validation\Rule\IsAlnumDashed;
-use Fight\Common\Application\Validation\Rule\IsAlpha;
-use Fight\Common\Application\Validation\Rule\IsAlphaDashed;
-use Fight\Common\Application\Validation\Rule\IsBlank;
-use Fight\Common\Application\Validation\Rule\IsDateTime;
-use Fight\Common\Application\Validation\Rule\IsDigits;
-use Fight\Common\Application\Validation\Rule\IsEmail;
-use Fight\Common\Application\Validation\Rule\IsEmpty;
-use Fight\Common\Application\Validation\Rule\IsFalse;
-use Fight\Common\Application\Validation\Rule\IsFalsy;
-use Fight\Common\Application\Validation\Rule\IsIpAddress;
-use Fight\Common\Application\Validation\Rule\IsIpV4Address;
-use Fight\Common\Application\Validation\Rule\IsIpV6Address;
-use Fight\Common\Application\Validation\Rule\IsJson;
-use Fight\Common\Application\Validation\Rule\IsListOf;
-use Fight\Common\Application\Validation\Rule\IsMatch;
-use Fight\Common\Application\Validation\Rule\IsNaturalNumber;
-use Fight\Common\Application\Validation\Rule\IsNotBlank;
-use Fight\Common\Application\Validation\Rule\IsNull;
-use Fight\Common\Application\Validation\Rule\IsNumeric;
-use Fight\Common\Application\Validation\Rule\IsScalar;
-use Fight\Common\Application\Validation\Rule\IsTimezone;
-use Fight\Common\Application\Validation\Rule\IsTrue;
-use Fight\Common\Application\Validation\Rule\IsTruthy;
-use Fight\Common\Application\Validation\Rule\IsType;
-use Fight\Common\Application\Validation\Rule\IsUri;
-use Fight\Common\Application\Validation\Rule\IsUrn;
-use Fight\Common\Application\Validation\Rule\IsUuid;
-use Fight\Common\Application\Validation\Rule\IsWholeNumber;
-use Fight\Common\Application\Validation\Rule\KeyIsset;
-use Fight\Common\Application\Validation\Rule\KeyNotEmpty;
-use Fight\Common\Application\Validation\Rule\LengthExact;
-use Fight\Common\Application\Validation\Rule\LengthMax;
-use Fight\Common\Application\Validation\Rule\LengthMin;
-use Fight\Common\Application\Validation\Rule\LengthRange;
-use Fight\Common\Application\Validation\Rule\NumberExact;
-use Fight\Common\Application\Validation\Rule\NumberMax;
-use Fight\Common\Application\Validation\Rule\NumberMin;
-use Fight\Common\Application\Validation\Rule\NumberRange;
-use Fight\Common\Application\Validation\Rule\StringContains;
-use Fight\Common\Application\Validation\Rule\StringEndsWith;
-use Fight\Common\Application\Validation\Rule\StringStartsWith;
-use Fight\Common\Application\Validation\Specification\EqualFieldsSpecification;
-use Fight\Common\Application\Validation\Specification\RequiredFieldSpecification;
-use Fight\Common\Application\Validation\Specification\SameFieldsSpecification;
-use Fight\Common\Application\Validation\Specification\SingleFieldSpecification;
+use Fight\Common\Application\Validation\Internal\ValidatorFactory;
 use Fight\Common\Domain\Collection\ArrayList;
-use Fight\Common\Domain\Utility\Validate;
 
 /**
  * Class ValidationCoordinator
@@ -126,16 +74,7 @@ final class ValidationCoordinator
      */
     public function addAlphaValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsAlpha()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Alpha', $fieldName, $errorMessage));
     }
 
     /**
@@ -143,16 +82,7 @@ final class ValidationCoordinator
      */
     public function addAlphaDashValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsAlphaDashed()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('AlphaDash', $fieldName, $errorMessage));
     }
 
     /**
@@ -160,16 +90,7 @@ final class ValidationCoordinator
      */
     public function addAlphaNumValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsAlnum()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('AlphaNum', $fieldName, $errorMessage));
     }
 
     /**
@@ -177,16 +98,7 @@ final class ValidationCoordinator
      */
     public function addAlphaNumDashValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsAlnumDashed()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('AlphaNumDash', $fieldName, $errorMessage));
     }
 
     /**
@@ -194,16 +106,7 @@ final class ValidationCoordinator
      */
     public function addBlankValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsBlank()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Blank', $fieldName, $errorMessage));
     }
 
     /**
@@ -211,16 +114,7 @@ final class ValidationCoordinator
      */
     public function addContainsValidation(string $fieldName, string $errorMessage, string $search): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new StringContains($search)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Contains', $fieldName, $errorMessage, [$search]));
     }
 
     /**
@@ -228,16 +122,7 @@ final class ValidationCoordinator
      */
     public function addDateValidation(string $fieldName, string $errorMessage, string $format): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsDateTime($format)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Date', $fieldName, $errorMessage, [$format]));
     }
 
     /**
@@ -245,16 +130,7 @@ final class ValidationCoordinator
      */
     public function addDateTimeValidation(string $fieldName, string $errorMessage, string $format): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsDateTime($format)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('DateTime', $fieldName, $errorMessage, [$format]));
     }
 
     /**
@@ -262,16 +138,7 @@ final class ValidationCoordinator
      */
     public function addDigitsValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsDigits()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Digits', $fieldName, $errorMessage));
     }
 
     /**
@@ -279,16 +146,7 @@ final class ValidationCoordinator
      */
     public function addEmailValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsEmail()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Email', $fieldName, $errorMessage));
     }
 
     /**
@@ -296,16 +154,7 @@ final class ValidationCoordinator
      */
     public function addEmptyValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsEmpty()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Empty', $fieldName, $errorMessage));
     }
 
     /**
@@ -313,16 +162,7 @@ final class ValidationCoordinator
      */
     public function addEndsWithValidation(string $fieldName, string $errorMessage, string $search): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new StringEndsWith($search)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('EndsWith', $fieldName, $errorMessage, [$search]));
     }
 
     /**
@@ -330,16 +170,7 @@ final class ValidationCoordinator
      */
     public function addEqualsValidation(string $fieldName, string $errorMessage, string $comparisonField): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new EqualFieldsSpecification(
-                    $fieldName,
-                    $comparisonField
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Equals', $fieldName, $errorMessage, [$comparisonField]));
     }
 
     /**
@@ -347,16 +178,7 @@ final class ValidationCoordinator
      */
     public function addExactCountValidation(string $fieldName, string $errorMessage, string $count): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new CountExact((int) $count)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('ExactCount', $fieldName, $errorMessage, [$count]));
     }
 
     /**
@@ -364,16 +186,7 @@ final class ValidationCoordinator
      */
     public function addExactLengthValidation(string $fieldName, string $errorMessage, string $length): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new LengthExact((int) $length)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('ExactLength', $fieldName, $errorMessage, [$length]));
     }
 
     /**
@@ -381,18 +194,7 @@ final class ValidationCoordinator
      */
     public function addExactNumberValidation(string $fieldName, string $errorMessage, string $number): void
     {
-        $intVal = Validate::intValue($number);
-
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new NumberExact($intVal ? (int) $number : (float) $number)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('ExactNumber', $fieldName, $errorMessage, [$number]));
     }
 
     /**
@@ -400,16 +202,7 @@ final class ValidationCoordinator
      */
     public function addFalseValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsFalse()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('False', $fieldName, $errorMessage));
     }
 
     /**
@@ -417,16 +210,7 @@ final class ValidationCoordinator
      */
     public function addFalsyValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsFalsy()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Falsy', $fieldName, $errorMessage));
     }
 
     /**
@@ -434,16 +218,7 @@ final class ValidationCoordinator
      */
     public function addInListValidation(string $fieldName, string $errorMessage, string ...$list): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new InList($list)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('InList', $fieldName, $errorMessage, $list));
     }
 
     /**
@@ -451,16 +226,7 @@ final class ValidationCoordinator
      */
     public function addIpAddressValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsIpAddress()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('IpAddress', $fieldName, $errorMessage));
     }
 
     /**
@@ -468,16 +234,7 @@ final class ValidationCoordinator
      */
     public function addIpV4AddressValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsIpV4Address()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('IpV4Address', $fieldName, $errorMessage));
     }
 
     /**
@@ -485,16 +242,7 @@ final class ValidationCoordinator
      */
     public function addIpV6AddressValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsIpV6Address()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('IpV6Address', $fieldName, $errorMessage));
     }
 
     /**
@@ -502,16 +250,7 @@ final class ValidationCoordinator
      */
     public function addJsonValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsJson()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Json', $fieldName, $errorMessage));
     }
 
     /**
@@ -519,16 +258,7 @@ final class ValidationCoordinator
      */
     public function addKeyIssetValidation(string $fieldName, string $errorMessage, string $key): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new KeyIsset($key)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('KeyIsset', $fieldName, $errorMessage, [$key]));
     }
 
     /**
@@ -536,16 +266,7 @@ final class ValidationCoordinator
      */
     public function addKeyNotEmptyValidation(string $fieldName, string $errorMessage, string $key): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new KeyNotEmpty($key)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('KeyNotEmpty', $fieldName, $errorMessage, [$key]));
     }
 
     /**
@@ -553,16 +274,7 @@ final class ValidationCoordinator
      */
     public function addListOfValidation(string $fieldName, string $errorMessage, string $type): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsListOf($type)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('ListOf', $fieldName, $errorMessage, [$type]));
     }
 
     /**
@@ -570,16 +282,7 @@ final class ValidationCoordinator
      */
     public function addMatchValidation(string $fieldName, string $errorMessage, string $pattern): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsMatch($pattern)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Match', $fieldName, $errorMessage, [$pattern]));
     }
 
     /**
@@ -587,16 +290,7 @@ final class ValidationCoordinator
      */
     public function addMaxCountValidation(string $fieldName, string $errorMessage, string $maxCount): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new CountMax((int) $maxCount)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MaxCount', $fieldName, $errorMessage, [$maxCount]));
     }
 
     /**
@@ -604,16 +298,7 @@ final class ValidationCoordinator
      */
     public function addMaxLengthValidation(string $fieldName, string $errorMessage, string $maxLength): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new LengthMax((int) $maxLength)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MaxLength', $fieldName, $errorMessage, [$maxLength]));
     }
 
     /**
@@ -621,20 +306,7 @@ final class ValidationCoordinator
      */
     public function addMaxNumberValidation(string $fieldName, string $errorMessage, string $maxNumber): void
     {
-        $intVal = Validate::intValue($maxNumber);
-
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new NumberMax(
-                        $intVal ? (int) $maxNumber : (float) $maxNumber
-                    )
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MaxNumber', $fieldName, $errorMessage, [$maxNumber]));
     }
 
     /**
@@ -642,16 +314,7 @@ final class ValidationCoordinator
      */
     public function addMinCountValidation(string $fieldName, string $errorMessage, string $minCount): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new CountMin((int) $minCount)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MinCount', $fieldName, $errorMessage, [$minCount]));
     }
 
     /**
@@ -659,16 +322,7 @@ final class ValidationCoordinator
      */
     public function addMinLengthValidation(string $fieldName, string $errorMessage, string $minLength): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new LengthMin((int) $minLength)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MinLength', $fieldName, $errorMessage, [$minLength]));
     }
 
     /**
@@ -676,20 +330,7 @@ final class ValidationCoordinator
      */
     public function addMinNumberValidation(string $fieldName, string $errorMessage, string $minNumber): void
     {
-        $intVal = Validate::intValue($minNumber);
-
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new NumberMin(
-                        $intVal ? (int) $minNumber : (float) $minNumber
-                    )
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('MinNumber', $fieldName, $errorMessage, [$minNumber]));
     }
 
     /**
@@ -697,16 +338,7 @@ final class ValidationCoordinator
      */
     public function addNaturalNumberValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsNaturalNumber()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NaturalNumber', $fieldName, $errorMessage));
     }
 
     /**
@@ -714,16 +346,7 @@ final class ValidationCoordinator
      */
     public function addNotBlankValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsNotBlank()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotBlank', $fieldName, $errorMessage));
     }
 
     /**
@@ -731,16 +354,7 @@ final class ValidationCoordinator
      */
     public function addNotEmptyValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsEmpty()->not()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotEmpty', $fieldName, $errorMessage));
     }
 
     /**
@@ -748,16 +362,7 @@ final class ValidationCoordinator
      */
     public function addNotEqualsValidation(string $fieldName, string $errorMessage, string $comparisonField): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new EqualFieldsSpecification(
-                    $fieldName,
-                    $comparisonField
-                )->not(),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotEquals', $fieldName, $errorMessage, [$comparisonField]));
     }
 
     /**
@@ -765,16 +370,7 @@ final class ValidationCoordinator
      */
     public function addNotNullValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsNull()->not()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotNull', $fieldName, $errorMessage));
     }
 
     /**
@@ -782,16 +378,7 @@ final class ValidationCoordinator
      */
     public function addNotSameValidation(string $fieldName, string $errorMessage, string $comparisonField): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SameFieldsSpecification(
-                    $fieldName,
-                    $comparisonField
-                )->not(),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotSame', $fieldName, $errorMessage, [$comparisonField]));
     }
 
     /**
@@ -799,16 +386,7 @@ final class ValidationCoordinator
      */
     public function addNotScalarValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsScalar()->not()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('NotScalar', $fieldName, $errorMessage));
     }
 
     /**
@@ -816,16 +394,7 @@ final class ValidationCoordinator
      */
     public function addNullValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsNull()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Null', $fieldName, $errorMessage));
     }
 
     /**
@@ -833,16 +402,7 @@ final class ValidationCoordinator
      */
     public function addNumericValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsNumeric()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Numeric', $fieldName, $errorMessage));
     }
 
     /**
@@ -855,14 +415,7 @@ final class ValidationCoordinator
         string $maxCount
     ): void {
         $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new CountRange((int) $minCount, (int) $maxCount)
-                ),
-                $fieldName,
-                $errorMessage
-            )
+            ValidatorFactory::create('RangeCount', $fieldName, $errorMessage, [$minCount, $maxCount])
         );
     }
 
@@ -876,14 +429,7 @@ final class ValidationCoordinator
         string $maxLength
     ): void {
         $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new LengthRange((int) $minLength, (int) $maxLength)
-                ),
-                $fieldName,
-                $errorMessage
-            )
+            ValidatorFactory::create('RangeLength', $fieldName, $errorMessage, [$minLength, $maxLength])
         );
     }
 
@@ -896,21 +442,8 @@ final class ValidationCoordinator
         string $minNumber,
         string $maxNumber
     ): void {
-        $minIntVal = Validate::intValue($minNumber);
-        $maxIntVal = Validate::intValue($maxNumber);
-
         $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new NumberRange(
-                        $minIntVal ? (int) $minNumber : (float) $minNumber,
-                        $maxIntVal ? (int) $maxNumber : (float) $maxNumber
-                    )
-                ),
-                $fieldName,
-                $errorMessage
-            )
+            ValidatorFactory::create('RangeNumber', $fieldName, $errorMessage, [$minNumber, $maxNumber])
         );
     }
 
@@ -919,13 +452,7 @@ final class ValidationCoordinator
      */
     public function addRequiredValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new RequiredFieldSpecification($fieldName),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Required', $fieldName, $errorMessage));
     }
 
     /**
@@ -933,16 +460,7 @@ final class ValidationCoordinator
      */
     public function addSameValidation(string $fieldName, string $errorMessage, string $comparisonField): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SameFieldsSpecification(
-                    $fieldName,
-                    $comparisonField
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Same', $fieldName, $errorMessage, [$comparisonField]));
     }
 
     /**
@@ -950,16 +468,7 @@ final class ValidationCoordinator
      */
     public function addScalarValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsScalar()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Scalar', $fieldName, $errorMessage));
     }
 
     /**
@@ -967,16 +476,7 @@ final class ValidationCoordinator
      */
     public function addStartsWithValidation(string $fieldName, string $errorMessage, string $search): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new StringStartsWith($search)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('StartsWith', $fieldName, $errorMessage, [$search]));
     }
 
     /**
@@ -984,16 +484,7 @@ final class ValidationCoordinator
      */
     public function addTimeValidation(string $fieldName, string $errorMessage, string $format): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsDateTime($format)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Time', $fieldName, $errorMessage, [$format]));
     }
 
     /**
@@ -1001,16 +492,7 @@ final class ValidationCoordinator
      */
     public function addTimezoneValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsTimezone()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Timezone', $fieldName, $errorMessage));
     }
 
     /**
@@ -1018,16 +500,7 @@ final class ValidationCoordinator
      */
     public function addTrueValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsTrue()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('True', $fieldName, $errorMessage));
     }
 
     /**
@@ -1035,16 +508,7 @@ final class ValidationCoordinator
      */
     public function addTruthyValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsTruthy()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Truthy', $fieldName, $errorMessage));
     }
 
     /**
@@ -1052,16 +516,7 @@ final class ValidationCoordinator
      */
     public function addTypeValidation(string $fieldName, string $errorMessage, string $type): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsType($type)
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Type', $fieldName, $errorMessage, [$type]));
     }
 
     /**
@@ -1069,16 +524,7 @@ final class ValidationCoordinator
      */
     public function addUriValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsUri()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Uri', $fieldName, $errorMessage));
     }
 
     /**
@@ -1086,16 +532,7 @@ final class ValidationCoordinator
      */
     public function addUrnValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsUrn()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Urn', $fieldName, $errorMessage));
     }
 
     /**
@@ -1103,16 +540,7 @@ final class ValidationCoordinator
      */
     public function addUuidValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsUuid()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('Uuid', $fieldName, $errorMessage));
     }
 
     /**
@@ -1120,16 +548,7 @@ final class ValidationCoordinator
      */
     public function addWholeNumberValidation(string $fieldName, string $errorMessage): void
     {
-        $this->addValidator(
-            new BasicValidator(
-                new SingleFieldSpecification(
-                    $fieldName,
-                    new IsWholeNumber()
-                ),
-                $fieldName,
-                $errorMessage
-            )
-        );
+        $this->addValidator(ValidatorFactory::create('WholeNumber', $fieldName, $errorMessage));
     }
 
     /**
