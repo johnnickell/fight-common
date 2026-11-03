@@ -67,7 +67,7 @@ their owning records; routing and planning checks stay offline.
 | 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
 | 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | ready-for-agent | — | — |
 | 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | ready-for-agent | — | — |
-| — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | ready-for-agent | — | — |
+| — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | ready-for-agent | — | [PR #263](https://github.com/johnnickell/fight-common/pull/263) |
 
 ## Waiting
 
