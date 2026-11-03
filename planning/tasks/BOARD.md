@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | ready-for-agent | — |
+| Ready Frontier | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -63,7 +63,6 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 1 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | — (standalone chore) | ready-for-agent | — | — |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | ready-for-agent | — | — |
 | 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | ready-for-agent | — | — |
 | 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
@@ -109,6 +108,7 @@ their owning records; routing and planning checks stay offline.
 | 1 | [TASK-00103](00103-TASK.md) | Adopt the EPIC, TICKET, and TASK planning surface | — (standalone chore) | done | — | [PR #155](https://github.com/johnnickell/fight-common/pull/155) |
 | 1 | [TASK-00104](00104-TASK.md) | Establish MCP protocol semantics and truthful capability discovery | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #157](https://github.com/johnnickell/fight-common/pull/157) |
 | 1 | [TASK-00174](00174-TASK.md) | Refresh Common's PHP runtime and documentation trust stores | — (standalone bug) | done | — | [PR #223](https://github.com/johnnickell/fight-common/pull/223) |
+| 1 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | — (standalone chore) | done | — | [PR #258](https://github.com/johnnickell/fight-common/pull/258) |
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #165](https://github.com/johnnickell/fight-common/pull/165) |
 | 4 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #166](https://github.com/johnnickell/fight-common/pull/166) |

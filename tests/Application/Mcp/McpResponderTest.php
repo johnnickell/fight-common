@@ -17,6 +17,8 @@ use Fight\Common\Application\Mcp\McpRequestMetadata;
 use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\McpResult;
 use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -25,6 +27,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpImplementationInfoGrammar::class)]
 #[CoversClass(McpJsonResponse::class)]
 #[CoversClass(McpMirrorDeclaration::class)]
 #[CoversClass(McpProtocolError::class)]
@@ -35,6 +38,7 @@ use stdClass;
 #[CoversClass(McpResponder::class)]
 #[CoversClass(McpResult::class)]
 #[CoversClass(McpServerInfo::class)]
+#[CoversClass(McpTraceContextGrammar::class)]
 final class McpResponderTest extends UnitTestCase
 {
     public function test_that_discovery_returns_only_registered_capabilities_and_server_identity_metadata(): void
