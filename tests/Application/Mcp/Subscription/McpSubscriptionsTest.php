@@ -7,15 +7,16 @@ namespace Fight\Test\Common\Application\Mcp\Subscription;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeView;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionFilter;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
@@ -33,7 +34,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptions::class)]
 #[CoversClass(McpSubscriptionFilter::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpEventStream::class)]
 #[CoversClass(McpRequestHandler::class)]
@@ -100,7 +101,7 @@ final class McpSubscriptionsTest extends UnitTestCase
             self::assertSame(-32602, json_decode((string) $r->getBody(), true)['error']['code']);
         }
         $request = new McpRequestDecoder()->decode((string) SubscriptionFixture::request()->getBody());
-        $invalid = new \Fight\Common\Application\Mcp\McpRequest(7, 'subscriptions/listen', [], $request->metadata());
+        $invalid = new \Fight\Common\Application\Mcp\Protocol\McpRequest(7, 'subscriptions/listen', [], $request->metadata());
         try { McpSubscriptionFilter::fromRequest($invalid); self::fail('Missing filter'); } catch (McpProtocolException) { self::assertTrue(true); }
         self::assertSame(0, (int) $f->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
         $f->admit = false;

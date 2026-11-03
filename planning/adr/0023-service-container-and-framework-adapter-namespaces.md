@@ -97,7 +97,33 @@ because they share storage. No speculative protocol-version folders are introduc
 This is an approved target, not an assertion that TASK-00184 through TASK-00192 are implemented. Framework
 service-container extension points, generic HTTP/JSend integration, the `Adapter/Mcp` umbrella and required released
 namespace bridges retain their accepted ownership and compatibility. No public API removal, schema, dependency,
-permission or delivery change follows from this documentation amendment.
+permission or delivery change follows from this documentation amendment. The foundation canonical names and
+released identity-preserving aliases described below remain implemented and supported; aggregate alignment does
+not relocate their runtime compatibility owners or reclassify protocol values as Domain value objects.
+
+## MCP foundation namespace amendment — TASK-00181
+
+John approved an additive foundation map on 2026-11-02: preserve short names while grouping capability contracts
+and registry under `Application\Mcp\Capability`, protocol values/decoding under `Protocol`, the protocol exception
+under `Protocol\Exception`, inward HTTP policies/guards/mirrors under `Http`, and the progress port under `Tool`.
+`McpResponder` and `McpDiagnostics` stay at root without new deprecation. This refines, not reopens, TASK-00177's
+historical accepted subsystem consolidation; it changes no Scheduler or public interface design.
+
+The [per-declaration released-operation inventory](../../docs/maintenance/mcp-foundation-namespaces.md) records
+all 19 names in v1.3.0/v1.4.0 and their operations. Canonical aliases deliberately retain released runtime
+declarations and private saved-state scopes; one-way subtypes cannot preserve both consumer signature directions,
+and duplicate values cannot preserve shared final type identity. Root source files remain compatibility
+implementations. This preserves factory/reflection identity, finality, construction/named arguments, catches and
+supported saved-value reads, without creating an inheritance promise. Composer eagerly registers the aliases
+for catches and type checks; ordinary consumer containers still own their literal string registration IDs.
+
+Deprecate only the 17 relocated released root **spellings**, in documentation rather than annotating the shared
+runtime type as deprecated. Canonical aliases, unchanged roots and untagged internals are not deprecated.
+The first deprecating release is unassigned; no publication is claimed. Removal needs separately authorized
+future-major work after at least one released minor of deprecation, not an inferred 2.0 deadline from unrelated
+legacy AI APIs. Untagged internal grammar/composition helpers retain their direct homes without snapshot bridges.
+Application retains semantic MCP and inward HTTP ownership; concrete transport stays in Adapter. No protocol,
+wire/Tool identifier, authorization, schema, admission, budget, transaction/post-commit or delivery contract changes.
 
 ## Consequences
 

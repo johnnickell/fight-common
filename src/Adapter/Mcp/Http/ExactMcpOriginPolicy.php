@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpOriginPolicy;
+use Fight\Common\Application\Mcp\Http\McpOriginPolicy;
 
 /**
  * Class ExactMcpOriginPolicy

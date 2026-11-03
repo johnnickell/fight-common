@@ -162,6 +162,7 @@ nav:
     - CodeIgniter: frameworks/codeigniter/index.md
     - Slim: frameworks/slim/index.md
   - Maintenance:
+    - MCP Foundation Namespaces: maintenance/mcp-foundation-namespaces.md
     - Public Property Getters: maintenance/public-property-getters.md
     - Contributing: maintenance/contributing/index.md
     - Coding Standard: maintenance/coding-standard/index.md

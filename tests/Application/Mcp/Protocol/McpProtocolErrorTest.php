@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Mcp;
+namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp\McpProtocolError;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(McpProtocolError::class)]
+#[CoversClass(ReleasedMcp\McpProtocolError::class)]
 final class McpProtocolErrorTest extends UnitTestCase
 {
     public function test_that_fixed_errors_expose_only_their_public_code_and_message(): void

@@ -132,4 +132,19 @@ final readonly class McpResult implements Arrayable
     {
         return $this->data;
     }
+
+    /**
+     * Restores native saved results including released frames without the later response budget
+     *
+     * @phpstan-param array<string, mixed> $data
+     *
+     * @internal
+     */
+    public function __unserialize(array $data): void
+    {
+        $scope = "\0".self::class."\0";
+        $this->data = $data[$scope.'data'];
+        $this->maxEncodedBytes = $data[$scope.'maxEncodedBytes'] ?? null;
+        $this->maxEncodedResponseBytes = $data[$scope.'maxEncodedResponseBytes'] ?? null;
+    }
 }

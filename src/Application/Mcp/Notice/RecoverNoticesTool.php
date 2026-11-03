@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Notice;
 
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;

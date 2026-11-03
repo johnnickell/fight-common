@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Mcp\Http;
 
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;

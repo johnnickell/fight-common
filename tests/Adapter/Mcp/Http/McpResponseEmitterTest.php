@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Adapter\Mcp\Http;
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;
