@@ -131,7 +131,7 @@ $evidence = Observation::forActivity(
     ObservationId::generate(), 'instrumentation', $session, $phaseObservation->phase(),
     ObservationOccurrence::fromString('2026-10-20T12:34:56.120Z'), $activity
 );
-$commands->execute(new RecordPhaseObservation($evidence));
+$commandBus->execute(new RecordPhaseObservation($evidence));
 ```
 
 This uses the composition below after session and phase recording. No second pipeline, usage repository or hidden
@@ -188,7 +188,7 @@ $detail = Observation::forDetail(
     ObservationId::generate(), 'instrumentation', $session, $phaseObservation->phase(),
     ObservationOccurrence::fromString('2026-10-20T12:34:57.12Z'), $capture
 );
-$commands->execute(new RecordProtectedDetail($detail, ProtectedContent::create($capture, 'synthetic output')));
+$commandBus->execute(new RecordProtectedDetail($detail, ProtectedContent::create($capture, 'synthetic output')));
 ```
 
 Recording admission is **not** protected-read authorization. The internal repository is trusted infrastructure,
@@ -248,29 +248,30 @@ use Fight\Common\Domain\Mcp\Session\SessionReference;
 // Deployment/setup only, using a dedicated idle Doctrine DBAL connection:
 (new DbalObservationSchema())->install($connection);
 
-// $admission implements ObservationAdmission using the consumer's current trusted context.
-$transaction = new DbalRecordingTransaction($connection);
-$events = new SimpleEventDispatcher();
-$recorder = new ObservationRecorder(
-    $transaction,
-    new DbalSessionRepository($transaction),
-    new DbalPhaseRepository($transaction),
-    new DbalObservationRepository($transaction),
-    $admission,
-    $events,
-    new DbalProtectedContentRepository($transaction)
+// $observationAdmission implements ObservationAdmission using current trusted context.
+// This adapter implements TransactionalUnitOfWork and adds execution's required serialization.
+$recordingTransaction = new DbalRecordingTransaction($connection);
+$eventDispatcher = new SimpleEventDispatcher();
+$observationRecorder = new ObservationRecorder(
+    $recordingTransaction,
+    new DbalSessionRepository($recordingTransaction),
+    new DbalPhaseRepository($recordingTransaction),
+    new DbalObservationRepository($recordingTransaction),
+    $observationAdmission,
+    $eventDispatcher,
+    new DbalProtectedContentRepository($recordingTransaction)
 );
-$router = new InMemoryCommandRouter();
-$router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
-$router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
-$router->registerHandler(RecordProtectedDetail::class, new RecordProtectedDetailHandler($recorder));
-$commands = new RoutingCommandBus($router);
+$commandRouter = new InMemoryCommandRouter();
+$commandRouter->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($observationRecorder));
+$commandRouter->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($observationRecorder));
+$commandRouter->registerHandler(RecordProtectedDetail::class, new RecordProtectedDetailHandler($observationRecorder));
+$commandBus = new RoutingCommandBus($commandRouter);
 
 $session = SessionReference::fromStrings('project', 'session', 'build:147');
 $sessionObservation = Observation::create(
     ObservationId::generate(), 'instrumentation', $session, null, new DateTimeImmutable('now')
 );
-$commands->execute(new RecordSessionObservation($sessionObservation)); // void, real commit completed
+$commandBus->execute(new RecordSessionObservation($sessionObservation)); // void, real commit completed
 
 $phaseObservation = Observation::create(
     ObservationId::generate(),
@@ -279,7 +280,7 @@ $phaseObservation = Observation::create(
     PhaseReference::fromStrings('session', 'phase:review', null, 'agent:reviewer', 'review', 1),
     new DateTimeImmutable('now')
 );
-$commands->execute(new RecordPhaseObservation($phaseObservation));
+$commandBus->execute(new RecordPhaseObservation($phaseObservation));
 ```
 
 `ObservationRecorded` also keeps its state private. Subscribers read it through `id()`, `producerId()`,
@@ -313,12 +314,21 @@ throws `ObservationConflict`. Detail comparison additionally requires the protec
 Guarantees last only while the required identity/comparison records remain retained; deletion does not promise
 indefinite deduplication.
 
-Application's `RecordingTransaction` extends the existing `TransactionalUnitOfWork` contract. Its DBAL implementation
-`DbalRecordingTransaction` owns the single real transaction, shared connection and serialization lock. Construct **all
-four DBAL repositories with that same boundary object**, as above; a repository tied to another boundary cannot
-write inside this one's transaction. The recorder coordinates admission and repository-dependent checks, while roots
-own relationship/content matching and adapters own SQL mechanics. Callers only execute a Command; they never sequence
-repository writes or three independent commits.
+The recorder and detail remover inject the existing Application `TransactionalUnitOfWork` directly, separately
+from their Domain repositories. The provisional empty `RecordingTransaction` subtype is removed; it never appeared
+in a tag through `v1.4.0` and receives no development-snapshot alias. `DbalRecordingTransaction` implements that
+existing contract as the execution-specific adapter seam: it validates supported platform/SQLite foreign keys,
+takes and validates the schema version-row lock, and translates storage failures. It composes the reusable
+[DbalTransactionalUnitOfWork](components/repositories/index.md#dbal-transactional-unit-of-work), which alone owns begin/commit/rollback
+and terminal uncertainty. This is not an execution facade around a renamed generic contract.
+
+Construct **all four DBAL repositories with that same execution boundary object**, as above. They share its exact
+connection and require its serialized ownership for writes; another boundary, or a bare generic unit of work on
+the same connection, cannot admit those writes. The execution lock is taken before the callback (including
+admission/lookups/retries) and remains held by the database through the actual commit. A generic boundary alone
+cannot replace this execution composition. Use-case callers gain no SQL, mode flags, registry or setup sequence.
+The recorder coordinates admission and repository-dependent checks, while roots own relationship/content matching
+and adapters own SQL mechanics. Callers only execute a Command; they never sequence repository writes or commits.
 
 This DBAL path does **not** use ORM `DoctrineTransactionalUnitOfWork` or flush semantics. Do not wrap recording in an
 ORM/filter/consumer transaction. The boundary rejects an already-active transaction, nested invocation and unowned
@@ -407,7 +417,7 @@ than claiming availability from the safe capture marker.
 | Safe identity and protected row removed | Retry protection ended; a currently admitted submission can become new evidence with a new server recording time and one new dispatch attempt |
 
 Storage conformance and the [public removal Command](execution-detail-removal.md) remove content **inside the same
-`RecordingTransaction` serialization boundary**. Arbitrary SQL maintenance outside this lock is not covered by removal/retry race
+`DbalRecordingTransaction` serialization boundary**. Arbitrary SQL maintenance outside this lock is not covered by removal/retry race
 guarantees. Tests exercise both lock orders (removal first and retained retry first) on SQLite/MySQL/PostgreSQL.
 Removing body alone preserves safe detail/activity and session/phase evidence and cannot leave a truthfully available
 body link: storage reconstruction returns no content. Removing identity too ends the guarantee, not an undeclared
@@ -447,8 +457,11 @@ version-one design until first tagged. There are no historical codecs, aliases, 
 previous development snapshots. Unsupported-version rejection remains current validation, not past-version support.
 The project profile records this release-baseline rule.
 
-The manifest classifies the intended public roots, repositories, Commands, handlers, admission/transaction ports,
-exceptions, receipt, Event and DBAL adapters; `ObservationFields` is internal. These classifications do not freeze
+The manifest classifies the intended public roots, repositories, Commands, handlers, admission ports,
+exceptions, receipt, Event and DBAL adapters; `ObservationFields` is internal. TASK-00184 removes the provisional
+empty transaction subtype and keeps `DbalRecordingTransaction` public/final for explicit execution composition,
+with real schema-lock and failure-translation responsibility. The two public/final generic DBAL declarations
+are described in [repository transactions](components/repositories/index.md#dbal-transactional-unit-of-work). These classifications do not freeze
 never-released development representations. Concrete classes are final, ports are implementable, and no inheritance
 extension promise is added.
 Released/unrelated bus, dispatcher, UUID, audit, Event Store and unit-of-work contracts remain unchanged; TASK-00173's

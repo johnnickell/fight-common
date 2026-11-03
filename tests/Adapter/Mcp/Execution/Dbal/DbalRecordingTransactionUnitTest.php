@@ -15,10 +15,13 @@ use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationSchema;
 use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork;
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\ObservationStorageFailed;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Phase\Phase;
 use Fight\Common\Domain\Mcp\Session\Session;
@@ -342,6 +345,66 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Incomplete observation schema version one.');
         (new DbalObservationSchema())->install($connection);
+    }
+
+    public function test_that_all_four_repositories_reject_an_unrelated_generic_transaction_on_the_same_connection(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+        $detail = ObservationFixture::detail();
+        $protectedContentRepository = new DbalProtectedContentRepository($recordingTransaction);
+        $writes = [
+            static fn () => (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session())),
+            static fn () => (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', ObservationFixture::phase()->phase())),
+            static fn () => (new DbalObservationRepository($recordingTransaction))->add(ObservationFixture::session()->recorded(new DateTimeImmutable('now'))),
+            static fn () => $protectedContentRepository->add($detail, ProtectedContent::create($detail->detail(), 'private')),
+            static fn () => $protectedContentRepository->removeFor($detail)
+        ];
+        $transactionalUnitOfWork->commitTransactional(static function () use ($writes, $connection): void {
+            foreach ($writes as $write) {
+                try {
+                    $write();
+                    self::fail('A generic active transaction is not the execution serialization boundary.');
+                } catch (LogicException) {
+                    self::assertTrue($connection->isTransactionActive());
+                }
+            }
+        });
+        foreach (['sessions', 'phases', 'observations', 'contents'] as $table) {
+            self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_'.$table));
+        }
+    }
+
+    public function test_that_catching_nested_rejection_does_not_release_the_owning_serialization_boundary(): void
+    {
+        $connection = $this->database();
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction): void {
+            try {
+                $recordingTransaction->commitTransactional(static fn () => null);
+                self::fail('Expected nested execution rejection.');
+            } catch (LogicException) {
+                (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session()));
+            }
+        });
+        self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+    }
+
+    public function test_that_failed_idle_inspection_is_not_reported_as_a_confirmed_rollback(): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new PostgreSQLPlatform());
+        $failure = new class ('inspection failed') extends RuntimeException implements Exception {};
+        $connection->shouldReceive('isTransactionActive')->once()->andThrow($failure);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        try {
+            $recordingTransaction->commitTransactional(static fn () => null);
+            self::fail('Expected idle inspection failure.');
+        } catch (Exception $caught) {
+            self::assertSame($failure, $caught);
+            self::assertFalse($recordingTransaction->isClosed());
+        }
     }
 
     private function database(): Connection

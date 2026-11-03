@@ -8,8 +8,8 @@ use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordPhas
 use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
 use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Mcp\Execution\ObservationAdmission;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
@@ -31,7 +31,7 @@ final class RecordingCommandsTest extends UnitTestCase
 {
     public function test_that_commands_roundtrip_and_handlers_use_the_recording_coordinator(): void
     {
-        $transaction = $this->mock(RecordingTransaction::class);
+        $transaction = $this->mock(TransactionalUnitOfWork::class);
         $transaction->shouldReceive('commitTransactional')->twice()->andReturnNull();
         $recorder = $this->recorder($transaction);
         foreach ([
@@ -87,7 +87,7 @@ final class RecordingCommandsTest extends UnitTestCase
 
     public function test_that_handlers_reject_incorrectly_routed_command_types(): void
     {
-        $recorder = $this->recorder($this->mock(RecordingTransaction::class));
+        $recorder = $this->recorder($this->mock(TransactionalUnitOfWork::class));
         foreach ([
             [new RecordSessionObservationHandler($recorder), new RecordPhaseObservation(ObservationFixture::phase())],
             [new RecordPhaseObservationHandler($recorder), new RecordSessionObservation(ObservationFixture::session())],
@@ -101,7 +101,7 @@ final class RecordingCommandsTest extends UnitTestCase
         }
     }
 
-    private function recorder(RecordingTransaction $transaction): ObservationRecorder
+    private function recorder(TransactionalUnitOfWork $transaction): ObservationRecorder
     {
         return new ObservationRecorder(
             $transaction,

@@ -25,7 +25,7 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
 | `AGENTS.md installed` | `187248c51307fce8ba3fb3d3df24c15eaceee1c3a208f5d8aac372548984d444` |
-| `standards/Architecture.md` | `4f0f8ebdbacc074302fc29f34625e62892a55c14a8c90732e9eed011462603cf` |
+| `standards/Architecture.md` | `82816e86ee2ec91f0b244e968eaa4c67889a63145124a5243e78a26b3780a6fb` |
 | `standards/Delivery.md` | `edea87ae0c622b604bf81bbb457d65fa563105445a98886cdb8f12d17b2010e8` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `edb5ea685253c45638930ae9f41a5e0dd12caa1f143dcd9b7ca207013eb350c2` |
@@ -150,6 +150,14 @@ validate Common-specific documentation and required local checks without new wor
 Independent Review and applicable local documentation QA remain separate, pending evidence rather than implied
 by this adoption record. Exact coverage, compatibility, gate/reuse policy, advisory hosted CI, GitFlow, release
 certification/signing and human merge control remain intact. The digests above identify the current local copies.
+
+## DBAL implementation checkpoint — TASK-00184
+
+Architecture's transaction paragraph now identifies the implemented generic DBAL boundary and links to its owning
+TASK rather than describing it as future work. Capability-specific schema/lock/failure composition stays in the
+adapter. This factual checkpoint does not change the approved architecture rule or claim independent acceptance;
+the installed Architecture digest above is refreshed from the prior TASK-00183 digest
+`4f0f8ebdbacc074302fc29f34625e62892a55c14a8c90732e9eed011462603cf`. No upstream baseline is copied or synchronized.
 
 ## Aggregate-first architecture and descriptive naming — TASK-00183
 

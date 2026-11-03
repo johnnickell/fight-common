@@ -65,8 +65,10 @@ No metadata purge, second body store, schema/index change, tombstone reason, mig
 
 `ProtectedContentRepository::removeFor(detail)` is trusted storage, **not** public authorization. Its DBAL
 implementation requires the **same `DbalRecordingTransaction` object** as participating recording repositories.
-The remover calls `RecordingTransaction::commitTransactional()`; the adapter owns the connection, actual commit
-and existing `fight_execution_schema` version-row write lock. Recording and removal take that common lock **before
+The remover injects the existing `TransactionalUnitOfWork` directly and calls `commitTransactional()`.
+`DbalRecordingTransaction` owns execution schema locking and failure translation, composing the generic
+`DbalTransactionalUnitOfWork` for actual begin/commit/rollback. Both use the same dedicated connection and
+existing `fight_execution_schema` version-row write lock. Recording and removal take that common lock **before
 reads** on SQLite, MySQL and PostgreSQL. It serializes schema-wide writers, trading throughput for integrity;
 no global causal/commit order or high-throughput batching is promised.
 
@@ -148,15 +150,16 @@ use Fight\Common\Application\Mcp\Execution\Detail\CommandHandler\RemoveCapturedD
 use Fight\Common\Application\Mcp\Execution\Detail\Service\DetailRemover;
 use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 
-// $transaction is recording's DbalRecordingTransaction on its dedicated connection.
-// $removalAdmission implements DetailRemovalAdmission using current trusted consumer context.
-$remover = new DetailRemover(
-    $transaction,
-    new DbalObservationRepository($transaction),
-    new DbalProtectedContentRepository($transaction),
-    $removalAdmission
+// $recordingTransaction is recording's DbalRecordingTransaction (a TransactionalUnitOfWork).
+// Reuse this exact execution serialization boundary, not a bare generic DBAL boundary.
+// $detailRemovalAdmission implements DetailRemovalAdmission using current trusted context.
+$detailRemover = new DetailRemover(
+    $recordingTransaction,
+    new DbalObservationRepository($recordingTransaction),
+    new DbalProtectedContentRepository($recordingTransaction),
+    $detailRemovalAdmission
 );
-$router->registerHandler(RemoveCapturedDetail::class, new RemoveCapturedDetailHandler($remover));
+$commandRouter->registerHandler(RemoveCapturedDetail::class, new RemoveCapturedDetailHandler($detailRemover));
 ```
 
 Register on the consumer's ordinary Command router, independently from safe/protected Query admission and recording

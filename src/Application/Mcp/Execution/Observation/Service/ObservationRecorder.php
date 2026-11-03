@@ -11,8 +11,8 @@ use Fight\Common\Application\Mcp\Execution\Observation\Exception\InvalidObservat
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\ObservationConflict;
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\ProtectedContentRemoved;
 use Fight\Common\Application\Mcp\Execution\ObservationAdmission;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
@@ -37,13 +37,13 @@ final readonly class ObservationRecorder
      * All repositories participate in the supplied recording transaction
      */
     public function __construct(
-        private RecordingTransaction $transaction,
-        private SessionRepository $sessions,
-        private PhaseRepository $phases,
-        private ObservationRepository $observations,
-        private ObservationAdmission $admission,
-        private EventDispatcher $events,
-        private ProtectedContentRepository $contents
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private SessionRepository $sessionRepository,
+        private PhaseRepository $phaseRepository,
+        private ObservationRepository $observationRepository,
+        private ObservationAdmission $observationAdmission,
+        private EventDispatcher $eventDispatcher,
+        private ProtectedContentRepository $protectedContentRepository
     ) {
     }
 
@@ -53,7 +53,7 @@ final readonly class ObservationRecorder
     public function record(Observation $observation, ?ProtectedContent $content = null): void
     {
         $operation = function () use ($observation, $content): ?RecordedObservation {
-            $this->admission->admit($observation);
+            $this->observationAdmission->admit($observation);
             if (($observation->detail() !== null) !== ($content !== null)) {
                 throw new DomainException('Detail recording requires paired capture and protected content.');
             }
@@ -62,20 +62,20 @@ final readonly class ObservationRecorder
             $capture = $observation->detail();
             if ($capture !== null) {
                 $capture->validateBody($content->body());
-                $activity = $this->observations->getById($observation->producerId(), $capture->activityId());
+                $activity = $this->observationRepository->getById($observation->producerId(), $capture->activityId());
                 if ($activity === null || !$capture->acceptsActivity($observation, $activity)) {
                     throw new InvalidObservationRelationship();
                 }
             }
 
-            $existing = $this->observations->getById($observation->producerId(), $observation->id());
+            $existing = $this->observationRepository->getById($observation->producerId(), $observation->id());
             if ($existing !== null) {
                 if (!$existing->matches($observation)) {
                     throw new ObservationConflict();
                 }
 
                 if ($content !== null) {
-                    $retained = $this->contents->getFor($existing);
+                    $retained = $this->protectedContentRepository->getFor($existing);
                     if ($retained === null) {
                         throw new ProtectedContentRemoved();
                     }
@@ -93,21 +93,21 @@ final readonly class ObservationRecorder
                 Observation::fromArray($observation->toArray()),
                 new DateTimeImmutable('now', new DateTimeZone('UTC'))
             );
-            $this->observations->add($recorded->observation());
+            $this->observationRepository->add($recorded->observation());
             if ($content !== null) {
-                $this->contents->add($recorded->observation(), $content);
+                $this->protectedContentRepository->add($recorded->observation(), $content);
             }
 
             return $recorded;
         };
-        $recorded = $this->transaction->commitTransactional($operation);
+        $recorded = $this->transactionalUnitOfWork->commitTransactional($operation);
         if ($recorded === null) {
             return;
         }
 
         $event = ObservationRecorded::fromRecorded($recorded);
         try {
-            $this->events->trigger($event);
+            $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
             throw new CommittedObservationDispatchFailed($event, $throwable);
         }
@@ -119,7 +119,7 @@ final readonly class ObservationRecorder
     private function validateRelationships(Observation $observation): void
     {
         $reference = $observation->session();
-        $session = $this->sessions->getById($reference->projectId(), $reference->sessionId());
+        $session = $this->sessionRepository->getById($reference->projectId(), $reference->sessionId());
         if ($session !== null && !$session->matches($reference)) {
             throw new InvalidObservationRelationship();
         }
@@ -127,7 +127,7 @@ final readonly class ObservationRecorder
         $phaseReference = $observation->phase();
         if ($phaseReference === null) {
             if ($session === null) {
-                $this->sessions->add(new Session($reference));
+                $this->sessionRepository->add(new Session($reference));
             }
 
             return;
@@ -139,13 +139,13 @@ final readonly class ObservationRecorder
 
         $phase = new Phase($reference->projectId(), $phaseReference);
         if ($phase->parentPhaseId() !== null) {
-            $parent = $this->phases->getById($phase->projectId(), $phase->parentPhaseId());
+            $parent = $this->phaseRepository->getById($phase->projectId(), $phase->parentPhaseId());
             if ($parent === null || !$phase->acceptsParent($parent)) {
                 throw new InvalidObservationRelationship();
             }
         }
 
-        $existing = $this->phases->getById($phase->projectId(), $phase->id());
+        $existing = $this->phaseRepository->getById($phase->projectId(), $phase->id());
         if ($existing !== null && !$existing->matches($phase->projectId(), $phaseReference)) {
             throw new InvalidObservationRelationship();
         }
@@ -155,7 +155,7 @@ final readonly class ObservationRecorder
                 throw new InvalidObservationRelationship();
             }
 
-            $this->phases->add($phase);
+            $this->phaseRepository->add($phase);
         }
     }
 }

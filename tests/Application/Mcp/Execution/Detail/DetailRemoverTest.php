@@ -8,7 +8,7 @@ use Fight\Common\Application\Mcp\Execution\Detail\CommandHandler\RemoveCapturedD
 use Fight\Common\Application\Mcp\Execution\Detail\Exception\DetailRemovalRejected;
 use Fight\Common\Application\Mcp\Execution\Detail\Service\DetailRemovalAdmission;
 use Fight\Common\Application\Mcp\Execution\Detail\Service\DetailRemover;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
@@ -31,7 +31,7 @@ final class DetailRemoverTest extends UnitTestCase
     public function test_that_handler_admits_before_lookup_and_removes_only_inside_its_real_commit_boundary(): void
     {
         $command = $this->command(); $detail = ObservationFixture::detail();
-        $transaction = $this->mock(RecordingTransaction::class);
+        $transaction = $this->mock(TransactionalUnitOfWork::class);
         $active = false; $committed = false;
         $transaction->shouldReceive('commitTransactional')->once()->andReturnUsing(static function (callable $operation) use (&$active, &$committed): void {
             $active = true; $operation(); $active = false; $committed = true;
@@ -52,7 +52,7 @@ final class DetailRemoverTest extends UnitTestCase
     #[DataProvider('rejections')]
     public function test_that_denied_unknown_and_inconsistent_selections_share_safe_rejection_without_deletion(string $case): void
     {
-        $transaction = $this->mock(RecordingTransaction::class);
+        $transaction = $this->mock(TransactionalUnitOfWork::class);
         $transaction->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn (callable $operation) => $operation());
         $admission = $this->mock(DetailRemovalAdmission::class);
         $permit = $admission->shouldReceive('admit')->once()->globally()->ordered();
@@ -83,14 +83,14 @@ final class DetailRemoverTest extends UnitTestCase
 
     public function test_that_wrong_handler_routing_never_enters_the_removal_transaction(): void
     {
-        $handler = new RemoveCapturedDetailHandler(new DetailRemover($this->mock(RecordingTransaction::class), $this->mock(ObservationRepository::class), $this->mock(ProtectedContentRepository::class), $this->mock(DetailRemovalAdmission::class)));
+        $handler = new RemoveCapturedDetailHandler(new DetailRemover($this->mock(TransactionalUnitOfWork::class), $this->mock(ObservationRepository::class), $this->mock(ProtectedContentRepository::class), $this->mock(DetailRemovalAdmission::class)));
         $this->expectException(InvalidArgumentException::class);
         $handler->handle(CommandMessage::create(new RecordSessionObservation(ObservationFixture::session())));
     }
 
     public function test_that_transaction_failure_is_not_acknowledged_as_success(): void
     {
-        $transaction = $this->mock(RecordingTransaction::class);
+        $transaction = $this->mock(TransactionalUnitOfWork::class);
         $failure = new RuntimeException('commit did not acknowledge');
         $transaction->shouldReceive('commitTransactional')->once()->andThrow($failure);
         $remover = new DetailRemover($transaction, $this->mock(ObservationRepository::class), $this->mock(ProtectedContentRepository::class), $this->mock(DetailRemovalAdmission::class));

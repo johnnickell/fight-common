@@ -124,8 +124,9 @@ separation. Use the existing contract rather than inventing an inward subtype or
 Adapters may share a connection/serialization lock while persistence and transaction ownership remain distinct.
 
 DBAL work requires a DBAL-backed transaction boundary, not substitution with an ORM EntityManager/flush boundary.
-`Adapter/Persistence/Doctrine/DbalTransactionalUnitOfWork` is the approved target in
-[TASK-00184](../../../planning/tasks/00184-TASK.md), not an implemented API at this documentation checkpoint.
+`Adapter/Persistence/Doctrine/DbalTransactionalUnitOfWork` implements the generic mechanism under
+[TASK-00184](../../../planning/tasks/00184-TASK.md); capability-specific locks, schemas and failure translation
+remain adapter-owned composition, not additions to the inward transaction contract.
 Preserve actual commit/rollback, caller-transaction rejection, closure/uncertainty and recovery guarantees when
 separating existing stores. Reconcile released consumer compatibility explicitly. Avoid a blanket rule that all
 external calls must be outside all transactions.

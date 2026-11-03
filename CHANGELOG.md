@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Execution recording/removal now inject the existing `TransactionalUnitOfWork` directly. Remove the never-released
+  empty `RecordingTransaction` subtype; the execution DBAL seam retains schema serialization and capability-specific
+  failures around reusable transaction mechanics. Same-connection ownership, retry/removal races and post-commit
+  dispatch semantics remain unchanged; no schema or aggregate namespace changes.
 - Group all agent/MCP-owned execution tracking, notices, durable Task lifecycle and subscription concepts present
   on develop beneath `Domain\Mcp`, `Application\Mcp` and `Adapter\Mcp`. Provisional tracking APIs move directly
   without development aliases; existing CQRS, authorization, storage, stateless input and protocol behavior remain
@@ -36,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork` without ORM dependencies, preserving callback
+  results, owned rollback, caller/nested rejection and terminal truthful `DbalTransactionOutcomeUncertain` failures.
 - Canonical MCP foundation names with identity-preserving released-name compatibility, without protocol,
   authorization, wire/storage or delivery changes. Native saved results from tagged releases remain usable
   when the later optional response budget was absent.
