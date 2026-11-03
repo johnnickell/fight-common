@@ -399,6 +399,29 @@ class ValidationCoordinatorTest extends UnitTestCase
         self::assertContains('Must be in list', $result->getErrors()->get('type'));
     }
 
+    public function test_that_named_arguments_and_named_variadic_list_values_remain_supported(): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $coordinator->addRangeNumberValidation(
+            maxNumber: '2.5', minNumber: '1', errorMessage: 'Outside range', fieldName: 'number'
+        );
+        $coordinator->addInListValidation(
+            fieldName: 'color', errorMessage: 'Unknown color', type: 'red', args: 'blue'
+        );
+        self::assertSame(
+            ['number' => 2.5, 'color' => 'blue'],
+            $coordinator->validate(new InputData(['number' => 2.5, 'color' => 'blue']))->getData()->toArray()
+        );
+
+        $coordinator->addInListValidation(
+            fieldName: 'color', errorMessage: 'Unknown color', type: 'red', args: 'blue'
+        );
+        self::assertSame(
+            ['color' => ['Unknown color']],
+            $coordinator->validate(new InputData(['color' => 'green']))->getErrors()->toArray()
+        );
+    }
+
     public function test_that_add_ip_address_validation_adds_ip_address_validator(): void
     {
         $coordinator = new ValidationCoordinator();
