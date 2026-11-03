@@ -4,6 +4,27 @@ This project is a shared PHP library for applications using Hexagonal Architectu
 
 This file records how terms are used inside this library. Public APIs, documentation, tickets, and ADRs should use these meanings consistently.
 
+## Approved aggregate correction and current source
+
+[Architecture](docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the approved
+aggregate layout, value-object inheritance, handler ownership, adapter destinations and finite package exceptions.
+[Naming](docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator
+names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
+2026-11-02 decision; TASK-00184 through TASK-00192 own its dependent implementation, not this documentation change.
+
+An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
+or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
+state, while Application read DTOs describe use-case results. Immutability alone does not choose among them.
+The Event Sourcing-specific “Aggregate root” term later in this file refers to that capability's reference base,
+not a universal base for ordinary aggregates.
+
+The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators, combined
+`TaskStore`/`NoticeStore` transaction contracts, execution's technical Application grouping, concrete Application
+Tools and Domain disclosure encoding. They are not exceptions to the approved target. Repository/transaction
+separation, per-handler use cases, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes
+remain pending in the owning refactors. Current consumer policy, stored/wire behavior and release bridges remain
+binding; no new runtime conformance, DBAL transaction API or namespace move is claimed here.
+
 ## Architectural language
 
 | Term | Meaning in Fight Common |

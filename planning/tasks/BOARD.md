@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
+| Active Work | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -57,14 +57,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
-| 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | ready-for-agent | — | — |
 | — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | ready-for-agent | — | [PR #263](https://github.com/johnnickell/fight-common/pull/263) |
 
 ## Waiting

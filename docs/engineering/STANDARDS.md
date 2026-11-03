@@ -25,12 +25,12 @@ The root [AGENTS.md](../../AGENTS.md) contains the shared policy with project-re
 |---|---|
 | `AGENTS.md baseline` | `026dbae813a7962b104ecf5785429f24bb7dbcacd866a66cea9b9d1e7dae10db` |
 | `AGENTS.md installed` | `187248c51307fce8ba3fb3d3df24c15eaceee1c3a208f5d8aac372548984d444` |
-| `standards/Architecture.md` | `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` |
+| `standards/Architecture.md` | `4f0f8ebdbacc074302fc29f34625e62892a55c14a8c90732e9eed011462603cf` |
 | `standards/Delivery.md` | `edea87ae0c622b604bf81bbb457d65fa563105445a98886cdb8f12d17b2010e8` |
 | `standards/Frontend.md` | `236d9fae3bd94af3a22b6158953979be04c0c8e388f62d56461579d58e9eb8ec` |
 | `standards/Governance.md` | `edb5ea685253c45638930ae9f41a5e0dd12caa1f143dcd9b7ca207013eb350c2` |
 | `standards/HTTP.md` | `456f7161f08bdd23063bab934ba9a26fb178f0e1ad35e0d898255dd9702626c9` |
-| `standards/Naming.md` | `783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907` |
+| `standards/Naming.md` | `4cbe58984d4a5b207c6680cafe293d522896841891ea46e3d5f49345f6a3fad5` |
 | `standards/PHP.md` | `b102071e4939424796e4edc20d0b46373210634189c8f024038214e0e18cf623` |
 | `standards/Planning.md` | `3977009d18e64afe804a80fa3f6dcef5ff062ea9694f890717a3b8b84bc22c66` |
 | `standards/Review.md` | `cd86ecfa4f1a9b7a73394ff14c97dbf12def59ebb3bdea084f18253be5f21277` |
@@ -150,6 +150,23 @@ validate Common-specific documentation and required local checks without new wor
 Independent Review and applicable local documentation QA remain separate, pending evidence rather than implied
 by this adoption record. Exact coverage, compatibility, gate/reuse policy, advisory hosted CI, GitFlow, release
 certification/signing and human merge control remain intact. The digests above identify the current local copies.
+
+## Aggregate-first architecture and descriptive naming — TASK-00183
+
+John's 2026-11-02 decision in [TASK-00183](../../planning/tasks/00183-TASK.md) amends the local
+[Architecture](standards/Architecture.md#aggregate-ownership-and-namespaces) and
+[Naming](standards/Naming.md#variables-properties-and-parameters) standards. Architecture owns aggregate identity,
+repository and invariant placement, matching Application handler ownership, separate repository/transaction
+contracts, ValueObject inheritance and finite package exceptions. Naming owns responsibility-specific variables,
+properties, parameters and locals, with released named-argument compatibility protected.
+
+The profile, CONTEXT, architecture guide, MCP current/target map and ADR 0023 scoped amendment now point to those
+owners. The Architecture and Naming digests above identify these installed local amendments; their previous
+installed digests were `aa214a9f76dbeb8be6236edebbdab42e3edfe9df929c17b7b420560f25426718` and
+`783c67a53b62f9a1576a3a0c00a6438f1b6c40b0df84f268874689b715e74907`, respectively. Other document digests and
+historical baseline provenance are unchanged. This is not automatic upstream synchronization or a change to the
+provider's rules. The dependent production corrections remain TASK-00184 through TASK-00192; no current source
+conformance, independent acceptance, release or publication is asserted by this adoption entry.
 
 ## No post-merge Board chore — historical 2026-10-27 checkpoint
 

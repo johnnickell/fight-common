@@ -77,6 +77,28 @@ homes and released-name bridges, preserving their original 1.2 deprecation and 2
 The move changes no inward layer boundaries, HTTP safeguards, streaming, storage/schema, admission, transaction,
 delivery guarantees, optional dependencies or consumer policy ownership.
 
+## Aggregate persistence and concrete Tool specialization — TASK-00183
+
+John approved aggregate-first ownership on 2026-11-02. This scoped amendment specializes the general persistence
+destination and the earlier whole-capability MCP grouping; it does not erase their historical acceptance.
+[Architecture](../../docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) is the single
+normative owner of the new rules and finite exceptions. The
+[MCP namespace map](../../docs/mcp-namespaces.md#approved-aggregate-alignment-target) distinguishes current source
+from the approved destinations and names the implementing tasks.
+
+MCP aggregate persistence/read adapters target `Adapter/Mcp/Persistence/{Aggregate}/Dbal`; shared execution
+schema/serialization support may target `Adapter/Mcp/Persistence/Execution/Dbal` for real cross-aggregate knowledge.
+Generic DBAL transaction mechanics remain `Adapter/Persistence/Doctrine`, separately from repository persistence.
+Concrete Query-to-Tool argument/schema/public-output mapping targets `Adapter/Mcp/Tool/{Aggregate}`, with cohesive
+shared mapping support under `Tool/Execution` where needed. MCP engine/ports and protocol semantics remain in
+Application. Matching Application aggregate homes no longer gain an extra technical `Execution` parent merely
+because they share storage. No speculative protocol-version folders are introduced.
+
+This is an approved target, not an assertion that TASK-00184 through TASK-00192 are implemented. Framework
+service-container extension points, generic HTTP/JSend integration, the `Adapter/Mcp` umbrella and required released
+namespace bridges retain their accepted ownership and compatibility. No public API removal, schema, dependency,
+permission or delivery change follows from this documentation amendment.
+
 ## Consequences
 
 ADR 0019's capability-first rule remains the default for runtime adapters, but no longer governs framework
