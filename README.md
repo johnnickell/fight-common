@@ -65,3 +65,5 @@ for response composition and integration guidance.
 - Fight Common is available under the [MIT License](LICENSE).
 
 Copyright © 2026 John Nickell.
+
+See [local Docker, worktree and build-cache operations](docs/engineering/LOCAL_TOOLING.md) for explicit main/worktree selection, guarded teardown and fresh versus reused gate evidence.

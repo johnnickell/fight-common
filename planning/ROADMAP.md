@@ -52,6 +52,12 @@ On 2026-11-02 John approved standalone chores for [metadata grammars](tasks/0017
 Released relocated names alone receive functional deprecated bridges; removal belongs to a separately authorized
 future major. The linked TASK records own the scopes; the Board owns execution selection.
 
+John then approved bounded aggregate-first architectural correction after those chores:
+[TASK-00183](tasks/00183-TASK.md) through [TASK-00192](tasks/00192-TASK.md). The sequence covers explicit rules,
+DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
+values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
+dependencies and compatibility constraints; this planning approval starts no implementation or publication.
+
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),
 [EPIC-00011 — Generic MCP Subscriptions](epics/00011-EPIC.md) and

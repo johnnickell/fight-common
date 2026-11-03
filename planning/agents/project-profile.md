@@ -76,16 +76,20 @@ policy overrides provider marker examples; direct exact owned-PR/default/base/he
 
 This library ignores composer.lock. Ordinary builds use `composer update`. Release tooling resolves its candidate lanes first and uses `FIGHT_COMMON_DEPENDENCY_PROFILE=resolved ./bin/build` to preserve that resolution; use this mode only in the release-owned candidate procedure described in [the release guide](../../release/README.md).
 
-Tooling runs in the project's `fight-common` PHP container. For focused, noninteractive checks from the selected checkout:
+Tooling uses the selected checkout's native Compose project. Follow [local tooling](../../docs/engineering/LOCAL_TOOLING.md)
+for startup, explicit main/worktree selection, cached gate evidence and guarded retirement. From the selected checkout:
 
 ```bash
-docker run --rm -v "$PWD:/app:delegated" -w /app fight-common \
-  php vendor/bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
+./bin/phpunit tests/Domain/Specification/AndSpecificationTest.php
+./bin/phpstan
+./bin/rector
 ```
 
-For focused PHPStan use `php vendor/bin/phpstan analyse --memory-limit=512M` in that container pattern;
-`bin/quality` and `bin/phpstan` supply the same per-process limit, including parallel workers. This is not a total
-container allocation or a concurrency limit. Use the same container pattern for Rector when appropriate. Inspect `./bin/*` before selecting them: interactive helpers may allocate a TTY or rebuild the image. Long detached gates must produce a complete log and explicit exit status; do not interpret timeout output as completion.
+The PHPStan wrapper supplies the existing 512 MiB per-process limit, including parallel workers; this is not a
+container allocation or concurrency limit. Normal builds validate planning freshly and reuse only verified
+application receipts with matching inputs, runtime, artifacts and original logs; use `./bin/build --force` for
+fresh execution. Composer preparation retains the dependency policy above. Long detached gates must produce
+a complete log and explicit exit status; timeout output never establishes completion.
 
 The coding-standard authority is `src/Standards/Phpcs/ruleset.xml` with the project's PHPCS composition. Fight Common must demonstrate its own strict conventions: root `phpcs.xml` enables multiline docblocks, checks declaration docblock alignment and ignores PHPCS suppression annotations. Repair violations instead of adding exclusions, lowering diagnostic severity, suppressing warnings or narrowing the scanned paths to make a gate pass. Changes to the published consumer defaults remain subject to [ADR 0004](../adr/0004-coding-standard-compatibility.md). Unit tests use the established UnitTestCase and Mockery helpers. Test methods follow `test_that_<subject>_<condition>()`, with `self::assert...`. Direct unit tests have `#[CoversClass(Target::class)]`; qualifying integration/journey tests may use `#[CoversNothing]`, never to hide missing direct coverage. Every PHPUnit test class carries explicit coverage metadata. Follow each suite's actual base-class contract.
 
@@ -149,7 +153,7 @@ for proven mechanical reconciliation, not semantic drift.
 
 ## Runtime, runs and delivery
 
-Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Use ignored `.runs/worktrees/`, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical Review and QA reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. The [binding](shared-workflows.md#ignored-evidence) adds prospective Build/task-run locations without relocating legacy evidence. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
+Choose main checkout or isolated worktree for each TASK, retaining an existing user choice. Place isolated source checkouts outside `.runs/`. Use ignored `.runs/worktrees/` for coordination scratch, `.runs/notes/`, `.runs/handoffs/`, `.runs/reviews/` and `.runs/archive/`. Canonical Review and QA reports belong in the Git-metadata-resolved base worktree, not an arbitrary checkout. The [binding](shared-workflows.md#ignored-evidence) adds prospective Build/task-run locations without relocating legacy evidence. Keep environments through review; authorized landing cleans proven TASK-owned resources while preserving handoffs. Preserve unrelated services/worktrees.
 
 No persistent HTTP runtime or LocalDevelopment enrollment is asserted by this adoption. Library-focused checks need no feature URL. Any later HTTP runtime/worktree integration must use the shared operator's documented enrollment procedure; record the actual portable operator contract when adopted.
 

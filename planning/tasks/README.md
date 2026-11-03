@@ -85,4 +85,14 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | ready-for-agent | — |
 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | ready-for-agent | — |
+| [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | ready-for-agent | — |
+| [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | ready-for-agent | — |
+| [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | ready-for-agent | — |
+| [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | ready-for-agent | — |
+| [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | ready-for-agent | — |
+| [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
+| [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
+| [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | ready-for-agent | — |
+| [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | ready-for-agent | — |
+| [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
 <!-- /planning:records -->
