@@ -13,6 +13,7 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use InvalidArgumentException;
 use JsonException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(JSendEnvelope::class)]
 #[CoversClass(JSendStatus::class)]
@@ -44,7 +45,17 @@ class JSendEnvelopeTest extends UnitTestCase
         );
     }
 
-    public function test_that_success_projects_paginated_arrayable_records(): void
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function constructionPaths(): iterable
+    {
+        yield 'legacy' => [false];
+        yield 'strict' => [true];
+    }
+
+    #[DataProvider('constructionPaths')]
+    public function test_that_success_projects_paginated_arrayable_records(bool $strict): void
     {
         $records = ArrayList::of(Arrayable::class);
         $records->add(new class implements Arrayable {
@@ -65,7 +76,7 @@ class JSendEnvelopeTest extends UnitTestCase
                 return ['id' => 43, 'name' => 'Samwise'];
             }
         });
-        $resultSet = new ResultSet(2, 2, 5, $records);
+        $resultSet = $strict ? ResultSet::strict(2, 2, 5, $records) : new ResultSet(2, 2, 5, $records);
 
         $envelope = JSendEnvelope::success($resultSet);
 
@@ -93,11 +104,12 @@ class JSendEnvelopeTest extends UnitTestCase
         );
     }
 
-    public function test_that_success_rejects_paginated_non_arrayable_records_at_the_presentation_boundary(): void
+    #[DataProvider('constructionPaths')]
+    public function test_that_success_rejects_paginated_non_arrayable_records_at_the_presentation_boundary(bool $strict): void
     {
         $records = ArrayList::of('int');
         $records->add(42);
-        $resultSet = new ResultSet(1, 10, 1, $records);
+        $resultSet = $strict ? ResultSet::strict(1, 10, 1, $records) : new ResultSet(1, 10, 1, $records);
 
         self::assertSame(
             [

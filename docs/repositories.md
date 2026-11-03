@@ -131,7 +131,7 @@ $records = ArrayList::of(User::class);
 $records->add($user1);
 $records->add($user2);
 
-$result = new ResultSet(
+$result = ResultSet::strict(
     page: 2,
     perPage: 20,
     totalRecords: 150,
@@ -142,7 +142,8 @@ $result->page();                     // 2
 $result->perPage();                  // 20
 $result->totalPages();               // 8
 $result->totalRecords();             // 150
-$result->records();                  // ArrayList<User>
+$result->records();                  // same mutable ArrayList<User>
+$result->itemType();                 // User::class; null for a dynamic list
 $result->isEmpty();                  // false
 $result->count();                    // 2
 
@@ -161,6 +162,70 @@ $result->toArray();
 
 json_encode($result);                // same structure
 ```
+
+---
+
+### Strict result construction
+
+**Contract `fight-common.behavior.result-set-strict-construction`.**
+`ResultSet::strict(int $page, int $perPage, int $totalRecords, ArrayList $records): self` returns the existing
+`ResultSet<T>` with method-level generic inference from `ArrayList<T>`. All four arguments are required, with
+names identical to the public constructor. Construction requires `page >= 1`, `perPage >= 1`,
+`totalRecords >= 0`, and a record count no greater than **either** `perPage` or `totalRecords`.
+Violations raise `Fight\Common\Domain\Exception\DomainException`; diagnostic prose is not stable API.
+PHP owns native int/ArrayList boundaries: wrong types from strict callers raise TypeError, while weak callers
+retain native scalar coercion. This is not an HTTP parser or raw-string validator.
+
+Zero totals require an empty list and retain **one total page**. Positive-total empty pages, partial pages,
+ordinary full pages, last pages and pages beyond `totalPages` are valid. A nonempty out-of-range page is also
+valid when its local count bounds hold. No count-equals-size, last-page remainder or page-position rule is
+imposed; the supplied positive page and size are preserved without normalization.
+
+For positive totals, page count is exact integer-only ceiling division: `intdiv(totalRecords - 1, perPage) + 1`.
+No floating-point division or overflow-prone sum is used on this path, including during internal initialization.
+Native maximum positive page, size and total values are supported without an offset calculation or arbitrary cap.
+For total `PHP_INT_MAX`, sizes 1, 2 and `PHP_INT_MAX` yield respectively `PHP_INT_MAX`,
+`intdiv(PHP_INT_MAX, 2) + 1` and 1 pages. Unlike strict Pagination requests, a large page/size pair cannot fail
+because of an unrepresentable offset: ResultSet neither exposes nor executes one.
+
+### Records, mutation and presentation
+
+**Contract `fight-common.behavior.result-set-records`.** Both construction paths accept scalar, class/interface,
+object and dynamic/mixed ArrayLists. Existing public `itemType(): ?string` reports the list's **declared** type
+string, even when empty, or null for a dynamic list; it never infers a type from the first record.
+`records()` returns the exact supplied list, with original record identity and ordering. `count()`, `isEmpty()`
+and iteration delegate to that list. `toArray()` and `jsonSerialize()` retain the keys and types shown above:
+integer `page`, `per_page`, `total_pages`, `total_records` and an array of unprojected `records`.
+
+Strict validation is **construction-only**. Caller-held references and `records()` can mutate the shared list
+later, even beyond initial size/total bounds; record objects likewise remain shared. Metadata does not track
+those changes. There is no immutable snapshot, defensive/deep copy, continuous validation or provenance flag
+on ResultSet instances. Existing ArrayList element validation is unchanged; this factory does not audit elements.
+
+**Contract `fight-common.behavior.result-set-jsend-presentation`.**
+Arrayable is **not** a construction requirement. A strict ResultSet of scalar records is legal. The existing
+`JSendEnvelope::success()` presentation boundary still requires every record to implement Arrayable and projects
+those records; it rejects scalar records there with InvalidArgumentException, not during ResultSet construction.
+Consumers own public-safe Views/projection, request/result page-size agreement, record identity/type policy,
+ordering/filtering/scope, authorization, query/provider limits and recovery. Invalid metadata grants no permission
+for an unbounded fallback query. Construction performs no I/O, transaction, lock, query, event or permission decision.
+It certifies neither atomic count/row reads, current totals nor complete pages; consumers own consistency guarantees.
+
+### Legacy result construction and compatibility
+
+**Contract `fight-common.behavior.result-set-legacy-construction`.** The public constructor remains functional
+and is **not newly deprecated**. Its signatures, parameter names, permissive bounds/count behavior, shared list
+and output structure are unchanged; zero size or zero total still produces one total page. No runtime notice or
+automatic repository/adapter adoption is introduced, including in DoctrineAuditRepository.
+
+The legacy path does not validate local invariants and retains its floating-point page-count limitations at
+large native values (for example, total and size both `PHP_INT_MAX` can report 2 instead of 1 on 64-bit PHP).
+These limitations are not repaired here or new perpetual compatibility promises. New or explicitly migrated
+call sites may choose `ResultSet::strict(...)` after resolving their input/count policy. The additive factory,
+DomainException failures and exact arithmetic are next-minor API/behavior under ADRs 0009–0011, not authority
+to enforce validation on existing constructor users. No platform/dependency/schema, Pagination or release-policy
+change follows. Direct ResultSet and JSend fixtures prove package behavior, not database isolation or downstream
+consumer adoption; no exact release is assigned.
 
 ---
 

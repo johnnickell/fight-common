@@ -95,5 +95,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | ready-for-agent | — |
 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | ready-for-agent | — |
 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
-| [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | ready-for-agent | — |
+| [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | done | — |
 <!-- /planning:records -->

@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "eab7e14a8fd97cf1b996c95add68cebdfa5dd55195f943cd5246d01c8cd358f5",
+    "operation_shapes_sha256": "b0c9040954d54415098e2807166c7d90e5057bd632eb8244be5cb0fef663fe28",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -34698,7 +34698,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-call",
-                        "rationale": "Fight\\Common\\Domain\\Repository\\ResultSet promises its inventoried public callable surface to consumers.",
+                        "rationale": "ResultSet retains its released callable surface and adds generic strict(int $page, int $perPage, int $totalRecords, ArrayList $records): self in next-minor scope under TASK-00193; docs/repositories.md#strict-result-construction and tests/Domain/Repository/ResultSetTest.php bind validation, exact arithmetic and shared-list behavior. Existing itemType() and JSend boundaries remain unchanged.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\ResultSet",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Repository/ResultSet.php#Fight\\Common\\Domain\\Repository\\ResultSet",
@@ -34710,7 +34710,7 @@
                     "promised": true,
                     "evidence": {
                         "authority": "fight-common.operation.public-construction",
-                        "rationale": "Fight\\Common\\Domain\\Repository\\ResultSet promises construction through its inventoried public constructor or named factory.",
+                        "rationale": "ResultSet retains its released permissive public constructor and parameter names without new deprecation or runtime notices; additive strict() provides opt-in validated construction, not consumer extension. TASK-00193, docs/repositories.md#legacy-result-construction-and-compatibility and tests/Domain/Repository/ResultSetTest.php bind both paths.",
                         "binding": {
                             "subject": "Fight\\Common\\Domain\\Repository\\ResultSet",
                             "source_locator": "fdd48065c5527f4968943db7d61d6f1ad17619e7:src/Domain/Repository/ResultSet.php#Fight\\Common\\Domain\\Repository\\ResultSet",
@@ -38452,6 +38452,26 @@
             "id": "fight-common.behavior.pagination-legacy-construction",
             "normative": {"path": "docs/repositories.md", "section": "Legacy pagination and migration"},
             "fixture": {"path": "tests/Domain/Repository/PaginationTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.result-set-strict-construction",
+            "normative": {"path": "docs/repositories.md", "section": "Strict result construction"},
+            "fixture": {"path": "tests/Domain/Repository/ResultSetTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.result-set-records",
+            "normative": {"path": "docs/repositories.md", "section": "Records, mutation and presentation"},
+            "fixture": {"path": "tests/Domain/Repository/ResultSetTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.result-set-jsend-presentation",
+            "normative": {"path": "docs/repositories.md", "section": "Records, mutation and presentation"},
+            "fixture": {"path": "tests/Application/Http/JSend/JSendEnvelopeTest.php"}
+        },
+        {
+            "id": "fight-common.behavior.result-set-legacy-construction",
+            "normative": {"path": "docs/repositories.md", "section": "Legacy result construction and compatibility"},
+            "fixture": {"path": "tests/Domain/Repository/ResultSetTest.php"}
         },
         {
             "id": "fight-common.behavior.validation-coordinator-reuse",
