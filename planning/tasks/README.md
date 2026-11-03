@@ -81,7 +81,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | done | — |
 | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | done | — |
 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | done | — |
-| [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | ready-for-agent | — |
+| [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | done | — |
 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | ready-for-agent | — |
 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | ready-for-agent | — |

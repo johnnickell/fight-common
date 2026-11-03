@@ -9,6 +9,7 @@ use Doctrine\DBAL\DriverManager;
 use Fiber;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpServerInfo;
@@ -35,6 +36,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptionFilter::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpTasks::class)]
 #[CoversClass(McpEventStream::class)]
 final class McpTaskSubscriptionsTest extends UnitTestCase
@@ -90,6 +92,25 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
         $subscriptions = new McpSubscriptions($f->task->queries, $f->notices->store, $f, NoticeSelection::create(['scope']), tools: false, resources: false, tasks: $f->endpoint->tasks, taskDisclosure: $f);
         $this->expectException(DomainException::class);
         new McpCapabilityRegistry(new McpServerInfo('Invalid', '1'), [], $subscriptions);
+    }
+
+    public function test_that_task_subscriptions_require_the_exact_serving_instance_even_with_complete_task_activation(): void
+    {
+        $fixture = $this->fixture();
+        $endpoint = $fixture->endpoint;
+        $otherTasks = new McpTasks($fixture->task->queries, $fixture->task->commands, 'scope', 'caller');
+        $subscriptions = new McpSubscriptions($fixture->task->queries, $fixture->notices->store, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, tasks: $otherTasks, taskDisclosure: $fixture);
+        $discovery = $endpoint->registry->capabilityFor('tools/list');
+        foreach ([[$endpoint->tasks, $endpoint->invocation], [$endpoint->invocation, $endpoint->tasks]] as $capabilities) {
+            try {
+                new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [$discovery, ...$capabilities], $subscriptions);
+                self::fail('Live Task delivery must not bind a nominally equivalent alternate instance.');
+            } catch (DomainException $failure) {
+                self::assertSame('Task notifications require the same complete Task capability.', $failure->getMessage());
+            }
+        }
+        self::assertSame(0, $endpoint->tool->starts);
+        self::assertSame(0, (int) $fixture->notices->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
     }
 
     public function test_that_actual_input_partial_confirmation_results_errors_and_terminal_baselines_share_get_semantics(): void

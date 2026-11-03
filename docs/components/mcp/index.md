@@ -88,6 +88,15 @@ contradictory metadata, a standard method whose advertised capability family doe
 family without its mandatory anchor method, non-JSON capability definitions, and invalid transport-mirror
 declarations during composition.
 
+The registry remains the single trusted construction boundary. Its internal
+`Application\Mcp\Composition\McpCompositionValidator` owns cross-feature constraints: complete Skills/readable
+Resources wiring, exact shared Task/Tool instances, and truthful subscription activation. Generic method/mirror
+indexing, standard family/anchor constraints, JSON definitions and extension merging remain in the registry.
+This final `@internal` collaborator is deliberately classified internal in the compatibility manifest, not a
+consumer validator API, registration contract or additional setup step. Capabilities cannot self-certify global
+consistency. Extraction makes the existing feature coupling explicit; it does not remove it or enumerate providers,
+invoke Tools, persist state or replace request-time availability and authorization.
+
 The `prompts.listChanged`, `resources.subscribe`, `resources.listChanged`, and `tools.listChanged` flags describe
 subscription-driven delivery behavior. Arbitrary declarations of those flags as `true` still reject. Explicit
 request-scoped [live Tool/Resource and optional Prompt subscriptions](../../mcp-subscriptions.md) supplied as the
