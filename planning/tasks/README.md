@@ -82,7 +82,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | done | — |
 | [TASK-00178](00178-TASK.md) | Separate MCP metadata grammar machinery | done | — |
 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | done | — |
-| [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | ready-for-agent | — |
+| [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | done | — |
 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | in-progress | — |
 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | ready-for-agent | — |
@@ -95,4 +95,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | ready-for-agent | — |
 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | ready-for-agent | — |
 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
+| [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | ready-for-agent | — |
 <!-- /planning:records -->
