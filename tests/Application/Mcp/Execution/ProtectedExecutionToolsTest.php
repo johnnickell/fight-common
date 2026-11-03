@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Execution;
 
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Execution\Detail\Data\CapturedDetail;
 use Fight\Common\Application\Mcp\Execution\Detail\Data\ContentChunk;
 use Fight\Common\Application\Mcp\Execution\Detail\Data\DetailReference;
 use Fight\Common\Application\Mcp\Execution\Detail\Data\MessagePage;
 use Fight\Common\Application\Mcp\Execution\GetCapturedDetailTool;
 use Fight\Common\Application\Mcp\Execution\ListCapturedMessagesTool;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;

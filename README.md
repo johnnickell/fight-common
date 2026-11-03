@@ -54,6 +54,12 @@ Fight Common retains its published `1.x` framework-neutral envelope and Symfony 
 [Validation guide](https://johnnickell.github.io/fight-common/components/validation/) is the authoritative route
 for response composition and integration guidance.
 
+## MCP foundation imports
+
+Prefer the canonical `Application\Mcp\Capability`, `Protocol`, `Http` and `Tool` names.
+The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) explains released-name compatibility;
+`McpResponder` and `McpDiagnostics` stay at root without deprecation.
+
 ## Project routes
 
 - Read the [documentation](https://johnnickell.github.io/fight-common/) or begin with the

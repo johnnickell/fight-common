@@ -8,6 +8,10 @@ use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Const_;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\BinaryOp\Concat;
+use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Identifier;
@@ -16,6 +20,8 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Param;
+use PhpParser\Node\Scalar\MagicConst\Namespace_ as NamespaceConstant;
+use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassLike;
@@ -24,6 +30,7 @@ use PhpParser\Node\Stmt\Enum_;
 use PhpParser\Node\Stmt\EnumCase;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Interface_;
+use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Trait_;
 use PhpParser\Node\UnionType;
 use PhpParser\NodeFinder;
@@ -71,6 +78,23 @@ final readonly class PhpParserStructuralInventory
             }
         }
 
+        $byName = array_column($declarations, null, 'name');
+        foreach ($declarations as &$entry) {
+            if (!isset($entry['alias_of'])) {
+                continue;
+            }
+
+            $target = $byName[$entry['alias_of']] ?? null;
+            is_array($target) && !isset($target['alias_of'])
+                || throw new UnexpectedValueException('A structural alias target is unreadable.');
+            $entry = ['name' => $entry['name'], 'source' => $entry['source'], ...array_diff_key(
+                $target,
+                ['name' => true, 'source' => true]
+            )];
+        }
+
+        unset($entry);
+
         $functionPath = $sourceRoot.'/src/Domain/functions.php';
         $functionSource = $this->read($functionPath);
         $functionInventory = $this->functionInventory(
@@ -100,8 +124,10 @@ final readonly class PhpParserStructuralInventory
             $nodes,
             static fn (Node $node): bool => $node instanceof ClassLike && $node->namespacedName instanceof Name
         );
-        $declaration instanceof ClassLike
-            || throw new UnexpectedValueException('A structural declaration is unreadable.');
+        if (!$declaration instanceof ClassLike) {
+            return $this->aliasInventory($nodes, $sourcePath);
+        }
+
         assert(
             $declaration instanceof Class_
             || $declaration instanceof Interface_
@@ -252,6 +278,49 @@ final readonly class PhpParserStructuralInventory
             'kind'       => $kind,
             'members'    => $members,
             'operations' => $this->operationShapes($callable, $constructible, $extensible, $implementable)
+        ];
+    }
+
+    /**
+     * Returns an identity-preserving alias without executing package code
+     *
+     * @phpstan-param list<Node\Stmt> $nodes
+     *
+     * @return array<string, mixed>
+     */
+    private function aliasInventory(array $nodes, string $sourcePath): array
+    {
+        $calls = new NodeFinder()->find($nodes, static fn (Node $node): bool => $node instanceof FuncCall
+            && $node->name instanceof Name && $node->name->toString() === 'class_alias');
+        count($calls) === 1 || throw new UnexpectedValueException('A structural declaration is unreadable.');
+        $call = $calls[0];
+        assert($call instanceof FuncCall);
+        $arguments = $call->getArgs();
+        $target = $arguments[0]->value ?? null;
+        $alias = $arguments[1]->value ?? null;
+        $target instanceof ClassConstFetch && $target->class instanceof FullyQualified
+            && $target->name instanceof Identifier && $target->name->toString() === 'class'
+            && $alias instanceof Variable && $alias->name === 'alias'
+            || throw new UnexpectedValueException('A structural alias is unreadable.');
+        $namespace = new NodeFinder()->findFirstInstanceOf($nodes, Namespace_::class);
+        $namespace instanceof Namespace_ && $namespace->name instanceof Name
+            || throw new UnexpectedValueException('A structural alias namespace is unreadable.');
+        $assignments = new NodeFinder()->find($nodes, static fn (Node $node): bool => $node instanceof Assign);
+        count($assignments) === 1 || throw new UnexpectedValueException('A structural alias name is unreadable.');
+        $assignment = $assignments[0];
+        assert($assignment instanceof Assign);
+        $shortName = pathinfo($sourcePath, PATHINFO_FILENAME);
+        $assignment->var instanceof Variable && $assignment->var->name === 'alias'
+            && $assignment->expr instanceof Concat
+            && $assignment->expr->left instanceof NamespaceConstant
+            && $assignment->expr->right instanceof String_
+            && $assignment->expr->right->value === '\\'.$shortName
+            || throw new UnexpectedValueException('A structural alias name differs from its source.');
+
+        return [
+            'name'     => $namespace->name->toString().'\\'.$shortName,
+            'source'   => $sourcePath,
+            'alias_of' => $target->class->toString()
         ];
     }
 

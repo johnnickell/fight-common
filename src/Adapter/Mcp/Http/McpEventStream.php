@@ -6,8 +6,8 @@ namespace Fight\Common\Adapter\Mcp\Http;
 
 use Fiber;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionDelivery;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Tool\McpToolExecution;

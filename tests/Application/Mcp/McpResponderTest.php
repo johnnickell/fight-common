@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpMetadataAwareCapability;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpMetadataAwareCapability;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestMetadata;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
 use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -27,19 +28,19 @@ use JsonException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpImplementationInfoGrammar::class)]
-#[CoversClass(McpJsonResponse::class)]
-#[CoversClass(McpMirrorDeclaration::class)]
-#[CoversClass(McpProtocolError::class)]
-#[CoversClass(McpProtocolException::class)]
-#[CoversClass(McpRequest::class)]
-#[CoversClass(McpRequestDecoder::class)]
-#[CoversClass(McpRequestMetadata::class)]
+#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
+#[CoversClass(ReleasedMcp\McpMirrorDeclaration::class)]
+#[CoversClass(ReleasedMcp\McpProtocolError::class)]
+#[CoversClass(ReleasedMcp\McpProtocolException::class)]
+#[CoversClass(ReleasedMcp\McpRequest::class)]
+#[CoversClass(ReleasedMcp\McpRequestDecoder::class)]
+#[CoversClass(ReleasedMcp\McpRequestMetadata::class)]
 #[CoversClass(McpResponder::class)]
-#[CoversClass(McpResult::class)]
-#[CoversClass(McpServerInfo::class)]
+#[CoversClass(ReleasedMcp\McpResult::class)]
+#[CoversClass(ReleasedMcp\McpServerInfo::class)]
 #[CoversClass(McpTraceContextGrammar::class)]
 final class McpResponderTest extends UnitTestCase
 {

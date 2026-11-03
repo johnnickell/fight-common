@@ -74,8 +74,11 @@ principal, or make an authorization decision.
 `Protocol\McpTraceContextGrammar` owns present traceparent/tracestate/baggage syntax; internal
 `Protocol\McpImplementationInfoGrammar` owns implementation descriptor fields and their website/icon URI, MIME,
 percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
-as untagged internals, without root aliases or deprecations. Released public `McpRequestMetadata` and the other
-foundation declarations retain their current names pending TASK-00181's compatibility-preserving migration.
+as untagged internals, without root aliases or deprecations. Public foundation imports now use `Capability`,
+`Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root.
+The 17 relocated root spellings remain functional, deprecated in documentation only. Canonical aliases preserve
+released runtime identities, both consumer type directions and saved values; see the
+[complete foundation migration map](../../maintenance/mcp-foundation-namespaces.md).
 Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
 accepted/rejected inputs, open objects and schema-permitted empty strings;
 metadata remains neither credentials nor authorization. Decoder byte/depth limits and usable error IDs remain
@@ -455,7 +458,7 @@ on admitted Skills dispatch before disclosure. Consumer acquisition and upstream
 `handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput|McpInputRequired` method.
 Non-interactive Tools may declare the narrower `McpToolOutput` return; interactive Tools may request additional
 input as described under [Protected ordinary input](#protected-ordinary-input). `ApplicationData` is
-`Application\Validation\Data\ApplicationData`; the reporter lives directly in `Application\Mcp`.
+`Application\Validation\Data\ApplicationData`; the reporter's canonical name is `Application\Mcp\Tool\McpProgressReporter`.
 
 Construct `McpToolRegistry` with the complete array of opted-in Tool objects. Registration examines only those
 objects' `handle()` metadata. It never scans a container, discovers HTTP Actions or CQRS handlers, hydrates a
@@ -471,9 +474,9 @@ the same request-scoped availability decision as discovery before inspecting arg
 remains the consumer use case's responsibility on every entry path.
 
 ```php
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
@@ -702,7 +705,7 @@ public function handle(ApplicationData $input, McpProgressReporter $progress): M
 ```
 
 Import the attributes/types from `Application\Mcp\Tool`, `Application\Attribute\Validation`,
-`Application\Mcp\McpProgressReporter`, and `Application\Validation\Data\ApplicationData`. The consumer owns the
+`Application\Mcp\Tool\McpProgressReporter`, and `Application\Validation\Data\ApplicationData`. The consumer owns the
 existing `GetOrder` Query and safe projection. For a mutation, explicitly construct the existing Command, call void
 `CommandBus::execute()` once, then acknowledge only known data such as its caller-generated identifier. Do not
 invent a command result, reflectively hydrate messages, or perform a read solely to manufacture a result.
@@ -1196,8 +1199,8 @@ capabilities needs depth 5; smaller valid settings intentionally cannot admit th
 retains the prior 511-container ceiling. Capability-specific metadata/Tool limits remain independent.
 
 ```php
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestLimits;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 
 $decoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
 // Supply decoder: $decoder to the existing McpRequestHandler constructor.
@@ -1379,8 +1382,8 @@ reproduce only part of mirror validation in a framework Action.
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use GuzzleHttp\Psr7\HttpFactory;
 
 // Consumer supplies explicit capabilities, a request-scoped McpInvocationGuard,

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Mcp\Http;
 
 use Fight\Common\Adapter\Mcp\Http\McpRequestBodyReader;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestLimits;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\Attributes\CoversClass;

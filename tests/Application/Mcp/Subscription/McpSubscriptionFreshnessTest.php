@@ -6,8 +6,8 @@ namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryBatch;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;

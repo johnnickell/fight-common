@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Tool;
 
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 

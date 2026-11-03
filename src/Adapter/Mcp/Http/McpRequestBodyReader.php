@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpRequestLimits;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 use Throwable;

@@ -6,12 +6,12 @@ namespace Fight\Common\Application\Mcp\Tool;
 
 use Closure;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpProgressReporter;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Domain\Exception\DomainException;
 use Throwable;
 

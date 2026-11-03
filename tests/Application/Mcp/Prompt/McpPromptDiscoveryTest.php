@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Prompt;
 
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Prompt\McpPromptAvailability;
 use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
 use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;
 use Fight\Common\Application\Mcp\Prompt\McpPromptLimits;
 use Fight\Common\Application\Mcp\Prompt\McpPromptOutput;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\Fixture\Mcp\PromptProvider;
 use Fight\Test\Common\TestCase\UnitTestCase;
