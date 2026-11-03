@@ -8,8 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Tools\DsnParser;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
@@ -38,10 +38,10 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
         $fixture->recording->record(['producer' => 'producer-2', 'topic' => 'other-topic']);
         $fixture->recording->record(['scope' => 'scope-2']);
         $fixture->recording->record(['id' => 'broadcast', 'relationships' => ['subject' => null, 'recipients' => [], 'author' => null, 'command' => null, 'event' => null, 'action' => null]]);
-        $before = $fixture->recording->store->readWindow('scope', 0, 100);
+        $before = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         $selection = $fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(4, 'broadcast')]);
         $fixture->remove($selection); $this->assertRemovalRejected(fn () => $fixture->remove($selection));
-        $fresh = new DbalNoticeStore($this->connect($connection->getParams()));
+        $fresh = new DbalNoticeRecoveryReader($this->connect($connection->getParams()));
         $window = $fresh->readWindow('scope', 0, 100);
         self::assertSame([2], array_map(static fn ($row) => $row->position(), $window->notices()));
         self::assertSame($before->notices()[1]->notice()->toArray(), $window->notices()[0]->notice()->toArray());
@@ -78,7 +78,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
             self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM fight_notice_state'));
         }
         $fixture->remove($selection);
-        $window = (new DbalNoticeStore($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
+        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
         self::assertSame([101], array_map(static fn ($row) => $row->position(), $window->notices()));
         self::assertSame('survivor', $window->notices()[0]->notice()->id());
         self::assertSame(100, $window->lostThrough()); self::assertSame(101, $window->highWater());
@@ -96,51 +96,51 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
             $fixture->deniedReferences = [$reference];
             try { $fixture->remove($selection); self::fail('Every retained relationship requires removal authority.'); } catch (NoticeRemovalRejected) {
                 self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM fight_notice_state'));
-                self::assertCount(2, $fixture->recording->store->readAfter('scope', 0, 100));
+                self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
             }
         }
         $fixture->deniedReferences = [];
         foreach ([NoticeRemovalFixture::target(1, 'notice-1', 'SUPER_ADMIN'), NoticeRemovalFixture::target(1, 'notice-1', 'scope', 'cleanup-caller')] as $denied) {
-            try { $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2'), $denied])); self::fail('Submitted identity is not authority.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->store->readAfter('scope', 0, 100)); }
+            try { $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2'), $denied])); self::fail('Submitted identity is not authority.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
         }
         $fixture->recording->allowed = true; $fixture->allowed = false;
-        try { $fixture->remove($selection); self::fail('Recording permission does not authorize removal.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->store->readAfter('scope', 0, 100)); }
+        try { $fixture->remove($selection); self::fail('Recording permission does not authorize removal.'); } catch (NoticeRemovalRejected) { self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
         $fixture->allowed = true; $fixture->deniedReferences = ['subject-agent'];
         foreach ([$fixture->selection([NoticeRemovalFixture::target(2, 'notice-2')]), $fixture->selection([NoticeRemovalFixture::target(3, 'missing')])] as $request) {
             $this->assertRemovalRejected(fn () => $fixture->remove($request));
         }
         $fixture->deniedReferences = [];
         $this->assertRemovalRejected(fn () => $fixture->remove($fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(3, 'missing')])));
-        self::assertCount(2, $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
         $fixture->recording->allowed = false; $fixture->remove($selection);
-        self::assertSame([], $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertSame([], $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
     }
 
     #[DataProvider('databases')]
     public function test_that_repeated_empty_feed_reconstruction_keeps_only_one_bounded_body_free_loss_record(string $backend): void
     {
         $connection = $this->database($backend); $fixture = new NoticeRemovalFixture($connection);
-        $namespace = $fixture->recording->store->readWindow('scope', 0, 1)->namespace();
+        $namespace = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 1)->namespace();
         for ($i = 1; $i <= 128; ++$i) {
             $fixture->recording->record(['scope' => $i % 2 === 0 ? 'scope-2' : 'scope']);
             $selection = NoticeRemovalSelection::fromArray(['version' => 1, 'namespace' => $namespace, 'targets' => [NoticeRemovalFixture::target($i, 'notice-1', $i % 2 === 0 ? 'scope-2' : 'scope')]]);
             $fixture->remove($selection);
         }
-        $window = (new DbalNoticeStore($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
+        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
         self::assertSame([], $window->notices()); self::assertSame(128, $window->highWater()); self::assertSame(128, $window->lostThrough());
         self::assertFalse($window->hasUnbrokenHistoryAfter($namespace, 0));
         self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_notice_state'));
         foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); }
         self::assertSame(['singleton', 'version', 'last_position', 'namespace', 'lost_through'], array_keys($connection->fetchAssociative('SELECT * FROM fight_notice_state')));
-        $fixture->recording->record(); self::assertSame(129, $fixture->recording->store->readAfter('scope', 128, 100)[0]->position());
+        $fixture->recording->record(); self::assertSame(129, $fixture->recording->noticeRecoveryReader->readAfter('scope', 128, 100)[0]->position());
         // Operational loss/retirement cannot reuse an old continuation or stale removal across namespaces.
         $newNamespace = bin2hex(random_bytes(16));
         $connection->update('fight_notice_state', ['namespace' => $newNamespace, 'lost_through' => 129], ['singleton' => 1]);
-        $retired = $fixture->recording->store->readWindow('scope', 128, 100);
+        $retired = $fixture->recording->noticeRecoveryReader->readWindow('scope', 128, 100);
         self::assertFalse($retired->hasUnbrokenHistoryAfter($namespace, 129));
-        try { $fixture->remove($selection); self::fail('Retired namespace must reject.'); } catch (NoticeRemovalRejected) { self::assertCount(1, $fixture->recording->store->readAfter('scope', 0, 100)); }
+        try { $fixture->remove($selection); self::fail('Retired namespace must reject.'); } catch (NoticeRemovalRejected) { self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)); }
         $connection->delete('fight_notice_state', ['singleton' => 1]);
-        try { $fixture->recording->store->readWindow('scope', 0, 100); self::fail('Unavailable evidence cannot become complete empty history.'); } catch (RuntimeException) { self::assertTrue(true); }
+        try { $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100); self::fail('Unavailable evidence cannot become complete empty history.'); } catch (RuntimeException) { self::assertTrue(true); }
     }
 
     #[DataProvider('databases')]
@@ -167,7 +167,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
                 self::assertSame(in_array($stage, ['commit-before', 'commit-after'], true), $caught->outcomeUncertain());
                 self::assertSame('Notice storage failed.', $caught->getMessage());
             }
-            $fresh = new DbalNoticeStore($this->connect($connection->getParams())); $window = $fresh->readWindow('scope', 0, 100);
+            $fresh = new DbalNoticeRecoveryReader($this->connect($connection->getParams())); $window = $fresh->readWindow('scope', 0, 100);
             $committed = $stage === 'commit-after';
             self::assertSame($committed ? [3] : [1, 2, 3], array_map(static fn ($row) => $row->position(), $window->notices()));
             self::assertSame($committed ? 2 : 0, $window->lostThrough()); self::assertSame(3, $window->highWater());
@@ -190,14 +190,14 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
         else { $connection->executeStatement('ALTER TABLE fight_notice_state ADD CONSTRAINT notice_loss_failure CHECK (lost_through = 0)'); }
         try { $fixture->remove($selection); self::fail('Actual database failure must roll back deletion and loss.'); }
         catch (NoticeStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); self::assertSame('Notice storage failed.', $failure->getMessage()); }
-        self::assertFalse($fixture->recording->store->isClosed());
-        $window = (new DbalNoticeStore($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
+        self::assertFalse($fixture->recording->transactionalUnitOfWork->isClosed());
+        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
         self::assertSame([1, 2], array_map(static fn ($row) => $row->position(), $window->notices())); self::assertSame(0, $window->lostThrough());
         foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame([1, 2], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table.' ORDER BY position'))); }
         if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER notice_loss_failure'); }
         elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE fight_notice_state DROP CHECK notice_loss_failure'); }
         else { $connection->executeStatement('ALTER TABLE fight_notice_state DROP CONSTRAINT notice_loss_failure'); }
-        $fixture->remove($selection); self::assertSame([2], array_map(static fn ($row) => $row->position(), $fixture->recording->store->readAfter('scope', 0, 100)));
+        $fixture->remove($selection); self::assertSame([2], array_map(static fn ($row) => $row->position(), $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)));
     }
 
     #[DataProvider('databases')]
@@ -215,7 +215,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
         self::assertSame(42, (int) $this->connect($connection->getParams())->fetchOne('SELECT id FROM notice_removal_caller'));
         $connection->executeStatement('DROP TABLE notice_removal_caller');
         try { $fixture->remove($selection); self::assertFalse($connection->isTransactionActive()); throw new RuntimeException('later consumer publisher failed'); } catch (RuntimeException $failure) { self::assertSame('later consumer publisher failed', $failure->getMessage()); }
-        $window = (new DbalNoticeStore($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
+        $window = (new DbalNoticeRecoveryReader($this->connect($connection->getParams())))->readWindow('scope', 0, 100);
         self::assertSame([], $window->notices()); self::assertSame(1, $window->lostThrough());
     }
 
@@ -233,7 +233,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(200000);
             self::assertTrue($second->isRunning(), $second->getErrorOutput().$second->getOutput());
             self::assertFileDoesNotExist($directory.'/second-admitted', 'Waiting work must authorize only after acquiring the lock.');
-            $observer = new DbalNoticeStore($this->connect($connection->getParams()));
+            $observer = new DbalNoticeRecoveryReader($this->connect($connection->getParams()));
             self::assertSame([1, 2], array_map(static fn ($row) => $row->position(), $observer->readAfter('scope', 0, 100)), 'Uncommitted removal/allocation must not escape.');
             if (str_contains($mode, 'revoked')) { file_put_contents($directory.'/revoked', 'yes'); }
             file_put_contents($directory.'/release', 'yes');
@@ -312,7 +312,7 @@ final class NoticeRemovalJourneyTest extends UnitTestCase
     private function proxy(Connection $connection): Connection
     {
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'rollBack'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'rollBack'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$args) => $connection->$method(...$args));
         }
         return $proxy;

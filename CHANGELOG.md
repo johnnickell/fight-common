@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace never-tagged `NoticeStore`/`DbalNoticeStore` with Domain `NoticeRepository`, separately injected
+  `TransactionalUnitOfWork`, and Application `NoticeRecoveryReader`. Separate DBAL repository, namespace-serialized
+  transaction and self-contained coherent recovery reads preserve allocation/removal atomicity, uncertainty,
+  confidential continuations and independent inspection/subscription/publication policy. No payload/schema change,
+  release bridge or caller-managed recovery transaction sequence.
 - Execution recording/removal now inject the existing `TransactionalUnitOfWork` directly. Remove the never-released
   empty `RecordingTransaction` subtype; the execution DBAL seam retains schema serialization and capability-specific
   failures around reusable transaction mechanics. Same-connection ownership, retry/removal races and post-commit

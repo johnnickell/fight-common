@@ -32,7 +32,7 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
     public function test_that_query_bus_summary_history_and_independent_detail_respect_current_caller_and_full_selection(string $backend): void
     {
         $connection = $this->database($backend); $writer = new NoticeFixture($connection); $events = 0;
-        $writer->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
+        $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
         for ($i = 0; $i < 105; ++$i) {
             $changes = ['id' => 'notice-'.$i, 'producer' => $i % 2 === 0 ? 'producer' : 'producer-2', 'topic' => $i % 2 === 0 ? 'catalog/tools' : 'catalog/resources'];
             if ($i === 103 || $i === 104) {

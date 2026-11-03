@@ -16,8 +16,9 @@ Separate opt-in
    These are separate reserved namespaces. Installation is not a per-request migration or a live-stream transaction.
    Partial installations need operator recovery; MySQL DDL is not atomic.
 2. Route `Domain\Mcp\Notice\Query\RecoverNotices` to `Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler`, using
-   current consumer `NoticeReadAdmission`, `NoticeRecovery`, a dedicated `DbalNoticeStore` connection and a shared
-   dedicated `NoticeContinuationProtector` key set. See [retained recovery](notice-recovery.md).
+   current consumer `NoticeReadAdmission`, `NoticeRecovery`, a dedicated `DbalNoticeRecoveryReader` connection and a
+   shared dedicated `NoticeContinuationProtector` key set. The recovery reader owns each coherent read transaction;
+   subscriptions neither compose a write repository nor manage read transaction sequencing. See [retained recovery](notice-recovery.md).
 3. Supply `McpSubscriptionAdmission` and a trusted request-scoped `NoticeSelection`. Neither comes from the listen
    arguments. `subscriber()` returns a bounded trusted reference, not a Bearer credential. `allows()` must freshly
    permit the **entire** signal, including topic, Resource, identities and all source notice metadata. The null-notice

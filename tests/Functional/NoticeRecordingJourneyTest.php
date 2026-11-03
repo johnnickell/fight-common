@@ -8,8 +8,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Tools\DsnParser;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
 use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
@@ -38,7 +38,7 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
     {
         $connection = $this->database($backend); $fixture = new NoticeFixture($connection);
         $fixture->record();
-        $first = $fixture->store->readAfter('scope', 0, 1)[0];
+        $first = $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0];
         $fixture->record(['producer' => 'producer-2']);
         $fixture->record(['scope' => 'scope-2']);
         $unknown = ['subject' => null, 'recipients' => null, 'author' => null, 'command' => null, 'event' => null, 'action' => null];
@@ -48,9 +48,9 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
         $fixture->record(['id' => 'NOTICE-1', 'occurred_at' => '9999-12-31T23:59:59.999999Z']);
         $params = $connection->getParams(); $connection->close();
         $fresh = new NoticeFixture($this->connect($params));
-        $fresh->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('A retry must not replay publication.'); });
+        $fresh->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('A retry must not replay publication.'); });
         $fresh->record();
-        $rows = $fresh->store->readAfter('scope', 0, 100);
+        $rows = $fresh->noticeRecoveryReader->readAfter('scope', 0, 100);
         self::assertSame([1, 2, 4, 5, 6], array_map(static fn ($row) => $row->position(), $rows));
         self::assertSame($first->recordedAt(), $rows[0]->recordedAt());
         self::assertSame(Notice::fromArray(NoticeFixture::data())->toArray(), $rows[0]->notice()->toArray());
@@ -58,10 +58,10 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
         self::assertSame($broadcast, $rows[3]->notice()->relationships()->toArray());
         self::assertSame('0001-01-01T00:00:00Z', $rows[3]->notice()->occurrence()->toString());
         self::assertSame('9999-12-31T23:59:59.999999Z', $rows[4]->notice()->occurrence()->toString());
-        self::assertSame('scope-2', $fresh->store->readAfter('scope-2', 0, 1)[0]->notice()->scope());
-        self::assertSame([4, 5], array_map(static fn ($row) => $row->position(), $fresh->store->readAfter('scope', 2, 2)));
-        self::assertSame([], $fresh->store->readAfter('scope', 6, 100));
-        self::assertSame([], $fresh->store->readAfter('missing-scope', 0, 100));
+        self::assertSame('scope-2', $fresh->noticeRecoveryReader->readAfter('scope-2', 0, 1)[0]->notice()->scope());
+        self::assertSame([4, 5], array_map(static fn ($row) => $row->position(), $fresh->noticeRecoveryReader->readAfter('scope', 2, 2)));
+        self::assertSame([], $fresh->noticeRecoveryReader->readAfter('scope', 6, 100));
+        self::assertSame([], $fresh->noticeRecoveryReader->readAfter('missing-scope', 0, 100));
     }
 
     #[DataProvider('databases')]
@@ -89,7 +89,7 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
             try { $fixture->record($change); self::fail('Changed accepted content must conflict.'); } catch (NoticeConflict) { self::assertSame(1, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state')); }
         }
         $data = NoticeFixture::data(['metadata' => ['app/body' => ['protected']]]);
-        try { $fixture->bus->execute(RecordNotice::fromArray($data)); self::fail('Protected shape must reject before dispatch.'); } catch (\Fight\Common\Domain\Exception\DomainException) { self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_notices')); }
+        try { $fixture->commandBus->execute(RecordNotice::fromArray($data)); self::fail('Protected shape must reject before dispatch.'); } catch (\Fight\Common\Domain\Exception\DomainException) { self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_notices')); }
     }
 
     #[DataProvider('databases')]
@@ -107,14 +107,14 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
             if ($stage === 'commit') { $proxy->shouldReceive('commit')->once()->andThrow($failure); }
             else { $proxy->shouldReceive('commit')->never(); }
             $fixture = new NoticeFixture($proxy); $events = 0;
-            $fixture->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
+            $fixture->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
             try { $fixture->record(); self::fail('Injected storage boundary must fail.'); } catch (NoticeStorageFailed $caught) { self::assertSame($stage === 'commit', $caught->outcomeUncertain()); self::assertSame('Notice storage failed.', $caught->getMessage()); }
             self::assertSame(0, $events); self::assertFalse($connection->isTransactionActive());
             $other = $this->connect($connection->getParams());
             foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame(0, (int) $other->fetchOne('SELECT COUNT(*) FROM '.$table)); }
             self::assertSame(0, (int) $other->fetchOne('SELECT last_position FROM fight_notice_state'));
         }
-        $fixture = new NoticeFixture($connection); $fixture->record(); self::assertSame(1, $fixture->store->readAfter('scope', 0, 1)[0]->position());
+        $fixture = new NoticeFixture($connection); $fixture->record(); self::assertSame(1, $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->position());
     }
 
     #[DataProvider('databases')]
@@ -125,21 +125,21 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
         else { $connection->executeStatement('ALTER TABLE fight_notice_comparisons ADD CONSTRAINT notice_fail CHECK (position < 0)'); }
         $fixture = new NoticeFixture($connection);
         try { $fixture->record(); self::fail('Expected actual database constraint failure.'); } catch (NoticeStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }
-        self::assertSame([], $fixture->store->readAfter('scope', 0, 100));
+        self::assertSame([], $fixture->noticeRecoveryReader->readAfter('scope', 0, 100));
         self::assertSame(0, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
         if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER notice_fail'); }
         elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE fight_notice_comparisons DROP CHECK notice_fail'); }
         else { $connection->executeStatement('ALTER TABLE fight_notice_comparisons DROP CONSTRAINT notice_fail'); }
-        $fixture->record(); self::assertSame(1, $fixture->store->readAfter('scope', 0, 100)[0]->position());
+        $fixture->record(); self::assertSame(1, $fixture->noticeRecoveryReader->readAfter('scope', 0, 100)[0]->position());
     }
 
     #[DataProvider('databases')]
     public function test_that_postcommit_subscriber_failure_and_lost_commit_acknowledgment_preserve_reconstructable_data(string $backend): void
     {
         $connection = $this->database($backend); $fixture = new NoticeFixture($connection); $other = $this->connect($connection->getParams()); $calls = 0;
-        $fixture->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (EventMessage $event) use ($other, $connection, &$calls): void {
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (EventMessage $event) use ($other, $connection, &$calls): void {
             ++$calls; self::assertFalse($connection->isTransactionActive());
-            self::assertSame($event->payload()->toArray()['position'], (new DbalNoticeStore($other))->readAfter('scope', 0, 100)[0]->position());
+            self::assertSame($event->payload()->toArray()['position'], (new DbalNoticeRecoveryReader($other))->readAfter('scope', 0, 100)[0]->position());
             throw new RuntimeException('private delivery failure');
         });
         try { $fixture->record(); self::fail('Expected committed dispatch failure.'); } catch (CommittedNoticeDispatchFailed $failure) { self::assertSame(1, $failure->event()->toArray()['position']); }
@@ -148,14 +148,14 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
         $proxy->shouldReceive('insert')->andReturnUsing(static fn (...$args) => $connection->insert(...$args));
         $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($connection): void { $connection->commit(); throw new RuntimeException('lost actual commit acknowledgment'); });
         $uncertain = new NoticeFixture($proxy);
-        $uncertain->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('Uncertain acknowledgment must not dispatch.'); });
+        $uncertain->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('Uncertain acknowledgment must not dispatch.'); });
         try { $uncertain->record(['id' => 'notice-2']); self::fail('Expected uncertainty.'); } catch (NoticeStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
-        self::assertTrue($uncertain->store->isClosed());
+        self::assertTrue($uncertain->transactionalUnitOfWork->isClosed());
         $reconstructed = new NoticeFixture($this->connect($connection->getParams()));
-        $rows = $reconstructed->store->readAfter('scope', 0, 100); self::assertSame([1, 2], array_map(static fn ($row) => $row->position(), $rows));
-        $reconstructed->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('Reconstruction retry must not replay facts.'); });
+        $rows = $reconstructed->noticeRecoveryReader->readAfter('scope', 0, 100); self::assertSame([1, 2], array_map(static fn ($row) => $row->position(), $rows));
+        $reconstructed->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void { self::fail('Reconstruction retry must not replay facts.'); });
         $reconstructed->record(['id' => 'notice-2']);
-        self::assertSame($rows[1]->recordedAt(), $reconstructed->store->readAfter('scope', 1, 100)[0]->recordedAt());
+        self::assertSame($rows[1]->recordedAt(), $reconstructed->noticeRecoveryReader->readAfter('scope', 1, 100)[0]->recordedAt());
     }
 
     #[DataProvider('databases')]
@@ -171,9 +171,9 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
         $connection->commit(); self::assertSame(42, (int) $this->connect($connection->getParams())->fetchOne('SELECT id FROM notice_caller_work'));
         $connection->executeStatement('DROP TABLE notice_caller_work');
         $connection->update('fight_notice_state', ['last_position' => RecordedNotice::MAX_POSITION - 1], ['singleton' => 1]);
-        $fixture->record(); self::assertSame(RecordedNotice::MAX_POSITION, $fixture->store->readAfter('scope', 0, 1)[0]->position());
+        $fixture->record(); self::assertSame(RecordedNotice::MAX_POSITION, $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->position());
         try { $fixture->record(['id' => 'overflow']); self::fail('Overflow must reject without database coercion.'); } catch (\Fight\Common\Domain\Exception\DomainException) { self::assertSame(RecordedNotice::MAX_POSITION, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state')); }
-        $fixture->record(); self::assertCount(1, $fixture->store->readAfter('scope', 0, 100));
+        $fixture->record(); self::assertCount(1, $fixture->noticeRecoveryReader->readAfter('scope', 0, 100));
     }
 
     #[DataProvider('races')]
@@ -189,7 +189,7 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
             $second->start(); $this->waitFor($directory.'/second-started', $second); usleep(200000);
             self::assertTrue($second->isRunning(), $second->getErrorOutput().$second->getOutput());
             self::assertFileDoesNotExist($directory.'/second-admitted');
-            $reader = new DbalNoticeStore($this->connect($connection->getParams()));
+            $reader = new DbalNoticeRecoveryReader($this->connect($connection->getParams()));
             self::assertSame([], $reader->readAfter('scope', 0, 100), 'No uncommitted allocation may escape.');
             if ($mode === 'revoked') { file_put_contents($directory.'/revoked', 'yes'); }
             file_put_contents($directory.'/release', 'yes');
@@ -199,7 +199,7 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
             $expected = match ($mode) { 'conflict' => NoticeConflict::class, 'revoked' => NoticeRejected::class, default => 'recorded' };
             self::assertSame($expected, $two['status']); self::assertSame(1, $two['admissions']);
             self::assertSame($mode === 'rollback' ? 0 : 1, $one['events']); self::assertSame(in_array($mode, ['distinct', 'rollback'], true) ? 1 : 0, $two['events']);
-            $fresh = new DbalNoticeStore($this->connect($connection->getParams()));
+            $fresh = new DbalNoticeRecoveryReader($this->connect($connection->getParams()));
             $rows = $fresh->readAfter('scope', 0, 100);
             self::assertSame($mode === 'distinct' ? [1, 2] : [1], array_map(static fn ($row) => $row->position(), $rows));
             self::assertSame($mode === 'rollback' ? 'notice-2' : 'notice-1', $rows[0]->notice()->id());
@@ -255,7 +255,7 @@ final class NoticeRecordingJourneyTest extends UnitTestCase
     private function proxy(Connection $connection): Connection
     {
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'update', 'rollBack'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'update', 'rollBack'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
         }
         return $proxy;

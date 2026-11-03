@@ -6,7 +6,9 @@ namespace Fight\Test\Common\TestCase\Mcp\Notice;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRepository;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
@@ -23,17 +25,23 @@ final class NoticeFixture implements NoticeAdmission
     public int $admissions = 0;
     public array $references = ['subject-agent', 'recipient-agent', 'other-recipient', 'author-agent', 'command-id', 'event-id', 'action-id'];
     public ?Closure $onAdmit = null;
-    public readonly DbalNoticeStore $store;
-    public readonly RoutingCommandBus $bus;
-    public readonly SimpleEventDispatcher $events;
+    public readonly DbalNoticeRepository $noticeRepository;
+    public readonly DbalNoticeTransaction $transactionalUnitOfWork;
+    public readonly DbalNoticeRecoveryReader $noticeRecoveryReader;
+    public readonly RoutingCommandBus $commandBus;
+    public readonly SimpleEventDispatcher $eventDispatcher;
 
     public function __construct(Connection $connection)
     {
-        $this->store = new DbalNoticeStore($connection);
-        $this->events = new SimpleEventDispatcher();
+        $this->transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+        $this->noticeRepository = new DbalNoticeRepository($this->transactionalUnitOfWork);
+        $this->noticeRecoveryReader = new DbalNoticeRecoveryReader($connection);
+        $this->eventDispatcher = new SimpleEventDispatcher();
         $router = new InMemoryCommandRouter();
-        $router->registerHandler(RecordNotice::class, new RecordNoticeHandler(new NoticeRecorder($this->store, $this, $this->events)));
-        $this->bus = new RoutingCommandBus($router);
+        $router->registerHandler(RecordNotice::class, new RecordNoticeHandler(new NoticeRecorder(
+            $this->noticeRepository, $this->transactionalUnitOfWork, $this, $this->eventDispatcher
+        )));
+        $this->commandBus = new RoutingCommandBus($router);
     }
 
     public static function data(array $changes = []): array
@@ -48,7 +56,7 @@ final class NoticeFixture implements NoticeAdmission
 
     public function record(array $changes = []): void
     {
-        $this->bus->execute(RecordNotice::fromArray(self::data($changes)));
+        $this->commandBus->execute(RecordNotice::fromArray(self::data($changes)));
     }
 
     public function admit(Notice $notice): void

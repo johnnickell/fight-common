@@ -84,7 +84,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             return 'controlled-hub-id';
         });
         $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
-        $composition = new RecordNoticeAndPublish($writer->bus, $operation);
+        $composition = new RecordNoticeAndPublish($writer->commandBus, $operation);
         $command = RecordNotice::fromArray(NoticeFixture::data(['metadata' => ['app/label' => '雪"\\/', 'app/hidden' => 'NOT-FOR-BROADCAST']]));
 
         self::assertSame(NoticePublicationStatus::PUBLISHED, $composition->record($command));
@@ -143,7 +143,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
         $diagnostics->shouldReceive('record')->once()->withArgs(static fn ($failure) => $failure instanceof NoticeReadFailed);
         $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
-        $composition = new RecordNoticeAndPublish($writer->bus, $operation);
+        $composition = new RecordNoticeAndPublish($writer->commandBus, $operation);
         $command = RecordNotice::fromArray(NoticeFixture::data());
         if ($backend === 'sqlite') {
             $db->executeStatement("CREATE TRIGGER publication_fail BEFORE INSERT ON fight_notice_comparisons BEGIN SELECT RAISE(ABORT, 'PRIVATE storage'); END");
@@ -189,7 +189,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $diagnostics->shouldNotReceive('record');
         // No hub or publisher collaborators are constructed or resolved in this composition.
         $operation = new NoticePublication($inspection->bus, $policy, $diagnostics);
-        self::assertSame(NoticePublicationStatus::UNSUPPORTED, (new RecordNoticeAndPublish($removal->recording->bus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data())));
+        self::assertSame(NoticePublicationStatus::UNSUPPORTED, (new RecordNoticeAndPublish($removal->recording->commandBus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data())));
         $args = ['scopes' => ['scope']];
         $before = $recovery->call($args)['body']['result']['structuredContent'];
         self::assertSame(['notice-1'], array_column($before['notices'], 'id'));
@@ -224,7 +224,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $db = $this->database($backend);
         $writer = new NoticeFixture($db);
         $inspection = new NoticeInspectionFixture($db);
-        $writer->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void {
+        $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void {
             throw new RuntimeException('PRIVATE recording subscriber failure');
         });
         $policy = $this->mock(NoticePublicationPolicy::class);
@@ -241,7 +241,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         });
         $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, privatePublisher: new PrivateMercureHubPublisher($hub));
         try {
-            (new RecordNoticeAndPublish($writer->bus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data()));
+            (new RecordNoticeAndPublish($writer->commandBus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data()));
             self::fail('Existing committed-fact failure must propagate, not pretend recording rolled back.');
         } catch (CommittedNoticeDispatchFailed $failure) {
             self::assertSame('notice-1', $failure->event()->toArray()['id']);

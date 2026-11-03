@@ -8,8 +8,10 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\TransactionIsolationLevel;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecords;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRepository;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
 use Fight\Common\Application\Mcp\Notice\CommandHandler\RemoveNoticesHandler;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeRecoveryWindow;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
@@ -31,7 +33,9 @@ use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(DbalNoticeStore::class)]
+#[CoversClass(DbalNoticeRecoveryReader::class)]
+#[CoversClass(DbalNoticeRepository::class)]
+#[CoversClass(DbalNoticeRecords::class)]
 #[CoversClass(DbalNoticeSchema::class)]
 #[CoversClass(NoticeRecoveryWindow::class)]
 #[CoversClass(NoticeRemover::class)]
@@ -43,14 +47,14 @@ final class DbalNoticeRemovalTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new NoticeRemovalFixture($connection);
         $fixture->recording->record(); $fixture->recording->record(['id' => 'notice-2']);
-        $before = $fixture->recording->store->readWindow('scope', 0, 100);
+        $before = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         self::assertTrue($before->hasUnbrokenHistoryAfter($before->namespace(), 0));
         $survivor = $before->notices()[1];
         $selection = $fixture->selection([NoticeRemovalFixture::target()]);
         self::assertSame(RemoveNotices::class, RemoveNoticesHandler::commandRegistration());
         $fixture->remove($selection); $this->assertRemovalRejected(fn () => $fixture->remove($selection));
         self::assertSame(2, $fixture->admissions); self::assertSame(1, $fixture->retainedAdmissions);
-        $window = (new DbalNoticeStore($connection))->readWindow('scope', 0, 100);
+        $window = (new DbalNoticeRecoveryReader($connection))->readWindow('scope', 0, 100);
         self::assertSame(1, $window->lostThrough()); self::assertSame(2, $window->highWater());
         self::assertFalse($window->hasUnbrokenHistoryAfter($before->namespace(), 0));
         self::assertTrue($window->hasUnbrokenHistoryAfter($before->namespace(), 1));
@@ -61,13 +65,13 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         self::assertSame(2, $window->notices()[0]->position());
         foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame([2], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
         $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2')]));
-        $empty = (new DbalNoticeStore($connection))->readWindow('scope', 0, 100);
+        $empty = (new DbalNoticeRecoveryReader($connection))->readWindow('scope', 0, 100);
         self::assertSame([], $empty->notices()); self::assertSame(2, $empty->lostThrough()); self::assertSame(2, $empty->highWater());
         self::assertSame($before->namespace(), $empty->namespace());
         $fixture->recording->record();
-        self::assertSame(3, $fixture->recording->store->readAfter('scope', 0, 100)[0]->position());
+        self::assertSame(3, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100)[0]->position());
         $this->assertRemovalRejected(fn () => $fixture->remove($selection));
-        self::assertCount(1, $fixture->recording->store->readAfter('scope', 0, 100), 'Old position must not remove a new same-ID incarnation.');
+        self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100), 'Old position must not remove a new same-ID incarnation.');
         try { $fixture->recording->record(['topic' => 'changed']); self::fail('Retained comparison must conflict.'); } catch (NoticeConflict) { self::assertTrue(true); }
     }
 
@@ -79,7 +83,7 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $selection = $fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(2, 'notice-2')]);
         $fixture->deniedReferences = ['other-recipient'];
         try { $fixture->remove($selection); self::fail('Denied relationship must roll back entire selection.'); } catch (NoticeRemovalRejected $failure) { self::assertSame('Notice removal rejected.', $failure->getMessage()); }
-        self::assertCount(2, $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertCount(2, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
         $fixture->deniedReferences = []; $fixture->recording->allowed = false;
         $fixture->remove($selection); // Independent removal permission does not require recording permission.
         $fixture->allowed = false;
@@ -96,18 +100,18 @@ final class DbalNoticeRemovalTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new NoticeRemovalFixture($connection); $fixture->recording->record();
         $selection = $fixture->selection([NoticeRemovalFixture::target(1, 'notice-1', 'scope-2', 'producer-2')]);
-        $this->assertRemovalRejected(fn () => $fixture->remove($selection)); self::assertCount(1, $fixture->recording->store->readAfter('scope', 0, 100));
-        self::assertSame(0, $fixture->recording->store->readWindow('scope', 0, 100)->lostThrough());
+        $this->assertRemovalRejected(fn () => $fixture->remove($selection)); self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
+        self::assertSame(0, $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100)->lostThrough());
     }
 
     public function test_that_unowned_removal_and_read_window_inside_outer_transaction_reject_without_cleanup(): void
     {
         $connection = $this->database(); $fixture = new NoticeRemovalFixture($connection); $fixture->recording->record();
         $selection = $fixture->selection([NoticeRemovalFixture::target()]);
-        try { $fixture->recording->store->remove($selection); self::fail('Must own transaction.'); } catch (LogicException) { self::assertFalse($connection->isTransactionActive()); }
+        try { $fixture->recording->noticeRepository->remove($selection); self::fail('Must own transaction.'); } catch (LogicException) { self::assertFalse($connection->isTransactionActive()); }
         $connection->executeStatement('CREATE TABLE notice_removal_caller (id INTEGER)');
         $connection->beginTransaction(); $connection->insert('notice_removal_caller', ['id' => 42]);
-        foreach ([fn () => $fixture->remove($selection), fn () => $fixture->recording->store->readWindow('scope', 0, 100)] as $operation) {
+        foreach ([fn () => $fixture->remove($selection), fn () => $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100)] as $operation) {
             try { $operation(); self::fail('Must reject enclosing work.'); } catch (LogicException) { self::assertTrue($connection->isTransactionActive()); self::assertSame(42, (int) $connection->fetchOne('SELECT id FROM notice_removal_caller')); }
         }
         self::assertSame(0, $fixture->admissions); $connection->rollBack();
@@ -119,7 +123,7 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $selection = $fixture->selection([NoticeRemovalFixture::target()]);
         $connection->executeStatement("CREATE TRIGGER removal_fail BEFORE UPDATE OF lost_through ON fight_notice_state BEGIN SELECT RAISE(ABORT, 'private'); END");
         try { $fixture->remove($selection); self::fail('Expected rollback.'); } catch (NoticeStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }
-        self::assertCount(1, $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
         self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM fight_notice_state'));
         $fixture->recording->record(); // Comparison also survived rollback.
     }
@@ -128,22 +132,23 @@ final class DbalNoticeRemovalTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new NoticeRemovalFixture($connection);
         $connection->update('fight_notice_state', ['lost_through' => 1], ['singleton' => 1]);
-        try { $fixture->recording->store->readWindow('scope', 0, 100); self::fail('Corrupt state must fail.'); } catch (NoticeStorageFailed $failure) { self::assertInstanceOf(DomainException::class, $failure->getPrevious()); }
+        try { $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100); self::fail('Corrupt state must fail.'); } catch (NoticeStorageFailed $failure) { self::assertInstanceOf(DomainException::class, $failure->getPrevious()); }
         $proxy = $this->mock(Connection::class);
         $proxy->shouldReceive('getDatabasePlatform')->andReturn(new PostgreSQLPlatform());
         $proxy->shouldReceive('getTransactionIsolation')->andReturn(TransactionIsolationLevel::READ_COMMITTED);
         $proxy->shouldReceive('isTransactionActive')->andReturn(false);
+        $proxy->shouldReceive('isAutoCommit')->andReturn(true);
         $proxy->shouldReceive('beginTransaction')->once(); $proxy->shouldReceive('executeStatement')->once();
         $proxy->shouldReceive('fetchOne')->once()->andReturn(1); $proxy->shouldReceive('fetchAssociative')->once()->andReturn(false); $proxy->shouldReceive('rollBack')->once();
-        $this->expectException(NoticeStorageFailed::class); (new DbalNoticeStore($proxy))->readWindow('scope', 0, 100);
+        $this->expectException(NoticeStorageFailed::class); (new DbalNoticeRecoveryReader($proxy))->readWindow('scope', 0, 100);
     }
 
     public function test_that_handler_rejects_unrelated_command_and_window_bounds_validate_before_storage(): void
     {
         $fixture = new NoticeRemovalFixture($this->database());
-        $handler = new RemoveNoticesHandler(new NoticeRemover($fixture->recording->store, $fixture));
+        $handler = new RemoveNoticesHandler(new NoticeRemover($fixture->recording->noticeRepository, $fixture->recording->transactionalUnitOfWork, $fixture));
         try { $handler->handle(CommandMessage::create($this->mock(Command::class))); self::fail('Wrong command.'); } catch (InvalidArgumentException) { self::assertSame(0, $fixture->admissions); }
-        $this->expectException(DomainException::class); $fixture->recording->store->readWindow('scope', 0, 101);
+        $this->expectException(DomainException::class); $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 101);
     }
 
     #[DataProvider('invalidEvidence')]
@@ -178,17 +183,17 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $fixture->deniedReferences = [];
         $selection = $fixture->selection([NoticeRemovalFixture::target(), NoticeRemovalFixture::target(2, 'missing')]);
         $this->assertRemovalRejected(fn () => $fixture->remove($selection));
-        self::assertCount(1, $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertCount(1, $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
         self::assertSame(0, (int) $connection->fetchOne('SELECT lost_through FROM fight_notice_state'));
         $missing = $fixture->selection([NoticeRemovalFixture::target(2, 'missing')]);
-        $this->assertRemovalRejected(fn () => $fixture->recording->store->commitTransactional(fn () => $fixture->recording->store->remove($missing)));
+        $this->assertRemovalRejected(fn () => $fixture->recording->transactionalUnitOfWork->commitTransactional(fn () => $fixture->recording->noticeRepository->remove($missing)));
     }
 
     #[DataProvider('malformedPositions')]
     public function test_that_malformed_sqlite_loss_evidence_cannot_be_cast_into_complete_history(string $column, mixed $value): void
     {
         $connection = $this->database(); $connection->update('fight_notice_state', [$column => $value], ['singleton' => 1]);
-        $this->expectException(NoticeStorageFailed::class); (new DbalNoticeStore($connection))->readWindow('scope', 0, 100);
+        $this->expectException(NoticeStorageFailed::class); (new DbalNoticeRecoveryReader($connection))->readWindow('scope', 0, 100);
     }
 
     public static function malformedPositions(): iterable
@@ -205,11 +210,11 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $connection->update('fight_notice_state', ['namespace' => str_repeat('0', 32), 'lost_through' => 1], ['singleton' => 1]);
         $this->assertRemovalRejected(fn () => $fixture->remove($oldSelection));
         foreach (array_slice(DbalNoticeSchema::TABLES, 1) as $table) { self::assertSame([1], array_map('intval', $connection->fetchFirstColumn('SELECT position FROM '.$table))); }
-        $window = $fixture->recording->store->readWindow('scope', 0, 100);
+        $window = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         self::assertSame(1, $window->highWater()); self::assertSame(1, $window->lostThrough());
         self::assertFalse($window->hasUnbrokenHistoryAfter($oldSelection->namespace(), 1));
         $fixture->remove($fixture->selection([NoticeRemovalFixture::target()]));
-        self::assertSame([], $fixture->recording->store->readAfter('scope', 0, 100));
+        self::assertSame([], $fixture->recording->noticeRecoveryReader->readAfter('scope', 0, 100));
     }
 
     public function test_that_deleting_below_an_existing_loss_boundary_never_decrements_it(): void
@@ -218,7 +223,7 @@ final class DbalNoticeRemovalTest extends UnitTestCase
         $fixture->recording->record(); $fixture->recording->record(['id' => 'notice-2']);
         $fixture->remove($fixture->selection([NoticeRemovalFixture::target(2, 'notice-2')]));
         $fixture->remove($fixture->selection([NoticeRemovalFixture::target()]));
-        $window = $fixture->recording->store->readWindow('scope', 0, 100);
+        $window = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         self::assertSame(2, $window->lostThrough()); self::assertSame(2, $window->highWater()); self::assertSame([], $window->notices());
     }
 

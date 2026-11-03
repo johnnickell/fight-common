@@ -17,7 +17,7 @@ $role = $argv[2]; $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
 $proxy = Mockery::mock(Connection::class);
-foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert', 'update', 'rollBack'] as $method) {
+foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert', 'update', 'rollBack'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
 $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $directory, $config, $connection): void {
@@ -40,7 +40,7 @@ $fixture->onAdmit = static function () use ($directory, $role): void {
     if ($role === 'second' && file_exists($directory.'/revoked')) { throw new NoticeRejected(); }
 };
 $events = 0;
-$fixture->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
+$fixture->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; });
 $data = NoticeFixture::data();
 if ($role === 'second') {
     if (in_array($config['mode'], ['distinct', 'rollback'], true)) { $data['id'] = 'notice-2'; }
@@ -48,7 +48,7 @@ if ($role === 'second') {
 }
 file_put_contents($directory.'/'.$role.'-started', 'yes');
 $status = 'recorded'; $uncertain = null;
-try { $fixture->bus->execute(RecordNotice::fromArray($data)); }
+try { $fixture->commandBus->execute(RecordNotice::fromArray($data)); }
 catch (Throwable $failure) { $status = $failure::class; if ($failure instanceof \Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed) { $uncertain = $failure->outcomeUncertain(); } }
 echo json_encode(['status' => $status, 'events' => $events, 'admissions' => $fixture->admissions, 'uncertain' => $uncertain], JSON_THROW_ON_ERROR);
 $connection->close(); Mockery::close();
