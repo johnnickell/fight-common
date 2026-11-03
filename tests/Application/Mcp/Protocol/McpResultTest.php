@@ -54,6 +54,12 @@ final class McpResultTest extends UnitTestCase
         self::assertSame($metadata, McpResult::complete([])->withMetadata($metadata)->toArray()['_meta']);
     }
 
+    public function test_that_complete_results_cannot_override_the_result_kind(): void
+    {
+        $this->expectException(DomainException::class);
+        McpResult::complete(['resultType' => 'input_required']);
+    }
+
     public function test_that_bounded_complete_results_cannot_override_the_result_kind(): void
     {
         $this->expectException(DomainException::class);
