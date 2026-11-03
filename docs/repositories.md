@@ -10,6 +10,7 @@ Application\Repository
 └── UnitOfWork (deprecated 1.x compatibility interface)
 
 Adapter\Persistence
+├── Doctrine\DbalTransactionalUnitOfWork
 ├── Doctrine\DoctrineTransactionalUnitOfWork
 ├── Laravel\LaravelTransactionalUnitOfWork
 ├── CodeIgniter\CodeIgniterTransactionalUnitOfWork
@@ -26,7 +27,7 @@ Adapter\Repository
 1. [Pagination](#pagination)
 2. [ResultSet](#resultset)
 3. [TransactionalUnitOfWork Interface](#transactionalunitofwork-interface)
-4. [DoctrineTransactionalUnitOfWork](#doctrinetransactionalunitofwork)
+4. [DBAL transactional unit of work](#dbal-transactional-unit-of-work) and [DoctrineTransactionalUnitOfWork](#doctrinetransactionalunitofwork)
 5. [CodeIgniterTransactionalUnitOfWork](#codeignitertransactionalunitofwork)
 6. [Laravel and Yii transactional adapters](#laravel-and-yii-transactional-adapters)
 7. [Usage in a Repository Interface](#usage-in-a-repository-interface)
@@ -246,7 +247,46 @@ interface TransactionalUnitOfWork
 | Method | Purpose |
 |---|---|
 | `commitTransactional(callable)` | Wraps the operation in a transaction; returns the operation's result |
-| `isClosed()` | Whether the unit of work is still usable (e.g. after a rollback) |
+| `isClosed()` | Whether the unit of work is terminally unusable; a confirmed rollback need not close it |
+
+---
+
+## DBAL transactional unit of work
+
+`Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork` implements the existing
+`TransactionalUnitOfWork` directly using a Doctrine DBAL `Connection`, without an EntityManager or flush.
+Repositories and the boundary must use the same explicitly composed connection; the unit of work supplies no
+schema, capability lock, repository registry, retry or permission policy.
+
+```php-inline
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork;
+
+$transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+$result = $transactionalUnitOfWork->commitTransactional(function () use ($accountRepository, $command) {
+    return $accountRepository->apply($command);
+});
+```
+
+It rejects caller-owned and nested transactions before invoking the callback, without committing or rolling back
+unrelated work. DBAL auto-commit-off mode also rejects before connecting, beginning or invoking the callback:
+DBAL can otherwise auto-start an outer transaction during lazy connection establishment. The boundary never
+toggles that mode or commits caller work to make the connection compatible. Default lazy connections work without
+additional setup. The connection must remain exclusively managed by this boundary during the callback: no manual
+begin/commit/rollback, mode changes, schema operations with implicit commits or unrelated transactions. Successful
+return preserves the callback result and follows the actual database commit. Every callback `Throwable` is rethrown unchanged after
+confirmed rollback, and that boundary remains reusable. There is no savepoint/nested-transaction support.
+
+Unconfirmed begin, commit or rollback raises public final
+`Adapter\Persistence\Doctrine\Exception\DbalTransactionOutcomeUncertain` and terminally closes the boundary.
+`originalFailure()` and the previous throwable retain the initial private diagnostic cause, including when
+best-effort commit cleanup also fails. Lost commit acknowledgment never proves rollback or data absence.
+Discard the closed boundary, reconcile using a fresh connection and apply the owning capability's retry rules;
+reopening a connection does not reopen this unit of work. Causes/traces are not public-safe output.
+
+These two new final declarations are public and constructible/callable, not consumer extension or implementation
+points. Existing ORM and framework contracts are unchanged. Execution uses its own
+[serialization/failure seam](https://johnnickell.github.io/fight-common/execution-observations/#retry-and-transaction-guarantees) around these generic mechanics;
+passing a bare generic boundary to execution does not supply that lock or permit its repository writes.
 
 ---
 

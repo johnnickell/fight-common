@@ -167,7 +167,7 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
         $db = $this->database($backend); $record = $this->seed(new DbalRecordingTransaction($db));
         $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'delete'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'delete'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $db->$method(...$arguments));
         }
         $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($db): void { $db->commit(); throw new RuntimeException('Lost acknowledgment.'); });

@@ -422,7 +422,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $connection = $this->database($backend);
         // The proxy loses only the acknowledgment after the real database commits.
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
         }
         $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($connection): void {
@@ -606,7 +606,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             // Forward a real insert, then inject a real failing statement before commit.
             $inject = true;
             $proxy = $this->mock(Connection::class);
-            foreach (['getDatabasePlatform', 'isTransactionActive', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
+            foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
                 $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
             }
             $proxy->shouldReceive('insert')->andReturnUsing(static function (...$arguments) use ($connection, &$inject): int {
@@ -780,7 +780,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $content = ProtectedContent::create($detail->detail(), 'private-body');
         foreach (['fight_execution_observations', 'fight_execution_contents'] as $failAfter) {
             $proxy = $this->mock(Connection::class);
-            foreach (['getDatabasePlatform', 'isTransactionActive', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
+            foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
                 $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
             }
             $proxy->shouldReceive('insert')->andReturnUsing(static function (...$arguments) use ($connection, $failAfter): int {

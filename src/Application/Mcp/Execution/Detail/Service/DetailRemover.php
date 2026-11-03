@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Execution\Detail\Service;
 
 use Fight\Common\Application\Mcp\Execution\Detail\Exception\DetailRemovalRejected;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Mcp\Observation\ObservationRepository;
@@ -21,10 +21,10 @@ final readonly class DetailRemover
      * Both repositories must share the recording transaction and serialization boundary
      */
     public function __construct(
-        private RecordingTransaction $transaction,
-        private ObservationRepository $observations,
-        private ProtectedContentRepository $contents,
-        private DetailRemovalAdmission $admission
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private ObservationRepository $observationRepository,
+        private ProtectedContentRepository $protectedContentRepository,
+        private DetailRemovalAdmission $detailRemovalAdmission
     ) {
     }
 
@@ -33,22 +33,22 @@ final readonly class DetailRemover
      */
     public function remove(RemoveCapturedDetail $command): void
     {
-        $this->transaction->commitTransactional(function () use ($command): void {
-            $this->admission->admit($command);
+        $this->transactionalUnitOfWork->commitTransactional(function () use ($command): void {
+            $this->detailRemovalAdmission->admit($command);
             $selection = $command->selection();
-            $detail = $this->observations->getById($selection->producerId(), $command->detailId());
+            $detail = $this->observationRepository->getById($selection->producerId(), $command->detailId());
             if ($detail === null || !$selection->acceptsDetail($detail, $command->kind())) {
                 throw new DetailRemovalRejected();
             }
 
-            $activity = $this->observations->getById($selection->producerId(), $selection->activityId());
+            $activity = $this->observationRepository->getById($selection->producerId(), $selection->activityId());
             $capture = $detail->detail();
             if ($activity === null || $capture === null || !$capture->acceptsActivity($detail, $activity)) {
                 throw new DetailRemovalRejected();
             }
 
             // Retaining identity prevents retries from silently restoring removed bodies.
-            $this->contents->removeFor($detail);
+            $this->protectedContentRepository->removeFor($detail);
         });
     }
 }

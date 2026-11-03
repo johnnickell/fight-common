@@ -12,8 +12,8 @@ use Fight\Common\Application\Mcp\Execution\Observation\Exception\ObservationStor
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\RecordingDenied;
 use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Mcp\Execution\ObservationAdmission;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;
@@ -49,7 +49,7 @@ final class ObservationRecorderTest extends UnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->transaction = $this->mock(RecordingTransaction::class);
+        $this->transaction = $this->mock(TransactionalUnitOfWork::class);
         $this->sessions = $this->mock(SessionRepository::class);
         $this->phases = $this->mock(PhaseRepository::class);
         $this->observations = $this->mock(ObservationRepository::class);
@@ -209,7 +209,7 @@ final class ObservationRecorderTest extends UnitTestCase
     public function test_that_storage_failure_prevents_event_dispatch_and_distinguishes_uncertainty(): void
     {
         foreach ([false, true] as $uncertain) {
-            $transaction = $this->mock(RecordingTransaction::class);
+            $transaction = $this->mock(TransactionalUnitOfWork::class);
             $cause = new RuntimeException('private storage diagnostic');
             $transaction->shouldReceive('commitTransactional')->once()->andThrow(new ObservationStorageFailed($uncertain, $cause));
             $this->events->shouldNotReceive('trigger');
@@ -235,7 +235,7 @@ final class ObservationRecorderTest extends UnitTestCase
         return $this->recorder($this->transaction);
     }
 
-    private function recorder(RecordingTransaction $transaction): ObservationRecorder
+    private function recorder(TransactionalUnitOfWork $transaction): ObservationRecorder
     {
         return new ObservationRecorder($transaction, $this->sessions, $this->phases, $this->observations, $this->admission, $this->events, $this->mock(ProtectedContentRepository::class));
     }

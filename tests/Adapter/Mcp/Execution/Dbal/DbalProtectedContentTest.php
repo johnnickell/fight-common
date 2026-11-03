@@ -15,8 +15,8 @@ use Fight\Common\Application\Mcp\Execution\Observation\Exception\ObservationConf
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\ProtectedContentRemoved;
 use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Mcp\Execution\ObservationAdmission;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
@@ -119,7 +119,7 @@ final class DbalProtectedContentTest extends UnitTestCase
 
     public function test_that_pairing_is_enforced_after_admission_and_wrong_handler_routing_rejects(): void
     {
-        $transaction = $this->mock(RecordingTransaction::class);
+        $transaction = $this->mock(TransactionalUnitOfWork::class);
         $transaction->shouldReceive('commitTransactional')->twice()->andReturnUsing(static fn (callable $operation) => $operation());
         $admission = $this->mock(ObservationAdmission::class);
         $admission->shouldReceive('admit')->twice();

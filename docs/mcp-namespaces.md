@@ -20,15 +20,21 @@ It does not turn a Task into a job executor, an observation into Workflow author
 The [Architecture standard](https://github.com/johnnickell/fight-common/blob/develop/docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the
 placement rules and exceptions. John's [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md) correction retains the MCP
 umbrella while specializing the earlier [ADR 0023](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0023-service-container-and-framework-adapter-namespaces.md).
-The following destinations are **approved but not implemented by this documentation task**:
+The following destinations remain **approved but pending their owning refactors**:
 
 | Current source | Approved target / owning work |
 | --- | --- |
 | `Application\Mcp\Execution\{Session,Phase,Observation,Detail}` | Aggregate owners directly under `Application\Mcp\{Session,Phase,Observation,Detail}`; TASK-00191 |
 | Concrete execution inspection Tools in `Application\Mcp\Execution` and `Application\Mcp\Notice\RecoverNoticesTool` | `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}`, with genuinely shared mapping support under `Tool\Execution`; TASK-00191 |
 | MCP aggregate persistence/read adapters under `Adapter\Mcp\{Execution,Task,Notice,Subscription}` | `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with real shared schema/serialization support under `Persistence\Execution\Dbal`; TASK-00191 |
-| Combined Application Task/Notice stores and execution recording transaction subtype | Domain aggregate repositories and separately injected existing `TransactionalUnitOfWork`; TASK-00184 through TASK-00186 |
+| Combined Application Task/Notice stores | Domain aggregate repositories and separately injected existing `TransactionalUnitOfWork`; TASK-00185 and TASK-00186 |
 | Task lifecycle forwarding and Domain disclosure encoding | Handler-owned use cases and separate outward disclosure projection; TASK-00187 and TASK-00188 |
+
+TASK-00184 implements execution's direct `TransactionalUnitOfWork` injection and reusable
+`Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. The provisional execution transaction subtype is
+removed; the DBAL execution seam retains real schema locking and failure translation, not another inward alias.
+See [transaction composition](execution-observations.md#retry-and-transaction-guarantees). No aggregate namespace
+moves are included in that correction.
 
 Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 and TASK-00190 own
 identity/value classification and inheritance corrections; TASK-00192 owns descriptive variable names. MCP engine,

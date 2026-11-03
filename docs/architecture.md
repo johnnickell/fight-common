@@ -64,8 +64,9 @@ business-facing query vocabulary. An aggregate's Domain owner defines its reposi
 aggregates, the consumer for consumer-specific business aggregates. Application-owned
 <code>TransactionalUnitOfWork</code> marks the separate atomic use-case boundary. The existing
 <code>DoctrineTransactionalUnitOfWork</code> supplies the ORM-specific implementation; it is not a substitute for
-DBAL transaction ownership. The approved DBAL-specific adapter is still pending in
-[TASK-00184](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00184-TASK.md).
+DBAL transaction ownership. <code>DbalTransactionalUnitOfWork</code> supplies reusable DBAL-only mechanics under
+[TASK-00184](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00184-TASK.md);
+execution composes it with its adapter-owned schema serialization and storage-failure translation.
 
 Framework packages belong at the composition edge. Their service providers, compiler passes, and configuration
 bind Fight Common contracts to selected adapters. They may call inward; they do not move framework types into

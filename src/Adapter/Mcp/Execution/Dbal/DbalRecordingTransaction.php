@@ -9,26 +9,30 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork;
+use Fight\Common\Adapter\Persistence\Doctrine\Exception\DbalTransactionOutcomeUncertain;
 use Fight\Common\Application\Mcp\Execution\Observation\Exception\ObservationStorageFailed;
-use Fight\Common\Application\Mcp\Execution\RecordingTransaction;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
-use Throwable;
 
 /**
  * Class DbalRecordingTransaction
+ *
+ * Owns execution schema serialization and failure translation around the reusable DBAL boundary
  */
-final class DbalRecordingTransaction implements RecordingTransaction
+final class DbalRecordingTransaction implements TransactionalUnitOfWork
 {
-    private bool $owned = false;
-    private bool $closed = false;
+    private bool $serialized = false;
+    private readonly DbalTransactionalUnitOfWork $transactionalUnitOfWork;
 
     /**
      * Constructs DbalRecordingTransaction
      */
     public function __construct(private readonly Connection $connection)
     {
+        $this->transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
         $platform = $connection->getDatabasePlatform();
         if (
             !$platform instanceof SQLitePlatform && !$platform instanceof AbstractMySQLPlatform
@@ -51,20 +55,17 @@ final class DbalRecordingTransaction implements RecordingTransaction
      */
     public function commitTransactional(callable $operation): mixed
     {
-        if ($this->closed || $this->owned || $this->connection->isTransactionActive()) {
-            throw new LogicException('Observation recording requires its own real transaction on an idle store.');
+        if ($this->serialized) {
+            throw new LogicException('Nested transactional execution is not supported.');
         }
 
+        $operationStarted = false;
         try {
-            $this->connection->beginTransaction();
-        } catch (Throwable $throwable) {
-            $this->closed = true;
-            throw new ObservationStorageFailed(true, $throwable);
-        }
-
-        $this->owned = true;
-        try {
-            try {
+            return $this->transactionalUnitOfWork->commitTransactional(function () use (
+                $operation,
+                &$operationStarted
+            ): mixed {
+                $operationStarted = true;
                 // Taking the same write lock before reads avoids snapshot/unique-key retry races.
                 $this->connection->executeStatement(
                     'UPDATE fight_execution_schema SET version = version WHERE singleton = 1'
@@ -77,31 +78,20 @@ final class DbalRecordingTransaction implements RecordingTransaction
                     throw new RuntimeException('Unsupported observation storage version.');
                 }
 
-                $result = $operation();
-            } catch (Throwable $exception) {
-                $this->rollback($exception);
-                if ($exception instanceof Exception) {
-                    throw new ObservationStorageFailed(false, $exception);
-                }
+                $this->serialized = true;
 
+                return $operation();
+            });
+        } catch (DbalTransactionOutcomeUncertain $exception) {
+            throw new ObservationStorageFailed(true, $exception->originalFailure());
+        } catch (Exception $exception) {
+            if (!$operationStarted) {
                 throw $exception;
             }
 
-            try {
-                $this->connection->commit();
-            } catch (Throwable $exception) {
-                $this->closed = true;
-                // A lost commit acknowledgment is not proof of rollback, even if cleanup succeeds.
-                if ($this->connection->isTransactionActive()) {
-                    $this->rollback($exception);
-                }
-
-                throw new ObservationStorageFailed(true, $exception);
-            }
-
-            return $result;
+            throw new ObservationStorageFailed(false, $exception);
         } finally {
-            $this->owned = false;
+            $this->serialized = false;
         }
     }
 
@@ -110,7 +100,7 @@ final class DbalRecordingTransaction implements RecordingTransaction
      */
     public function isClosed(): bool
     {
-        return $this->closed;
+        return $this->transactionalUnitOfWork->isClosed();
     }
 
     /**
@@ -126,21 +116,8 @@ final class DbalRecordingTransaction implements RecordingTransaction
      */
     public function requireOwnedTransaction(): void
     {
-        if (!$this->owned || !$this->connection->isTransactionActive()) {
+        if (!$this->serialized || !$this->connection->isTransactionActive()) {
             throw new LogicException('Observation writes require the recording-owned transaction.');
-        }
-    }
-
-    /**
-     * Handles rollback of only this boundary's transaction or reports uncertainty
-     */
-    private function rollback(Throwable $original): void
-    {
-        try {
-            $this->connection->rollBack();
-        } catch (Throwable) {
-            $this->closed = true;
-            throw new ObservationStorageFailed(true, $original);
         }
     }
 }

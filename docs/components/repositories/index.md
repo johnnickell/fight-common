@@ -5,11 +5,11 @@ title: Repositories
 atlas_article_heading_id: repositories
 atlas_component_group: Model the Domain
 atlas_component_owner: Domain, Application, and Adapter
-atlas_component_dependencies: PHP 8.5+, Domain collections, optional Doctrine ORM, Laravel, CodeIgniter, or Yii DB/DI
+atlas_component_dependencies: PHP 8.5+, Domain collections, optional Doctrine DBAL/ORM, Laravel, CodeIgniter, or Yii DB/DI
 atlas_article_context: Domain · Application · Adapter
 atlas_article_lead: Keep query shapes in the Domain, transaction intent in the Application, and database work in an adapter.
 atlas_article_requires: PHP 8.5+
-atlas_article_optional: doctrine/orm, laravel/framework, codeigniter4/framework, yiisoft/db, yiisoft/di
+atlas_article_optional: doctrine/dbal, doctrine/orm, laravel/framework, codeigniter4/framework, yiisoft/db, yiisoft/di
 atlas_article_package: johnnickell/fight-common
 atlas_relationship_source_label: Application port
 atlas_relationship_source: TransactionalUnitOfWork
@@ -36,7 +36,7 @@ atlas_local_contents:
   - label: Transactional unit of work
     href: "#transactionalunitofwork-interface"
   - label: Shipped transaction adapters
-    href: "#doctrinetransactionalunitofwork"
+    href: "#dbal-transactional-unit-of-work"
   - label: Repository interface
     href: "#usage-in-a-repository-interface"
   - label: 1.x compatibility
@@ -53,7 +53,8 @@ Application port. Doctrine, Laravel, CodeIgniter, and Yii transaction implementa
 consumer owns its repository implementation, connection selection, migrations, and outbox policy.
 
 **Dependencies.** The portable DTOs and port require PHP 8.5+ and this package. The optional
-Doctrine adapter requires `doctrine/orm`; Laravel requires `laravel/framework`; CodeIgniter requires
+DBAL adapter requires only `doctrine/dbal`, without an EntityManager; the separate ORM adapter requires
+`doctrine/orm`. Laravel requires `laravel/framework`; CodeIgniter requires
 `codeigniter4/framework`; and Yii requires `yiisoft/db` (plus the consumer's Yii DI setup when its
 provider is used).
 
