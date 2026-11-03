@@ -15,6 +15,7 @@ use Fight\Common\Application\Mcp\McpServerInfo;
 use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
 use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\Common\Fixture\Mcp\ProtocolMetadataCases;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -177,6 +178,77 @@ final class McpRequestMetadataTest extends UnitTestCase
             ['jsonrpc' => '2.0', 'id' => 'request-é', 'error' => ['code' => -32603, 'message' => 'Internal error.']],
             $responder->respond($this->request('request-é', ['tracestate' => '', McpRequestMetadata::CLIENT_INFO_KEY => ['name' => '', 'version' => '', 'icons' => []]]))->toArray(),
         );
+    }
+
+    public function test_that_metadata_requires_a_typed_object_root(): void
+    {
+        $this->expectException(McpProtocolException::class);
+        McpRequestMetadata::fromObject(StrictJson::fromData([]));
+    }
+
+    public function test_that_metadata_rejects_the_same_invalid_fields_as_guarded_semantic_requests(): void
+    {
+        foreach ([
+            ...ProtocolMetadataCases::invalidFields(),
+            ['io.modelcontextprotocol/clientInfo' => ['name' => 'client']],
+            ['io.modelcontextprotocol/clientCapabilities' => ['experimental' => ['custom' => true]]],
+        ] as $fields) {
+            $object = StrictJson::fromObject(array_replace([
+                McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28',
+                McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject(),
+            ], $fields));
+
+            try {
+                McpRequestMetadata::fromObject($object);
+                self::fail('Invalid defined metadata was accepted.');
+            } catch (McpProtocolException $failure) {
+                self::assertNull($failure->requestId());
+                self::assertSame(['code' => -32602, 'message' => 'Invalid params.'], $failure->protocolError()->toArray());
+            }
+        }
+    }
+
+    public function test_that_metadata_preserves_once_escaped_image_sources_and_parameter_bytes(): void
+    {
+        foreach ([
+            ...ProtocolMetadataCases::escapedImageSources(),
+            ...ProtocolMetadataCases::escapedImageParameters(),
+        ] as $iconSource) {
+            $metadata = McpRequestMetadata::fromObject(StrictJson::fromObject([
+                McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28',
+                McpRequestMetadata::CLIENT_CAPABILITIES_KEY => StrictJson::fromObject(),
+                McpRequestMetadata::CLIENT_INFO_KEY => [
+                    'name' => 'client',
+                    'version' => '1.0',
+                    'icons' => [['src' => $iconSource]],
+                ],
+            ]));
+
+            self::assertSame($iconSource, $metadata->clientInfo()?->get('icons')[0]->get('src'));
+        }
+    }
+
+    public function test_that_metadata_retains_declared_capability_objects_alongside_opaque_fields(): void
+    {
+        $capabilities = StrictJson::fromObject([
+            'sampling' => StrictJson::fromObject(),
+            'extensions' => [
+                'com.example/extension' => StrictJson::fromObject(),
+                'com.example/' => StrictJson::fromObject(),
+            ],
+        ]);
+
+        $metadata = McpRequestMetadata::fromObject(StrictJson::fromObject([
+            McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28',
+            McpRequestMetadata::CLIENT_CAPABILITIES_KEY => $capabilities,
+            McpRequestMetadata::PROGRESS_TOKEN_KEY => 'progress-1',
+            'com.example/opaque' => ['not' => 'retained'],
+        ]));
+
+        self::assertSame('2026-07-28', $metadata->protocolVersion());
+        self::assertEquals($capabilities, $metadata->clientCapabilities());
+        self::assertSame('progress-1', $metadata->progressToken());
+        self::assertNull($metadata->clientInfo());
     }
 
     private function request(int|string $id, array $fields): string

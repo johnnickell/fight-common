@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | ready-for-agent | — |
+| Ready Frontier | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -63,7 +63,6 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | ready-for-agent | — | — |
 | 4 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | — (standalone chore) | ready-for-agent | — | — |
 | 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | ready-for-agent | — | — |
 | 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | ready-for-agent | — | — |
@@ -111,6 +110,7 @@ their owning records; routing and planning checks stay offline.
 | 2 | [TASK-00105](00105-TASK.md) | Serve guarded stateless MCP requests through PSR HTTP | [TICKET-00023 — Serve a Safe Stateless MCP Endpoint](../tickets/00023-TICKET.md) | done | — | [PR #163](https://github.com/johnnickell/fight-common/pull/163) |
 | 2 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | — (standalone chore) | done | — | [PR #261](https://github.com/johnnickell/fight-common/pull/261) |
 | 3 | [TASK-00106](00106-TASK.md) | Register and discover explicitly opted-in MCP Tools | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #165](https://github.com/johnnickell/fight-common/pull/165) |
+| 3 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | — (standalone chore) | done | — | [PR #262](https://github.com/johnnickell/fight-common/pull/262) |
 | 4 | [TASK-00107](00107-TASK.md) | Invoke validated CQRS MCP Tools with safe semantic output | [TICKET-00024 — Discover and Invoke Explicitly Opted-In CQRS Tools](../tickets/00024-TICKET.md) | done | — | [PR #166](https://github.com/johnnickell/fight-common/pull/166) |
 | 5 | [TASK-00108](00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #167](https://github.com/johnnickell/fight-common/pull/167) |
 | 6 | [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #168](https://github.com/johnnickell/fight-common/pull/168) |
