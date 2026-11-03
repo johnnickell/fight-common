@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Mcp;
+namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(McpServerInfo::class)]
+#[CoversClass(ReleasedMcp\McpServerInfo::class)]
 final class McpServerInfoTest extends UnitTestCase
 {
     public function test_that_server_info_accepts_schema_permitted_empty_identity_strings(): void

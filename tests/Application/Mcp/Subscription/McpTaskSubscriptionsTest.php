@@ -9,10 +9,11 @@ use Doctrine\DBAL\DriverManager;
 use Fiber;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionExecution;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionFilter;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
@@ -35,7 +36,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptions::class)]
 #[CoversClass(McpSubscriptionFilter::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpTasks::class)]
 #[CoversClass(McpEventStream::class)]

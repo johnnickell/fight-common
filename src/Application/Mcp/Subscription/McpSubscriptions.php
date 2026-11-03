@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Subscription;
 
-use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Exception\DomainException;

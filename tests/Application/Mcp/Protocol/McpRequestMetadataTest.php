@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Mcp;
+namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestMetadata;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
 use Fight\Common\Application\Mcp\Protocol\McpImplementationInfoGrammar;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Protocol\McpTraceContextGrammar;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Fight\Test\Common\Fixture\Mcp\ProtocolMetadataCases;
@@ -22,7 +23,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversClass(McpImplementationInfoGrammar::class)]
-#[CoversClass(McpRequestMetadata::class)]
+#[CoversClass(ReleasedMcp\McpRequestMetadata::class)]
 #[CoversClass(McpTraceContextGrammar::class)]
 final class McpRequestMetadataTest extends UnitTestCase
 {

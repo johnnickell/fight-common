@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;

@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp\Tool;
 
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Execution\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Execution\SummarizeExecutionsTool;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
@@ -30,8 +31,8 @@ use Throwable;
 
 #[CoversClass(McpToolOutput::class)]
 #[CoversClass(McpToolInvoker::class)]
-#[CoversClass(McpResult::class)]
-#[CoversClass(McpJsonResponse::class)]
+#[CoversClass(ReleasedMcp\McpResult::class)]
+#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
 final class McpBoundedToolOutputTest extends UnitTestCase
 {
     public function test_that_actual_encoded_response_bound_counts_text_escaping_identity_and_central_metadata(): void

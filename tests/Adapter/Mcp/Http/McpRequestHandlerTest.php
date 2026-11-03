@@ -8,17 +8,18 @@ use Fight\Common\Adapter\Mcp\Http\DenyAllMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Http\McpOriginPolicy;
 use Fight\Common\Application\Mcp\McpDiagnostics;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpOriginPolicy;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpRequestLimits;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\HttpFactory;
@@ -33,8 +34,8 @@ use TypeError;
 
 #[CoversClass(McpRequestHandler::class)]
 #[CoversClass(McpResponseFactory::class)]
-#[CoversClass(McpJsonResponse::class)]
-#[CoversClass(McpProtocolError::class)]
+#[CoversClass(ReleasedMcp\McpJsonResponse::class)]
+#[CoversClass(ReleasedMcp\McpProtocolError::class)]
 final class McpRequestHandlerTest extends UnitTestCase
 {
     public function test_that_missing_required_policies_fail_at_composition(): void

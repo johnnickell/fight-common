@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- The 17 relocated MCP foundation root spellings, in documentation only. Prefer `Application\Mcp\Capability`,
+  `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root
+  without deprecation. Canonical aliases preserve released runtime identity, finality, named construction,
+  consumer type compatibility, catches, reflection and saved values. The first deprecating release is unassigned;
+  removal requires separate future-major authorization after a released minor of deprecation. See the
+  [complete foundation migration map](docs/maintenance/mcp-foundation-namespaces.md).
 - The nine released MCP HTTP adapter names under `Adapter\Http\Mcp`, `Adapter\Http\Symfony` and
   `Adapter\Http\CodeIgniter`. Use their canonical `Adapter\Mcp\Http`, `Adapter\Mcp\Symfony` and
   `Adapter\Mcp\CodeIgniter` names instead. Old public names remain functional throughout 1.x without runtime
@@ -30,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Canonical MCP foundation names with identity-preserving released-name compatibility, without protocol,
+  authorization, wire/storage or delivery changes. Native saved results from tagged releases remain usable
+  when the later optional response budget was absent.
 - Canonical MCP HTTP and native framework adapter names grouped under `Adapter\Mcp`, preserving endpoint guards,
   direct JSON, lazy progressive delivery and native response behavior. Internal HTTP helpers move alongside them.
 - Opt-in retained-notice removal Commands with independent current admission, finite incarnation-pinned selections,

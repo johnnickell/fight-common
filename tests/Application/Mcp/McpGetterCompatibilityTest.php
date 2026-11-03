@@ -6,7 +6,8 @@ namespace Fight\Test\Common\Application\Mcp;
 
 use Error;
 use ErrorException;
-use Fight\Common\Application\Mcp\McpRequestLimits;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
@@ -16,7 +17,7 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(McpRequestLimits::class)]
+#[CoversClass(ReleasedMcp\McpRequestLimits::class)]
 #[CoversClass(McpResourceLimits::class)]
 #[CoversClass(McpResourceReadLimits::class)]
 #[CoversClass(McpSkillDiscoveryLimits::class)]

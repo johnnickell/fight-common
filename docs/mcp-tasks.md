@@ -14,7 +14,7 @@ First wire the actual [lifecycle](durable-tasks.md), [input](task-input.md) and
 transaction, payload validation and independently supplied current permissions. In each trusted request context:
 
 ```php
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;

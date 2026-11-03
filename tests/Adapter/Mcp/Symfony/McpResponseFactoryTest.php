@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Adapter\Mcp\Symfony;
 
 use Fight\Common\Adapter\Http\Symfony\McpResponseFactory as LegacyMcpResponseFactory;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;

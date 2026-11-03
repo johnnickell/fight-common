@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Subscription;
 
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Uri\Rfc3986\Uri;

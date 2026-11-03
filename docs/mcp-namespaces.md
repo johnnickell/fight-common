@@ -64,9 +64,25 @@ access or guarantee delivery/execution. Existing persisted development snapshots
 
 The untagged `McpTraceContextGrammar` and `McpImplementationInfoGrammar` implementation details live directly in
 `Application\Mcp\Protocol`. Their short names and grammar behavior are unchanged; no old root aliases,
-deprecations or public validator promises are added. Released public `Application\Mcp\McpRequestMetadata` and
-all other released foundation declarations remain at their current names. TASK-00181 owns their future
-compatibility-preserving migration; this internal correction does not implement that broader map.
+deprecations or public validator promises are added. Public metadata uses the canonical
+`Application\Mcp\Protocol\McpRequestMetadata` name; its released root spelling remains functional.
+
+## Foundation canonical names and released identity
+
+The [complete foundation migration map](maintenance/mcp-foundation-namespaces.md) inventories all 19 released
+root declarations and their public operations. Seventeen gain preferred names under `Application\Mcp\Capability`,
+`Protocol`, `Protocol\Exception`, `Http` and the valid PHP `Tool` namespace, retaining their short names.
+`McpResponder` and `McpDiagnostics` stay at root without new deprecation. All 17 relocated root spellings remain
+functional with documentation-only deprecation; the first deprecating release is unassigned and future-major
+removal requires separate authorization after the released-minor window.
+
+Canonical class/interface aliases deliberately retain the released runtime declarations rather than introduce
+one-way subtypes or duplicate immutable values. Old/new imports have identical parameter/return relationships,
+final factory identities, catches, reflection and native saved-value scopes. Root implementation files are retained
+compatibility owners; canonical names are the preferred consumer imports. Composer registers the aliases eagerly
+so catches and type checks need no prior canonical construction. Canonical spellings are not deprecated, and
+no consumer inheritance promise is introduced. Internal grammar and composition helpers retain their direct
+internal homes; no development-snapshot bridge is added.
 
 ## Internal composition owner
 

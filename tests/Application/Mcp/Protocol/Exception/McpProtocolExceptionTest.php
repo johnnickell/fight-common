@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Mcp;
+namespace Fight\Test\Common\Application\Mcp\Protocol\Exception;
 
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(McpProtocolException::class)]
+#[CoversClass(ReleasedMcp\McpProtocolException::class)]
 final class McpProtocolExceptionTest extends UnitTestCase
 {
     public function test_that_protocol_rejections_retain_the_error_and_usable_or_absent_request_identity(): void

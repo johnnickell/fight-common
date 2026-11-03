@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
