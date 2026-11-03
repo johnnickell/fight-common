@@ -20,6 +20,13 @@ transaction contracts; no application-only namespace or blanket external-effect 
 
 `deptrac.php` and `deptrac.runtime.php` enforce these boundaries. Source namespace is `Fight\Common\`, tests `Fight\Test\Common\`, and release tooling `Fight\Release\`. Tests mirror the source paths. Inspect Composer's actual autoload configuration for release tooling locations.
 
+For aggregate placement, value classification/inheritance, handler/repository/transaction ownership and the finite
+package exceptions, follow [Architecture](../../docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces).
+[Descriptive naming](../../docs/engineering/standards/Naming.md#variables-properties-and-parameters) applies throughout
+project-owned code while protecting released named parameters. These approved rules precede TASK-00184 through
+TASK-00192; current MCP lifecycle services, combined stores, Tool locations and value types do not yet all conform.
+The current source map in CONTEXT and component docs is not an exemption or a claim of completed refactoring.
+
 Value objects are immutable, validate construction, and use named public factories such as `fromString()`/`fromArray()`; invalid values use DomainException as appropriate to their contract. Specifications extend CompositeSpecification and implement `isSatisfiedBy(mixed $candidate): bool`, composing with `and()`/`or()`/`not()`. Typed collections use `ArrayList::of()` and `HashTable::of()` according to their actual signatures.
 
 Compatibility is against tagged releases, not earlier development commits. Never-released additions remain

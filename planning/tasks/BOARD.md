@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | ready-for-agent | — |
+| Ready Frontier | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -40,7 +40,8 @@ John approved a second bounded architectural correction sequence after that work
 [TASK-00184](00184-TASK.md) through [TASK-00192](00192-TASK.md) cover DBAL transactions, repositories,
 handler ownership, disclosure projection, domain values/identities, adapter namespaces and the codebase-wide
 descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
-existing five chores without turning independent work into artificial blockers. Planning only, not execution.
+existing five chores without turning independent work into artificial blockers. TASK-00183's rule surface is
+accepted; the dependent refactors remain pending.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
@@ -63,13 +64,12 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | ready-for-agent | — | — |
+| 7 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 7 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | — (standalone chore) | ready-for-agent | [TASK-00183](00183-TASK.md) | — |
 | 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | ready-for-agent | [TASK-00184](00184-TASK.md) | — |
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | ready-for-agent | [TASK-00184](00184-TASK.md) | — |
 | 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | ready-for-agent | [TASK-00185](00185-TASK.md) | — |
@@ -114,6 +114,7 @@ their owning records; routing and planning checks stay offline.
 | 5 | [TASK-00108](00108-TASK.md) | Orchestrate request-scoped MCP progress and cooperative cancellation | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #167](https://github.com/johnnickell/fight-common/pull/167) |
 | 5 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | — (standalone chore) | done | — | [PR #265](https://github.com/johnnickell/fight-common/pull/265) |
 | 6 | [TASK-00109](00109-TASK.md) | Deliver Fight Common progressive MCP HTTP and SSE adapters | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | done | — | [PR #168](https://github.com/johnnickell/fight-common/pull/168) |
+| 6 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | — (standalone chore) | done | — | [PR #267](https://github.com/johnnickell/fight-common/pull/267) |
 | 7 | [TASK-00110](00110-TASK.md) | Qualify progressive MCP in every supported framework starter | [TICKET-00025 — Stream Progress and Cancel a Tool Request Across Supported Compositions](../tickets/00025-TICKET.md) | wontfix | — | [PR #169](https://github.com/johnnickell/fight-common/pull/169) |
 | 8 | [TASK-00111](00111-TASK.md) | Protect and resume ordinary MCP input_required interactions | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #171](https://github.com/johnnickell/fight-common/pull/171) |
 | 9 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #172](https://github.com/johnnickell/fight-common/pull/172) |

@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00183](tasks/00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | ready-for-agent | — |
+| Ready Frontier | [TASK-00184](tasks/00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -56,7 +56,8 @@ John then approved bounded aggregate-first architectural correction after those 
 [TASK-00183](tasks/00183-TASK.md) through [TASK-00192](tasks/00192-TASK.md). The sequence covers explicit rules,
 DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
-dependencies and compatibility constraints; this planning approval starts no implementation or publication.
+dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
+TASK-00183's rule surface has since been accepted; dependent refactors remain pending.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),

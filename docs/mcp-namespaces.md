@@ -15,7 +15,33 @@ contracts and the normal buses; adapters own persistence, cryptography, transpor
 Grouping these capabilities does not require an MCP HTTP connection to use their shared Commands or Queries.
 It does not turn a Task into a job executor, an observation into Workflow authority or a notice into authoritative state.
 
+## Approved aggregate alignment target
+
+The [Architecture standard](https://github.com/johnnickell/fight-common/blob/develop/docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the
+placement rules and exceptions. John's [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md) correction retains the MCP
+umbrella while specializing the earlier [ADR 0023](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0023-service-container-and-framework-adapter-namespaces.md).
+The following destinations are **approved but not implemented by this documentation task**:
+
+| Current source | Approved target / owning work |
+| --- | --- |
+| `Application\Mcp\Execution\{Session,Phase,Observation,Detail}` | Aggregate owners directly under `Application\Mcp\{Session,Phase,Observation,Detail}`; TASK-00191 |
+| Concrete execution inspection Tools in `Application\Mcp\Execution` and `Application\Mcp\Notice\RecoverNoticesTool` | `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}`, with genuinely shared mapping support under `Tool\Execution`; TASK-00191 |
+| MCP aggregate persistence/read adapters under `Adapter\Mcp\{Execution,Task,Notice,Subscription}` | `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with real shared schema/serialization support under `Persistence\Execution\Dbal`; TASK-00191 |
+| Combined Application Task/Notice stores and execution recording transaction subtype | Domain aggregate repositories and separately injected existing `TransactionalUnitOfWork`; TASK-00184 through TASK-00186 |
+| Task lifecycle forwarding and Domain disclosure encoding | Handler-owned use cases and separate outward disclosure projection; TASK-00187 and TASK-00188 |
+
+Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 and TASK-00190 own
+identity/value classification and inheritance corrections; TASK-00192 owns descriptive variable names. MCP engine,
+protocol semantics and ports remain Application-owned. Required released bridges remain functional; provisional
+names move directly when the owning refactor executes. Do not import these target FQCNs as existing APIs yet.
+This future aggregate alignment does not undo TASK-00181's implemented foundation canonical names or their
+identity-preserving released aliases described below. Those canonical imports are available now; retained root
+runtime declarations remain compatibility owners, not competing aggregate homes.
+
 ## Complete capability relocation map
+
+This table records TASK-00177's implemented relocation and the current source at the TASK-00183 checkpoint;
+it is not the final aggregate alignment target above.
 
 Paths below omit the common `Fight\Common\` prefix. Each row covers its whole develop subtree, including values,
 messages, events, repositories, policies, handlers, projections, exceptions and implementation helpers.
@@ -50,7 +76,7 @@ For example, the caller changes its import, not the use case or bus pipeline:
 ```php
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 
-$view = $queries->fetch(new GetExecution($projectId, $sessionId));
+$view = $queryBus->fetch(new GetExecution($projectId, $sessionId));
 ```
 
 These tracking subtrees have not appeared in a tagged release through `v1.4.0`. Their provisional names change
