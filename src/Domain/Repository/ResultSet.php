@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Repository;
 use Fight\Common\Domain\Collection\ArrayList;
 use Fight\Common\Domain\Collection\Contract\Collection;
 use Fight\Common\Domain\Collection\Traits\ItemTypeMethods;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Type\Arrayable;
 use JsonSerializable;
 use Traversable;
@@ -44,6 +45,40 @@ final class ResultSet implements Arrayable, Collection, JsonSerializable
             $this->totalRecords,
             $this->perPage
         );
+    }
+
+    /**
+     * Creates a result set with validated local bounds and exact page arithmetic
+     *
+     * Validation applies only at construction; the supplied mutable list is shared.
+     * Page position and request/result agreement remain consumer responsibilities.
+     *
+     * @template T
+     * @phpstan-param ArrayList<T> $records
+     * @phpstan-return self<T>
+     *
+     * @throws DomainException When bounds, total or record count are invalid
+     */
+    public static function strict(int $page, int $perPage, int $totalRecords, ArrayList $records): self
+    {
+        if ($page < 1 || $perPage < 1 || $totalRecords < 0) {
+            throw new DomainException('Result set bounds must be positive and total nonnegative.');
+        }
+
+        $count = $records->count();
+        if ($count > $perPage || $count > $totalRecords) {
+            throw new DomainException('Result set record count exceeds page size or total.');
+        }
+
+        // A zero-total staging instance bypasses legacy floating-point arithmetic entirely.
+        $result = new self($page, $perPage, 0, $records);
+        $result->totalRecords = $totalRecords;
+        $result->totalPages = 1;
+        if ($totalRecords > 0) {
+            $result->totalPages = intdiv($totalRecords - 1, $perPage) + 1;
+        }
+
+        return $result;
     }
 
     /**
