@@ -268,9 +268,12 @@ $result = $transactionalUnitOfWork->commitTransactional(function () use ($accoun
 ```
 
 It rejects caller-owned and nested transactions before invoking the callback, without committing or rolling back
-unrelated work. The connection must remain exclusively managed by this boundary during the callback: no manual
-begin/commit/rollback, schema operations with implicit commits or unrelated transactions. Successful return preserves
-the callback result and follows the actual database commit. Every callback `Throwable` is rethrown unchanged after
+unrelated work. DBAL auto-commit-off mode also rejects before connecting, beginning or invoking the callback:
+DBAL can otherwise auto-start an outer transaction during lazy connection establishment. The boundary never
+toggles that mode or commits caller work to make the connection compatible. Default lazy connections work without
+additional setup. The connection must remain exclusively managed by this boundary during the callback: no manual
+begin/commit/rollback, mode changes, schema operations with implicit commits or unrelated transactions. Successful
+return preserves the callback result and follows the actual database commit. Every callback `Throwable` is rethrown unchanged after
 confirmed rollback, and that boundary remains reusable. There is no savepoint/nested-transaction support.
 
 Unconfirmed begin, commit or rollback raises public final

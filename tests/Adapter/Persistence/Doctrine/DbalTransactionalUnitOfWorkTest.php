@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Persistence\Doctrine;
 
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
@@ -47,6 +48,90 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
         self::assertNull($transactionalUnitOfWork->commitTransactional(static fn () => null));
     }
 
+    public function test_that_a_default_lazy_connection_commits_before_returning_to_an_independent_reader(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'fight-dbal-');
+        self::assertIsString($path);
+        $reader = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        try {
+            $reader->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
+            self::assertFalse($connection->isConnected());
+            $transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+            self::assertSame('committed', $transactionalUnitOfWork->commitTransactional(static function () use ($connection): string {
+                $connection->insert('consumer_work', ['id' => 184]);
+                return 'committed';
+            }));
+            self::assertFalse($connection->isTransactionActive());
+            self::assertSame([184], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            self::assertFalse($transactionalUnitOfWork->isClosed());
+            $connection->close();
+            self::assertSame([184], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+        } finally {
+            $connection->close();
+            $reader->close();
+            unlink($path);
+        }
+    }
+
+    #[DataProvider('incompatibleConnectionStates')]
+    public function test_that_auto_commit_off_rejects_before_callback_without_changing_caller_state(string $state): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'fight-dbal-');
+        self::assertIsString($path);
+        $configuration = new Configuration();
+        $configuration->setAutoCommit($state === 'established idle');
+        $reader = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path], $configuration);
+        try {
+            $reader->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
+            if ($state === 'established idle') {
+                $connection->fetchOne('SELECT 1');
+                $connection->setAutoCommit(false);
+            }
+            if ($state === 'caller work') {
+                $connection->insert('consumer_work', ['id' => 42]);
+            }
+            self::assertFalse($connection->isAutoCommit());
+            self::assertSame($state !== 'lazy', $connection->isConnected());
+            self::assertSame($state === 'caller work', $connection->isTransactionActive());
+            $transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+            $invoked = false;
+            $rejected = false;
+            try {
+                $transactionalUnitOfWork->commitTransactional(static function () use ($connection, &$invoked): void {
+                    $invoked = true;
+                    $connection->insert('consumer_work', ['id' => 184]);
+                });
+            } catch (LogicException) {
+                $rejected = true;
+            }
+            self::assertFalse($invoked, 'Incompatible connection must reject before invoking the callback.');
+            self::assertTrue($rejected);
+            self::assertFalse($transactionalUnitOfWork->isClosed());
+            self::assertFalse($connection->isAutoCommit());
+            self::assertSame($state !== 'lazy', $connection->isConnected());
+            self::assertSame($state === 'caller work', $connection->isTransactionActive());
+            self::assertSame([], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            if ($state === 'caller work') {
+                self::assertSame([42], $connection->fetchFirstColumn('SELECT id FROM consumer_work'));
+                $connection->commit();
+                self::assertSame([42], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            }
+        } finally {
+            $connection->close();
+            $reader->close();
+            unlink($path);
+        }
+    }
+
+    public static function incompatibleConnectionStates(): iterable
+    {
+        yield 'lazy' => ['lazy'];
+        yield 'established idle' => ['established idle'];
+        yield 'caller work' => ['caller work'];
+    }
+
     public function test_that_caller_owned_work_is_neither_invoked_committed_nor_rolled_back(): void
     {
         $connection = $this->database();
@@ -75,6 +160,7 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
     ): void {
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('isTransactionActive')->andReturn(false, $activeAfterCommit);
+        $connection->shouldReceive('isAutoCommit')->once()->andReturnTrue();
         $failure = new RuntimeException('lost acknowledgment');
         if ($stage === 'begin') {
             $connection->shouldReceive('beginTransaction')->once()->andThrow($failure);
@@ -133,6 +219,7 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
     {
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('isTransactionActive')->once()->andReturnFalse();
+        $connection->shouldReceive('isAutoCommit')->once()->andReturnTrue();
         $connection->shouldReceive('isTransactionActive')->once()->andThrow(new RuntimeException('inspection failed'));
         $connection->shouldReceive('beginTransaction')->once();
         $failure = new RuntimeException('commit failed');

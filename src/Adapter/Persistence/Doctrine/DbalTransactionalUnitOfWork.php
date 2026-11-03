@@ -40,6 +40,11 @@ final class DbalTransactionalUnitOfWork implements TransactionalUnitOfWork
             throw new LogicException('Nested transactional execution is not supported.');
         }
 
+        // DBAL otherwise auto-starts an outer transaction while establishing a lazy connection.
+        if (!$this->connection->isAutoCommit()) {
+            throw new LogicException('DBAL auto-commit-off transaction composition is not supported.');
+        }
+
         try {
             $this->connection->beginTransaction();
         } catch (Throwable $throwable) {

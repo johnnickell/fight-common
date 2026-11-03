@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork` without ORM dependencies, preserving callback
   results, owned rollback, caller/nested rejection and terminal truthful `DbalTransactionOutcomeUncertain` failures.
+  Auto-commit-off connections reject before callback without mode changes or caller-work interference; default
+  lazy connections return only after an actual commit.
 - Canonical MCP foundation names with identity-preserving released-name compatibility, without protocol,
   authorization, wire/storage or delivery changes. Native saved results from tagged releases remain usable
   when the later optional response budget was absent.

@@ -185,6 +185,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new PostgreSQLPlatform());
         // The initial ownership check is idle; subsequent checks model lost acknowledgment.
         $connection->shouldReceive('isTransactionActive')->andReturn(false, $activeAfterCommit);
+        $connection->shouldReceive('isAutoCommit')->once()->andReturnTrue();
         $failure = new RuntimeException('connection lost');
         if ($stage === 'begin') {
             $connection->shouldReceive('beginTransaction')->once()->andThrow($failure);
