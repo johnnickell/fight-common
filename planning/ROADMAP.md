@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00184](tasks/00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | in-progress | — |
+| Ready Frontier | [TASK-00185](tasks/00185-TASK.md) | Separate Task repository persistence from transaction ownership | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -57,7 +57,8 @@ John then approved bounded aggregate-first architectural correction after those 
 DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
 dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
-TASK-00183's rule surface has since been accepted; dependent refactors remain pending.
+TASK-00183's rule surface and TASK-00184's DBAL transaction separation have since been accepted; the remaining
+dependent refactors remain pending.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),
