@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpJsonResponse;
@@ -39,6 +40,7 @@ use RuntimeException;
 #[CoversClass(McpToolInvoker::class)]
 #[CoversClass(McpToolInvocation::class)]
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpHeaderValidator::class)]
 #[CoversClass(McpResponder::class)]
 final class McpTasksTest extends UnitTestCase
@@ -247,6 +249,33 @@ final class McpTasksTest extends UnitTestCase
         try { McpResult::task(['resultType' => 'complete']); self::fail('Cannot override discriminator'); } catch (DomainException) {}
         try { new McpTaskHandle('invalid'); self::fail('Invalid identity'); } catch (DomainException) {}
         self::assertSame('task', McpResult::task([])->toArray()['resultType']);
+    }
+
+    public function test_that_task_activation_requires_exact_shared_instances_in_either_registration_order_without_starting_work(): void
+    {
+        $endpoint = $this->endpoint;
+        $server = new McpServerInfo('Fixture', '1');
+        $discovery = $endpoint->registry->capabilityFor('tools/list');
+        $otherTasks = new McpTasks($this->fixture->queries, $this->fixture->commands, 'scope', 'caller');
+        foreach ([[$endpoint->tasks, $endpoint->invocation], [$endpoint->invocation, $endpoint->tasks]] as $capabilities) {
+            $registry = new McpCapabilityRegistry($server, [$discovery, ...$capabilities]);
+            self::assertSame($server, $registry->serverInfo());
+            self::assertSame($endpoint->invocation, $registry->capabilityFor('tools/call'));
+            foreach (['tasks/get', 'tasks/update', 'tasks/cancel'] as $method) {
+                self::assertSame($endpoint->tasks, $registry->capabilityFor($method));
+            }
+            self::assertSame('{}', $registry->advertisedCapabilities()['extensions'][McpTasks::EXTENSION]->toString());
+        }
+        foreach ([[$otherTasks, $endpoint->invocation], [$endpoint->invocation, $otherTasks]] as $capabilities) {
+            try {
+                new McpCapabilityRegistry($server, [$discovery, ...$capabilities]);
+                self::fail('Nominally equivalent Task instances must not activate.');
+            } catch (DomainException $failure) {
+                self::assertSame('Tasks requires shared start, get, input and cancellation composition.', $failure->getMessage());
+            }
+        }
+        self::assertSame(0, $endpoint->tool->starts);
+        self::assertNull($this->fixture->get());
     }
 
     private function decoded(string $method = 'tools/call', array $params = ['name' => 'example.operation']): McpRequest

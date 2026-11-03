@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpJsonResponse;
@@ -27,6 +28,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use stdClass;
 
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpImplementationInfoGrammar::class)]
 #[CoversClass(McpJsonResponse::class)]
 #[CoversClass(McpMirrorDeclaration::class)]

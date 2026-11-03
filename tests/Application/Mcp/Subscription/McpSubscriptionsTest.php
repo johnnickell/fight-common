@@ -7,6 +7,8 @@ namespace Fight\Test\Common\Application\Mcp\Subscription;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
+use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpProtocolException;
 use Fight\Common\Application\Mcp\McpRequestDecoder;
@@ -32,6 +34,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptionFilter::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpEventStream::class)]
 #[CoversClass(McpRequestHandler::class)]
 final class McpSubscriptionsTest extends UnitTestCase
@@ -57,6 +60,35 @@ final class McpSubscriptionsTest extends UnitTestCase
         self::assertGreaterThan(0, (int) $f->db->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
         self::assertSame(['listChanged' => true], $f->registry->advertisedCapabilities()['tools']);
         self::assertSame(['subscribe' => true, 'listChanged' => true], $f->registry->advertisedCapabilities()['resources']);
+    }
+
+    public function test_that_subscription_flags_derive_only_from_explicit_composition_and_cannot_be_self_certified(): void
+    {
+        $fixture = $this->fixture();
+        $server = new McpServerInfo('Fixture', '1');
+        $tools = $fixture->registry->capabilityFor('tools/list');
+        $resources = $fixture->registry->capabilityFor('resources/list');
+        $subscriptions = new McpSubscriptions($fixture->queries, $fixture->store, $fixture, NoticeSelection::create(['scope']), resources: false);
+        foreach ([[$tools, $resources], [$resources, $tools]] as $capabilities) {
+            $registry = new McpCapabilityRegistry($server, $capabilities, $subscriptions);
+            self::assertSame($subscriptions, $registry->subscriptions());
+            self::assertSame(['listChanged' => true], $registry->advertisedCapabilities()['tools']);
+            self::assertSame(['subscribe' => false, 'listChanged' => false], $registry->advertisedCapabilities()['resources']);
+        }
+        foreach ([['tools/list'], ['tools/list', 'subscriptions/listen']] as $methods) {
+            $claim = $this->mock(McpCapability::class);
+            $claim->shouldReceive('methods')->andReturn($methods);
+            $claim->shouldReceive('capabilities')->andReturn(['tools' => ['listChanged' => true]]);
+            $claim->shouldReceive('mirrorDeclarations')->andReturn([]);
+            try {
+                new McpCapabilityRegistry($server, [$claim], $subscriptions);
+                self::fail('Explicit subscriptions must not permit consumer claims or reserved method ownership.');
+            } catch (DomainException $failure) {
+                self::assertStringContainsString(count($methods) === 1 ? 'requires a subscription contract' : 'reserved', $failure->getMessage());
+            }
+        }
+        self::assertSame(0, (int) $fixture->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+        self::assertSame(0, (int) $fixture->db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
     }
 
     public function test_that_malformed_filters_and_over_bounds_reject_before_tracking_or_query_disclosure(): void

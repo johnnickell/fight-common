@@ -68,6 +68,15 @@ deprecations or public validator promises are added. Released public `Applicatio
 all other released foundation declarations remain at their current names. TASK-00181 owns their future
 compatibility-preserving migration; this internal correction does not implement that broader map.
 
+## Internal composition owner
+
+`Application\Mcp\Composition\McpCompositionValidator` is a final `@internal` implementation detail classified
+internal in the compatibility manifest. It owns cross-feature Skills/Resources, Task/Tool and subscription
+consistency on behalf of `McpCapabilityRegistry`, which remains the sole trusted public construction boundary.
+It is not a public validator, builder, registration contract or consumer setup step. Generic registry indexing,
+advertisement merging and standard family/anchor constraints retain their current owner. No existing public
+name or signature moves, and no compatibility alias or deprecation is introduced.
+
 ## Released names and legacy AI operations
 
 The [nine released HTTP adapter names](components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility)

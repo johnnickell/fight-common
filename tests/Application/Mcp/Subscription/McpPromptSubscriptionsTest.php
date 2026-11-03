@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Subscription;
 
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpServerInfo;
@@ -22,6 +23,7 @@ use RuntimeException;
 #[CoversClass(McpSubscriptions::class)]
 #[CoversClass(McpSubscriptionExecution::class)]
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 final class McpPromptSubscriptionsTest extends UnitTestCase
 {
     public function test_that_prompt_enablement_requires_serving_and_never_changes_ordinary_disabled_prompt_serving(): void

@@ -2570,6 +2570,19 @@
             }
         },
         {
+            "name": "Fight\\Common\\Application\\Mcp\\Composition\\McpCompositionValidator",
+            "source": "src/Application/Mcp/Composition/McpCompositionValidator.php",
+            "layer": "Application", "kind": "class", "classification": "internal",
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "TASK-00179 extracts registry-owned cross-feature consistency and subscription activation without a consumer validator or new composition step."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal composition validator."}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal composition validator."}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal composition validator."}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete internal composition validator."}}
+            }
+        },
+        {
             "name": "Fight\\Common\\Application\\Mcp\\Protocol\\McpImplementationInfoGrammar",
             "source": "src/Application/Mcp/Protocol/McpImplementationInfoGrammar.php",
             "layer": "Application", "kind": "class", "classification": "internal",

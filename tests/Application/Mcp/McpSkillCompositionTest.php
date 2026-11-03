@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
 use Fight\Common\Application\Mcp\McpCapability;
 use Fight\Common\Application\Mcp\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\McpRequest;
@@ -24,6 +25,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(McpCompositionValidator::class)]
 final class McpSkillCompositionTest extends UnitTestCase
 {
     public function test_that_distinct_extension_ids_compose_and_equal_same_id_settings_coalesce(): void
@@ -179,9 +181,14 @@ final class McpSkillCompositionTest extends UnitTestCase
         }
         self::assertArrayNotHasKey('extensions', $this->registry([$resources])->advertisedCapabilities());
         $other = new McpResourceDiscovery([$provider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('share the configured Resources');
-        $this->registry([$skills, $other]);
+        foreach ([[$skills, $other], [$other, $skills]] as $capabilities) {
+            try {
+                $this->registry($capabilities);
+                self::fail('A nominally equivalent Resources capability must not replace the shared instance.');
+            } catch (DomainException $failure) {
+                self::assertSame('Skills and file reads must share the configured Resources capability.', $failure->getMessage());
+            }
+        }
     }
 
     private function registry(array $capabilities): McpCapabilityRegistry
