@@ -29,7 +29,7 @@ type and nullability. Array getters also retain the documented PHPStan element t
 | `Application\Auth\OAuth\OAuthScopeSet` | `$values` → `values()` | 1 |
 | `Application\Auth\OAuth\OAuthTokenRequirements` | `$metadata` → `metadata()`; `$tokenType` → `tokenType()`; `$allowedAlgorithms` → `allowedAlgorithms()`; `$activeKeyIds` → `activeKeyIds()`; `$requiredClaimTypes` → `requiredClaimTypes()`; `$clockSkewSeconds` → `clockSkewSeconds()` | 6 |
 | `Application\Auth\OAuth\OAuthValidatedClaims` | `$claims` → `claims()`; `$algorithm` → `algorithm()`; `$keyId` → `keyId()`; `$tokenType` → `tokenType()`; `$grantedScopes` → `grantedScopes()` | 5 |
-| `Application\Mcp\McpRequestLimits` | `$maxBytes` → `maxBytes()`; `$maxDepth` → `maxDepth()` | 2 |
+| `Application\Mcp\Protocol\McpRequestLimits` (released root spelling also supported) | `$maxBytes` → `maxBytes()`; `$maxDepth` → `maxDepth()` | 2 |
 | `Application\Mcp\Resource\McpResourceLimits` | `$maxUriBytes` → `maxUriBytes()`; `$maxDescriptorBytes` → `maxDescriptorBytes()`; `$pageSize` → `pageSize()`; `$maxDescriptors` → `maxDescriptors()`; `$maxProviders` → `maxProviders()`; `$maxResultBytes` → `maxResultBytes()` | 6 |
 | `Application\Mcp\Resource\McpResourceReadLimits` | `$maxContentBytes` → `maxContentBytes()`; `$maxResultBytes` → `maxResultBytes()` | 2 |
 | `Application\Mcp\Skill\McpSkillDiscoveryLimits` | `$pageSize` → `pageSize()`; `$maxEntries` → `maxEntries()`; `$maxEntryBytes` → `maxEntryBytes()`; `$maxResultBytes` → `maxResultBytes()`; `$maxUriBytes` → `maxUriBytes()` | 5 |
@@ -40,7 +40,7 @@ type and nullability. Array getters also retain the documented PHPStan element t
 
 ```php
 // Preferred read API; construction and named arguments have not changed.
-$limits = new \Fight\Common\Application\Mcp\McpRequestLimits(maxBytes: 2097152, maxDepth: 128);
+$limits = new \Fight\Common\Application\Mcp\Protocol\McpRequestLimits(maxBytes: 2097152, maxDepth: 128);
 $byteBudget = $limits->maxBytes();
 $depthBudget = $limits->maxDepth();
 

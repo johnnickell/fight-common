@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestMirrors;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpRequestMirrors;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 

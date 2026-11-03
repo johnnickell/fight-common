@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Fight\Test\Common\Application\Mcp;
+namespace Fight\Test\Common\Application\Mcp\Protocol;
 
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(McpResult::class)]
+#[CoversClass(ReleasedMcp\McpResult::class)]
 final class McpResultTest extends UnitTestCase
 {
     public function test_that_bounded_results_preserve_their_complete_shape_at_the_exact_encoded_limit(): void

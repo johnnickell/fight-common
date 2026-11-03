@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Application\Mcp;
 
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceAvailability;
 use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
@@ -24,7 +25,7 @@ use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 final class McpSkillCompositionTest extends UnitTestCase
 {

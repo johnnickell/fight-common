@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Fixture\Mcp;
 
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpResult;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Throwable;
 
 final class EndpointCapability implements McpCapability

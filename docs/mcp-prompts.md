@@ -12,8 +12,8 @@ Implement `McpPrompt::info(): McpPromptInfo` and `get(array $arguments): McpProm
 conflicting ownership, including concealed entries. Registration and listing never call `get()`.
 
 ```php
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Prompt\McpPrompt;
 use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
 use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;

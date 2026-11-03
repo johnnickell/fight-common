@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Adapter\Mcp\CodeIgniter;
 
 use Fight\Common\Adapter\Http\CodeIgniter\McpResponse as LegacyMcpResponse;
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
-use Fight\Common\Application\Mcp\McpProgressReporter;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Test\Common\Fixture\Mcp\ProgressEndpoint;
 use Fight\Test\Common\Fixture\Mcp\ProgressTool;

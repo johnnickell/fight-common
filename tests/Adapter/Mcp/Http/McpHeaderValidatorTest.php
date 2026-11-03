@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Adapter\Mcp\Http;
 
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpMirrorDeclaration;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpMirrorDeclaration;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\Fixture\Mcp\EndpointCapability;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -18,7 +19,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(McpHeaderValidator::class)]
-#[CoversClass(McpProtocolError::class)]
+#[CoversClass(ReleasedMcp\McpProtocolError::class)]
 final class McpHeaderValidatorTest extends UnitTestCase
 {
     #[DataProvider('matchingValues')]

@@ -7,16 +7,17 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Application\Mcp as ReleasedMcp;
+use Fight\Common\Application\Mcp\Capability\McpCapability;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;
-use Fight\Common\Application\Mcp\McpCapability;
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequest;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
 use Fight\Common\Application\Mcp\McpResponder;
-use Fight\Common\Application\Mcp\McpResult;
-use Fight\Common\Application\Mcp\McpServerInfo;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpRequest;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Protocol\McpResult;
+use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Task\McpTaskHandle;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
@@ -36,10 +37,10 @@ use RuntimeException;
 
 #[CoversClass(McpTasks::class)]
 #[CoversClass(McpTaskHandle::class)]
-#[CoversClass(McpResult::class)]
+#[CoversClass(ReleasedMcp\McpResult::class)]
 #[CoversClass(McpToolInvoker::class)]
 #[CoversClass(McpToolInvocation::class)]
-#[CoversClass(McpCapabilityRegistry::class)]
+#[CoversClass(ReleasedMcp\McpCapabilityRegistry::class)]
 #[CoversClass(McpCompositionValidator::class)]
 #[CoversClass(McpHeaderValidator::class)]
 #[CoversClass(McpResponder::class)]

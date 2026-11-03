@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Fixture\Mcp;
 
 use Closure;
-use Fight\Common\Application\Mcp\McpProgressReporter;
 use Fight\Common\Application\Mcp\Task\McpTaskHandle;
 use Fight\Common\Application\Mcp\Task\McpTaskTool;
+use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolOutput;
 use Fight\Common\Application\Validation\Data\ApplicationData;

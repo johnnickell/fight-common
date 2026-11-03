@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Common\Adapter\Mcp\Http;
 
-use Fight\Common\Application\Mcp\McpCapabilityRegistry;
-use Fight\Common\Application\Mcp\McpInvocationGuard;
-use Fight\Common\Application\Mcp\McpJsonResponse;
-use Fight\Common\Application\Mcp\McpOriginPolicy;
-use Fight\Common\Application\Mcp\McpProtocolError;
-use Fight\Common\Application\Mcp\McpProtocolException;
-use Fight\Common\Application\Mcp\McpRequestDecoder;
+use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
+use Fight\Common\Application\Mcp\Http\McpOriginPolicy;
 use Fight\Common\Application\Mcp\McpResponder;
+use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
+use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Domain\Exception\DomainException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
