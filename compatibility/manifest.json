@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 408,
+            "declarations": 409,
             "functions": 0
         },
         "Adapter": {
@@ -2567,6 +2567,19 @@
                         }
                     }
                 }
+            }
+        },
+        {
+            "name": "Fight\\Common\\Application\\Validation\\Internal\\ValidatorFactory",
+            "source": "src/Application/Validation/Internal/ValidatorFactory.php",
+            "layer": "Application", "kind": "class", "classification": "internal",
+            "classification_evidence": {"authority": "fight-common.classification.explicit-internal-annotation", "rationale": "TASK-00182 gives existing convenience and parsed-service registrations one construction owner without a consumer factory or setup API."},
+            "members": [],
+            "operations": {
+                "callable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal validation construction."}},
+                "constructible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Internal validation construction."}},
+                "extensible": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Final internal factory."}},
+                "implementable": {"promised": false, "evidence": {"authority": "fight-common.operation.not-promised", "rationale": "Concrete internal factory."}}
             }
         },
         {

@@ -14,6 +14,7 @@ use Fight\Common\Application\Validation\ValidationCoordinator;
 use Fight\Common\Application\Validation\ValidationService;
 use Fight\Common\Application\Validation\Validator;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Test\Common\Fixture\ValidationRuleExamples;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -282,6 +283,111 @@ class ValidationServiceTest extends UnitTestCase
         } catch (ValidationException $failure) {
             self::assertSame(['new' => ['New is required']], $failure->getErrors());
         }
+    }
+
+    #[DataProvider('ruleExamples')]
+    public function test_that_convenience_and_parsed_rules_retain_expected_results(
+        string $type,
+        string $rule,
+        array $args,
+        array $passing,
+        array $failing
+    ): void {
+        $coordinator = new ValidationCoordinator();
+        $method = 'add'.$type.'Validation';
+        $coordinator->$method('value', 'Value rejected', ...$args);
+        $result = $coordinator->validate(new InputData($passing));
+        self::assertTrue($result->isPassed());
+        self::assertSame($passing, $result->getData()->toArray());
+
+        $coordinator->$method('value', 'Value rejected', ...$args);
+        self::assertSame(
+            ['value' => ['Value rejected']],
+            $coordinator->validate(new InputData($failing))->getErrors()->toArray()
+        );
+        self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
+
+        $service = new ValidationService($coordinator);
+        $ruleName = explode('[', $rule)[0];
+        $rules = [[
+            'field' => 'value', 'label' => 'Value', 'rules' => $rule,
+            'errors' => [$ruleName => '%s rejected']
+        ]];
+        self::assertSame($passing, $service->validate($passing, $rules)->toArray());
+        try {
+            $service->validate($failing, $rules);
+            self::fail('Expected declared validation error');
+        } catch (ValidationException $failure) {
+            self::assertSame(['value' => ['Value rejected']], $failure->getErrors());
+        }
+        self::assertSame([], $service->validate([], [])->toArray());
+    }
+
+    public static function ruleExamples(): iterable
+    {
+        yield from ValidationRuleExamples::cases();
+    }
+
+    #[TestWith(['equals', 'Equals', true])]
+    #[TestWith(['same', 'Same', true])]
+    #[TestWith(['not_equals', 'NotEquals', false])]
+    #[TestWith(['not_same', 'NotSame', false])]
+    public function test_that_cross_field_missing_values_preserve_negation_semantics(
+        string $rule,
+        string $type,
+        bool $passed
+    ): void {
+        foreach ([[], ['value' => null], ['other' => null]] as $input) {
+            $coordinator = new ValidationCoordinator();
+            $method = 'add'.$type.'Validation';
+            $coordinator->$method('value', 'Comparison failed', 'other');
+            $result = $coordinator->validate(new InputData($input));
+            self::assertSame($passed, $result->isPassed());
+            if (!$passed) {
+                self::assertSame(['value' => ['Comparison failed']], $result->getErrors()->toArray());
+            }
+
+            $service = new ValidationService($coordinator);
+            $rules = [[
+                'field' => 'value', 'label' => 'Value', 'rules' => $rule.'[other]',
+                'errors' => [$rule => 'Comparison failed']
+            ]];
+            try {
+                $data = $service->validate($input, $rules);
+                self::assertTrue($passed);
+                self::assertSame($input, $data->toArray());
+            } catch (ValidationException $failure) {
+                self::assertFalse($passed);
+                self::assertSame(['value' => ['Comparison failed']], $failure->getErrors());
+            }
+        }
+    }
+
+    public function test_that_parsed_errors_preserve_field_grouping_regex_order_and_custom_formats(): void
+    {
+        $coordinator = new ValidationCoordinator();
+        $coordinator->addRequiredValidation(fieldName: 'custom', errorMessage: 'Custom first');
+        $service = new ValidationService($coordinator);
+        $rules = [
+            [
+                'field' => 'value', 'label' => 'Value',
+                'rules' => 'match[/^(red|blue)$/]|min_length[5]',
+                'errors' => ['match' => '%s pattern %s', 'min_length' => '%s length %s']
+            ],
+            ['field' => 'other', 'label' => 'Other', 'rules' => 'required'],
+            ['field' => 'value', 'label' => 'Value', 'rules' => 'not_blank']
+        ];
+        try {
+            $service->validate(['value' => ''], $rules);
+            self::fail('Expected accumulated errors');
+        } catch (ValidationException $failure) {
+            self::assertSame([
+                'custom' => ['Custom first'],
+                'value' => ['Value length 5', 'Value pattern /^(red|blue)$/', 'Value cannot be blank'],
+                'other' => ['Other is required']
+            ], $failure->getErrors());
+        }
+        self::assertSame([], $service->validate([], [])->toArray());
     }
 
     public function test_that_validate_rejects_an_unsupported_rule_name(): void

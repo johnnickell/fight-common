@@ -84,7 +84,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00179](00179-TASK.md) | Clarify MCP capability composition validation | done | — |
 | [TASK-00180](00180-TASK.md) | Organize MCP tests around observable contracts | done | — |
 | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
-| [TASK-00182](00182-TASK.md) | Separate validation construction from execution | ready-for-agent | — |
+| [TASK-00182](00182-TASK.md) | Separate validation construction from execution | done | — |
 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | ready-for-agent | — |
 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | ready-for-agent | — |
 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | ready-for-agent | — |
