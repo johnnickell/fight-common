@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00179](tasks/00179-TASK.md) | Clarify MCP capability composition validation | in-progress | — |
+| Ready Frontier | [TASK-00180](tasks/00180-TASK.md) | Organize MCP tests around observable contracts | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
