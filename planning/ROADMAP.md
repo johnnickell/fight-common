@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00182](tasks/00182-TASK.md) | Separate validation construction from execution | in-progress | — |
+| Ready Frontier | [TASK-00181](tasks/00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
