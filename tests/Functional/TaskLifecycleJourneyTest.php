@@ -77,7 +77,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($connection): void { $connection->commit(); throw new RuntimeException('Lost actual commit acknowledgment'); });
         $uncertain = new TaskFixture($proxy);
         try { $uncertain->record(TaskFixture::completed()); self::fail('Uncertainty required.'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
-        self::assertTrue($uncertain->store->isClosed());
+        self::assertTrue($uncertain->transactionalUnitOfWork->isClosed());
         $fresh = new TaskFixture($this->connect($params)); $calls = 0;
         $fresh->events->addHandler(ClassName::underscore(TaskChanged::class), static function (EventMessage $message) use (&$calls, $params): void {
             ++$calls; $other = DriverManager::getConnection($params);
@@ -135,7 +135,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         $fresh = new TaskFixture($this->connect($connection->getParams()));
         self::assertSame('working', $fresh->get()->get('state')->get('status'));
-        self::assertSame($operation->toString(), $fresh->store->read('scope', TaskFixture::ID)->definition()->operation()->toString());
+        self::assertSame($operation->toString(), $fresh->committedTaskReader->read('scope', TaskFixture::ID)->definition()->operation()->toString());
         $fresh->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame(1, $fresh->get()->get('version'));
     }
@@ -185,7 +185,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $uncertain = new TaskFixture($proxy);
         try { $uncertain->remove(); self::fail('Actual committed deletion with lost acknowledgment required.'); }
         catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
-        self::assertTrue($uncertain->store->isClosed());
+        self::assertTrue($uncertain->transactionalUnitOfWork->isClosed());
         $fresh = new TaskFixture($this->connect($params));
         self::assertNull($fresh->get()); self::assertStringContainsString('input_required', $before);
         self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
@@ -317,7 +317,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
     private function proxy(Connection $connection): Connection
     {
         $proxy = $this->mock(Connection::class);
-        foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'delete', 'insert', 'rollBack'] as $method) {
+        foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'delete', 'insert', 'rollBack'] as $method) {
             $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
         }
         return $proxy;

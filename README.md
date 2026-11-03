@@ -60,6 +60,10 @@ Prefer the canonical `Application\Mcp\Capability`, `Protocol`, `Http` and `Tool`
 The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) explains released-name compatibility;
 `McpResponder` and `McpDiagnostics` stay at root without deprecation.
 
+For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
+`TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
+Task transaction boundary share one dedicated connection; persistence does not own commit.
+
 ## Project routes
 
 - Read the [documentation](https://johnnickell.github.io/fight-common/) or begin with the

@@ -10,8 +10,9 @@ There is no tasks/list, tasks/result, automatic retry or job-control integration
 ## Composition
 
 First wire the actual [lifecycle](durable-tasks.md), [input](task-input.md) and
-[cancellation](task-cancellation.md) handlers into the existing buses. They share the same Task store,
-transaction, payload validation and independently supplied current permissions. In each trusted request context:
+[cancellation](task-cancellation.md) handlers into the existing buses. They share the same Domain `TaskRepository`,
+separately injected `TransactionalUnitOfWork` and Application `CommittedTaskReader` on one dedicated DBAL connection,
+with unchanged payload validation and independently supplied current permissions. In each trusted request context:
 
 ```php
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;

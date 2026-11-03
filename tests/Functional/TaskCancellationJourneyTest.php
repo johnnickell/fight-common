@@ -104,7 +104,7 @@ final class TaskCancellationJourneyTest extends UnitTestCase
         else { $c->executeStatement('ALTER TABLE fight_tasks DROP CONSTRAINT fail_cancel'); }
         $check = $this->checked($params); $candidate = new TaskFixture($check);
         $check->afterCommit = static fn () => throw new RuntimeException('Lost commit response');
-        try { $candidate->cancel(); self::fail('Uncertain commit cannot acknowledge'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertTrue($candidate->store->isClosed()); }
+        try { $candidate->cancel(); self::fail('Uncertain commit cannot acknowledge'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertTrue($candidate->transactionalUnitOfWork->isClosed()); }
         $fresh = new TaskFixture($this->connect($params)); self::assertNotNull($fresh->cancellation()->get('cancellation'));
         $committed = $c->fetchOne('SELECT payload FROM fight_tasks'); $fresh->cancel(); self::assertSame($committed, $c->fetchOne('SELECT payload FROM fight_tasks'));
         $fresh->create(id: str_repeat('b', 32)); $calls = 0;

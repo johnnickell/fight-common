@@ -6,8 +6,11 @@ Polling, input and cancellation need neither Subscriptions nor Mercure. No worke
 
 ## Composition and independent authority
 
-Construct `Application\Mcp\Task\Service\TaskCancellationLifecycle($store, $admission, $events, $clock)` with the same
-`TaskStore`, `EventDispatcher` and trusted epoch-millisecond clock as the ordinary lifecycle. Register
+Construct `Application\Mcp\Task\Service\TaskCancellationLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $admission, $events, $clock)` with the same
+Domain `TaskRepository`, separately injected existing `TransactionalUnitOfWork`, Application `CommittedTaskReader`,
+`EventDispatcher` and trusted epoch-millisecond clock as the ordinary lifecycle. The
+[DBAL composition](durable-tasks.md#explicit-composition) binds persistence and transaction ownership to the same
+dedicated connection while keeping their responsibilities separate. Register
 `Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler` and
 `Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler` with the existing routers. The former handles Domain
 `Command\RequestTaskCancellation`; the latter handles Domain `Query\GetTaskCancellation`, both under `Domain\Mcp\Task`.
@@ -48,8 +51,9 @@ nondecreasing timestamp and the new Task-local version. Admission increments ver
 input requests/answers/consumption, original context, TTL and polling advice. It records no reason, private message,
 caller ledger, stop attempt or cancelling protocol status. The two original values never change on retries.
 
-The store owns actual commit, not an outer savepoint. Initial success additionally reconstructs through its shared
-committed `read()` contract and verifies retained original intent before returning. Reconstruction failure,
+The separately injected transaction boundary owns actual commit, not an outer savepoint or repository method.
+Initial success additionally reconstructs through the shared `CommittedTaskReader::read()` contract and verifies
+retained original intent before returning. Reconstruction failure,
 disappearance or expiry before that verification withholds acknowledgment; it does not claim rollback. Concurrent
 producer/input changes may advance version but must retain the same original intent. Reference-only `TaskChanged`
 (scope/ID/admission version) is dispatched afterward, never a fabricated stopped-job fact.
@@ -73,7 +77,7 @@ after intent: cooperative intent is neither form refusal nor terminal state. Iss
 acquisition and producer updates all preserve original intent. Accepted answers cannot be replaced; consumed
 confirmation cannot be restored by later cancellation, failed delivery or uncertain consumer effects.
 
-`TaskInputLifecycle` now requires `TaskCancellationAdmission` as its seventh constructor argument. Acquisition checks
+`TaskInputLifecycle` requires `TaskCancellationAdmission` as its final constructor argument. Acquisition checks
 both current business continuation permission and current intent-observation permission before loading/mutating.
 `GetTaskInput` requires its existing input-observation grant **and** current cancellation-observation grant; otherwise
 it returns null, not a false absent-intent value. Its coherent protected view adds current `version` and nullable
@@ -92,7 +96,7 @@ terminal updates to conflict until a fresh producer decision. No automatic refus
 
 ## Failure and recovery
 
-- Unsupported enclosing transactions, savepoints, dirty reads and closed stores reject before mutation, leaving
+- Unsupported enclosing transactions, savepoints, dirty reads and closed boundaries reject before mutation, leaving
   unrelated caller work untouched. No network/job-control call spans the admission transaction.
 - Known rollback preserves the prior row. Begin/commit/rollback uncertainty closes the existing boundary and raises
   `TaskStorageFailed`; `outcomeUncertain()` requires fresh authorized reconciliation, never an invented stop receipt.

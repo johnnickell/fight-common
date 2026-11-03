@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Adapter\Mcp\Task\Dbal;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskStore;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskRepository;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RemoveTasksHandler;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
@@ -28,7 +28,7 @@ use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
-#[CoversClass(DbalTaskStore::class)]
+#[CoversClass(DbalTaskRepository::class)]
 #[CoversClass(TaskLifecycle::class)]
 #[CoversClass(RemoveTasksHandler::class)]
 #[CoversClass(CommittedTaskDispatchFailed::class)]
@@ -96,7 +96,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
         try { $fixture->remove([TaskFixture::ID, $other]); self::fail('Atomic removal must fail.'); }
         catch (TaskStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }
         self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id'));
-        self::assertSame(0, $facts); self::assertFalse($fixture->store->isClosed());
+        self::assertSame(0, $facts); self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
         $connection->executeStatement('DROP TRIGGER fail_removal'); $fixture->remove([TaskFixture::ID, $other]);
         self::assertSame(1, $facts); self::assertNull($fixture->get());
     }
@@ -104,7 +104,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
     public function test_that_removal_rejects_unowned_and_enclosing_transactions_before_admission_or_caller_mutation(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $fixture->create();
-        try { $fixture->store->remove(TaskSelection::fromIds('scope', [TaskFixture::ID])); self::fail('Owned transaction required.'); }
+        try { $fixture->taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::ID])); self::fail('Owned transaction required.'); }
         catch (LogicException) { self::assertNotNull($fixture->get()); }
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
         $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]);

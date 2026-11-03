@@ -10,11 +10,13 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Task;
+use Fight\Common\Domain\Mcp\Task\TaskRepository;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use RuntimeException;
 use Throwable;
@@ -30,7 +32,9 @@ final readonly class TaskCancellationLifecycle
      * @phpstan-param Closure(): int $clock Trusted server epoch-millisecond clock
      */
     public function __construct(
-        private TaskStore $store,
+        private TaskRepository $taskRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private CommittedTaskReader $committedTaskReader,
         private TaskCancellationAdmission $admission,
         private EventDispatcher $events,
         private Closure $clock
@@ -42,7 +46,7 @@ final readonly class TaskCancellationLifecycle
      */
     public function request(RequestTaskCancellation $command): void
     {
-        $changed = $this->store->commitTransactional(function () use ($command): ?Task {
+        $changed = $this->transactionalUnitOfWork->commitTransactional(function () use ($command): ?Task {
             try {
                 $allowed = $this->admission->allowsCancellation($command->scope, $command->id, $command->caller);
             } catch (Throwable) {
@@ -53,7 +57,7 @@ final readonly class TaskCancellationLifecycle
                 throw new TaskRejected();
             }
 
-            $task = $this->store->getById($command->scope, $command->id);
+            $task = $this->taskRepository->getById($command->scope, $command->id);
             $now = Task::timestamp(($this->clock)());
             if ($task === null || !$task->availableAt($now)) {
                 throw new TaskRejected();
@@ -66,7 +70,7 @@ final readonly class TaskCancellationLifecycle
             }
 
             if ($next !== null) {
-                $this->store->save($next);
+                $this->taskRepository->save($next);
             }
 
             return $next;
@@ -78,7 +82,7 @@ final readonly class TaskCancellationLifecycle
         // Reconstruct through the shared committed read contract, not an in-memory write receipt.
         // Removal/expiry racing this check withholds acknowledgment, never claims a rolled-back intent.
         try {
-            $retained = $this->store->read($command->scope, $command->id);
+            $retained = $this->committedTaskReader->read($command->scope, $command->id);
         } catch (Throwable $throwable) {
             throw new TaskStorageFailed(true, $throwable);
         }
@@ -113,7 +117,7 @@ final readonly class TaskCancellationLifecycle
             return null;
         }
 
-        $task = $this->store->read($query->scope, $query->id);
+        $task = $this->committedTaskReader->read($query->scope, $query->id);
         if ($task === null || !$task->availableAt(Task::timestamp(($this->clock)()))) {
             return null;
         }

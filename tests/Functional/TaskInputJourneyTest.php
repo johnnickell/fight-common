@@ -85,7 +85,7 @@ final class TaskInputJourneyTest extends UnitTestCase
             'scope', TaskFixture::ID, 'producer', 3, TaskState::create('input_required', $message, $requests)
         ));
         $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
-        $stored = $fixture->store->read('scope', TaskFixture::ID);
+        $stored = $fixture->committedTaskReader->read('scope', TaskFixture::ID);
         self::assertSame($message, $stored->state()->data()->get('message'));
 
         foreach ([0, 99, 100, 199, 200] as $elapsed) {
@@ -129,7 +129,7 @@ final class TaskInputJourneyTest extends UnitTestCase
             try {
                 match ($stage) { 'issue' => $candidate->issue(), 'supply' => $candidate->supply([TaskFixture::KEY_1 => self::accept('valid')]), default => $candidate->acquire() };
                 self::fail('Lost commit acknowledgment required.');
-            } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertTrue($candidate->store->isClosed()); }
+            } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertTrue($candidate->transactionalUnitOfWork->isClosed()); }
             $fresh = new TaskFixture($this->connect($params)); $group = $fresh->observe()->get('groups')->get(TaskFixture::KEY_1);
             self::assertNotNull($group);
             if ($stage === 'supply') { self::assertSame('valid', $group->get('answers')->get(TaskFixture::KEY_1)->get('content')->get('answer')); }
@@ -180,8 +180,8 @@ final class TaskInputJourneyTest extends UnitTestCase
         self::assertSame([], $f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('answers')->properties());
         $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 5, TaskFixture::KEY_3));
         // Seed the documented near-exhaustion value; direct units additionally execute all 1,024 rounds.
-        $data = $f->store->read('scope', TaskFixture::ID)->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
-        $f->store->commitTransactional(fn () => $f->store->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
+        $data = $f->committedTaskReader->read('scope', TaskFixture::ID)->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
+        $f->transactionalUnitOfWork->commitTransactional(fn () => $f->taskRepository->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
         $f->issue(expectedVersion: 6); $last = TaskFixture::KEY_PREFIX.'1024';
         self::assertSame([$last], array_keys($f->get()->get('state')->get('input')->properties()));
         $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 7, $last));

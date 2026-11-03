@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | ready-for-agent | — |
+| Active Work | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -58,13 +58,12 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 8 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | — (standalone chore) | ready-for-agent | — | — |
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting

@@ -9,6 +9,7 @@ use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskInput;
@@ -17,6 +18,7 @@ use Fight\Common\Domain\Mcp\Task\Command\SupplyTaskInput;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskInput;
 use Fight\Common\Domain\Mcp\Task\Task;
+use Fight\Common\Domain\Mcp\Task\TaskRepository;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
 
@@ -31,7 +33,9 @@ final readonly class TaskInputLifecycle
      * @phpstan-param Closure(): int $clock Trusted server epoch-millisecond clock
      */
     public function __construct(
-        private TaskStore $store,
+        private TaskRepository $taskRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private CommittedTaskReader $committedTaskReader,
         private TaskUpdateAdmission $producers,
         private TaskInputAdmission $admission,
         private TaskPayloadPolicy $payloads,
@@ -160,7 +164,7 @@ final readonly class TaskInputLifecycle
             return null;
         }
 
-        $task = $this->store->read($query->scope, $query->id);
+        $task = $this->committedTaskReader->read($query->scope, $query->id);
         if ($task === null || !$task->availableAt($this->now())) {
             return null;
         }
@@ -205,7 +209,7 @@ final readonly class TaskInputLifecycle
      */
     private function load(string $scope, string $id): Task
     {
-        $task = $this->store->getById($scope, $id);
+        $task = $this->taskRepository->getById($scope, $id);
         if ($task === null || !$task->availableAt($this->now())) {
             throw new TaskRejected();
         }
@@ -228,7 +232,7 @@ final readonly class TaskInputLifecycle
      */
     private function mutate(Closure $operation): void
     {
-        $task = $this->store->commitTransactional(function () use ($operation): ?Task {
+        $task = $this->transactionalUnitOfWork->commitTransactional(function () use ($operation): ?Task {
             try {
                 $task = $operation();
             } catch (DomainException) {
@@ -242,7 +246,7 @@ final readonly class TaskInputLifecycle
                     throw new TaskRejected();
                 }
 
-                $this->store->save($task);
+                $this->taskRepository->save($task);
             }
 
             return $task;

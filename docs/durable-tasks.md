@@ -19,8 +19,17 @@ There are no development-format migrations, automatic cleanup or schema changes 
 
 Construct these explicit collaborators (names below are under `Fight\Common`):
 
-- `Adapter\Mcp\Task\Dbal\DbalTaskStore($connection)`, implementing Application `TaskStore` and
-  `TransactionalUnitOfWork` on that **same** connection.
+- `$transactionalUnitOfWork = new Adapter\Mcp\Task\Dbal\DbalTaskTransaction($connection)`, implementing the
+  existing Application `TransactionalUnitOfWork` around `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`.
+  The Task wrapper owns namespace locking/schema validation and Task-specific failure translation, not persistence.
+- `$taskRepository = new Adapter\Mcp\Task\Dbal\DbalTaskRepository($transactionalUnitOfWork)`, implementing Domain
+  `Mcp\Task\TaskRepository` (`getById`, `save`, `remove`) without transaction inheritance or connection access.
+  Its constructor binds it to the exact Task boundary and connection; an unrelated active transaction cannot admit writes.
+- `$committedTaskReader = $taskRepository`, supplied through Application `Mcp\Task\Service\CommittedTaskReader`.
+  This narrow `read(scope, id): ?Task` capability supplies protected coherent committed aggregates for existing Queries
+  and cancellation acknowledgment. The same persistence adapter reconstructs the aggregate; no second store,
+  reporting methods, disclosure policy or protocol projection is introduced. It rejects active transactions even
+  when the mutation repository is owned; Query callers never switch between storage modes.
 - Independent request/producer-scoped `TaskCreationAdmission`, `TaskUpdateAdmission`, `TaskReadAdmission` and
   `TaskRemovalAdmission`.
   Each decision uses trusted consumer context, never a submitted producer label as a credential. Mutation admission
@@ -33,7 +42,7 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
   projection where consumer policy requires. Returning false withholds the entire view; never substitute an empty result.
 - Existing `EventDispatcher` and a trusted `Closure(): int` server epoch-millisecond clock. For example,
   `static fn (): int => (int) floor(microtime(true) * 1000)`. Synchronize clocks; logical expiry depends on that clock.
-- `Application\Mcp\Task\Service\TaskLifecycle($store, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
+- `Application\Mcp\Task\Service\TaskLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
 
 Register `CreateTaskHandler`, `RecordTaskStateHandler` and `RemoveTasksHandler` with the existing Command router, and `GetTaskHandler`
 with the Query router, all sharing that lifecycle. Handler namespaces are `Application\Mcp\Task\CommandHandler` and
@@ -187,9 +196,11 @@ replay or permanent removal receipt is promised. Never copy protected data into 
 
 ## Durability and failures
 
-`DbalTaskStore` rejects caller transactions, savepoint composition, closed boundaries and dirty-read isolation before
-writes. It implements `TransactionalUnitOfWork` directly; an unrelated ORM unit of work does not enlist its writes.
-Do not add an outer transactional Command filter. The store never commits or rolls back rejected caller work.
+`DbalTaskTransaction` rejects caller transactions, savepoint composition, closed boundaries and dirty-read isolation
+before admission or writes. It implements the separately injected `TransactionalUnitOfWork`; the repository does not.
+Its reusable DBAL mechanism rejects auto-commit-off composition without changing connection mode. An unrelated DBAL
+or ORM transaction, or a different Task boundary on the same connection, cannot enlist repository writes.
+Do not add an outer transactional Command filter. Rejected caller work is never committed or rolled back.
 All state is persisted before successful Command return. Backend durability configuration remains an operator
 responsibility; this is not a transaction with a job system, automatic submission or execution acknowledgment.
 
@@ -241,15 +252,25 @@ must bound its complete envelope, central metadata and text companions independe
 
 ## Compatibility and public surface
 
-TASK-00167 adds five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
+TASK-00185 removes the never-tagged Application `TaskStore` and `DbalTaskStore` directly. Their replacements are
+public Domain `TaskRepository` (implementable aggregate persistence), Application `CommittedTaskReader`
+(implementable protected committed-read capability), and final constructible/callable DBAL `DbalTaskRepository`
+and `DbalTaskTransaction`. `connection`, `requireOwnedTransaction` and `requireCommittedRead` are adapter composition
+seams, not inward repository or transaction methods; consumers inject the existing inward contracts. The compatibility
+manifest records the new declarations and operation shapes. No tagged name needs an alias/deprecation bridge.
+Lifecycle/input/cancellation constructors now take the three explicit capabilities first. Handler ownership,
+Domain values/projection and adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/
+removal/revision semantics and public Query output stay unchanged.
+
+TASK-00167 added five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
 Domain `TaskSelection`, `RemoveTasks`, `TaskDataRemoved`; Application `RemoveTasksHandler`, `TaskRemovalAdmission`.
-They are final/immutable concrete classes or a consumer-implementable admission port. The unreleased TaskLifecycle
-constructor gains required removal admission, TaskStore gains owned-transaction `remove(TaskSelection): ?TaskSelection`,
-and CommittedTaskDispatchFailed widens its fact type. These provisional APIs change directly without compatibility
+They are final/immutable concrete classes or a consumer-implementable admission port. TaskLifecycle requires
+removal admission, TaskRepository owns `remove(TaskSelection): ?TaskSelection`, and CommittedTaskDispatchFailed
+carries either committed fact type. These provisional APIs change directly without compatibility
 shims. No schema migration/version bump or dependency-floor/suppression change is needed: removal uses the existing
 version-one row and namespace lock. Tagged contracts, including bus signatures and framework integrations, are unchanged.
 
-The original 23 additive opt-in lifecycle declarations are classified public in `compatibility/manifest.json`: seven Domain
+Historically, the original 23 additive opt-in lifecycle declarations were classified public: seven Domain
 values/messages (`Task`, `TaskDefinition`, `TaskState`, two Commands, Query, fact), fourteen Application declarations
 (five ports, lifecycle, concrete Tool policy, three handlers, four failures), and two DBAL adapters. Classes are final;
 ports are implementable; construction and callable contracts are explicit. Inventory totals also account for the
