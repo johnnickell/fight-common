@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | in-progress | — |
+| Ready Frontier | [TASK-00181](00181-TASK.md) | Classify MCP foundation namespaces with released-name compatibility | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -57,7 +57,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | in-progress | — | [PR #263](https://github.com/johnnickell/fight-common/pull/263) |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -181,6 +181,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00175](00175-TASK.md) | Make PHPStan's memory budget explicit | — (standalone bug) | done | — | [PR #226](https://github.com/johnnickell/fight-common/pull/226) |
 | — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
 | — | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | — (standalone chore) | done | — | [PR #251](https://github.com/johnnickell/fight-common/pull/251) |
+| — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | done | — | [PR #263](https://github.com/johnnickell/fight-common/pull/263) |
 <!-- /planning:board -->
 
 ## Wayfinder
