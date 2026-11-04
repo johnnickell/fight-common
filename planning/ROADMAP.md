@@ -32,7 +32,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00189](tasks/00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
+| Active Work | [TASK-00204](tasks/00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | in-progress | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority

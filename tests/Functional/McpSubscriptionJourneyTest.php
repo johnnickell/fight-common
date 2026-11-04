@@ -8,8 +8,12 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriberReader;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
@@ -84,6 +88,44 @@ final class McpSubscriptionJourneyTest extends TestCase
     }
 
     #[DataProvider('databases')]
+    public function test_that_heartbeat_after_clock_capture_preserves_open_counts_without_claiming_recent_observation(string $backend): void
+    {
+        $this->setupDatabase($backend);
+        $store = new DbalSubscriptionStore($this->db);
+        $registrationId = str_repeat('1', 32); $owner = str_repeat('2', 32);
+        $store->open($registrationId, $owner, ['subscriber' => 'agent', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
+        $connection = $this->db; $afterHeartbeat = [];
+        $reader = new DbalSubscriberReader($connection, 'controlled-db', static function () use ($store, $registrationId, $owner, $connection, &$afterHeartbeat): int {
+            $queriedAt = 100;
+            // Commit a valid later heartbeat after capture, before the reader scans storage.
+            $store->heartbeat($registrationId, $owner, 101, 106);
+            $afterHeartbeat = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+            return $queriedAt;
+        });
+        $summary = $reader->summarize(SubscriberSelection::create(['scope']), SubscriberAccess::create(['scope']))->toArray();
+        $this->evidence['clock_crossing'] = $summary;
+        self::assertSame(100, $summary['scope']['queried_at']);
+        $observedAt = $summary['latest_observed_at'];
+        self::assertGreaterThan(100, $observedAt);
+        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
+        $this->assertSubscriberStates($summary, 1, 0);
+        self::assertSame(['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 1], $summary['states']);
+        self::assertFalse($this->db->isTransactionActive());
+        foreach ([[100, 'stale_uncertain'], [$observedAt, 'recently_observed'], [106, 'stale_uncertain']] as [$queriedAt, $state]) {
+            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $observedAt, null);
+        }
+        self::assertSame($afterHeartbeat, $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection does not renew or expire storage');
+        $closedAt = $observedAt + 1;
+        $store->close($registrationId, $owner, $closedAt);
+        $afterClose = $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+        foreach ([[$observedAt, 'stale_uncertain'], [$closedAt, 'disconnected'], [106, 'disconnected']] as [$queriedAt, $state]) {
+            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $closedAt, $closedAt);
+        }
+        self::assertSame($afterClose, $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection does not clean closed storage');
+        self::assertFalse($this->db->isTransactionActive());
+    }
+
+    #[DataProvider('databases')]
     public function test_that_independent_routed_operator_queries_summarize_then_page_actual_streams_with_current_inspection_grants(string $backend): void
     {
         $this->setupDatabase($backend);
@@ -104,10 +146,15 @@ final class McpSubscriptionJourneyTest extends TestCase
         ]);
         self::assertNotSame(getmypid(), $inspection['process']); self::assertSame(5, $inspection['admissions']); self::assertFalse($inspection['transaction_active']);
         [$summary, $first, $second, $revoked, $notAuthority] = $inspection['results'];
-        self::assertSame(2, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']); self::assertSame(2, $summary['states']['recently_observed']);
+        self::assertSame(2, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']); $this->assertSubscriberStates($summary, 2, 0);
         self::assertSame(2, $first['total']); self::assertSame(2, $second['total']);
         self::assertNotSame($first['subscribers'][0]['registration_id'], $second['subscribers'][0]['registration_id']);
         $views = [...$first['subscribers'], ...$second['subscribers']];
+        foreach ([$first, $second] as $page) {
+            $view = $page['subscribers'][0];
+            self::assertNull($view['closed_at']);
+            self::assertSame($view['observed_at'] <= $page['scope']['queried_at'] && $view['expires_at'] > $page['scope']['queried_at'] ? 'recently_observed' : 'stale_uncertain', $view['state']);
+        }
         $withResources = array_values(array_filter($views, static fn ($view) => isset($view['requested']['resourceSubscriptions'])))[0];
         self::assertSame(['file:///allowed', 'file:///hidden'], $withResources['requested']['resourceSubscriptions']);
         self::assertSame(['file:///allowed'], $withResources['accepted']['resourceSubscriptions']);
@@ -121,9 +168,21 @@ final class McpSubscriptionJourneyTest extends TestCase
         $deadline = microtime(true) + 4;
         do { $closed = (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at > 0'); if ($closed > 0) { break; } usleep(10000); } while (microtime(true) < $deadline);
         self::assertSame(1, $closed);
-        $lifecycle = $this->inspectSubscribers([$base + ['query' => 'summary']]);
-        self::assertSame(1, $lifecycle['results'][0]['states']['disconnected']);
-        self::assertSame(1, $lifecycle['results'][0]['states']['recently_observed']);
+        self::assertSame($withResources['registration_id'], $this->db->fetchOne('SELECT registration_id FROM fight_mcp_subscriptions WHERE closed_at > 0'));
+        $lifecycle = $this->inspectSubscribers([$base + ['query' => 'summary'], $base + ['query' => 'page', 'per_page' => 16]]);
+        self::assertSame(2, $lifecycle['results'][0]['subscriptions']); self::assertSame(1, $lifecycle['results'][0]['subscriber_ids']);
+        $this->assertSubscriberStates($lifecycle['results'][0], 1, 1);
+        $lifecyclePage = $lifecycle['results'][1];
+        self::assertSame(2, $lifecyclePage['total']); self::assertCount(2, $lifecyclePage['subscribers']);
+        foreach ($lifecyclePage['subscribers'] as $view) {
+            if ($view['registration_id'] === $withResources['registration_id']) {
+                self::assertSame('disconnected', $view['state']); self::assertSame($view['observed_at'], $view['closed_at']);
+                self::assertLessThanOrEqual($lifecyclePage['scope']['queried_at'], $view['closed_at']);
+            } else {
+                self::assertNull($view['closed_at']);
+                self::assertSame($view['observed_at'] <= $lifecyclePage['scope']['queried_at'] && $view['expires_at'] > $lifecyclePage['scope']['queried_at'] ? 'recently_observed' : 'stale_uncertain', $view['state']);
+            }
+        }
         $allowedId = $first['subscribers'][0]['registration_id'];
         $restricted = $this->inspectSubscribers([$base + ['query' => 'summary', 'granted_registrations' => [$allowedId]]]);
         self::assertSame(1, $restricted['results'][0]['subscriptions']);
@@ -466,6 +525,33 @@ final class McpSubscriptionJourneyTest extends TestCase
         while (($line = fgets($socket)) !== false) { if (str_starts_with($line, 'data: ')) { $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); } }
         self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
         return $frames;
+    }
+
+    private function assertSubscriberStates(array $summary, int $notDisconnected, int $disconnected): void
+    {
+        self::assertSame(['recently_observed', 'disconnected', 'stale_uncertain'], array_keys($summary['states']));
+        self::assertSame($disconnected, $summary['states']['disconnected']);
+        // A later heartbeat can be future evidence relative to this invocation; an open stream is not a liveness promise.
+        self::assertSame($notDisconnected, $summary['states']['recently_observed'] + $summary['states']['stale_uncertain']);
+        self::assertSame($summary['subscriptions'], array_sum($summary['states']));
+    }
+
+    private function assertControlledSubscriberState(int $queriedAt, string $state, string $registrationId, int $observedAt, ?int $closedAt): void
+    {
+        $reader = new DbalSubscriberReader($this->db, 'controlled-db', static fn () => $queriedAt);
+        $selection = SubscriberSelection::create(['scope']); $access = SubscriberAccess::create(['scope']);
+        $summary = $reader->summarize($selection, $access)->toArray();
+        $expected = ['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 0]; $expected[$state] = 1;
+        self::assertSame($expected, $summary['states']);
+        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
+        self::assertSame($queriedAt, $summary['scope']['queried_at']);
+        $page = $reader->list(new ListSubscribers($selection), $access)->toArray();
+        self::assertSame(1, $page['total']); self::assertCount(1, $page['subscribers']);
+        self::assertSame($queriedAt, $page['scope']['queried_at']);
+        $view = $page['subscribers'][0];
+        self::assertSame($registrationId, $view['registration_id']); self::assertSame('agent', $view['subscriber']);
+        self::assertSame($state, $view['state']); self::assertSame($observedAt, $view['observed_at']); self::assertSame($closedAt, $view['closed_at']);
+        $this->evidence['controlled_states'][] = ['summary' => $summary, 'page' => $page];
     }
 
     private function inspectSubscribers(array $operations): array
