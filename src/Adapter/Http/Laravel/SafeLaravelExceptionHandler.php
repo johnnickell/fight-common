@@ -95,12 +95,24 @@ final class SafeLaravelExceptionHandler extends Handler
     }
 
     /**
-     * Returns a fixed response without consulting a failed projector or reporter
+     * Returns a fixed native response even when fallback encoding fails
      */
     private function fallback(): JSendResponse
     {
-        [$status, $envelope, $headers] = $this->policy->fallback();
+        try {
+            [$status, $envelope, $headers] = $this->policy->fallback();
 
-        return JSendResponse::fromEnvelope($envelope, $status, $headers);
+            return JSendResponse::fromEnvelope($envelope, $status, $headers);
+        } catch (Throwable) {
+            // Trusted pre-encoded bytes bypass the failed encoder and all consumer
+            // collaborators. Keep the released native response type, without retrying.
+            return new JSendResponse(
+                '{"status":"error","message":"Internal server error."}',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['Content-Type' => 'application/json'],
+                0,
+                true
+            );
+        }
     }
 }
