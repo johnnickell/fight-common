@@ -1,8 +1,8 @@
 # Authorized execution inspection
 
 `Domain\Mcp\Session\Query` supplies `SummarizeExecutions` and `ListExecutions`; their
-`Application\Mcp\Execution\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
-`Adapter\Mcp\Execution\Dbal\DbalExecutionReader` reads the
+`Application\Mcp\Session\QueryHandler` handlers coordinate the existing `QueryBus::fetch()` use cases.
+`Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader` reads the
 [recording tables](execution-observations.md) directly on SQLite, MySQL and PostgreSQL. These are safe observation
 views, not authoritative Workflow state. Selected-execution summaries and phase pages use the same current
 admission. Phase activity and permitted detail-reference metadata reuse that admission through `ListPhaseActivity`.
@@ -20,23 +20,23 @@ new aggregate nor adds read methods to their write repositories.
 | `Domain\Mcp\Session` | `ExecutionSelection` validates selection; `Query\ListExecutions`, `Query\SummarizeExecutions` and `Query\GetExecution` are Domain payloads, not Application coordinators. |
 | `Domain\Mcp\Phase` | `Query\ListExecutionPhases` owns bounded phase selection within an exact selected Session. |
 | `Domain\Mcp\Usage` | `UsageTotal` owns compatible exact measurement arithmetic beside `UsageMeasurement`; it is a supporting value, not a new aggregate. |
-| `Application\Mcp\Execution\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
-| `Application\Mcp\Execution\Session\Data` | `ExecutionView`, `ExecutionPage`, `ExecutionSummary` and `ExecutionInspection` are safe use-case projections, not aggregate roots. |
-| `Application\Mcp\Execution\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
-| `Application\Mcp\Execution\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
-| `Application\Mcp\Execution\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
+| `Application\Mcp\Session\Service` | `ExecutionReadAdmission`, `ExecutionAccess` and `ExecutionReader` provide current caller scope and the dedicated read port. |
+| `Application\Mcp\Session\Data` | `ExecutionView`, `ExecutionPage`, `ExecutionSummary` and `ExecutionInspection` are safe use-case projections, not aggregate roots. |
+| `Application\Mcp\Session\QueryHandler` | The three handlers obtain fresh access and delegate the selected read. |
+| `Application\Mcp\Phase` | `Service\PhaseReader`, `Data\PhaseView`, `Data\PhasePage` and `QueryHandler\ListExecutionPhasesHandler` own the phase-page use case. |
+| `Application\Mcp\Observation\Data` | `ObservationView` projects only observed timing/outcome and recording provenance. |
 | `Domain\Mcp\Observation\Query` | `ListPhaseActivity` selects activity evidence owned by Observation within an exact phase. |
-| `Application\Mcp\Execution\Observation` | `Service\ActivityReader`, its Query handler, `Data\ActivityPage` and `Data\ActivityView` own safe activity browsing. |
-| `Application\Mcp\Execution\Detail\Data` | `DetailReference` projects permitted capture/availability metadata, never content or permission to read it. |
-| `Application\Mcp\Execution\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
-| `Adapter\Mcp\Execution\Dbal` | `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` implement the inward read ports alongside recording adapters; internal `DbalExecutionReadSupport` shares SQL constraints and bounded safe-evidence decoding. |
+| `Application\Mcp\Observation` | `Service\ActivityReader`, its Query handler, `Data\ActivityPage` and `Data\ActivityView` own safe activity browsing. |
+| `Application\Mcp\Detail\Data` | `DetailReference` projects permitted capture/availability metadata, never content or permission to read it. |
+| `Application\Mcp\Session\Exception` | `ExecutionReadFailed` exposes the fixed failure without leaking diagnostics. |
+| `Adapter\Mcp\Persistence\{Session,Phase,Observation}\Dbal` | `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` implement their aggregate-owned inward read ports. Internal `Persistence\Execution\Dbal\DbalExecutionReadSupport` shares cross-aggregate SQL constraints and bounded safe-evidence decoding. |
 
 Queries and their selection have no Application dependencies. Caller grants stay outside Domain payloads.
 Summary results may include related phase/activity evidence without transferring those aggregates' ownership to
 Session. Selected-session Queries belong with Session; phase/activity Queries belong with their actual
-Phase or Observation owner, not a generic `Read` peer. The DBAL adapters stay together under
-`Adapter\Mcp\Execution\Dbal`; the reader remains read-only, but needs no `Reader` subnamespace. Revisit deeper
-adapter grouping before a tagged release if that directory grows enough to justify it.
+Phase or Observation owner, not a generic `Read` peer. DBAL adapters mirror those owners beneath
+`Adapter\Mcp\Persistence`; only cross-aggregate execution schema, serialization and read support share
+`Persistence\Execution\Dbal`. No extra `Reader` namespace or forwarding adapter is needed.
 
 **Readers are not replacement repositories.** Domain `SessionRepository`, `PhaseRepository`,
 `ObservationRepository` and `ProtectedContentRepository` remain aggregate collection/persistence contracts.
@@ -292,12 +292,12 @@ Use the same installed version-one recording namespace and consumer-owned connec
 projection workers or Event Store are required. Compose the current caller admission and reader explicitly:
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalExecutionReader;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
-use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\ListExecutionsHandler;
-use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\SummarizeExecutionsHandler;
-use Fight\Common\Application\Mcp\Execution\Session\Service\ExecutionReadAdmission;
+use Fight\Common\Application\Mcp\Session\QueryHandler\ListExecutionsHandler;
+use Fight\Common\Application\Mcp\Session\QueryHandler\SummarizeExecutionsHandler;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionReadAdmission;
 use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
 use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
@@ -316,9 +316,9 @@ $page = $queries->fetch(new ListExecutions($selection, page: 1, perPage: 20));
 For selected navigation, add these explicit registrations to the same router/admission and connection:
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseReader;
-use Fight\Common\Application\Mcp\Execution\Phase\QueryHandler\ListExecutionPhasesHandler;
-use Fight\Common\Application\Mcp\Execution\Session\QueryHandler\GetExecutionHandler;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseReader;
+use Fight\Common\Application\Mcp\Phase\QueryHandler\ListExecutionPhasesHandler;
+use Fight\Common\Application\Mcp\Session\QueryHandler\GetExecutionHandler;
 use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 
@@ -334,8 +334,8 @@ $phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1,
 For activity, register this handler on the same router with the same current admission:
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalActivityReader;
-use Fight\Common\Application\Mcp\Execution\Observation\QueryHandler\ListPhaseActivityHandler;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
+use Fight\Common\Application\Mcp\Observation\QueryHandler\ListPhaseActivityHandler;
 use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
 
 $router->registerHandler(

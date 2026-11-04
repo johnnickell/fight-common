@@ -9,7 +9,7 @@ Queries perform no heartbeat, cleanup, transaction, Command, event or notice/con
 
 Import selection/Queries from `Fight\Common\Domain\Mcp\Subscription` / `Query`, handlers from
 `Fight\Common\Application\Mcp\Subscription\QueryHandler`, permission/reader contracts from its `Service`
-namespace, results from `Data`, and `DbalSubscriberReader` from `Fight\Common\Adapter\Mcp\Subscription`.
+namespace, results from `Data`, and `DbalSubscriberReader` from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal`.
 
 ```php
 $reader = new DbalSubscriberReader($inspectionConnection, 'production-eu-registration-db');

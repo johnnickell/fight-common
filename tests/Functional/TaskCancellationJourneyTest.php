@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpRequestMetadata;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;

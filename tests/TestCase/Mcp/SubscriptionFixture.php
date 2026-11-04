@@ -9,17 +9,17 @@ use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Tool\Notice\RecoverNoticesTool;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler;
-use Fight\Common\Application\Mcp\Notice\RecoverNoticesTool;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeAccess;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeReadAdmission;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeRecovery;
@@ -33,6 +33,7 @@ use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionAdmission;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
@@ -64,7 +65,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly DbalSubscriptionStore $store;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false)
+    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?McpSubscriptionStore $subscriptionStore = null)
     {
         (new DbalNoticeSchema())->install($db);
         (new DbalSubscriptionSchema())->install($db);
@@ -73,7 +74,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($db), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);
-        $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
+        $this->subscriptions = new McpSubscriptions($this->queries, $subscriptionStore ?? $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };

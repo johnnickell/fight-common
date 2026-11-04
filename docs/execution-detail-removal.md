@@ -26,7 +26,7 @@ phase and producer references, and a canonical lowercase complete activity UUID.
 `fromArray()` rejects unknown/missing fields, lists, malformed UUIDs and unsupported kinds with fixed-text
 DomainException. Native PHP type errors remain distinct from value validation.
 
-Consumers implement **`Application\Mcp\Execution\Detail\Service\DetailRemovalAdmission::admit(RemoveCapturedDetail)`**.
+Consumers implement **`Application\Mcp\Detail\Service\DetailRemovalAdmission::admit(RemoveCapturedDetail)`**.
 It must check **current authenticated removal permission for the complete selected scope and identity**, including
 project/session/phase/producer/activity/detail/kind restrictions as applicable. A trusted cleanup caller still
 supplies permitted scope. Throw `DetailRemovalRejected` on denial. No permissive implementation is supplied.
@@ -144,10 +144,10 @@ rule, human/Agent role hierarchy, MCP removal Tool, UI or Workflow authority is 
 Reuse recording's already installed, idle database and boundary; do not create an independent content transaction:
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalProtectedContentRepository;
-use Fight\Common\Application\Mcp\Execution\Detail\CommandHandler\RemoveCapturedDetailHandler;
-use Fight\Common\Application\Mcp\Execution\Detail\Service\DetailRemover;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Application\Mcp\Detail\CommandHandler\RemoveCapturedDetailHandler;
+use Fight\Common\Application\Mcp\Detail\Service\DetailRemover;
 use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 
 // $recordingTransaction is recording's DbalRecordingTransaction (a TransactionalUnitOfWork).

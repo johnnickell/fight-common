@@ -24,7 +24,7 @@ $detail = $queryBus->fetch(new GetNotice('project-a', 'catalog', 'change-42'));
 
 Imports beneath `Fight\Common\` are:
 
-- `Adapter\Mcp\Notice\Dbal\DbalNoticeReader`;
+- `Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeReader`;
 - `Domain\Mcp\Notice\NoticeSelection` and `Domain\Mcp\Notice\Query\{SummarizeNotices,ListNotices,GetNotice}`;
 - `Application\Mcp\Notice\QueryHandler\{SummarizeNoticesHandler,ListNoticesHandler,GetNoticeHandler}`;
 - `Application\Mcp\Notice\Service\{NoticeReadAdmission,NoticeAccess,NoticeReader}`;

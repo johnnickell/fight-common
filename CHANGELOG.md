@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Align execution Application homes directly with Session, Phase, Observation and Detail. Move concrete execution
+  inspection and Notice recovery Tools, schemas and public-safe mapping to `Adapter\Mcp\Tool`; dispatch still
+  uses the shared QueryBus. Group MCP DBAL persistence/read adapters under `Adapter\Mcp\Persistence\{Aggregate}\Dbal`,
+  retaining genuinely shared execution support separately. All affected declarations are never-tagged and move
+  directly without snapshot aliases. Generic Application protocol semantics, released foundation/HTTP bridges,
+  Tool identifiers/schemas, grants, storage, transaction ownership and live delivery remain unchanged. See the
+  [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target).
 - Model durable Task IDs as exact 32-lowercase-hex `TaskId` values across Domain messages, repositories, admissions
   and handles, explicitly retaining string wire/database boundaries and separate trusted scope. Definition, state,
   input batch and ordered scoped selection now extend ValueObject with equality/hash/reconstruction and deliberate

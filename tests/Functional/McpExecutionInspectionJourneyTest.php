@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
-use Fight\Common\Application\Mcp\Execution\Session\Service\ExecutionAccess;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
 use Fight\Common\Domain\Mcp\Detail\DetailCapture;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;

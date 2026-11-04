@@ -6,8 +6,8 @@ namespace Fight\Test\Common\TestCase\Mcp\Task;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskRepository;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;

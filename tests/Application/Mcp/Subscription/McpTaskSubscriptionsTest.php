@@ -8,7 +8,7 @@ use Closure;
 use Doctrine\DBAL\DriverManager;
 use Fiber;
 use Fight\Common\Adapter\Mcp\Http\McpEventStream;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
 use Fight\Common\Application\Mcp\Composition\McpCompositionValidator;

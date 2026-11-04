@@ -11,8 +11,8 @@ Separate opt-in
 
 ## Compose the complete path
 
-1. Install `Adapter\Mcp\Notice\Dbal\DbalNoticeSchema` and
-   `Adapter\Mcp\Subscription\DbalSubscriptionSchema` on an exclusive **idle deployment connection**.
+1. Install `Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema` and
+   `Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema` on an exclusive **idle deployment connection**.
    These are separate reserved namespaces. Installation is not a per-request migration or a live-stream transaction.
    Partial installations need operator recovery; MySQL DDL is not atomic.
 2. Route `Domain\Mcp\Notice\Query\RecoverNotices` to `Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler`, using
@@ -42,8 +42,8 @@ Separate opt-in
    $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
    ```
 
-   Import these names from `Fight\Common\Adapter\Mcp\Subscription` and
-   `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp`.
+   Import these names from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal` and
+   `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp\Capability`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
    at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
    Optional `tasks: $tasks` requires the same complete Task capability **and** a consumer-implemented

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Mcp\Task\Projection\TaskProjection;
-use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
+use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Task;

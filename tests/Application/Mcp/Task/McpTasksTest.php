@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
