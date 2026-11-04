@@ -33,8 +33,15 @@ final readonly class TaskDefinition extends ValueObject
         self::reference($scope);
         self::reference($producer);
         $operation = StrictJson::fromData($operation, 64);
-        if (!$operation->isObject() || strlen($operation->toString()) > 8192) {
-            throw new DomainException('Invalid Task operation context.');
+        // Bound the lossless value representation, not an ambient rounded encoding.
+        $precision = ini_get('serialize_precision');
+        ini_set('serialize_precision', '-1');
+        try {
+            if (!$operation->isObject() || strlen($operation->toString()) > 8192) {
+                throw new DomainException('Invalid Task operation context.');
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
         }
 
         return new self($id, $scope, $producer, $operation);

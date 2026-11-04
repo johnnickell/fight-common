@@ -48,11 +48,12 @@ final readonly class TaskInputBatch extends ValueObject
         $data = StrictJson::fromObject([
             'caller' => $caller, 'expires_at' => $expiresAt, 'confirmation' => $confirmation, 'requests' => $requests
         ], 40);
-        if (strlen($data->toString()) > 24576) {
+        $batch = new self($data);
+        if (strlen($batch->toString()) > 24576) {
             throw new DomainException('Task input contracts exceed the encoded bound.');
         }
 
-        return new self($data);
+        return $batch;
     }
 
     /**

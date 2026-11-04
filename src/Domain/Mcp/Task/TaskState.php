@@ -84,11 +84,12 @@ final readonly class TaskState extends ValueObject
         $data = StrictJson::fromObject([
             'status' => $status, 'message' => $message, 'input' => $input, 'result' => $result, 'error' => $error
         ], 32);
-        if (strlen($data->toString()) > self::MAX_BYTES) {
+        $state = new self($data);
+        if (strlen($state->toString()) > self::MAX_BYTES) {
             throw new DomainException('Task state exceeds the encoded byte limit.');
         }
 
-        return new self($data);
+        return $state;
     }
 
     /**

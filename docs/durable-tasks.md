@@ -38,8 +38,10 @@ with exact encoded-content retries; these values do not canonicalize or sort arb
 includes supplied order and scope. Equality and hash reconstruction are not authorization, redaction or a public-safe
 serializer: definitions and batches contain protected context. Definition/state/batch value strings use shortest
 round-trip float precision regardless of ambient `serialize_precision`, restoring that setting before returning.
-This stabilizes their equality, hashes and reconstruction without changing explicit wire/storage/retry encoders or
-outer `json_encode()` options/precision. Shared low-level StrictJson remains unchanged.
+The same lossless encoding governs construction/reconstruction byte checks: operation 8,192 bytes, state 32,768
+bytes and batch 24,576 bytes. Ambient rounding cannot admit an oversized stable value, and expanded float spelling
+cannot reject an in-bound one. This stabilizes equality, hashes and reconstruction without changing explicit
+wire/storage/retry encoders or outer `json_encode()` options/precision. Shared low-level StrictJson remains unchanged.
 
 ## Explicit composition
 

@@ -281,7 +281,8 @@ wire/storage boundaries explicitly encode strings. `TaskDefinition`, `TaskState`
 `TaskSelection` extend ValueObject with same-concrete-type equality/hash and validated structured-JSON reconstruction.
 Their JSON remains structured, with protected context, nested object/list/null/empty/numeric and source-order distinctions
 preserved, agreeing with exact-content retries. Definition/state/batch value strings use shortest round-trip float
-precision independently of ambient settings; explicit wire/storage/retry encoders and shared StrictJson stay unchanged.
+precision independently of ambient settings, including construction/reconstruction checks at the retained finite
+byte limits; explicit wire/storage/retry encoders and shared StrictJson stay unchanged.
 `TaskInputs` and its identified input groups remain nested lifecycle
 bookkeeping, not values solely because immutable. Commands/Queries/facts and Application Query views/handles retain
 their messaging/use-case classifications. See [the complete classification](docs/durable-tasks.md#model-classification-and-value-contracts).

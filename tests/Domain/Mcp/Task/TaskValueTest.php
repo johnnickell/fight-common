@@ -122,6 +122,172 @@ final class TaskValueTest extends UnitTestCase
         }
     }
 
+    #[DataProvider('boundedNumericValueTypes')]
+    public function test_that_at_limit_value_strings_reconstruct_after_precision_changes(
+        string $type,
+        int $padding,
+        int $limit
+    ): void {
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '-1');
+            $value = self::numericValue($type, 0.1, $padding);
+            $boundedData = $value instanceof TaskDefinition ? $value->operation() : $value->data();
+            self::assertSame($limit, strlen($boundedData->toString()));
+            $text = $value->toString();
+            $hash = $value->hashValue();
+            foreach (['-1', '3', '17', '0'] as $setting) {
+                ini_set('serialize_precision', $setting);
+                $reconstructed = $type::fromString($text);
+                self::assertTrue($value->equals($reconstructed));
+                self::assertSame(0.1, self::retainedNumber($reconstructed));
+                self::assertSame($text, $reconstructed->toString());
+                self::assertSame($hash, $reconstructed->hashValue());
+                self::assertSame($setting, ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    #[DataProvider('boundedNumericValueTypes')]
+    public function test_that_over_limit_value_strings_reject_without_changing_precision(
+        string $type,
+        int $padding,
+        int $limit
+    ): void {
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '-1');
+            $value = self::numericValue($type, 0.1, $padding);
+            $boundedData = $value instanceof TaskDefinition ? $value->operation() : $value->data();
+            self::assertSame($limit, strlen($boundedData->toString()));
+            $text = str_replace(str_repeat('x', $padding), str_repeat('x', $padding + 1), $value->toString());
+            self::assertSame(strlen($value->toString()) + 1, strlen($text));
+            foreach (['-1', '3', '17', '0'] as $setting) {
+                ini_set('serialize_precision', $setting);
+                try {
+                    $type::fromString($text);
+                    self::fail('An over-limit value must not reconstruct.');
+                } catch (DomainException $exception) {
+                    self::assertSame(match ($type) {
+                        TaskDefinition::class => 'Invalid Task operation context.',
+                        TaskState::class => 'Task state exceeds the encoded byte limit.',
+                        TaskInputBatch::class => 'Task input contracts exceed the encoded bound.'
+                    }, $exception->getMessage());
+                }
+                self::assertSame($setting, ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    #[DataProvider('boundedNumericValueTypes')]
+    public function test_that_value_factories_apply_lossless_byte_bounds_at_every_precision(
+        string $type,
+        int $padding,
+        int $limit
+    ): void {
+        $precision = ini_get('serialize_precision');
+        try {
+            foreach (['-1', '3', '17', '0'] as $setting) {
+                ini_set('serialize_precision', $setting);
+                foreach ([[0.1, $padding], [1.2341, $padding - 3]] as [$number, $filling]) {
+                    $value = self::numericValue($type, $number, $filling);
+                    self::assertSame($setting, ini_get('serialize_precision'));
+                    $boundedData = $value instanceof TaskDefinition ? $value->operation() : $value->data();
+                    ini_set('serialize_precision', '-1');
+                    self::assertSame($limit, strlen($boundedData->toString()));
+                    ini_set('serialize_precision', $setting);
+                    self::assertSame($value->toString(), $type::fromString($value->toString())->toString());
+                    try {
+                        self::numericValue($type, $number, $filling + 1);
+                        self::fail('A stable over-limit value must not be admitted at lower precision.');
+                    } catch (DomainException $exception) {
+                        self::assertSame(match ($type) {
+                            TaskDefinition::class => 'Invalid Task operation context.',
+                            TaskState::class => 'Task state exceeds the encoded byte limit.',
+                            TaskInputBatch::class => 'Task input contracts exceed the encoded bound.'
+                        }, $exception->getMessage());
+                    }
+                    self::assertSame($setting, ini_get('serialize_precision'));
+                }
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    #[DataProvider('numericValueTypes')]
+    public function test_that_numeric_extremes_reconstruct_without_losing_kind_or_precision(string $type): void
+    {
+        $precision = ini_get('serialize_precision');
+        try {
+            foreach ([PHP_INT_MIN, PHP_INT_MAX, 1.0, -0.0, PHP_FLOAT_MAX, PHP_FLOAT_MIN, 5.0e-324] as $number) {
+                ini_set('serialize_precision', '-1');
+                $value = self::numericValue($type, $number);
+                $text = $value->toString();
+                foreach (['3', '17', '0'] as $setting) {
+                    ini_set('serialize_precision', $setting);
+                    $reconstructed = $type::fromString($text);
+                    self::assertSame($number, self::retainedNumber($reconstructed));
+                    self::assertSame($text, $reconstructed->toString());
+                    self::assertTrue($value->equals($reconstructed));
+                    self::assertSame($setting, ini_get('serialize_precision'));
+                }
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    #[DataProvider('nestedValueTypes')]
+    public function test_that_reconstruction_preserves_depth_bounds_and_restores_precision_on_rejection(
+        string $type,
+        int $nestedLists
+    ): void {
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '-1');
+            $nested = 0.1;
+            for ($depth = 0; $depth < $nestedLists; ++$depth) {
+                $nested = [$nested];
+            }
+            $value = self::valueWithPayload($type, StrictJson::fromObject(['nested' => $nested]));
+            $text = $value->toString();
+            $tooDeep = str_replace('0.1', '[0.1]', $text);
+            foreach (['3', '17'] as $setting) {
+                ini_set('serialize_precision', $setting);
+                self::assertSame($text, $type::fromString($text)->toString());
+                self::assertSame($setting, ini_get('serialize_precision'));
+                try {
+                    $type::fromString($tooDeep);
+                    self::fail('A value beyond its nesting bound must not reconstruct.');
+                } catch (DomainException $exception) {
+                    self::assertSame('JSON data exceeds the supported nesting depth.', $exception->getMessage());
+                }
+                self::assertSame($setting, ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    public static function nestedValueTypes(): iterable
+    {
+        yield [TaskDefinition::class, 63];
+        yield [TaskState::class, 30];
+        yield [TaskInputBatch::class, 36];
+    }
+
+    public static function boundedNumericValueTypes(): iterable
+    {
+        yield [TaskDefinition::class, 8165, 8192];
+        yield [TaskState::class, 32668, 32768];
+        yield [TaskInputBatch::class, 24428, 24576];
+    }
+
     public static function numericValueTypes(): iterable
     {
         foreach ([TaskDefinition::class, TaskState::class, TaskInputBatch::class] as $type) {
@@ -222,8 +388,18 @@ final class TaskValueTest extends UnitTestCase
     #[DataProvider('invalidRepresentations')]
     public function test_that_malformed_or_incoherent_value_reconstruction_rejects(string $type, string $value): void
     {
-        $this->expectException(DomainException::class);
-        $type::fromString($value);
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '17');
+            $this->expectException(DomainException::class);
+            try {
+                $type::fromString($value);
+            } finally {
+                self::assertSame('17', ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
     }
 
     public static function invalidRepresentations(): iterable
@@ -243,10 +419,18 @@ final class TaskValueTest extends UnitTestCase
         yield [TaskSelection::class, '{"scope":"scope","ids":[null]}'];
     }
 
-    private static function numericValue(string $type, float $number): TaskDefinition|TaskState|TaskInputBatch
+    private static function numericValue(string $type, int|float $number, ?int $padding = null): TaskDefinition|TaskState|TaskInputBatch
     {
-        $payload = StrictJson::fromObject(['number' => $number]);
+        $properties = ['number' => $number];
+        if ($padding !== null) {
+            $properties['padding'] = str_repeat('x', $padding);
+        }
 
+        return self::valueWithPayload($type, StrictJson::fromObject($properties));
+    }
+
+    private static function valueWithPayload(string $type, StrictJson $payload): TaskDefinition|TaskState|TaskInputBatch
+    {
         return match ($type) {
             TaskDefinition::class => TaskDefinition::create(TaskFixture::id(), 'scope', 'producer', $payload),
             TaskState::class => TaskState::create('completed', result: $payload),
@@ -256,7 +440,7 @@ final class TaskValueTest extends UnitTestCase
         };
     }
 
-    private static function retainedNumber(TaskDefinition|TaskState|TaskInputBatch $value): float
+    private static function retainedNumber(TaskDefinition|TaskState|TaskInputBatch $value): int|float
     {
         return match (true) {
             $value instanceof TaskDefinition => $value->operation()->get('number'),
