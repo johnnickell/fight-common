@@ -33,6 +33,7 @@ use Fight\Common\Application\Mcp\Resource\McpResourceDiscovery;
 use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionAdmission;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptions;
+use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;
 use Fight\Common\Application\Mcp\Tool\McpToolAvailability;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInfo;
@@ -64,7 +65,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly DbalSubscriptionStore $store;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false)
+    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?McpSubscriptionStore $subscriptionStore = null)
     {
         (new DbalNoticeSchema())->install($db);
         (new DbalSubscriptionSchema())->install($db);
@@ -73,7 +74,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($db), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);
-        $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
+        $this->subscriptions = new McpSubscriptions($this->queries, $subscriptionStore ?? $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };
