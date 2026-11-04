@@ -9,9 +9,12 @@ There is no automatic registration, new business Command/event, socket abstracti
 
 First compose [safe recording](safe-notices.md), [shared inspection](notice-inspection.md) and
 [recovery](notice-recovery.md). Route `RecordNotice` synchronously to `RecordNoticeHandler` / `NoticeRecorder` using
-`DbalNoticeStore`; route `GetNotice` to `GetNoticeHandler` with fresh `NoticeReadAdmission` and `DbalNoticeReader`.
-The store owns an actual transaction and rejects enclosing caller transactions, including savepoints. The reader
-requires idle committed isolation. Use the same notice namespace and committed database for both capabilities;
+separate `DbalNoticeRepository` and `DbalNoticeTransaction` on one dedicated connection; route `GetNotice` to
+`GetNoticeHandler` with fresh `NoticeReadAdmission` and `DbalNoticeReader`. `NoticeRecorder` separately injects
+Domain `NoticeRepository` and the existing `TransactionalUnitOfWork`; the DBAL transaction seam owns the namespace
+lock around generic DBAL mechanics and rejects enclosing caller transactions, including savepoints and
+unsupported auto-commit-off mode. The inspection reader requires idle committed isolation. Coherent polling uses
+separate `DbalNoticeRecoveryReader`, not the write repository or caller-managed transactions. Use the same notice namespace and committed database for both capabilities;
 a separate idle reader connection is supported. Never substitute a queued CommandBus or a Query handler returning
 caller-asserted saved payloads. These collaborators are trusted composition, not an untrusted remote API.
 
@@ -21,16 +24,16 @@ use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
 use Fight\Common\Application\Mcp\Notice\Publication\NoticePublication;
 use Fight\Common\Application\Mcp\Notice\Publication\RecordNoticeAndPublish;
 
-// $commands and $queries have the synchronous/shared handlers described above.
+// $commandBus and $queryBus have the synchronous/shared handlers described above.
 // $policy and $diagnostics are consumer implementations; $hub is a HubInterface.
 $output = new NoticePublication(
-    $queries,
+    $queryBus,
     $policy,
     $diagnostics,
     new MercureHubPublisher($hub),
     new PrivateMercureHubPublisher($hub)
 );
-$status = (new RecordNoticeAndPublish($commands, $output))->record($recordNotice);
+$status = (new RecordNoticeAndPublish($commandBus, $output))->record($recordNotice);
 ```
 
 `record()` executes the existing Command before calling `publish(new GetNotice(scope, producer, id))`.

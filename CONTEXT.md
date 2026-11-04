@@ -10,8 +10,9 @@ This file records how terms are used inside this library. Public APIs, documenta
 aggregate layout, value-object inheritance, handler ownership, adapter destinations and finite package exceptions.
 [Naming](docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator
 names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
-2026-11-02 decision; TASK-00184 implements execution transaction separation and TASK-00185 implements Task
-repository/transaction separation below, while TASK-00186 through TASK-00192 own the remaining dependent corrections.
+2026-11-02 decision; TASK-00184 implements execution transaction separation, TASK-00185 implements Task
+repository/transaction separation and TASK-00186 implements Notice repository/recovery separation. TASK-00187
+through TASK-00192 own the remaining dependent corrections.
 
 An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
 or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
@@ -19,11 +20,12 @@ state, while Application read DTOs describe use-case results. Immutability alone
 The Event Sourcing-specific “Aggregate root” term later in this file refers to that capability's reference base,
 not a universal base for ordinary aggregates.
 
-The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators, the combined
-`NoticeStore` transaction contract, execution's technical Application grouping, concrete Application Tools and Domain
-disclosure encoding. They are not exceptions to the approved target. Notice repository/transaction separation,
-per-handler use cases, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes remain pending
-in the owning refactors. Execution now injects the existing transaction contract directly, with reusable
+The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators,
+execution's technical Application grouping, concrete Application Tools and Domain disclosure encoding. They are not
+exceptions to the approved target. Per-handler use cases, outward disclosure projection and aggregate-aligned MCP
+persistence/Tool homes remain pending in the owning refactors. Task and Notice now separate Domain repository
+persistence from transaction ownership; Notice also has Application-owned coherent recovery reads. Their namespace
+relocations remain separately owned. Execution injects the existing transaction contract directly, with reusable
 DBAL mechanics separated from execution schema locking/failure translation. Consumer policy, stored/wire behavior
 and release bridges remain binding; no aggregate namespace move is claimed here. The
 foundation canonical names and released aliases described below are already implemented by TASK-00181; they are
@@ -458,10 +460,13 @@ observation, protocol identity or an Event Store event. `NoticeMetadata`, `Notic
 explicit unknowns/broadcasts and supplied UTC precision. Consumer `NoticeAdmission` freshly validates trusted
 producer/scope/content/references on originals and retries; submitted fields never grant access.
 
-`RecordNotice` routes through `RecordNoticeHandler` and `NoticeRecorder` to Application `NoticeStore`, which extends
-`TransactionalUnitOfWork`. `Adapter\Mcp\Notice\Dbal\DbalNoticeStore` owns dedicated actual SQLite/MySQL/PostgreSQL
-transactions, rejecting enclosing transactions before writes. One state-row lock serializes allocation through
-actual commit of content, relationships and exact versioned comparison. Scope/producer/ID-bound identical retries
+`RecordNotice` routes through `RecordNoticeHandler` and `NoticeRecorder` with separate Domain `NoticeRepository`
+and existing Application `TransactionalUnitOfWork` collaborators. `Adapter\Mcp\Notice\Dbal\DbalNoticeRepository`
+shares the exact dedicated connection/ownership boundary of `DbalNoticeTransaction`. The latter owns namespace
+locking/schema validation/Notice failure translation around generic `DbalTransactionalUnitOfWork` mechanics.
+SQLite/MySQL/PostgreSQL enclosing transactions and auto-commit-off mode reject before admission/writes without
+caller-work interference. One state-row lock serializes allocation through actual commit of content, relationships
+and exact versioned comparison. Scope/producer/ID-bound identical retries
 deduplicate while retained; changed admitted content conflicts without overwrite. `RecordedNotice` keeps immutable
 server time separate from its namespace-local positive signed-32-bit commit-ordered position; neither establishes
 causality, cross-store order or delivery. Occurrence retains zero through six source fractional digits or null unknown.
@@ -480,7 +485,8 @@ No removal event, receipt, cleanup eligibility, archive, public mutation Tool or
 only with retained evidence; deletion ends deduplication, and new admitted same-ID content is a later recording,
 not restoration. Old removal targets cannot delete that new incarnation.
 
-Trusted `readWindow()` returns `Application\Mcp\Notice\Data\NoticeRecoveryWindow` with coherently locked bounded rows,
+Separate Application `NoticeRecoveryReader`/Adapter `DbalNoticeRecoveryReader` own bounded feed reconstruction.
+Its trusted `readWindow()` returns `Application\Mcp\Notice\Data\NoticeRecoveryWindow` with coherently locked bounded rows,
 namespace, committed high water and conservative global loss boundary. Its continuity predicate is storage proof
 only: missing/corrupt state fails, and changed/retired namespace invalidates old proof. No per-ID/per-scope tombstones,
 body/comparison archive or unbounded loss log remains. Global counters and loss changes must never be projected
@@ -515,8 +521,11 @@ The same `NoticeAccess` snapshot supplies optional trusted `NoticeRecoveryIdenti
 explicit namespace-evidence permission). Missing caller rejects; unproven epoch or concealed global evidence always
 reports uncertain. Canonical selection/grants/caller/epoch/serving parameters bind a confidential authenticated
 continuation; changes reject and require restart so newly eligible older data cannot be silently skipped.
-`NoticeStore::readWindow` accepts one scope or 0–16 scopes, merging 1–100 retained rows in committed-position order
-under one coherent lock with namespace/high-water/loss evidence. `Data\NoticeRecoveryBatch` returns 1–32 bounded
+`NoticeRecoveryReader::readWindow` accepts one scope or 0–16 scopes, merging 1–100 retained rows in committed-position
+order under one coherent lock with namespace/high-water/loss evidence. Its DBAL reader owns the required coherent
+read transaction internally, not through caller sequencing or a write repository implementing transaction control.
+Authorized live inspection remains a distinct `NoticeReader` capability with no continuity/snapshot promise.
+`Data\NoticeRecoveryBatch` returns 1–32 bounded
 whole safe notices (or empty), complete/incomplete/uncertain and an opaque examined-boundary continuation, including
 for subsequent polls after completion. Scan exhaustion is not catch-up; known loss stays sticky, removed final rows
 are not expiry, missing evidence fails and retired namespaces reject. No raw counters/gap details, deleted bodies,

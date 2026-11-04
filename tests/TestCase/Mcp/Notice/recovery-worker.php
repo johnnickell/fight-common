@@ -13,7 +13,7 @@ $role = $argv[2]; $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
 $proxy = Mockery::mock(Connection::class);
-foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'fetchAllAssociative', 'rollBack'] as $method) {
+foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'fetchAllAssociative', 'rollBack'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
 $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $directory, $connection): void {

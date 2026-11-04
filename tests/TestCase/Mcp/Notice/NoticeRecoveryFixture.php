@@ -8,8 +8,8 @@ use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
 use Fight\Common\Adapter\Mcp\Notice\SodiumNoticeContinuationProtector;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -52,7 +52,7 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
     {
         $this->access = self::access();
         $router = new InMemoryQueryRouter();
-        $recovery = new NoticeRecovery(new DbalNoticeStore($db), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
+        $recovery = new NoticeRecovery(new DbalNoticeRecoveryReader($db), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
         $handler = new RecoverNoticesHandler($this, $recovery);
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);

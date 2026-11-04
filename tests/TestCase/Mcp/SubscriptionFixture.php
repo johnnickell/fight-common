@@ -9,8 +9,8 @@ use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy;
 use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
@@ -70,7 +70,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         (new DbalSubscriptionSchema())->install($db);
         $this->store = new DbalSubscriptionStore($db);
         $router = new InMemoryQueryRouter();
-        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeStore($db), NoticeRecoveryFixture::codec()));
+        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($db), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);
         $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);

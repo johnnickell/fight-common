@@ -19,8 +19,8 @@ final readonly class NoticeRecovery
      * Constructs NoticeRecovery
      */
     public function __construct(
-        private NoticeStore $store,
-        private NoticeContinuationProtector $protector,
+        private NoticeRecoveryReader $noticeRecoveryReader,
+        private NoticeContinuationProtector $noticeContinuationProtector,
         private int $ttl = 300,
         private int $maxResultBytes = 65536
     ) {
@@ -48,7 +48,7 @@ final readonly class NoticeRecovery
         $state = $query->continuation() === null ? null : $this->restore($query->continuation(), $binding);
         $position = $state['position'] ?? 0;
         $scopes = array_values(array_intersect($query->selection()->scopes(), $access->selection()->scopes()));
-        $window = $this->store->readWindow($scopes, $position, $query->scanLimit());
+        $window = $this->noticeRecoveryReader->readWindow($scopes, $position, $query->scanLimit());
         if ($state !== null && ($state['namespace'] !== $window->namespace() || $position > $window->highWater())) {
             throw new DomainException('Notice recovery requires restart.');
         }
@@ -98,7 +98,7 @@ final readonly class NoticeRecovery
             $status = $exhausted && !$loss ? 'complete' : 'incomplete';
         }
 
-        $continuation = $this->protector->seal(json_encode([
+        $continuation = $this->noticeContinuationProtector->seal(json_encode([
             'version'   => 1,
             'binding'   => $binding,
             'namespace' => $window->namespace(),
@@ -121,7 +121,7 @@ final readonly class NoticeRecovery
      */
     private function restore(string $token, string $binding): array
     {
-        $plain = $this->protector->open($token);
+        $plain = $this->noticeContinuationProtector->open($token);
         if (strlen($plain) > 1023) {
             throw new DomainException('Notice recovery requires restart.');
         }

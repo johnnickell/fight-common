@@ -52,7 +52,9 @@ it must deny or partition its safe-notice scopes, not broaden access. Common sup
 secret detector. Consumers still own capture/redaction, trusted identity, vocabulary and actual permission policy.
 The immutable inward selection/access/read contracts are reused by [bounded recovery](notice-recovery.md), without
 adding recovery promises to these inspection Queries. `NoticeAccess` can additionally hold trusted recovery identity;
-ordinary inspection remains unchanged.
+ordinary inspection remains unchanged. TASK-00186's separate `NoticeRecoveryReader` owns locked continuity windows
+and bounded trusted feed reconstruction; this `NoticeReader` still owns authorized live summary/page/detail reads.
+Neither read capability is part of Domain `NoticeRepository`, and browsing does not inherit recovery transactions.
 
 ## Selection, order and finite bounds
 

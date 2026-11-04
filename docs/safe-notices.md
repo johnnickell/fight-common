@@ -49,15 +49,18 @@ Install the optional DBAL dependency (`^4.4` remains supported). During exclusiv
 
 ```php
 (new DbalNoticeSchema())->install($connection);
-$store = new DbalNoticeStore($connection);
-$recorder = new NoticeRecorder($store, $trustedAdmission, $eventDispatcher);
+$transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+$noticeRepository = new DbalNoticeRepository($transactionalUnitOfWork);
+$noticeRecoveryReader = new DbalNoticeRecoveryReader($connection);
+$recorder = new NoticeRecorder($noticeRepository, $transactionalUnitOfWork, $trustedAdmission, $eventDispatcher);
 $handler = new RecordNoticeHandler($recorder);
 $router->registerHandler(RecordNotice::class, $handler);
 $commandBus->execute(RecordNotice::fromArray($safeNoticeData));
 ```
 
-Imports are `Adapter\Mcp\Notice\Dbal\{DbalNoticeSchema,DbalNoticeStore}`,
-`Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeStore}`,
+Imports are `Adapter\Mcp\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTransaction,DbalNoticeRepository,DbalNoticeRecoveryReader}`,
+`Domain\Mcp\Notice\NoticeRepository`, `Application\Repository\TransactionalUnitOfWork`,
+`Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeRecoveryReader}`,
 `Application\Mcp\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Mcp\Notice\Command\RecordNotice`, beneath
 `Fight\Common\`. `$router` may be `InMemoryCommandRouter`, paired with `RoutingCommandBus`. No automatic container
 registration is implied. Supply a dedicated DBAL connection, not an unrelated ORM unit of work.
@@ -77,9 +80,15 @@ causes or traces to clients. Admission implementers must not throw private diagn
 
 ## Transaction, identity and recovery order
 
-`NoticeStore` extends `TransactionalUnitOfWork`: one storage capability owns both persistence and its real transaction,
-so application composition cannot accidentally enlist a different repository connection. The DBAL adapter supports
-actual SQLite, MySQL and PostgreSQL only. Its reserved schema namespace is:
+Domain `NoticeRepository` owns only aggregate identity lookup, append and exact removal; it neither extends
+`TransactionalUnitOfWork` nor exposes recovery/reporting. `NoticeRecorder` and `NoticeRemover` inject the repository
+and existing `TransactionalUnitOfWork` separately. `DbalNoticeRepository` takes the exact `DbalNoticeTransaction`
+that owns its dedicated connection, preventing accidental writes under another transaction, even on that connection.
+The transaction seam owns namespace locking, schema validation and Notice failure translation; reusable begin/commit/
+rollback mechanics stay in TASK-00184's `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`.
+`DbalNoticeRecoveryReader` separately owns coherent read transactions and bounded feed reconstruction. Authorized
+live browsing remains `NoticeReader`/`DbalNoticeReader`, not a second role on the write repository or recovery port.
+The DBAL adapters support actual SQLite, MySQL and PostgreSQL only. Their reserved schema namespace is:
 
 - `fight_notice_state`: singleton version, last allocated position, random namespace incarnation and conservative
   `lost_through` boundary, also the shared serialization lock;
@@ -121,16 +130,19 @@ Neither time controls recovery ordering. Unknown time is not manufactured from t
 Construction requires an idle connection. Commands reject unsupported enclosing transactions **before beginning or
 writing** and never commit/roll back caller work or acknowledge a released savepoint as durable. This includes an ORM
 transaction on the same DBAL connection. A different ORM connection is not automatically enlisted either. Do not wrap
-this handler in another transactional filter. `commitTransactional()` callbacks are trusted store operations and must
-not manipulate transaction lifecycle or call external services. `requireOwnedTransaction()` guards writes; idle
-`readAfter()` refuses active transactions, including its own uncommitted writes, and closed stores. Dirty-read
+this handler in another transactional filter. Auto-commit-off connections reject before callback/admission without
+changing mode or caller work; default lazy connections need no extra setup. `commitTransactional()` callbacks are
+trusted operations and must not manipulate transaction lifecycle or call external services. The notice transaction's
+`requireOwnedTransaction()` guards repository writes. Recovery-reader `readAfter()` refuses active transactions,
+including uncommitted notice writes, and a reader closed by its own uncertain read transaction. Dirty-read
 isolation (`READ_UNCOMMITTED` configured through DBAL) rejects; consumers must not bypass isolation through raw SQL.
 
 ## Failures and retained reconstruction
 
 Domain structural rejection uses fixed `DomainException` diagnostics. Current denial is `NoticeRejected`; admitted
 changed content is `NoticeConflict`. DBAL write failures roll back the owned transaction and become fixed
-`NoticeStorageFailed(false, privateCause)`. Begin, commit-acknowledgment or rollback failure closes the store with
+`NoticeStorageFailed(false, privateCause)`. Begin, commit-acknowledgment or rollback failure closes the transaction
+boundary with
 `outcomeUncertain() === true`. Cleanup does not establish absence: the database may already have committed. Discard
 that boundary/connection, reconstruct storage, and retry explicitly under current admission. No fact is dispatched
 for an uncertain acknowledgment. Read/hydration failures use fixed `NoticeStorageFailed`; corrupt/unsupported
@@ -147,7 +159,8 @@ failure or uncertain acknowledgment. Dispatch may be lost between commit and tri
 receipt ledger, outbox, atomicity with the originating application mutation or guarantee that every change produced
 a notice. A retained notice cannot repair an earlier event/change that never recorded one.
 
-`NoticeStore::readAfter()` is a trusted storage-level bounded reconstruction seam: exact scope, ascending exclusive
+`NoticeRecoveryReader::readAfter()` is a trusted storage-level bounded reconstruction seam: exact scope,
+ascending exclusive
 committed position, live retained records. It is **not** a public authorized Query, opaque continuation, completeness
 claim or lease. It does not authorize identities/topics or report current retained-history loss; an empty result is
 not complete catch-up. [Inspection Queries](notice-inspection.md) separately enforce public selection/current access;
@@ -155,10 +168,10 @@ not complete catch-up. [Inspection Queries](notice-inspection.md) separately enf
 
 ## Bounded authorized removal
 
-Compose the same store with an **independent** current permission implementation:
+Compose the same repository and transaction boundary with an **independent** current permission implementation:
 
 ```php
-$remover = new NoticeRemover($store, $trustedRemovalAdmission);
+$remover = new NoticeRemover($noticeRepository, $transactionalUnitOfWork, $trustedRemovalAdmission);
 $router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler($remover));
 $selection = NoticeRemovalSelection::fromArray([
     'version' => 1,
@@ -197,7 +210,7 @@ recording. Targets in other producer/scope namespaces and unselected survivors r
 One actual transaction deletes all matching notices, cascades relationships/comparison rows and advances
 `lost_through` to the maximum of its prior value and positions actually deleted. It never resets/decrements
 `last_position`. Any precommit failure rolls back the entire selection and loss evidence, including earlier
-selected deletions. Commit/rollback uncertainty uses `NoticeStorageFailed::outcomeUncertain()` and closes the store
+selected deletions. Commit/rollback uncertainty uses `NoticeStorageFailed::outcomeUncertain()` and closes the boundary
 as for recording. Enclosing transactions reject before admission/writes without touching caller work. Success is
 actual commit, not savepoint release. The comparison bytes live **only while the notice remains retained**: before
 removal identical admitted retries deduplicate and conflicting ones reject; after committed removal both identical
@@ -211,12 +224,14 @@ undo successful removal and must not be described as storage rollback.
 
 ## Qualified storage recovery contract
 
-`NoticeStore::readWindow(scope, position, limit)` accepts a string scope or list of 0–16 scopes for a coherent
+`NoticeRecoveryReader::readWindow(scope, position, limit)` accepts a string scope or list of 0–16 scopes for a coherent
 merged committed-order window, and returns Application `Notice\Data\NoticeRecoveryWindow` with
 `notices()`, `namespace()`, `highWater()`, `lostThrough()` and `hasUnbrokenHistoryAfter(namespace, examinedPosition)`.
-It is a **trusted internal storage seam**, not a public Query, access grant or continuation format. On an idle store,
-it owns the same real transaction/serialization lock as recording/removal and reads rows plus validated state
-coherently. A snapshot cannot mix pre-deletion rows with post-deletion loss state, or vice versa; its immutable row
+It is a **trusted storage seam**, not a public authorized Query, access grant or continuation format. On an idle
+connection, `DbalNoticeRecoveryReader` owns the required real read transaction using the same namespace serialization
+lock as recording/removal and reads rows plus validated state coherently. Its caller supplies no transaction object
+or begin/read-state/read-rows/commit sequence. A snapshot cannot mix pre-deletion rows with post-deletion loss state,
+or vice versa; its immutable row
 list detaches caller-owned PHP array references. The read transaction performs a no-change lock UPDATE; it mutates
 no business evidence. No lease survives its return. Ordinary idle
 `readAfter()` remains available, but its rows alone cannot establish recovery continuity.
@@ -252,24 +267,31 @@ prove neither catch-up, expiry nor delivery.
 
 ## Compatibility and public surface
 
-The initial **17 recording declarations** are additive opt-in public APIs classified in `compatibility/manifest.json`:
+The current recording surface is opt-in and classified in `compatibility/manifest.json`:
 
-- Domain: `Notice`, `NoticeMetadata`, `NoticeRelationships`, `NoticeOccurrence`, `RecordedNotice`,
-  `Command\RecordNotice`, `Event\NoticeRecorded` (seven final immutable classes).
-- Application: `Service\NoticeAdmission`, `Service\NoticeStore` (consumer-implementable interfaces),
-  `Service\NoticeRecorder`, `CommandHandler\RecordNoticeHandler`, and four final exceptions
-  `NoticeRejected`, `NoticeConflict`, `NoticeStorageFailed`, `CommittedNoticeDispatchFailed` (eight declarations).
-- Adapter: `Dbal\DbalNoticeSchema`, `Dbal\DbalNoticeStore` (two final composition/persistence classes).
+- Domain: final immutable `Notice`, `NoticeMetadata`, `NoticeRelationships`, `NoticeOccurrence`, `RecordedNotice`,
+  `Command\RecordNotice`, `Event\NoticeRecorded`, and consumer-implementable `NoticeRepository`.
+- Application: consumer-implementable `Service\NoticeAdmission` and `Service\NoticeRecoveryReader`,
+  final `Service\NoticeRecorder`, `CommandHandler\RecordNoticeHandler`, and four final exceptions
+  `NoticeRejected`, `NoticeConflict`, `NoticeStorageFailed`, `CommittedNoticeDispatchFailed`.
+- Adapter: final public `Dbal\DbalNoticeSchema`, `Dbal\DbalNoticeTransaction`, `Dbal\DbalNoticeRepository` and
+  `Dbal\DbalNoticeRecoveryReader`. Final `Dbal\DbalNoticeRecords` is internal persisted-evidence validation,
+  with no consumer construction, call, extension or implementation promise.
 
 Removal adds **seven** opt-in public declarations: Domain `NoticeRemovalSelection` and `Command\RemoveNotices`;
 Application `Service\NoticeRemovalAdmission`, `Service\NoticeRemover`, `CommandHandler\RemoveNoticesHandler`,
 `Exception\NoticeRemovalRejected` and `Data\NoticeRecoveryWindow`. The admission interface is consumer-implementable;
-the six classes are final with their documented factories/construction and callable methods. `NoticeStore`'s two new
-methods and the current version-one state schema revise **unreleased provisional** APIs directly. No development
+the six classes are final with their documented factories/construction and callable methods. TASK-00186 replaces
+combined `NoticeStore`/`DbalNoticeStore` directly after inventorying every current local tag (`1.1.0`, `v1.0.0` through
+`v1.4.0`): none contains Notice declarations. The new repository/transaction/recovery interfaces and descriptive
+constructor parameters revise **unreleased provisional** APIs directly; no released named parameter changes.
+No development
 migration, compatibility alias or historical schema codec is required; existing partial/old development schemas
-must be recreated or recovered exclusively, not silently accepted. These recording/removal APIs comprise 24 declarations; [inspection](notice-inspection.md#compatibility-and-public-surface)
+must be recreated or recovered exclusively, not silently accepted. The current recording/removal APIs comprise
+27 public declarations and one internal helper;
+[inspection](notice-inspection.md#compatibility-and-public-surface)
 adds 15 separate opt-in read declarations. [Recovery](notice-recovery.md#compatibility-and-evidence-boundary) adds eight
-public declarations and one internal schema helper; its provisional store method also accepts coherent scope lists.
+public declarations and one internal schema helper; the separate recovery reader accepts coherent scope lists.
 [Optional publication](notice-publication.md#compatibility-and-evidence) adds six independent public Application
 declarations without changing storage or publisher contracts.
 
@@ -288,7 +310,10 @@ Commands through the real handler and actual disposable SQLite/MySQL/PostgreSQL,
 failures across all related writes/commit, and uses independent processes paused after allocation but before commit.
 Those workers prove concurrent equal/conflicting retries, fresh admission after waiting, rollback/retry positions
 and prefix-safe recovery. Mocks alone or skipped server cases do not qualify an adapter. See TASK-00158 for the
-recording build receipt and independent-review/QA state. `NoticeRemovalSelectionTest` and `DbalNoticeRemovalTest`
+recording build receipt and independent-review/QA state. TASK-00186 migrates these scenarios to separate repository,
+transaction and recovery-reader composition; `DbalNoticeRepositoryTest` also proves rejection of unrelated generic
+or Notice boundaries, caught nesting, auto-commit-off admission and preserved callback results.
+`NoticeRemovalSelectionTest` and `DbalNoticeRemovalTest`
 directly qualify removal bounds, immutability, preflight admission, rollback, storage loss, stale targets and handlers.
 `NoticeRemovalJourneyTest` uses actual disposable SQLite/MySQL/PostgreSQL, seeds through the real recording Command,
 checks survivors and empty reconstruction, performs 128 record/remove cycles per backend, injects deletion/loss/

@@ -24,19 +24,21 @@ final class NoticeRemovalFixture implements NoticeRemovalAdmission
     public array $deniedReferences = [];
     public ?Closure $onAdmit = null;
     public readonly NoticeFixture $recording;
-    public readonly RoutingCommandBus $bus;
+    public readonly RoutingCommandBus $commandBus;
 
     public function __construct(Connection $connection)
     {
         $this->recording = new NoticeFixture($connection);
         $router = new InMemoryCommandRouter();
-        $router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler(new NoticeRemover($this->recording->store, $this)));
-        $this->bus = new RoutingCommandBus($router);
+        $router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler(new NoticeRemover(
+            $this->recording->noticeRepository, $this->recording->transactionalUnitOfWork, $this
+        )));
+        $this->commandBus = new RoutingCommandBus($router);
     }
 
     public function selection(array $targets): NoticeRemovalSelection
     {
-        $window = $this->recording->store->readWindow('scope', 0, 1);
+        $window = $this->recording->noticeRecoveryReader->readWindow('scope', 0, 1);
         return NoticeRemovalSelection::fromArray(['version' => 1, 'namespace' => $window->namespace(), 'targets' => $targets]);
     }
 
@@ -47,7 +49,7 @@ final class NoticeRemovalFixture implements NoticeRemovalAdmission
 
     public function remove(NoticeRemovalSelection $selection): void
     {
-        $this->bus->execute(new RemoveNotices($selection));
+        $this->commandBus->execute(new RemoveNotices($selection));
     }
 
     public function admit(NoticeRemovalSelection $selection): void

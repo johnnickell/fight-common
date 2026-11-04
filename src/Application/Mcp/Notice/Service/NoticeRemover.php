@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Notice\Service;
 
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Mcp\Notice\NoticeRemovalSelection;
+use Fight\Common\Domain\Mcp\Notice\NoticeRepository;
 
 /**
  * Class NoticeRemover
@@ -15,8 +17,11 @@ final readonly class NoticeRemover
     /**
      * Constructs NoticeRemover
      */
-    public function __construct(private NoticeStore $store, private NoticeRemovalAdmission $admission)
-    {
+    public function __construct(
+        private NoticeRepository $noticeRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private NoticeRemovalAdmission $noticeRemovalAdmission
+    ) {
     }
 
     /**
@@ -24,18 +29,22 @@ final readonly class NoticeRemover
      */
     public function remove(NoticeRemovalSelection $selection): void
     {
-        $this->store->commitTransactional(function () use ($selection): void {
-            $this->admission->admit($selection);
+        $this->transactionalUnitOfWork->commitTransactional(function () use ($selection): void {
+            $this->noticeRemovalAdmission->admit($selection);
             foreach ($selection->targets() as $target) {
-                $retained = $this->store->getByIdentity($target['scope'], $target['producer'], $target['id']);
+                $retained = $this->noticeRepository->getByIdentity(
+                    $target['scope'],
+                    $target['producer'],
+                    $target['id']
+                );
                 if ($retained === null || $retained->position() !== $target['position']) {
                     throw new NoticeRemovalRejected();
                 }
 
-                $this->admission->admitRetained($retained->notice());
+                $this->noticeRemovalAdmission->admitRetained($retained->notice());
             }
 
-            $this->store->remove($selection);
+            $this->noticeRepository->remove($selection);
         });
     }
 }

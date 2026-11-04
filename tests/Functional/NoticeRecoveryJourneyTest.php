@@ -34,7 +34,7 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     public function test_that_failed_postcommit_publication_and_multibatch_query_http_recovery_preserve_authorized_committed_order(string $backend): void
     {
         $db = $this->database($backend); $writer = new NoticeFixture($db); $f = new NoticeRecoveryFixture($db); $events = 0;
-        $writer->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; throw new RuntimeException('PRIVATE publication sentinel'); });
+        $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; throw new RuntimeException('PRIVATE publication sentinel'); });
         for ($i = 1; $i <= 105; ++$i) {
             $changes = ['id' => 'notice-'.$i, 'producer' => $i % 2 ? 'producer' : 'producer-2'];
             if ($i % 3 === 0) { $changes['relationships'] = ['subject' => null, 'recipients' => $i % 2 ? [] : null, 'author' => null, 'command' => null, 'event' => null, 'action' => null]; }
