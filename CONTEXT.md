@@ -21,11 +21,12 @@ The Event Sourcing-specific “Aggregate root” term later in this file refers 
 not a universal base for ordinary aggregates.
 
 The descriptions below record current APIs, including Task handler-owned use cases, execution's technical
-Application grouping, concrete Application Tools and Domain disclosure encoding. TASK-00187 removes the three
-provisional Task lifecycle coordinators; each handler injects only its operation-specific capabilities.
+Application grouping, concrete Application Tools and Application-owned Task disclosure projection. TASK-00187
+removes the three provisional Task lifecycle coordinators; each handler injects only its operation-specific capabilities.
 ObservationRecorder remains unchanged. Task and Notice separate Domain repository persistence from transaction
-ownership; Notice also has Application-owned coherent recovery reads. Outward disclosure projection and
-aggregate-aligned MCP persistence/Tool homes remain pending in their owning refactors; current source is not an
+ownership; Notice also has Application-owned coherent recovery reads. TASK-00188 separates Task disclosure
+projection/encoding into Application while Domain retains atomic lifecycle ordering. Aggregate-aligned MCP
+persistence/Tool homes remain pending in their owning refactor; current source is not an
 exception to the approved target. Execution injects the existing transaction contract directly, with reusable
 DBAL mechanics separated from execution schema locking/failure translation. Consumer policy, stored/wire behavior
 and release bridges remain binding; no aggregate namespace move is claimed here. The
@@ -305,8 +306,14 @@ Creation retains one SHA-256 original-content digest; exact encoded-content repe
 retained, including after progress. Updates retain only the latest transition digest plus expected version; only
 an immediately matching retry is a no-op. Conflicting/stale updates and all new terminal replacements reject.
 Comparison memory is bounded, private and removed with the row; physical removal ends those guarantees, with no hidden
-historical archive or exactly-once job promise. `GetTask` projects one immutable coherent bounded `StrictJson` view,
-never definition/comparison material. Denied/missing/cross-scope/expired/withheld is null with unknown absence reason;
+historical archive or exactly-once job promise. `GetTaskHandler` uses internal
+`Application\Mcp\Task\Projection\TaskProjection::fromTask()` to construct one immutable coherent bounded `StrictJson`
+view, never definition/private comparison material. This cohesive Application owner maps Query fields and encodes
+visibility-bound revisions with native PHP HMAC/addition, requiring no cryptographic provider or new caller setup.
+Domain `Task::stateAt()` owns outstanding-input lifecycle state; explicit state-value/readable-metadata comparison
+advances its persisted public-write counter without constructing or serializing a transport view. Protected
+`incarnation()`/`publicOrder()` expose atomic evidence only to trusted inward callers, not public wire data.
+Denied/missing/cross-scope/expired/withheld is null with unknown absence reason;
 storage failure is explicit. Reads emit/mutate nothing and never renew TTL or remove state. Consumer clocks, retention,
 permissions, safe evidence, workers, scheduling and external-effect recovery remain consumer-owned.
 
@@ -383,9 +390,9 @@ permission/availability/source/tracking/frame changes close the whole stream wit
 Get/live share server-owned `org.fight/taskRevision` metadata, atomically derived from the coherent row/public projection,
 including input expiry. A separate bounded public-write counter and 0–16 expiry sub-order exclude private-only mutation
 gaps; each write reserves 32 slots so later committed state dominates earlier expiry views even across clock skew.
-A private random
-lifetime incarnation and trusted `TaskReadAdmission::comparisonScope()` caller/visibility epoch derive independent HMAC
-scope/additive mask. Fixed-width masked values compare bytewise only within the same Task/scope; equal means identical
+The Application projection combines the private random
+lifetime incarnation and trusted `TaskReadAdmission::comparisonScope()` caller/visibility epoch to derive independent
+HMAC scope/additive mask. Fixed-width masked values compare bytewise only within the same Task/scope; equal means identical
 public state, older arrivals lose, and changed visibility/lifetime/unknown comparison requires safe restart. Epochs must
 rotate on revocation/regrant or other visibility discontinuities. Neither clocks, private producer version nor arrival
 order establishes freshness. Public-write exhaustion/clock rollback before the row's update fail safely without wrap. No public global/private

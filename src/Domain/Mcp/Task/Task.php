@@ -65,7 +65,7 @@ final readonly class Task
             if ($previous !== null) {
                 $incarnation = $previous->revision->get('incarnation');
                 $counter = (int) $previous->revision->get('counter');
-                if ($this->publicState($updatedAt) !== $previous->publicState($updatedAt)) {
+                if ($this->changesPublicState($previous, $updatedAt)) {
                     ++$counter;
                 }
             }
@@ -368,30 +368,80 @@ final readonly class Task
     }
 
     /**
-     * Returns bounded state without protected context or comparison evidence
-     *
-     * @return array<string, mixed>
+     * Returns coherent lifecycle state with only currently outstanding input
      */
-    public function view(?int $now = null): array
+    public function stateAt(int $now): TaskState
     {
-        $state = $this->state;
-        if ($now !== null && $state->status() === 'input_required') {
-            $outstanding = $this->inputs->outstanding(self::timestamp($now));
-            $state = TaskState::create('working');
-            if ($outstanding->properties() !== []) {
-                $state = TaskState::create('input_required', $this->state->data()->get('message'), $outstanding);
-            }
+        if ($this->state->status() !== 'input_required') {
+            return $this->state;
         }
 
-        return [
-            'id'            => $this->definition->id(),
-            'version'       => $this->version,
-            'state'         => $state->data(),
-            'created_at'    => $this->createdAt,
-            'updated_at'    => $this->updatedAt,
-            'ttl'           => $this->ttl,
-            'poll_interval' => $this->pollInterval
-        ];
+        $outstanding = $this->inputs->outstanding(self::timestamp($now));
+        if ($outstanding->properties() === []) {
+            return TaskState::create('working');
+        }
+
+        return TaskState::create('input_required', $this->state->data()->get('message'), $outstanding);
+    }
+
+    /**
+     * Returns the original creation time in epoch milliseconds
+     */
+    public function createdAt(): int
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * Returns the latest committed update time in epoch milliseconds
+     */
+    public function updatedAt(): int
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * Returns the immutable creation-duration retention
+     */
+    public function ttl(): ?int
+    {
+        return $this->ttl;
+    }
+
+    /**
+     * Returns the current polling advice
+     */
+    public function pollInterval(): ?int
+    {
+        return $this->pollInterval;
+    }
+
+    /**
+     * Returns protected lifetime evidence without granting disclosure
+     */
+    public function incarnation(): string
+    {
+        return $this->revision->get('incarnation');
+    }
+
+    /**
+     * Returns protected public-change order with bounded expiry sub-order
+     */
+    public function publicOrder(int $now): int
+    {
+        self::timestamp($now);
+        if ($now < $this->updatedAt) {
+            throw new DomainException('Task comparison clock moved backwards.');
+        }
+
+        $expiry = 0;
+        if ($this->state->status() === 'input_required') {
+            $expiry = count($this->inputs->expirations($this->updatedAt, $now));
+        }
+
+        // At most 16 retained groups can expire. A committed public write dominates every earlier expiry view,
+        // even when independent reader/writer clocks straddle an expiry boundary.
+        return (int) $this->revision->get('counter') * self::REVISION_STRIDE + $expiry;
     }
 
     /**
@@ -420,34 +470,6 @@ final readonly class Task
     }
 
     /**
-     * Returns an atomically state-bound public revision under a trusted current visibility context
-     */
-    public function revision(string $context, int $now): StrictJson
-    {
-        self::timestamp($now);
-        TaskDefinition::reference($context);
-        if ($now < $this->updatedAt) {
-            throw new DomainException('Task comparison clock moved backwards.');
-        }
-
-        $key = $this->revision->get('incarnation');
-        $offset = "\0".substr(hash_hmac('sha256', "offset\0".$context, $key, true), 0, 16);
-        $carry = $this->revisionValue($now);
-        // A context-specific additive mask preserves order without exposing a counter across visibility epochs.
-        // The leading zero reserves carry space, so the fixed-width 136-bit value cannot wrap.
-        for ($index = 16; $index >= 0; --$index) {
-            $sum = ord($offset[$index]) + ($carry & 255);
-            $offset[$index] = chr($sum & 255);
-            $carry = ($carry >> 8) + ($sum >> 8);
-        }
-
-        return StrictJson::fromObject([
-            'scope' => hash_hmac('sha256', "scope\0".$context, $key),
-            'value' => 'v1:'.bin2hex($offset)
-        ]);
-    }
-
-    /**
      * Creates exact encoded-content retry evidence without hidden historical payload copies
      *
      * @param array<mixed> $data
@@ -458,29 +480,13 @@ final readonly class Task
     }
 
     /**
-     * Returns a public write order with bounded expiry sub-order, never private mutation gaps
+     * Returns whether lifecycle state or readable metadata changed independently of private versions
      */
-    private function revisionValue(int $now): int
+    private function changesPublicState(self $previous, int $now): bool
     {
-        $expiry = 0;
-        if ($this->state->status() === 'input_required') {
-            $expiry = count($this->inputs->expirations($this->updatedAt, $now));
-        }
-
-        // At most 16 retained groups can expire. A committed public write dominates every earlier expiry view,
-        // even when independent reader/writer clocks straddle an expiry boundary.
-        return (int) $this->revision->get('counter') * self::REVISION_STRIDE + $expiry;
-    }
-
-    /**
-     * Returns exact readable state for comparison without the private concurrency fence
-     */
-    private function publicState(int $now): string
-    {
-        $view = $this->view($now);
-        unset($view['version']);
-
-        return StrictJson::fromObject($view, 40)->toString();
+        return $this->updatedAt !== $previous->updatedAt
+            || $this->pollInterval !== $previous->pollInterval
+            || !$this->stateAt($now)->data()->equals($previous->stateAt($now)->data());
     }
 
     /**

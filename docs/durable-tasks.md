@@ -232,7 +232,13 @@ responsibility; this is not a transaction with a job system, automatic submissio
 - Public Query results are immutable `StrictJson` objects containing ID, version, coherent state, created/updated
   milliseconds, TTL, polling advice and a state-bound public comparison revision. The producer version remains
   trusted application concurrency context, never MCP wire metadata. Definition, producer/scope context and comparison
-  digests are omitted. Public revisions include outstanding-form expiry without read-side writes and exclude
+  digests are omitted. Internal `Application\Mcp\Task\Projection\TaskProjection::fromTask()` owns these Query
+  fields and visibility-bound HMAC revision encoding, using PHP internals without an Adapter dependency or new
+  caller composition. It consumes the same immutable Task and one captured clock instant; `GetTaskHandler` keeps
+  its final independent read/whole-state checks after projection. Domain owns `stateAt()` outstanding-input
+  lifecycle state, readable metadata and protected `incarnation()`/`publicOrder()` evidence. Public-write changes
+  compare Domain state values/metadata directly, not a serialized transport view. Public revisions include
+  outstanding-form expiry without read-side writes and exclude
   private-only mutations; different visibility epochs/lifetimes are incomparable. See [the revision contract](mcp-task-live.md).
   Null unifies denied/unknown/cross-scope/expired/withheld state and does not identify an absence reason. Corrupt or
   failed storage raises fixed `TaskStorageFailed`, not null or empty success. Causes/stack traces remain private.
@@ -277,9 +283,15 @@ manifest records the new declarations and operation shapes. No tagged name needs
 TASK-00187 removes the never-tagged `TaskLifecycle`, `TaskInputLifecycle` and `TaskCancellationLifecycle` classes
 without compatibility shims. Eight CommandHandlers and three QueryHandlers directly own admission, loading,
 coordination and effects through operation-specific capabilities. Independent grants stay independent; aggregate
-invariants stay with Task. ObservationRecorder and Notice orchestration are unchanged. Domain values/projection
-and adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/removal/revision
-semantics and public Query output stay unchanged.
+invariants stay with Task. ObservationRecorder and Notice orchestration are unchanged.
+TASK-00188 removes provisional `Task::view()`/`revision()` directly: internal Application `TaskProjection` owns
+bounded Query construction and native PHP HMAC framing/additive masking. No cryptographic provider variation or
+external runtime dependency is introduced, so no encoding port, forwarding adapter or extra caller sequence is
+needed. Domain retains atomic lifetime/public-write/expiry order, clock rollback and exhaustion checks; it does not
+know visibility contexts or encoded revision tokens. The compatibility manifest classifies the new helper internal
+and updates the aggregate operation shape; no tagged contract requires a bridge. Typed values (TASK-00189) and
+adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/removal/revision semantics,
+GetTaskHandler construction and public Query/wire output stay unchanged.
 
 TASK-00167 added five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
 Domain `TaskSelection`, `RemoveTasks`, `TaskDataRemoved`; Application `RemoveTasksHandler`, `TaskRemovalAdmission`.
