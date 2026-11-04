@@ -2,7 +2,17 @@
 
 FIGHT_COMMON_MYSQL_IMAGE="mysql:8.4.11"
 FIGHT_COMMON_POSTGRESQL_IMAGE="postgres:17"
-FIGHT_COMMON_DATABASE_RUN_ID="$(date +%s)-$$-${RANDOM}"
+# An explicit native locator reuses one qualified environment across roles.
+FIGHT_COMMON_DATABASE_RUNTIME="${FIGHT_COMMON_DATABASE_RUNTIME:-}"
+FIGHT_COMMON_DATABASE_RETENTION="${FIGHT_COMMON_DATABASE_RETENTION:-cleanup}"
+case "${FIGHT_COMMON_DATABASE_RETENTION}" in
+    cleanup|retain) ;;
+    *) echo 'Database retention must be cleanup or retain.' >&2; exit 2 ;;
+esac
+FIGHT_COMMON_DATABASE_RUN_ID="${FIGHT_COMMON_DATABASE_RUNTIME%%:*}"
+FIGHT_COMMON_DATABASE_RUN_ID="${FIGHT_COMMON_DATABASE_RUN_ID:-$(date +%s)-$$-${RANDOM}}"
+FIGHT_COMMON_DATABASE_STARTED=no
+FIGHT_COMMON_DATABASE_ALLOCATED=no
 FIGHT_COMMON_DATABASE_NETWORK="fight-common-test-network-${FIGHT_COMMON_DATABASE_RUN_ID}"
 FIGHT_COMMON_MYSQL_CONTAINER="fight-common-test-mysql-${FIGHT_COMMON_DATABASE_RUN_ID}"
 FIGHT_COMMON_POSTGRESQL_CONTAINER="fight-common-test-postgresql-${FIGHT_COMMON_DATABASE_RUN_ID}"
@@ -12,10 +22,17 @@ FIGHT_COMMON_POSTGRESQL_DSN="postgresql://fight_common:fight_common@postgresql:5
 fight_common_disposable_databases_cleanup() {
     local status=$?
 
-    "${DOCKER_BIN}" container rm --force \
-        "${FIGHT_COMMON_MYSQL_CONTAINER}" \
-        "${FIGHT_COMMON_POSTGRESQL_CONTAINER}" >/dev/null 2>&1 || true
-    "${DOCKER_BIN}" network rm "${FIGHT_COMMON_DATABASE_NETWORK}" >/dev/null 2>&1 || true
+    if [[ "${FIGHT_COMMON_DATABASE_STARTED}" == yes ]]; then
+        if [[ "${FIGHT_COMMON_DATABASE_RETENTION}" == retain ]]; then
+            printf 'Retained maintenance database runtime: %s\n' "${FIGHT_COMMON_DATABASE_RUNTIME}"
+        elif ! "${ROOT_DIR}/bin/database-runtime" down "${FIGHT_COMMON_DATABASE_RUNTIME}"; then
+            echo 'Database cleanup failed; retain the printed locator and inspect native resources.' >&2
+            if (( status == 0 )); then status=1; fi
+        fi
+    elif [[ "${FIGHT_COMMON_DATABASE_ALLOCATED}" == yes ]]; then
+        echo "Partial database startup held on network ${FIGHT_COMMON_DATABASE_NETWORK}; inspect native resources." >&2
+        if (( status == 0 )); then status=1; fi
+    fi
 
     return "${status}"
 }
@@ -46,9 +63,17 @@ fight_common_wait_for_database_health() {
 }
 
 fight_common_start_disposable_databases() {
-    "${DOCKER_BIN}" network create "${FIGHT_COMMON_DATABASE_NETWORK}" >/dev/null
+    if [[ -n "${FIGHT_COMMON_DATABASE_RUNTIME}" ]]; then
+        "${ROOT_DIR}/bin/database-runtime" check "${FIGHT_COMMON_DATABASE_RUNTIME}"
+        FIGHT_COMMON_DATABASE_STARTED=yes
+        return
+    fi
 
-    "${DOCKER_BIN}" container run \
+    local network_id mysql_id postgresql_id mysql_volume postgresql_volume
+    network_id="$("${DOCKER_BIN}" network create "${FIGHT_COMMON_DATABASE_NETWORK}")"
+    FIGHT_COMMON_DATABASE_ALLOCATED=yes
+
+    mysql_id="$("${DOCKER_BIN}" container run \
         --detach \
         --name "${FIGHT_COMMON_MYSQL_CONTAINER}" \
         --network "${FIGHT_COMMON_DATABASE_NETWORK}" \
@@ -61,9 +86,9 @@ fight_common_start_disposable_databases() {
         --health-interval=2s \
         --health-timeout=5s \
         --health-retries=30 \
-        "${FIGHT_COMMON_MYSQL_IMAGE}" >/dev/null
+        "${FIGHT_COMMON_MYSQL_IMAGE}")"
 
-    "${DOCKER_BIN}" container run \
+    postgresql_id="$("${DOCKER_BIN}" container run \
         --detach \
         --name "${FIGHT_COMMON_POSTGRESQL_CONTAINER}" \
         --network "${FIGHT_COMMON_DATABASE_NETWORK}" \
@@ -75,7 +100,13 @@ fight_common_start_disposable_databases() {
         --health-interval=2s \
         --health-timeout=5s \
         --health-retries=30 \
-        "${FIGHT_COMMON_POSTGRESQL_IMAGE}" >/dev/null
+        "${FIGHT_COMMON_POSTGRESQL_IMAGE}")"
+
+    mysql_volume="$("${DOCKER_BIN}" inspect --format '{{(index .Mounts 0).Name}}' "${mysql_id}")"
+    postgresql_volume="$("${DOCKER_BIN}" inspect --format '{{(index .Mounts 0).Name}}' "${postgresql_id}")"
+    FIGHT_COMMON_DATABASE_RUNTIME="${FIGHT_COMMON_DATABASE_RUN_ID}:${network_id}:${mysql_id}:${postgresql_id}:${mysql_volume}:${postgresql_volume}"
+    FIGHT_COMMON_DATABASE_STARTED=yes
+    printf 'Maintenance database runtime: %s\n' "${FIGHT_COMMON_DATABASE_RUNTIME}"
 
     fight_common_wait_for_database_health "${FIGHT_COMMON_MYSQL_CONTAINER}"
     fight_common_wait_for_database_health "${FIGHT_COMMON_POSTGRESQL_CONTAINER}"

@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""Inspect or retire an explicitly owned maintenance test database environment.
+
+The locator selects exact native resources; it is not an ownership receipt. The
+caller must establish disposable creation provenance before invoking down.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+
+
+DOCKER = os.environ.get("DOCKER_BIN", "docker")
+
+
+def docker(*arguments):
+    return subprocess.check_output([DOCKER, *arguments], text=True).strip()
+
+
+def require(condition, message):
+    if not condition:
+        raise RuntimeError(message)
+
+
+def inventory():
+    container_ids = docker("container", "ls", "--all", "--quiet", "--no-trunc").split()
+    containers = json.loads(docker("container", "inspect", *container_ids)) if container_ids else []
+    network_ids = docker("network", "ls", "--quiet", "--no-trunc").split()
+    networks = json.loads(docker("network", "inspect", *network_ids)) if network_ids else []
+    volumes = set(docker("volume", "ls", "--quiet").split())
+    return containers, networks, volumes
+
+
+def qualify_network_namespaces(containers, expected_ids):
+    def resolve(reference):
+        # Inspect may retain names/prefixes or canonicalize them to full IDs.
+        # Conflicting name/ID interpretations must not hide a dependency.
+        matches = [container for container in containers
+                   if container["Name"] == "/" + reference.removeprefix("/")
+                   or (re.fullmatch(r"[a-f0-9]+", reference) and container["Id"].startswith(reference))]
+        require(len(matches) == 1,
+                "Unresolved or ambiguous container network namespace; retain runtime.")
+        return matches[0]
+
+    for container in containers:
+        if container["Id"] in expected_ids:
+            continue
+        visited = set()
+        while True:
+            container_id = container["Id"]
+            require(container_id not in expected_ids,
+                    "Foreign container network namespace consumer (including stopped containers); retain runtime.")
+            require(container_id not in visited, "Cyclic container network namespace; retain runtime.")
+            visited.add(container_id)
+            mode = container["HostConfig"].get("NetworkMode", "")
+            if not mode.startswith("container:"):
+                break
+            container = resolve(mode.removeprefix("container:"))
+
+
+def qualify(locator, complete=False):
+    run_id, network_id, mysql_id, postgresql_id, mysql_volume, postgresql_volume = locator.split(":")
+    containers, networks, volumes = inventory()
+    expected_ids = {mysql_id, postgresql_id}
+    expected_volumes = {mysql_volume, postgresql_volume}
+    qualify_network_namespaces(containers, expected_ids)
+    network_name = "fight-common-test-network-" + run_id
+    selected_networks = [network for network in networks if network["Id"] == network_id]
+    require(not any(network["Name"] == network_name and network["Id"] != network_id
+                    for network in networks), "Network name was reused by another ID.")
+    if selected_networks:
+        network = selected_networks[0]
+        require(network["Name"] == network_name and network["Driver"] == "bridge"
+                and not network.get("Labels") and network.get("Options", {}) in
+                ({}, {"com.docker.network.enable_ipv4": "true", "com.docker.network.enable_ipv6": "false"}),
+                "Unexpected network configuration.")
+        require(set((network.get("Containers") or {})) <= expected_ids, "Foreign network consumer; retain runtime.")
+    for container in containers:
+        container_id = container["Id"]
+        mounts = container.get("Mounts", [])
+        attached = container["NetworkSettings"]["Networks"]
+        if container_id not in expected_ids:
+            require(not any(mount.get("Name") in expected_volumes for mount in mounts),
+                    "Foreign volume consumer (including stopped containers); retain runtime.")
+            require(network_name not in attached
+                    and container["HostConfig"].get("NetworkMode") not in {network_name, network_id}
+                    and not any(network.get("NetworkID") == network_id for network in attached.values()),
+                    "Foreign network consumer (including stopped containers); retain runtime.")
+    selected = []
+    for container_id, kind, image, volume, destination, alias, required_env in [
+        (mysql_id, "mysql", "mysql:8.4.11", mysql_volume, "/var/lib/mysql", "mysql",
+         {"MYSQL_DATABASE=fight_common", "MYSQL_USER=fight_common", "MYSQL_PASSWORD=fight_common", "MYSQL_ROOT_PASSWORD=root"}),
+        (postgresql_id, "postgresql", "postgres:17", postgresql_volume, "/var/lib/postgresql/data", "postgresql",
+         {"POSTGRES_DB=fight_common", "POSTGRES_USER=fight_common", "POSTGRES_PASSWORD=fight_common"}),
+    ]:
+        name = "/fight-common-test-" + kind + "-" + run_id
+        require(not any(container["Name"] == name and container["Id"] != container_id
+                        for container in containers), "Container name was reused by another ID.")
+        matches = [container for container in containers if container["Id"] == container_id]
+        if not matches:
+            require(not complete, "Selected database container is absent.")
+            continue
+        container = matches[0]
+        config = container["Config"]
+        require(container["Name"] == name and config["Image"] == image and not config.get("Labels")
+                and required_env <= set(config["Env"]), "Unexpected database identity/configuration.")
+        require(not container["HostConfig"].get("PortBindings") and not container["HostConfig"].get("Privileged")
+                and not container["HostConfig"].get("Binds"), "Unexpected host access; retain runtime.")
+        mounts = container["Mounts"]
+        require(len(mounts) == 1 and mounts[0]["Type"] == "volume" and mounts[0]["Name"] == volume
+                and mounts[0]["Destination"] == destination and mounts[0]["RW"], "Unexpected database mounts.")
+        attached = container["NetworkSettings"]["Networks"]
+        require(set(attached) == {network_name} and attached[network_name]["NetworkID"] == network_id
+                and alias in (attached[network_name].get("Aliases") or []), "Unexpected database topology.")
+        if complete:
+            require(container["State"]["Running"] and container["State"].get("Health", {}).get("Status") == "healthy",
+                    "Selected database is not running and healthy.")
+        selected.append(container)
+    for volume in expected_volumes & volumes:
+        details = json.loads(docker("volume", "inspect", volume))[0]
+        require(details["Name"] == volume and details["Driver"] == "local" and not details.get("Options")
+                and details.get("Labels") == {"com.docker.volume.anonymous": ""},
+                "Unexpected volume configuration; retain runtime.")
+    if complete:
+        require(len(selected_networks) == 1 and expected_volumes <= volumes, "Selected network/volume is absent.")
+    return selected, selected_networks, expected_volumes & volumes
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("operation", choices=["check", "down"])
+    parser.add_argument("locator", help="RUN_ID:NETWORK_ID:MYSQL_ID:POSTGRESQL_ID:MYSQL_VOLUME:POSTGRESQL_VOLUME")
+    args = parser.parse_args()
+    require(re.fullmatch(r"[0-9]+-[0-9]+-[0-9]+(?::[a-f0-9]{64}){5}", args.locator), "Invalid exact native locator.")
+    parts = args.locator.split(":")
+    require(len(set(parts[1:])) == 5, "Locator identities must be distinct.")
+    containers, networks, volumes = qualify(args.locator, complete=args.operation == "check")
+    if args.operation == "check":
+        print("Qualified healthy maintenance database runtime: " + args.locator)
+        return
+    # Reobserve all consumers before each effect. Native non-force removal also
+    # refuses a concurrently attached volume/network or a running container.
+    for container in containers:
+        qualify(args.locator)
+        if container["State"]["Running"]:
+            docker("container", "stop", "--timeout", "30", container["Id"])
+        qualify(args.locator)
+        docker("container", "rm", container["Id"])
+    for volume in sorted(volumes):
+        qualify(args.locator)
+        docker("volume", "rm", volume)
+    for network in networks:
+        qualify(args.locator)
+        docker("network", "rm", network["Id"])
+    remaining = qualify(args.locator)
+    require(not any(remaining), "Runtime retirement incomplete.")
+    print("Maintenance database runtime absent: " + args.locator)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (RuntimeError, ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
+        print("Database runtime held: " + str(error), file=sys.stderr)
+        sys.exit(1)
