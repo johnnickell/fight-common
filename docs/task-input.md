@@ -14,10 +14,13 @@ The protocol reference is the official [2026-07-28 Tasks contract](https://githu
 
 ## Composition and authority
 
-Create `Application\Mcp\Task\Service\TaskInputLifecycle($store, $producers, $admission, $payloads, $events, $clock, $cancellations)` using
-the **same** `TaskStore`, producer `TaskUpdateAdmission`, payload policy, event dispatcher and server-millisecond
-clock as the ordinary lifecycle. `$cancellations` is current `TaskCancellationAdmission`: acquisition and protected
-input observation additionally require its independent intent-observation grant, so denial cannot masquerade as
+Create `Application\Mcp\Task\Service\TaskInputLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $producers, $admission, $payloads, $events, $clock, $cancellations)` using
+the **same** Domain `TaskRepository`, separately injected existing `TransactionalUnitOfWork`, narrow Application
+`CommittedTaskReader`, producer `TaskUpdateAdmission`, payload policy, event dispatcher and server-millisecond
+clock as the ordinary lifecycle. The [DBAL composition](durable-tasks.md#explicit-composition) binds repository and
+transaction boundary to one dedicated connection; the repository owns no commit. `$cancellations` is current
+`TaskCancellationAdmission`: acquisition and protected input observation additionally require its independent
+intent-observation grant, so denial cannot masquerade as
 absent intent. `TaskInputAdmission` supplies three independent current decisions:
 
 - `allowsSubmission(scope, id, caller)` authorizes input admission, including empty/repeated submissions.

@@ -225,10 +225,10 @@ final class TaskInputTest extends UnitTestCase
         $f = $this->fixture(); $f->create();
         $this->reject(fn () => $f->lifecycle->record(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskFixture::input())), TaskConflict::class);
         $f->issue(); $this->reject(fn () => $f->record(TaskState::create('working'), 2), TaskConflict::class);
-        $task = $f->store->read('scope', TaskFixture::ID);
+        $task = $f->committedTaskReader->read('scope', TaskFixture::ID);
         $this->reject(fn () => $task->transition('producer', 2, TaskFixture::input(), null, $f->now), DomainException::class);
         $different = $task->toArray(); $different['definition']['producer'] = 'other';
-        $f->store->commitTransactional(fn () => $f->store->save(Task::fromArray($different)));
+        $f->transactionalUnitOfWork->commitTransactional(fn () => $f->taskRepository->save(Task::fromArray($different)));
         $this->reject(fn () => $f->issue(expectedVersion: 2), TaskRejected::class);
         $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 2, TaskFixture::KEY_1)), TaskRejected::class);
         $max = Task::fromArray(array_replace($task->toArray(), ['version' => Task::MAX_VERSION]));
@@ -248,7 +248,7 @@ final class TaskInputTest extends UnitTestCase
         $f->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         $f->issue(confirmation: true);
         self::assertSame($operation->toString(), $f->observe()->get('definition')->get('operation')->toString());
-        $task = $f->store->read('scope', TaskFixture::ID)->toArray();
+        $task = $f->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
         $task['inputs'] = TaskInputs::empty('other-scope', TaskFixture::ID)->data();
         $this->reject(fn () => Task::fromArray($task), DomainException::class);
     }

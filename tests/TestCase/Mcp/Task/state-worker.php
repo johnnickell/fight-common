@@ -15,7 +15,7 @@ $directory = dirname($argv[1]); $role = $argv[2]; $mode = $config['mode'];
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
 $proxy = M::mock(Connection::class);
-foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'delete', 'insert', 'rollBack'] as $method) {
+foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'delete', 'insert', 'rollBack'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
 $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connection, $directory, $role, $mode): void {

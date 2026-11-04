@@ -37,8 +37,11 @@ must not label Task metadata with a narrower/unrelated notice scope. Independent
 permit that complete context; it never becomes proof of delivery or continuing authorization.
 
 The `$tasks` object owns shared `GetTask(scope, id)` Queries and the same complete projection as ordinary reads.
-No presenter SQL, local event listener, general retained feed, Mercure publisher or captured Task history supplies
-state. Task-only and empty accepted streams do **not** call `RecoverNotices`; notice storage/global evidence permission
+The shared lifecycle obtains committed aggregates through `CommittedTaskReader`, separately from the Domain
+`TaskRepository` and injected transaction boundary used by mutations. The [DBAL composition](durable-tasks.md#explicit-composition)
+shares the exact dedicated connection and preserves idle committed-read checks; no presenter SQL, local event listener,
+general retained feed, Mercure publisher or captured Task history supplies state. Task-only and empty accepted streams
+do **not** call `RecoverNotices`; notice storage/global evidence permission
 is not a prerequisite. Enable Tools/Resources/Prompts separately for mixed streams: only accepted requested generic
 families engage their existing qualified notice source. A mixed stream then inherits that source's continuity rules.
 No Prompt or operator-inspection capability is required. Registry composition rejects missing/mismatched Tasks.
