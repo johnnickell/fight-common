@@ -21,8 +21,8 @@ final class TaskSelectionTest extends UnitTestCase
     public function test_that_exact_bounded_selection_and_reference_only_messages_round_trip(): void
     {
         $ids = array_map(static fn (int $id): string => str_pad(dechex($id), 32, '0', STR_PAD_LEFT), range(1, 100));
-        $selection = TaskSelection::fromIds(str_repeat('s', 96), $ids);
-        self::assertSame($ids, $selection->ids());
+        $selection = TaskSelection::fromIds(str_repeat('s', 96), array_map(TaskFixture::id(...), $ids));
+        self::assertSame($ids, array_map(static fn ($id): string => $id->toString(), $selection->ids()));
         self::assertSame(str_repeat('s', 96), $selection->scope());
         $command = new RemoveTasks($selection);
         self::assertSame($selection, $command->selection());
@@ -37,7 +37,7 @@ final class TaskSelectionTest extends UnitTestCase
     public function test_that_invalid_overbound_and_duplicate_selections_reject(string $scope, array $ids): void
     {
         $this->expectException(DomainException::class);
-        TaskSelection::fromIds($scope, $ids);
+        TaskSelection::fromArray(['scope' => $scope, 'ids' => $ids]);
     }
 
     public static function invalidSelections(): iterable
@@ -50,6 +50,7 @@ final class TaskSelectionTest extends UnitTestCase
         yield ['scope', [1 => TaskFixture::ID]];
         yield ['scope', [123]];
         yield ['scope', [null]];
+
         yield ['scope', ['']];
         yield ['scope', [str_repeat('a', 33)]];
         yield ['scope', [str_repeat('A', 32)]];

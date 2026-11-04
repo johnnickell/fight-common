@@ -39,10 +39,10 @@ final class DbalTaskTransactionTest extends UnitTestCase
 
         foreach ([$otherTaskTransaction, $genericTransaction] as $unownedTransaction) {
             foreach ([
-                fn () => $taskRepository->getById('scope', TaskFixture::ID),
+                fn () => $taskRepository->getById('scope', TaskFixture::id()),
                 fn () => $taskRepository->save($task),
-                fn () => $taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::ID])),
-                fn () => $taskRepository->read('scope', TaskFixture::ID)
+                fn () => $taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::id()])),
+                fn () => $taskRepository->read('scope', TaskFixture::id())
             ] as $operation) {
                 try {
                     $unownedTransaction->commitTransactional($operation);
@@ -56,10 +56,10 @@ final class DbalTaskTransactionTest extends UnitTestCase
 
         $result = $transactionalUnitOfWork->commitTransactional(function () use ($taskRepository, $task) {
             $taskRepository->save($task);
-            return $taskRepository->getById('scope', TaskFixture::ID);
+            return $taskRepository->getById('scope', TaskFixture::id());
         });
         self::assertEquals($task->toArray(), $result->toArray());
-        self::assertEquals($task->toArray(), $taskRepository->read('scope', TaskFixture::ID)->toArray());
+        self::assertEquals($task->toArray(), $taskRepository->read('scope', TaskFixture::id())->toArray());
         self::assertFalse($connection->isTransactionActive());
         self::assertFalse($transactionalUnitOfWork->isClosed());
 
@@ -67,16 +67,16 @@ final class DbalTaskTransactionTest extends UnitTestCase
         $cause = new RuntimeException('Consumer failure');
         try {
             $transactionalUnitOfWork->commitTransactional(function () use ($taskRepository, $cause): void {
-                $taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::ID]));
+                $taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::id()]));
                 throw $cause;
             });
             self::fail('Callback failure must propagate.');
         } catch (RuntimeException $failure) {
             self::assertSame($cause, $failure);
         }
-        self::assertNotNull($taskRepository->read('scope', TaskFixture::ID));
+        self::assertNotNull($taskRepository->read('scope', TaskFixture::id()));
         self::assertNull($transactionalUnitOfWork->commitTransactional(
-            fn () => $taskRepository->getById('scope', str_repeat('f', 32))
+            fn () => $taskRepository->getById('scope', TaskFixture::id(str_repeat('f', 32)))
         ));
     }
 

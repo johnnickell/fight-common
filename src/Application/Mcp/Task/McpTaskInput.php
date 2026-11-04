@@ -14,6 +14,7 @@ use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\SupplyTaskInput;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
 
@@ -67,7 +68,7 @@ final readonly class McpTaskInput
 
             $command = new SupplyTaskInput(
                 $this->scope,
-                $parameters['taskId'],
+                TaskId::fromString($parameters['taskId']),
                 $this->caller,
                 StrictJson::fromData($parameters['inputResponses'], 32)
             );

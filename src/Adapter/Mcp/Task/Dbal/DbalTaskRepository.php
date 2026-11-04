@@ -9,6 +9,7 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
 use Fight\Common\Domain\Mcp\Task\Task;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskRepository;
 use Fight\Common\Domain\Mcp\Task\TaskSelection;
 use RuntimeException;
@@ -34,7 +35,7 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
     /**
      * @inheritDoc
      */
-    public function getById(string $scope, string $id): ?Task
+    public function getById(string $scope, TaskId $id): ?Task
     {
         $this->transactionalUnitOfWork->requireOwnedTransaction();
 
@@ -52,7 +53,7 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
             throw new RuntimeException('Task exceeds the stored representation bound.');
         }
 
-        $key = ['scope' => $task->definition()->scope(), 'task_id' => $task->definition()->id()];
+        $key = ['scope' => $task->definition()->scope(), 'task_id' => $task->definition()->id()->toString()];
         // The namespace lock makes replacement atomic across every supported backend without an upsert dialect.
         $this->connection->delete('fight_tasks', $key);
         $this->connection->insert('fight_tasks', [...$key, 'payload' => $payload]);
@@ -66,7 +67,8 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
         $this->transactionalUnitOfWork->requireOwnedTransaction();
         $removed = [];
         foreach ($selection->ids() as $id) {
-            if ($this->connection->delete('fight_tasks', ['scope' => $selection->scope(), 'task_id' => $id]) === 1) {
+            $key = ['scope' => $selection->scope(), 'task_id' => $id->toString()];
+            if ($this->connection->delete('fight_tasks', $key) === 1) {
                 $removed[] = $id;
             }
         }
@@ -77,7 +79,7 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
     /**
      * @inheritDoc
      */
-    public function read(string $scope, string $id): ?Task
+    public function read(string $scope, TaskId $id): ?Task
     {
         $this->transactionalUnitOfWork->requireCommittedRead();
 
@@ -87,14 +89,13 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
     /**
      * Returns one bounded coherent snapshot or an explicit storage failure
      */
-    private function load(string $scope, string $id): ?Task
+    private function load(string $scope, TaskId $id): ?Task
     {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         try {
             $payload = $this->connection->fetchOne(
                 'SELECT SUBSTRING(payload, 1, 40961) FROM fight_tasks WHERE scope = ? AND task_id = ?',
-                [$scope, $id]
+                [$scope, $id->toString()]
             );
             if ($payload === false) {
                 return null;
@@ -117,7 +118,7 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
             $data['definition'] = get_object_vars($data['definition']);
             $data['state'] = get_object_vars($data['state']);
             $task = Task::fromArray($data);
-            if ($task->definition()->scope() !== $scope || $task->definition()->id() !== $id) {
+            if ($task->definition()->scope() !== $scope || !$task->definition()->id()->equals($id)) {
                 throw new RuntimeException('Inconsistent stored Task identity.');
             }
 

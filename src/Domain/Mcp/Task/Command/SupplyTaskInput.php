@@ -6,6 +6,7 @@ namespace Fight\Common\Domain\Mcp\Task\Command;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
@@ -21,12 +22,11 @@ final readonly class SupplyTaskInput implements Command
      */
     public function __construct(
         public string $scope,
-        public string $id,
+        public TaskId $id,
         public string $caller,
         public StrictJson $responses
     ) {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         TaskDefinition::reference($caller);
         $responses = StrictJson::fromData($responses, 32);
         if (
@@ -48,7 +48,12 @@ final readonly class SupplyTaskInput implements Command
      */
     public static function fromArray(array $data): static
     {
-        return new self($data['scope'], $data['id'], $data['caller'], StrictJson::fromData($data['responses']));
+        return new self(
+            $data['scope'],
+            TaskId::fromString($data['id']),
+            $data['caller'],
+            StrictJson::fromData($data['responses'])
+        );
     }
 
     /**
@@ -56,6 +61,11 @@ final readonly class SupplyTaskInput implements Command
      */
     public function toArray(): array
     {
-        return ['scope' => $this->scope, 'id' => $this->id, 'caller' => $this->caller, 'responses' => $this->responses];
+        return [
+            'scope'     => $this->scope,
+            'id'        => $this->id->toString(),
+            'caller'    => $this->caller,
+            'responses' => $this->responses
+        ];
     }
 }

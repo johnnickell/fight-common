@@ -40,6 +40,10 @@ Caller/scope are trusted consumer bindings, not credentials issued by Common. Id
 submitted administrator labels and earlier answers grant nothing. False or throwing decisions conceal policy
 text. Callbacks must be bounded/local and never control jobs or change transaction ownership.
 
+The shared APIs below take the original `Domain\Mcp\Task\TaskId` as `$id`, including admission ports. Parse bytes
+with `TaskId::fromString()` at the boundary; protected Query output and MCP `taskId` retain exact strings. Scope remains
+separate and trusted. Neither the value nor its equality grants cancellation, observation or worker authority.
+
 ```php
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
