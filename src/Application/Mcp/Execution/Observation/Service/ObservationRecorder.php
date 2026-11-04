@@ -19,10 +19,11 @@ use Fight\Common\Domain\Mcp\Detail\ProtectedContentRepository;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationRepository;
-use Fight\Common\Domain\Mcp\Observation\RecordedObservation;
 use Fight\Common\Domain\Mcp\Phase\Phase;
+use Fight\Common\Domain\Mcp\Phase\PhaseId;
 use Fight\Common\Domain\Mcp\Phase\PhaseRepository;
 use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 use Fight\Common\Domain\Mcp\Session\SessionRepository;
 use Throwable;
 
@@ -52,7 +53,7 @@ final readonly class ObservationRecorder
      */
     public function record(Observation $observation, ?ProtectedContent $content = null): void
     {
-        $operation = function () use ($observation, $content): ?RecordedObservation {
+        $operation = function () use ($observation, $content): ?Observation {
             $this->observationAdmission->admit($observation);
             if (($observation->detail() !== null) !== ($content !== null)) {
                 throw new DomainException('Detail recording requires paired capture and protected content.');
@@ -89,13 +90,12 @@ final readonly class ObservationRecorder
             }
 
             // Submitted receipt times never choose a new server recording time.
-            $recorded = new RecordedObservation(
-                Observation::fromArray($observation->toArray()),
+            $recorded = Observation::fromArray($observation->toArray())->recorded(
                 new DateTimeImmutable('now', new DateTimeZone('UTC'))
             );
-            $this->observationRepository->add($recorded->observation());
+            $this->observationRepository->add($recorded);
             if ($content !== null) {
-                $this->protectedContentRepository->add($recorded->observation(), $content);
+                $this->protectedContentRepository->add($recorded, $content);
             }
 
             return $recorded;
@@ -119,7 +119,8 @@ final readonly class ObservationRecorder
     private function validateRelationships(Observation $observation): void
     {
         $reference = $observation->session();
-        $session = $this->sessionRepository->getById($reference->projectId(), $reference->sessionId());
+        $sessionIdentity = SessionId::fromStrings($reference->projectId(), $reference->sessionId());
+        $session = $this->sessionRepository->getById($sessionIdentity);
         if ($session !== null && !$session->matches($reference)) {
             throw new InvalidObservationRelationship();
         }
@@ -139,13 +140,14 @@ final readonly class ObservationRecorder
 
         $phase = new Phase($reference->projectId(), $phaseReference);
         if ($phase->parentPhaseId() !== null) {
-            $parent = $this->phaseRepository->getById($phase->projectId(), $phase->parentPhaseId());
+            $parentIdentity = PhaseId::fromStrings($phase->projectId(), $phase->parentPhaseId());
+            $parent = $this->phaseRepository->getById($parentIdentity);
             if ($parent === null || !$phase->acceptsParent($parent)) {
                 throw new InvalidObservationRelationship();
             }
         }
 
-        $existing = $this->phaseRepository->getById($phase->projectId(), $phase->id());
+        $existing = $this->phaseRepository->getById($phase->identity());
         if ($existing !== null && !$existing->matches($phase->projectId(), $phaseReference)) {
             throw new InvalidObservationRelationship();
         }

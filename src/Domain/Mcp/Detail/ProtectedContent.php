@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Detail;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class ProtectedContent
  *
  * Protected representation must never be persisted in the safe ledger
  */
-final readonly class ProtectedContent
+final readonly class ProtectedContent extends ValueObject
 {
     /**
      * Constructs ProtectedContent
@@ -42,12 +42,60 @@ final readonly class ProtectedContent
             throw new DomainException('Unsupported protected content version.');
         }
 
-        ObservationFields::structure($data, ['version', 'body']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['body', 'version']) {
+            throw new DomainException('Invalid protected content structure.');
+        }
+
         if ($data['body'] !== null && !is_string($data['body'])) {
             throw new DomainException('Invalid protected content.');
         }
 
         return self::create($capture, $data['body']);
+    }
+
+    /**
+     * Creates bounded protected bytes without granting capture or storage permission
+     *
+     * Attaching content still validates the selected capture's tighter constraints
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid protected content text.');
+        }
+
+        $keys = array_keys($data);
+        sort($keys);
+        if (
+            $keys !== ['body', 'version'] || $data['version'] !== 1
+            || ($data['body'] !== null && (!is_string($data['body'])
+                || strlen($data['body']) > 65536 || preg_match('//u', $data['body']) !== 1))
+        ) {
+            throw new DomainException('Invalid protected content.');
+        }
+
+        return new self($data['body']);
+    }
+
+    /**
+     * Returns protected text for trusted transport only, never safe diagnostics
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns protected structured data for trusted transport only
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Mcp\Notice\Service;
 
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
+use Fight\Common\Domain\Mcp\Notice\NoticeId;
 use Fight\Common\Domain\Mcp\Notice\NoticeRemovalSelection;
 use Fight\Common\Domain\Mcp\Notice\NoticeRepository;
 
@@ -32,11 +33,11 @@ final readonly class NoticeRemover
         $this->transactionalUnitOfWork->commitTransactional(function () use ($selection): void {
             $this->noticeRemovalAdmission->admit($selection);
             foreach ($selection->targets() as $target) {
-                $retained = $this->noticeRepository->getByIdentity(
+                $retained = $this->noticeRepository->getByIdentity(NoticeId::fromStrings(
                     $target['scope'],
                     $target['producer'],
                     $target['id']
-                );
+                ));
                 if ($retained === null || $retained->position() !== $target['position']) {
                     throw new NoticeRemovalRejected();
                 }

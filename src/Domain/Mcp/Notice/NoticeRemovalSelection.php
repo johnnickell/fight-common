@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Notice;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class NoticeRemovalSelection
  */
-final readonly class NoticeRemovalSelection
+final readonly class NoticeRemovalSelection extends ValueObject
 {
     public const int MAX_TARGETS = 100;
 
@@ -74,6 +75,37 @@ final readonly class NoticeRemovalSelection
         }
 
         return new self($data['namespace'], $targets);
+    }
+
+    /**
+     * Creates a finite incarnation-pinned selection from stable text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid notice removal selection text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable selection text retaining target order and positions
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns the structured finite selection without granting removal
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

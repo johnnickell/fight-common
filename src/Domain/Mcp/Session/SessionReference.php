@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Mcp\Session;
 
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class SessionReference
  */
-final readonly class SessionReference
+final readonly class SessionReference extends ValueObject
 {
     /**
      * Constructs SessionReference
@@ -27,9 +29,9 @@ final readonly class SessionReference
     public static function fromStrings(string $projectId, string $sessionId, string $consumerReference): self
     {
         return new self(
-            ObservationFields::reference($projectId),
-            ObservationFields::reference($sessionId),
-            ObservationFields::reference($consumerReference)
+            ObservationReference::fromString($projectId)->toString(),
+            ObservationReference::fromString($sessionId)->toString(),
+            ObservationReference::fromString($consumerReference)->toString()
         );
     }
 
@@ -40,13 +42,48 @@ final readonly class SessionReference
      */
     public static function fromArray(array $data): self
     {
-        ObservationFields::structure($data, ['project_id', 'session_id', 'consumer_reference']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['consumer_reference', 'project_id', 'session_id']) {
+            throw new DomainException('Invalid session reference structure.');
+        }
 
         return self::fromStrings(
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id']),
-            ObservationFields::reference($data['consumer_reference'])
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString(),
+            ObservationReference::fromString($data['consumer_reference'])->toString()
         );
+    }
+
+    /**
+     * Creates a reference from its stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid session reference text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable structured reference text
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns the structured reference rather than double-encoded text
+     *
+     * @return array<string, string>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

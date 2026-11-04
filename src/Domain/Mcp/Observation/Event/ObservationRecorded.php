@@ -8,8 +8,7 @@ use DateTimeImmutable;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
-use Fight\Common\Domain\Mcp\Observation\RecordedObservation;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 use Fight\Common\Domain\Messaging\Event\Event;
 
 /**
@@ -35,9 +34,8 @@ final readonly class ObservationRecorded implements Event
     /**
      * Creates a safe fact from committed evidence
      */
-    public static function fromRecorded(RecordedObservation $recorded): self
+    public static function fromRecorded(Observation $observation): self
     {
-        $observation = $recorded->observation();
 
         return new self(
             $observation->id(),
@@ -45,7 +43,7 @@ final readonly class ObservationRecorded implements Event
             $observation->session()->projectId(),
             $observation->session()->sessionId(),
             $observation->phase()?->phaseId(),
-            $recorded->recordedAt()
+            $observation->recordedAt()
         );
     }
 
@@ -54,20 +52,23 @@ final readonly class ObservationRecorded implements Event
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, [
-            'observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'
-        ]);
-        $id = ObservationFields::reference($data['observation_id']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['observation_id', 'phase_id', 'producer_id', 'project_id', 'recorded_at', 'session_id']) {
+            throw new DomainException('Invalid observation fact structure.');
+        }
+
+        $id = ObservationReference::fromString($data['observation_id'])->toString();
         if (preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $id) !== 1) {
             throw new DomainException('Invalid observation identity.');
         }
 
         return new self(
             ObservationId::fromString($id),
-            ObservationFields::reference($data['producer_id']),
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id']),
-            $data['phase_id'] === null ? null : ObservationFields::reference($data['phase_id']),
+            ObservationReference::fromString($data['producer_id'])->toString(),
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString(),
+            $data['phase_id'] === null ? null : ObservationReference::fromString($data['phase_id'])->toString(),
             Observation::timestamp($data['recorded_at'])
         );
     }

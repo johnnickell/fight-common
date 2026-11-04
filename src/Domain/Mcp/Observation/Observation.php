@@ -11,7 +11,7 @@ use Fight\Common\Domain\Mcp\Activity\PhaseActivity;
 use Fight\Common\Domain\Mcp\Detail\DetailCapture;
 use Fight\Common\Domain\Mcp\Phase\PhaseReference;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 
 /**
  * Class Observation
@@ -64,7 +64,7 @@ final readonly class Observation
 
         return new self(
             $id,
-            ObservationFields::reference($producerId),
+            ObservationReference::fromString($producerId)->toString(),
             $session,
             $phase,
             self::utc($occurredAt),
@@ -149,10 +149,16 @@ final readonly class Observation
             throw new DomainException('Unsupported observation version.');
         }
 
-        ObservationFields::structure($data, [
-            'version', 'observation_id', 'producer_id', 'session', 'phase',
-            'occurred_at', 'started_at', 'ended_at', 'outcome', 'activity', 'detail', 'extensions'
-        ]);
+        $keys = array_keys($data);
+        sort($keys);
+        $fields = [
+            'activity', 'detail', 'ended_at', 'extensions', 'observation_id', 'occurred_at',
+            'outcome', 'phase', 'producer_id', 'session', 'started_at', 'version'
+        ];
+        if ($keys !== $fields) {
+            throw new DomainException('Invalid observation structure.');
+        }
+
         if (
             !is_string($data['observation_id'])
             || preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $data['observation_id']) !== 1
@@ -181,7 +187,7 @@ final readonly class Observation
 
             return self::forDetail(
                 ObservationId::fromString($data['observation_id']),
-                ObservationFields::reference($data['producer_id']),
+                ObservationReference::fromString($data['producer_id'])->toString(),
                 SessionReference::fromArray($data['session']),
                 PhaseReference::fromArray($data['phase']),
                 ObservationOccurrence::fromString($data['occurred_at']),
@@ -199,7 +205,7 @@ final readonly class Observation
 
             return self::forActivity(
                 ObservationId::fromString($data['observation_id']),
-                ObservationFields::reference($data['producer_id']),
+                ObservationReference::fromString($data['producer_id'])->toString(),
                 SessionReference::fromArray($data['session']),
                 PhaseReference::fromArray($data['phase']),
                 ObservationOccurrence::fromString($data['occurred_at']),
@@ -210,7 +216,7 @@ final readonly class Observation
 
         return self::create(
             ObservationId::fromString($data['observation_id']),
-            ObservationFields::reference($data['producer_id']),
+            ObservationReference::fromString($data['producer_id'])->toString(),
             SessionReference::fromArray($data['session']),
             $data['phase'] === null ? null : PhaseReference::fromArray($data['phase']),
             self::timestamp($data['occurred_at']),
@@ -326,6 +332,14 @@ final readonly class Observation
     public function matches(Observation $other): bool
     {
         return $this->comparison() === $other->comparison();
+    }
+
+    /**
+     * Returns the complete producer-scoped identity without replacing the UUID primitive
+     */
+    public function identity(): ObservationIdentity
+    {
+        return ObservationIdentity::fromParts($this->producerId, $this->id);
     }
 
     /**

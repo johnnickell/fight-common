@@ -6,13 +6,14 @@ namespace Fight\Common\Domain\Mcp\Observation;
 
 use DateTimeImmutable;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class ObservationOccurrence
  *
  * Reported UTC time retaining zero through six fractional digits
  */
-final readonly class ObservationOccurrence
+final readonly class ObservationOccurrence extends ValueObject
 {
     /**
      * Constructs ObservationOccurrence

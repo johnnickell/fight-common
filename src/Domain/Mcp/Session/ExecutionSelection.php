@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Session;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class ExecutionSelection
  */
-final readonly class ExecutionSelection
+final readonly class ExecutionSelection extends ValueObject
 {
     /**
      * Constructs ExecutionSelection
@@ -36,7 +37,7 @@ final readonly class ExecutionSelection
 
         $validated = [];
         foreach ($projects as $project) {
-            $validated[] = ObservationFields::reference($project);
+            $validated[] = ObservationReference::fromString($project)->toString();
         }
 
         $validated = array_values(array_unique($validated));
@@ -47,7 +48,7 @@ final readonly class ExecutionSelection
                 throw new DomainException('Unsupported execution filter.');
             }
 
-            $safeFilters[$field] = ObservationFields::reference($value);
+            $safeFilters[$field] = ObservationReference::fromString($value)->toString();
         }
 
         ksort($safeFilters, SORT_STRING);
@@ -62,12 +63,48 @@ final readonly class ExecutionSelection
      */
     public static function fromArray(array $data): self
     {
-        ObservationFields::structure($data, ['projects', 'filters']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['filters', 'projects']) {
+            throw new DomainException('Invalid execution selection structure.');
+        }
+
         if (!is_array($data['projects']) || !is_array($data['filters'])) {
             throw new DomainException('Invalid execution selection.');
         }
 
         return self::create($data['projects'], $data['filters']);
+    }
+
+    /**
+     * Creates a selection from stable structured text without granting access
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid execution selection text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable selection text without grants
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns the structured selection rather than an encoded string
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

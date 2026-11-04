@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Task remains the aggregate and TaskInputs remains
   nested lifecycle bookkeeping. Revise never-tagged APIs directly, without snapshot aliases or schema/lifecycle,
   retry, input/cancellation or public revision changes. See [Task classification](docs/durable-tasks.md#model-classification-and-value-contracts).
+- Classify execution/Notice Domain roots, values, messages and ports; add role-specific scoped SessionId, PhaseId,
+  NoticeId and producer/UUID ObservationIdentity values. Affected values extend ValueObject with stable
+  reconstruction, same-type equality/hash and deliberate JSON. Remove ObservationFields and receipt-only
+  RecordedObservation; recorded roots still own time and post-commit facts, while RecordedNotice keeps its
+  substantive commit position. Exact storage/wire bytes, precision, null/empty meanings, protected separation,
+  independent grammars and permissions remain unchanged; no schema or aggregate namespace change.
 - Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
   visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
   and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate
@@ -27,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
   and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,
   aggregate invariants, committed cancellation reconstruction, single-use input, bus/filter dispatch and post-commit
-  failure semantics. ObservationRecorder remains unchanged.
+  failure semantics. This handler-ownership change does not alter ObservationRecorder.
 - Replace never-tagged `NoticeStore`/`DbalNoticeStore` with Domain `NoticeRepository`, separately injected
   `TransactionalUnitOfWork`, and Application `NoticeRecoveryReader`. Separate DBAL repository, namespace-serialized
   transaction and self-contained coherent recovery reads preserve allocation/removal atomicity, uncertainty,
