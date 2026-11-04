@@ -365,11 +365,15 @@ final class McpSubscriptionJourneyTest extends TestCase
         $this->setupDatabase($backend);
         $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport], dirname(__DIR__, 2));
         $this->processes[] = $process;
-        self::assertSame(0, $process->run(), $process->getErrorOutput());
-        $result = json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR);
+        $processExit = $process->run();
         $wire = $process->getOutput();
+        $this->evidence['contention_process'] = ['exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
+        if (file_exists($this->directory.'/contention-failure.json')) { $this->evidence['contention_failure'] = json_decode(file_get_contents($this->directory.'/contention-failure.json'), true, flags: JSON_THROW_ON_ERROR); }
+        self::assertSame(0, $processExit, $process->getErrorOutput().$wire);
+        $result = json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR);
         $this->evidence['contention'] = compact('mode', 'transport', 'wire', 'result');
         self::assertSame(0, $result['worker_exit'], $result['worker_error']);
+        self::assertSame("worker-ready\n", $result['worker_output']);
         self::assertFalse($result['transaction_active']);
         self::assertSame(1, $result['retained']);
         self::assertSame(['status' => 'complete', 'ids' => ['retained']], $result['recovery']);
@@ -378,10 +382,13 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
         foreach ($frames as $frame) { self::assertSame('7', $frame['params']['_meta']['io.modelcontextprotocol/subscriptionId']); }
         self::assertSame($result['original'], $result['locked']['row'], 'The independent lock holder sees the exact unrenewed open row');
+        self::assertLessThanOrEqual($result['registration_started_at'], $result['worker_ready_at'], 'The independent worker and its real driver are ready before this registration starts');
+        self::assertLessThan($result['started'], $result['registration_started_at']);
         $firstTrackingCall = $result['calls'][0];
         self::assertGreaterThanOrEqual($result['started'], $firstTrackingCall['transaction_entered_at']);
         self::assertLessThanOrEqual($firstTrackingCall['lock_ready_at'], $firstTrackingCall['transaction_entered_at']);
         self::assertLessThan($result['returned'], $firstTrackingCall['lock_ready_at']);
+        self::assertLessThanOrEqual($result['locked']['at'], $firstTrackingCall['transaction_entered_at'], 'The recorded store entry precedes the independent locked sample, not a later Query transaction');
         if ($mode === 'pre-renewal-expired') {
             self::assertSame('close', $firstTrackingCall['operation'], 'Execution rejects expiry before invoking any heartbeat');
             self::assertCount(1, $result['calls']);
@@ -399,6 +406,7 @@ final class McpSubscriptionJourneyTest extends TestCase
             self::assertLessThan($result['locked']['at'], $result['returned'], 'SQL timeout returns before the independent lock holder releases');
         } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process delayed the identified tracking operation'); }
         if ($mode === 'fast') {
+            self::assertSame('returned', $firstTrackingCall['result']);
             self::assertLessThan((int) $result['original']['expires_at'], $result['locked']['at']);
             self::assertSame(['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'], array_column($frames, 'method'));
         } else {

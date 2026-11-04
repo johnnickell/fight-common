@@ -28,6 +28,7 @@ use Throwable;
 final class TaskEndpoint implements McpDiagnostics, McpInvocationGuard, McpToolAvailability
 {
     public array $diagnostics = [];
+    public ?Closure $onDiagnostic = null;
     public array $guardCalls = [];
     public bool $allowed = true;
     public bool $available = true;
@@ -52,7 +53,7 @@ final class TaskEndpoint implements McpDiagnostics, McpInvocationGuard, McpToolA
         $this->handler = new McpRequestHandler($this->registry, new ExactMcpOriginPolicy(['https://example.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }
 
-    public function record(Throwable $failure): void { $this->diagnostics[] = $failure::class; }
+    public function record(Throwable $failure): void { $this->diagnostics[] = $failure::class; ($this->onDiagnostic ?? static fn () => null)($failure); }
     public function allows(string $method, ?string $name): bool { $this->guardCalls[] = [$method, $name]; return $this->allowed; }
     public function isAvailable(McpToolInfo $tool): bool { return $this->available; }
 
