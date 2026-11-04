@@ -667,11 +667,11 @@ compatibility and actual three-database/controlled-HubInterface evidence, not de
 | **Combined resolution lane** | The root dependency set in which all supported frameworks and optional adapter packages must resolve together. Each widened previous line is proven in its own isolated fixture before the combined lane is re-resolved. |
 | **Forward-compatible seam** | A stable Fight Common port or boundary chosen so a future native facility (for example a released `yiisoft/queue`) can replace the current composition without breaking the public contract. |
 
-## Proposed Event Sourcing language for 1.2
+## Event Sourcing language
 
-These terms describe the planned optional extension. They do not describe existing production APIs until their tickets are implemented.
+These terms describe the optional Event Sourcing capability and its current public contracts.
 
-| Term | Planned meaning |
+| Term | Meaning |
 | --- | --- |
 | **Event-sourced aggregate** | The framework-free lifecycle contract used by repositories for an aggregate whose state changes only by explicitly applying domain events. It owns a static named constructor for reconstitution from history and exposes its identity through the existing `Identifier` contract. |
 | **Aggregate root** | The reference abstract implementation of the event-sourced aggregate contract. It stores the consumer's domain-specific `Identifier`, implements `id()`, and owns version tracking and pending-event lifecycle while the consumer aggregate owns explicit event routing and semantic state transitions. |
@@ -682,6 +682,7 @@ These terms describe the planned optional extension. They do not describe existi
 | **Stream** | The ordered event history of one aggregate, identified by a stable aggregate name and aggregate identifier rather than by the PHP aggregate class name. |
 | **Expected version** | The stream version observed before new events were recorded and checked during append for optimistic concurrency. An empty stream has version zero and its first event has stream version one. |
 | **Event Store** | The append-only port that accepts event messages, maps them to durable event identity and schema, writes versioned streams, and returns hydrated stored events from stream-ordered and globally ordered reads. |
+| **Physical Event Store tables** | Adapter-owned `DbalEventStoreTables` independently selects `eventTable` (default `event_store_events`) and `globalPositionTable` (default `event_store_global_position`), shared explicitly by the DBAL schema installer and store. `Adapter\Persistence\Doctrine\DbalTableName` validates `[A-Za-z_][A-Za-z0-9_]{0,62}` and supplies portable schema/platform quoting, preserving case and supporting reserved words but rejecting qualified/prequoted names. The pair rejects case-insensitive collisions. Configuration has no SQL effects; installation creates only missing selected storage and initializes a missing singleton at zero without inferring history or repairing existing event columns. Every runtime/retry/lock path uses those selections without fallback. Changing names does not migrate/copy data; partial overrides intentionally retain the other table, and consumers own consistent sequence initialization, connection/schema choice and permissions. Checkpoint/publication customization remains separate work. |
 | **Event mapper** | The explicit, bidirectional registry for one Event Store that maps a stable event name to the current PHP event class and reconstructs an event message from stored data. It must contain every event persisted in that store, and aliases must be unique across the store. Consumer configuration registers every stored event; attribute scanning, convention-based discovery, and FQCN fallback are not part of the contract. A PHP class rename changes the mapping without changing stored history. |
 | **Event mapping provider** | A portable declaration of typed event mappings owned by one bounded context. It declares a durable event namespace plus locally unique event names; each typed mapping owns the current PHP class, current schema version, and complete upcaster chain. The event mapper qualifies local names into canonical stored names. Multiple providers may compose the complete catalog for one Event Store and may be registered directly or collected by optional framework integration. |
 | **Upcaster** | A one-event-to-one-event in-memory transformation from one stored payload schema version to the next integer version. It does not rewrite stored history, and class renames alone do not require upcasting. |

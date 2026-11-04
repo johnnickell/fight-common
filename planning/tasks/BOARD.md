@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
+| Active Work | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -60,7 +60,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -68,7 +68,6 @@ their owning records; routing and planning checks stay offline.
 |---|---|---|---|---|---|---|
 | 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | — | — |
 | 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | ready-for-agent | — | — |
-| — | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 

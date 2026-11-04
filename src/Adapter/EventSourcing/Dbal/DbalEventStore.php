@@ -29,14 +29,20 @@ use InvalidArgumentException;
  */
 final readonly class DbalEventStore implements EventStore
 {
+    private string $eventTable;
+    private string $globalPositionTable;
+
     /**
      * Constructs DbalEventStore
      */
     public function __construct(
         private Connection $connection,
-        private EventMapper $eventMapper
+        private EventMapper $eventMapper,
+        DbalEventStoreTables $tables = new DbalEventStoreTables()
     ) {
         $platform = $this->connection->getDatabasePlatform();
+        $this->eventTable = $tables->eventTable()->quoted($platform);
+        $this->globalPositionTable = $tables->globalPositionTable()->quoted($platform);
 
         if (
             !$platform instanceof SQLitePlatform
@@ -72,14 +78,15 @@ final readonly class DbalEventStore implements EventStore
 
                 if ($platform instanceof SQLitePlatform) {
                     $this->connection->executeStatement(
-                        'UPDATE event_store_global_position SET position = position WHERE singleton = ?',
+                        'UPDATE '.$this->globalPositionTable.' SET position = position WHERE singleton = ?',
                         [1]
                     );
                 }
 
                 $globalPosition = (int) $this->connection->fetchOne(
                     sprintf(
-                        'SELECT position FROM event_store_global_position WHERE singleton = ?%s',
+                        'SELECT position FROM %s WHERE singleton = ?%s',
+                        $this->globalPositionTable,
                         $platform instanceof SQLitePlatform ? '' : ' FOR UPDATE'
                     ),
                     [1]
@@ -96,7 +103,7 @@ final readonly class DbalEventStore implements EventStore
                     $record = $this->connection->fetchAssociative(
                         sprintf(
                             'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                            'FROM event_store_events WHERE message_id = ?'
+                            'FROM '.$this->eventTable.' WHERE message_id = ?'
                         ),
                         [$messageId]
                     );
@@ -132,7 +139,7 @@ final readonly class DbalEventStore implements EventStore
                 foreach ($mappedMessages as $offset => [$message, $mappedEvent]) {
                     ++$globalPosition;
 
-                    $this->connection->insert('event_store_events', [
+                    $this->connection->insert($this->eventTable, [
                         'aggregate_name'       => $streamId->aggregateName(),
                         'aggregate_identifier' => $streamId->identifier(),
                         'stream_version'       => $expectedVersion + $offset + 1,
@@ -149,7 +156,7 @@ final readonly class DbalEventStore implements EventStore
                 }
 
                 $this->connection->update(
-                    'event_store_global_position',
+                    $this->globalPositionTable,
                     ['position' => $globalPosition],
                     ['singleton' => 1]
                 );
@@ -183,7 +190,8 @@ final readonly class DbalEventStore implements EventStore
     {
         $records = $this->connection->fetchAllAssociative(
             sprintf(
-                'SELECT * FROM event_store_events %s',
+                'SELECT * FROM %s %s',
+                $this->eventTable,
                 'WHERE aggregate_name = ? AND aggregate_identifier = ? ORDER BY stream_version ASC'
             ),
             [$streamId->aggregateName(), $streamId->identifier()]
@@ -200,7 +208,7 @@ final readonly class DbalEventStore implements EventStore
     public function readAllAfter(int $globalPosition, int $limit): iterable
     {
         $records = $this->connection->fetchAllAssociative(
-            'SELECT * FROM event_store_events WHERE global_position > ? ORDER BY global_position ASC LIMIT ?',
+            'SELECT * FROM '.$this->eventTable.' WHERE global_position > ? ORDER BY global_position ASC LIMIT ?',
             [$globalPosition, $limit],
             [ParameterType::INTEGER, ParameterType::INTEGER]
         );
@@ -225,7 +233,7 @@ final readonly class DbalEventStore implements EventStore
             $record = $this->connection->fetchAssociative(
                 sprintf(
                     'SELECT aggregate_name, aggregate_identifier, stream_version %s',
-                    'FROM event_store_events WHERE message_id = ?'
+                    'FROM '.$this->eventTable.' WHERE message_id = ?'
                 ),
                 [(string) $message->id()]
             );
@@ -249,7 +257,7 @@ final readonly class DbalEventStore implements EventStore
     private function streamVersion(StreamId $streamId): int
     {
         return (int) $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM event_store_events WHERE aggregate_name = ? AND aggregate_identifier = ?',
+            'SELECT COUNT(*) FROM '.$this->eventTable.' WHERE aggregate_name = ? AND aggregate_identifier = ?',
             [$streamId->aggregateName(), $streamId->identifier()]
         );
     }
@@ -264,7 +272,7 @@ final readonly class DbalEventStore implements EventStore
     private function hasExistingMessageId(array $messages): bool
     {
         return array_any($messages, fn($message): bool => false !== $this->connection->fetchOne(
-            'SELECT message_id FROM event_store_events WHERE message_id = ?',
+            'SELECT message_id FROM '.$this->eventTable.' WHERE message_id = ?',
             [(string) $message->id()]
         ));
     }
