@@ -20,7 +20,7 @@ printf '[quality] PHPCS\n'
 php vendor/bin/phpcs
 
 printf '[quality] PHPStan\n'
-php vendor/bin/phpstan analyse
+php vendor/bin/phpstan analyse --memory-limit=512M
 
 printf '[quality] Architecture\n'
 php vendor/bin/deptrac --fail-on-uncovered --report-uncovered --report-skipped
