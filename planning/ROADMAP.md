@@ -31,7 +31,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00188](tasks/00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | in-progress | — |
+| Ready Frontier | [TASK-00189](tasks/00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -57,7 +57,7 @@ John then approved bounded aggregate-first architectural correction after those 
 DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
 dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
-TASK-00183's rule surface and TASK-00184's DBAL transaction separation have since been accepted; the remaining
+TASK-00183's rule surface and TASK-00184 through TASK-00188's refactors have since been accepted; the remaining
 dependent refactors remain pending.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),

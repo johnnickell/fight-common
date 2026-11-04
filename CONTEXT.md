@@ -12,7 +12,8 @@ aggregate layout, value-object inheritance, handler ownership, adapter destinati
 names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
 2026-11-02 decision; TASK-00184 implements execution transaction separation, TASK-00185 implements Task
 repository/transaction separation, TASK-00186 implements Notice repository/recovery separation and TASK-00187
-implements Task handler ownership. TASK-00188 through TASK-00192 own the remaining dependent corrections.
+implements Task handler ownership, and TASK-00188 implements Task disclosure projection. TASK-00189 through
+TASK-00192 own the remaining dependent corrections.
 
 An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
 or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
