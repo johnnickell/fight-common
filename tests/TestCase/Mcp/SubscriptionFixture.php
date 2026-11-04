@@ -64,7 +64,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly DbalSubscriptionStore $store;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false)
+    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?Closure $subscriptionStoreDecorator = null)
     {
         (new DbalNoticeSchema())->install($db);
         (new DbalSubscriptionSchema())->install($db);
@@ -73,7 +73,8 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($db), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queries = new RoutingQueryBus($router);
-        $this->subscriptions = new McpSubscriptions($this->queries, $this->store, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
+        $subscriptionStore = $subscriptionStoreDecorator === null ? $this->store : $subscriptionStoreDecorator($this->store);
+        $this->subscriptions = new McpSubscriptions($this->queries, $subscriptionStore, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };

@@ -91,14 +91,14 @@ final class McpSubscriptionJourneyTest extends TestCase
     public function test_that_heartbeat_after_clock_capture_preserves_open_counts_without_claiming_recent_observation(string $backend): void
     {
         $this->setupDatabase($backend);
-        $store = new DbalSubscriptionStore($this->db);
+        $subscriptionStore = new DbalSubscriptionStore($this->db);
         $registrationId = str_repeat('1', 32); $owner = str_repeat('2', 32);
-        $store->open($registrationId, $owner, ['subscriber' => 'agent', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
+        $subscriptionStore->open($registrationId, $owner, ['subscriber' => 'agent', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
         $connection = $this->db; $afterHeartbeat = [];
-        $reader = new DbalSubscriberReader($connection, 'controlled-db', static function () use ($store, $registrationId, $owner, $connection, &$afterHeartbeat): int {
+        $reader = new DbalSubscriberReader($connection, 'controlled-db', static function () use ($subscriptionStore, $registrationId, $owner, $connection, &$afterHeartbeat): int {
             $queriedAt = 100;
             // Commit a valid later heartbeat after capture, before the reader scans storage.
-            $store->heartbeat($registrationId, $owner, 101, 106);
+            $subscriptionStore->heartbeat($registrationId, $owner, 101, 106);
             $afterHeartbeat = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
             return $queriedAt;
         });
@@ -116,7 +116,7 @@ final class McpSubscriptionJourneyTest extends TestCase
         }
         self::assertSame($afterHeartbeat, $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection does not renew or expire storage');
         $closedAt = $observedAt + 1;
-        $store->close($registrationId, $owner, $closedAt);
+        $subscriptionStore->close($registrationId, $owner, $closedAt);
         $afterClose = $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
         foreach ([[$observedAt, 'stale_uncertain'], [$closedAt, 'disconnected'], [106, 'disconnected']] as [$queriedAt, $state]) {
             $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $closedAt, $closedAt);
@@ -377,22 +377,49 @@ final class McpSubscriptionJourneyTest extends TestCase
         $frames = array_map(static fn ($json) => json_decode($json, true, flags: JSON_THROW_ON_ERROR), $matches[1]);
         self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
         foreach ($frames as $frame) { self::assertSame('7', $frame['params']['_meta']['io.modelcontextprotocol/subscriptionId']); }
-        self::assertSame((int) $result['original']['expires_at'], (int) $result['locked']['row']['expires_at']);
+        self::assertSame($result['original'], $result['locked']['row'], 'The independent lock holder sees the exact unrenewed open row');
+        $firstTrackingCall = $result['calls'][0];
+        self::assertGreaterThanOrEqual($result['started'], $firstTrackingCall['transaction_entered_at']);
+        self::assertLessThanOrEqual($firstTrackingCall['lock_ready_at'], $firstTrackingCall['transaction_entered_at']);
+        self::assertLessThan($result['returned'], $firstTrackingCall['lock_ready_at']);
+        if ($mode === 'pre-renewal-expired') {
+            self::assertSame('close', $firstTrackingCall['operation'], 'Execution rejects expiry before invoking any heartbeat');
+            self::assertCount(1, $result['calls']);
+            self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['started']);
+            self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $firstTrackingCall['now']);
+            self::assertSame('returned', $firstTrackingCall['result']);
+        } else {
+            self::assertSame('heartbeat', $firstTrackingCall['operation']);
+            self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['transaction_entered_at'], 'Actual DBAL heartbeat entered while the original lease was fresh');
+            self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['lock_ready_at'], 'The independent worker holds the lock before original expiry');
+            self::assertSame($firstTrackingCall['now'] + 5, $firstTrackingCall['expires']);
+        }
         if ($mode === 'timeout') {
             self::assertGreaterThan($result['started'] + 0.9, $result['returned']);
             self::assertLessThan($result['locked']['at'], $result['returned'], 'SQL timeout returns before the independent lock holder releases');
-        } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process genuinely delayed renewal'); }
+        } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process delayed the identified tracking operation'); }
         if ($mode === 'fast') {
             self::assertLessThan((int) $result['original']['expires_at'], $result['locked']['at']);
             self::assertSame(['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'], array_column($frames, 'method'));
         } else {
             self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['locked']['at']);
-            if ($mode !== 'overlong') { self::assertLessThan((int) $result['started'] + 5, $result['returned'], 'The proposed lease remains future'); }
-            else { self::assertGreaterThanOrEqual((int) $result['started'] + 5, $result['returned']); }
+            if ($mode === 'expired' || $mode === 'timeout') { self::assertLessThan($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease remains future'); }
+            if ($mode === 'overlong') { self::assertGreaterThanOrEqual($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease also elapsed'); }
             self::assertCount(1, $frames, 'No new change or completion after the acknowledgment');
             self::assertStringNotContainsString('resultType', $wire);
             self::assertStringNotContainsString('keepalive', $wire);
-            self::assertSame((int) $result['original']['observed_at'], (int) $result['row']['observed_at']);
+            if ($mode === 'pre-renewal-expired') {
+                $expectedClosedRow = array_replace($result['original'], ['observed_at' => $firstTrackingCall['now'], 'closed_at' => $firstTrackingCall['now']]);
+                self::assertSame($expectedClosedRow, $result['row'], 'Only the exact supplied final closure timestamp changes; expiry and identity never move');
+                self::assertSame([RuntimeException::class], $result['diagnostics']);
+            } else {
+                self::assertSame($result['original'], $result['row'], 'Failed renewal leaves the entire original open row unchanged');
+                self::assertCount(2, $result['calls']);
+                self::assertSame('close', $result['calls'][1]['operation']);
+                self::assertSame(LogicException::class, $result['calls'][1]['result'], 'A failed store cannot subsequently close or revive the row');
+                self::assertSame([$firstTrackingCall['result'], LogicException::class], $result['diagnostics']);
+                if ($mode !== 'timeout') { self::assertSame(RuntimeException::class, $firstTrackingCall['result']); }
+            }
             self::assertSame((int) $result['original']['expires_at'], (int) $result['row']['expires_at'], 'No revival before suppressing output');
             self::assertSame($result['position_before'], $result['position_after']);
             self::assertTrue($result['eof']);
@@ -430,7 +457,7 @@ final class McpSubscriptionJourneyTest extends TestCase
     public static function contentionCases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach (['fast', 'expired', 'overlong', 'timeout'] as $mode) {
+            foreach (['fast', 'expired', 'overlong', 'timeout', 'pre-renewal-expired'] as $mode) {
                 foreach (['body', 'emitter'] as $transport) { yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport]; }
             }
         }

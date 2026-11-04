@@ -259,7 +259,11 @@ socket closure and abrupt process death followed by stale/late-owner checks and 
 a claim of saturated-kernel backpressure or instant disconnect detection. Unit tests separately prove bounded encoded
 frames, queued reauthorization/cancellation and source/tracking failure. Clean independent-process capacity-lock
 journeys additionally exercise timely, old-but-not-proposed-expired, overlong and SQL-timeout renewals through the
-actual body/emitter on all three databases, with unchanged expired rows and authorized retained recovery.
+actual body/emitter on all three databases. Test-owned coordination identifies actual DBAL heartbeat entry while
+fresh before starting the lock holder; rejected renewals leave the entire original row unchanged. A distinct
+expiry-before-body-resumption case proves that execution attempts no heartbeat and lawful final owner-bound closure
+sets only the exact supplied observed/closed timestamp, without extending expiry. Both failure paths preserve
+acknowledgment-only output, EOF, body position, diagnostics and authorized retained recovery.
 The optional Prompt journey additionally composes actual visible/hidden Prompt providers, list/get and live streams
 on all three databases: mixed families, concurrent scopes/typed IDs, concealed signals, changed retrieval visibility,
 notification revocation, provider call counters, generic inspection and source-failure recovery. Exact escaped frame
