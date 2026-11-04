@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Model durable Task IDs as exact 32-lowercase-hex `TaskId` values across Domain messages, repositories, admissions
+  and handles, explicitly retaining string wire/database boundaries and separate trusted scope. Definition, state,
+  input batch and ordered scoped selection now extend ValueObject with equality/hash/reconstruction and deliberate
+  structured JSON preserving nested representation distinctions. Task remains the aggregate and TaskInputs remains
+  nested lifecycle bookkeeping. Revise never-tagged APIs directly, without snapshot aliases or schema/lifecycle,
+  retry, input/cancellation or public revision changes. See [Task classification](docs/durable-tasks.md#model-classification-and-value-contracts).
 - Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
   visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
   and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate

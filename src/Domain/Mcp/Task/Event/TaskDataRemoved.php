@@ -24,7 +24,7 @@ final readonly class TaskDataRemoved implements Event
      */
     public static function fromArray(array $data): static
     {
-        return new self(TaskSelection::fromIds($data['scope'], $data['ids']));
+        return new self(TaskSelection::fromArray($data));
     }
 
     /**
@@ -32,6 +32,6 @@ final readonly class TaskDataRemoved implements Event
      */
     public function toArray(): array
     {
-        return ['scope' => $this->selection->scope(), 'ids' => $this->selection->ids()];
+        return $this->selection->toArray();
     }
 }

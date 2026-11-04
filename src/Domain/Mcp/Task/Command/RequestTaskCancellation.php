@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Task\Command;
 
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
@@ -15,10 +16,9 @@ final readonly class RequestTaskCancellation implements Command
     /**
      * Constructs RequestTaskCancellation
      */
-    public function __construct(public string $scope, public string $id, public string $caller)
+    public function __construct(public string $scope, public TaskId $id, public string $caller)
     {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         TaskDefinition::reference($caller);
     }
 
@@ -27,7 +27,7 @@ final readonly class RequestTaskCancellation implements Command
      */
     public static function fromArray(array $data): static
     {
-        return new self($data['scope'], $data['id'], $data['caller']);
+        return new self($data['scope'], TaskId::fromString($data['id']), $data['caller']);
     }
 
     /**
@@ -35,6 +35,6 @@ final readonly class RequestTaskCancellation implements Command
      */
     public function toArray(): array
     {
-        return ['scope' => $this->scope, 'id' => $this->id, 'caller' => $this->caller];
+        return ['scope' => $this->scope, 'id' => $this->id->toString(), 'caller' => $this->caller];
     }
 }

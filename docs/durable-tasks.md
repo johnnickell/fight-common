@@ -9,6 +9,35 @@ and actual tasks/cancel handling; intent never forces a terminal outcome.
 protected observation and single-use continuation. Independently authorized explicit removal is supplied below. A Task is neither a planning TASK,
 consumer job, Workflow nor execution authority. Polling has no Subscriptions, Mercure or Event Store dependency.
 
+## Model classification and value contracts
+
+| Type | Responsibility and classification |
+| --- | --- |
+| `Domain\Mcp\Task\Task` | Ordinary aggregate root: exact trusted scope plus TaskId select its retained lifetime; it owns invariant-preserving transitions, retry/version fences, input and cancellation. Not a value or event-sourced base subclass. |
+| `TaskId` | Final readonly `ValueObject` implementing `Identifier`: exactly 32 lowercase ASCII hexadecimal bytes, not a UUID. `generate()` creates random bytes; `fromString()` rejects rather than trims/case-folds. Same-type equality/hash/string/JSON use the exact ID; `compareTo()` is bytewise and rejects other types. Scope remains a separate required selection component, not part of the lexical ID or an authority grant. |
+| `TaskDefinition` | Final readonly `ValueObject`: original ID, scope, producer and complete retained operation contract. Replacing it with an equal definition preserves the same original context; it is not the mutable Task aggregate. |
+| `TaskState` | Final readonly `ValueObject`: complete status-specific description, including nullable message and input/result/error distinctions, not the lifetime or concurrency fence. |
+| `TaskInputBatch` | Final readonly `ValueObject`: caller, expiry, confirmation mode and original named public/private contracts before issuance. Equal batches may be issued as different groups. |
+| `TaskSelection` | Final readonly `ValueObject`: exact scope and ordered list of 1–100 distinct `TaskId` values. Order is retained for per-member admission and removal facts, not silently sorted as a set. |
+| `TaskInputs` and retained groups | Nested lifecycle bookkeeping, not values: Task-scoped namespace, lifetime high-water counter and identified groups with durable answers, retirement and one-time consumption. Immutable replacement does not erase entity identity or make consumption comparable by value. Groups remain embedded under their issued first-request key; no extra aggregate/repository is introduced. |
+| Commands, Queries and events | Intent, selection and reference-only facts implementing their messaging contracts, not ValueObject merely because readonly. Typed IDs become exact strings explicitly in `toArray()` and reconstruct in `fromArray()`. |
+| Application Query views and `McpTaskHandle` | Use-case/protocol data, not Domain values. Internal `TaskProjection` builds the existing structured `StrictJson` Query view; the handle carries a typed ID but grants neither disclosure nor execution. |
+
+Domain constructors, repository/committed-read methods and Task admission ports take `TaskId`; database columns,
+message arrays and MCP `taskId` remain the same strings. Convert incoming trusted selections with
+`TaskId::fromString($bytes)` and encode outward with `$id->toString()`. Repository hydration compares both exact
+scope and ID value, not PHP instance identity. No wrapper is added for every caller/producer/form-key string.
+
+The four composite values provide `fromString()`/`toString()` over their existing structured JSON fields, plus
+same-concrete-type equality/hash from ValueObject. Their `jsonSerialize()` deliberately emits structures, never
+an embedded JSON string. Definition/state retain `fromArray()`/`toArray()`; input batches retain `fromData()`/`data()`;
+selection adds explicit message `fromArray()`/`toArray()`. Malformed/incoherent string reconstruction raises
+DomainException. Nested object/list, absent/explicit-null, empty/null message, integer/float, form/confirmation and
+result/error distinctions survive. Source ordering inside retained JSON contracts/payloads is significant, agreeing
+with exact encoded-content retries; these values do not canonicalize or sort arbitrary JSON. Selection equality
+includes supplied order and scope. Equality and hash reconstruction are not authorization, redaction or a public-safe
+serializer: definitions and batches contain protected context. Shared low-level StrictJson remains unchanged.
+
 ## Explicit composition
 
 Use a dedicated idle DBAL connection to an owned SQLite, MySQL or PostgreSQL database. During exclusive deployment,
@@ -73,10 +102,11 @@ use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
-$id = TaskDefinition::newId(); // Generate before the void Command; possession grants nothing.
+$id = TaskId::generate(); // Generate before the void Command; possession grants nothing.
 $definition = TaskDefinition::create($id, 'project:example', 'producer:example', StrictJson::fromObject([
     'kind' => 'tool',
     'name' => 'example.operation',
@@ -168,7 +198,7 @@ $commands->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$i
 // A fresh GetTask under independent read permission now returns null, with no asserted absence reason.
 ```
 
-`TaskSelection::fromIds()` accepts one exact scope and a list of **1–100 distinct IDs**. Scope/ID bounds are the same
+`TaskSelection::fromIds()` accepts one exact scope and a list of **1–100 distinct TaskId values**. Scope/ID bounds are the same
 as creation. Empty, associative, duplicate, non-string, malformed and over-limit selections reject with DomainException
 before database work; nothing is silently dropped or truncated. The same immutable selection is used by the store
 and reference-only fact. One request is one atomic all-or-nothing transaction, not 100 independently committed actions.
@@ -289,9 +319,16 @@ bounded Query construction and native PHP HMAC framing/additive masking. No cryp
 external runtime dependency is introduced, so no encoding port, forwarding adapter or extra caller sequence is
 needed. Domain retains atomic lifetime/public-write/expiry order, clock rollback and exhaustion checks; it does not
 know visibility contexts or encoded revision tokens. The compatibility manifest classifies the new helper internal
-and updates the aggregate operation shape; no tagged contract requires a bridge. Typed values (TASK-00189) and
-adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/removal/revision semantics,
+and updates the aggregate operation shape; no tagged contract requires a bridge. Adapter namespace moves remain
+a separate chore. Schema, retry/expiry/input/cancellation/removal/revision semantics,
 GetTaskHandler construction and public Query/wire output stay unchanged.
+
+TASK-00189 adds public final `Domain\Mcp\Task\TaskId` and directly types provisional Domain/repository/read/admission
+and handle APIs. Definition, state, input batch and selection now inherit ValueObject with meaningful reconstruction,
+equality/hash and deliberately structured JSON. `TaskInputs` remains nested lifecycle state, not a value. All local
+release tags through v1.4.0 were inspected; none contains these Task APIs. No snapshot aliases, deprecations, schema
+migrations, lifecycle or wire changes are introduced. The compatibility manifest classifies TaskId public with named
+factory/callable contracts, not extensibility; internal TaskProjection remains internal. See the classification above.
 
 TASK-00167 added five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
 Domain `TaskSelection`, `RemoveTasks`, `TaskDataRemoved`; Application `RemoveTasksHandler`, `TaskRemovalAdmission`.

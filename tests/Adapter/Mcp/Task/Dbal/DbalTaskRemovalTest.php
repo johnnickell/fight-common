@@ -102,7 +102,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
     public function test_that_removal_rejects_unowned_and_enclosing_transactions_before_admission_or_caller_mutation(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $fixture->create();
-        try { $fixture->taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::ID])); self::fail('Owned transaction required.'); }
+        try { $fixture->taskRepository->remove(TaskSelection::fromIds('scope', [TaskFixture::id()])); self::fail('Owned transaction required.'); }
         catch (LogicException) { self::assertNotNull($fixture->get()); }
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
         $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]);

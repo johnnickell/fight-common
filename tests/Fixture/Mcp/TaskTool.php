@@ -33,6 +33,6 @@ final class TaskTool implements McpTaskTool
         if ($this->ordinary) { return $this->handle($input, $progress); }
         $this->fixture->create(60000, 25);
         ($this->onStart ?? static fn () => null)();
-        return new McpTaskHandle(TaskFixture::ID);
+        return new McpTaskHandle(TaskFixture::id());
     }
 }

@@ -32,7 +32,7 @@ final class TaskTest extends UnitTestCase
     public function test_that_original_context_messages_and_coherent_states_round_trip_without_mutable_aliases(): void
     {
         $definition = TaskFixture::definition();
-        self::assertSame(32, strlen(TaskDefinition::newId()));
+        self::assertSame(32, strlen(TaskFixture::id()->toString()));
         self::assertSame('producer', $definition->producer());
         self::assertSame('example.operation', $definition->operation()->get('name'));
         $command = new CreateTask($definition, TaskState::create('working', 'Preparing'), 1000, 1);
@@ -46,14 +46,14 @@ final class TaskTest extends UnitTestCase
         self::assertTrue($task->availableAt(1099)); self::assertFalse($task->availableAt(1100));
         self::assertTrue($task->repeatsCreation($command->at(500)));
         self::assertTrue(Task::create($definition, TaskState::create('working'), null, null, 0)->availableAt(Task::MAX_TIME));
-        $query = new GetTask('scope', TaskFixture::ID);
+        $query = new GetTask('scope', TaskFixture::id());
         self::assertSame($query->toArray(), GetTask::fromArray($query->toArray())->toArray());
-        self::assertSame('scope', $query->scope()); self::assertSame(TaskFixture::ID, $query->id());
+        self::assertSame('scope', $query->scope()); self::assertTrue(TaskFixture::id()->equals($query->id()));
         foreach ([TaskFixture::completed(), TaskFixture::completed(true), TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $state) {
             self::assertEquals($state->toArray(), TaskState::fromArray($state->toArray())->toArray());
-            $update = new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, $state, 5);
+            $update = new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, $state, 5);
             self::assertEquals($update->toArray(), RecordTaskState::fromArray($update->toArray())->toArray());
-            self::assertSame('scope', $update->scope()); self::assertSame(TaskFixture::ID, $update->id());
+            self::assertSame('scope', $update->scope()); self::assertTrue(TaskFixture::id()->equals($update->id()));
             self::assertSame('producer', $update->producer()); self::assertSame($state, $update->state());
             $next = $update->applyTo($task, 50);
             self::assertSame(2, $next->version()); self::assertSame($state, $next->state());
@@ -191,15 +191,15 @@ final class TaskTest extends UnitTestCase
     {
         $task = Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 10);
         $invalid = [
-            fn () => TaskDefinition::identity('guessed'), fn () => TaskDefinition::reference(''),
-            fn () => TaskDefinition::create(TaskFixture::ID, 'scope', 'producer', StrictJson::fromData([])),
-            fn () => TaskDefinition::create(TaskFixture::ID, 'scope', 'producer', StrictJson::fromObject(['x' => str_repeat('x', 8192)])),
+            fn () => TaskFixture::id('guessed'), fn () => TaskDefinition::reference(''),
+            fn () => TaskDefinition::create(TaskFixture::id(), 'scope', 'producer', StrictJson::fromData([])),
+            fn () => TaskDefinition::create(TaskFixture::id(), 'scope', 'producer', StrictJson::fromObject(['x' => str_repeat('x', 8192)])),
             fn () => Task::create(TaskFixture::definition(), TaskState::create('cancelled'), null, null, 0),
             fn () => Task::create(TaskFixture::definition(), TaskState::create('working'), 1, null, Task::MAX_TIME),
             fn () => Task::timestamp(-1), fn () => Task::timestamp(Task::MAX_TIME + 1),
             fn () => Task::interval(0), fn () => Task::interval(2147483648),
-            fn () => new RecordTaskState('scope', TaskFixture::ID, 'producer', 0, TaskState::create('working')),
-            fn () => new RecordTaskState('scope', TaskFixture::ID, 'producer', Task::MAX_VERSION + 1, TaskState::create('working')),
+            fn () => new RecordTaskState('scope', TaskFixture::id(), 'producer', 0, TaskState::create('working')),
+            fn () => new RecordTaskState('scope', TaskFixture::id(), 'producer', Task::MAX_VERSION + 1, TaskState::create('working')),
             fn () => TaskChanged::fromArray(['scope' => 'scope', 'id' => TaskFixture::ID, 'version' => 0])
         ];
         foreach (['schema' => 2, 'version' => 0, 'updated_at' => 9, 'creation_digest' => 'invalid', 'last_digest' => 'invalid'] as $key => $value) {

@@ -6,11 +6,13 @@ namespace Fight\Common\Domain\Mcp\Task;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Common\Domain\Value\ValueObject;
+use TypeError;
 
 /**
  * Class TaskState
  */
-final readonly class TaskState
+final readonly class TaskState extends ValueObject
 {
     public const int MAX_BYTES = 32768;
 
@@ -113,6 +115,18 @@ final readonly class TaskState
     }
 
     /**
+     * Creates coherent state from structured JSON without losing object or numeric kinds
+     */
+    public static function fromString(string $value): static
+    {
+        try {
+            return self::fromArray(StrictJson::fromString($value, 32)->properties());
+        } catch (TypeError $typeError) {
+            throw new DomainException('Invalid Task state representation.', 0, $typeError);
+        }
+    }
+
+    /**
      * Returns the lifecycle status
      */
     public function status(): string
@@ -144,5 +158,21 @@ final readonly class TaskState
     public function toArray(): array
     {
         return $this->data->properties();
+    }
+
+    /**
+     * Returns complete state with exact source ordering and explicit absent payloads
+     */
+    public function toString(): string
+    {
+        return $this->data->toString();
+    }
+
+    /**
+     * Returns structured state rather than an embedded JSON string
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->data->jsonSerialize();
     }
 }

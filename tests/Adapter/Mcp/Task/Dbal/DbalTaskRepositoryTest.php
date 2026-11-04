@@ -25,6 +25,7 @@ use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\Task;
+use Fight\Common\Domain\Mcp\Task\TaskDefinition;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
@@ -51,6 +52,36 @@ use RuntimeException;
 #[CoversClass(CommittedTaskDispatchFailed::class)]
 final class DbalTaskRepositoryTest extends UnitTestCase
 {
+    public function test_that_equal_reconstructed_ids_select_only_the_exact_trusted_scope_and_keep_stored_bytes(): void
+    {
+        $connection = $this->database();
+        $fixture = new TaskFixture($connection);
+        $fixture->create();
+        $otherDefinition = TaskDefinition::create(
+            TaskFixture::id(),
+            'other-scope',
+            'other-producer',
+            TaskFixture::definition()->operation()
+        );
+        $other = Task::create($otherDefinition, TaskState::create('working', 'Other scope'), null, null, $fixture->now);
+        $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->taskRepository->save($other));
+        $first = $fixture->committedTaskReader->read('scope', TaskFixture::id());
+        $second = $fixture->committedTaskReader->read('other-scope', TaskFixture::id());
+        self::assertTrue($first->definition()->id()->equals($second->definition()->id()));
+        self::assertFalse($first->definition()->equals($second->definition()));
+        self::assertSame('producer', $first->definition()->producer());
+        self::assertSame('other-producer', $second->definition()->producer());
+        self::assertNull($fixture->committedTaskReader->read('missing-scope', TaskFixture::id()));
+        foreach ($connection->fetchAllAssociative('SELECT scope, task_id, payload FROM fight_tasks') as $row) {
+            self::assertSame('0123456789abcdef0123456789abcdef', $row['task_id']);
+            $stored = json_decode($row['payload'], false, 96, JSON_THROW_ON_ERROR);
+            self::assertSame('0123456789abcdef0123456789abcdef', $stored->definition->id);
+            self::assertSame($row['scope'], $stored->definition->scope);
+            self::assertIsObject($stored->definition->operation);
+            self::assertIsObject($stored->state);
+        }
+    }
+
     public function test_that_routed_lifecycle_commits_coherent_state_and_rechecks_current_independent_permissions(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $facts = [];
@@ -91,11 +122,11 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         $connection = $this->database(); $fixture = new TaskFixture($connection);
         try { $fixture->record(TaskFixture::completed()); self::fail('Missing cannot complete.'); } catch (TaskRejected) { self::assertNull($fixture->get()); }
         $fixture->create(); $before = $fixture->get()->toString();
-        foreach ([new RecordTaskState('scope', TaskFixture::ID, 'other', 1, TaskFixture::completed()), new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'private diagnostic']))), new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskState::create('completed', result: StrictJson::fromObject(['content' => [], 'structuredContent' => (object) ['ok' => 'wrong'], 'isError' => false])))] as $command) {
+        foreach ([new RecordTaskState('scope', TaskFixture::id(), 'other', 1, TaskFixture::completed()), new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'private diagnostic']))), new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskState::create('completed', result: StrictJson::fromObject(['content' => [], 'structuredContent' => (object) ['ok' => 'wrong'], 'isError' => false])))] as $command) {
             try { $fixture->commands->execute($command); self::fail('Unsafe evidence must reject.'); } catch (TaskRejected) { self::assertSame($before, $fixture->get()->toString()); }
         }
         // Tampered but structurally valid state cannot bypass original contract validation on reads.
-        $data = $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
+        $data = $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray();
         $data['definition']['operation'] = StrictJson::fromObject(['kind' => 'unknown']);
         $connection->update('fight_tasks', ['payload' => json_encode($data, JSON_THROW_ON_ERROR)], ['scope' => 'scope']);
         $this->expectException(TaskRejected::class); $fixture->get();
@@ -115,7 +146,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection);
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
-        foreach ([fn () => $fixture->taskRepository->save((new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(0)), fn () => $fixture->taskRepository->getById('scope', TaskFixture::ID), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->committedTaskReader->read('scope', TaskFixture::ID)), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
+        foreach ([fn () => $fixture->taskRepository->save((new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(0)), fn () => $fixture->taskRepository->getById('scope', TaskFixture::id()), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->committedTaskReader->read('scope', TaskFixture::id())), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
             try { $operation(); self::fail('Ownership required.'); } catch (LogicException) { self::assertFalse($connection->isTransactionActive()); }
         }
         $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]);
@@ -158,7 +189,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         $taskRepository = new DbalTaskRepository($transactionalUnitOfWork);
         try { $transactionalUnitOfWork->commitTransactional(static function () use ($stage, $cause) { if ($stage === 'rollback') { throw $cause; } return null; }); self::fail('Uncertainty required.'); }
         catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertSame($cause, $failure->getPrevious()); }
-        self::assertTrue($transactionalUnitOfWork->isClosed()); $this->expectException(LogicException::class); $taskRepository->read('scope', TaskFixture::ID);
+        self::assertTrue($transactionalUnitOfWork->isClosed()); $this->expectException(LogicException::class); $taskRepository->read('scope', TaskFixture::id());
     }
 
     public static function uncertainties(): iterable
@@ -180,7 +211,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         yield ['{"definition":null,"state":null}']; yield [str_repeat('x', 65537)];
         $task = (new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(1)->toArray();
         $task['definition']['id'] = str_repeat('f', 32);
-        $task['inputs'] = \Fight\Common\Domain\Mcp\Task\TaskInputs::empty('scope', str_repeat('f', 32))->data();
+        $task['inputs'] = \Fight\Common\Domain\Mcp\Task\TaskInputs::empty('scope', TaskFixture::id(str_repeat('f', 32)))->data();
         yield [json_encode($task, JSON_THROW_ON_ERROR)];
     }
 
@@ -209,7 +240,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         self::assertSame(CreateTask::class, CreateTaskHandler::commandRegistration());
         self::assertSame(RecordTaskState::class, RecordTaskStateHandler::commandRegistration());
         self::assertSame(GetTask::class, GetTaskHandler::queryRegistration());
-        foreach ([fn () => $fixture->createTaskHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskState::create('working')))), fn () => $fixture->recordTaskStateHandler->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))), fn () => $fixture->getTaskHandler->handle(QueryMessage::create(new \Fight\Common\Domain\Mcp\Notice\Query\GetNotice('scope', 'producer', 'notice')))] as $operation) {
+        foreach ([fn () => $fixture->createTaskHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskState::create('working')))), fn () => $fixture->recordTaskStateHandler->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))), fn () => $fixture->getTaskHandler->handle(QueryMessage::create(new \Fight\Common\Domain\Mcp\Notice\Query\GetNotice('scope', 'producer', 'notice')))] as $operation) {
             try { $operation(); self::fail('Wrong message must reject.'); } catch (InvalidArgumentException) { self::assertTrue(true); }
         }
     }
@@ -222,7 +253,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         $operation = TaskFixture::definition()->operation()->with('retained', $nested, 64);
         $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame('working', $fixture->get()->get('state')->get('status'));
-        self::assertSame($operation->toString(), $fixture->committedTaskReader->read('scope', TaskFixture::ID)->definition()->operation()->toString());
+        self::assertSame($operation->toString(), $fixture->committedTaskReader->read('scope', TaskFixture::id())->definition()->operation()->toString());
     }
 
     public function test_that_creation_retries_keep_original_expiry_at_the_timestamp_ceiling(): void
@@ -247,7 +278,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         $taskRepository = new DbalTaskRepository($transactionalUnitOfWork);
         $operation = StrictJson::fromObject(['padding' => str_repeat('x', 8178)]);
         self::assertSame(8192, strlen($operation->toString()));
-        $definition = \Fight\Common\Domain\Mcp\Task\TaskDefinition::create(TaskFixture::ID, 'scope', 'producer', $operation);
+        $definition = \Fight\Common\Domain\Mcp\Task\TaskDefinition::create(TaskFixture::id(), 'scope', 'producer', $operation);
         $task = Task::create($definition, TaskState::create('working'), null, null, 0);
         $empty = TaskState::create('completed', result: StrictJson::fromObject(['body' => '']));
         $capacity = TaskState::MAX_BYTES - strlen($empty->data()->toString());
@@ -256,7 +287,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         try { $transactionalUnitOfWork->commitTransactional(fn () => $taskRepository->save($next)); self::fail('Combined encoded bound must reject.'); }
         catch (RuntimeException) { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks')); }
         $transactionalUnitOfWork->commitTransactional(fn () => $taskRepository->save($task));
-        self::assertSame(8192, strlen($taskRepository->read('scope', TaskFixture::ID)->definition()->operation()->toString()));
+        self::assertSame(8192, strlen($taskRepository->read('scope', TaskFixture::id())->definition()->operation()->toString()));
     }
 
     private function database(): Connection

@@ -63,12 +63,11 @@ final readonly class TaskInputs
     /**
      * Creates empty lifetime bookkeeping without a payload archive
      */
-    public static function empty(string $scope, string $id): self
+    public static function empty(string $scope, TaskId $id): self
     {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
 
-        return new self(substr(hash('sha256', $scope."\0".$id), 0, 32), 0, []);
+        return new self(substr(hash('sha256', $scope."\0".$id->toString()), 0, 32), 0, []);
     }
 
     /**
@@ -86,7 +85,7 @@ final readonly class TaskInputs
     /**
      * Returns whether retained request identity belongs to this exact Task and scope
      */
-    public function belongsTo(string $scope, string $id): bool
+    public function belongsTo(string $scope, TaskId $id): bool
     {
         return $this->namespace === self::empty($scope, $id)->namespace;
     }

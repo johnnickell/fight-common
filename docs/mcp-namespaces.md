@@ -35,8 +35,9 @@ removed; the DBAL execution seam retains real schema locking and failure transla
 See [transaction composition](execution-observations.md#retry-and-transaction-guarantees). No aggregate namespace
 moves are included in that correction.
 
-Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 and TASK-00190 own
-identity/value classification and inheritance corrections; TASK-00192 owns descriptive variable names. MCP engine,
+Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 implements Task
+identity/value classification and inheritance; TASK-00190 owns the other identity/value corrections. TASK-00192 owns
+descriptive variable names. MCP engine,
 protocol semantics and ports remain Application-owned. Required released bridges remain functional; provisional
 names move directly when the owning refactor executes. Do not import these target FQCNs as existing APIs yet.
 This future aggregate alignment does not undo TASK-00181's implemented foundation canonical names or their
@@ -100,7 +101,9 @@ remain on that same path. Domain retains outstanding-input lifecycle state and a
 order, with no transport-view construction or HMAC knowledge. There is no provider variation or external encoding
 dependency requiring a port/Adapter, no new consumer setup, and no development-snapshot compatibility aliases.
 See [durable Tasks](durable-tasks.md#compatibility-and-public-surface) and [live revisions](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
-Typed values remain TASK-00189's responsibility.
+TASK-00189 adds public `Domain\Mcp\Task\TaskId` and ValueObject contracts for definition, state, input batch and
+selection. TaskInputs remains nested lifecycle bookkeeping. See the
+[complete Task classification](durable-tasks.md#model-classification-and-value-contracts); structured JSON and scope/wire/storage bytes stay explicit.
 
 ## Task persistence capabilities
 

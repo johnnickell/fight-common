@@ -6,17 +6,19 @@ namespace Fight\Common\Domain\Mcp\Task;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Common\Domain\Value\ValueObject;
+use TypeError;
 
 /**
  * Class TaskDefinition
  */
-final readonly class TaskDefinition
+final readonly class TaskDefinition extends ValueObject
 {
     /**
      * Constructs TaskDefinition
      */
     private function __construct(
-        private string $id,
+        private TaskId $id,
         private string $scope,
         private string $producer,
         private StrictJson $operation
@@ -24,19 +26,10 @@ final readonly class TaskDefinition
     }
 
     /**
-     * Creates an unguessable application identity without granting authority
-     */
-    public static function newId(): string
-    {
-        return bin2hex(random_bytes(16));
-    }
-
-    /**
      * Creates immutable original operation context supplied by trusted composition
      */
-    public static function create(string $id, string $scope, string $producer, StrictJson $operation): self
+    public static function create(TaskId $id, string $scope, string $producer, StrictJson $operation): self
     {
-        self::identity($id);
         self::reference($scope);
         self::reference($producer);
         $operation = StrictJson::fromData($operation, 64);
@@ -58,19 +51,24 @@ final readonly class TaskDefinition
             throw new DomainException('Invalid Task definition representation.');
         }
 
-        return self::create($data['id'], $data['scope'], $data['producer'], StrictJson::fromData($data['operation']));
+        return self::create(
+            TaskId::fromString($data['id']),
+            $data['scope'],
+            $data['producer'],
+            StrictJson::fromData($data['operation'])
+        );
     }
 
     /**
-     * Validates exact application-generated identities
+     * Creates the original context from its structured JSON representation
      */
-    public static function identity(string $id): string
+    public static function fromString(string $value): static
     {
-        if (preg_match('/\A[0-9a-f]{32}\z/D', $id) !== 1) {
-            throw new DomainException('Invalid Task identity.');
+        try {
+            return self::fromArray(StrictJson::fromString($value, 65)->properties());
+        } catch (TypeError $typeError) {
+            throw new DomainException('Invalid Task definition representation.', 0, $typeError);
         }
-
-        return $id;
     }
 
     /**
@@ -88,7 +86,7 @@ final readonly class TaskDefinition
     /**
      * Returns the exact identity
      */
-    public function id(): string
+    public function id(): TaskId
     {
         return $this->id;
     }
@@ -125,10 +123,26 @@ final readonly class TaskDefinition
     public function toArray(): array
     {
         return [
-            'id'        => $this->id,
+            'id'        => $this->id->toString(),
             'scope'     => $this->scope,
             'producer'  => $this->producer,
             'operation' => $this->operation
         ];
+    }
+
+    /**
+     * Returns exact original context including source JSON ordering and numeric kinds
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+    /**
+     * Returns structured protected context rather than an embedded JSON string
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->toArray();
     }
 }

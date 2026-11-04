@@ -14,6 +14,7 @@ use Fight\Common\Application\Messaging\Command\CommandBus;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
 
@@ -56,7 +57,11 @@ final readonly class McpTaskCancellation
                 throw new DomainException('Invalid Task cancellation parameters.');
             }
 
-            $command = new RequestTaskCancellation($this->scope, $parameters['taskId'], $this->caller);
+            $command = new RequestTaskCancellation(
+                $this->scope,
+                TaskId::fromString($parameters['taskId']),
+                $this->caller
+            );
         } catch (Throwable) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }

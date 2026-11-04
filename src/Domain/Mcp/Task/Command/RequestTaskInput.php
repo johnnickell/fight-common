@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Task\Command;
 
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskInputBatch;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -19,13 +20,12 @@ final readonly class RequestTaskInput implements Command
      */
     public function __construct(
         public string $scope,
-        public string $id,
+        public TaskId $id,
         public string $producer,
         public int $expectedVersion,
         public TaskInputBatch $batch
     ) {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         TaskDefinition::reference($producer);
     }
 
@@ -36,7 +36,7 @@ final readonly class RequestTaskInput implements Command
     {
         return new self(
             $data['scope'],
-            $data['id'],
+            TaskId::fromString($data['id']),
             $data['producer'],
             $data['expected_version'],
             TaskInputBatch::fromData(StrictJson::fromData($data['batch']))
@@ -50,7 +50,7 @@ final readonly class RequestTaskInput implements Command
     {
         return [
             'scope'            => $this->scope,
-            'id'               => $this->id,
+            'id'               => $this->id->toString(),
             'producer'         => $this->producer,
             'expected_version' => $this->expectedVersion,
             'batch'            => $this->batch->data()

@@ -6,11 +6,13 @@ namespace Fight\Common\Domain\Mcp\Task;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Common\Domain\Value\ValueObject;
+use TypeError;
 
 /**
  * Class TaskInputBatch
  */
-final readonly class TaskInputBatch
+final readonly class TaskInputBatch extends ValueObject
 {
     /**
      * Constructs TaskInputBatch
@@ -71,10 +73,38 @@ final readonly class TaskInputBatch
     }
 
     /**
+     * Creates bound contracts from structured JSON without acquiring input lifecycle identity
+     */
+    public static function fromString(string $value): static
+    {
+        try {
+            return self::fromData(StrictJson::fromString($value, 40));
+        } catch (TypeError $typeError) {
+            throw new DomainException('Invalid Task input batch.', 0, $typeError);
+        }
+    }
+
+    /**
      * Returns immutable private binding and contracts rather than a public form
      */
     public function data(): StrictJson
     {
         return $this->data;
+    }
+
+    /**
+     * Returns exact bound contracts including source ordering and numeric kinds
+     */
+    public function toString(): string
+    {
+        return $this->data->toString();
+    }
+
+    /**
+     * Returns structured private contracts rather than an embedded JSON string
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->data->jsonSerialize();
     }
 }

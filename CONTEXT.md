@@ -12,8 +12,8 @@ aggregate layout, value-object inheritance, handler ownership, adapter destinati
 names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
 2026-11-02 decision; TASK-00184 implements execution transaction separation, TASK-00185 implements Task
 repository/transaction separation, TASK-00186 implements Notice repository/recovery separation and TASK-00187
-implements Task handler ownership, and TASK-00188 implements Task disclosure projection. TASK-00189 through
-TASK-00192 own the remaining dependent corrections.
+implements Task handler ownership, TASK-00188 implements Task disclosure projection and TASK-00189 implements
+Task identity/value contracts. TASK-00190 through TASK-00192 own the remaining dependent corrections.
 
 An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
 or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
@@ -274,6 +274,15 @@ transactional unit-of-work and Event Store guarantees remain unchanged.
 `Domain\Mcp\Task\Task` owns coherent working/input_required/completed/failed/cancelled state, original immutable
 `TaskDefinition`, server millisecond timestamps, immutable creation-duration TTL, optional polling advice and a
 Task-local version fence. `TaskState` owns status-specific input/result/error invariants and finite encoded bounds.
+Final readonly `TaskId` extends ValueObject and implements Identifier for exact 32-lowercase-hex bytes, with bytewise
+same-type ordering and string JSON; it is not a UUID or authority. Actual aggregate selection still requires the
+separate exact trusted scope. Domain messages, repositories, committed reads, admissions and handles use typed IDs;
+wire/storage boundaries explicitly encode strings. `TaskDefinition`, `TaskState`, `TaskInputBatch` and ordered scoped
+`TaskSelection` extend ValueObject with same-concrete-type equality/hash and validated structured-JSON reconstruction.
+Their JSON remains structured, with protected context, nested object/list/null/empty/numeric and source-order distinctions
+preserved, agreeing with exact-content retries. `TaskInputs` and its identified input groups remain nested lifecycle
+bookkeeping, not values solely because immutable. Commands/Queries/facts and Application Query views/handles retain
+their messaging/use-case classifications. See [the complete classification](docs/durable-tasks.md#model-classification-and-value-contracts).
 Completed Tool `isError: true` remains completed; failed holds a safely mapped JSON-RPC execution error. Neither
 silence, disconnect, expiry nor a handle establishes execution, cancellation, business success or Workflow authority.
 

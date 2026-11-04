@@ -50,7 +50,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         foreach ([TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $index => $terminal) {
             $id = str_repeat((string) ($index + 1), 32);
             $fresh->create(id: $id);
-            $fresh->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', $id, 'producer', 1, $terminal));
+            $fresh->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::id($id), 'producer', 1, $terminal));
             self::assertSame($terminal->data()->toString(), (new TaskFixture($this->connect($params)))->get($id)->get('state')->toString());
         }
         $snapshot = $reconnected->get()->toString(); $reconnected->readAllowed = false; self::assertNull($reconnected->get());
@@ -135,7 +135,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         $fresh = new TaskFixture($this->connect($connection->getParams()));
         self::assertSame('working', $fresh->get()->get('state')->get('status'));
-        self::assertSame($operation->toString(), $fresh->committedTaskReader->read('scope', TaskFixture::ID)->definition()->operation()->toString());
+        self::assertSame($operation->toString(), $fresh->committedTaskReader->read('scope', TaskFixture::id())->definition()->operation()->toString());
         $fresh->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame(1, $fresh->get()->get('version'));
     }

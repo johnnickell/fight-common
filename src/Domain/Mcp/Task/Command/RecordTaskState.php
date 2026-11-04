@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Mcp\Task\Command;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Task;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Messaging\Command\Command;
 
@@ -20,14 +21,13 @@ final readonly class RecordTaskState implements Command
      */
     public function __construct(
         private string $scope,
-        private string $id,
+        private TaskId $id,
         private string $producer,
         private int $expectedVersion,
         private TaskState $state,
         private ?int $pollInterval = null
     ) {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         TaskDefinition::reference($producer);
         Task::interval($pollInterval);
         if ($expectedVersion < 1 || $expectedVersion > Task::MAX_VERSION) {
@@ -42,7 +42,7 @@ final readonly class RecordTaskState implements Command
     {
         return new self(
             $data['scope'],
-            $data['id'],
+            TaskId::fromString($data['id']),
             $data['producer'],
             $data['expected_version'],
             TaskState::fromArray($data['state']),
@@ -61,7 +61,7 @@ final readonly class RecordTaskState implements Command
     /**
      * Returns the exact Task identity
      */
-    public function id(): string
+    public function id(): TaskId
     {
         return $this->id;
     }
@@ -97,7 +97,7 @@ final readonly class RecordTaskState implements Command
     {
         return [
             'scope'            => $this->scope,
-            'id'               => $this->id,
+            'id'               => $this->id->toString(),
             'producer'         => $this->producer,
             'expected_version' => $this->expectedVersion,
             'state'            => $this->state->toArray(),
