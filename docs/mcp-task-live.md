@@ -37,7 +37,7 @@ must not label Task metadata with a narrower/unrelated notice scope. Independent
 permit that complete context; it never becomes proof of delivery or continuing authorization.
 
 The `$tasks` object owns shared `GetTask(scope, id)` Queries and the same complete projection as ordinary reads.
-The shared lifecycle obtains committed aggregates through `CommittedTaskReader`, separately from the Domain
+`GetTaskHandler` obtains committed aggregates through `CommittedTaskReader`, separately from the Domain
 `TaskRepository` and injected transaction boundary used by mutations. The [DBAL composition](durable-tasks.md#explicit-composition)
 shares the exact dedicated connection and preserves idle committed-read checks; no presenter SQL, local event listener,
 general retained feed, Mercure publisher or captured Task history supplies state. Task-only and empty accepted streams

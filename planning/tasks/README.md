@@ -89,7 +89,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | done | — |
 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | done | — |
 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | done | — |
-| [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | ready-for-agent | — |
+| [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | done | — |
 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | ready-for-agent | — |

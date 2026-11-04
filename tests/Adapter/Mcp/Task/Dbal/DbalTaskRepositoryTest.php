@@ -20,7 +20,6 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
-use Fight\Common\Application\Mcp\Task\Service\TaskLifecycle;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
@@ -43,7 +42,6 @@ use RuntimeException;
 #[CoversClass(DbalTaskRepository::class)]
 #[CoversClass(DbalTaskTransaction::class)]
 #[CoversClass(DbalTaskSchema::class)]
-#[CoversClass(TaskLifecycle::class)]
 #[CoversClass(CreateTaskHandler::class)]
 #[CoversClass(RecordTaskStateHandler::class)]
 #[CoversClass(GetTaskHandler::class)]
@@ -211,7 +209,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         self::assertSame(CreateTask::class, CreateTaskHandler::commandRegistration());
         self::assertSame(RecordTaskState::class, RecordTaskStateHandler::commandRegistration());
         self::assertSame(GetTask::class, GetTaskHandler::queryRegistration());
-        foreach ([fn () => (new CreateTaskHandler($fixture->lifecycle))->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskState::create('working')))), fn () => (new RecordTaskStateHandler($fixture->lifecycle))->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))), fn () => (new GetTaskHandler($fixture->lifecycle))->handle(QueryMessage::create(new \Fight\Common\Domain\Mcp\Notice\Query\GetNotice('scope', 'producer', 'notice')))] as $operation) {
+        foreach ([fn () => $fixture->createTaskHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskState::create('working')))), fn () => $fixture->recordTaskStateHandler->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))), fn () => $fixture->getTaskHandler->handle(QueryMessage::create(new \Fight\Common\Domain\Mcp\Notice\Query\GetNotice('scope', 'producer', 'notice')))] as $operation) {
             try { $operation(); self::fail('Wrong message must reject.'); } catch (InvalidArgumentException) { self::assertTrue(true); }
         }
     }

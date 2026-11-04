@@ -62,7 +62,8 @@ The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) expl
 
 For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
 `TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
-Task transaction boundary share one dedicated connection; persistence does not own commit.
+Task transaction boundary share one dedicated connection; persistence does not own commit. Each Task handler
+owns its named use case with only its required capabilities; read handlers have no mutation/transaction dependencies.
 
 ## Project routes
 

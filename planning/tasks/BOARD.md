@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | ready-for-agent | — |
+| Ready Frontier | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -41,8 +41,9 @@ John approved a second bounded architectural correction sequence after that work
 handler ownership, disclosure projection, domain values/identities, adapter namespaces and the codebase-wide
 descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
 existing five chores without turning independent work into artificial blockers. TASK-00183's rule surface is
-accepted; TASK-00184's DBAL transaction separation, TASK-00185's Task repository separation and TASK-00186's
-Notice repository/recovery separation are accepted, while the other dependent refactors remain pending.
+accepted; TASK-00184's DBAL transaction separation, TASK-00185's Task repository separation, TASK-00186's Notice
+repository/recovery separation and TASK-00187's handler ownership are accepted. TASK-00188 through TASK-00192
+remain pending.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
@@ -65,14 +66,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | ready-for-agent | — | — |
+| 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | ready-for-agent | — | — |
 | 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | ready-for-agent | [TASK-00187](00187-TASK.md) | — |
 | 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | [TASK-00188](00188-TASK.md) | — |
 | 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | ready-for-agent | [TASK-00189](00189-TASK.md), [TASK-00190](00190-TASK.md) | — |
 | 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | [TASK-00191](00191-TASK.md) | — |
@@ -120,6 +120,7 @@ their owning records; routing and planning checks stay offline.
 | 9 | [TASK-00112](00112-TASK.md) | Atomically resume destructive MCP confirmations | [TICKET-00026 — Resume Protected input_required Interactions](../tickets/00026-TICKET.md) | done | — | [PR #172](https://github.com/johnnickell/fight-common/pull/172) |
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | done | — | [PR #270](https://github.com/johnnickell/fight-common/pull/270) |
 | 10 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | [TICKET-00027 — Protect MCP Endpoints with Reusable OAuth Resource-Server Support](../tickets/00027-TICKET.md) | done | — | [PR #174](https://github.com/johnnickell/fight-common/pull/174) |
+| 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | done | — | [PR #271](https://github.com/johnnickell/fight-common/pull/271) |
 | 11 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #181](https://github.com/johnnickell/fight-common/pull/181) |
 | 12 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #182](https://github.com/johnnickell/fight-common/pull/182) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |

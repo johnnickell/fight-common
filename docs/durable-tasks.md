@@ -42,11 +42,27 @@ Construct these explicit collaborators (names below are under `Fight\Common`):
   projection where consumer policy requires. Returning false withholds the entire view; never substitute an empty result.
 - Existing `EventDispatcher` and a trusted `Closure(): int` server epoch-millisecond clock. For example,
   `static fn (): int => (int) floor(microtime(true) * 1000)`. Synchronize clocks; logical expiry depends on that clock.
-- `Application\Mcp\Task\Service\TaskLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $creation, $updates, $reads, $payloads, $events, $clock, $removals)`.
 
-Register `CreateTaskHandler`, `RecordTaskStateHandler` and `RemoveTasksHandler` with the existing Command router, and `GetTaskHandler`
-with the Query router, all sharing that lifecycle. Handler namespaces are `Application\Mcp\Task\CommandHandler` and
-`Application\Mcp\Task\QueryHandler`. Their Domain payloads are `Domain\Mcp\Task\Command\{CreateTask,RecordTaskState}` and
+Each handler owns its named use case and receives only its operation-specific capabilities. Construct and register:
+
+```php
+$createTaskHandler = new CreateTaskHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskCreationAdmission, $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$recordTaskStateHandler = new RecordTaskStateHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskUpdateAdmission, $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$removeTasksHandler = new RemoveTasksHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskRemovalAdmission, $eventDispatcher
+);
+$getTaskHandler = new GetTaskHandler($committedTaskReader, $taskReadAdmission, $taskPayloadPolicy, $clock);
+```
+
+Register the first three with the existing Command router and `GetTaskHandler` with the Query router. Handler
+namespaces are `Application\Mcp\Task\CommandHandler` and `Application\Mcp\Task\QueryHandler`.
+Commands explicitly own transactions and post-commit facts; Queries inject neither a write repository nor a
+transaction boundary and never initiate cleanup or renew TTL. No broad lifecycle coordinator or replacement
+facade is required. Their Domain payloads are `Domain\Mcp\Task\Command\{CreateTask,RecordTaskState}` and
 `Domain\Mcp\Task\Query\GetTask`; removal uses `Domain\Mcp\Task\Command\RemoveTasks`. See `tests/TestCase/Mcp/Task/TaskFixture.php` for executable explicit bus composition.
 The existing bus signatures remain `CommandBus::execute(): void`, `QueryBus::fetch()` and `EventDispatcher::trigger()`.
 
@@ -258,13 +274,16 @@ public Domain `TaskRepository` (implementable aggregate persistence), Applicatio
 and `DbalTaskTransaction`. `connection`, `requireOwnedTransaction` and `requireCommittedRead` are adapter composition
 seams, not inward repository or transaction methods; consumers inject the existing inward contracts. The compatibility
 manifest records the new declarations and operation shapes. No tagged name needs an alias/deprecation bridge.
-Lifecycle/input/cancellation constructors now take the three explicit capabilities first. Handler ownership,
-Domain values/projection and adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/
-removal/revision semantics and public Query output stay unchanged.
+TASK-00187 removes the never-tagged `TaskLifecycle`, `TaskInputLifecycle` and `TaskCancellationLifecycle` classes
+without compatibility shims. Eight CommandHandlers and three QueryHandlers directly own admission, loading,
+coordination and effects through operation-specific capabilities. Independent grants stay independent; aggregate
+invariants stay with Task. ObservationRecorder and Notice orchestration are unchanged. Domain values/projection
+and adapter namespace moves remain separate chores. Schema, retry/expiry/input/cancellation/removal/revision
+semantics and public Query output stay unchanged.
 
 TASK-00167 added five additive opt-in removal declarations classified public in `compatibility/manifest.json`:
 Domain `TaskSelection`, `RemoveTasks`, `TaskDataRemoved`; Application `RemoveTasksHandler`, `TaskRemovalAdmission`.
-They are final/immutable concrete classes or a consumer-implementable admission port. TaskLifecycle requires
+They are final/immutable concrete classes or a consumer-implementable admission port. RemoveTasksHandler requires
 removal admission, TaskRepository owns `remove(TaskSelection): ?TaskSelection`, and CommittedTaskDispatchFailed
 carries either committed fact type. These provisional APIs change directly without compatibility
 shims. No schema migration/version bump or dependency-floor/suppression change is needed: removal uses the existing
