@@ -149,6 +149,10 @@ final readonly class UsageTotal extends ValueObject
 
         $counts = $this->counts;
         foreach ($other->counts as $kind => $count) {
+            if ($count > PHP_INT_MAX - $counts[$kind]) {
+                throw new DomainException('Usage total count exceeds bounds.');
+            }
+
             $counts[$kind] += $count;
         }
 

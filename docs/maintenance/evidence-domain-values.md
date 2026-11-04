@@ -58,7 +58,9 @@ canonical text defines equality and hashing. `fromString(toString())` reconstruc
   message fields**. Storage and wire codecs still write the original component fields and exact bytes.
   Session/Phase identities with the same lexical tuple remain unequal because their roles differ. Hash collisions
   across types are allowed; a hash alone is not equality or authority.
-- `UsageTotal` reconstructs its own compatible accumulated amount and four evidence counts. It does not apply
+- `UsageTotal` reconstructs its own compatible accumulated amount and four nonnegative native-integer evidence
+  counts. Addition rejects count overflow before any float conversion; exact native-limit totals reconstruct.
+  It does not apply
   the single-measurement 128-byte input bound to accumulated totals or convert missing evidence to zero.
 - `ProtectedContent` text, JSON and hashes contain protected bytes and are for trusted transport/storage only,
   never safe logging or a reference-only event. Reconstruction enforces the general 65,536-byte UTF-8 bound;

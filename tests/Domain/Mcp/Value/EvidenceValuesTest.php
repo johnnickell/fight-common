@@ -170,6 +170,30 @@ final class EvidenceValuesTest extends UnitTestCase
         yield [['version' => 1, 'body' => str_repeat('x', 65537)]];
     }
 
+    public function test_that_total_count_overflow_rejects_instead_of_constructing_unreadable_evidence(): void
+    {
+        $total = UsageTotal::fromArray([
+            'metric' => 'v/tokens', 'unit' => 'token', 'provenance' => 'provider', 'measured' => null,
+            'counts' => ['complete' => 0, 'partial' => 0, 'unknown' => PHP_INT_MAX, 'unavailable' => 0],
+        ]);
+        $one = UsageTotal::fromMeasurement(UsageMeasurement::create('v/tokens', 'token', 'provider', UsageCompleteness::UNKNOWN, null));
+        $this->expectException(DomainException::class);
+        $total->plus($one);
+    }
+
+    public function test_that_total_count_addition_preserves_the_native_limit_and_reconstruction(): void
+    {
+        $total = UsageTotal::fromArray([
+            'metric' => 'v/tokens', 'unit' => 'token', 'provenance' => 'provider', 'measured' => null,
+            'counts' => ['complete' => 0, 'partial' => 0, 'unknown' => PHP_INT_MAX - 1, 'unavailable' => 0],
+        ]);
+        $one = UsageTotal::fromMeasurement(UsageMeasurement::create('v/tokens', 'token', 'provider', UsageCompleteness::UNKNOWN, null));
+        $sum = $total->plus($one);
+        self::assertSame(PHP_INT_MAX, $sum->toArray()['counts']['unknown']);
+        self::assertTrue($sum->equals(UsageTotal::fromString($sum->toString())));
+        self::assertSame(PHP_INT_MAX - 1, $total->toArray()['counts']['unknown']);
+    }
+
     #[DataProvider('invalidTotal')]
     public function test_that_total_reconstruction_validates_evidence_not_just_json(array $changes): void
     {
