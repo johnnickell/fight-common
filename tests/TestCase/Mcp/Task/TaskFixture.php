@@ -6,7 +6,8 @@ namespace Fight\Test\Common\TestCase\Mcp\Task;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskStore;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
@@ -23,6 +24,7 @@ use Fight\Common\Application\Mcp\Task\CommandHandler\SupplyTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskInputHandler;
+use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
 use Fight\Common\Application\Mcp\Task\Service\TaskCancellationAdmission;
 use Fight\Common\Application\Mcp\Task\Service\TaskCancellationLifecycle;
 use Fight\Common\Application\Mcp\Task\Service\TaskCreationAdmission;
@@ -82,7 +84,9 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public int $now = 1793059200000;
     public int $admissions = 0;
     public ?Closure $onAdmission = null;
-    public readonly DbalTaskStore $store;
+    public readonly DbalTaskRepository $taskRepository;
+    public readonly DbalTaskTransaction $transactionalUnitOfWork;
+    public readonly CommittedTaskReader $committedTaskReader;
     public readonly RoutingCommandBus $commands;
     public readonly RoutingQueryBus $queries;
     public readonly SimpleEventDispatcher $events;
@@ -90,11 +94,13 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
 
     public function __construct(Connection $connection)
     {
-        $this->store = new DbalTaskStore($connection);
+        $this->transactionalUnitOfWork = new DbalTaskTransaction($connection);
+        $this->taskRepository = new DbalTaskRepository($this->transactionalUnitOfWork);
+        $this->committedTaskReader = $this->taskRepository;
         $this->events = new SimpleEventDispatcher();
-        $this->lifecycle = new TaskLifecycle($this->store, $this, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
-        $this->inputLifecycle = new TaskInputLifecycle($this->store, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
-        $this->cancellationLifecycle = new TaskCancellationLifecycle($this->store, $this, $this->events, fn () => $this->now);
+        $this->lifecycle = new TaskLifecycle($this->taskRepository, $this->transactionalUnitOfWork, $this->committedTaskReader, $this, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
+        $this->inputLifecycle = new TaskInputLifecycle($this->taskRepository, $this->transactionalUnitOfWork, $this->committedTaskReader, $this, $this, new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed), $this->events, fn () => $this->now, $this);
+        $this->cancellationLifecycle = new TaskCancellationLifecycle($this->taskRepository, $this->transactionalUnitOfWork, $this->committedTaskReader, $this, $this->events, fn () => $this->now);
         $commands = new InMemoryCommandRouter();
         $commands->registerHandler(RequestTaskCancellation::class, new RequestTaskCancellationHandler($this->cancellationLifecycle));
         $commands->registerHandler(RequestTaskInput::class, new RequestTaskInputHandler($this->inputLifecycle));

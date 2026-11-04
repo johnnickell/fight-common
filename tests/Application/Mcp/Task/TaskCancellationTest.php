@@ -12,8 +12,9 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler;
+use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
 use Fight\Common\Application\Mcp\Task\Service\TaskCancellationLifecycle;
-use Fight\Common\Application\Mcp\Task\Service\TaskStore;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
@@ -21,6 +22,7 @@ use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Task;
+use Fight\Common\Domain\Mcp\Task\TaskRepository;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
 use Fight\Common\Domain\Messaging\Query\QueryMessage;
@@ -46,12 +48,12 @@ final class TaskCancellationTest extends UnitTestCase
         $fixture = $this->fixture();
         $fixture->create(1000, 15);
         $fixture->issue(confirmation: true);
-        $before = $fixture->store->read('scope', TaskFixture::ID);
+        $before = $fixture->committedTaskReader->read('scope', TaskFixture::ID);
         $events = [];
         $fixture->events->addHandler(
             ClassName::underscore(TaskChanged::class),
             static function ($message) use ($fixture, &$events): void {
-                self::assertNotNull($fixture->store->read('scope', TaskFixture::ID)->cancellation());
+                self::assertNotNull($fixture->committedTaskReader->read('scope', TaskFixture::ID)->cancellation());
                 $events[] = $message->payload()->toArray();
             },
         );
@@ -108,7 +110,7 @@ final class TaskCancellationTest extends UnitTestCase
             $fixture = $this->fixture();
             $fixture->create();
             $fixture->record($state);
-            $before = $fixture->store->read('scope', TaskFixture::ID)->toArray();
+            $before = $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
             $fixture->events->addHandler(
                 ClassName::underscore(TaskChanged::class),
                 static fn () => self::fail('No new cancellation fact'),
@@ -116,7 +118,7 @@ final class TaskCancellationTest extends UnitTestCase
 
             $fixture->cancel();
 
-            self::assertEquals($before, $fixture->store->read('scope', TaskFixture::ID)->toArray());
+            self::assertEquals($before, $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray());
             self::assertNull($fixture->cancellation()->get('cancellation'));
 
             $fixture->cancelAllowed = false;
@@ -215,7 +217,7 @@ final class TaskCancellationTest extends UnitTestCase
 
         $fixture = $this->fixture();
         $fixture->create();
-        $fixture->store->commitTransactional(fn () => $fixture->store->save($maximum));
+        $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->taskRepository->save($maximum));
 
         $this->reject(fn () => $fixture->cancel(), TaskConflict::class);
     }
@@ -246,16 +248,18 @@ final class TaskCancellationTest extends UnitTestCase
             $initial,
             new TaskStorageFailed(false, new RuntimeException('Read failed after commit')),
         ] as $reconstructed) {
-            $store = $this->mock(TaskStore::class);
-            $store->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn ($operation) => $operation());
-            $store->shouldReceive('getById')->once()->with('scope', TaskFixture::ID)->andReturn($initial);
-            $store->shouldReceive('save')->once();
+            $taskRepository = $this->mock(TaskRepository::class);
+            $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
+            $committedTaskReader = $this->mock(CommittedTaskReader::class);
+            $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn ($operation) => $operation());
+            $taskRepository->shouldReceive('getById')->once()->with('scope', TaskFixture::ID)->andReturn($initial);
+            $taskRepository->shouldReceive('save')->once();
             if ($reconstructed instanceof Throwable) {
-                $store->shouldReceive('read')->once()->andThrow($reconstructed);
+                $committedTaskReader->shouldReceive('read')->once()->andThrow($reconstructed);
             } else {
-                $store->shouldReceive('read')->once()->andReturn($reconstructed);
+                $committedTaskReader->shouldReceive('read')->once()->andReturn($reconstructed);
             }
-            $service = new TaskCancellationLifecycle($store, $fixture, $fixture->events, fn () => $fixture->now);
+            $service = new TaskCancellationLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->events, fn () => $fixture->now);
 
             try {
                 $service->request(new RequestTaskCancellation('scope', TaskFixture::ID, 'caller'));

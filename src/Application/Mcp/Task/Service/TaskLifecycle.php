@@ -9,6 +9,7 @@ use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RecordTaskState;
@@ -18,6 +19,7 @@ use Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\Task;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskRepository;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 use Throwable;
@@ -33,7 +35,9 @@ final readonly class TaskLifecycle
      * @phpstan-param Closure(): int $clock Trusted server epoch-millisecond clock
      */
     public function __construct(
-        private TaskStore $store,
+        private TaskRepository $taskRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private CommittedTaskReader $committedTaskReader,
         private TaskCreationAdmission $creation,
         private TaskUpdateAdmission $updates,
         private TaskReadAdmission $reads,
@@ -49,7 +53,7 @@ final readonly class TaskLifecycle
      */
     public function create(CreateTask $command): void
     {
-        $changed = $this->store->commitTransactional(function () use ($command): ?Task {
+        $changed = $this->transactionalUnitOfWork->commitTransactional(function () use ($command): ?Task {
             if (!$this->creation->allowsCreation($command->definition())) {
                 throw new TaskRejected();
             }
@@ -58,7 +62,7 @@ final readonly class TaskLifecycle
             $now = Task::timestamp(($this->clock)());
             // Compare original content without recalculating a retained Task's expiry at retry time.
             $comparison = $command->at(0);
-            $existing = $this->store->getById($command->definition()->scope(), $command->definition()->id());
+            $existing = $this->taskRepository->getById($command->definition()->scope(), $command->definition()->id());
             if ($existing !== null) {
                 if (!$existing->availableAt($now)) {
                     throw new TaskRejected();
@@ -72,7 +76,7 @@ final readonly class TaskLifecycle
             }
 
             $candidate = $command->at($now);
-            $this->store->save($candidate);
+            $this->taskRepository->save($candidate);
 
             return $candidate;
         });
@@ -84,12 +88,12 @@ final readonly class TaskLifecycle
      */
     public function record(RecordTaskState $command): void
     {
-        $changed = $this->store->commitTransactional(function () use ($command): ?Task {
+        $changed = $this->transactionalUnitOfWork->commitTransactional(function () use ($command): ?Task {
             if (!$this->updates->allowsUpdate($command->scope(), $command->id(), $command->producer())) {
                 throw new TaskRejected();
             }
 
-            $existing = $this->store->getById($command->scope(), $command->id());
+            $existing = $this->taskRepository->getById($command->scope(), $command->id());
             $now = Task::timestamp(($this->clock)());
             if (
                 $existing === null || !$existing->availableAt($now)
@@ -106,7 +110,7 @@ final readonly class TaskLifecycle
             }
 
             if ($next !== null) {
-                $this->store->save($next);
+                $this->taskRepository->save($next);
             }
 
             return $next;
@@ -119,7 +123,7 @@ final readonly class TaskLifecycle
      */
     public function remove(RemoveTasks $command): void
     {
-        $removed = $this->store->commitTransactional(function () use ($command): ?TaskDataRemoved {
+        $removed = $this->transactionalUnitOfWork->commitTransactional(function () use ($command): ?TaskDataRemoved {
             $selection = $command->selection();
             // Check every grant before existence or deletion, including repeats and missing rows.
             foreach ($selection->ids() as $id) {
@@ -134,7 +138,7 @@ final readonly class TaskLifecycle
                 }
             }
 
-            $actual = $this->store->remove($selection);
+            $actual = $this->taskRepository->remove($selection);
 
             return $actual === null ? null : new TaskDataRemoved($actual);
         });
@@ -150,7 +154,7 @@ final readonly class TaskLifecycle
             return null;
         }
 
-        $task = $this->store->read($query->scope(), $query->id());
+        $task = $this->committedTaskReader->read($query->scope(), $query->id());
         if ($task === null || !$task->availableAt(Task::timestamp(($this->clock)()))) {
             return null;
         }

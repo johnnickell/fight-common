@@ -10,8 +10,8 @@ This file records how terms are used inside this library. Public APIs, documenta
 aggregate layout, value-object inheritance, handler ownership, adapter destinations and finite package exceptions.
 [Naming](docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator
 names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
-2026-11-02 decision; TASK-00184 implements execution transaction separation below, while TASK-00185 through
-TASK-00192 own the remaining dependent corrections.
+2026-11-02 decision; TASK-00184 implements execution transaction separation and TASK-00185 implements Task
+repository/transaction separation below, while TASK-00186 through TASK-00192 own the remaining dependent corrections.
 
 An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
 or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
@@ -19,11 +19,11 @@ state, while Application read DTOs describe use-case results. Immutability alone
 The Event Sourcing-specific “Aggregate root” term later in this file refers to that capability's reference base,
 not a universal base for ordinary aggregates.
 
-The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators, combined
-`TaskStore`/`NoticeStore` transaction contracts, execution's technical Application grouping, concrete Application
-Tools and Domain disclosure encoding. They are not exceptions to the approved target. Task/Notice repository/transaction
-separation, per-handler use cases, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes
-remain pending in the owning refactors. Execution now injects the existing transaction contract directly, with reusable
+The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators, the combined
+`NoticeStore` transaction contract, execution's technical Application grouping, concrete Application Tools and Domain
+disclosure encoding. They are not exceptions to the approved target. Notice repository/transaction separation,
+per-handler use cases, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes remain pending
+in the owning refactors. Execution now injects the existing transaction contract directly, with reusable
 DBAL mechanics separated from execution schema locking/failure translation. Consumer policy, stored/wire behavior
 and release bridges remain binding; no aggregate namespace move is claimed here. The
 foundation canonical names and released aliases described below are already implemented by TASK-00181; they are
@@ -279,10 +279,16 @@ contract context without executing work and freshly authorizes whole-state safe 
 `ToolTaskPayloadPolicy` validates captured Tool schemas, supported flat forms/text results and exact constant public
 execution errors; explicit disclosure remains consumer-owned. Protected data is never replaced with empty success.
 
-`Adapter\Mcp\Task\Dbal\DbalTaskStore` implements Application `TaskStore` / `TransactionalUnitOfWork` directly on its
-own idle DBAL connection, not an unrelated ORM transaction. Dedicated version-one `fight_task_state` / `fight_tasks`
-storage supports SQLite/MySQL/PostgreSQL. A namespace lock serializes mutation/admission through actual commit;
-state/payload/comparison changes are atomic. Enclosing transactions and dirty reads reject before writes without
+Domain `Mcp\Task\TaskRepository` owns aggregate load/save/removal, without transaction inheritance or connection
+access. The three Application lifecycle coordinators inject it and existing `TransactionalUnitOfWork` separately,
+plus the narrow `CommittedTaskReader` port for protected committed reads and cancellation acknowledgment.
+`Adapter\Mcp\Task\Dbal\DbalTaskRepository` implements repository and committed-read capabilities; it never commits.
+`DbalTaskTransaction` binds its exact dedicated DBAL connection and owns schema serialization/failure translation
+around reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. An unrelated DBAL/ORM transaction or
+another Task boundary on that connection cannot admit repository writes; committed reads require idle state.
+Dedicated version-one `fight_task_state` / `fight_tasks` storage supports SQLite/MySQL/PostgreSQL. A namespace lock
+serializes mutation/admission through actual commit; state/payload/comparison changes are atomic. Enclosing
+transactions and dirty reads reject before writes without
 committing or rolling back caller work. Unknown begin/commit/rollback closes the boundary with explicit storage
 uncertainty; fresh authorized polling reconciles possible committed state. Reference-only `TaskChanged` follows
 commit; `CommittedTaskDispatchFailed` cannot erase persistence. No outbox/replay/general-notice-feed guarantee exists.

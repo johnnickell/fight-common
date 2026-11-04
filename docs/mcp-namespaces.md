@@ -27,7 +27,7 @@ The following destinations remain **approved but pending their owning refactors*
 | `Application\Mcp\Execution\{Session,Phase,Observation,Detail}` | Aggregate owners directly under `Application\Mcp\{Session,Phase,Observation,Detail}`; TASK-00191 |
 | Concrete execution inspection Tools in `Application\Mcp\Execution` and `Application\Mcp\Notice\RecoverNoticesTool` | `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}`, with genuinely shared mapping support under `Tool\Execution`; TASK-00191 |
 | MCP aggregate persistence/read adapters under `Adapter\Mcp\{Execution,Task,Notice,Subscription}` | `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with real shared schema/serialization support under `Persistence\Execution\Dbal`; TASK-00191 |
-| Combined Application Task/Notice stores | Domain aggregate repositories and separately injected existing `TransactionalUnitOfWork`; TASK-00185 and TASK-00186 |
+| Combined Application Notice store | Domain aggregate repository and separately injected existing `TransactionalUnitOfWork`; TASK-00186 |
 | Task lifecycle forwarding and Domain disclosure encoding | Handler-owned use cases and separate outward disclosure projection; TASK-00187 and TASK-00188 |
 
 TASK-00184 implements execution's direct `TransactionalUnitOfWork` injection and reusable
@@ -91,6 +91,16 @@ follow their new PHP namespaces, including the dotted `Fight.Common.Domain.Mcp..
 method/Tool names, safe output schemas, stored table names, retention, current admission, transaction ownership,
 post-commit ordering and documented failure/recovery guarantees are unchanged. A namespace move does not grant
 access or guarantee delivery/execution. Existing persisted development snapshots are not a supported migration format.
+
+## Task persistence capabilities
+
+TASK-00185 replaces the never-tagged Application `Mcp\Task\Service\TaskStore` with Domain
+`Mcp\Task\TaskRepository` and separately injected existing Application `Repository\TransactionalUnitOfWork`.
+Application `Mcp\Task\Service\CommittedTaskReader` supplies protected committed aggregate reads without disclosure
+or reporting policy. `Adapter\Mcp\Task\Dbal\DbalTaskRepository` implements both persistence/read contracts;
+`DbalTaskTransaction` owns Task serialization around the generic DBAL unit of work. These adapters remain in their
+current namespace until TASK-00191. No old Store alias or transaction-bearing repository remains. See
+[composition and compatibility](durable-tasks.md#explicit-composition).
 
 ## Internal metadata grammar homes
 

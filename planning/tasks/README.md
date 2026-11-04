@@ -87,7 +87,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00182](00182-TASK.md) | Separate validation construction from execution | done | — |
 | [TASK-00183](00183-TASK.md) | Codify aggregate-first architecture and descriptive naming rules | done | — |
 | [TASK-00184](00184-TASK.md) | Introduce DBAL unit of work and separate execution transaction mechanics | done | — |
-| [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | ready-for-agent | — |
+| [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | done | — |
 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | ready-for-agent | — |
 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | ready-for-agent | — |
 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |

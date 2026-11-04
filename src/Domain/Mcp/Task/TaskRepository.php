@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Fight\Common\Application\Mcp\Task\Service;
-
-use Fight\Common\Application\Repository\TransactionalUnitOfWork;
-use Fight\Common\Domain\Mcp\Task\Task;
-use Fight\Common\Domain\Mcp\Task\TaskSelection;
+namespace Fight\Common\Domain\Mcp\Task;
 
 /**
- * Interface TaskStore
+ * Interface TaskRepository
+ *
+ * Owns coherent aggregate persistence inside the separately composed serialized mutation boundary
  */
-interface TaskStore extends TransactionalUnitOfWork
+interface TaskRepository
 {
     /**
      * Returns coherent protected state under the owned mutation transaction
@@ -29,9 +27,4 @@ interface TaskStore extends TransactionalUnitOfWork
      * Returns only actually removed identities, or null for an entirely missing selection
      */
     public function remove(TaskSelection $selection): ?TaskSelection;
-
-    /**
-     * Returns committed protected state on an idle connection without mutation
-     */
-    public function read(string $scope, string $id): ?Task;
 }

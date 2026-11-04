@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Separate durable Task persistence into Domain `TaskRepository` and a separately injected existing
+  `TransactionalUnitOfWork`. `DbalTaskRepository` supplies aggregate persistence and the narrow Application
+  `CommittedTaskReader`; `DbalTaskTransaction` retains namespace locking and Task failure translation around the
+  reusable DBAL boundary. Remove the never-tagged TaskStore APIs directly. Shared-connection commit/read isolation,
+  input/cancellation/revision/expiry/removal and retry/failure semantics remain unchanged, without schema changes.
 - Execution recording/removal now inject the existing `TransactionalUnitOfWork` directly. Remove the never-released
   empty `RecordingTransaction` subtype; the execution DBAL seam retains schema serialization and capability-specific
   failures around reusable transaction mechanics. Same-connection ownership, retry/removal races and post-commit

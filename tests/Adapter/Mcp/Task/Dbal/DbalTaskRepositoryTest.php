@@ -11,7 +11,8 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskStore;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskTransaction;
 use Fight\Common\Application\Mcp\Task\CommandHandler\CreateTaskHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RecordTaskStateHandler;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
@@ -39,7 +40,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
-#[CoversClass(DbalTaskStore::class)]
+#[CoversClass(DbalTaskRepository::class)]
+#[CoversClass(DbalTaskTransaction::class)]
 #[CoversClass(DbalTaskSchema::class)]
 #[CoversClass(TaskLifecycle::class)]
 #[CoversClass(CreateTaskHandler::class)]
@@ -49,7 +51,7 @@ use RuntimeException;
 #[CoversClass(TaskConflict::class)]
 #[CoversClass(TaskStorageFailed::class)]
 #[CoversClass(CommittedTaskDispatchFailed::class)]
-final class DbalTaskStoreTest extends UnitTestCase
+final class DbalTaskRepositoryTest extends UnitTestCase
 {
     public function test_that_routed_lifecycle_commits_coherent_state_and_rechecks_current_independent_permissions(): void
     {
@@ -95,7 +97,7 @@ final class DbalTaskStoreTest extends UnitTestCase
             try { $fixture->commands->execute($command); self::fail('Unsafe evidence must reject.'); } catch (TaskRejected) { self::assertSame($before, $fixture->get()->toString()); }
         }
         // Tampered but structurally valid state cannot bypass original contract validation on reads.
-        $data = $fixture->store->read('scope', TaskFixture::ID)->toArray();
+        $data = $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
         $data['definition']['operation'] = StrictJson::fromObject(['kind' => 'unknown']);
         $connection->update('fight_tasks', ['payload' => json_encode($data, JSON_THROW_ON_ERROR)], ['scope' => 'scope']);
         $this->expectException(TaskRejected::class); $fixture->get();
@@ -115,11 +117,11 @@ final class DbalTaskStoreTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection);
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
-        foreach ([fn () => $fixture->store->save((new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(0)), fn () => $fixture->store->getById('scope', TaskFixture::ID), fn () => $fixture->store->commitTransactional(fn () => $fixture->store->read('scope', TaskFixture::ID)), fn () => $fixture->store->commitTransactional(fn () => $fixture->store->commitTransactional(static fn () => null))] as $operation) {
+        foreach ([fn () => $fixture->taskRepository->save((new CreateTask(TaskFixture::definition(), TaskState::create('working')))->at(0)), fn () => $fixture->taskRepository->getById('scope', TaskFixture::ID), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->committedTaskReader->read('scope', TaskFixture::ID)), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
             try { $operation(); self::fail('Ownership required.'); } catch (LogicException) { self::assertFalse($connection->isTransactionActive()); }
         }
         $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]);
-        foreach ([fn () => $fixture->create(), fn () => new DbalTaskStore($connection)] as $operation) {
+        foreach ([fn () => $fixture->create(), fn () => new DbalTaskTransaction($connection)] as $operation) {
             try { $operation(); self::fail('Outer transaction unsupported.'); } catch (LogicException) { self::assertTrue($connection->isTransactionActive()); self::assertSame(7, (int) $connection->fetchOne('SELECT id FROM caller_work')); }
         }
         self::assertSame(0, $fixture->admissions); $connection->rollBack();
@@ -133,7 +135,7 @@ final class DbalTaskStoreTest extends UnitTestCase
         $before = $fixture->get()->toString();
         $connection->executeStatement("CREATE TRIGGER fail_task BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END");
         try { $fixture->record(TaskFixture::completed()); self::fail('Expected failure.'); } catch (TaskStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); self::assertSame('Task storage failed.', $failure->getMessage()); }
-        self::assertSame($before, $fixture->get()->toString()); self::assertFalse($fixture->store->isClosed());
+        self::assertSame($before, $fixture->get()->toString()); self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
         $connection->executeStatement('DROP TRIGGER fail_task'); $fixture->record(TaskFixture::completed()); self::assertSame(2, $fixture->get()->get('version'));
     }
 
@@ -143,8 +145,9 @@ final class DbalTaskStoreTest extends UnitTestCase
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('getDatabasePlatform')->andReturn(new PostgreSQLPlatform());
         $connection->shouldReceive('getTransactionIsolation')->andReturn(TransactionIsolationLevel::READ_COMMITTED);
-        $connection->shouldReceive('isTransactionActive')->andReturn(false, false, $active);
+        $connection->shouldReceive('isTransactionActive')->andReturn(false, false, false, $active);
         $connection->shouldReceive('getTransactionNestingLevel')->andReturn(1);
+        $connection->shouldReceive('isAutoCommit')->andReturn(true);
         $cause = new RuntimeException('private storage diagnostic');
         if ($stage === 'begin') { $connection->shouldReceive('beginTransaction')->once()->andThrow($cause); }
         else {
@@ -153,10 +156,11 @@ final class DbalTaskStoreTest extends UnitTestCase
             if ($stage === 'rollback') { $connection->shouldReceive('rollBack')->once()->andThrow(new RuntimeException('cleanup')); }
             else { $connection->shouldReceive('commit')->once()->andThrow($cause); if ($active) { $connection->shouldReceive('rollBack')->once(); } }
         }
-        $store = new DbalTaskStore($connection);
-        try { $store->commitTransactional(static function () use ($stage, $cause) { if ($stage === 'rollback') { throw $cause; } return null; }); self::fail('Uncertainty required.'); }
+        $transactionalUnitOfWork = new DbalTaskTransaction($connection);
+        $taskRepository = new DbalTaskRepository($transactionalUnitOfWork);
+        try { $transactionalUnitOfWork->commitTransactional(static function () use ($stage, $cause) { if ($stage === 'rollback') { throw $cause; } return null; }); self::fail('Uncertainty required.'); }
         catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); self::assertSame($cause, $failure->getPrevious()); }
-        self::assertTrue($store->isClosed()); $this->expectException(LogicException::class); $store->read('scope', TaskFixture::ID);
+        self::assertTrue($transactionalUnitOfWork->isClosed()); $this->expectException(LogicException::class); $taskRepository->read('scope', TaskFixture::ID);
     }
 
     public static function uncertainties(): iterable
@@ -198,7 +202,7 @@ final class DbalTaskStoreTest extends UnitTestCase
         $connection->executeStatement('DROP TABLE fight_tasks');
         try { $schema->install($connection); self::fail('Partial namespace must reject.'); } catch (RuntimeException) { self::assertTrue(true); }
         $unsupported = $this->mock(Connection::class); $unsupported->shouldReceive('getDatabasePlatform')->andReturn(new OraclePlatform());
-        $this->expectException(InvalidArgumentException::class); new DbalTaskStore($unsupported);
+        $this->expectException(InvalidArgumentException::class); new DbalTaskTransaction($unsupported);
     }
 
     public function test_that_handler_registrations_reject_unrelated_messages(): void
@@ -220,7 +224,7 @@ final class DbalTaskStoreTest extends UnitTestCase
         $operation = TaskFixture::definition()->operation()->with('retained', $nested, 64);
         $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame('working', $fixture->get()->get('state')->get('status'));
-        self::assertSame($operation->toString(), $fixture->store->read('scope', TaskFixture::ID)->definition()->operation()->toString());
+        self::assertSame($operation->toString(), $fixture->committedTaskReader->read('scope', TaskFixture::ID)->definition()->operation()->toString());
     }
 
     public function test_that_creation_retries_keep_original_expiry_at_the_timestamp_ceiling(): void
@@ -240,7 +244,9 @@ final class DbalTaskStoreTest extends UnitTestCase
 
     public function test_that_complete_stored_representation_has_an_independent_atomic_byte_bound(): void
     {
-        $connection = $this->database(); $store = new DbalTaskStore($connection);
+        $connection = $this->database();
+        $transactionalUnitOfWork = new DbalTaskTransaction($connection);
+        $taskRepository = new DbalTaskRepository($transactionalUnitOfWork);
         $operation = StrictJson::fromObject(['padding' => str_repeat('x', 8178)]);
         self::assertSame(8192, strlen($operation->toString()));
         $definition = \Fight\Common\Domain\Mcp\Task\TaskDefinition::create(TaskFixture::ID, 'scope', 'producer', $operation);
@@ -249,10 +255,10 @@ final class DbalTaskStoreTest extends UnitTestCase
         $capacity = TaskState::MAX_BYTES - strlen($empty->data()->toString());
         $large = TaskState::create('completed', result: StrictJson::fromObject(['body' => str_repeat('x', $capacity)]));
         $next = $task->transition('producer', 1, $large, null, 1);
-        try { $store->commitTransactional(fn () => $store->save($next)); self::fail('Combined encoded bound must reject.'); }
+        try { $transactionalUnitOfWork->commitTransactional(fn () => $taskRepository->save($next)); self::fail('Combined encoded bound must reject.'); }
         catch (RuntimeException) { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks')); }
-        $store->commitTransactional(fn () => $store->save($task));
-        self::assertSame(8192, strlen($store->read('scope', TaskFixture::ID)->definition()->operation()->toString()));
+        $transactionalUnitOfWork->commitTransactional(fn () => $taskRepository->save($task));
+        self::assertSame(8192, strlen($taskRepository->read('scope', TaskFixture::ID)->definition()->operation()->toString()));
     }
 
     private function database(): Connection
