@@ -63,6 +63,72 @@ final class TaskValueTest extends UnitTestCase
         }
     }
 
+    #[DataProvider('numericValueTypes')]
+    public function test_that_value_operations_retain_exact_floats_at_constant_non_default_precision(string $type): void
+    {
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '3');
+            $first = self::numericValue($type, 1.2341);
+            $second = self::numericValue($type, 1.2342);
+            self::assertSame(1.2341, self::retainedNumber($first));
+            self::assertSame(1.2342, self::retainedNumber($second));
+            self::assertFalse($first->equals($second));
+            self::assertFalse($second->equals($first));
+            self::assertNotSame($first->hashValue(), $second->hashValue());
+            foreach ([$first, $second] as $value) {
+                $equal = $value::fromString($value->toString());
+                self::assertSame(self::retainedNumber($value), self::retainedNumber($equal));
+                self::assertTrue($value->equals($equal));
+                self::assertSame($value->hashValue(), $equal->hashValue());
+                self::assertSame('3', ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    #[DataProvider('numericValueTypes')]
+    public function test_that_immutable_value_hash_keys_and_reconstruction_survive_precision_changes(string $type): void
+    {
+        $precision = ini_get('serialize_precision');
+        try {
+            ini_set('serialize_precision', '-1');
+            $value = self::numericValue($type, 1.2341);
+            $text = $value->toString();
+            $hash = $value->hashValue();
+            $table = HashTable::of($type, 'string');
+            $table->set($value, 'retained');
+            foreach (['3', '17', '-1'] as $setting) {
+                ini_set('serialize_precision', $setting);
+                $equal = self::numericValue($type, 1.2341);
+                self::assertSame($hash, $value->hashValue());
+                self::assertSame($text, $value->toString());
+                self::assertSame($text, (string) $value);
+                self::assertTrue($value->equals($equal));
+                self::assertTrue($table->has($value));
+                self::assertTrue($table->has($equal));
+                self::assertSame('retained', $table->get($value));
+                self::assertSame('retained', $table->get($equal));
+                $table->set($equal, 'retained');
+                self::assertCount(1, $table);
+                $reconstructed = $value::fromString($text);
+                self::assertSame(1.2341, self::retainedNumber($reconstructed));
+                self::assertSame($hash, $reconstructed->hashValue());
+                self::assertSame($setting, ini_get('serialize_precision'));
+            }
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    public static function numericValueTypes(): iterable
+    {
+        foreach ([TaskDefinition::class, TaskState::class, TaskInputBatch::class] as $type) {
+            yield $type => [$type];
+        }
+    }
+
     public function test_that_definition_equality_includes_scope_producer_identity_and_exact_original_representation(): void
     {
         $operation = StrictJson::fromString('{"unknown":null,"empty":{},"list":[],"number":1.0}');
@@ -175,6 +241,28 @@ final class TaskValueTest extends UnitTestCase
         yield [TaskSelection::class, '{"scope":"scope","ids":null}'];
         yield [TaskSelection::class, '{"scope":"scope","ids":{"0":"0123456789abcdef0123456789abcdef"}}'];
         yield [TaskSelection::class, '{"scope":"scope","ids":[null]}'];
+    }
+
+    private static function numericValue(string $type, float $number): TaskDefinition|TaskState|TaskInputBatch
+    {
+        $payload = StrictJson::fromObject(['number' => $number]);
+
+        return match ($type) {
+            TaskDefinition::class => TaskDefinition::create(TaskFixture::id(), 'scope', 'producer', $payload),
+            TaskState::class => TaskState::create('completed', result: $payload),
+            TaskInputBatch::class => TaskInputBatch::create('caller', 100, false, StrictJson::fromObject([
+                'answer' => (object) ['name' => 'answer', 'public' => (object) [], 'contract' => $payload]
+            ]))
+        };
+    }
+
+    private static function retainedNumber(TaskDefinition|TaskState|TaskInputBatch $value): float
+    {
+        return match (true) {
+            $value instanceof TaskDefinition => $value->operation()->get('number'),
+            $value instanceof TaskState => $value->data()->get('result')->get('number'),
+            $value instanceof TaskInputBatch => $value->data()->get('requests')->get('answer')->get('contract')->get('number')
+        };
     }
 
     private static function batch(): TaskInputBatch

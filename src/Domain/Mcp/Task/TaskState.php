@@ -165,7 +165,13 @@ final readonly class TaskState extends ValueObject
      */
     public function toString(): string
     {
-        return $this->data->toString();
+        $precision = ini_get('serialize_precision');
+        ini_set('serialize_precision', '-1');
+        try {
+            return $this->data->toString();
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
     }
 
     /**

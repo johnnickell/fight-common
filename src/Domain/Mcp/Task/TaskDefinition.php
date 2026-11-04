@@ -135,7 +135,13 @@ final readonly class TaskDefinition extends ValueObject
      */
     public function toString(): string
     {
-        return json_encode($this->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+        $precision = ini_get('serialize_precision');
+        ini_set('serialize_precision', '-1');
+        try {
+            return json_encode($this->toArray(), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
     }
 
     /**

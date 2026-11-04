@@ -36,7 +36,10 @@ DomainException. Nested object/list, absent/explicit-null, empty/null message, i
 result/error distinctions survive. Source ordering inside retained JSON contracts/payloads is significant, agreeing
 with exact encoded-content retries; these values do not canonicalize or sort arbitrary JSON. Selection equality
 includes supplied order and scope. Equality and hash reconstruction are not authorization, redaction or a public-safe
-serializer: definitions and batches contain protected context. Shared low-level StrictJson remains unchanged.
+serializer: definitions and batches contain protected context. Definition/state/batch value strings use shortest
+round-trip float precision regardless of ambient `serialize_precision`, restoring that setting before returning.
+This stabilizes their equality, hashes and reconstruction without changing explicit wire/storage/retry encoders or
+outer `json_encode()` options/precision. Shared low-level StrictJson remains unchanged.
 
 ## Explicit composition
 
@@ -164,7 +167,7 @@ or snapshot across requests. Do not share the connection concurrently or mutate 
 Callbacks must be local bounded validation, never execute consumer jobs inside the transaction.
 
 Identity is the exact case-sensitive `(scope, 32 lowercase hexadecimal application ID)` tuple; the definition binds
-one producer and original operation context. Use `newId()` (128 random bits), not JSON-RPC IDs, job IDs or planning IDs.
+one producer and original operation context. Use `TaskId::generate()` (128 random bits), not JSON-RPC IDs, job IDs or planning IDs.
 Creation retains a SHA-256 digest of its original encoded definition/state/TTL/polling tuple. Same-content creation
 retries are admitted no-ops even after progress, while conflicting retained creation reuse raises `TaskConflict`.
 Encoding is deterministic for the submitted ordered JSON representation: reordered object properties are different
@@ -199,8 +202,9 @@ $commands->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$i
 ```
 
 `TaskSelection::fromIds()` accepts one exact scope and a list of **1–100 distinct TaskId values**. Scope/ID bounds are the same
-as creation. Empty, associative, duplicate, non-string, malformed and over-limit selections reject with DomainException
-before database work; nothing is silently dropped or truncated. The same immutable selection is used by the store
+as creation. Empty, associative, duplicate, non-TaskId (including raw string) and over-limit selections reject with
+DomainException before database work; nothing is silently dropped or truncated. `fromArray()` is the explicit message
+representation boundary and reconstructs validated TaskId values from string members. The same immutable selection is used by the store
 and reference-only fact. One request is one atomic all-or-nothing transaction, not 100 independently committed actions.
 Database work is bounded by the namespace lock/check and at most 100 indexed whole-row DELETE statements, with no
 payload loading, eligibility scan or retained archive. Consumers supply finite lock/statement timeouts.
