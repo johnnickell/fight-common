@@ -43,7 +43,10 @@ After the environment is no longer needed, invoke the same owner entry point use
 
 Default wrapper retention is `cleanup`. Teardown validates the exact IDs, matching private topology, synthetic
 database configuration, no host ports/binds, and exact anonymous local data volumes. It inventories **all**
-containers, including stopped consumers, before effects. Foreign consumers or unexpected configuration hold
+containers, including stopped consumers, before effects. This includes `container:<name-or-ID>` network
+namespace dependencies on either database, resolved through exact native names, full/unique-prefix IDs and
+indirect container dependencies. Unresolved, ambiguous or cyclic namespace references fail closed; an unrelated,
+fully resolved namespace chain does not hold this runtime. Foreign consumers or unexpected configuration hold
 retirement without force. It stops only the selected databases, removes stopped containers without force,
 then removes their unconsumed anonymous volumes and private network. It rechecks native inventories and can be
 repeated with the same locator after partial/successful retirement. Command/inventory failures are errors, not

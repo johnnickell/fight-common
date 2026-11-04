@@ -34,11 +34,39 @@ def inventory():
     return containers, networks, volumes
 
 
+def qualify_network_namespaces(containers, expected_ids):
+    def resolve(reference):
+        # Inspect may retain names/prefixes or canonicalize them to full IDs.
+        # Conflicting name/ID interpretations must not hide a dependency.
+        matches = [container for container in containers
+                   if container["Name"] == "/" + reference.removeprefix("/")
+                   or (re.fullmatch(r"[a-f0-9]+", reference) and container["Id"].startswith(reference))]
+        require(len(matches) == 1,
+                "Unresolved or ambiguous container network namespace; retain runtime.")
+        return matches[0]
+
+    for container in containers:
+        if container["Id"] in expected_ids:
+            continue
+        visited = set()
+        while True:
+            container_id = container["Id"]
+            require(container_id not in expected_ids,
+                    "Foreign container network namespace consumer (including stopped containers); retain runtime.")
+            require(container_id not in visited, "Cyclic container network namespace; retain runtime.")
+            visited.add(container_id)
+            mode = container["HostConfig"].get("NetworkMode", "")
+            if not mode.startswith("container:"):
+                break
+            container = resolve(mode.removeprefix("container:"))
+
+
 def qualify(locator, complete=False):
     run_id, network_id, mysql_id, postgresql_id, mysql_volume, postgresql_volume = locator.split(":")
     containers, networks, volumes = inventory()
     expected_ids = {mysql_id, postgresql_id}
     expected_volumes = {mysql_volume, postgresql_volume}
+    qualify_network_namespaces(containers, expected_ids)
     network_name = "fight-common-test-network-" + run_id
     selected_networks = [network for network in networks if network["Id"] == network_id]
     require(not any(network["Name"] == network_name and network["Id"] != network_id
