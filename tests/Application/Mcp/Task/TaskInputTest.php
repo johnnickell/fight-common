@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\CommandHandler\AcquireTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RetireTaskInputHandler;

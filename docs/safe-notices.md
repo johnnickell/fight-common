@@ -58,7 +58,7 @@ $router->registerHandler(RecordNotice::class, $handler);
 $commandBus->execute(RecordNotice::fromArray($safeNoticeData));
 ```
 
-Imports are `Adapter\Mcp\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTransaction,DbalNoticeRepository,DbalNoticeRecoveryReader}`,
+Imports are `Adapter\Mcp\Persistence\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTransaction,DbalNoticeRepository,DbalNoticeRecoveryReader}`,
 `Domain\Mcp\Notice\NoticeRepository`, `Application\Repository\TransactionalUnitOfWork`,
 `Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeRecoveryReader}`,
 `Application\Mcp\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Mcp\Notice\Command\RecordNotice`, beneath

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Mcp\Execution;
 
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalActivityReader;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
-use Fight\Common\Application\Mcp\Execution\Observation\QueryHandler\ListPhaseActivityHandler;
-use Fight\Common\Application\Mcp\Execution\Session\Exception\ExecutionReadFailed;
-use Fight\Common\Application\Mcp\Execution\Session\Service\ExecutionAccess;
+use Fight\Common\Application\Mcp\Observation\QueryHandler\ListPhaseActivityHandler;
+use Fight\Common\Application\Mcp\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
