@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Phase;
 
 use Fight\Common\Domain\Mcp\Session\Session;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 
 /**
  * Class Phase
@@ -14,14 +14,22 @@ use Fight\Common\Domain\Mcp\Value\ObservationFields;
  */
 final readonly class Phase
 {
-    private string $projectId;
+    private PhaseId $identity;
 
     /**
      * Constructs Phase
      */
     public function __construct(string $projectId, private PhaseReference $reference)
     {
-        $this->projectId = ObservationFields::reference($projectId);
+        $this->identity = PhaseId::fromStrings($projectId, $reference->phaseId());
+    }
+
+    /**
+     * Returns the role-specific project-scoped aggregate identity
+     */
+    public function identity(): PhaseId
+    {
+        return $this->identity;
     }
 
     /**
@@ -29,7 +37,7 @@ final readonly class Phase
      */
     public function projectId(): string
     {
-        return $this->projectId;
+        return $this->identity->projectId();
     }
 
     /**
@@ -93,7 +101,8 @@ final readonly class Phase
      */
     public function matches(string $projectId, PhaseReference $reference): bool
     {
-        return $this->projectId === $projectId && $this->reference->toArray() === $reference->toArray();
+        return $this->identity->equals(PhaseId::fromStrings($projectId, $reference->phaseId()))
+            && $this->reference->equals($reference);
     }
 
     /**
@@ -101,7 +110,7 @@ final readonly class Phase
      */
     public function belongsTo(Session $session): bool
     {
-        return $this->projectId === $session->projectId() && $this->sessionId() === $session->id();
+        return SessionId::fromStrings($this->projectId(), $this->sessionId())->equals($session->identity());
     }
 
     /**
@@ -109,7 +118,7 @@ final readonly class Phase
      */
     public function acceptsParent(Phase $parent): bool
     {
-        return $this->projectId === $parent->projectId && $this->sessionId() === $parent->sessionId()
+        return $this->projectId() === $parent->projectId() && $this->sessionId() === $parent->sessionId()
             && $this->parentPhaseId() === $parent->id();
     }
 }

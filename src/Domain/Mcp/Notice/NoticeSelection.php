@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Notice;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class NoticeSelection
  */
-final readonly class NoticeSelection
+final readonly class NoticeSelection extends ValueObject
 {
     private const array REFERENCES = [
         'id', 'producer', 'topic', 'type', 'subject', 'recipient', 'author', 'command', 'event', 'action'
@@ -110,6 +111,37 @@ final readonly class NoticeSelection
         $fraction = strlen($value) === 20 ? '' : substr($value, 20, -1);
 
         return substr($value, 0, 19).'.'.str_pad($fraction, 6, '0').'Z';
+    }
+
+    /**
+     * Creates a selection from stable structured text without granting access
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid notice selection text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable selection text without grants
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured selection data
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

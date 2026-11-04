@@ -8,7 +8,6 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
@@ -36,7 +35,12 @@ final readonly class GetCapturedDetail implements Query
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['selection', 'detail_id', 'kind', 'offset', 'length']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['detail_id', 'kind', 'length', 'offset', 'selection']) {
+            throw new DomainException('Invalid captured detail query structure.');
+        }
+
         if (
             !is_array($data['selection']) || !is_string($data['detail_id'])
             || preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $data['detail_id']) !== 1

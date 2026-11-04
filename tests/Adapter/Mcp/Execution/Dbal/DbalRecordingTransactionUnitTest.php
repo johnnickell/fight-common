@@ -24,7 +24,9 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Phase\Phase;
+use Fight\Common\Domain\Mcp\Phase\PhaseId;
 use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use InvalidArgumentException;
@@ -46,8 +48,8 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $store = new DbalRecordingTransaction($connection);
         self::assertFalse($store->isClosed());
         self::assertNull((new DbalObservationRepository($store))->getById('instrumentation', ObservationId::generate()));
-        self::assertNull((new DbalSessionRepository($store))->getById('project', 'missing'));
-        self::assertNull((new DbalPhaseRepository($store))->getById('project', 'missing'));
+        self::assertNull((new DbalSessionRepository($store))->getById(SessionId::fromStrings('project', 'missing')));
+        self::assertNull((new DbalPhaseRepository($store))->getById(PhaseId::fromStrings('project', 'missing')));
         $session = ObservationFixture::session();
         $phase = ObservationFixture::phase();
         $first = $session->recorded(new DateTimeImmutable('2026-10-21T12:00:00.000001Z'));
@@ -66,8 +68,8 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
             self::assertSame($recorded->recordedAt()->format('Y-m-d\TH:i:s.u\Z'), $reconstructed->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
             self::assertNotEquals($recorded->occurredAt(), $reconstructed->recordedAt());
         }
-        self::assertSame($session->session()->toArray(), (new DbalSessionRepository($store))->getById('project', 'session')->reference()->toArray());
-        self::assertSame($phase->phase()->toArray(), (new DbalPhaseRepository($store))->getById('project', 'phase')->reference()->toArray());
+        self::assertSame($session->session()->toArray(), (new DbalSessionRepository($store))->getById(SessionId::fromStrings('project', 'session'))->reference()->toArray());
+        self::assertSame($phase->phase()->toArray(), (new DbalPhaseRepository($store))->getById(PhaseId::fromStrings('project', 'phase'))->reference()->toArray());
         self::assertFalse($connection->isTransactionActive());
         self::assertSame(1, (int) $connection->fetchOne('PRAGMA foreign_keys'));
     }

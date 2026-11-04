@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeId;
 use Fight\Common\Domain\Mcp\Notice\NoticeRemovalSelection;
 use Fight\Common\Domain\Mcp\Notice\NoticeRepository;
 use Fight\Common\Domain\Mcp\Notice\RecordedNotice;
@@ -32,12 +33,12 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     /**
      * @inheritDoc
      */
-    public function getByIdentity(string $scope, string $producer, string $id): ?RecordedNotice
+    public function getByIdentity(NoticeId $identity): ?RecordedNotice
     {
         $this->noticeTransaction->requireOwnedTransaction();
         $row = $this->connection->fetchAssociative(
             DbalNoticeRecords::SELECT.' WHERE n.scope = ? AND n.producer = ? AND n.notice_id = ?',
-            [Notice::reference($scope), Notice::reference($producer), Notice::reference($id)]
+            [$identity->scope(), $identity->producer(), $identity->id()]
         );
 
         return $row === false ? null : $this->noticeRecords->hydrate($row);

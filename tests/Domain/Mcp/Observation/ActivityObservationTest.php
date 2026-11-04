@@ -12,10 +12,9 @@ use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationOccurrence;
 use Fight\Common\Domain\Mcp\Observation\ObservationOutcome;
-use Fight\Common\Domain\Mcp\Observation\RecordedObservation;
 use Fight\Common\Domain\Mcp\Usage\UsageCompleteness;
 use Fight\Common\Domain\Mcp\Usage\UsageMeasurement;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationName;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -26,7 +25,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 #[CoversClass(UsageCompleteness::class)]
 #[CoversClass(ObservationOccurrence::class)]
 #[CoversClass(Observation::class)]
-#[CoversClass(ObservationFields::class)]
+#[CoversClass(ObservationName::class)]
 final class ActivityObservationTest extends UnitTestCase
 {
     public function test_that_activity_roundtrips_private_typed_evidence_through_the_existing_command(): void
@@ -68,7 +67,7 @@ final class ActivityObservationTest extends UnitTestCase
             self::assertSame([], get_object_vars($measurements[3]));
             self::assertSame([], get_object_vars($copy->activity()));
         }
-        $event = ObservationRecorded::fromRecorded(new RecordedObservation($observation, new DateTimeImmutable('now')));
+        $event = ObservationRecorded::fromRecorded($observation->recorded(new DateTimeImmutable('now')));
         self::assertSame(['observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'], array_keys($event->toArray()));
         self::assertStringNotContainsString('Safe public summary', json_encode($event->toArray()));
         self::assertNull(ObservationFixture::phase()->activity());
@@ -205,7 +204,7 @@ final class ActivityObservationTest extends UnitTestCase
             try { PhaseActivity::create('v/a', '', usage: $usage); self::fail('Expected invalid usage.'); }
             catch (DomainException $exception) { self::assertStringNotContainsString('source', $exception->getMessage()); }
         }
-        try { ObservationFields::name(null); self::fail('Expected invalid name.'); }
+        try { ObservationName::fromString(null); self::fail('Expected invalid name.'); }
         catch (DomainException $exception) { self::assertSame('Invalid observation name.', $exception->getMessage()); }
     }
 

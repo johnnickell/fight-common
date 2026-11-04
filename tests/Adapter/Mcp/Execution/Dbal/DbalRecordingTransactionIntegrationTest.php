@@ -35,8 +35,10 @@ use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Observation\ObservationOutcome;
 use Fight\Common\Domain\Mcp\Phase\Phase;
+use Fight\Common\Domain\Mcp\Phase\PhaseId;
 use Fight\Common\Domain\Mcp\Phase\PhaseReference;
 use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Common\Domain\Utility\ClassName;
@@ -89,7 +91,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame('000018', (new DbalObservationRepository($reopened))->getById('instrumentation', $session->id())->startedAt()->format('u'));
         self::assertSame(ObservationOutcome::UNKNOWN, (new DbalObservationRepository($reopened))->getById('instrumentation', $child->id())->outcome());
         self::assertNull((new DbalObservationRepository($reopened))->getById('instrumentation', $child->id())->endedAt());
-        self::assertSame($child->phase()->toArray(), (new DbalPhaseRepository($reopened))->getById('project', 'child')->reference()->toArray());
+        self::assertSame($child->phase()->toArray(), (new DbalPhaseRepository($reopened))->getById(PhaseId::fromStrings('project', 'child'))->reference()->toArray());
         self::assertSame(3, $this->rowCount($connection, 'observations'));
         self::assertSame(2, $this->rowCount($connection, 'phases'));
         self::assertSame(1, $this->rowCount($connection, 'sessions'));
@@ -112,10 +114,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $sessions = new DbalSessionRepository($transaction);
         $phases = new DbalPhaseRepository($transaction);
         $observations = new DbalObservationRepository($transaction);
-        self::assertNull($sessions->getById('other-project', 'session'));
-        self::assertNull($phases->getById('other-project', 'child'));
-        self::assertSame('build:147', $sessions->getById('project', 'session')->consumerReference());
-        $child = $phases->getById('project', 'child');
+        self::assertNull($sessions->getById(SessionId::fromStrings('other-project', 'session')));
+        self::assertNull($phases->getById(PhaseId::fromStrings('other-project', 'child')));
+        self::assertSame('build:147', $sessions->getById(SessionId::fromStrings('project', 'session'))->consumerReference());
+        $child = $phases->getById(PhaseId::fromStrings('project', 'child'));
         self::assertSame('project', $child->projectId());
         self::assertSame('child', $child->id());
         self::assertSame('session', $child->sessionId());
@@ -123,8 +125,8 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame('builder', $child->agentId());
         self::assertSame('repair', $child->name());
         self::assertSame(3, $child->attempt());
-        self::assertTrue($child->belongsTo($sessions->getById('project', 'session')));
-        self::assertTrue($child->acceptsParent($phases->getById('project', 'parent')));
+        self::assertTrue($child->belongsTo($sessions->getById(SessionId::fromStrings('project', 'session'))));
+        self::assertTrue($child->acceptsParent($phases->getById(PhaseId::fromStrings('project', 'parent'))));
         $fixture = new RecordingFixture($transaction);
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Retained evidence must not redispatch after reconstruction.'); });
         foreach ($rows as $row) {

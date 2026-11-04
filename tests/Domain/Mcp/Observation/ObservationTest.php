@@ -11,10 +11,8 @@ use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationExtensions;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Observation\ObservationOutcome;
-use Fight\Common\Domain\Mcp\Observation\RecordedObservation;
 use Fight\Common\Domain\Mcp\Phase\PhaseReference;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Event\EventMessage;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
@@ -23,12 +21,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(Observation::class)]
 #[CoversClass(ObservationExtensions::class)]
-#[CoversClass(ObservationFields::class)]
 #[CoversClass(ObservationId::class)]
 #[CoversClass(ObservationOutcome::class)]
 #[CoversClass(ObservationRecorded::class)]
 #[CoversClass(PhaseReference::class)]
-#[CoversClass(RecordedObservation::class)]
 #[CoversClass(SessionReference::class)]
 final class ObservationTest extends UnitTestCase
 {
@@ -131,11 +127,10 @@ final class ObservationTest extends UnitTestCase
     public function test_that_recorded_observations_expose_private_evidence_and_utc_recording_time(): void
     {
         $observation = ObservationFixture::session();
-        $recorded = new RecordedObservation($observation, new DateTimeImmutable('2026-10-20T17:00:00.000123+02:00'));
+        $recorded = $observation->recorded(new DateTimeImmutable('2026-10-20T17:00:00.000123+02:00'));
         self::assertSame([], get_object_vars($recorded));
-        self::assertNotSame($observation, $recorded->observation());
-        self::assertSame($observation->toArray(), $recorded->observation()->toArray());
-        self::assertSame($recorded->recordedAt(), $recorded->observation()->recordedAt());
+        self::assertNotSame($observation, $recorded);
+        self::assertSame($observation->toArray(), $recorded->toArray());
         self::assertSame('2026-10-20T15:00:00.000123Z', $recorded->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
         self::assertSame($recorded->recordedAt(), $recorded->recordedAt());
     }
@@ -152,7 +147,7 @@ final class ObservationTest extends UnitTestCase
         self::assertTrue($recorded->matches($submitted));
         self::assertFalse($recorded->matches(ObservationFixture::session(['outcome' => 'failed'])));
         self::assertSame($recorded, $recorded->recorded(new DateTimeImmutable('2026-10-21T15:00:00.000001Z')));
-        self::assertSame($recorded, (new RecordedObservation($recorded, $time))->observation());
+        self::assertSame($recorded, $recorded->recorded($time));
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Observation recording time is immutable.');
         $recorded->recorded(new DateTimeImmutable('2026-10-21T15:00:00.000002Z'));
@@ -223,8 +218,8 @@ final class ObservationTest extends UnitTestCase
     public function test_that_events_contain_only_safe_committed_references_and_recording_time(): void
     {
         foreach ([ObservationFixture::session(), ObservationFixture::phase()] as $observation) {
-            $event = ObservationRecorded::fromRecorded(new RecordedObservation(
-                $observation, new DateTimeImmutable('2026-10-20T15:00:00.000123Z'),
+            $event = ObservationRecorded::fromRecorded($observation->recorded(
+                new DateTimeImmutable('2026-10-20T15:00:00.000123Z'),
             ));
             self::assertSame([
                 'observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at',
@@ -241,7 +236,7 @@ final class ObservationTest extends UnitTestCase
     public function test_that_recorded_events_expose_safe_state_only_through_accessors(): void
     {
         foreach ([ObservationFixture::session(), ObservationFixture::phase()] as $observation) {
-            $recorded = new RecordedObservation($observation, new DateTimeImmutable('2026-10-20T17:00:00.000123+02:00'));
+            $recorded = $observation->recorded(new DateTimeImmutable('2026-10-20T17:00:00.000123+02:00'));
             $event = ObservationRecorded::fromRecorded($recorded);
 
             self::assertSame([], get_object_vars($event));
@@ -349,8 +344,8 @@ final class ObservationTest extends UnitTestCase
 
     public function test_that_invalid_event_identity_is_rejected_without_echoing_it(): void
     {
-        $data = ObservationRecorded::fromRecorded(new RecordedObservation(
-            ObservationFixture::session(), new DateTimeImmutable('2026-10-20T15:00:00Z'),
+        $data = ObservationRecorded::fromRecorded(ObservationFixture::session()->recorded(
+            new DateTimeImmutable('2026-10-20T15:00:00Z'),
         ))->toArray();
         $data['observation_id'] = 'invalid';
         $this->expectException(DomainException::class);

@@ -50,7 +50,7 @@ readonly class McpResponseEmitter
 
         if (
             ob_get_level() !== 0
-            || !in_array(strtolower((string) ini_get('zlib.output_compression')), ['', '0', 'off'], true)
+            || !in_array(strtolower(ini_get('zlib.output_compression') ?: ''), ['', '0', 'off'], true)
         ) {
             throw new RuntimeException('Live MCP emission requires output buffering and compression disabled.');
         }

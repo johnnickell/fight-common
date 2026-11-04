@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
+| Active Work | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -60,14 +60,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | ready-for-agent | — | — |
-| 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 

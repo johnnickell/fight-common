@@ -6,7 +6,8 @@ namespace Fight\Common\Domain\Mcp\Observation\Query;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationName;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
@@ -39,7 +40,7 @@ final readonly class ListPhaseActivity implements Query
         array $orderings = []
     ) {
         $this->execution = new GetExecution($projectId, $sessionId);
-        $this->phaseId = ObservationFields::reference($phaseId);
+        $this->phaseId = ObservationReference::fromString($phaseId)->toString();
         $this->pagination = Pagination::strict($page, $perPage, $orderings);
         if ($this->pagination->perPage() > 100 || $this->pagination->offset() > 1000000) {
             throw new DomainException('Activity page bounds exceeded.');
@@ -55,7 +56,11 @@ final readonly class ListPhaseActivity implements Query
                 throw new DomainException('Unsupported activity filter.');
             }
 
-            $safe[$field] = $field === 'kind' ? ObservationFields::name($value) : ObservationFields::reference($value);
+            if ($field === 'kind') {
+                $safe[$field] = ObservationName::fromString($value)->toString();
+            } else {
+                $safe[$field] = ObservationReference::fromString($value)->toString();
+            }
         }
 
         ksort($safe, SORT_STRING);
@@ -67,9 +72,12 @@ final readonly class ListPhaseActivity implements Query
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, [
-            'project_id', 'session_id', 'phase_id', 'page', 'per_page', 'filters', 'orderings'
-        ]);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['filters', 'orderings', 'page', 'per_page', 'phase_id', 'project_id', 'session_id']) {
+            throw new DomainException('Invalid activity page structure.');
+        }
+
         if (
             !is_int($data['page']) || !is_int($data['per_page'])
             || !is_array($data['filters']) || !is_array($data['orderings'])
@@ -78,9 +86,9 @@ final readonly class ListPhaseActivity implements Query
         }
 
         return new self(
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id']),
-            ObservationFields::reference($data['phase_id']),
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString(),
+            ObservationReference::fromString($data['phase_id'])->toString(),
             $data['page'],
             $data['per_page'],
             $data['filters'],

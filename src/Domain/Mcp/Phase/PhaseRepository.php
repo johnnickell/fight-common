@@ -12,7 +12,7 @@ interface PhaseRepository
     /**
      * Returns a recorded subject by its project-scoped identity
      */
-    public function getById(string $projectId, string $phaseId): ?Phase;
+    public function getById(PhaseId $id): ?Phase;
 
     /**
      * Adds an immutable phase inside the recording transaction

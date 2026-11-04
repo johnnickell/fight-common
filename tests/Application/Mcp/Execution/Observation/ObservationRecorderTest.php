@@ -19,9 +19,11 @@ use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationRepository;
 use Fight\Common\Domain\Mcp\Phase\Phase;
+use Fight\Common\Domain\Mcp\Phase\PhaseId;
 use Fight\Common\Domain\Mcp\Phase\PhaseReference;
 use Fight\Common\Domain\Mcp\Phase\PhaseRepository;
 use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
 use Fight\Common\Domain\Mcp\Session\SessionRepository;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
@@ -75,7 +77,7 @@ final class ObservationRecorderTest extends UnitTestCase
         $observation = ObservationFixture::session()->recorded(new DateTimeImmutable('2000-01-01Z'));
         $before = new DateTimeImmutable('now');
         $this->admission->shouldReceive('admit')->once()->with($observation)->globally()->ordered();
-        $this->sessions->shouldReceive('getById')->once()->with('project', 'session')->globally()->ordered()->andReturnNull();
+        $this->sessions->shouldReceive('getById')->once()->withArgs(static fn (SessionId $id): bool => $id->equals(SessionId::fromStrings('project', 'session')))->globally()->ordered()->andReturnNull();
         $this->sessions->shouldReceive('add')->once()->withArgs(static fn (Session $session): bool => $session->matches($observation->session()))->globally()->ordered();
         $this->observations->shouldReceive('getById')->once()->with('instrumentation', $observation->id())->globally()->ordered()->andReturnNull();
         $saved = null;
@@ -152,7 +154,7 @@ final class ObservationRecorderTest extends UnitTestCase
                 'parent-cross-session' => new Phase('project', PhaseReference::fromStrings('other', 'parent', null, 'agent', 'work', 1)),
                 default => new Phase('project', PhaseReference::fromStrings('session', 'parent', null, 'agent', 'work', 1)),
             };
-            $this->phases->shouldReceive('getById')->with('project', 'parent')->once()->andReturn($parent);
+            $this->phases->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', 'parent')))->once()->andReturn($parent);
         }
         if (!in_array($case, ['session-mismatch', 'missing-session', 'parent-missing', 'parent-cross-session'], true)) {
             $existing = match ($case) {
@@ -160,7 +162,7 @@ final class ObservationRecorderTest extends UnitTestCase
                 'phase-mismatch' => new Phase('project', PhaseReference::fromStrings('session', 'phase', null, 'different-agent', 'review', 1)),
                 default => null,
             };
-            $this->phases->shouldReceive('getById')->with('project', $observation->phase()->phaseId())->once()->andReturn($existing);
+            $this->phases->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', $observation->phase()->phaseId())))->once()->andReturn($existing);
             if ($existing === null) {
                 $this->phases->shouldReceive('add')->once()->withArgs(static fn (Phase $phase): bool => $phase->matches('project', $observation->phase()));
             }

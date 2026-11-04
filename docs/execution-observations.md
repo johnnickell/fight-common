@@ -21,9 +21,11 @@ Execution contains three ordinary DDD aggregate roots, not one graph and not eve
 
 Each has its own Domain repository. Session and Phase are recorded subjects, not authoritative Workflow state.
 References live with their owning concepts; they describe immutable relationships without loading a graph.
-`RecordedObservation` is only a receipt over a recorded Observation root: its `recordedAt()` reads that root's time,
-with no competing identity, repository or independently stored time. `Observation::recorded()` creates an immutable
-recorded copy; a different receipt time on an already recorded root rejects. `recordedAt()` rejects on submitted,
+`Session::identity()` and `Phase::identity()` return role-specific project-scoped `SessionId`/`PhaseId` values;
+`Observation::identity()` composes its producer and existing full `ObservationId`. Component field bytes and all
+existing payload/storage shapes remain unchanged. `ObservationRecorded::fromRecorded()` accepts the recorded
+Observation root and reads its own server time, never a receipt or an unrecorded observation.
+`Observation::recorded()` creates an immutable recorded root directly, without a receipt wrapper; a different receipt time on an already recorded root rejects. `recordedAt()` rejects on submitted,
 unrecorded evidence. The recorder assigns the actual server time, never a producer-supplied receipt time.
 The same subject may have multiple observations; later evidence never overwrites an existing observation.
 No EventSourcing base, replay, stream version, Event Store or outbox is involved.
@@ -38,7 +40,7 @@ Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods
 | `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `activity()`, `detail()`, `occurrence()`, `recordedAt()`, `matches()`, `compareRecordingTo()` |
 | `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
 | `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
-| `RecordedObservation` | `observation()`, `recordedAt()` |
+| `SessionId`, `PhaseId`, `ObservationIdentity` | `identity()` on the corresponding root returns its complete scoped identity |
 
 For example, admission reads `$observation->session()->projectId()` and
 `$observation->phase()?->parentPhaseId()`. These methods preserve validated values, nulls, immutable object identity
@@ -294,7 +296,7 @@ producer, project, session and nullable phase IDs and recording time. Null phase
 identifies a phase fact. It contains no extensions, Agent description, consumer text, bodies or command metadata.
 Events are facts about saved observations, not authoritative session/phase transitions.
 
-`SessionRepository::getById(project, session)`, `PhaseRepository::getById(project, phase)` and
+`SessionRepository::getById(SessionId)`, `PhaseRepository::getById(PhaseId)` and
 `ObservationRepository::getById(producer, observationId)` return independently reconstructed nullable roots; `add()`
 persists a new immutable root inside the shared recording transaction. They are Domain contracts and do not inherit
 Application's unit of work. They are not authorized public inspection APIs: these reads support recording checks,
@@ -458,7 +460,11 @@ previous development snapshots. Unsupported-version rejection remains current va
 The project profile records this release-baseline rule.
 
 The manifest classifies the intended public roots, repositories, Commands, handlers, admission ports,
-exceptions, receipt, Event and DBAL adapters; `ObservationFields` is internal. TASK-00184 removes the provisional
+exceptions, Event and DBAL adapters. The receipt-only `RecordedObservation` and internal catch-all
+`ObservationFields` are removed; structural decoding stays with each representation. All affected values now
+extend ValueObject with same-type equality/hash, stable reconstruction and deliberate structured JSON.
+See the [complete source-linked classification](maintenance/evidence-domain-values.md) for scoped identities,
+independent grammars and the protected-value encoding boundary. TASK-00184 removes the provisional
 empty transaction subtype and keeps `DbalRecordingTransaction` public/final for explicit execution composition,
 with real schema-lock and failure-translation responsibility. The two public/final generic DBAL declarations
 are described in [repository transactions](components/repositories/index.md#dbal-transactional-unit-of-work). These classifications do not freeze

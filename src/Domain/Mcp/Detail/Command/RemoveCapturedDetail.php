@@ -8,7 +8,6 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
@@ -33,7 +32,12 @@ final readonly class RemoveCapturedDetail implements Command
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['selection', 'detail_id', 'kind']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['detail_id', 'kind', 'selection']) {
+            throw new DomainException('Invalid captured detail removal structure.');
+        }
+
         if (
             !is_array($data['selection']) || !is_string($data['detail_id'])
             || preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $data['detail_id']) !== 1

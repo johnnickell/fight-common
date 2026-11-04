@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Application\Mcp\Execution\Session\Service;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 
 /**
  * Class ExecutionAccess
@@ -50,7 +50,7 @@ final readonly class ExecutionAccess
 
         $safe = [];
         foreach ($projects as $project => $sessions) {
-            $project = ObservationFields::reference((string) $project);
+            $project = ObservationReference::fromString((string) $project)->toString();
             if ($sessions === null) {
                 $safe[$project] = null;
                 continue;
@@ -62,7 +62,7 @@ final readonly class ExecutionAccess
 
             $ids = [];
             foreach ($sessions as $session) {
-                $ids[] = ObservationFields::reference($session);
+                $ids[] = ObservationReference::fromString($session)->toString();
             }
 
             $safe[$project] = array_values(array_unique($ids));
@@ -76,7 +76,7 @@ final readonly class ExecutionAccess
 
             $validated = [];
             foreach ($ids as $id) {
-                $validated[] = ObservationFields::reference($id);
+                $validated[] = ObservationReference::fromString($id)->toString();
             }
 
             $phases[$project] = array_values(array_unique($validated));

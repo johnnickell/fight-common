@@ -26,6 +26,7 @@ use Fight\Common\Application\Mcp\Notice\Service\NoticeRecorder;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\Event\NoticeRecorded;
 use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeId;
 use Fight\Common\Domain\Mcp\Notice\RecordedNotice;
 use Fight\Common\Domain\Messaging\Command\Command;
 use Fight\Common\Domain\Messaging\Command\CommandMessage;
@@ -66,10 +67,10 @@ final class DbalNoticeRepositoryTest extends UnitTestCase
         $first = $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0];
         $fixture->record();
         self::assertSame(2, $fixture->admissions); self::assertCount(1, $events);
-        $retained = $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'));
+        $retained = $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity(NoticeId::fromStrings('scope', 'producer', 'notice-1')));
         self::assertSame(1, $retained->position()); self::assertSame($first->recordedAt(), $retained->recordedAt());
         self::assertSame(Notice::fromArray(NoticeFixture::data())->comparison(), $retained->notice()->comparison());
-        self::assertNull($fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'missing')));
+        self::assertNull($fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity(NoticeId::fromStrings('scope', 'producer', 'missing'))));
         self::assertSame([], $fixture->noticeRecoveryReader->readAfter('scope', 1, 100));
         foreach (['fight_notices', 'fight_notice_relationships', 'fight_notice_comparisons'] as $table) { self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); }
         try { $fixture->record(['topic' => 'different']); self::fail('Expected conflict.'); } catch (NoticeConflict $failure) { self::assertSame('Notice content conflicts.', $failure->getMessage()); }
@@ -97,7 +98,7 @@ final class DbalNoticeRepositoryTest extends UnitTestCase
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
         foreach ([false, true] as $outer) {
             if ($outer) { $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]); }
-            foreach ([fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)), fn () => $fixture->noticeRepository->append(Notice::fromArray(NoticeFixture::data()), '2026-10-25T00:00:00.000000Z'), fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
+            foreach ([fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)), fn () => $fixture->noticeRepository->append(Notice::fromArray(NoticeFixture::data()), '2026-10-25T00:00:00.000000Z'), fn () => $fixture->noticeRepository->getByIdentity(NoticeId::fromStrings('scope', 'producer', 'notice-1')), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
                 try { $operation(); self::fail('Expected ownership rejection.'); } catch (LogicException) { self::assertSame($outer, $connection->isTransactionActive()); }
             }
             if ($outer) {
@@ -242,7 +243,7 @@ final class DbalNoticeRepositoryTest extends UnitTestCase
         $otherNoticeTransaction = new DbalNoticeTransaction($connection);
         foreach ([$unrelatedUnitOfWork, $otherNoticeTransaction] as $transactionalUnitOfWork) {
             try {
-                $transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'));
+                $transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity(NoticeId::fromStrings('scope', 'producer', 'notice-1')));
                 self::fail('A transaction on the same connection is not notice repository ownership.');
             } catch (LogicException) {
                 self::assertFalse($connection->isTransactionActive());

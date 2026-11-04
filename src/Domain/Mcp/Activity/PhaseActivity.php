@@ -6,14 +6,16 @@ namespace Fight\Common\Domain\Mcp\Activity;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Usage\UsageMeasurement;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationName;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class PhaseActivity
  *
  * Safe bounded evidence distinct from protected bodies and Workflow state
  */
-final readonly class PhaseActivity
+final readonly class PhaseActivity extends ValueObject
 {
     /**
      * Constructs PhaseActivity
@@ -55,9 +57,9 @@ final readonly class PhaseActivity
         ksort($snapshot, SORT_STRING);
 
         return new self(
-            ObservationFields::name($kind),
+            ObservationName::fromString($kind)->toString(),
             $summary,
-            $modelId === null ? null : ObservationFields::reference($modelId),
+            $modelId === null ? null : ObservationReference::fromString($modelId)->toString(),
             array_values($snapshot)
         );
     }
@@ -73,7 +75,12 @@ final readonly class PhaseActivity
             throw new DomainException('Unsupported activity version.');
         }
 
-        ObservationFields::structure($data, ['version', 'kind', 'summary', 'model_id', 'usage']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['kind', 'model_id', 'summary', 'usage', 'version']) {
+            throw new DomainException('Invalid activity structure.');
+        }
+
         if (
             !is_string($data['kind']) || !is_string($data['summary'])
             || ($data['model_id'] !== null && !is_string($data['model_id']))
@@ -92,6 +99,37 @@ final readonly class PhaseActivity
         }
 
         return self::create($data['kind'], $data['summary'], $data['model_id'], $usage);
+    }
+
+    /**
+     * Creates activity from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid activity text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable structured activity text
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured safe activity without protected bodies
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**
