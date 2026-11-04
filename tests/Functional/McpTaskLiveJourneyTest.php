@@ -20,6 +20,7 @@ use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
@@ -243,7 +244,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
             // Native build/exec does not forward arbitrary host env vars. Keep default capture on the /app bind mount.
             $destination = getenv('FIGHT_TASK_LIVE_EVIDENCE_DIR');
             if ($destination === false) { $destination = dirname(__DIR__, 2).'/var/reports/task-live'; }
-            if (!is_dir($destination) && !mkdir($destination, 0700, true) && !is_dir($destination)) { throw new \RuntimeException('Cannot create private Task-live evidence directory'); }
+            if (!is_dir($destination) && !mkdir($destination, 0700, true) && !is_dir($destination)) { throw new RuntimeException('Cannot create private Task-live evidence directory'); }
             file_put_contents($destination.'/'.str_replace([' ', '"', '/'], '-', $this->nameWithDataSet()).'-'.bin2hex(random_bytes(4)).'.json', json_encode($this->trace, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
             $this->removeTemporaryDirectory($this->directory, 'fight-task-live-');
         }
