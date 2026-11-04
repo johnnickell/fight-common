@@ -13,7 +13,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | in-progress | — | — |
 
 ## Ready Frontier
 

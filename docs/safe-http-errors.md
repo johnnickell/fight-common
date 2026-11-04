@@ -285,6 +285,22 @@ are not forwarded. Native retry metadata is an optional hint, never retry author
 application failure categories, JSend fail/error shapes, strict public data and retry policy
 are described above; Laravel does not alter them.
 
+For selected JSON, rendering is bounded to one primary response attempt and one ordinary generic
+fallback attempt. If fallback encoding also fails, the handler constructs the same native
+`JSendResponse` from trusted pre-encoded bytes, without consulting the encoder, projector or sink
+again. This terminal response is HTTP 500, `Content-Type: application/json`, with exact body
+`{"status":"error","message":"Internal server error."}` and no selected failure headers or
+projected data. This also contains fallback encoding failure after a failed sink or projector,
+and applies to direct `render()` calls as well as Laravel's report-then-render lifecycle.
+Renderer faults are not reported recursively; the original failure has one diagnostic attempt,
+not a claim of successful delivery when the sink failed. Framework middleware and `RequestHandled`
+observers receive the safe native response. Later independent failures on the same handler are
+still reportable and render normally; there is no global reporting-suppression latch.
+
+This is containment of the handler's owned rendering boundary, not recovery from process death,
+exhausted memory or arbitrary consumer middleware/observer failures. It does not sanitize delegated
+HTML or qualify an installed consumer's runtime. Test final processing in the consumer's own stack.
+
 These additive final classes expose new callable composition/translation behavior under ADRs
 0009–0011. Legacy `Adapter\Http\Laravel\Controller\ErrorController` and `HttpServiceProvider` keep their
 constructors, response type and **unsafe** raw-message/field-error behavior in this minor;
