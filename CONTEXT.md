@@ -284,8 +284,11 @@ contract context without executing work and freshly authorizes whole-state safe 
 execution errors; explicit disclosure remains consumer-owned. Protected data is never replaced with empty success.
 
 Domain `Mcp\Task\TaskRepository` owns aggregate load/save/removal, without transaction inheritance or connection
-access. The three Application lifecycle coordinators inject it and existing `TransactionalUnitOfWork` separately,
-plus the narrow `CommittedTaskReader` port for protected committed reads and cancellation acknowledgment.
+access. Each Task CommandHandler injects it and the existing `TransactionalUnitOfWork` separately, with only its
+operation-specific admissions, policies, clock and dispatcher. QueryHandlers instead inject the narrow
+`CommittedTaskReader` and their required read policies/clock, without repository or transaction capabilities.
+`RequestTaskCancellationHandler` additionally injects `CommittedTaskReader` to reconstruct committed intent before
+initial acknowledgment.
 `Adapter\Mcp\Task\Dbal\DbalTaskRepository` implements repository and committed-read capabilities; it never commits.
 `DbalTaskTransaction` binds its exact dedicated DBAL connection and owns schema serialization/failure translation
 around reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. An unrelated DBAL/ORM transaction or
