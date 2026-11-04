@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';

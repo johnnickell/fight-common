@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Mcp\Observation;
 
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
-use Fight\Common\Application\Mcp\Execution\ObservationAdmission;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Mcp\Observation\Service\ObservationAdmission;
+use Fight\Common\Application\Mcp\Observation\Service\ObservationRecorder;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;

@@ -93,7 +93,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | done | — |
 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | done | — |
 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | done | — |
-| [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | ready-for-agent | — |
+| [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | in-progress | — |
 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
 | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | done | — |
 | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |

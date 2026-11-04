@@ -53,10 +53,10 @@ There are no development-format migrations, automatic cleanup or schema changes 
 
 Construct these explicit collaborators (names below are under `Fight\Common`):
 
-- `$transactionalUnitOfWork = new Adapter\Mcp\Task\Dbal\DbalTaskTransaction($connection)`, implementing the
+- `$transactionalUnitOfWork = new Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTransaction($connection)`, implementing the
   existing Application `TransactionalUnitOfWork` around `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`.
   The Task wrapper owns namespace locking/schema validation and Task-specific failure translation, not persistence.
-- `$taskRepository = new Adapter\Mcp\Task\Dbal\DbalTaskRepository($transactionalUnitOfWork)`, implementing Domain
+- `$taskRepository = new Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository($transactionalUnitOfWork)`, implementing Domain
   `Mcp\Task\TaskRepository` (`getById`, `save`, `remove`) without transaction inheritance or connection access.
   Its constructor binds it to the exact Task boundary and connection; an unrelated active transaction cannot admit writes.
 - `$committedTaskReader = $taskRepository`, supplied through Application `Mcp\Task\Service\CommittedTaskReader`.

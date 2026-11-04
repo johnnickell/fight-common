@@ -15,11 +15,11 @@ only `QueryBus::fetch()` and typed safe results. The admission implementation su
 phase/activity and separate detail-reference grants. Configure Agent permissions independently from humans.
 
 ```php
-use Fight\Common\Application\Mcp\Execution\GetExecutionTool;
-use Fight\Common\Application\Mcp\Execution\ListExecutionPhasesTool;
-use Fight\Common\Application\Mcp\Execution\ListExecutionsTool;
-use Fight\Common\Application\Mcp\Execution\ListPhaseActivityTool;
-use Fight\Common\Application\Mcp\Execution\SummarizeExecutionsTool;
+use Fight\Common\Adapter\Mcp\Tool\Session\GetExecutionTool;
+use Fight\Common\Adapter\Mcp\Tool\Phase\ListExecutionPhasesTool;
+use Fight\Common\Adapter\Mcp\Tool\Session\ListExecutionsTool;
+use Fight\Common\Adapter\Mcp\Tool\Observation\ListPhaseActivityTool;
+use Fight\Common\Adapter\Mcp\Tool\Session\SummarizeExecutionsTool;
 use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
@@ -121,12 +121,14 @@ the rejected success payload; the bound is not a replacement global error/reques
 
 ## Compatibility and public surface
 
-Against tagged releases, five final, opt-in public Application declarations are added:
-`SummarizeExecutionsTool`, `ListExecutionsTool`, `GetExecutionTool`, `ListExecutionPhasesTool` and
-`ListPhaseActivityTool`, under `Fight\Common\Application\Mcp\Execution`. Consumers may construct them with their
-QueryBus and invoke their declared read-only handles; they are not inheritance or implementation extension points.
-`ExecutionToolSchemas`, `ExecutionToolInput` and `ExecutionToolOutput` are internal presentation helpers, with no
-consumer promise. The compatibility manifest classifies all eight additions.
+Against tagged releases, five final, opt-in public presentation adapters are added beneath
+`Fight\Common\Adapter\Mcp\Tool`: `Session\SummarizeExecutionsTool`, `Session\ListExecutionsTool`,
+`Session\GetExecutionTool`, `Phase\ListExecutionPhasesTool` and `Observation\ListPhaseActivityTool`.
+Consumers may construct them with their QueryBus and invoke their declared read-only handles; they are not
+inheritance or implementation extension points. `Execution\ExecutionToolSchemas`, `Execution\ExecutionToolInput`
+and `Execution\ExecutionToolOutput` are cohesive internal presentation helpers, with no consumer promise.
+The compatibility manifest classifies all eight additions. TASK-00191 moves these never-tagged declarations
+and the two protected Tools directly, without old Application aliases; see the [aggregate migration map](mcp-namespaces.md#approved-aggregate-alignment-target).
 
 `McpToolOutput::boundedStructured()` and its budget accessor are additive opt-in methods. The internal result
 budget propagation methods and the central response validation preserve all existing unbounded result behavior;
@@ -144,8 +146,8 @@ First register `GetCapturedDetailHandler` and `ListCapturedMessagesHandler` with
 consumer implementation of **`DetailReadAdmission`**, separate from `ExecutionReadAdmission`:
 
 ```php
-use Fight\Common\Application\Mcp\Execution\GetCapturedDetailTool;
-use Fight\Common\Application\Mcp\Execution\ListCapturedMessagesTool;
+use Fight\Common\Adapter\Mcp\Tool\Detail\GetCapturedDetailTool;
+use Fight\Common\Adapter\Mcp\Tool\Detail\ListCapturedMessagesTool;
 
 // Add to the explicitly selected safe Tool instances before constructing McpToolRegistry.
 $selectedTools[] = new ListCapturedMessagesTool($queries);
@@ -210,8 +212,9 @@ responses may contain protected content. Reads dispatch no mutation Commands/eve
 
 Compatibility against tagged releases: **two additive final public classes**, `GetCapturedDetailTool` and
 `ListCapturedMessagesTool`, permit construction with `QueryBus` and calls to their declared handles, not extension
-or implementation. The manifest adds both and increases the Application inventory by two. Existing internal
-`ExecutionToolSchemas`/`ExecutionToolOutput` gain protected schema/result support; no released public signature,
+or implementation. Both live in `Adapter\Mcp\Tool\Detail`; the manifest classifies them in Adapter, not Application.
+Existing internal `Tool\Execution\ExecutionToolSchemas`/`ExecutionToolOutput` retain protected schema/result support;
+no released public signature,
 Tool/HTTP contract, Query policy, database schema/index, dependency, recording or transaction behavior changes.
 Never-released Execution additions remain provisional, without migration promises for development snapshots.
 The inherited release-wide operation fingerprint reconciliation remains release-owned, not newly certified here.

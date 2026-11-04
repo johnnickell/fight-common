@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
 use Fight\Common\Application\Mcp\Task\CommandHandler\AcquireTaskInputHandler;

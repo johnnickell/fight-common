@@ -101,6 +101,32 @@ permission or delivery change follows from this documentation amendment. The fou
 released identity-preserving aliases described below remain implemented and supported; aggregate alignment does
 not relocate their runtime compatibility owners or reclassify protocol values as Domain value objects.
 
+## Implemented aggregate and presentation specialization — TASK-00191
+
+TASK-00191 implements the approved specialization above without reopening TASK-00177's historical acceptance.
+Application Session, Phase, Observation and Detail homes now mirror Domain directly beneath `Application/Mcp`;
+`ObservationAdmission` lives in `Observation/Service`. Handler, Data, Exception and meaningful Service ownership
+remain inward. The removed execution transaction subtype does not return.
+
+Concrete execution inspection Tools live in `Adapter/Mcp/Tool/{Session,Phase,Observation,Detail}` according to
+the shared Query exposed; Notice recovery presentation uses `Tool/Notice`. Their actual attributes, argument
+translation, schemas and safe result mapping move, not an extra adapter forwarding to an Application Tool.
+Cross-aggregate execution presentation support remains cohesive under `Tool/Execution`.
+
+DBAL repositories/readers use `Adapter/Mcp/Persistence/{Session,Phase,Observation,Detail,Task,Notice,Subscription}/Dbal`.
+`Persistence/Execution/Dbal` retains only genuinely shared execution schema, serialization/transaction translation
+and constrained read/decoding support. Generic DBAL mechanics stay in `Adapter/Persistence/Doctrine`.
+`Adapter/Mcp/Http`, native MCP integrations, `Adapter/ServiceContainer`, generic Application protocol semantics
+and TASK-00181's canonical foundations/runtime compatibility owners remain unchanged. No speculative version
+folder, renamed transport or MCP identifier is introduced.
+
+Inspection of all six actual local tags through v1.4.0, including prior namespaces by short name, finds none of
+the 79 affected declarations released. They move directly without snapshot bridges or deprecations; existing
+released foundation/HTTP/legacy-AI operation-specific compatibility remains intact. The
+[current complete map](../../docs/mcp-namespaces.md#approved-aggregate-alignment-target), manifest and mirrored
+runtime tests describe the canonical imports. Tool IDs/schemas, independent availability/Query authorization,
+protected-body grants, transactions, storage bytes, response bounds and live delivery keep their prior contracts.
+
 ## MCP foundation namespace amendment — TASK-00181
 
 John approved an additive foundation map on 2026-11-02: preserve short names while grouping capability contracts

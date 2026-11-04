@@ -65,6 +65,13 @@ No budget, validation or wire representation changes with getter adoption.
 
 ## Ownership
 
+Concrete shared-Query inspection Tools are presentation adapters under `Adapter\Mcp\Tool\{Aggregate}`;
+aggregate handlers and ports remain directly under `Application\Mcp\{Aggregate}`. MCP persistence uses
+`Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with genuinely cross-aggregate execution support under
+`Persistence\Execution\Dbal`. These direct never-released moves do not move the generic protocol engine,
+HTTP integrations or released foundation compatibility owners. See the
+[complete aggregate migration map](../../mcp-namespaces.md#approved-aggregate-alignment-target).
+
 `Application\Mcp` implements framework-neutral MCP `2026-07-28` semantics. It decodes a JSON-RPC request,
 retains bounded per-request MCP metadata, validates the protocol version, and produces a semantic JSON-RPC
 result or protocol error. It does not create a PSR response, choose an endpoint, authenticate a caller, resolve a
