@@ -29,11 +29,11 @@ if ($mode === 'timeout') {
 }
 $bootstrapDelayMicroseconds = (int) ($argv[4] ?? 0);
 $holdMicroseconds = $mode === 'overlong' ? 5200000 : 2200000;
-$lockWorker = new Process([PHP_BINARY, __DIR__.'/subscription-lock-worker.php', $directory, (string) $holdMicroseconds, (string) $bootstrapDelayMicroseconds, 'coordinated']);
+$lockWorker = new Process([PHP_BINARY, __DIR__.'/subscription-lock-worker.php', $directory, (string) $holdMicroseconds, (string) $bootstrapDelayMicroseconds, 'coordinated'], timeout: 25);
 $body = null;
 try {
     $lockWorker->start();
-    // Preparation precedes any lease and uses the original native Process budget; lock acquisition remains bounded at 3s.
+    // Preparation precedes any lease under the explicit 25-second worker watchdog; lock acquisition remains bounded at 3s.
     $startupOutput = '';
     $workerIsReady = $lockWorker->waitUntil(static function (string $type, string $output) use (&$startupOutput): bool {
         if ($type === Process::OUT) { $startupOutput .= $output; }
