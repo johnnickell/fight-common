@@ -11,9 +11,9 @@ returned. An application change whose recording failed cannot be recovered.
 Imports below are beneath `Fight\Common\`:
 
 ```php
-$store = new Adapter\Mcp\Notice\Dbal\DbalNoticeStore($dedicatedIdleConnection);
+$noticeRecoveryReader = new Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader($dedicatedIdleConnection);
 $protector = new Adapter\Mcp\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
-$recovery = new Application\Mcp\Notice\Service\NoticeRecovery($store, $protector);
+$recovery = new Application\Mcp\Notice\Service\NoticeRecovery($noticeRecoveryReader, $protector);
 $handler = new Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $recovery);
 $router->registerHandler(Domain\Mcp\Notice\Query\RecoverNotices::class, $handler);
 $selection = Domain\Mcp\Notice\NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
@@ -24,9 +24,13 @@ $tool = new Application\Mcp\Notice\RecoverNoticesTool($queryBus);
 
 Install the existing DBAL schema exclusively. Use an idle committed-isolation connection as for recording/removal;
 outer transactions, dirty reads, missing/corrupt storage and failed commits reject. SQLite, MySQL and PostgreSQL
-share the same serialized storage contract. `NoticeStore::readWindow()` now also accepts a list of 0–16 scopes,
-merging bounded rows in ascending committed position under **one** state-row lock. The existing string scope input
-remains supported. An empty scope list reads no bodies. This is trusted storage, not a public grant.
+share the same serialized storage contract. Application `NoticeRecoveryReader::readWindow()` accepts a string scope
+or list of 0–16 scopes, merging bounded rows in ascending committed position under **one** state-row lock.
+`DbalNoticeRecoveryReader` owns that coherent read transaction internally, including truthful uncertain outcomes;
+callers need no transaction injection or sequencing. It neither implements the write repository nor exposes
+`TransactionalUnitOfWork`. Domain `NoticeRepository` and separately injected recording/removal transactions stay
+on the write path. Live authorized `NoticeReader` browsing has different consistency/authorization responsibilities
+and remains separate. An empty scope list reads no bodies. This is trusted storage, not a public grant.
 
 Reuse `NoticeReadAdmission::currentAccess(selection)` from [inspection](notice-inspection.md). Every call obtains
 fresh whole-notice grants, intersected with the caller selection, before any disclosure. It must additionally supply
@@ -165,8 +169,10 @@ Seven new declarations are public and opt-in: final `RecoverNotices`, `NoticeRec
 `NoticeContinuationProtector` is an eighth, consumer-implementable public interface; `NoticeToolSchemas` is internal.
 The eight public declarations promise documented construction/calls, not subclass extension; the interface promises
 implementation, not construction. `compatibility/manifest.json` classifies them. `NoticeAccess` gains optional trusted
-recovery context; `NoticeStore::readWindow` widens to a scope list for coherent merged ordering. These are **unreleased
-provisional Notice API revisions** against tagged releases, not a compatibility guarantee for old development adapter
+recovery context; TASK-00186 moves coherent windows and bounded feed reconstruction from the never-tagged combined
+Store into public consumer-implementable `NoticeRecoveryReader` and final public `DbalNoticeRecoveryReader`.
+The repository/transaction/read separation and constructor names revise **unreleased provisional Notice APIs**
+against the current tagged inventory, not a compatibility guarantee for old development adapter
 implementations. No existing released declaration, MCP seam, schema/index, dependency floor or framework behavior changes;
 no development migration, alias or codec is introduced. Sodium was already optional; this composition also requires it.
 

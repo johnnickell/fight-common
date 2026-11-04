@@ -17,7 +17,7 @@ $role = $argv[2]; $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
 $proxy = Mockery::mock(Connection::class);
-foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'fetchAllAssociative', 'insert', 'update', 'delete'] as $method) {
+foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'fetchAllAssociative', 'insert', 'update', 'delete'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
 $barrier = static function () use ($role, $directory, $connection): void {
@@ -57,7 +57,7 @@ $status = 'ok'; $uncertain = null; $window = null;
 try {
     if ($operation === 'remove') { $fixture->remove(NoticeRemovalSelection::fromArray($config['selection'])); }
     elseif ($operation === 'window') {
-        $snapshot = $fixture->recording->store->readWindow('scope', 0, 100);
+        $snapshot = $fixture->recording->noticeRecoveryReader->readWindow('scope', 0, 100);
         $window = ['positions' => array_map(static fn ($row) => $row->position(), $snapshot->notices()), 'high' => $snapshot->highWater(), 'lost' => $snapshot->lostThrough()];
     } else {
         $changes = match ($operation) { 'distinct' => ['id' => 'notice-3'], 'conflict' => ['topic' => 'changed'], default => [] };

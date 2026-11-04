@@ -13,7 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
   and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,
   aggregate invariants, committed cancellation reconstruction, single-use input, bus/filter dispatch and post-commit
-  failure semantics. ObservationRecorder and Notice orchestration remain unchanged.
+  failure semantics. ObservationRecorder remains unchanged.
+- Replace never-tagged `NoticeStore`/`DbalNoticeStore` with Domain `NoticeRepository`, separately injected
+  `TransactionalUnitOfWork`, and Application `NoticeRecoveryReader`. Separate DBAL repository, namespace-serialized
+  transaction and self-contained coherent recovery reads preserve allocation/removal atomicity, uncertainty,
+  confidential continuations and independent inspection/subscription/publication policy. No payload/schema change,
+  release bridge or caller-managed recovery transaction sequence.
 - Separate durable Task persistence into Domain `TaskRepository` and a separately injected existing
   `TransactionalUnitOfWork`. `DbalTaskRepository` supplies aggregate persistence and the narrow Application
   `CommittedTaskReader`; `DbalTaskTransaction` retains namespace locking and Task failure translation around the

@@ -9,8 +9,10 @@ use DateTimeZone;
 use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
 use Fight\Common\Application\Messaging\Event\EventDispatcher;
+use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Mcp\Notice\Event\NoticeRecorded;
 use Fight\Common\Domain\Mcp\Notice\Notice;
+use Fight\Common\Domain\Mcp\Notice\NoticeRepository;
 use Fight\Common\Domain\Mcp\Notice\RecordedNotice;
 use Throwable;
 
@@ -23,9 +25,10 @@ final readonly class NoticeRecorder
      * Constructs NoticeRecorder
      */
     public function __construct(
-        private NoticeStore $store,
-        private NoticeAdmission $admission,
-        private EventDispatcher $events
+        private NoticeRepository $noticeRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork,
+        private NoticeAdmission $noticeAdmission,
+        private EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -34,9 +37,9 @@ final readonly class NoticeRecorder
      */
     public function record(Notice $notice): void
     {
-        $recorded = $this->store->commitTransactional(function () use ($notice): ?RecordedNotice {
-            $this->admission->admit($notice);
-            $existing = $this->store->getByIdentity($notice->scope(), $notice->producer(), $notice->id());
+        $recorded = $this->transactionalUnitOfWork->commitTransactional(function () use ($notice): ?RecordedNotice {
+            $this->noticeAdmission->admit($notice);
+            $existing = $this->noticeRepository->getByIdentity($notice->scope(), $notice->producer(), $notice->id());
             if ($existing !== null) {
                 if ($existing->notice()->comparison() !== $notice->comparison()) {
                     throw new NoticeConflict();
@@ -47,7 +50,7 @@ final readonly class NoticeRecorder
 
             $time = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
-            return $this->store->append($notice, $time->format('Y-m-d\TH:i:s.u\Z'));
+            return $this->noticeRepository->append($notice, $time->format('Y-m-d\TH:i:s.u\Z'));
         });
         if ($recorded === null) {
             return;
@@ -55,7 +58,7 @@ final readonly class NoticeRecorder
 
         $event = NoticeRecorded::fromRecorded($recorded);
         try {
-            $this->events->trigger($event);
+            $this->eventDispatcher->trigger($event);
         } catch (Throwable $throwable) {
             throw new CommittedNoticeDispatchFailed($event, $throwable);
         }

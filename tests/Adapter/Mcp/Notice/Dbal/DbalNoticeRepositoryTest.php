@@ -11,8 +11,12 @@ use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\TransactionIsolationLevel;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecords;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRepository;
 use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeStore;
+use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeTransaction;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork;
 use Fight\Common\Application\Mcp\Notice\CommandHandler\RecordNoticeHandler;
 use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeConflict;
@@ -36,51 +40,54 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 
 #[CoversClass(DbalNoticeSchema::class)]
-#[CoversClass(DbalNoticeStore::class)]
+#[CoversClass(DbalNoticeRecoveryReader::class)]
+#[CoversClass(DbalNoticeRepository::class)]
+#[CoversClass(DbalNoticeTransaction::class)]
+#[CoversClass(DbalNoticeRecords::class)]
 #[CoversClass(NoticeRecorder::class)]
 #[CoversClass(RecordNoticeHandler::class)]
 #[CoversClass(NoticeRejected::class)]
 #[CoversClass(NoticeConflict::class)]
 #[CoversClass(NoticeStorageFailed::class)]
 #[CoversClass(CommittedNoticeDispatchFailed::class)]
-final class DbalNoticeStoreTest extends UnitTestCase
+final class DbalNoticeRepositoryTest extends UnitTestCase
 {
     public function test_that_routed_recording_commits_related_evidence_and_deduplicates_immutable_receipts(): void
     {
         $connection = $this->database(); $fixture = new NoticeFixture($connection);
-        self::assertSame($connection, $fixture->store->connection());
-        self::assertFalse($fixture->store->isClosed());
+        self::assertSame($connection, $fixture->transactionalUnitOfWork->connection());
+        self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
         self::assertSame(\Fight\Common\Domain\Mcp\Notice\Command\RecordNotice::class, RecordNoticeHandler::commandRegistration());
         $events = [];
-        $fixture->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function (EventMessage $event) use (&$events, $connection): void {
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (EventMessage $event) use (&$events, $connection): void {
             self::assertFalse($connection->isTransactionActive()); $events[] = $event->payload()->toArray();
         });
         $fixture->record();
-        $first = $fixture->store->readAfter('scope', 0, 1)[0];
+        $first = $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0];
         $fixture->record();
         self::assertSame(2, $fixture->admissions); self::assertCount(1, $events);
-        $retained = $fixture->store->commitTransactional(fn () => $fixture->store->getByIdentity('scope', 'producer', 'notice-1'));
+        $retained = $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'));
         self::assertSame(1, $retained->position()); self::assertSame($first->recordedAt(), $retained->recordedAt());
         self::assertSame(Notice::fromArray(NoticeFixture::data())->comparison(), $retained->notice()->comparison());
-        self::assertNull($fixture->store->commitTransactional(fn () => $fixture->store->getByIdentity('scope', 'producer', 'missing')));
-        self::assertSame([], $fixture->store->readAfter('scope', 1, 100));
+        self::assertNull($fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'missing')));
+        self::assertSame([], $fixture->noticeRecoveryReader->readAfter('scope', 1, 100));
         foreach (['fight_notices', 'fight_notice_relationships', 'fight_notice_comparisons'] as $table) { self::assertSame(1, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); }
         try { $fixture->record(['topic' => 'different']); self::fail('Expected conflict.'); } catch (NoticeConflict $failure) { self::assertSame('Notice content conflicts.', $failure->getMessage()); }
         $fixture->allowed = false;
         try { $fixture->record(['topic' => 'different']); self::fail('Expected current admission before conflict.'); } catch (NoticeRejected $failure) { self::assertSame('Notice recording rejected.', $failure->getMessage()); }
-        self::assertSame($first->notice()->comparison(), $fixture->store->readAfter('scope', 0, 1)[0]->notice()->comparison());
+        self::assertSame($first->notice()->comparison(), $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->notice()->comparison());
     }
 
     public function test_that_postcommit_dispatch_failure_keeps_safe_fact_and_retained_recovery_without_replay(): void
     {
         $connection = $this->database(); $fixture = new NoticeFixture($connection); $count = 0;
-        $fixture->events->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$count): void { ++$count; throw new RuntimeException('private downstream diagnostic'); });
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$count): void { ++$count; throw new RuntimeException('private downstream diagnostic'); });
         try { $fixture->record(); self::fail('Expected postcommit failure.'); } catch (CommittedNoticeDispatchFailed $failure) {
             self::assertSame('Notice committed; fact dispatch failed.', $failure->getMessage());
             self::assertSame(1, $failure->event()->toArray()['position']);
             self::assertArrayNotHasKey('metadata', $failure->event()->toArray());
         }
-        self::assertCount(1, (new DbalNoticeStore($connection))->readAfter('scope', 0, 100));
+        self::assertCount(1, (new DbalNoticeRecoveryReader($connection))->readAfter('scope', 0, 100));
         $fixture->record(); self::assertSame(1, $count);
     }
 
@@ -90,7 +97,7 @@ final class DbalNoticeStoreTest extends UnitTestCase
         $connection->executeStatement('CREATE TABLE caller_work (id INTEGER)');
         foreach ([false, true] as $outer) {
             if ($outer) { $connection->beginTransaction(); $connection->insert('caller_work', ['id' => 7]); }
-            foreach ([fn () => $fixture->store->commitTransactional(fn () => $fixture->store->readAfter('scope', 0, 1)), fn () => $fixture->store->append(Notice::fromArray(NoticeFixture::data()), '2026-10-25T00:00:00.000000Z'), fn () => $fixture->store->getByIdentity('scope', 'producer', 'notice-1'), fn () => $fixture->store->commitTransactional(fn () => $fixture->store->commitTransactional(static fn () => null))] as $operation) {
+            foreach ([fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)), fn () => $fixture->noticeRepository->append(Notice::fromArray(NoticeFixture::data()), '2026-10-25T00:00:00.000000Z'), fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'), fn () => $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null))] as $operation) {
                 try { $operation(); self::fail('Expected ownership rejection.'); } catch (LogicException) { self::assertSame($outer, $connection->isTransactionActive()); }
             }
             if ($outer) {
@@ -108,10 +115,10 @@ final class DbalNoticeStoreTest extends UnitTestCase
         try { $fixture->record(); self::fail('Expected storage failure.'); } catch (NoticeStorageFailed $failure) {
             self::assertFalse($failure->outcomeUncertain()); self::assertInstanceOf(Exception::class, $failure->getPrevious()); self::assertSame('Notice storage failed.', $failure->getMessage());
         }
-        self::assertFalse($fixture->store->isClosed());
+        self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
         foreach (DbalNoticeSchema::TABLES as $table) { if ($table !== 'fight_notice_state') { self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$table)); } }
         self::assertSame(0, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
-        $connection->executeStatement('DROP TRIGGER fail_comparison'); $fixture->record(); self::assertSame(1, $fixture->store->readAfter('scope', 0, 1)[0]->position());
+        $connection->executeStatement('DROP TRIGGER fail_comparison'); $fixture->record(); self::assertSame(1, $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->position());
     }
 
     #[DataProvider('uncertainties')]
@@ -122,6 +129,7 @@ final class DbalNoticeStoreTest extends UnitTestCase
         $connection->shouldReceive('getTransactionIsolation')->andReturn(TransactionIsolationLevel::READ_COMMITTED);
         $connection->shouldReceive('isTransactionActive')->andReturn(false, false, $active);
         $connection->shouldReceive('getTransactionNestingLevel')->andReturn(1);
+        $connection->shouldReceive('isAutoCommit')->andReturn(true);
         $failure = new RuntimeException('private connection failure');
         if ($stage === 'begin') { $connection->shouldReceive('beginTransaction')->once()->andThrow($failure); }
         else {
@@ -133,10 +141,10 @@ final class DbalNoticeStoreTest extends UnitTestCase
                 if ($active) { $connection->shouldReceive('rollBack')->once(); }
             }
         }
-        $store = new DbalNoticeStore($connection);
-        try { $store->commitTransactional(static function () use ($stage, $failure) { if ($stage === 'rollback') { throw $failure; } return null; }); self::fail('Expected uncertainty.'); }
+        $transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+        try { $transactionalUnitOfWork->commitTransactional(static function () use ($stage, $failure) { if ($stage === 'rollback') { throw $failure; } return null; }); self::fail('Expected uncertainty.'); }
         catch (NoticeStorageFailed $caught) { self::assertTrue($caught->outcomeUncertain()); self::assertSame($failure, $caught->getPrevious()); }
-        self::assertTrue($store->isClosed()); $this->expectException(LogicException::class); $store->commitTransactional(static fn () => null);
+        self::assertTrue($transactionalUnitOfWork->isClosed()); $this->expectException(LogicException::class); $transactionalUnitOfWork->commitTransactional(static fn () => null);
     }
 
     public static function uncertainties(): iterable
@@ -147,24 +155,26 @@ final class DbalNoticeStoreTest extends UnitTestCase
     public function test_that_unsupported_platform_active_composition_and_dirty_reads_reject(): void
     {
         $unsupported = $this->mock(Connection::class); $unsupported->shouldReceive('getDatabasePlatform')->andReturn(new OraclePlatform());
-        try { new DbalNoticeStore($unsupported); self::fail('Expected platform rejection.'); } catch (InvalidArgumentException) { self::assertTrue(true); }
+        try { new DbalNoticeRecoveryReader($unsupported); self::fail('Expected platform rejection.'); } catch (InvalidArgumentException) { self::assertTrue(true); }
         $connection = $this->database(); $connection->beginTransaction();
-        try { new DbalNoticeStore($connection); self::fail('Expected active composition rejection.'); } catch (LogicException) { self::assertTrue($connection->isTransactionActive()); }
+        try { new DbalNoticeRecoveryReader($connection); self::fail('Expected active composition rejection.'); } catch (LogicException) { self::assertTrue($connection->isTransactionActive()); }
         $connection->rollBack();
-        $store = new DbalNoticeStore($connection); $connection->setTransactionIsolation(TransactionIsolationLevel::READ_UNCOMMITTED);
-        foreach ([fn () => $store->readAfter('scope', 0, 1), fn () => $store->commitTransactional(static fn () => null)] as $read) {
+        $noticeRecoveryReader = new DbalNoticeRecoveryReader($connection);
+        $transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+        $connection->setTransactionIsolation(TransactionIsolationLevel::READ_UNCOMMITTED);
+        foreach ([fn () => $noticeRecoveryReader->readAfter('scope', 0, 1), fn () => $transactionalUnitOfWork->commitTransactional(static fn () => null)] as $read) {
             try { $read(); self::fail('Expected dirty-read rejection.'); } catch (LogicException) { self::assertFalse($connection->isTransactionActive()); }
         }
         foreach ([new MySQLPlatform(), new PostgreSQLPlatform()] as $platform) {
             $proxy = $this->mock(Connection::class); $proxy->shouldReceive('getDatabasePlatform')->andReturn($platform); $proxy->shouldReceive('isTransactionActive')->andReturn(false); $proxy->shouldReceive('getTransactionIsolation')->andReturn(TransactionIsolationLevel::READ_COMMITTED);
-            self::assertFalse((new DbalNoticeStore($proxy))->isClosed());
+            self::assertFalse((new DbalNoticeTransaction($proxy))->isClosed());
         }
     }
 
     #[DataProvider('readBounds')]
     public function test_that_reconstruction_bounds_reject_before_reading(int $position, int $limit): void
     {
-        $store = new DbalNoticeStore($this->database()); $this->expectException(DomainException::class); $store->readAfter('scope', $position, $limit);
+        $noticeRecoveryReader = new DbalNoticeRecoveryReader($this->database()); $this->expectException(DomainException::class); $noticeRecoveryReader->readAfter('scope', $position, $limit);
     }
 
     public static function readBounds(): iterable
@@ -180,7 +190,7 @@ final class DbalNoticeStoreTest extends UnitTestCase
             try { $fixture->record(); self::fail('Expected capacity rejection.'); } catch (DomainException) { self::assertSame($last, (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state')); }
         }
         $connection->update('fight_notice_state', ['last_position' => RecordedNotice::MAX_POSITION - 1], ['singleton' => 1]);
-        $fixture->record(); self::assertSame(RecordedNotice::MAX_POSITION, $fixture->store->readAfter('scope', 0, 1)[0]->position());
+        $fixture->record(); self::assertSame(RecordedNotice::MAX_POSITION, $fixture->noticeRecoveryReader->readAfter('scope', 0, 1)[0]->position());
         $connection->update('fight_notice_state', ['version' => 2], ['singleton' => 1]);
         $this->expectException(RuntimeException::class); $fixture->record();
     }
@@ -190,7 +200,7 @@ final class DbalNoticeStoreTest extends UnitTestCase
     {
         $connection = $this->database(); $fixture = new NoticeFixture($connection); $fixture->record();
         $connection->update($table, [$column => $value], ['position' => 1]);
-        $this->expectException(NoticeStorageFailed::class); $fixture->store->readAfter('scope', 0, 100);
+        $this->expectException(NoticeStorageFailed::class); $fixture->noticeRecoveryReader->readAfter('scope', 0, 100);
     }
 
     public static function corruption(): iterable
@@ -219,9 +229,82 @@ final class DbalNoticeStoreTest extends UnitTestCase
     public function test_that_handler_rejects_an_unrelated_command(): void
     {
         $fixture = new NoticeFixture($this->database());
-        $handler = new RecordNoticeHandler(new NoticeRecorder($fixture->store, $fixture, $fixture->events));
+        $handler = new RecordNoticeHandler(new NoticeRecorder($fixture->noticeRepository, $fixture->transactionalUnitOfWork, $fixture, $fixture->eventDispatcher));
         $command = $this->mock(Command::class); $this->expectException(InvalidArgumentException::class);
         $handler->handle(CommandMessage::create($command));
+    }
+
+    public function test_that_only_the_exact_notice_boundary_can_admit_repository_access(): void
+    {
+        $connection = $this->database();
+        $fixture = new NoticeFixture($connection);
+        $unrelatedUnitOfWork = new DbalTransactionalUnitOfWork($connection);
+        $otherNoticeTransaction = new DbalNoticeTransaction($connection);
+        foreach ([$unrelatedUnitOfWork, $otherNoticeTransaction] as $transactionalUnitOfWork) {
+            try {
+                $transactionalUnitOfWork->commitTransactional(fn () => $fixture->noticeRepository->getByIdentity('scope', 'producer', 'notice-1'));
+                self::fail('A transaction on the same connection is not notice repository ownership.');
+            } catch (LogicException) {
+                self::assertFalse($connection->isTransactionActive());
+            }
+        }
+        $fixture->record();
+        self::assertSame(1, $fixture->noticeRecoveryReader->readWindow('scope', 0, 1)->highWater());
+    }
+
+    public function test_that_caught_nested_rejection_preserves_outer_serialization_and_result(): void
+    {
+        $fixture = new NoticeFixture($this->database());
+        $result = $fixture->transactionalUnitOfWork->commitTransactional(function () use ($fixture): int {
+            try {
+                $fixture->transactionalUnitOfWork->commitTransactional(static fn () => null);
+                self::fail('Nested work must reject.');
+            } catch (LogicException) {
+                self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
+            }
+            return $fixture->noticeRepository->append(Notice::fromArray(NoticeFixture::data()), '2026-10-25T00:00:00.000000Z')->position();
+        });
+        self::assertSame(1, $result);
+        self::assertSame(1, $fixture->noticeRecoveryReader->readWindow('scope', 0, 1)->notices()[0]->position());
+    }
+
+    public function test_that_preflight_database_failure_preserves_its_category_without_owned_work(): void
+    {
+        $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->andReturn(new PostgreSQLPlatform());
+        $connection->shouldReceive('getTransactionIsolation')->andReturn(TransactionIsolationLevel::READ_COMMITTED);
+        $failure = new class ('private preflight diagnostic') extends RuntimeException implements Exception {};
+        $connection->shouldReceive('isTransactionActive')->andReturn(false)->once();
+        $connection->shouldReceive('isTransactionActive')->andThrow($failure)->once();
+        $connection->shouldReceive('beginTransaction')->never();
+        $transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+        try {
+            $transactionalUnitOfWork->commitTransactional(static function (): void { self::fail('Must not admit callback.'); });
+            self::fail('Must preserve preflight failure.');
+        } catch (Exception $caught) {
+            self::assertSame($failure, $caught);
+            self::assertFalse($transactionalUnitOfWork->isClosed());
+        }
+    }
+
+    public function test_that_auto_commit_off_rejects_recording_and_recovery_before_admission_without_mode_changes(): void
+    {
+        $connection = $this->database();
+        $fixture = new NoticeFixture($connection);
+        $connection->setAutoCommit(false);
+        try {
+            foreach ([fn () => $fixture->record(), fn () => $fixture->noticeRecoveryReader->readWindow('scope', 0, 100)] as $operation) {
+                try { $operation(); self::fail('No savepoint acknowledgment.'); }
+                catch (LogicException) {
+                    self::assertSame(0, $fixture->admissions);
+                    self::assertFalse($connection->isTransactionActive());
+                    self::assertFalse($connection->isAutoCommit());
+                    self::assertFalse($fixture->transactionalUnitOfWork->isClosed());
+                }
+            }
+        } finally { $connection->setAutoCommit(true); }
+        $fixture->record();
+        self::assertSame(1, $fixture->noticeRecoveryReader->readWindow('scope', 0, 100)->highWater());
     }
 
     private function database(): Connection
