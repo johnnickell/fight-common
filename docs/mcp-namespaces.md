@@ -20,14 +20,34 @@ It does not turn a Task into a job executor, an observation into Workflow author
 The [Architecture standard](https://github.com/johnnickell/fight-common/blob/develop/docs/engineering/standards/Architecture.md#aggregate-ownership-and-namespaces) owns the
 placement rules and exceptions. John's [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md) correction retains the MCP
 umbrella while specializing the earlier [ADR 0023](https://github.com/johnnickell/fight-common/blob/develop/planning/adr/0023-service-container-and-framework-adapter-namespaces.md).
-The following destinations remain **approved but pending their owning refactors**:
+TASK-00191 implements the following canonical map. Earlier TASK-00177 acceptance remains historical;
+there is no second forwarding workflow at the old Application Tool locations.
 
-| Current source | Approved target / owning work |
+| Previous source | Canonical home |
 | --- | --- |
-| `Application\Mcp\Execution\{Session,Phase,Observation,Detail}` | Aggregate owners directly under `Application\Mcp\{Session,Phase,Observation,Detail}`; TASK-00191 |
-| Concrete execution inspection Tools in `Application\Mcp\Execution` and `Application\Mcp\Notice\RecoverNoticesTool` | `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}`, with genuinely shared mapping support under `Tool\Execution`; TASK-00191 |
-| MCP aggregate persistence/read adapters under `Adapter\Mcp\{Execution,Task,Notice,Subscription}` | `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with real shared schema/serialization support under `Persistence\Execution\Dbal`; TASK-00191 |
-| Combined Application Notice store | Domain aggregate repository and separately injected existing `TransactionalUnitOfWork`; TASK-00186 |
+| `Application\Mcp\Execution\{Session,Phase,Observation,Detail}` | `Application\Mcp\{Session,Phase,Observation,Detail}`, including owning handler, Data, Exception and Service branches |
+| `Application\Mcp\Execution\ObservationAdmission` | `Application\Mcp\Observation\Service\ObservationAdmission` |
+| `Application\Mcp\Execution\{SummarizeExecutionsTool,ListExecutionsTool,GetExecutionTool}` | `Adapter\Mcp\Tool\Session` |
+| `Application\Mcp\Execution\ListExecutionPhasesTool` | `Adapter\Mcp\Tool\Phase` |
+| `Application\Mcp\Execution\ListPhaseActivityTool` | `Adapter\Mcp\Tool\Observation` |
+| `Application\Mcp\Execution\{GetCapturedDetailTool,ListCapturedMessagesTool}` | `Adapter\Mcp\Tool\Detail` |
+| `Application\Mcp\Execution\{ExecutionToolInput,ExecutionToolOutput,ExecutionToolSchemas}` | Internal shared `Adapter\Mcp\Tool\Execution` support |
+| `Application\Mcp\Notice\{RecoverNoticesTool,NoticeToolSchemas}` | `Adapter\Mcp\Tool\Notice`; schema support remains internal |
+| `Adapter\Mcp\Execution\Dbal\{DbalSessionRepository,DbalExecutionReader}` | `Adapter\Mcp\Persistence\Session\Dbal` |
+| `Adapter\Mcp\Execution\Dbal\{DbalPhaseRepository,DbalPhaseReader}` | `Adapter\Mcp\Persistence\Phase\Dbal` |
+| `Adapter\Mcp\Execution\Dbal\{DbalObservationRepository,DbalActivityReader}` | `Adapter\Mcp\Persistence\Observation\Dbal` |
+| `Adapter\Mcp\Execution\Dbal\{DbalProtectedContentRepository,DbalDetailReader}` | `Adapter\Mcp\Persistence\Detail\Dbal` |
+| `Adapter\Mcp\Execution\Dbal\{DbalObservationSchema,DbalRecordingTransaction,DbalExecutionReadSupport}` | `Adapter\Mcp\Persistence\Execution\Dbal` for genuinely cross-aggregate schema, serialization and bounded read support |
+| `Adapter\Mcp\{Task,Notice}\Dbal` | Complete DBAL subtrees under `Adapter\Mcp\Persistence\{Task,Notice}\Dbal` |
+| `Adapter\Mcp\Subscription\{DbalSubscriptionSchema,DbalSubscriptionStore,DbalSubscriberReader}` | `Adapter\Mcp\Persistence\Subscription\Dbal` |
+
+The map covers 79 declarations. Inspection of every actual local release tag (`v1.0.0`, `1.1.0`, `v1.1.0`,
+`v1.2.0`, `v1.3.0`, `v1.4.0`), including pre-Mcp paths by declaration short name, finds none of them released.
+They move directly: no alias, subclass, deprecation or development-snapshot migration is supported or needed.
+Public/internal classification and each callable/constructible/extensible/implementable promise remain unchanged;
+12 concrete presentation declarations move from Application to Adapter. The manifest binds their canonical
+subjects/paths while preserving immutable historical Git-object evidence locators. Construction, reflection,
+QueryBus dispatch, safe output and real database/guarded-HTTP journeys qualify the canonical imports.
 
 TASK-00184 implements execution's direct `TransactionalUnitOfWork` injection and reusable
 `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. The provisional execution transaction subtype is
@@ -35,18 +55,18 @@ removed; the DBAL execution seam retains real schema locking and failure transla
 See [transaction composition](execution-observations.md#retry-and-transaction-guarantees). No aggregate namespace
 moves are included in that correction.
 
-Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 and TASK-00190 own
-identity/value classification and inheritance corrections; TASK-00192 owns descriptive variable names. MCP engine,
-protocol semantics and ports remain Application-owned. Required released bridges remain functional; provisional
-names move directly when the owning refactor executes. Do not import these target FQCNs as existing APIs yet.
-This future aggregate alignment does not undo TASK-00181's implemented foundation canonical names or their
+Activity and Usage remain meaningful value branches, not new persisted aggregates. TASK-00189 implements Task
+identity/value classification and inheritance; TASK-00190 implements the other identity/value corrections. TASK-00192 owns
+the remaining codebase-wide descriptive-variable-name correction. MCP engine,
+protocol semantics and ports remain Application-owned. Required released bridges remain functional; these canonical
+aggregate imports are available now. Aggregate alignment does not undo TASK-00181's foundation canonical names or their
 identity-preserving released aliases described below. Those canonical imports are available now; retained root
 runtime declarations remain compatibility owners, not competing aggregate homes.
 
 ## Complete capability relocation map
 
-This table records TASK-00177's implemented relocation and the current source at the TASK-00183 checkpoint;
-it is not the final aggregate alignment target above.
+This table preserves TASK-00177's implemented relocation at the historical TASK-00183 checkpoint.
+For current Application execution, concrete Tool and DBAL homes use the specialized map above.
 
 Paths below omit the common `Fight\Common\` prefix. Each row covers its whole develop subtree, including values,
 messages, events, repositories, policies, handlers, projections, exceptions and implementation helpers.
@@ -72,8 +92,8 @@ messages, events, repositories, policies, handlers, projections, exceptions and 
 
 Existing `Application\Mcp` branches remain in place. The moved execution/notices/Task Application classes merge
 with their existing MCP Tool branches, rather than adding forwarding services around their use cases.
-`Application\Mcp\Subscription` and `Adapter\Mcp\Subscription` were already grouped correctly. Their Domain
-selection/Queries now join the same subsystem. Adapter tests and capability-specific test fixtures move with their
+`Application\Mcp\Subscription` and the then-current `Adapter\Mcp\Subscription` were already grouped beneath Mcp.
+Their Domain selection/Queries joined the same subsystem; TASK-00191 subsequently specializes the DBAL homes above. Adapter tests and capability-specific test fixtures move with their
 subjects; existing suite membership and independent-process worker behavior are retained.
 
 For example, the caller changes its import, not the use case or bus pipeline:
@@ -100,7 +120,9 @@ remain on that same path. Domain retains outstanding-input lifecycle state and a
 order, with no transport-view construction or HMAC knowledge. There is no provider variation or external encoding
 dependency requiring a port/Adapter, no new consumer setup, and no development-snapshot compatibility aliases.
 See [durable Tasks](durable-tasks.md#compatibility-and-public-surface) and [live revisions](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
-Typed values remain TASK-00189's responsibility.
+TASK-00189 adds public `Domain\Mcp\Task\TaskId` and ValueObject contracts for definition, state, input batch and
+selection. TaskInputs remains nested lifecycle bookkeeping. See the
+[complete Task classification](durable-tasks.md#model-classification-and-value-contracts); structured JSON and scope/wire/storage bytes stay explicit.
 
 ## Task persistence capabilities
 
@@ -113,9 +135,9 @@ ObservationRecorder and Notice orchestration stay intact. See [handler compositi
 TASK-00185 replaces the never-tagged Application `Mcp\Task\Service\TaskStore` with Domain
 `Mcp\Task\TaskRepository` and separately injected existing Application `Repository\TransactionalUnitOfWork`.
 Application `Mcp\Task\Service\CommittedTaskReader` supplies protected committed aggregate reads without disclosure
-or reporting policy. `Adapter\Mcp\Task\Dbal\DbalTaskRepository` implements both persistence/read contracts;
-`DbalTaskTransaction` owns Task serialization around the generic DBAL unit of work. These adapters remain in their
-current namespace until TASK-00191. No old Store alias or transaction-bearing repository remains. See
+or reporting policy. `Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository` implements both persistence/read contracts;
+`DbalTaskTransaction` owns Task serialization around the generic DBAL unit of work. TASK-00191 places these adapters
+in `Adapter\Mcp\Persistence\Task\Dbal`. No old Store alias or transaction-bearing repository remains. See
 [composition and compatibility](durable-tasks.md#explicit-composition).
 
 ## Internal metadata grammar homes

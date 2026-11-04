@@ -69,6 +69,11 @@ form-elicitation support. Task negotiation alone never enables arbitrary server-
 
 ## Issue and retrieve supported requests
 
+Here `$id` is the original `Domain\Mcp\Task\TaskId`, not a form/group key. Reconstruct incoming Task bytes with
+`TaskId::fromString()`; Domain Commands/Queries and admission ports take that value, while MCP `taskId` stays a string.
+`TaskInputBatch` is a ValueObject describing bound contracts; `TaskInputs` and identified groups own nested lifecycle
+state and are not values. See the [complete classification](durable-tasks.md#model-classification-and-value-contracts).
+
 ```php
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequest;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;

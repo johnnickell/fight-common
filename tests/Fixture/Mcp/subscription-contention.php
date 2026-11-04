@@ -27,19 +27,20 @@ if ($mode === 'timeout') {
         'pdo_pgsql' => $subscriptionConnection->executeStatement("SET lock_timeout = '1s'")
     };
 }
+$bootstrapDelayMicroseconds = (int) ($argv[4] ?? 0);
 $holdMicroseconds = $mode === 'overlong' ? 5200000 : 2200000;
-$lockWorker = new Process([PHP_BINARY, __DIR__.'/subscription-lock-worker.php', $directory, (string) $holdMicroseconds, 'coordinated']);
+$lockWorker = new Process([PHP_BINARY, __DIR__.'/subscription-lock-worker.php', $directory, (string) $holdMicroseconds, (string) $bootstrapDelayMicroseconds, 'coordinated']);
 $body = null;
 try {
     $lockWorker->start();
-    // Use the original native Process budget for preparation, before a lease exists; lock acquisition keeps its 3s bound.
+    // Preparation precedes any lease and uses the original native Process budget; lock acquisition remains bounded at 3s.
     $startupOutput = '';
     $workerIsReady = $lockWorker->waitUntil(static function (string $type, string $output) use (&$startupOutput): bool {
         if ($type === Process::OUT) { $startupOutput .= $output; }
         return str_contains($startupOutput, "worker-ready\n");
     });
     if (!$workerIsReady) { throw new RuntimeException('Lock worker ended before readiness: '.$lockWorker->getErrorOutput().$lockWorker->getOutput()); }
-    $workerReady = json_decode(file_get_contents($directory.'/worker-ready'), true, flags: JSON_THROW_ON_ERROR);
+    $workerReady = json_decode(file_get_contents($directory.'/worker-ready.json'), true, flags: JSON_THROW_ON_ERROR);
     $registrationStartedAt = microtime(true);
     $observedSubscriptionStore = null;
     $subscriptionFixture = new SubscriptionFixture($subscriptionConnection, lifetime: 20, subscriptionStoreDecorator: static function (McpSubscriptionStore $subscriptionStore) use (&$observedSubscriptionStore): McpSubscriptionStore {
@@ -54,11 +55,12 @@ try {
     // Bound the successful emitter after its first batch; the subsequent source failure is an intentional stop.
     $sourceReads = 0;
     $subscriptionFixture->queryPolicy = static function () use (&$sourceReads): void { if (++$sourceReads > 1) { throw new RuntimeException('Fixture stop after first live batch'); } };
-    $subscriptionConnection->beforeTransaction = static function () use ($observedSubscriptionStore, $directory): void {
+    $subscriptionConnection->beforeTransaction = static function () use ($observedSubscriptionStore, $subscriptionConnection, $directory): void {
         $callIndex = array_key_last($observedSubscriptionStore->calls);
         // Notice recovery can also open transactions; only an in-flight tracking call owns this observation.
         if ($callIndex === null || isset($observedSubscriptionStore->calls[$callIndex]['result'])) { return; }
-        // This callback is inside DbalSubscriptionStore::heartbeat/close, not before execution's freshness check.
+        $subscriptionConnection->operation = $observedSubscriptionStore->calls[$callIndex]['operation'];
+        // This callback is inside DbalSubscriptionStore::heartbeat/close, after execution's freshness check.
         $observedSubscriptionStore->calls[$callIndex]['transaction_entered_at'] = microtime(true);
         if (!file_exists($directory.'/lock-request')) {
             touch($directory.'/lock-request');
@@ -70,12 +72,16 @@ try {
         }
         $observedSubscriptionStore->calls[$callIndex]['lock_ready_at'] = microtime(true);
     };
-    // Resume expiry cases with two seconds left, not the old scheduling-sensitive 0.8-second process-start window.
-    // The warmed worker acquires its lock only AFTER actual store entry; process startup never consumes this lease.
+    // Two seconds of the original lease remain for renewal; the warmed worker takes its lock only after real store entry.
     $resumeAt = (int) $original['expires_at'] - ($mode === 'fast' ? 3.5 : 2);
     if ($mode === 'pre-renewal-expired') { $resumeAt = (int) $original['expires_at']; }
-    while (microtime(true) < $resumeAt) { usleep(1000); }
+    $resumeDeadline = hrtime(true) + 6000000000;
+    while (microtime(true) < $resumeAt) {
+        if (hrtime(true) >= $resumeDeadline) { throw new RuntimeException('Fixture clock did not reach the bounded renewal target'); }
+        usleep(1000);
+    }
     $started = microtime(true);
+    if ($mode !== 'pre-renewal-expired' && $started >= (int) $original['expires_at']) { throw new RuntimeException('Fixture missed the pre-renewal freshness window'); }
     $position = $body->tell();
     if ($transport === 'emitter') { (new McpResponseEmitter())->emitBody($response); }
     else { echo $body->read(65536); }
@@ -85,8 +91,11 @@ try {
     $row = $subscriptionConnection->fetchAssociative('SELECT * FROM fight_mcp_subscriptions');
     $result = [
         'original' => $original, 'started' => $started, 'returned' => $returned,
-        'worker_ready_at' => $workerReady['at'], 'registration_started_at' => $registrationStartedAt,
-        'calls' => $observedSubscriptionStore->calls,
+        'bootstrap_delay_us' => $bootstrapDelayMicroseconds, 'worker_prepared' => $workerReady,
+        'worker_ready_at' => $workerReady['prepared_at'], 'registration_started_at' => $registrationStartedAt,
+        'worker_lock' => json_decode(file_get_contents($directory.'/lock-ready.json'), true, flags: JSON_THROW_ON_ERROR),
+        'worker_release' => json_decode(file_get_contents($directory.'/lock-released.json'), true, flags: JSON_THROW_ON_ERROR),
+        'calls' => $observedSubscriptionStore->calls, 'capacity_locks' => $subscriptionConnection->capacityLocks,
         'locked' => json_decode(file_get_contents($directory.'/locked-state.json'), true, flags: JSON_THROW_ON_ERROR),
         'row' => $row, 'eof' => $body->eof(), 'position_before' => $position, 'position_after' => $body->tell(),
         'diagnostics' => $subscriptionFixture->diagnostics, 'worker_exit' => $exit, 'worker_error' => $lockWorker->getErrorOutput(),
@@ -103,7 +112,8 @@ try {
     file_put_contents($directory.'/contention-failure.json', json_encode([
         'failure' => $failure::class, 'message' => $failure->getMessage(),
         'worker_exit' => $lockWorker->getExitCode(), 'worker_output' => $lockWorker->getOutput(),
-        'worker_error' => $lockWorker->getErrorOutput(), 'calls' => $observedSubscriptionStore->calls ?? []
+        'worker_error' => $lockWorker->getErrorOutput(), 'calls' => $observedSubscriptionStore->calls ?? [],
+        'capacity_locks' => $subscriptionConnection->capacityLocks
     ], JSON_THROW_ON_ERROR));
     throw $failure;
 } finally {

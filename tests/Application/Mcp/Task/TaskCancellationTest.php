@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
@@ -46,12 +46,12 @@ final class TaskCancellationTest extends UnitTestCase
         $fixture = $this->fixture();
         $fixture->create(1000, 15);
         $fixture->issue(confirmation: true);
-        $before = $fixture->committedTaskReader->read('scope', TaskFixture::ID);
+        $before = $fixture->committedTaskReader->read('scope', TaskFixture::id());
         $events = [];
         $fixture->events->addHandler(
             ClassName::underscore(TaskChanged::class),
             static function ($message) use ($fixture, &$events): void {
-                self::assertNotNull($fixture->committedTaskReader->read('scope', TaskFixture::ID)->cancellation());
+                self::assertNotNull($fixture->committedTaskReader->read('scope', TaskFixture::id())->cancellation());
                 $events[] = $message->payload()->toArray();
             },
         );
@@ -108,7 +108,7 @@ final class TaskCancellationTest extends UnitTestCase
             $fixture = $this->fixture();
             $fixture->create();
             $fixture->record($state);
-            $before = $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
+            $before = $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray();
             $fixture->events->addHandler(
                 ClassName::underscore(TaskChanged::class),
                 static fn () => self::fail('No new cancellation fact'),
@@ -116,7 +116,7 @@ final class TaskCancellationTest extends UnitTestCase
 
             $fixture->cancel();
 
-            self::assertEquals($before, $fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray());
+            self::assertEquals($before, $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray());
             self::assertNull($fixture->cancellation()->get('cancellation'));
 
             $fixture->cancelAllowed = false;
@@ -250,7 +250,8 @@ final class TaskCancellationTest extends UnitTestCase
             $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
             $committedTaskReader = $this->mock(CommittedTaskReader::class);
             $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn ($operation) => $operation());
-            $taskRepository->shouldReceive('getById')->once()->with('scope', TaskFixture::ID)->andReturn($initial);
+            $taskId = TaskFixture::id();
+            $taskRepository->shouldReceive('getById')->once()->with('scope', $taskId)->andReturn($initial);
             $taskRepository->shouldReceive('save')->once();
             if ($reconstructed instanceof Throwable) {
                 $committedTaskReader->shouldReceive('read')->once()->andThrow($reconstructed);
@@ -260,7 +261,7 @@ final class TaskCancellationTest extends UnitTestCase
             $requestTaskCancellationHandler = new RequestTaskCancellationHandler($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->events, fn () => $fixture->now);
 
             try {
-                $requestTaskCancellationHandler->handle(CommandMessage::create(new RequestTaskCancellation('scope', TaskFixture::ID, 'caller')));
+                $requestTaskCancellationHandler->handle(CommandMessage::create(new RequestTaskCancellation('scope', $taskId, 'caller')));
                 self::fail('No acknowledgment without reconstruction');
             } catch (TaskStorageFailed $failure) {
                 self::assertTrue($failure->outcomeUncertain());
@@ -272,8 +273,8 @@ final class TaskCancellationTest extends UnitTestCase
     {
         $fixture = $this->fixture();
         foreach ([
-            new RequestTaskCancellation('scope', TaskFixture::ID, 'caller'),
-            new GetTaskCancellation('scope', TaskFixture::ID, 'caller'),
+            new RequestTaskCancellation('scope', TaskFixture::id(), 'caller'),
+            new GetTaskCancellation('scope', TaskFixture::id(), 'caller'),
         ] as $message) {
             self::assertSame($message->toArray(), $message::fromArray($message->toArray())->toArray());
         }
@@ -284,7 +285,7 @@ final class TaskCancellationTest extends UnitTestCase
             InvalidArgumentException::class,
         );
         $this->reject(
-            fn () => $fixture->getTaskCancellationHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))),
+            fn () => $fixture->getTaskCancellationHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::id()))),
             InvalidArgumentException::class,
         );
     }

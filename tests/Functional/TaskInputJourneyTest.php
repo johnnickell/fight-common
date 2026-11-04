@@ -7,7 +7,7 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
@@ -82,10 +82,10 @@ final class TaskInputJourneyTest extends UnitTestCase
         $fixture->issue(expectedVersion: 2, expiresAt: $issuedAt + 200);
         $requests = $fixture->get()->get('state')->get('input');
         $fixture->commands->execute(new RecordTaskState(
-            'scope', TaskFixture::ID, 'producer', 3, TaskState::create('input_required', $message, $requests)
+            'scope', TaskFixture::id(), 'producer', 3, TaskState::create('input_required', $message, $requests)
         ));
         $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
-        $stored = $fixture->committedTaskReader->read('scope', TaskFixture::ID);
+        $stored = $fixture->committedTaskReader->read('scope', TaskFixture::id());
         self::assertSame($message, $stored->state()->data()->get('message'));
 
         foreach ([0, 99, 100, 199, 200] as $elapsed) {
@@ -167,7 +167,7 @@ final class TaskInputJourneyTest extends UnitTestCase
     {
         $c = $this->database($backend); $f = new TaskFixture($c); $f->create(); $f->issue(confirmation: true, count: 2);
         $f->supply([TaskFixture::KEY_1 => self::accept('partial')]);
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
         $f = new TaskFixture($this->connect($c->getParams())); $f->issue(expectedVersion: 4);
         self::assertSame([TaskFixture::KEY_3], array_keys($f->get()->get('state')->get('input')->properties()));
         $before = $c->fetchOne('SELECT payload FROM fight_tasks');
@@ -178,13 +178,13 @@ final class TaskInputJourneyTest extends UnitTestCase
         $f->now += 1000; $f->supply([TaskFixture::KEY_3 => self::accept('expired')]);
         self::assertTrue($f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('expired'));
         self::assertSame([], $f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('answers')->properties());
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 5, TaskFixture::KEY_3));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 5, TaskFixture::KEY_3));
         // Seed the documented near-exhaustion value; direct units additionally execute all 1,024 rounds.
-        $data = $f->committedTaskReader->read('scope', TaskFixture::ID)->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
+        $data = $f->committedTaskReader->read('scope', TaskFixture::id())->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
         $f->transactionalUnitOfWork->commitTransactional(fn () => $f->taskRepository->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
         $f->issue(expectedVersion: 6); $last = TaskFixture::KEY_PREFIX.'1024';
         self::assertSame([$last], array_keys($f->get()->get('state')->get('input')->properties()));
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::ID, 'producer', 7, $last));
+        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 7, $last));
         $fresh = new TaskFixture($this->connect($c->getParams())); $before = $c->fetchOne('SELECT payload FROM fight_tasks');
         try { $fresh->issue(expectedVersion: 8); self::fail('Lifetime exhaustion cannot wrap after payload retirement.'); }
         catch (TaskConflict) { self::assertSame($before, $c->fetchOne('SELECT payload FROM fight_tasks')); }

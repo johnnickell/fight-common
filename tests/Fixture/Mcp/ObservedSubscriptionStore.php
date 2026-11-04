@@ -34,7 +34,7 @@ final class ObservedSubscriptionStore implements McpSubscriptionStore
      */
     public function heartbeat(string $id, string $owner, int $now, int $expires): void
     {
-        $this->calls[] = ['operation' => 'heartbeat', 'now' => $now, 'expires' => $expires];
+        $this->calls[] = ['operation' => 'heartbeat', 'now' => $now, 'expires' => $expires, 'entered_at' => microtime(true)];
         $callIndex = array_key_last($this->calls);
         try {
             $this->subscriptionStore->heartbeat($id, $owner, $now, $expires);
@@ -50,7 +50,7 @@ final class ObservedSubscriptionStore implements McpSubscriptionStore
      */
     public function close(string $id, string $owner, int $now): void
     {
-        $this->calls[] = ['operation' => 'close', 'now' => $now];
+        $this->calls[] = ['operation' => 'close', 'now' => $now, 'entered_at' => microtime(true)];
         $callIndex = array_key_last($this->calls);
         try {
             $this->subscriptionStore->close($id, $owner, $now);

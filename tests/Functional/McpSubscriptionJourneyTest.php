@@ -7,10 +7,10 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriberReader;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
 use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
@@ -360,18 +360,11 @@ final class McpSubscriptionJourneyTest extends TestCase
     }
 
     #[DataProvider('contentionCases')]
-    public function test_that_real_capacity_lock_waits_preserve_freshness_and_retained_recovery(string $backend, string $mode, string $transport): void
+    public function test_that_real_capacity_lock_waits_preserve_freshness_and_retained_recovery(string $backend, string $mode, string $transport, int $bootstrapDelayMicroseconds = 0): void
     {
-        $this->setupDatabase($backend);
-        $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport], dirname(__DIR__, 2));
-        $this->processes[] = $process;
-        $processExit = $process->run();
-        $wire = $process->getOutput();
-        $this->evidence['contention_process'] = ['exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
-        if (file_exists($this->directory.'/contention-failure.json')) { $this->evidence['contention_failure'] = json_decode(file_get_contents($this->directory.'/contention-failure.json'), true, flags: JSON_THROW_ON_ERROR); }
-        self::assertSame(0, $processExit, $process->getErrorOutput().$wire);
-        $result = json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR);
-        $this->evidence['contention'] = compact('mode', 'transport', 'wire', 'result');
+        [$result, $wire] = $this->contention($backend, $mode, $transport, $bootstrapDelayMicroseconds);
+        $expiry = (int) $result['original']['expires_at'];
+        $capacityLock = $result['capacity_locks'][0];
         self::assertSame(0, $result['worker_exit'], $result['worker_error']);
         self::assertSame("worker-ready\n", $result['worker_output']);
         self::assertFalse($result['transaction_active']);
@@ -389,16 +382,25 @@ final class McpSubscriptionJourneyTest extends TestCase
         self::assertLessThanOrEqual($firstTrackingCall['lock_ready_at'], $firstTrackingCall['transaction_entered_at']);
         self::assertLessThan($result['returned'], $firstTrackingCall['lock_ready_at']);
         self::assertLessThanOrEqual($result['locked']['at'], $firstTrackingCall['transaction_entered_at'], 'The recorded store entry precedes the independent locked sample, not a later Query transaction');
+        self::assertLessThanOrEqual($firstTrackingCall['transaction_entered_at'], $firstTrackingCall['entered_at']);
+        self::assertSame($firstTrackingCall['operation'], $capacityLock['operation']);
+        self::assertLessThanOrEqual($capacityLock['entered_at'], $result['worker_lock']['acquired_at']);
         if ($mode === 'pre-renewal-expired') {
             self::assertSame('close', $firstTrackingCall['operation'], 'Execution rejects expiry before invoking any heartbeat');
             self::assertCount(1, $result['calls']);
             self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['started']);
             self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $firstTrackingCall['now']);
             self::assertSame('returned', $firstTrackingCall['result']);
+            self::assertGreaterThanOrEqual($expiry, $firstTrackingCall['entered_at']);
+            self::assertSame(['close'], array_column($result['capacity_locks'], 'operation'));
+            self::assertGreaterThanOrEqual($expiry, $capacityLock['acquired_at']);
         } else {
             self::assertSame('heartbeat', $firstTrackingCall['operation']);
             self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['transaction_entered_at'], 'Actual DBAL heartbeat entered while the original lease was fresh');
             self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['lock_ready_at'], 'The independent worker holds the lock before original expiry');
+            self::assertLessThan($expiry, $firstTrackingCall['entered_at']);
+            self::assertLessThan($expiry, $firstTrackingCall['now']);
+            self::assertLessThan($expiry, $capacityLock['entered_at'], 'Real serialized lock request precedes old expiry');
             self::assertSame($firstTrackingCall['now'] + 5, $firstTrackingCall['expires']);
         }
         if ($mode === 'timeout') {
@@ -408,9 +410,19 @@ final class McpSubscriptionJourneyTest extends TestCase
         if ($mode === 'fast') {
             self::assertSame('returned', $firstTrackingCall['result']);
             self::assertLessThan((int) $result['original']['expires_at'], $result['locked']['at']);
+            self::assertLessThan($expiry, $result['worker_release']['released_at'], 'Actual commit must release before old expiry');
+            self::assertLessThan($expiry, $capacityLock['acquired_at']);
+            self::assertGreaterThanOrEqual($result['locked']['at'], $capacityLock['acquired_at']);
             self::assertSame(['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'], array_column($frames, 'method'));
         } else {
             self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['locked']['at']);
+            if ($mode === 'timeout') {
+                self::assertArrayNotHasKey('acquired_at', $capacityLock);
+                self::assertArrayHasKey('failure', $capacityLock);
+            } else {
+                self::assertGreaterThanOrEqual($expiry, $capacityLock['acquired_at'], 'Tracking acquires only after old expiry');
+                self::assertGreaterThanOrEqual($result['locked']['at'], $capacityLock['acquired_at']);
+            }
             if ($mode === 'expired' || $mode === 'timeout') { self::assertLessThan($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease remains future'); }
             if ($mode === 'overlong') { self::assertGreaterThanOrEqual($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease also elapsed'); }
             self::assertCount(1, $frames, 'No new change or completion after the acknowledgment');
@@ -419,6 +431,8 @@ final class McpSubscriptionJourneyTest extends TestCase
             if ($mode === 'pre-renewal-expired') {
                 $expectedClosedRow = array_replace($result['original'], ['observed_at' => $firstTrackingCall['now'], 'closed_at' => $firstTrackingCall['now']]);
                 self::assertSame($expectedClosedRow, $result['row'], 'Only the exact supplied final closure timestamp changes; expiry and identity never move');
+                self::assertGreaterThan((int) $result['original']['observed_at'], (int) $result['row']['observed_at']);
+                self::assertSame((int) $result['row']['observed_at'], (int) $result['row']['closed_at']);
                 self::assertSame([RuntimeException::class], $result['diagnostics']);
             } else {
                 self::assertSame($result['original'], $result['row'], 'Failed renewal leaves the entire original open row unchanged');
@@ -466,7 +480,12 @@ final class McpSubscriptionJourneyTest extends TestCase
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
             foreach (['fast', 'expired', 'overlong', 'timeout', 'pre-renewal-expired'] as $mode) {
-                foreach (['body', 'emitter'] as $transport) { yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport]; }
+                foreach (['body', 'emitter'] as $transport) {
+                    yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport];
+                    if (in_array($mode, ['fast', 'expired'], true)) {
+                        yield $backend.'-'.$mode.'-'.$transport.'-delayed-bootstrap' => [$backend, $mode, $transport, 1100000];
+                    }
+                }
             }
         }
     }
@@ -508,6 +527,24 @@ final class McpSubscriptionJourneyTest extends TestCase
         }
         (new DbalNoticeSchema())->install($this->db); (new DbalSubscriptionSchema())->install($this->db);
         $this->evidence['backend'] = $backend;
+    }
+
+    private function contention(string $backend, string $mode, string $transport, int $bootstrapDelayMicroseconds = 0): array
+    {
+        $this->setupDatabase($backend);
+        $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport, (string) $bootstrapDelayMicroseconds], dirname(__DIR__, 2));
+        $this->processes[] = $process;
+        $processExit = $process->run();
+        $result = file_exists($this->directory.'/contention-result.json') ? json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR) : [];
+        $wire = $process->getOutput();
+        $this->evidence['contention_process'] = ['exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
+        if (file_exists($this->directory.'/contention-failure.json')) { $this->evidence['contention_failure'] = json_decode(file_get_contents($this->directory.'/contention-failure.json'), true, flags: JSON_THROW_ON_ERROR); }
+        $this->evidence['contention'] = compact('mode', 'transport', 'bootstrapDelayMicroseconds', 'wire', 'result');
+        self::assertSame(0, $processExit, $process->getErrorOutput().' '.json_encode($result));
+        self::assertLessThanOrEqual($result['registration_started_at'], $result['worker_prepared']['prepared_at'], 'Worker is ready before opening consumes freshness');
+        self::assertGreaterThanOrEqual($bootstrapDelayMicroseconds / 1000000, $result['worker_prepared']['prepared_at'] - $result['worker_prepared']['boot_started']);
+        self::assertGreaterThanOrEqual($result['started'], $result['worker_lock']['acquired_at'], 'Actual store entry requests the worker lock after transport resumes');
+        return [$result, $wire];
     }
 
     private function server(string $scope): string

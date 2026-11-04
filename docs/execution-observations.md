@@ -1,7 +1,8 @@
 # Durable execution observations
 
-An opt-in recording slice in `Domain\Mcp`, `Application\Mcp\Execution` and
-`Adapter\Mcp\Execution\Dbal` records trusted **evidence**, not authoritative Workflow state. Recording a phase named
+An opt-in recording slice in `Domain\Mcp`, aggregate-aligned `Application\Mcp` and
+`Adapter\Mcp\Persistence\{Session,Phase,Observation,Detail}\Dbal` records trusted **evidence**, not authoritative Workflow state.
+Shared execution schema/serialization support lives in `Adapter\Mcp\Persistence\Execution\Dbal`. Recording a phase named
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
 includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
@@ -205,7 +206,7 @@ policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, 
 `observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
 use the single current version-one observation shape. Commands live in
 `Domain\Mcp\Observation\Command`; the safe Event lives in `Domain\Mcp\Observation\Event`.
-Handlers, recording failures and the recorder live in `Application\Mcp\Execution\Observation\CommandHandler`,
+Handlers, recording failures and the recorder live in `Application\Mcp\Observation\CommandHandler`,
 `Exception` and `Service`, respectively. Admission and the shared transaction port remain Application responsibilities.
 
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
@@ -226,19 +227,19 @@ inconsistent relationships share `InvalidObservationRelationship` without disclo
 new attempt with a different performing identity, use a new phase subject ID and the intended attempt number.
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationSchema;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalProtectedContentRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalRecordingTransaction;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordProtectedDetailHandler;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Mcp\Observation\Service\ObservationRecorder;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordProtectedDetail;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordSessionObservation;

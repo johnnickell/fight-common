@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Mcp\Execution;
 
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
-use Fight\Common\Application\Mcp\Execution\Session\Exception\ExecutionReadFailed;
-use Fight\Common\Application\Mcp\Execution\Session\Service\ExecutionAccess;
+use Fight\Common\Application\Mcp\Session\Exception\ExecutionReadFailed;
+use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;

@@ -21,7 +21,7 @@ final class TaskProjection
     public static function fromTask(Task $task, string $context, int $now): StrictJson
     {
         return StrictJson::fromObject([
-            'id'            => $task->definition()->id(),
+            'id'            => $task->definition()->id()->toString(),
             'version'       => $task->version(),
             'state'         => $task->stateAt($now)->data(),
             'created_at'    => $task->createdAt(),

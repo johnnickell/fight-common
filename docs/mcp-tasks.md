@@ -63,13 +63,17 @@ protector to return `McpInputRequired` before Task creation. Its ordinary `resum
 it cannot return a Task handle. Durable input after creation uses the separate input lifecycle, not stateless resume.
 Ordinary Tools are never converted into Task Tools implicitly.
 
-Inside `start()`, generate a fresh `TaskDefinition::newId()`, capture the original Tool contract and arguments, and
+Inside `start()`, generate a fresh `Domain\Mcp\Task\TaskId::generate()`, capture the original Tool contract and arguments, and
 execute `CreateTask` through CommandBus. Consumers own submission and its failure/reconciliation policy. Return
 `new McpTaskHandle($id)` only for a durably created operation. Common then fetches `GetTask($trustedScope, $id)`
 through QueryBus, including fresh read and whole-state disclosure checks, before acknowledging the handle.
 An in-memory object or queued submission alone cannot pass this boundary. Creation grants do not imply disclosure;
 failed/missing/withheld current state produces no successful handle acknowledgment even if creation committed.
 Original contract validation uses retained context, not a new lookup of a possibly changed Tool definition.
+The handle and shared Commands/Queries carry `TaskId`; MCP `taskId` remains its exact string representation.
+`TaskId::fromString()` parses incoming bytes at the protocol boundary without granting access. The
+[Domain classification and value contracts](durable-tasks.md#model-classification-and-value-contracts) distinguish
+Task values from aggregate/input lifecycle state and Application projections.
 
 Keep direct consumer calls to `handle()` ordinary: they cannot return a handle and must not start work inaccessible
 to their caller. Direct `McpToolInvoker::invoke()` has no negotiation evidence and rejects Task Tools before entry.

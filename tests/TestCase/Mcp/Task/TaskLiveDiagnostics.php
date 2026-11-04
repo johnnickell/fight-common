@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Mcp\Task;
 
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;
 use Throwable;
 

@@ -14,7 +14,7 @@ interface TaskRepository
     /**
      * Returns coherent protected state under the owned mutation transaction
      */
-    public function getById(string $scope, string $id): ?Task;
+    public function getById(string $scope, TaskId $id): ?Task;
 
     /**
      * Writes the complete current state atomically under the owned transaction

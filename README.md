@@ -60,6 +60,12 @@ Prefer the canonical `Application\Mcp\Capability`, `Protocol`, `Http` and `Tool`
 The [complete migration map](docs/maintenance/mcp-foundation-namespaces.md) explains released-name compatibility;
 `McpResponder` and `McpDiagnostics` stay at root without deprecation.
 
+Execution handlers and read contracts now mirror Domain aggregates directly under `Application\Mcp`.
+Concrete inspection Tools live in `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}` and still dispatch
+through QueryBus; DBAL adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`. See the
+[aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) for direct never-released moves
+and the unchanged released bridges.
+
 For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
 `TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
 Task transaction boundary share one dedicated connection; persistence does not own commit. Each Task handler

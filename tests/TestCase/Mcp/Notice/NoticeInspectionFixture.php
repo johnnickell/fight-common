@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\Mcp\Notice;
 
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeReader;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Notice\QueryHandler\GetNoticeHandler;

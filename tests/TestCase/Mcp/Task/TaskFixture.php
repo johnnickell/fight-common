@@ -6,8 +6,8 @@ namespace Fight\Test\Common\TestCase\Mcp\Task;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskRepository;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
@@ -47,6 +47,7 @@ use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskInput;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskSelection;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -133,9 +134,14 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $this->queries = new RoutingQueryBus($queryRouter);
     }
 
+    public static function id(string $value = self::ID): TaskId
+    {
+        return TaskId::fromString($value);
+    }
+
     public static function definition(string $id = self::ID, ?StrictJson $operation = null): TaskDefinition
     {
-        return TaskDefinition::create($id, 'scope', 'producer', $operation ?? StrictJson::fromObject([
+        return TaskDefinition::create(self::id($id), 'scope', 'producer', $operation ?? StrictJson::fromObject([
             'kind' => 'tool', 'name' => 'example.operation', 'revision' => 'immutable-v1', 'arguments' => (object) [],
             'output_schema' => (object) ['type' => 'object', 'properties' => (object) ['ok' => (object) ['type' => 'boolean']], 'required' => ['ok'], 'additionalProperties' => false]
         ]));
@@ -162,7 +168,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
             $this->issue(expectedVersion: $expectedVersion);
             return;
         }
-        $this->commands->execute(new RecordTaskState('scope', self::ID, 'producer', $expectedVersion, $state, $poll));
+        $this->commands->execute(new RecordTaskState('scope', self::id(), 'producer', $expectedVersion, $state, $poll));
     }
 
     public static function form(string $message = 'Provide input', array $rules = []): McpInputRequest
@@ -175,59 +181,59 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $forms = [];
         for ($index = 0; $index < $count; ++$index) { $forms['form-'.$index] = self::form(); }
         $input = $confirmation ? McpInputRequired::confirmation($forms) : McpInputRequired::fromRequests($forms);
-        $this->commands->execute(new RequestTaskInput('scope', $id, 'producer', $expectedVersion, TaskInputForms::batch($input, $caller, $expiresAt ?? $this->now + 1000)));
+        $this->commands->execute(new RequestTaskInput('scope', self::id($id), 'producer', $expectedVersion, TaskInputForms::batch($input, $caller, $expiresAt ?? $this->now + 1000)));
     }
 
     public function supply(array $responses, string $caller = 'caller', string $scope = 'scope', string $id = self::ID): void
     {
-        $this->commands->execute(new SupplyTaskInput($scope, $id, $caller, StrictJson::fromObject($responses)));
+        $this->commands->execute(new SupplyTaskInput($scope, self::id($id), $caller, StrictJson::fromObject($responses)));
     }
 
     public function observe(string $caller = 'caller', string $scope = 'scope', string $id = self::ID): ?StrictJson
     {
-        return $this->queries->fetch(new GetTaskInput($scope, $id, $caller));
+        return $this->queries->fetch(new GetTaskInput($scope, self::id($id), $caller));
     }
 
     public function acquire(string $group = self::KEY_1, string $caller = 'caller'): void
     {
-        $this->commands->execute(new AcquireTaskInput('scope', self::ID, $caller, $group));
+        $this->commands->execute(new AcquireTaskInput('scope', self::id(), $caller, $group));
     }
 
     public function cancel(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): void
     {
-        $this->commands->execute(new RequestTaskCancellation($scope, $id, $caller));
+        $this->commands->execute(new RequestTaskCancellation($scope, self::id($id), $caller));
     }
 
     public function cancellation(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): ?StrictJson
     {
-        return $this->queries->fetch(new GetTaskCancellation($scope, $id, $caller));
+        return $this->queries->fetch(new GetTaskCancellation($scope, self::id($id), $caller));
     }
 
-    public function allowsCancellation(string $scope, string $id, string $caller): bool
+    public function allowsCancellation(string $scope, TaskId $id, string $caller): bool
     {
         ($this->onCancellationAdmission ?? static fn () => null)();
         return $this->cancelAllowed && $scope === 'scope';
     }
 
-    public function allowsCancellationObservation(string $scope, string $id, string $caller): bool
+    public function allowsCancellationObservation(string $scope, TaskId $id, string $caller): bool
     {
         ($this->onCancellationAdmission ?? static fn () => null)();
         return $this->cancelObserveAllowed && $scope === 'scope';
     }
 
-    public function allowsSubmission(string $scope, string $id, string $caller): bool
+    public function allowsSubmission(string $scope, TaskId $id, string $caller): bool
     {
         ($this->onInputAdmission ?? static fn () => null)();
         return $this->submitAllowed && $scope === 'scope';
     }
 
-    public function allowsObservation(string $scope, string $id, string $caller): bool
+    public function allowsObservation(string $scope, TaskId $id, string $caller): bool
     {
         ($this->onInputAdmission ?? static fn () => null)();
         return $this->observeAllowed && $scope === 'scope';
     }
 
-    public function allowsContinuation(string $scope, string $id, string $caller, string $group): bool
+    public function allowsContinuation(string $scope, TaskId $id, string $caller, string $group): bool
     {
         ($this->onInputAdmission ?? static fn () => null)();
         return $this->continueAllowed && $scope === 'scope';
@@ -235,20 +241,20 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
 
     public function remove(array $ids = [self::ID], string $scope = 'scope'): void
     {
-        $this->commands->execute(new RemoveTasks(TaskSelection::fromIds($scope, $ids)));
+        $this->commands->execute(new RemoveTasks(TaskSelection::fromIds($scope, array_map(self::id(...), $ids))));
     }
 
-    public function allowsRemoval(string $scope, string $id): bool
+    public function allowsRemoval(string $scope, TaskId $id): bool
     {
         ++$this->admissions;
-        $this->removalChecks[] = [$scope, $id];
+        $this->removalChecks[] = [$scope, $id->toString()];
         ($this->onAdmission ?? static fn () => null)();
-        return $this->removeAllowed && $scope === 'scope' && !in_array($id, $this->deniedRemovalIds, true);
+        return $this->removeAllowed && $scope === 'scope' && !in_array($id->toString(), $this->deniedRemovalIds, true);
     }
 
     public function get(string $id = self::ID, string $scope = 'scope'): ?StrictJson
     {
-        return $this->queries->fetch(new GetTask($scope, $id));
+        return $this->queries->fetch(new GetTask($scope, self::id($id)));
     }
 
     public function allowsCreation(TaskDefinition $definition): bool
@@ -258,16 +264,16 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         return $this->createAllowed && $definition->scope() === 'scope' && $definition->producer() === 'producer';
     }
 
-    public function allowsUpdate(string $scope, string $id, string $producer): bool
+    public function allowsUpdate(string $scope, TaskId $id, string $producer): bool
     {
         ++$this->admissions;
         ($this->onAdmission ?? static fn () => null)();
         return $this->updateAllowed && $scope === 'scope' && $producer === 'producer';
     }
 
-    public function comparisonScope(string $scope, string $id): string { ($this->onComparison ?? static fn () => null)(); return $this->comparison; }
+    public function comparisonScope(string $scope, TaskId $id): string { ($this->onComparison ?? static fn () => null)(); return $this->comparison; }
 
-    public function allowsRead(string $scope, string $id): bool
+    public function allowsRead(string $scope, TaskId $id): bool
     {
         ($this->onRead ?? static fn () => null)();
         return $this->readAllowed && $scope === 'scope';
