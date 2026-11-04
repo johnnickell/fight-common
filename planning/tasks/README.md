@@ -105,4 +105,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |
 <!-- /planning:records -->

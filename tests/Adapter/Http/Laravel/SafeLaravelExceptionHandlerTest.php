@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Adapter\Http\Laravel;
 
+use Closure;
 use Error;
 use Fight\Common\Adapter\Http\Error\SafeHttpDiagnostics;
 use Fight\Common\Adapter\Http\Error\SafeHttpErrorPolicy;
@@ -32,6 +33,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Filesystem\FilesystemServiceProvider;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -43,6 +45,8 @@ use Illuminate\Validation\Factory;
 use Illuminate\Validation\ValidationException as LaravelValidationException;
 use Illuminate\View\ViewServiceProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -68,6 +72,221 @@ use Throwable;
 #[CoversClass(SafeLaravelExceptionHandler::class)]
 final class SafeLaravelExceptionHandlerTest extends UnitTestCase
 {
+    public static int $encodingCalls = 0;
+
+    public static ?int $encodingFailures = 0;
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_persistent_encoding_faults_return_a_terminal_native_response_without_recursive_reporting(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-encoding.php';
+        self::$encodingFailures = null;
+        $reports = [];
+        $logged = [];
+        $app = $this->application($this->diagnostics($reports, $this->logger($logged)));
+        $failure = new MethodNotAllowedHttpException(['GET'], 'password=synthetic-secret');
+
+        $response = $this->request($app, $failure);
+
+        self::assertInstanceOf(JSendResponse::class, $response);
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('application/json', $response->headers->get('Content-Type'));
+        self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
+        self::assertFalse($response->headers->has('Allow'));
+        self::assertSame([$failure], $reports);
+        self::assertSame([['HTTP failure', ['type' => $failure::class]]], $logged);
+        self::assertSame(2, self::$encodingCalls);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_encoding_faults_preserve_final_processing_and_later_independent_requests(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-encoding.php';
+        $reports = [];
+        $logged = [];
+        $rawLogged = [];
+        $hooks = [];
+        $handled = [];
+        $app = $this->application($this->diagnostics($reports, $this->logger($logged)));
+        $app->instance(LoggerInterface::class, $this->logger($rawLogged));
+        $handler = $app->make(ExceptionHandler::class);
+        $handler->reportable(static function (Throwable $failure) use (&$hooks): void {
+            $hooks[] = 'reportable';
+        });
+        $handler->renderable(static function (Throwable $failure) use (&$hooks): Response {
+            $hooks[] = 'renderable';
+
+            return new Response('private hook output');
+        });
+        $app['events']->listen(RequestHandled::class, static function (RequestHandled $event) use (&$handled): void {
+            $handled[] = $event->response;
+        });
+        $app->instance('terminal-after', new class {
+            public function handle(Request $request, Closure $next): Response
+            {
+                $response = $next($request);
+                $response->headers->set('X-Processed', 'yes');
+
+                return $response;
+            }
+        });
+        $failures = [];
+        foreach ([1, 2, null] as $index => $budget) {
+            self::$encodingCalls = 0;
+            self::$encodingFailures = $budget;
+            $failure = new HttpException(401, 'password=synthetic-secret', headers: [
+                'WWW-Authenticate' => 'Basic realm="selected"',
+                'X-Leak' => 'synthetic-secret',
+            ]);
+            $failures[] = $failure;
+            $path = '/terminal/'.$index;
+            $app['router']->get($path, static function () use ($failure): never {
+                throw $failure;
+            })->middleware('terminal-after');
+
+            $response = (new Kernel($app, $app['router']))->handle(Request::create($path, server: [
+                'HTTP_ACCEPT' => 'application/json',
+            ]));
+
+            $this->assertTerminalResponse($response);
+            self::assertSame('yes', $response->headers->get('X-Processed'));
+            self::assertSame($response, $handled[$index]);
+            self::assertSame(2, self::$encodingCalls);
+            self::assertSame($failures, $reports);
+            self::assertCount($index + 1, $logged);
+            self::assertSame([], $rawLogged);
+            self::assertSame([], $hooks);
+        }
+
+        self::$encodingFailures = 0;
+        $laterFailure = new MethodNotAllowedHttpException(['GET'], 'later=synthetic-secret');
+        $laterResponse = $this->request($app, $laterFailure);
+        self::assertSame($handler, $app->make(ExceptionHandler::class));
+        self::assertInstanceOf(JSendResponse::class, $laterResponse);
+        self::assertSame(405, $laterResponse->getStatusCode());
+        self::assertSame('GET', $laterResponse->headers->get('Allow'));
+        self::assertSame('{"status":"fail","data":{"message":"Method not allowed."}}', $laterResponse->getContent());
+        self::assertSame([...$failures, $laterFailure], $reports);
+        self::assertSame($laterResponse, $handled[3]);
+        self::assertSame([], $rawLogged);
+        self::assertSame([], $hooks);
+
+        $app['router']->get('/successful', static fn (): Response => new Response('unchanged', 202));
+        $success = (new Kernel($app, $app['router']))->handle(Request::create('/successful'));
+        self::assertSame(202, $success->getStatusCode());
+        self::assertSame('unchanged', $success->getContent());
+        self::assertCount(4, $reports);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_direct_render_contains_two_and_persistent_faults_with_one_original_report(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-encoding.php';
+        $reports = [];
+        $logged = [];
+        $app = $this->application($this->diagnostics($reports, $this->logger($logged)));
+        $handler = $app->make(ExceptionHandler::class);
+        $request = Request::create('/', server: ['HTTP_ACCEPT' => 'application/json']);
+        $failures = [];
+        foreach ([2, null] as $budget) {
+            self::$encodingFailures = $budget;
+            self::$encodingCalls = 0;
+            $failure = new HttpException(503, 'private=synthetic-secret', headers: ['Retry-After' => '15']);
+            $failures[] = $failure;
+
+            $this->assertTerminalResponse($handler->render($request, $failure));
+
+            self::assertSame(2, self::$encodingCalls);
+            $handler->report($failure);
+            self::assertSame($failures, $reports);
+        }
+        self::$encodingFailures = 0;
+        $failure = new PermissionDenied('later=synthetic-secret');
+        $response = $handler->render($request, $failure);
+        self::assertSame(403, $response->getStatusCode());
+        self::assertSame('{"status":"fail","data":{"message":"Permission denied."}}', $response->getContent());
+        self::assertSame([...$failures, $failure], $reports);
+        self::assertCount(3, $logged);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_that_failed_sink_or_projector_and_encoder_are_terminal_without_retrying_collaborators(): void
+    {
+        require dirname(__DIR__, 3).'/Fixture/Http/jsend-encoding.php';
+        foreach (['sink', 'projector'] as $stage) {
+            foreach ([false, true] as $direct) {
+                $diagnostics = new class implements SafeHttpDiagnostics {
+                    public bool $fail = false;
+                    public array $reports = [];
+                    public int $deliveries = 0;
+
+                    public function report(Throwable $failure): void
+                    {
+                        $this->reports[] = $failure;
+                        if ($this->fail) {
+                            throw new RuntimeException('sink=password=synthetic-secret');
+                        }
+                        $this->deliveries++;
+                    }
+                };
+                $projector = new class implements SafeHttpProjector {
+                    public bool $fail = false;
+                    public int $calls = 0;
+
+                    public function project(Throwable $failure, int $status): ?SafeHttpPresentation
+                    {
+                        $this->calls++;
+                        if ($this->fail) {
+                            throw new RuntimeException('projector=password=synthetic-secret');
+                        }
+
+                        return new SafeHttpPresentation(message: 'Deliberately public.');
+                    }
+                };
+                $diagnostics->fail = $stage === 'sink';
+                $projector->fail = $stage === 'projector';
+                $app = $this->application($diagnostics, $projector);
+                $rawLogged = [];
+                $app->instance(LoggerInterface::class, $this->logger($rawLogged));
+                $handler = $app->make(ExceptionHandler::class);
+                $request = Request::create('/', server: ['HTTP_ACCEPT' => 'application/json']);
+                $failure = new HttpException(405, 'private=synthetic-secret', headers: ['Allow' => 'GET']);
+                self::$encodingCalls = 0;
+                self::$encodingFailures = null;
+
+                $response = $direct ? $handler->render($request, $failure) : $this->request($app, $failure);
+
+                $this->assertTerminalResponse($response);
+                self::assertSame(1, self::$encodingCalls);
+                self::assertSame([$failure], $diagnostics->reports);
+                self::assertSame($stage === 'sink' ? 0 : 1, $diagnostics->deliveries);
+                self::assertSame($stage === 'sink' ? 0 : 1, $projector->calls);
+                $handler->report($failure);
+                $this->assertTerminalResponse($handler->render($request, $failure));
+                self::assertSame([$failure], $diagnostics->reports);
+                self::assertSame(2, self::$encodingCalls);
+                self::assertSame($stage === 'sink' ? 0 : 2, $projector->calls);
+                self::assertSame([], $rawLogged);
+
+                self::$encodingFailures = 0;
+                $diagnostics->fail = false;
+                $projector->fail = false;
+                $laterFailure = new PermissionDenied('later=synthetic-secret');
+                $laterResponse = $this->request($app, $laterFailure);
+                self::assertSame($handler, $app->make(ExceptionHandler::class));
+                self::assertSame(403, $laterResponse->getStatusCode());
+                self::assertSame('{"status":"fail","data":{"message":"Deliberately public."}}', $laterResponse->getContent());
+                self::assertSame([$failure, $laterFailure], $diagnostics->reports);
+                self::assertSame($stage === 'sink' ? 1 : 2, $diagnostics->deliveries);
+                self::assertSame([], $rawLogged);
+            }
+        }
+    }
+
     public function test_that_booted_laravel_report_and_render_conceal_synthetic_secrets(): void
     {
         $logged = [];
@@ -331,6 +550,18 @@ final class SafeLaravelExceptionHandlerTest extends UnitTestCase
         self::assertInstanceOf(Response::class, $xhr);
         self::assertSame('{"status":"error","message":"Internal server error."}', $xhr->getContent());
         self::assertSame(500, $xhr->getStatusCode());
+    }
+
+    private function assertTerminalResponse(Response $response): void
+    {
+        self::assertInstanceOf(JSendResponse::class, $response);
+        self::assertSame(500, $response->getStatusCode());
+        self::assertSame('application/json', $response->headers->get('Content-Type'));
+        self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
+        self::assertSame(['status' => 'error', 'message' => 'Internal server error.'], $response->getData(true));
+        foreach (['WWW-Authenticate', 'Allow', 'Retry-After', 'X-Leak'] as $header) {
+            self::assertFalse($response->headers->has($header));
+        }
     }
 
     /**
