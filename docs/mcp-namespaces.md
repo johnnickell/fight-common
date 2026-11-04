@@ -28,7 +28,6 @@ The following destinations remain **approved but pending their owning refactors*
 | Concrete execution inspection Tools in `Application\Mcp\Execution` and `Application\Mcp\Notice\RecoverNoticesTool` | `Adapter\Mcp\Tool\{Session,Phase,Observation,Detail,Notice}`, with genuinely shared mapping support under `Tool\Execution`; TASK-00191 |
 | MCP aggregate persistence/read adapters under `Adapter\Mcp\{Execution,Task,Notice,Subscription}` | `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with real shared schema/serialization support under `Persistence\Execution\Dbal`; TASK-00191 |
 | Combined Application Notice store | Domain aggregate repository and separately injected existing `TransactionalUnitOfWork`; TASK-00186 |
-| Domain Task disclosure encoding | Separate outward disclosure projection; TASK-00188 |
 
 TASK-00184 implements execution's direct `TransactionalUnitOfWork` injection and reusable
 `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. The provisional execution transaction subtype is
@@ -91,6 +90,17 @@ follow their new PHP namespaces, including the dotted `Fight.Common.Domain.Mcp..
 method/Tool names, safe output schemas, stored table names, retention, current admission, transaction ownership,
 post-commit ordering and documented failure/recovery guarantees are unchanged. A namespace move does not grant
 access or guarantee delivery/execution. Existing persisted development snapshots are not a supported migration format.
+
+## Task disclosure projection
+
+TASK-00188 moves bounded Query fields and visibility-bound revision encoding from the provisional Domain aggregate
+to internal `Application\Mcp\Task\Projection\TaskProjection`. The existing GetTask Query handler invokes this cohesive
+PHP-internal projection before its final current read/whole-state checks; get/live/reconnect and guarded byte handoff
+remain on that same path. Domain retains outstanding-input lifecycle state and atomic lifetime/public-write/expiry
+order, with no transport-view construction or HMAC knowledge. There is no provider variation or external encoding
+dependency requiring a port/Adapter, no new consumer setup, and no development-snapshot compatibility aliases.
+See [durable Tasks](durable-tasks.md#compatibility-and-public-surface) and [live revisions](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
+Typed values remain TASK-00189's responsibility.
 
 ## Task persistence capabilities
 

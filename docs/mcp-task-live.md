@@ -162,7 +162,13 @@ Shared get results and Task notifications carry `_meta["org.fight/taskRevision"]
 
 This is server-owned namespaced metadata. Incoming metadata cannot override it; original-operation metadata never
 gets promoted to this slot. Projection creates it from the same immutable committed Task row as the state, not a
-second read of a version counter. It also binds read-only outstanding-input expiry changes at one captured Query
+second read of a version counter. Internal `Application\Mcp\Task\Projection\TaskProjection` owns bounded shared
+Query-view construction and native PHP HMAC encoding; Domain Task owns coherent outstanding-input lifecycle state,
+readable metadata and protected atomic lifetime/public-write/expiry evidence. Domain compares its state values and
+readable metadata directly when advancing the public-write counter, never serializing a transport view or knowing
+visibility-context HMAC framing. No provider/Adapter dependency or new consumer setup sequence is required for these
+PHP-internal derivations. Projection still precedes GetTaskHandler's final read/whole-state checks and the unchanged
+live source/guard/native-write boundary. It also binds read-only outstanding-input expiry changes at one captured Query
 clock instant. Clocks and arrival order alone are **not** the comparison contract.
 
 For one exact Task ID and equal revision scope, compare the **entire fixed-width `value` bytewise** (ASCII lexical
@@ -245,9 +251,18 @@ sent bytes cannot be recalled. Paused-client proof is not saturated-kernel/insta
 
 ## Compatibility and evidence
 
-One new public consumer-implementable interface, `McpTaskDisclosureGuard`, and two internal delivery/action helpers
-are added. No endpoint, dependency, event, publisher, store or table is added. Existing provisional
-Task row schema one directly gains incarnation/public counter, and provisional `TaskReadAdmission` gains required
+TASK-00188 directly removes never-tagged aggregate `view()`/`revision()` methods in favor of the internal Application
+`TaskProjection` used by the existing shared Query. Protected Domain `stateAt()`, metadata and lifetime/order accessors
+retain lifecycle ownership without public wire encoding; neither they nor the projection grant disclosure. Its native
+PHP derivations require no encoding provider, extra handler dependency, mode flag or caller sequencing. Row schema,
+revision format/width, budgets, final checks, fragment identity and guarded native handoff are unchanged. The manifest
+classifies the helper internal and refreshes operation shapes, without development-snapshot aliases or migrations.
+Direct `TaskProjectionTest` fixes independent HMAC/addition vectors and complete safe field/expiry behavior;
+`TaskRevisionTest` continues shared-Query privacy/order/final-check proof. Later typed values remain TASK-00189's scope.
+
+Historically, TASK-00171 added one public consumer-implementable interface, `McpTaskDisclosureGuard`, and two
+internal delivery/action helpers. No endpoint, dependency, event, publisher, store or table was added. At that
+checkpoint, provisional Task row schema one directly gained incarnation/public counter, and `TaskReadAdmission` gained required
 `comparisonScope()`. Existing Task/TaskInputs methods and McpTasks revision/current projection are directly extended;
 McpSubscriptions gains optional trailing Tasks, its accessor and the paired required disclosure guard when Tasks
 are enabled; generic admission/store/inspection formats remain.

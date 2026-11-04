@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
+  visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
+  and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate
+  view/revision APIs directly; shared get/live/reconnect authorization, guarded byte handoff, schema and wire format
+  remain unchanged, without new caller setup or encoding-provider dependencies.
 - Make all eight Task CommandHandlers and three QueryHandlers own their named use cases with operation-specific
   repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
   and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,

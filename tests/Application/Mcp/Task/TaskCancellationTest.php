@@ -92,7 +92,7 @@ final class TaskCancellationTest extends UnitTestCase
         self::assertSame($terminal, $fixture->get()->toString());
         self::assertSame('completed', $fixture->get()->get('state')->get('status'));
 
-        $fixture->now = $before->view()['created_at'] + 1000;
+        $fixture->now = $before->createdAt() + 1000;
 
         self::assertNull($fixture->cancellation());
         $this->reject(fn () => $fixture->cancel(), TaskRejected::class);

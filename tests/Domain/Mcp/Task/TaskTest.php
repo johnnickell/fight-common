@@ -57,41 +57,63 @@ final class TaskTest extends UnitTestCase
             self::assertSame('producer', $update->producer()); self::assertSame($state, $update->state());
             $next = $update->applyTo($task, 50);
             self::assertSame(2, $next->version()); self::assertSame($state, $next->state());
-            self::assertSame(100, $next->view()['updated_at']);
+            self::assertSame(100, $next->updatedAt());
             self::assertNull($update->applyTo($next, 1000));
             $fact = TaskChanged::fromTask($next);
             self::assertSame(['scope' => 'scope', 'id' => TaskFixture::ID, 'version' => 2], $fact->toArray());
             self::assertSame($fact->toArray(), TaskChanged::fromArray($fact->toArray())->toArray());
-            self::assertArrayNotHasKey('creation_digest', $next->view());
+            self::assertSame(100, $next->createdAt());
+            self::assertSame(1000, $next->ttl());
+            self::assertSame(5, $next->pollInterval());
         }
         $input = $task->requestInput(\Fight\Common\Application\Mcp\Task\Service\TaskInputForms::batch(\Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired::fromRequests(['form' => TaskFixture::form()]), 'caller', 1000), 1, 200);
         $resumed = $input->retireInput(TaskFixture::KEY_1, 2, 201);
         self::assertSame('working', $resumed->state()->status());
     }
 
-    public function test_that_outstanding_input_projection_preserves_the_admitted_message_until_all_requests_expire(): void
+    public function test_that_outstanding_input_state_preserves_the_admitted_message_until_all_requests_expire(): void
     {
         foreach (['Waiting for both authorized answers', '', null] as $message) {
             $task = Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 0);
             $forms = McpInputRequired::fromRequests(['answer' => TaskFixture::form()]);
             $task = $task->requestInput(TaskInputForms::batch($forms, 'caller', 100), 1, 0);
             $task = $task->requestInput(TaskInputForms::batch($forms, 'caller', 200), 2, 0);
-            $requests = $task->view(0)['state']->get('input');
+            $requests = $task->stateAt(0)->data()->get('input');
             $task = $task->transition('producer', 3, TaskState::create('input_required', $message, $requests), null, 0);
             $before = $task->toArray();
             foreach ([0, 99, 100, 199] as $now) {
-                $view = $task->view($now);
-                self::assertSame($message, $view['state']->get('message'));
-                self::assertSame($now < 100 ? [TaskFixture::KEY_1, TaskFixture::KEY_2] : [TaskFixture::KEY_2], array_keys($view['state']->get('input')->properties()));
-                self::assertSame(4, $view['version']);
+                $state = $task->stateAt($now);
+                self::assertSame($message, $state->data()->get('message'));
+                self::assertSame($now < 100 ? [TaskFixture::KEY_1, TaskFixture::KEY_2] : [TaskFixture::KEY_2], array_keys($state->data()->get('input')->properties()));
+                self::assertSame(4, $task->version());
                 self::assertEquals($before, $task->toArray());
             }
-            self::assertSame('working', $task->view(200)['state']->get('status'));
-            self::assertNull($task->view(200)['state']->get('message'));
-            self::assertNull($task->view(200)['state']->get('input'));
-            self::assertSame($message, $task->view()['state']->get('message'));
+            self::assertSame('working', $task->stateAt(200)->status());
+            self::assertNull($task->stateAt(200)->data()->get('message'));
+            self::assertNull($task->stateAt(200)->data()->get('input'));
+            self::assertSame($message, $task->state()->data()->get('message'));
             self::assertEquals($before, $task->toArray());
         }
+    }
+
+    public function test_that_atomic_public_order_tracks_only_lifecycle_state_and_readable_metadata_changes(): void
+    {
+        $task = Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 10);
+        self::assertSame(32, $task->publicOrder(10));
+        $cancelled = $task->requestCancellation(10);
+        self::assertSame(2, $cancelled->version());
+        self::assertSame(32, $cancelled->publicOrder(10));
+        self::assertSame($task->incarnation(), $cancelled->incarnation());
+        $identical = $cancelled->transition('producer', 2, TaskState::create('working'), null, 10);
+        self::assertSame(32, $identical->publicOrder(10));
+        $poll = $identical->transition('producer', 3, TaskState::create('working'), 1, 10);
+        self::assertSame(64, $poll->publicOrder(10));
+        $later = $poll->transition('producer', 4, TaskState::create('working'), 1, 11);
+        self::assertSame(96, $later->publicOrder(11));
+        $changed = $later->transition('producer', 5, TaskState::create('working', ''), 1, 11);
+        self::assertSame(128, $changed->publicOrder(11));
+        self::assertSame(128, Task::fromArray($changed->toArray())->publicOrder(11));
+        self::assertSame($task->incarnation(), $changed->incarnation());
     }
 
     #[DataProvider('invalidStates')]
