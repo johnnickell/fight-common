@@ -35,4 +35,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TICKET-00050](00050-TICKET.md) | Supply requested input to asynchronous operations | done | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00051](00051-TICKET.md) | Request cooperative cancellation of asynchronous operations | done | [EPIC-00012](../epics/00012-EPIC.md) |
 | [TICKET-00052](00052-TICKET.md) | Follow live Task state and recover after reconnecting | done | [EPIC-00012](../epics/00012-EPIC.md) |
+| [TICKET-00053](00053-TICKET.md) | Customize Event Sourcing persistence tables | ready-for-agent | [EPIC-00013](../epics/00013-EPIC.md) |
+| [TICKET-00054](00054-TICKET.md) | Customize execution persistence tables | ready-for-agent | [EPIC-00013](../epics/00013-EPIC.md) |
+| [TICKET-00055](00055-TICKET.md) | Customize durable MCP lifecycle tables | ready-for-agent | [EPIC-00013](../epics/00013-EPIC.md) |
 <!-- /planning:records -->

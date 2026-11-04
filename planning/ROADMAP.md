@@ -12,6 +12,7 @@
 | [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | done |
 | [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | done |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | done |
+| [EPIC-00013](epics/00013-EPIC.md) | Make all Common-owned table names configurable | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
 ## Planning frontier
