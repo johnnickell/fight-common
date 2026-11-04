@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Fight\Common\Domain\Mcp\Session\Query;
 
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
@@ -28,11 +29,15 @@ final readonly class GetExecution implements Query
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['project_id', 'session_id']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['project_id', 'session_id']) {
+            throw new DomainException('Invalid execution query structure.');
+        }
 
         return new self(
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id'])
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString()
         );
     }
 

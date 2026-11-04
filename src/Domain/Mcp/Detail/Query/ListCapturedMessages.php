@@ -6,7 +6,6 @@ namespace Fight\Common\Domain\Mcp\Detail\Query;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
@@ -43,7 +42,12 @@ final readonly class ListCapturedMessages implements Query
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['selection', 'page', 'per_page', 'orderings']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['orderings', 'page', 'per_page', 'selection']) {
+            throw new DomainException('Invalid captured message page structure.');
+        }
+
         if (
             !is_array($data['selection']) || !is_int($data['page'])
             || !is_int($data['per_page']) || !is_array($data['orderings'])

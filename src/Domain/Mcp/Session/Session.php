@@ -11,11 +11,22 @@ namespace Fight\Common\Domain\Mcp\Session;
  */
 final readonly class Session
 {
+    private SessionId $identity;
+
     /**
      * Constructs Session
      */
     public function __construct(private SessionReference $reference)
     {
+        $this->identity = SessionId::fromStrings($reference->projectId(), $reference->sessionId());
+    }
+
+    /**
+     * Returns the role-specific project-scoped aggregate identity
+     */
+    public function identity(): SessionId
+    {
+        return $this->identity;
     }
 
     /**
@@ -55,6 +66,6 @@ final readonly class Session
      */
     public function matches(SessionReference $reference): bool
     {
-        return $this->reference->toArray() === $reference->toArray();
+        return $this->reference->equals($reference);
     }
 }

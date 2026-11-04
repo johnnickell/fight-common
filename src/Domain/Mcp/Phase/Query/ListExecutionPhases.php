@@ -6,7 +6,7 @@ namespace Fight\Common\Domain\Mcp\Phase\Query;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 use Fight\Common\Domain\Messaging\Query\Query;
 use Fight\Common\Domain\Repository\Pagination;
 
@@ -52,7 +52,7 @@ final readonly class ListExecutionPhases implements Query
                 throw new DomainException('Unsupported phase filter.');
             }
 
-            $safe[$field] = ObservationFields::reference($value);
+            $safe[$field] = ObservationReference::fromString($value)->toString();
         }
 
         ksort($safe, SORT_STRING);
@@ -64,7 +64,12 @@ final readonly class ListExecutionPhases implements Query
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['project_id', 'session_id', 'page', 'per_page', 'filters', 'orderings']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['filters', 'orderings', 'page', 'per_page', 'project_id', 'session_id']) {
+            throw new DomainException('Invalid phase page structure.');
+        }
+
         if (
             !is_int($data['page']) || !is_int($data['per_page'])
             || !is_array($data['filters']) || !is_array($data['orderings'])
@@ -73,8 +78,8 @@ final readonly class ListExecutionPhases implements Query
         }
 
         return new self(
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id']),
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString(),
             $data['page'],
             $data['per_page'],
             $data['filters'],

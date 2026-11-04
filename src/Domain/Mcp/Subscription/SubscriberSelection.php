@@ -7,6 +7,7 @@ namespace Fight\Common\Domain\Mcp\Subscription;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class SubscriberSelection
@@ -15,7 +16,7 @@ use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
  * @phpstan-type ProtocolFilter 'requested_filter'|'accepted_filter'|'requested_resource'|'accepted_resource'
  * @phpstan-type SubscriberFilter IdentityFilter|ProtocolFilter|'opened_from'|'opened_until'
  */
-final readonly class SubscriberSelection
+final readonly class SubscriberSelection extends ValueObject
 {
     /**
      * Constructs SubscriberSelection
@@ -88,6 +89,37 @@ final readonly class SubscriberSelection
         }
 
         return self::create($data['scopes'], $data['filters']);
+    }
+
+    /**
+     * Creates a selection from stable structured text without granting inspection
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid subscriber selection text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable selection text without an access grant
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured selection data
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

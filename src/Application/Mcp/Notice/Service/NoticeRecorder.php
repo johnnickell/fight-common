@@ -39,7 +39,7 @@ final readonly class NoticeRecorder
     {
         $recorded = $this->transactionalUnitOfWork->commitTransactional(function () use ($notice): ?RecordedNotice {
             $this->noticeAdmission->admit($notice);
-            $existing = $this->noticeRepository->getByIdentity($notice->scope(), $notice->producer(), $notice->id());
+            $existing = $this->noticeRepository->getByIdentity($notice->identity());
             if ($existing !== null) {
                 if ($existing->notice()->comparison() !== $notice->comparison()) {
                     throw new NoticeConflict();

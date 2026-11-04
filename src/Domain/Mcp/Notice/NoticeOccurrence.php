@@ -7,11 +7,12 @@ namespace Fight\Common\Domain\Mcp\Notice;
 use DateTimeImmutable;
 use DateTimeZone;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class NoticeOccurrence
  */
-final readonly class NoticeOccurrence
+final readonly class NoticeOccurrence extends ValueObject
 {
     /**
      * Constructs NoticeOccurrence

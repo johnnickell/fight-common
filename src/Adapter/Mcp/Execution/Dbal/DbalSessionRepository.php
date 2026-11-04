@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Mcp\Execution\Dbal;
 
 use Fight\Common\Domain\Mcp\Session\Session;
+use Fight\Common\Domain\Mcp\Session\SessionId;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
 use Fight\Common\Domain\Mcp\Session\SessionRepository;
 
@@ -23,11 +24,11 @@ final readonly class DbalSessionRepository implements SessionRepository
     /**
      * @inheritDoc
      */
-    public function getById(string $projectId, string $sessionId): ?Session
+    public function getById(SessionId $id): ?Session
     {
         $sql = 'SELECT project_id, session_id, consumer_reference FROM fight_execution_sessions';
         $sql .= ' WHERE project_id = ? AND session_id = ?';
-        $row = $this->transaction->connection()->fetchAssociative($sql, [$projectId, $sessionId]);
+        $row = $this->transaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->sessionId()]);
 
         return $row === false ? null : new Session(SessionReference::fromArray($row));
     }

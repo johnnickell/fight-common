@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Observation;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class ObservationExtensions
  */
-final readonly class ObservationExtensions
+final readonly class ObservationExtensions extends ValueObject
 {
     /**
      * Constructs ObservationExtensions
@@ -52,6 +53,37 @@ final readonly class ObservationExtensions
         }
 
         return new self($snapshot);
+    }
+
+    /**
+     * Creates extensions from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid observation extensions text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable structured extension text
+     */
+    public function toString(): string
+    {
+        return json_encode($this->values, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns the scalar snapshot with its existing empty-array meaning
+     *
+     * @return array<string, string|int|bool|null>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->values;
     }
 
     /**
