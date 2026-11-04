@@ -6,6 +6,7 @@ namespace Fight\Common\Application\Mcp\Task\QueryHandler;
 
 use Closure;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
+use Fight\Common\Application\Mcp\Task\Projection\TaskProjection;
 use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
 use Fight\Common\Application\Mcp\Task\Service\TaskPayloadPolicy;
 use Fight\Common\Application\Mcp\Task\Service\TaskReadAdmission;
@@ -70,10 +71,7 @@ final readonly class GetTaskHandler implements QueryHandler
 
         $context = $this->taskReadAdmission->comparisonScope($query->scope(), $query->id());
         $now = Task::timestamp(($this->clock)());
-        $view = StrictJson::fromObject([
-            ...$task->view($now),
-            'revision' => $task->revision($context, $now)
-        ], 40);
+        $view = TaskProjection::fromTask($task, $context, $now);
         // All source/projection/context callbacks precede the final independent whole-state disclosure checks.
         if (
             !$task->availableAt($now) || !$this->taskReadAdmission->allowsRead($query->scope(), $query->id())

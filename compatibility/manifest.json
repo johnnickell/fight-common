@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "35663fd8f07d6678a314bc9480ec5b4d12c5f51f41caa6c6c25a5b0faa07de7e",
+    "operation_shapes_sha256": "6fe2cbd412bca884f0c89b884bfd1a8b9abd03de761035addbdb3c872d0fea6a",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",
@@ -13,7 +13,7 @@
             "functions": 13
         },
         "Application": {
-            "declarations": 423,
+            "declarations": 424,
             "functions": 0
         },
         "Adapter": {
@@ -25,6 +25,10 @@
         "fight-common.classification.task-00190-addition": {
             "path": "docs/maintenance/evidence-domain-values.md",
             "locator": "Classification and public surface; role-specific scoped identities and independent instrumentation lexical values"
+        },
+        "fight-common.classification.task-00188-addition": {
+            "path": "docs/durable-tasks.md",
+            "locator": "Compatibility and public surface; internal shared Query projection and native PHP revision encoding, protected Domain lifetime/order evidence"
         },
         "fight-common.classification.task-00186-addition": {
             "path": "docs/safe-notices.md",
@@ -303,6 +307,7 @@
         }
     },
     "declarations": [
+        {"name":"Fight\\Common\\Application\\Mcp\\Task\\Projection\\TaskProjection","source":"src/Application/Mcp/Task/Projection/TaskProjection.php","kind":"class","layer":"Application","classification":"internal","classification_evidence":{"authority":"fight-common.classification.task-00188-addition","rationale":"Shared bounded Query-view construction and native PHP visibility-bound revision encoding, not a consumer setup or authorization capability."},"members":[],"operations":{"callable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Internal Query projection."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Internal helper."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final helper."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete helper."}}}},
         {"name":"Fight\\Common\\Adapter\\Persistence\\Doctrine\\DbalTransactionalUnitOfWork","source":"src/Adapter/Persistence/Doctrine/DbalTransactionalUnitOfWork.php","layer":"Adapter","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00184-addition","rationale":"Reusable real DBAL transaction ownership without ORM flush or capability-specific schemas and locks."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Existing inward transaction contract with result propagation, owned rollback and terminal uncertainty."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"One explicitly composed DBAL connection."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final adapter."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
         {"name":"Fight\\Common\\Adapter\\Persistence\\Doctrine\\Exception\\DbalTransactionOutcomeUncertain","source":"src/Adapter/Persistence/Doctrine/Exception/DbalTransactionOutcomeUncertain.php","layer":"Adapter","kind":"class","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00184-addition","rationale":"Explicit uncertain-outcome category preserving the initial private diagnostic cause without claiming rollback."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Callers can inspect originalFailure and catch terminal uncertainty."}},"constructible":{"promised":true,"evidence":{"authority":"fight-common.operation.public-construction","rationale":"Explicit original throwable."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Final exception."}},"implementable":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Concrete class."}}}},
         {"name":"Fight\\Common\\Application\\Mcp\\Capability\\McpCapability","source":"src/Application/Mcp/Capability/McpCapability.php","kind":"interface","layer":"Application","classification":"public","classification_evidence":{"authority":"fight-common.classification.task-00181-addition","rationale":"Canonical identity-preserving alias of Fight\\Common\\Application\\Mcp\\McpCapability; public operations, finality and serialized identity remain unchanged. Canonical spelling is not deprecated."},"members":[],"operations":{"callable":{"promised":true,"evidence":{"authority":"fight-common.operation.public-call","rationale":"Same runtime type and operation promise as Fight\\Common\\Application\\Mcp\\McpCapability. See docs/maintenance/mcp-foundation-namespaces.md."}},"constructible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Same runtime type and operation promise as Fight\\Common\\Application\\Mcp\\McpCapability. See docs/maintenance/mcp-foundation-namespaces.md."}},"extensible":{"promised":false,"evidence":{"authority":"fight-common.operation.not-promised","rationale":"Same runtime type and operation promise as Fight\\Common\\Application\\Mcp\\McpCapability. See docs/maintenance/mcp-foundation-namespaces.md."}},"implementable":{"promised":true,"evidence":{"authority":"fight-common.operation.interface-implementation","rationale":"Same runtime type and operation promise as Fight\\Common\\Application\\Mcp\\McpCapability. See docs/maintenance/mcp-foundation-namespaces.md."}}}},

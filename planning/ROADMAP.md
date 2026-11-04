@@ -12,6 +12,7 @@
 | [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | done |
 | [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | done |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | done |
+| [EPIC-00013](epics/00013-EPIC.md) | Make all Common-owned table names configurable | unassigned | ready-for-agent |
 <!-- /planning:epics -->
 
 ## Planning frontier
@@ -31,7 +32,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00188](tasks/00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
+| Ready Frontier | [TASK-00189](tasks/00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -57,8 +58,8 @@ John then approved bounded aggregate-first architectural correction after those 
 DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
 dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
-TASK-00183's rule surface and TASK-00184's DBAL transaction separation have since been accepted; the remaining
-dependent refactors remain pending.
+TASK-00183's rule surface, TASK-00184 through TASK-00188's refactors and TASK-00190's execution/Notice values
+have since been accepted; TASK-00189, TASK-00191 and TASK-00192 remain pending.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),

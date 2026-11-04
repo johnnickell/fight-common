@@ -12,4 +12,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [EPIC-00010](00010-EPIC.md) | Generic MCP Prompts | done | — |
 | [EPIC-00011](00011-EPIC.md) | Generic MCP Subscriptions | done | — |
 | [EPIC-00012](00012-EPIC.md) | Generic MCP Tasks | done | — |
+| [EPIC-00013](00013-EPIC.md) | Make all Common-owned table names configurable | ready-for-agent | — |
 <!-- /planning:records -->

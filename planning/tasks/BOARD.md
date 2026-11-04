@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
+| Ready Frontier | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -42,8 +42,8 @@ handler ownership, disclosure projection, domain values/identities, adapter name
 descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
 existing five chores without turning independent work into artificial blockers. TASK-00183's rule surface is
 accepted; TASK-00184's DBAL transaction separation, TASK-00185's Task repository separation, TASK-00186's Notice
-repository/recovery separation, TASK-00187's handler ownership and TASK-00190's execution/Notice values are
-accepted. TASK-00188, TASK-00189, TASK-00191 and TASK-00192 remain pending.
+repository/recovery separation, TASK-00187's handler ownership, TASK-00188's disclosure projection and
+TASK-00190's execution/Notice values are accepted. TASK-00189, TASK-00191 and TASK-00192 remain pending.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
@@ -66,15 +66,23 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | ready-for-agent | — | — |
+| 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | — | — |
+| — | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | [TASK-00188](00188-TASK.md) | — |
 | 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | ready-for-agent | [TASK-00189](00189-TASK.md) | — |
 | 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | [TASK-00191](00191-TASK.md) | — |
+| — | [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
+| — | [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md), [TASK-00195](00195-TASK.md) | — |
+| — | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
+| — | [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | ready-for-agent | [TASK-00197](00197-TASK.md) | — |
+| — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
+| — | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
+| — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md), [TASK-00199](00199-TASK.md), [TASK-00200](00200-TASK.md) | — |
+| — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00196](00196-TASK.md), [TASK-00198](00198-TASK.md), [TASK-00201](00201-TASK.md) | — |
 
 ## Needs Info
 
@@ -121,6 +129,7 @@ their owning records; routing and planning checks stay offline.
 | 10 | [TASK-00113](00113-TASK.md) | Compose policy-free OAuth resource-server protection for MCP | [TICKET-00027 — Protect MCP Endpoints with Reusable OAuth Resource-Server Support](../tickets/00027-TICKET.md) | done | — | [PR #174](https://github.com/johnnickell/fight-common/pull/174) |
 | 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | done | — | [PR #271](https://github.com/johnnickell/fight-common/pull/271) |
 | 11 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #181](https://github.com/johnnickell/fight-common/pull/181) |
+| 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | done | — | [PR #273](https://github.com/johnnickell/fight-common/pull/273) |
 | 12 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #182](https://github.com/johnnickell/fight-common/pull/182) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |
 | 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | done | — | [PR #274](https://github.com/johnnickell/fight-common/pull/274) |

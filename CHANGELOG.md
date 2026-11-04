@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RecordedObservation; recorded roots still own time and post-commit facts, while RecordedNotice keeps its
   substantive commit position. Exact storage/wire bytes, precision, null/empty meanings, protected separation,
   independent grammars and permissions remain unchanged; no schema or aggregate namespace change.
+- Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
+  visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
+  and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate
+  view/revision APIs directly; shared get/live/reconnect authorization, guarded byte handoff, schema and wire format
+  remain unchanged, without new caller setup or encoding-provider dependencies.
 - Make all eight Task CommandHandlers and three QueryHandlers own their named use cases with operation-specific
   repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
   and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,

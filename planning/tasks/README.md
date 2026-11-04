@@ -90,10 +90,19 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00185](00185-TASK.md) | Separate Task repository persistence from transaction ownership | done | — |
 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | done | — |
 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | done | — |
-| [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | ready-for-agent | — |
+| [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | done | — |
 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | ready-for-agent | — |
 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | done | — |
 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | ready-for-agent | — |
 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
 | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | done | — |
+| [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00197](00197-TASK.md) | Record executions in configurable tables | ready-for-agent | [TICKET-00054](../tickets/00054-TICKET.md) |
+| [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent | [TICKET-00054](../tickets/00054-TICKET.md) |
+| [TASK-00199](00199-TASK.md) | Configure durable Task storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 <!-- /planning:records -->

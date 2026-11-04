@@ -87,6 +87,11 @@ Creation is a flat `resultType: "task"` plus `taskId`, `status`, ISO-8601 UTC mi
 No private definition, comparison digest, internal version, cancellation intent or nested state is disclosed.
 Server-owned `_meta["org.fight/taskRevision"]` supplies comparable state-bound revisions under the
 [visibility-context and merge contract](mcp-task-live.md#state-bound-revisions-and-consumer-merge-contract).
+The shared `GetTaskHandler` uses internal `Application\Mcp\Task\Projection\TaskProjection` for complete bounded
+Query fields and native PHP revision encoding from the same immutable aggregate/clock instant. Domain retains
+atomic lifetime/public-change/expiry order, not transport-view or HMAC knowledge. Handler construction and final
+fresh read/whole-state checks stay unchanged; projection grants no authority and requires no consumer setup step.
+McpTasks continues to own DetailedTask field/timestamp/envelope mapping, shared by polling and live delivery.
 The message preserves an explicit empty string; absent optional fields are omitted rather than fabricated.
 
 `tasks/get` accepts exactly `{ "taskId": "<32 lowercase hex characters>" }` and returns `resultType: "complete"`

@@ -7,6 +7,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\McpTasks;
+use Fight\Common\Application\Mcp\Task\Projection\TaskProjection;
 use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
@@ -20,6 +21,7 @@ use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(TaskProjection::class)]
 #[CoversClass(Task::class)]
 #[CoversClass(TaskInputs::class)]
 #[CoversClass(GetTaskHandler::class)]
@@ -29,27 +31,30 @@ final class TaskRevisionTest extends UnitTestCase
     public function test_that_equal_timestamps_private_mutations_and_reconstruction_do_not_leak_mutation_gaps(): void
     {
         $task = Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 10);
-        $first = $task->revision('visibility', 10);
+        $first = TaskProjection::fromTask($task, 'visibility', 10)->get('revision');
 
         $cancel = $task->requestCancellation(10);
 
         self::assertSame(2, $cancel->version());
-        self::assertSame($first->toString(), $cancel->revision('visibility', 10)->toString());
+        self::assertSame($first->toString(), TaskProjection::fromTask($cancel, 'visibility', 10)->get('revision')->toString());
 
         $next = $cancel->transition('producer', 2, TaskFixture::completed(true), null, 10);
 
-        self::assertGreaterThan($first->get('value'), $next->revision('visibility', 10)->get('value'));
+        self::assertGreaterThan($first->get('value'), TaskProjection::fromTask($next, 'visibility', 10)->get('revision')->get('value'));
         self::assertSame(2, $next->toArray()['revision']->get('counter'));
-        self::assertSame($first->get('scope'), $next->revision('visibility', 10)->get('scope'));
+        self::assertSame($first->get('scope'), TaskProjection::fromTask($next, 'visibility', 10)->get('revision')->get('scope'));
         self::assertSame(
-            $next->revision('visibility', 10)->toString(),
-            Task::fromArray($next->toArray())->revision('visibility', 10)->toString(),
+            TaskProjection::fromTask($next, 'visibility', 10)->get('revision')->toString(),
+            TaskProjection::fromTask(Task::fromArray($next->toArray()), 'visibility', 10)->get('revision')->toString(),
         );
-        self::assertNotSame($first->get('scope'), $next->revision('different-visibility', 10)->get('scope'));
+        self::assertNotSame($first->get('scope'), TaskProjection::fromTask($next, 'different-visibility', 10)->get('revision')->get('scope'));
         self::assertNotSame(
             $first->get('scope'),
-            Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 10)
-                ->revision('visibility', 10)->get('scope'),
+            TaskProjection::fromTask(
+                Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 10),
+                'visibility',
+                10,
+            )->get('revision')->get('scope'),
         );
     }
 
@@ -92,20 +97,20 @@ final class TaskRevisionTest extends UnitTestCase
         $task = Task::create(TaskFixture::definition(), TaskState::create('working'), null, null, 0);
         $input = McpInputRequired::fromRequests(['answer' => TaskFixture::form()]);
         $task = $task->requestInput(TaskInputForms::batch($input, 'caller', 100), 1, 0);
-        $expired = $task->revision('visibility', 100);
-        self::assertSame('working', $task->view(100)['state']->get('status'));
+        $expired = TaskProjection::fromTask($task, 'visibility', 100)->get('revision');
+        self::assertSame('working', $task->stateAt(100)->data()->get('status'));
 
         // Independent clocks can straddle a deadline by 1 ms without either process moving backwards.
         $later = $task->transition(
             'producer',
             2,
-            TaskState::create('input_required', 'New producer state', $task->view(99)['state']->get('input')),
+            TaskState::create('input_required', 'New producer state', $task->stateAt(99)->data()->get('input')),
             null,
             99,
         );
 
-        self::assertSame('input_required', $later->view(99)['state']->get('status'));
-        $newer = $later->revision('visibility', 99);
+        self::assertSame('input_required', $later->stateAt(99)->data()->get('status'));
+        $newer = TaskProjection::fromTask($later, 'visibility', 99)->get('revision');
         self::assertSame($expired->get('scope'), $newer->get('scope'));
         self::assertGreaterThan($expired->get('value'), $newer->get('value'));
     }
@@ -157,14 +162,14 @@ final class TaskRevisionTest extends UnitTestCase
         }
 
         try {
-            $task->revision('visibility', Task::MAX_TIME + 1);
+            TaskProjection::fromTask($task, 'visibility', Task::MAX_TIME + 1);
             self::fail('Invalid comparison time');
         } catch (DomainException) {
             self::addToAssertionCount(1);
         }
 
         try {
-            $task->revision('visibility', 9);
+            TaskProjection::fromTask($task, 'visibility', 9);
             self::fail('Rollback');
         } catch (DomainException) {
             self::addToAssertionCount(1);
@@ -181,10 +186,10 @@ final class TaskRevisionTest extends UnitTestCase
         $exhausted = Task::fromArray(array_replace($inputs->toArray(), ['revision' => $maximum->toArray()['revision']]));
 
         self::assertGreaterThan(
-            $exhausted->revision('visibility', 99)->get('value'),
-            $exhausted->revision('visibility', 100)->get('value'),
+            TaskProjection::fromTask($exhausted, 'visibility', 99)->get('revision')->get('value'),
+            TaskProjection::fromTask($exhausted, 'visibility', 100)->get('revision')->get('value'),
         );
-        self::assertSame('working', $exhausted->view(100)['state']->get('status'));
+        self::assertSame('working', $exhausted->stateAt(100)->data()->get('status'));
 
         $this->expectException(DomainException::class);
         $maximum->transition('producer', 1, TaskFixture::completed(), null, 10);
