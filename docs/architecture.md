@@ -83,9 +83,10 @@ A shared low-level library primitive is not an artificial aggregate, and an immu
 a value object.
 
 John approved this correction in [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md). It is a target for the dependent
-refactors, not a claim that every current MCP type conforms. Today's combined Task/Notice stores and lifecycle
-coordinators, execution Application grouping and concrete Application Tools remain current APIs until their
-owning tasks implement the change. The [MCP namespace map](https://johnnickell.github.io/fight-common/mcp-namespaces/#approved-aggregate-alignment-target)
+refactors, not a claim that every current MCP type conforms. Task persistence now separates repository and
+transaction ownership, and its eight CommandHandlers/three QueryHandlers own their operation-specific coordination
+without lifecycle forwarding services. The combined Notice store, execution Application grouping, Domain Task
+disclosure encoding and concrete Application Tools still await their owning corrections. The [MCP namespace map](https://johnnickell.github.io/fight-common/mcp-namespaces/#approved-aggregate-alignment-target)
 separates current homes from approved destinations, while ADR 0023 preserves the earlier decisions and bridges.
 This documentation change moves no production types and changes no schema, permission or delivery guarantee.
 

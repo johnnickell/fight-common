@@ -8,7 +8,7 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
-use Fight\Common\Application\Mcp\Task\Service\TaskLifecycle;
+use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskHandler;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Task;
@@ -22,7 +22,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(Task::class)]
 #[CoversClass(TaskInputs::class)]
-#[CoversClass(TaskLifecycle::class)]
+#[CoversClass(GetTaskHandler::class)]
 #[CoversClass(McpTasks::class)]
 final class TaskRevisionTest extends UnitTestCase
 {

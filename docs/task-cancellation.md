@@ -6,14 +6,27 @@ Polling, input and cancellation need neither Subscriptions nor Mercure. No worke
 
 ## Composition and independent authority
 
-Construct `Application\Mcp\Task\Service\TaskCancellationLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $admission, $events, $clock)` with the same
-Domain `TaskRepository`, separately injected existing `TransactionalUnitOfWork`, Application `CommittedTaskReader`,
-`EventDispatcher` and trusted epoch-millisecond clock as the ordinary lifecycle. The
-[DBAL composition](durable-tasks.md#explicit-composition) binds persistence and transaction ownership to the same
-dedicated connection while keeping their responsibilities separate. Register
-`Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler` and
-`Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler` with the existing routers. The former handles Domain
-`Command\RequestTaskCancellation`; the latter handles Domain `Query\GetTaskCancellation`, both under `Domain\Mcp\Task`.
+Register `Application\Mcp\Task\CommandHandler\RequestTaskCancellationHandler` and
+`Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler` with the existing routers. Construct them with
+operation-specific dependencies, not a lifecycle coordinator:
+
+```php
+$requestTaskCancellationHandler = new RequestTaskCancellationHandler(
+    $taskRepository, $transactionalUnitOfWork, $committedTaskReader,
+    $taskCancellationAdmission, $eventDispatcher, $clock
+);
+$getTaskCancellationHandler = new GetTaskCancellationHandler(
+    $committedTaskReader, $taskCancellationAdmission, $clock
+);
+```
+
+The Command owns admission, persistence, committed reconstruction and post-commit facts. The Query has no mutation
+or transaction capability and never consumes intent, cleans expired data or renews retention. The never-tagged
+`TaskCancellationLifecycle` is removed without a forwarding replacement. Use the same Domain `TaskRepository`,
+existing `TransactionalUnitOfWork`, Application `CommittedTaskReader`, `EventDispatcher` and trusted epoch-millisecond
+clock as ordinary Task handlers. The [DBAL composition](durable-tasks.md#explicit-composition) binds persistence and
+transaction ownership to the same dedicated connection while keeping their responsibilities separate. The Command
+handles Domain `Command\RequestTaskCancellation`; the Query handles `Query\GetTaskCancellation`, both under `Domain\Mcp\Task`.
 No bus signature changes: Commands return void, Queries fetch immutable data and events describe committed facts.
 
 Consumer `TaskCancellationAdmission` supplies two **independent, current** decisions:
@@ -77,7 +90,7 @@ after intent: cooperative intent is neither form refusal nor terminal state. Iss
 acquisition and producer updates all preserve original intent. Accepted answers cannot be replaced; consumed
 confirmation cannot be restored by later cancellation, failed delivery or uncertain consumer effects.
 
-`TaskInputLifecycle` requires `TaskCancellationAdmission` as its final constructor argument. Acquisition checks
+`AcquireTaskInputHandler` and `GetTaskInputHandler` explicitly inject `TaskCancellationAdmission`. Acquisition checks
 both current business continuation permission and current intent-observation permission before loading/mutating.
 `GetTaskInput` requires its existing input-observation grant **and** current cancellation-observation grant; otherwise
 it returns null, not a false absent-intent value. Its coherent protected view adds current `version` and nullable
@@ -146,8 +159,9 @@ in the method's encoded semantic result bound. Full outer serving proof belongs 
 
 ## Compatibility and public surface
 
-TASK-00170 adds seven additive opt-in cancellation declarations in `compatibility/manifest.json`: Domain Command
-and Query; Application admission port, lifecycle, two handlers and method implementation. Concrete classes are final
+Historically TASK-00170 added seven opt-in cancellation declarations in `compatibility/manifest.json`.
+TASK-00187 removes the provisional cancellation lifecycle service, leaving six: Domain Command and Query;
+Application admission port, two owning handlers and method implementation. Concrete classes are final
 and readonly; the admission interface is consumer-implementable. Public construction/callability are explicit.
 
 Inspection of actual tags through `v1.4.0` found no `Mcp/Task` declarations or Task tables. The existing Task APIs,

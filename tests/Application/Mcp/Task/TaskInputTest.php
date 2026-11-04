@@ -15,7 +15,6 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\Service\TaskInputForms;
-use Fight\Common\Application\Mcp\Task\Service\TaskInputLifecycle;
 use Fight\Common\Application\Mcp\Tool\Interaction\McpInputRequired;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
@@ -46,7 +45,6 @@ use Throwable;
 #[CoversClass(TaskInputs::class)]
 #[CoversClass(TaskInputBatch::class)]
 #[CoversClass(TaskInputForms::class)]
-#[CoversClass(TaskInputLifecycle::class)]
 #[CoversClass(RequestTaskInput::class)]
 #[CoversClass(SupplyTaskInput::class)]
 #[CoversClass(AcquireTaskInput::class)]
@@ -223,7 +221,7 @@ final class TaskInputTest extends UnitTestCase
         $large = StrictJson::fromObject(['a' => (object) ['name' => 'a', 'public' => (object) [], 'contract' => (object) ['private' => str_repeat('x', 24576)]]]);
         $this->reject(fn () => TaskInputBatch::create('caller', 1, false, $large), DomainException::class);
         $f = $this->fixture(); $f->create();
-        $this->reject(fn () => $f->lifecycle->record(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskFixture::input())), TaskConflict::class);
+        $this->reject(fn () => $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskFixture::input())), TaskConflict::class);
         $f->issue(); $this->reject(fn () => $f->record(TaskState::create('working'), 2), TaskConflict::class);
         $task = $f->committedTaskReader->read('scope', TaskFixture::ID);
         $this->reject(fn () => $task->transition('producer', 2, TaskFixture::input(), null, $f->now), DomainException::class);
@@ -259,12 +257,12 @@ final class TaskInputTest extends UnitTestCase
         $messages = [new RequestTaskInput('scope', TaskFixture::ID, 'producer', 1, self::batch()), new SupplyTaskInput('scope', TaskFixture::ID, 'caller', StrictJson::fromObject()), new AcquireTaskInput('scope', TaskFixture::ID, 'caller', TaskFixture::KEY_1), new RetireTaskInput('scope', TaskFixture::ID, 'producer', 1, TaskFixture::KEY_1), new GetTaskInput('scope', TaskFixture::ID, 'caller')];
         foreach ($messages as $message) { self::assertEquals($message->toArray(), $message::fromArray($message->toArray())->toArray()); }
         $wrong = CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')));
-        foreach ([RequestTaskInputHandler::class, SupplyTaskInputHandler::class, AcquireTaskInputHandler::class, RetireTaskInputHandler::class] as $handler) {
-            self::assertNotEmpty($handler::commandRegistration());
-            $this->reject(fn () => (new $handler($f->inputLifecycle))->handle($wrong), InvalidArgumentException::class);
+        foreach ([$f->requestTaskInputHandler, $f->supplyTaskInputHandler, $f->acquireTaskInputHandler, $f->retireTaskInputHandler] as $commandHandler) {
+            self::assertNotEmpty($commandHandler::commandRegistration());
+            $this->reject(fn () => $commandHandler->handle($wrong), InvalidArgumentException::class);
         }
         self::assertSame(GetTaskInput::class, GetTaskInputHandler::queryRegistration());
-        $this->reject(fn () => (new GetTaskInputHandler($f->inputLifecycle))->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))), InvalidArgumentException::class);
+        $this->reject(fn () => $f->getTaskInputHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))), InvalidArgumentException::class);
     }
 
     private static function accept(string $answer): array { return ['action' => 'accept', 'content' => (object) ['answer' => $answer]]; }

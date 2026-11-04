@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make all eight Task CommandHandlers and three QueryHandlers own their named use cases with operation-specific
+  repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
+  and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,
+  aggregate invariants, committed cancellation reconstruction, single-use input, bus/filter dispatch and post-commit
+  failure semantics. ObservationRecorder and Notice orchestration remain unchanged.
 - Separate durable Task persistence into Domain `TaskRepository` and a separately injected existing
   `TransactionalUnitOfWork`. `DbalTaskRepository` supplies aggregate persistence and the narrow Application
   `CommittedTaskReader`; `DbalTaskTransaction` retains namespace locking and Task failure translation around the

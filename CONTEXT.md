@@ -11,7 +11,8 @@ aggregate layout, value-object inheritance, handler ownership, adapter destinati
 [Naming](docs/engineering/standards/Naming.md#variables-properties-and-parameters) owns descriptive collaborator
 names and released named-parameter protection. [TASK-00183](planning/tasks/00183-TASK.md) records John's
 2026-11-02 decision; TASK-00184 implements execution transaction separation and TASK-00185 implements Task
-repository/transaction separation below, while TASK-00186 through TASK-00192 own the remaining dependent corrections.
+repository/transaction separation below. TASK-00187 implements handler ownership; TASK-00186 and TASK-00188
+through TASK-00192 own the remaining dependent corrections.
 
 An ordinary aggregate root owns identity and invariant-preserving state transitions; it need not be event-sourced
 or inherit the Event Sourcing base. Nested entities have identity within that boundary; values describe replaceable
@@ -19,11 +20,12 @@ state, while Application read DTOs describe use-case results. Immutability alone
 The Event Sourcing-specific “Aggregate root” term later in this file refers to that capability's reference base,
 not a universal base for ordinary aggregates.
 
-The descriptions below record current APIs, including `TaskLifecycle`/input/cancellation coordinators, the combined
-`NoticeStore` transaction contract, execution's technical Application grouping, concrete Application Tools and Domain
-disclosure encoding. They are not exceptions to the approved target. Notice repository/transaction separation,
-per-handler use cases, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes remain pending
-in the owning refactors. Execution now injects the existing transaction contract directly, with reusable
+The descriptions below record current APIs, including Task handler-owned use cases, the combined `NoticeStore`
+transaction contract, execution's technical Application grouping, concrete Application Tools and Domain disclosure
+encoding. TASK-00187 removes the three provisional Task lifecycle coordinators; each handler now injects only its
+operation-specific capabilities. ObservationRecorder and Notice orchestration remain unchanged. Notice repository/
+transaction separation, outward disclosure projection and aggregate-aligned MCP persistence/Tool homes remain
+pending in their owning refactors; current source is not an exception to the approved target. Execution now injects the existing transaction contract directly, with reusable
 DBAL mechanics separated from execution schema locking/failure translation. Consumer policy, stored/wire behavior
 and release bridges remain binding; no aggregate namespace move is claimed here. The
 foundation canonical names and released aliases described below are already implemented by TASK-00181; they are
@@ -272,8 +274,10 @@ Task-local version fence. `TaskState` owns status-specific input/result/error in
 Completed Tool `isError: true` remains completed; failed holds a safely mapped JSON-RPC execution error. Neither
 silence, disconnect, expiry nor a handle establishes execution, cancellation, business success or Workflow authority.
 
-Shared `CreateTask` / `RecordTaskState` Commands and `GetTask` Query route through Application Task handlers and
-`TaskLifecycle`. Independent current creation, producer-update, read and removal admissions are consumer-supplied; possession,
+Shared `CreateTask` / `RecordTaskState` Commands and `GetTask` Query route through their owning Application Task
+CommandHandlers/QueryHandler. Each coordinates only its operation, with explicit command transaction ownership and
+post-commit facts; Queries inject only read capabilities/policies/clock and initiate no mutation or cleanup.
+Independent current creation, producer-update, read and removal admissions are consumer-supplied; possession,
 capability declarations and submitted labels grant nothing. Required `TaskPayloadPolicy` validates retained original
 contract context without executing work and freshly authorizes whole-state safe disclosure. Concrete
 `ToolTaskPayloadPolicy` validates captured Tool schemas, supported flat forms/text results and exact constant public
@@ -315,8 +319,8 @@ job stop or external-effect rollback is promised. Removal owns its actual commit
 
 `TaskInputBatch` / `TaskInputs` extend the same retained row with immutable caller-bound form/confirmation groups,
 private original schema/runtime contracts, durable accepted answers and a lifetime high-water key counter. The
-Application `TaskInputLifecycle` routes `RequestTaskInput`, `SupplyTaskInput`, `AcquireTaskInput`, `RetireTaskInput`
-and protected `GetTaskInput` through existing buses/storage. Independent current submission, observation and business
+Application `RequestTaskInputHandler`, `SupplyTaskInputHandler`, `AcquireTaskInputHandler`, `RetireTaskInputHandler`
+and protected `GetTaskInputHandler` own these use cases through existing buses/storage, without a shared lifecycle facade. Independent current submission, observation and business
 continuation decisions remain separate from producer/read grants. All active validation precedes atomic partial-batch
 admission; inactive keys ignore content under finite whole-envelope bounds. Unanswered forms stay outstanding; any
 active confirmation refusal retires only that group, and complete unexpired non-refused groups acquire once before
@@ -331,8 +335,8 @@ preserving the admitted producer message (including empty string versus null) wh
 handling and an empty complete acknowledgment, with no independent capability advertisement. Ordinary stateless
 exact-key/replay and existing confirmation-store behavior are unchanged. See [Task input](docs/task-input.md).
 
-`RequestTaskCancellation` and protected `GetTaskCancellation` share this same row/lock through
-`TaskCancellationLifecycle`. Independent current cancellation/intent-observation grants never imply ordinary read,
+`RequestTaskCancellationHandler` and protected `GetTaskCancellationHandler` own cancellation intent admission and
+observation through this same row/lock. The Command explicitly reconstructs committed intent before initial acknowledgment. Independent current cancellation/intent-observation grants never imply ordinary read,
 producer or worker-control authority. One bounded original timestamp/version records intent separately from actual
 outcome; commit and shared-read reconstruction precede initial acknowledgment. Repeats/known terminal requests
 reauthorize as no-ops without renewal, new stop obligations or payload changes. Missing/expired/removed state never

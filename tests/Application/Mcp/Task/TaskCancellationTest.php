@@ -13,7 +13,6 @@ use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\QueryHandler\GetTaskCancellationHandler;
 use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
-use Fight\Common\Application\Mcp\Task\Service\TaskCancellationLifecycle;
 use Fight\Common\Application\Repository\TransactionalUnitOfWork;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
@@ -36,7 +35,6 @@ use RuntimeException;
 use Throwable;
 
 #[CoversClass(Task::class)]
-#[CoversClass(TaskCancellationLifecycle::class)]
 #[CoversClass(RequestTaskCancellation::class)]
 #[CoversClass(GetTaskCancellation::class)]
 #[CoversClass(RequestTaskCancellationHandler::class)]
@@ -259,10 +257,10 @@ final class TaskCancellationTest extends UnitTestCase
             } else {
                 $committedTaskReader->shouldReceive('read')->once()->andReturn($reconstructed);
             }
-            $service = new TaskCancellationLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->events, fn () => $fixture->now);
+            $requestTaskCancellationHandler = new RequestTaskCancellationHandler($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->events, fn () => $fixture->now);
 
             try {
-                $service->request(new RequestTaskCancellation('scope', TaskFixture::ID, 'caller'));
+                $requestTaskCancellationHandler->handle(CommandMessage::create(new RequestTaskCancellation('scope', TaskFixture::ID, 'caller')));
                 self::fail('No acknowledgment without reconstruction');
             } catch (TaskStorageFailed $failure) {
                 self::assertTrue($failure->outcomeUncertain());
@@ -282,13 +280,11 @@ final class TaskCancellationTest extends UnitTestCase
         self::assertSame(RequestTaskCancellation::class, RequestTaskCancellationHandler::commandRegistration());
         self::assertSame(GetTaskCancellation::class, GetTaskCancellationHandler::queryRegistration());
         $this->reject(
-            fn () => (new RequestTaskCancellationHandler($fixture->cancellationLifecycle))
-                ->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))),
+            fn () => $fixture->requestTaskCancellationHandler->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')))),
             InvalidArgumentException::class,
         );
         $this->reject(
-            fn () => (new GetTaskCancellationHandler($fixture->cancellationLifecycle))
-                ->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))),
+            fn () => $fixture->getTaskCancellationHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))),
             InvalidArgumentException::class,
         );
     }

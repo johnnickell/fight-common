@@ -14,14 +14,13 @@ The protocol reference is the official [2026-07-28 Tasks contract](https://githu
 
 ## Composition and authority
 
-Create `Application\Mcp\Task\Service\TaskInputLifecycle($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $producers, $admission, $payloads, $events, $clock, $cancellations)` using
-the **same** Domain `TaskRepository`, separately injected existing `TransactionalUnitOfWork`, narrow Application
-`CommittedTaskReader`, producer `TaskUpdateAdmission`, payload policy, event dispatcher and server-millisecond
-clock as the ordinary lifecycle. The [DBAL composition](durable-tasks.md#explicit-composition) binds repository and
-transaction boundary to one dedicated connection; the repository owns no commit. `$cancellations` is current
-`TaskCancellationAdmission`: acquisition and protected input observation additionally require its independent
-intent-observation grant, so denial cannot masquerade as
-absent intent. `TaskInputAdmission` supplies three independent current decisions:
+Each input CommandHandler owns its transaction, admission, aggregate transition, persistence and post-commit fact;
+`GetTaskInputHandler` owns only protected read coordination. Use the **same** Domain `TaskRepository`, separately
+injected existing `TransactionalUnitOfWork`, narrow Application `CommittedTaskReader`, payload policy, event dispatcher
+and trusted server-millisecond clock as ordinary Task handlers. The [DBAL composition](durable-tasks.md#explicit-composition)
+binds repository and transaction boundary to one dedicated connection; the repository owns no commit.
+`TaskCancellationAdmission` is separate: acquisition and protected input observation additionally require its independent
+intent-observation grant, so denial cannot masquerade as absent intent. `TaskInputAdmission` supplies three independent current decisions:
 
 - `allowsSubmission(scope, id, caller)` authorizes input admission, including empty/repeated submissions.
 - `allowsObservation(scope, id, caller)` authorizes protected consumer observation, not ordinary Task disclosure.
@@ -33,8 +32,30 @@ operation and its arguments at continuation, not infer permission from an accept
 bounded and must not change connection ownership or execute consumer work inside the transaction.
 
 Register `Application\Mcp\Task\CommandHandler\{RequestTaskInputHandler,SupplyTaskInputHandler,AcquireTaskInputHandler,RetireTaskInputHandler}`
-and `Application\Mcp\Task\QueryHandler\GetTaskInputHandler` with the existing routers. Each takes the input lifecycle.
-Commands use `CommandBus::execute()`, Queries `QueryBus::fetch()` and reference-only facts `EventDispatcher::trigger()`.
+and `Application\Mcp\Task\QueryHandler\GetTaskInputHandler` with the existing routers. Construct them explicitly:
+
+```php
+$requestTaskInputHandler = new RequestTaskInputHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskUpdateAdmission, $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$supplyTaskInputHandler = new SupplyTaskInputHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskInputAdmission, $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$acquireTaskInputHandler = new AcquireTaskInputHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskInputAdmission, $taskCancellationAdmission,
+    $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$retireTaskInputHandler = new RetireTaskInputHandler(
+    $taskRepository, $transactionalUnitOfWork, $taskUpdateAdmission, $taskPayloadPolicy, $eventDispatcher, $clock
+);
+$getTaskInputHandler = new GetTaskInputHandler(
+    $committedTaskReader, $taskInputAdmission, $taskCancellationAdmission, $clock
+);
+```
+
+The Query has no write repository, transaction, payload policy or dispatcher; it never consumes/cleans input or
+renews retention. The provisional `TaskInputLifecycle` was removed directly; there is no replacement forwarding
+facade or handler-to-handler invocation. Commands use `CommandBus::execute()`, Queries `QueryBus::fetch()` and reference-only facts `EventDispatcher::trigger()`.
 No auto-discovery, outer transaction filter or consumer scheduler is installed. `tests/TestCase/Mcp/Task/TaskFixture.php`
 shows complete explicit registration; it is a test consumer, not production authorization policy.
 
@@ -210,9 +231,10 @@ authorization costs, storage retention and consumer scheduling.
 
 ## Compatibility and public surface
 
-TASK-00169 adds sixteen additive opt-in input declarations classified public in `compatibility/manifest.json`:
-Domain `TaskInputBatch`, `TaskInputs`, four Commands and one Query; Application admission port, form adaptation,
-input lifecycle, four Command handlers, Query handler and MCP method implementation. Final concrete classes are
+Historically TASK-00169 added sixteen opt-in input declarations classified public in `compatibility/manifest.json`.
+TASK-00187 removes the provisional input lifecycle service, leaving fifteen: Domain `TaskInputBatch`, `TaskInputs`,
+four Commands and one Query; Application admission port, form adaptation, four owning CommandHandlers,
+QueryHandler and MCP method implementation. Final concrete classes are
 not extensible; `TaskInputAdmission` is consumer-implementable. Factories/constructors/callability are classified
 independently; `TaskInputForms` promises static operations, not utility construction.
 

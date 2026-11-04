@@ -12,7 +12,6 @@ use Fight\Common\Application\Mcp\Task\CommandHandler\RemoveTasksHandler;
 use Fight\Common\Application\Mcp\Task\Exception\CommittedTaskDispatchFailed;
 use Fight\Common\Application\Mcp\Task\Exception\TaskRejected;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
-use Fight\Common\Application\Mcp\Task\Service\TaskLifecycle;
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
 use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
 use Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved;
@@ -29,7 +28,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
 
 #[CoversClass(DbalTaskRepository::class)]
-#[CoversClass(TaskLifecycle::class)]
 #[CoversClass(RemoveTasksHandler::class)]
 #[CoversClass(CommittedTaskDispatchFailed::class)]
 final class DbalTaskRemovalTest extends UnitTestCase
@@ -129,7 +127,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
         $fixture = new TaskFixture($this->database());
         self::assertSame(RemoveTasks::class, RemoveTasksHandler::commandRegistration());
         $this->expectException(InvalidArgumentException::class);
-        (new RemoveTasksHandler($fixture->lifecycle))->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working'))));
+        $fixture->removeTasksHandler->handle(CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working'))));
     }
 
     private function database(): Connection

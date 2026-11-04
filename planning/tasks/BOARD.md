@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | ready-for-agent | — |
+| Active Work | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -59,14 +59,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | 9 | [TASK-00186](00186-TASK.md) | Separate Notice repository transactions and recovery reads | — (standalone chore) | ready-for-agent | — | — |
-| 10 | [TASK-00187](00187-TASK.md) | Restore Task use-case ownership to CQRS handlers | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
