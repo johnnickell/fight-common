@@ -1,7 +1,8 @@
 # Durable execution observations
 
-An opt-in recording slice in `Domain\Mcp`, `Application\Mcp\Execution` and
-`Adapter\Mcp\Execution\Dbal` records trusted **evidence**, not authoritative Workflow state. Recording a phase named
+An opt-in recording slice in `Domain\Mcp`, aggregate-aligned `Application\Mcp` and
+`Adapter\Mcp\Persistence\{Session,Phase,Observation,Detail}\Dbal` records trusted **evidence**, not authoritative Workflow state.
+Shared execution schema/serialization support lives in `Adapter\Mcp\Persistence\Execution\Dbal`. Recording a phase named
 `review` grants no review authority. A missing end time/outcome does not mean success, failure or completion.
 Performing Agent references are distinct from the instrumentation producer and optional model identity. This slice
 includes phase activity, measured usage and separately stored protected messages/tool data/output. It supplies no
@@ -21,9 +22,11 @@ Execution contains three ordinary DDD aggregate roots, not one graph and not eve
 
 Each has its own Domain repository. Session and Phase are recorded subjects, not authoritative Workflow state.
 References live with their owning concepts; they describe immutable relationships without loading a graph.
-`RecordedObservation` is only a receipt over a recorded Observation root: its `recordedAt()` reads that root's time,
-with no competing identity, repository or independently stored time. `Observation::recorded()` creates an immutable
-recorded copy; a different receipt time on an already recorded root rejects. `recordedAt()` rejects on submitted,
+`Session::identity()` and `Phase::identity()` return role-specific project-scoped `SessionId`/`PhaseId` values;
+`Observation::identity()` composes its producer and existing full `ObservationId`. Component field bytes and all
+existing payload/storage shapes remain unchanged. `ObservationRecorded::fromRecorded()` accepts the recorded
+Observation root and reads its own server time, never a receipt or an unrecorded observation.
+`Observation::recorded()` creates an immutable recorded root directly, without a receipt wrapper; a different receipt time on an already recorded root rejects. `recordedAt()` rejects on submitted,
 unrecorded evidence. The recorder assigns the actual server time, never a producer-supplied receipt time.
 The same subject may have multiple observations; later evidence never overwrites an existing observation.
 No EventSourcing base, replay, stream version, Event Store or outbox is involved.
@@ -38,7 +41,7 @@ Existing inherited contracts such as `UniqueId` are unchanged. Use typed methods
 | `Observation` | `id()`, `producerId()`, `session()`, `phase()`, `occurredAt()`, `startedAt()`, `endedAt()`, `outcome()`, `extensions()`, `activity()`, `detail()`, `occurrence()`, `recordedAt()`, `matches()`, `compareRecordingTo()` |
 | `SessionReference` | `projectId()`, `sessionId()`, `consumerReference()` |
 | `PhaseReference` | `sessionId()`, `phaseId()`, `parentPhaseId()`, `agentId()`, `name()`, `attempt()` |
-| `RecordedObservation` | `observation()`, `recordedAt()` |
+| `SessionId`, `PhaseId`, `ObservationIdentity` | `identity()` on the corresponding root returns its complete scoped identity |
 
 For example, admission reads `$observation->session()->projectId()` and
 `$observation->phase()?->parentPhaseId()`. These methods preserve validated values, nulls, immutable object identity
@@ -203,7 +206,7 @@ policy, pre-submission redaction, capture accuracy, retention eligibility/jobs, 
 `observation(): Observation`. Use the accessor rather than direct property access; `toArray()` and `fromArray()`
 use the single current version-one observation shape. Commands live in
 `Domain\Mcp\Observation\Command`; the safe Event lives in `Domain\Mcp\Observation\Event`.
-Handlers, recording failures and the recorder live in `Application\Mcp\Execution\Observation\CommandHandler`,
+Handlers, recording failures and the recorder live in `Application\Mcp\Observation\CommandHandler`,
 `Exception` and `Service`, respectively. Admission and the shared transaction port remain Application responsibilities.
 
 Consumers implement `ObservationAdmission::admit(Observation): void` using **current trusted invocation context**.
@@ -224,19 +227,19 @@ inconsistent relationships share `InvalidObservationRelationship` without disclo
 new attempt with a different performing identity, use a new phase subject ID and the intended attempt number.
 
 ```php
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationSchema;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalPhaseRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalProtectedContentRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalRecordingTransaction;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalSessionRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordPhaseObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordProtectedDetailHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\CommandHandler\RecordSessionObservationHandler;
-use Fight\Common\Application\Mcp\Execution\Observation\Service\ObservationRecorder;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordPhaseObservationHandler;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordProtectedDetailHandler;
+use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordSessionObservationHandler;
+use Fight\Common\Application\Mcp\Observation\Service\ObservationRecorder;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordProtectedDetail;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordSessionObservation;
@@ -294,7 +297,7 @@ producer, project, session and nullable phase IDs and recording time. Null phase
 identifies a phase fact. It contains no extensions, Agent description, consumer text, bodies or command metadata.
 Events are facts about saved observations, not authoritative session/phase transitions.
 
-`SessionRepository::getById(project, session)`, `PhaseRepository::getById(project, phase)` and
+`SessionRepository::getById(SessionId)`, `PhaseRepository::getById(PhaseId)` and
 `ObservationRepository::getById(producer, observationId)` return independently reconstructed nullable roots; `add()`
 persists a new immutable root inside the shared recording transaction. They are Domain contracts and do not inherit
 Application's unit of work. They are not authorized public inspection APIs: these reads support recording checks,
@@ -458,7 +461,11 @@ previous development snapshots. Unsupported-version rejection remains current va
 The project profile records this release-baseline rule.
 
 The manifest classifies the intended public roots, repositories, Commands, handlers, admission ports,
-exceptions, receipt, Event and DBAL adapters; `ObservationFields` is internal. TASK-00184 removes the provisional
+exceptions, Event and DBAL adapters. The receipt-only `RecordedObservation` and internal catch-all
+`ObservationFields` are removed; structural decoding stays with each representation. All affected values now
+extend ValueObject with same-type equality/hash, stable reconstruction and deliberate structured JSON.
+See the [complete source-linked classification](maintenance/evidence-domain-values.md) for scoped identities,
+independent grammars and the protected-value encoding boundary. TASK-00184 removes the provisional
 empty transaction subtype and keeps `DbalRecordingTransaction` public/final for explicit execution composition,
 with real schema-lock and failure-translation responsibility. The two public/final generic DBAL declarations
 are described in [repository transactions](components/repositories/index.md#dbal-transactional-unit-of-work). These classifications do not freeze

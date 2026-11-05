@@ -7,14 +7,14 @@ namespace Fight\Common\Domain\Mcp\Detail;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class DetailCapture
  *
  * Safe capture metadata contains neither bodies nor body comparison material
  */
-final readonly class DetailCapture
+final readonly class DetailCapture extends ValueObject
 {
     /**
      * Constructs DetailCapture
@@ -60,9 +60,12 @@ final readonly class DetailCapture
             throw new DomainException('Unsupported detail capture version.');
         }
 
-        ObservationFields::structure($data, [
-            'version', 'activity_id', 'kind', 'content_type', 'completeness', 'segment'
-        ]);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['activity_id', 'completeness', 'content_type', 'kind', 'segment', 'version']) {
+            throw new DomainException('Invalid detail capture structure.');
+        }
+
         if (
             !is_string($data['activity_id'])
             || preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $data['activity_id']) !== 1
@@ -85,6 +88,37 @@ final readonly class DetailCapture
             $completeness,
             $data['segment'] === null ? null : OutputSegment::fromArray($data['segment'])
         );
+    }
+
+    /**
+     * Creates safe capture metadata from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid detail capture text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable safe capture text without body comparison material
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured safe capture metadata
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

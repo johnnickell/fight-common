@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriberReader;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Subscription\Exception\SubscriberReadFailed;

@@ -1,7 +1,7 @@
 # Bounded retained-notice recovery
 
 `Domain\Mcp\Notice\Query\RecoverNotices` returns a typed `Application\Mcp\Notice\Data\NoticeRecoveryBatch` through
-`QueryBus::fetch()`. Explicit `Application\Mcp\Notice\RecoverNoticesTool` registration supplies `notices.recover`
+`QueryBus::fetch()`. Explicit `Adapter\Mcp\Tool\Notice\RecoverNoticesTool` registration supplies `notices.recover`
 on the existing guarded MCP HTTP endpoint. It is **not** `subscriptions/poll`, a stream, Resource read, acknowledgment,
 mutation Tool or Mercure adapter. Only successfully recorded, still-retained [safe notices](safe-notices.md) can be
 returned. An application change whose recording failed cannot be recovered.
@@ -11,7 +11,7 @@ returned. An application change whose recording failed cannot be recovered.
 Imports below are beneath `Fight\Common\`:
 
 ```php
-$noticeRecoveryReader = new Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader($dedicatedIdleConnection);
+$noticeRecoveryReader = new Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader($dedicatedIdleConnection);
 $protector = new Adapter\Mcp\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
 $recovery = new Application\Mcp\Notice\Service\NoticeRecovery($noticeRecoveryReader, $protector);
 $handler = new Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $recovery);
@@ -19,7 +19,7 @@ $router->registerHandler(Domain\Mcp\Notice\Query\RecoverNotices::class, $handler
 $selection = Domain\Mcp\Notice\NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
 $batch = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection));
 $next = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection, $batch->continuation()));
-$tool = new Application\Mcp\Notice\RecoverNoticesTool($queryBus);
+$tool = new Adapter\Mcp\Tool\Notice\RecoverNoticesTool($queryBus);
 ```
 
 Install the existing DBAL schema exclusively. Use an idle committed-isolation connection as for recording/removal;

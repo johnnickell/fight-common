@@ -13,13 +13,13 @@
             <exclude>tests/Functional</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalDetailReaderIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
-            <exclude>tests/Adapter/Mcp/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionInspectionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Observation/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailReaderIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/ConfiguredSqliteDbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/ConfiguredMysqlDbalEventStoreTest.php</exclude>
@@ -65,13 +65,13 @@
         <testsuite name="Integration">
             <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalExecutionInspectionIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalActivityReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalDetailReaderIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Execution/Dbal/DbalDetailRemovalIntegrationTest.php</file>
-            <file>tests/Adapter/Mcp/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionInspectionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Observation/Dbal/DbalActivityReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailReaderIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailRemovalIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/ConfiguredSqliteDbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/ConfiguredMysqlDbalEventStoreTest.php</file>

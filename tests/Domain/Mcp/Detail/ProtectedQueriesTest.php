@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Domain\Mcp\Detail;
 
-use Fight\Common\Application\Mcp\Execution\Detail\Data\ContentChunk;
-use Fight\Common\Application\Mcp\Execution\Detail\Service\DetailAccess;
+use Fight\Common\Application\Mcp\Detail\Data\ContentChunk;
+use Fight\Common\Application\Mcp\Detail\Service\DetailAccess;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Notice;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class NoticeRelationships
  */
-final readonly class NoticeRelationships
+final readonly class NoticeRelationships extends ValueObject
 {
     /**
      * Constructs NoticeRelationships
@@ -74,6 +75,37 @@ final readonly class NoticeRelationships
             $data['event'],
             $data['action']
         );
+    }
+
+    /**
+     * Creates relationships from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid notice relationships text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable relationship text preserving unknown and broadcast meanings
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured relationships without collapsing null and empty recipients
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

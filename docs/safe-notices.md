@@ -58,7 +58,7 @@ $router->registerHandler(RecordNotice::class, $handler);
 $commandBus->execute(RecordNotice::fromArray($safeNoticeData));
 ```
 
-Imports are `Adapter\Mcp\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTransaction,DbalNoticeRepository,DbalNoticeRecoveryReader}`,
+Imports are `Adapter\Mcp\Persistence\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTransaction,DbalNoticeRepository,DbalNoticeRecoveryReader}`,
 `Domain\Mcp\Notice\NoticeRepository`, `Application\Repository\TransactionalUnitOfWork`,
 `Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeRecoveryReader}`,
 `Application\Mcp\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Mcp\Notice\Command\RecordNotice`, beneath
@@ -267,9 +267,18 @@ prove neither catch-up, expiry nor delivery.
 
 ## Compatibility and public surface
 
-The current recording surface is opt-in and classified in `compatibility/manifest.json`:
+The current recording surface is opt-in and classified in `compatibility/manifest.json`.
+`Notice::identity()` returns `NoticeId`, the exact scope/producer/local-ID tuple used by
+`NoticeRepository::getByIdentity(NoticeId)`. Notice's independent reference grammar and all stored/wire bytes
+remain unchanged. Metadata, relationships, occurrence and selections now extend ValueObject, with same-type
+value equality/hash, stable text reconstruction and intentional structured JSON. Null unknown recipients remain
+distinct from empty broadcast recipients. `RecordedNotice` deliberately retains its substantive commit position;
+it is not deleted by analogy with execution's removed receipt. See the
+[complete source-linked classification](maintenance/evidence-domain-values.md).
 
-- Domain: final immutable `Notice`, `NoticeMetadata`, `NoticeRelationships`, `NoticeOccurrence`, `RecordedNotice`,
+The declarations are:
+
+- Domain: final immutable `Notice`, `NoticeId`, `NoticeMetadata`, `NoticeRelationships`, `NoticeOccurrence`, `RecordedNotice`,
   `Command\RecordNotice`, `Event\NoticeRecorded`, and consumer-implementable `NoticeRepository`.
 - Application: consumer-implementable `Service\NoticeAdmission` and `Service\NoticeRecoveryReader`,
   final `Service\NoticeRecorder`, `CommandHandler\RecordNoticeHandler`, and four final exceptions
@@ -288,7 +297,7 @@ constructor parameters revise **unreleased provisional** APIs directly; no relea
 No development
 migration, compatibility alias or historical schema codec is required; existing partial/old development schemas
 must be recreated or recovered exclusively, not silently accepted. The current recording/removal APIs comprise
-27 public declarations and one internal helper;
+28 public declarations and one internal helper;
 [inspection](notice-inspection.md#compatibility-and-public-surface)
 adds 15 separate opt-in read declarations. [Recovery](notice-recovery.md#compatibility-and-evidence-boundary) adds eight
 public declarations and one internal schema helper; the separate recovery reader accepts coherent scope lists.

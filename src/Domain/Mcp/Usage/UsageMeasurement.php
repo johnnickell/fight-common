@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Usage;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Value\ObservationName;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
 use Fight\Common\Domain\Value\Basic\Decimal;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class UsageMeasurement
  *
  * Consumer-reported exact measurement, never an estimate or billing calculation
  */
-final readonly class UsageMeasurement
+final readonly class UsageMeasurement extends ValueObject
 {
     /**
      * Constructs UsageMeasurement
@@ -51,9 +53,9 @@ final readonly class UsageMeasurement
         }
 
         return new self(
-            ObservationFields::name($metric),
-            ObservationFields::reference($unit),
-            ObservationFields::reference($provenance),
+            ObservationName::fromString($metric)->toString(),
+            ObservationReference::fromString($unit)->toString(),
+            ObservationReference::fromString($provenance)->toString(),
             $completeness,
             $value
         );
@@ -70,7 +72,12 @@ final readonly class UsageMeasurement
             throw new DomainException('Unsupported usage version.');
         }
 
-        ObservationFields::structure($data, ['version', 'metric', 'unit', 'provenance', 'completeness', 'value']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['completeness', 'metric', 'provenance', 'unit', 'value', 'version']) {
+            throw new DomainException('Invalid usage structure.');
+        }
+
         if (
             !is_string($data['metric']) || !is_string($data['unit']) || !is_string($data['provenance'])
             || !is_string($data['completeness']) || ($data['value'] !== null && !is_string($data['value']))
@@ -84,6 +91,37 @@ final readonly class UsageMeasurement
         }
 
         return self::create($data['metric'], $data['unit'], $data['provenance'], $completeness, $data['value']);
+    }
+
+    /**
+     * Creates measured evidence from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid usage text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable measured evidence text without numeric conversion
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured measured evidence preserving string decimals and null
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

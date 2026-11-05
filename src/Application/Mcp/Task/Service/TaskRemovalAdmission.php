@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Task\Service;
 
+use Fight\Common\Domain\Mcp\Task\TaskId;
+
 /**
  * Interface TaskRemovalAdmission
  */
@@ -14,5 +16,5 @@ interface TaskRemovalAdmission
      *
      * Consumer policy owns eligibility and holds; no other Task grant confers this permission
      */
-    public function allowsRemoval(string $scope, string $id): bool;
+    public function allowsRemoval(string $scope, TaskId $id): bool;
 }

@@ -6,11 +6,13 @@ namespace Fight\Common\Domain\Mcp\Task;
 
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Common\Domain\Value\ValueObject;
+use TypeError;
 
 /**
  * Class TaskState
  */
-final readonly class TaskState
+final readonly class TaskState extends ValueObject
 {
     public const int MAX_BYTES = 32768;
 
@@ -82,11 +84,12 @@ final readonly class TaskState
         $data = StrictJson::fromObject([
             'status' => $status, 'message' => $message, 'input' => $input, 'result' => $result, 'error' => $error
         ], 32);
-        if (strlen($data->toString()) > self::MAX_BYTES) {
+        $state = new self($data);
+        if (strlen($state->toString()) > self::MAX_BYTES) {
             throw new DomainException('Task state exceeds the encoded byte limit.');
         }
 
-        return new self($data);
+        return $state;
     }
 
     /**
@@ -110,6 +113,18 @@ final readonly class TaskState
             $data['result'] === null ? null : StrictJson::fromData($data['result']),
             $data['error'] === null ? null : StrictJson::fromData($data['error'])
         );
+    }
+
+    /**
+     * Creates coherent state from structured JSON without losing object or numeric kinds
+     */
+    public static function fromString(string $value): static
+    {
+        try {
+            return self::fromArray(StrictJson::fromString($value, 32)->properties());
+        } catch (TypeError $typeError) {
+            throw new DomainException('Invalid Task state representation.', 0, $typeError);
+        }
     }
 
     /**
@@ -144,5 +159,27 @@ final readonly class TaskState
     public function toArray(): array
     {
         return $this->data->properties();
+    }
+
+    /**
+     * Returns complete state with exact source ordering and explicit absent payloads
+     */
+    public function toString(): string
+    {
+        $precision = ini_get('serialize_precision');
+        ini_set('serialize_precision', '-1');
+        try {
+            return $this->data->toString();
+        } finally {
+            ini_set('serialize_precision', $precision);
+        }
+    }
+
+    /**
+     * Returns structured state rather than an embedded JSON string
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->data->jsonSerialize();
     }
 }

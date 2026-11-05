@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Mcp\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
 use Fight\Common\Domain\Mcp\Observation\Observation;

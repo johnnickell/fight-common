@@ -58,8 +58,8 @@ John then approved bounded aggregate-first architectural correction after those 
 DBAL unit of work, separate repositories, handler ownership, Task disclosure projection, ValueObject-based domain
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
 dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
-TASK-00183's rule surface and TASK-00184 through TASK-00188's refactors have since been accepted; the remaining
-dependent refactors remain pending.
+TASK-00183's rule surface and TASK-00184 through TASK-00191's refactors have since been accepted;
+TASK-00192 remains pending.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),

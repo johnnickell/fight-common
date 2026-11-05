@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\CommandHandler\AcquireTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RequestTaskInputHandler;
 use Fight\Common\Application\Mcp\Task\CommandHandler\RetireTaskInputHandler;
@@ -77,14 +77,14 @@ final class TaskInputTest extends UnitTestCase
         self::assertStringNotContainsString('rules', $f->observe()->toString());
         $f->acquire(); self::assertTrue($f->observe()->get('groups')->get(TaskFixture::KEY_1)->get('consumed'));
         $this->reject(fn () => $f->acquire(), TaskConflict::class);
-        $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', $f->get()->get('version'), TaskFixture::KEY_1));
+        $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', $f->get()->get('version'), TaskFixture::KEY_1));
         $f->issue(expectedVersion: $f->get()->get('version'));
         self::assertSame([TaskFixture::KEY_3], array_keys($f->get()->get('state')->get('input')->properties()));
         $f->supply([TaskFixture::KEY_1 => self::accept('old')]);
         self::assertSame([TaskFixture::KEY_3], array_keys($f->get()->get('state')->get('input')->properties()));
         $this->reject(fn () => $f->issue(expectedVersion: 1), TaskConflict::class);
-        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 1, TaskFixture::KEY_3)), TaskConflict::class);
-        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', $f->get()->get('version'), 'missing')), TaskConflict::class);
+        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 1, TaskFixture::KEY_3)), TaskConflict::class);
+        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', $f->get()->get('version'), 'missing')), TaskConflict::class);
     }
 
     public function test_that_all_active_validation_precedes_atomic_admission_and_private_rule_errors_are_concealed(): void
@@ -92,7 +92,7 @@ final class TaskInputTest extends UnitTestCase
         $f = $this->fixture(); $f->create();
         $form = TaskFixture::form(rules: [['field' => 'answer', 'label' => 'private-rule-label', 'rules' => 'not_blank']]);
         $batch = TaskInputForms::batch(McpInputRequired::fromRequests(['a' => $form, 'b' => $form]), 'caller', $f->now + 1000);
-        $f->commands->execute(new RequestTaskInput('scope', TaskFixture::ID, 'producer', 1, $batch));
+        $f->commands->execute(new RequestTaskInput('scope', TaskFixture::id(), 'producer', 1, $batch));
         $before = $f->get()->toString();
         foreach ([['action' => 'accept', 'content' => (object) ['answer' => 1]], ['action' => 'accept', 'content' => (object) ['answer' => '   ']], ['action' => 'decline', 'content' => (object) []], ['action' => 'maybe'], false] as $bad) {
             $this->reject(fn () => $f->supply([TaskFixture::KEY_1 => self::accept('valid'), TaskFixture::KEY_2 => $bad]), TaskRejected::class);
@@ -104,7 +104,7 @@ final class TaskInputTest extends UnitTestCase
         $f->acquire();
         $tampered = $batch->data()->get('requests')->get('a')->with('public', StrictJson::fromObject(['type' => 'form']));
         $wrong = TaskInputBatch::create('caller', $f->now + 1000, false, StrictJson::fromObject(['a' => $tampered]));
-        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::ID, 'producer', $f->get()->get('version'), $wrong)), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::id(), 'producer', $f->get()->get('version'), $wrong)), TaskRejected::class);
     }
 
     #[DataProvider('refusals')]
@@ -164,7 +164,7 @@ final class TaskInputTest extends UnitTestCase
         $f->observeAllowed = true; $f->continueAllowed = false;
         $this->reject(fn () => $f->acquire(), TaskRejected::class);
         $f->updateAllowed = false; $this->reject(fn () => $f->issue(expectedVersion: 2), TaskRejected::class);
-        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 2, TaskFixture::KEY_1)), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 2, TaskFixture::KEY_1)), TaskRejected::class);
         $f->onInputAdmission = static fn () => throw new RuntimeException('private policy');
         $this->reject(fn () => $f->supply([]), TaskRejected::class); self::assertNull($f->observe());
         $f->onInputAdmission = null; $f->onAdmission = static fn () => throw new RuntimeException('private producer');
@@ -177,33 +177,33 @@ final class TaskInputTest extends UnitTestCase
         $f->now += 10000; self::assertNull($f->observe());
         $this->reject(fn () => $f->supply([]), TaskRejected::class);
         $f = $this->fixture(); $f->create();
-        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::ID, 'other', 1, self::batch())), TaskRejected::class);
-        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'other', 1, TaskFixture::KEY_1)), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::id(), 'other', 1, self::batch())), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'other', 1, TaskFixture::KEY_1)), TaskRejected::class);
     }
 
     public function test_that_envelope_retention_and_lifetime_bounds_reject_without_forgetting_old_keys(): void
     {
-        $batch = self::batch(); $inputs = TaskInputs::empty('scope', TaskFixture::ID);
+        $batch = self::batch(); $inputs = TaskInputs::empty('scope', TaskFixture::id());
         for ($index = 1; $index <= TaskInputs::MAX_KEYS; ++$index) { $inputs = $inputs->issue($batch, 0)->retire(TaskFixture::KEY_PREFIX.$index); }
         self::assertSame(TaskInputs::MAX_KEYS, $inputs->data()->get('issued'));
         $this->reject(fn () => $inputs->issue($batch, 0), DomainException::class);
-        $full = TaskInputs::empty('scope', TaskFixture::ID);
+        $full = TaskInputs::empty('scope', TaskFixture::id());
         for ($i = 0; $i < 16; ++$i) { $full = $full->issue($batch, 0); }
         $this->reject(fn () => $full->issue($batch, 0), DomainException::class);
         $two = TaskInputForms::batch(McpInputRequired::fromRequests(['a' => TaskFixture::form(), 'b' => TaskFixture::form()]), 'caller', 1000);
         $this->reject(fn () => $full->retire(TaskFixture::KEY_1)->issue($two, 0), DomainException::class);
         foreach ([StrictJson::fromData([]), StrictJson::fromObject(array_fill_keys(range('a', 'z'), null) + array_fill_keys(array_map(static fn ($n) => 'key'.$n, range(0, 40)), null)), StrictJson::fromObject(['unknown' => str_repeat('é', 17000)]), StrictJson::fromObject(['bad key' => false]), StrictJson::fromObject([1 => false])] as $envelope) {
-            $this->reject(fn () => new SupplyTaskInput('scope', TaskFixture::ID, 'caller', $envelope), DomainException::class);
+            $this->reject(fn () => new SupplyTaskInput('scope', TaskFixture::id(), 'caller', $envelope), DomainException::class);
         }
         $f = $this->fixture(); $f->create();
         $huge = TaskInputForms::batch(McpInputRequired::fromRequests(['form' => TaskFixture::form(str_repeat('x', 1025))]), 'caller', $f->now + 1000);
-        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::ID, 'producer', 1, $huge)), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RequestTaskInput('scope', TaskFixture::id(), 'producer', 1, $huge)), TaskRejected::class);
         self::assertSame(1, $f->get()->get('version'));
     }
 
     public function test_that_corrupt_private_reconstruction_and_incoherent_producer_state_reject(): void
     {
-        $batch = self::batch(); $inputs = TaskInputs::empty('scope', TaskFixture::ID)->issue($batch, 0);
+        $batch = self::batch(); $inputs = TaskInputs::empty('scope', TaskFixture::id())->issue($batch, 0);
         self::assertSame($inputs->data()->toString(), TaskInputs::fromData($inputs->data())->data()->toString());
         $group = $inputs->data()->get('groups')->get(TaskFixture::KEY_1);
         $badGroups = [
@@ -221,14 +221,14 @@ final class TaskInputTest extends UnitTestCase
         $large = StrictJson::fromObject(['a' => (object) ['name' => 'a', 'public' => (object) [], 'contract' => (object) ['private' => str_repeat('x', 24576)]]]);
         $this->reject(fn () => TaskInputBatch::create('caller', 1, false, $large), DomainException::class);
         $f = $this->fixture(); $f->create();
-        $this->reject(fn () => $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskFixture::input())), TaskConflict::class);
+        $this->reject(fn () => $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskFixture::input())), TaskConflict::class);
         $f->issue(); $this->reject(fn () => $f->record(TaskState::create('working'), 2), TaskConflict::class);
-        $task = $f->committedTaskReader->read('scope', TaskFixture::ID);
+        $task = $f->committedTaskReader->read('scope', TaskFixture::id());
         $this->reject(fn () => $task->transition('producer', 2, TaskFixture::input(), null, $f->now), DomainException::class);
         $different = $task->toArray(); $different['definition']['producer'] = 'other';
         $f->transactionalUnitOfWork->commitTransactional(fn () => $f->taskRepository->save(Task::fromArray($different)));
         $this->reject(fn () => $f->issue(expectedVersion: 2), TaskRejected::class);
-        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 2, TaskFixture::KEY_1)), TaskRejected::class);
+        $this->reject(fn () => $f->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 2, TaskFixture::KEY_1)), TaskRejected::class);
         $max = Task::fromArray(array_replace($task->toArray(), ['version' => Task::MAX_VERSION]));
         $this->reject(fn () => $max->retireInput(TaskFixture::KEY_1, Task::MAX_VERSION, $f->now), DomainException::class);
     }
@@ -246,15 +246,15 @@ final class TaskInputTest extends UnitTestCase
         $f->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         $f->issue(confirmation: true);
         self::assertSame($operation->toString(), $f->observe()->get('definition')->get('operation')->toString());
-        $task = $f->committedTaskReader->read('scope', TaskFixture::ID)->toArray();
-        $task['inputs'] = TaskInputs::empty('other-scope', TaskFixture::ID)->data();
+        $task = $f->committedTaskReader->read('scope', TaskFixture::id())->toArray();
+        $task['inputs'] = TaskInputs::empty('other-scope', TaskFixture::id())->data();
         $this->reject(fn () => Task::fromArray($task), DomainException::class);
     }
 
     public function test_that_messages_and_handlers_preserve_owned_cqrs_contracts_and_reject_wrong_payloads(): void
     {
         $f = $this->fixture();
-        $messages = [new RequestTaskInput('scope', TaskFixture::ID, 'producer', 1, self::batch()), new SupplyTaskInput('scope', TaskFixture::ID, 'caller', StrictJson::fromObject()), new AcquireTaskInput('scope', TaskFixture::ID, 'caller', TaskFixture::KEY_1), new RetireTaskInput('scope', TaskFixture::ID, 'producer', 1, TaskFixture::KEY_1), new GetTaskInput('scope', TaskFixture::ID, 'caller')];
+        $messages = [new RequestTaskInput('scope', TaskFixture::id(), 'producer', 1, self::batch()), new SupplyTaskInput('scope', TaskFixture::id(), 'caller', StrictJson::fromObject()), new AcquireTaskInput('scope', TaskFixture::id(), 'caller', TaskFixture::KEY_1), new RetireTaskInput('scope', TaskFixture::id(), 'producer', 1, TaskFixture::KEY_1), new GetTaskInput('scope', TaskFixture::id(), 'caller')];
         foreach ($messages as $message) { self::assertEquals($message->toArray(), $message::fromArray($message->toArray())->toArray()); }
         $wrong = CommandMessage::create(new CreateTask(TaskFixture::definition(), TaskState::create('working')));
         foreach ([$f->requestTaskInputHandler, $f->supplyTaskInputHandler, $f->acquireTaskInputHandler, $f->retireTaskInputHandler] as $commandHandler) {
@@ -262,7 +262,7 @@ final class TaskInputTest extends UnitTestCase
             $this->reject(fn () => $commandHandler->handle($wrong), InvalidArgumentException::class);
         }
         self::assertSame(GetTaskInput::class, GetTaskInputHandler::queryRegistration());
-        $this->reject(fn () => $f->getTaskInputHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::ID))), InvalidArgumentException::class);
+        $this->reject(fn () => $f->getTaskInputHandler->handle(QueryMessage::create(new GetTask('scope', TaskFixture::id()))), InvalidArgumentException::class);
     }
 
     private static function accept(string $answer): array { return ['action' => 'accept', 'content' => (object) ['answer' => $answer]]; }

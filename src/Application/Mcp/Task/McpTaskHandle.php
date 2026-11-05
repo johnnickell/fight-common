@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fight\Common\Application\Mcp\Task;
 
-use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 
 /**
  * Class McpTaskHandle
@@ -14,15 +14,14 @@ final readonly class McpTaskHandle
     /**
      * Constructs McpTaskHandle
      */
-    public function __construct(private string $id)
+    public function __construct(private TaskId $id)
     {
-        TaskDefinition::identity($id);
     }
 
     /**
      * Returns the identity without granting read or execution authority
      */
-    public function id(): string
+    public function id(): TaskId
     {
         return $this->id;
     }

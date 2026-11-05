@@ -32,7 +32,7 @@ $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions
 `$tracking` is the existing idle dedicated `DbalSubscriptionStore`; `$trustedTrackingSelection` is a trusted
 `NoticeSelection` covering **all** opening context, including Task scope and requested/accepted IDs. These names
 come from `Application\Mcp\Subscription`, `Application\Mcp` and `Domain\Mcp\Notice`; the DBAL store is in
-`Adapter\Mcp\Subscription`. The selection is technical access context, not Task-read authority. Consumer composition
+`Adapter\Mcp\Persistence\Subscription\Dbal`. The selection is technical access context, not Task-read authority. Consumer composition
 must not label Task metadata with a narrower/unrelated notice scope. Independent subscriber inspection grants must
 permit that complete context; it never becomes proof of delivery or continuing authorization.
 

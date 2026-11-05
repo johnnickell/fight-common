@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Notice;
 
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class NoticeMetadata
  */
-final readonly class NoticeMetadata
+final readonly class NoticeMetadata extends ValueObject
 {
     /**
      * Constructs NoticeMetadata
@@ -54,6 +55,37 @@ final readonly class NoticeMetadata
         }
 
         return new self($snapshot);
+    }
+
+    /**
+     * Creates metadata from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid notice metadata text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable structured metadata text
+     */
+    public function toString(): string
+    {
+        return json_encode($this->values, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured metadata with its existing empty-array meaning
+     *
+     * @return array<string, string|int|bool|null>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->values;
     }
 
     /**

@@ -8,14 +8,16 @@ use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Mcp\Session\SessionId;
+use Fight\Common\Domain\Mcp\Value\ObservationReference;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class DetailSelection
  */
-final readonly class DetailSelection
+final readonly class DetailSelection extends ValueObject
 {
-    private GetExecution $execution;
+    private SessionId $session;
     private string $phaseId;
     private string $producerId;
     private ObservationId $activityId;
@@ -30,9 +32,9 @@ final readonly class DetailSelection
         string $producerId,
         string $activityId
     ) {
-        $this->execution = new GetExecution($projectId, $sessionId);
-        $this->phaseId = ObservationFields::reference($phaseId);
-        $this->producerId = ObservationFields::reference($producerId);
+        $this->session = SessionId::fromStrings($projectId, $sessionId);
+        $this->phaseId = ObservationReference::fromString($phaseId)->toString();
+        $this->producerId = ObservationReference::fromString($producerId)->toString();
         if (preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/D', $activityId) !== 1) {
             throw new DomainException('Invalid detail activity identity.');
         }
@@ -60,15 +62,50 @@ final readonly class DetailSelection
      */
     public static function fromArray(array $data): self
     {
-        ObservationFields::structure($data, ['project_id', 'session_id', 'phase_id', 'producer_id', 'activity_id']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['activity_id', 'phase_id', 'producer_id', 'project_id', 'session_id']) {
+            throw new DomainException('Invalid detail selection structure.');
+        }
 
         return self::create(
-            ObservationFields::reference($data['project_id']),
-            ObservationFields::reference($data['session_id']),
-            ObservationFields::reference($data['phase_id']),
-            ObservationFields::reference($data['producer_id']),
-            ObservationFields::reference($data['activity_id'])
+            ObservationReference::fromString($data['project_id'])->toString(),
+            ObservationReference::fromString($data['session_id'])->toString(),
+            ObservationReference::fromString($data['phase_id'])->toString(),
+            ObservationReference::fromString($data['producer_id'])->toString(),
+            ObservationReference::fromString($data['activity_id'])->toString()
         );
+    }
+
+    /**
+     * Creates an exact selection from stable text without granting access
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid detail selection text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable selection text without grants
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured selection data rather than encoded text
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**
@@ -77,13 +114,12 @@ final readonly class DetailSelection
     public function acceptsDetail(Observation $detail, DetailKind $kind): bool
     {
         $capture = $detail->detail();
-        $execution = $this->execution->toArray();
+        $session = SessionId::fromStrings($detail->session()->projectId(), $detail->session()->sessionId());
 
         return $capture !== null && $capture->kind() === $kind
             && $capture->activityId()->equals($this->activityId)
             && $detail->producerId() === $this->producerId
-            && $detail->session()->projectId() === $execution['project_id']
-            && $detail->session()->sessionId() === $execution['session_id']
+            && $this->session->equals($session)
             && $detail->phase()?->phaseId() === $this->phaseId;
     }
 
@@ -92,7 +128,7 @@ final readonly class DetailSelection
      */
     public function execution(): GetExecution
     {
-        return $this->execution;
+        return new GetExecution($this->session->projectId(), $this->session->sessionId());
     }
 
     /**
@@ -126,7 +162,9 @@ final readonly class DetailSelection
      */
     public function toArray(): array
     {
-        return $this->execution->toArray() + [
+        return [
+            'project_id'  => $this->session->projectId(),
+            'session_id'  => $this->session->sessionId(),
             'phase_id'    => $this->phaseId,
             'producer_id' => $this->producerId,
             'activity_id' => $this->activityId->toString()

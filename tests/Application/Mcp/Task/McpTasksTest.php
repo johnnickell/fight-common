@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp as ReleasedMcp;
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
@@ -107,7 +107,7 @@ final class McpTasksTest extends UnitTestCase
         elseif ($status === 'failed') { self::assertSame(['code' => -32603, 'message' => 'Internal error'], $result['error']); self::assertSame('', $result['statusMessage']); }
         else { self::assertSame('Public 状態', $result['statusMessage']); }
         self::assertArrayNotHasKey('definition', $result); self::assertArrayNotHasKey('version', $result);
-        $created = $this->endpoint->tasks->created(new McpTaskHandle(TaskFixture::ID))->toArray();
+        $created = $this->endpoint->tasks->created(new McpTaskHandle(TaskFixture::id()))->toArray();
         self::assertSame($status, $created['status']); self::assertArrayNotHasKey('result', $created); self::assertArrayNotHasKey('inputRequests', $created); self::assertArrayNotHasKey('error', $created);
     }
 
@@ -163,7 +163,7 @@ final class McpTasksTest extends UnitTestCase
         $queries = $this->mock(QueryBus::class); $commands = $this->mock(CommandBus::class);
         $tasks = new McpTasks($queries, $commands, 'scope', 'caller');
         $queries->shouldReceive('fetch')->once()->andReturn(StrictJson::fromObject(['id' => str_repeat('b', 32)]));
-        try { $tasks->created(new McpTaskHandle(TaskFixture::ID)); self::fail('Mismatched Query identity'); } catch (DomainException) {}
+        try { $tasks->created(new McpTaskHandle(TaskFixture::id())); self::fail('Mismatched Query identity'); } catch (DomainException) {}
         $queries->shouldReceive('fetch')->once()->andThrow(new RuntimeException('private storage failure'));
         try { $tasks->handle($this->decoded('tasks/get', ['taskId' => TaskFixture::ID])); self::fail('Storage errors are not absence'); } catch (RuntimeException $failure) { self::assertSame('private storage failure', $failure->getMessage()); }
     }
@@ -248,7 +248,7 @@ final class McpTasksTest extends UnitTestCase
             try { new McpTasks($this->fixture->queries, $this->fixture->commands, 'scope', 'caller', $budget); self::fail('Invalid budget'); } catch (DomainException) {}
         }
         try { McpResult::task(['resultType' => 'complete']); self::fail('Cannot override discriminator'); } catch (DomainException) {}
-        try { new McpTaskHandle('invalid'); self::fail('Invalid identity'); } catch (DomainException) {}
+        try { new McpTaskHandle(TaskFixture::id('invalid')); self::fail('Invalid identity'); } catch (DomainException) {}
         self::assertSame('task', McpResult::task([])->toArray()['resultType']);
     }
 

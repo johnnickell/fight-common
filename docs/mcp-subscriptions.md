@@ -11,8 +11,8 @@ Separate opt-in
 
 ## Compose the complete path
 
-1. Install `Adapter\Mcp\Notice\Dbal\DbalNoticeSchema` and
-   `Adapter\Mcp\Subscription\DbalSubscriptionSchema` on an exclusive **idle deployment connection**.
+1. Install `Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema` and
+   `Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema` on an exclusive **idle deployment connection**.
    These are separate reserved namespaces. Installation is not a per-request migration or a live-stream transaction.
    Partial installations need operator recovery; MySQL DDL is not atomic.
 2. Route `Domain\Mcp\Notice\Query\RecoverNotices` to `Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler`, using
@@ -42,8 +42,8 @@ Separate opt-in
    $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
    ```
 
-   Import these names from `Fight\Common\Adapter\Mcp\Subscription` and
-   `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp`.
+   Import these names from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal` and
+   `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp\Capability`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
    at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
    Optional `tasks: $tasks` requires the same complete Task capability **and** a consumer-implemented
@@ -259,7 +259,14 @@ socket closure and abrupt process death followed by stale/late-owner checks and 
 a claim of saturated-kernel backpressure or instant disconnect detection. Unit tests separately prove bounded encoded
 frames, queued reauthorization/cancellation and source/tracking failure. Clean independent-process capacity-lock
 journeys additionally exercise timely, old-but-not-proposed-expired, overlong and SQL-timeout renewals through the
-actual body/emitter on all three databases, with unchanged expired rows and authorized retained recovery.
+actual body/emitter on all three databases. Test-owned coordination identifies actual DBAL heartbeat entry while
+fresh before requesting the warmed worker's lock; worker/driver startup precedes registration, including deliberate
+pre-autoload bootstrap delays for timely and old-expiry cases on both transports. Actual serialized SQL acquisition
+or timeout and the independent worker's lock/release timestamps establish the boundary, rather than elapsed body
+wait alone. Rejected renewals leave the entire original row unchanged. A distinct
+expiry-before-body-resumption case proves that execution attempts no heartbeat and lawful final owner-bound closure
+sets only the exact supplied observed/closed timestamp, without extending expiry. Both failure paths preserve
+acknowledgment-only output, EOF, body position, diagnostics and authorized retained recovery.
 The optional Prompt journey additionally composes actual visible/hidden Prompt providers, list/get and live streams
 on all three databases: mixed families, concurrent scopes/typed IDs, concealed signals, changed retrieval visibility,
 notification revocation, provider call counters, generic inspection and source-failure recovery. Exact escaped frame

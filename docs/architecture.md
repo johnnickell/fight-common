@@ -85,10 +85,13 @@ a value object.
 John approved this correction in [TASK-00183](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00183-TASK.md). It is a target for the dependent
 refactors, not a claim that every current MCP type conforms. Task persistence now separates repository and
 transaction ownership, and its eight CommandHandlers/three QueryHandlers own their operation-specific coordination
-without lifecycle forwarding services. The combined Notice store, execution Application grouping, Domain Task
-disclosure encoding and concrete Application Tools still await their owning corrections. The [MCP namespace map](https://johnnickell.github.io/fight-common/mcp-namespaces/#approved-aggregate-alignment-target)
-separates current homes from approved destinations, while ADR 0023 preserves the earlier decisions and bridges.
-This documentation change moves no production types and changes no schema, permission or delivery guarantee.
+without lifecycle forwarding services. Notice likewise separates repository, transaction and coherent recovery
+reads; Task disclosure projection is Application-owned. Execution Application homes now mirror Domain directly,
+concrete Query-to-Tool mapping lives in `Adapter\Mcp\Tool\{Aggregate}`, and MCP DBAL persistence uses
+`Adapter\Mcp\Persistence\{Aggregate}\Dbal` with genuinely shared execution support kept separate. The
+[MCP namespace map](https://johnnickell.github.io/fight-common/mcp-namespaces/#approved-aggregate-alignment-target)
+records current canonical homes and direct never-released moves. ADR 0023 preserves earlier decisions and released
+bridges. No schema, permission or delivery guarantee changes with these namespace corrections.
 
 ## CQRS message flows
 

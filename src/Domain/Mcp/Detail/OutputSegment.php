@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Detail;
 
 use Fight\Common\Domain\Exception\DomainException;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
+use Fight\Common\Domain\Value\ValueObject;
 
 /**
  * Class OutputSegment
  */
-final readonly class OutputSegment
+final readonly class OutputSegment extends ValueObject
 {
     /**
      * Constructs OutputSegment
@@ -41,12 +41,48 @@ final readonly class OutputSegment
      */
     public static function fromArray(array $data): self
     {
-        ObservationFields::structure($data, ['stream', 'index', 'offset']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['index', 'offset', 'stream']) {
+            throw new DomainException('Invalid output segment structure.');
+        }
+
         if (!is_string($data['stream']) || !is_int($data['index']) || !is_int($data['offset'])) {
             throw new DomainException('Invalid output segment.');
         }
 
         return self::create($data['stream'], $data['index'], $data['offset']);
+    }
+
+    /**
+     * Creates output coordinates from stable structured text
+     */
+    public static function fromString(string $value): self
+    {
+        $data = json_decode($value, true);
+        if (!is_array($data)) {
+            throw new DomainException('Invalid output segment text.');
+        }
+
+        return self::fromArray($data);
+    }
+
+    /**
+     * Returns stable output-coordinate text
+     */
+    public function toString(): string
+    {
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Returns structured output coordinates
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     /**

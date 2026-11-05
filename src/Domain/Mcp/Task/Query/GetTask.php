@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Task\Query;
 
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Messaging\Query\Query;
 
 /**
@@ -15,10 +16,9 @@ final readonly class GetTask implements Query
     /**
      * Constructs GetTask
      */
-    public function __construct(private string $scope, private string $id)
+    public function __construct(private string $scope, private TaskId $id)
     {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
     }
 
     /**
@@ -26,7 +26,7 @@ final readonly class GetTask implements Query
      */
     public static function fromArray(array $data): static
     {
-        return new self($data['scope'], $data['id']);
+        return new self($data['scope'], TaskId::fromString($data['id']));
     }
 
     /**
@@ -40,7 +40,7 @@ final readonly class GetTask implements Query
     /**
      * Returns the selected identity without granting access
      */
-    public function id(): string
+    public function id(): TaskId
     {
         return $this->id;
     }
@@ -50,6 +50,6 @@ final readonly class GetTask implements Query
      */
     public function toArray(): array
     {
-        return ['scope' => $this->scope, 'id' => $this->id];
+        return ['scope' => $this->scope, 'id' => $this->id->toString()];
     }
 }

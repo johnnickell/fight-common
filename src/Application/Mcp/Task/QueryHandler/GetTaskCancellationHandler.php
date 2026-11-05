@@ -70,7 +70,7 @@ final readonly class GetTaskCancellationHandler implements QueryHandler
         }
 
         return StrictJson::fromObject([
-            'id'           => $query->id,
+            'id'           => $query->id->toString(),
             'version'      => $task->version(),
             'cancellation' => $task->cancellation()
         ]);

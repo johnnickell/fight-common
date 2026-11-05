@@ -7,9 +7,13 @@ namespace Fight\Test\Common\Functional;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionSchema;
-use Fight\Common\Adapter\Mcp\Subscription\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriberReader;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
+use Fight\Common\Application\Mcp\Subscription\Service\SubscriberAccess;
+use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
+use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
@@ -84,6 +88,44 @@ final class McpSubscriptionJourneyTest extends TestCase
     }
 
     #[DataProvider('databases')]
+    public function test_that_heartbeat_after_clock_capture_preserves_open_counts_without_claiming_recent_observation(string $backend): void
+    {
+        $this->setupDatabase($backend);
+        $subscriptionStore = new DbalSubscriptionStore($this->db);
+        $registrationId = str_repeat('1', 32); $owner = str_repeat('2', 32);
+        $subscriptionStore->open($registrationId, $owner, ['subscriber' => 'agent', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
+        $connection = $this->db; $afterHeartbeat = [];
+        $reader = new DbalSubscriberReader($connection, 'controlled-db', static function () use ($subscriptionStore, $registrationId, $owner, $connection, &$afterHeartbeat): int {
+            $queriedAt = 100;
+            // Commit a valid later heartbeat after capture, before the reader scans storage.
+            $subscriptionStore->heartbeat($registrationId, $owner, 101, 106);
+            $afterHeartbeat = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+            return $queriedAt;
+        });
+        $summary = $reader->summarize(SubscriberSelection::create(['scope']), SubscriberAccess::create(['scope']))->toArray();
+        $this->evidence['clock_crossing'] = $summary;
+        self::assertSame(100, $summary['scope']['queried_at']);
+        $observedAt = $summary['latest_observed_at'];
+        self::assertGreaterThan(100, $observedAt);
+        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
+        $this->assertSubscriberStates($summary, 1, 0);
+        self::assertSame(['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 1], $summary['states']);
+        self::assertFalse($this->db->isTransactionActive());
+        foreach ([[100, 'stale_uncertain'], [$observedAt, 'recently_observed'], [106, 'stale_uncertain']] as [$queriedAt, $state]) {
+            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $observedAt, null);
+        }
+        self::assertSame($afterHeartbeat, $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection does not renew or expire storage');
+        $closedAt = $observedAt + 1;
+        $subscriptionStore->close($registrationId, $owner, $closedAt);
+        $afterClose = $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions');
+        foreach ([[$observedAt, 'stale_uncertain'], [$closedAt, 'disconnected'], [106, 'disconnected']] as [$queriedAt, $state]) {
+            $this->assertControlledSubscriberState($queriedAt, $state, $registrationId, $closedAt, $closedAt);
+        }
+        self::assertSame($afterClose, $this->db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'), 'Inspection does not clean closed storage');
+        self::assertFalse($this->db->isTransactionActive());
+    }
+
+    #[DataProvider('databases')]
     public function test_that_independent_routed_operator_queries_summarize_then_page_actual_streams_with_current_inspection_grants(string $backend): void
     {
         $this->setupDatabase($backend);
@@ -104,10 +146,15 @@ final class McpSubscriptionJourneyTest extends TestCase
         ]);
         self::assertNotSame(getmypid(), $inspection['process']); self::assertSame(5, $inspection['admissions']); self::assertFalse($inspection['transaction_active']);
         [$summary, $first, $second, $revoked, $notAuthority] = $inspection['results'];
-        self::assertSame(2, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']); self::assertSame(2, $summary['states']['recently_observed']);
+        self::assertSame(2, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']); $this->assertSubscriberStates($summary, 2, 0);
         self::assertSame(2, $first['total']); self::assertSame(2, $second['total']);
         self::assertNotSame($first['subscribers'][0]['registration_id'], $second['subscribers'][0]['registration_id']);
         $views = [...$first['subscribers'], ...$second['subscribers']];
+        foreach ([$first, $second] as $page) {
+            $view = $page['subscribers'][0];
+            self::assertNull($view['closed_at']);
+            self::assertSame($view['observed_at'] <= $page['scope']['queried_at'] && $view['expires_at'] > $page['scope']['queried_at'] ? 'recently_observed' : 'stale_uncertain', $view['state']);
+        }
         $withResources = array_values(array_filter($views, static fn ($view) => isset($view['requested']['resourceSubscriptions'])))[0];
         self::assertSame(['file:///allowed', 'file:///hidden'], $withResources['requested']['resourceSubscriptions']);
         self::assertSame(['file:///allowed'], $withResources['accepted']['resourceSubscriptions']);
@@ -121,9 +168,21 @@ final class McpSubscriptionJourneyTest extends TestCase
         $deadline = microtime(true) + 4;
         do { $closed = (int) $this->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at > 0'); if ($closed > 0) { break; } usleep(10000); } while (microtime(true) < $deadline);
         self::assertSame(1, $closed);
-        $lifecycle = $this->inspectSubscribers([$base + ['query' => 'summary']]);
-        self::assertSame(1, $lifecycle['results'][0]['states']['disconnected']);
-        self::assertSame(1, $lifecycle['results'][0]['states']['recently_observed']);
+        self::assertSame($withResources['registration_id'], $this->db->fetchOne('SELECT registration_id FROM fight_mcp_subscriptions WHERE closed_at > 0'));
+        $lifecycle = $this->inspectSubscribers([$base + ['query' => 'summary'], $base + ['query' => 'page', 'per_page' => 16]]);
+        self::assertSame(2, $lifecycle['results'][0]['subscriptions']); self::assertSame(1, $lifecycle['results'][0]['subscriber_ids']);
+        $this->assertSubscriberStates($lifecycle['results'][0], 1, 1);
+        $lifecyclePage = $lifecycle['results'][1];
+        self::assertSame(2, $lifecyclePage['total']); self::assertCount(2, $lifecyclePage['subscribers']);
+        foreach ($lifecyclePage['subscribers'] as $view) {
+            if ($view['registration_id'] === $withResources['registration_id']) {
+                self::assertSame('disconnected', $view['state']); self::assertSame($view['observed_at'], $view['closed_at']);
+                self::assertLessThanOrEqual($lifecyclePage['scope']['queried_at'], $view['closed_at']);
+            } else {
+                self::assertNull($view['closed_at']);
+                self::assertSame($view['observed_at'] <= $lifecyclePage['scope']['queried_at'] && $view['expires_at'] > $lifecyclePage['scope']['queried_at'] ? 'recently_observed' : 'stale_uncertain', $view['state']);
+            }
+        }
         $allowedId = $first['subscribers'][0]['registration_id'];
         $restricted = $this->inspectSubscribers([$base + ['query' => 'summary', 'granted_registrations' => [$allowedId]]]);
         self::assertSame(1, $restricted['results'][0]['subscriptions']);
@@ -301,16 +360,13 @@ final class McpSubscriptionJourneyTest extends TestCase
     }
 
     #[DataProvider('contentionCases')]
-    public function test_that_real_capacity_lock_waits_preserve_freshness_and_retained_recovery(string $backend, string $mode, string $transport): void
+    public function test_that_real_capacity_lock_waits_preserve_freshness_and_retained_recovery(string $backend, string $mode, string $transport, int $bootstrapDelayMicroseconds = 0): void
     {
-        $this->setupDatabase($backend);
-        $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport], dirname(__DIR__, 2));
-        $this->processes[] = $process;
-        self::assertSame(0, $process->run(), $process->getErrorOutput());
-        $result = json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR);
-        $wire = $process->getOutput();
-        $this->evidence['contention'] = compact('mode', 'transport', 'wire', 'result');
+        [$result, $wire] = $this->contention($backend, $mode, $transport, $bootstrapDelayMicroseconds);
+        $expiry = (int) $result['original']['expires_at'];
+        $capacityLock = $result['capacity_locks'][0];
         self::assertSame(0, $result['worker_exit'], $result['worker_error']);
+        self::assertSame("worker-ready\n", $result['worker_output']);
         self::assertFalse($result['transaction_active']);
         self::assertSame(1, $result['retained']);
         self::assertSame(['status' => 'complete', 'ids' => ['retained']], $result['recovery']);
@@ -318,22 +374,74 @@ final class McpSubscriptionJourneyTest extends TestCase
         $frames = array_map(static fn ($json) => json_decode($json, true, flags: JSON_THROW_ON_ERROR), $matches[1]);
         self::assertSame('notifications/subscriptions/acknowledged', $frames[0]['method']);
         foreach ($frames as $frame) { self::assertSame('7', $frame['params']['_meta']['io.modelcontextprotocol/subscriptionId']); }
-        self::assertSame((int) $result['original']['expires_at'], (int) $result['locked']['row']['expires_at']);
+        self::assertSame($result['original'], $result['locked']['row'], 'The independent lock holder sees the exact unrenewed open row');
+        self::assertLessThanOrEqual($result['registration_started_at'], $result['worker_ready_at'], 'The independent worker and its real driver are ready before this registration starts');
+        self::assertLessThan($result['started'], $result['registration_started_at']);
+        $firstTrackingCall = $result['calls'][0];
+        self::assertGreaterThanOrEqual($result['started'], $firstTrackingCall['transaction_entered_at']);
+        self::assertLessThanOrEqual($firstTrackingCall['lock_ready_at'], $firstTrackingCall['transaction_entered_at']);
+        self::assertLessThan($result['returned'], $firstTrackingCall['lock_ready_at']);
+        self::assertLessThanOrEqual($result['locked']['at'], $firstTrackingCall['transaction_entered_at'], 'The recorded store entry precedes the independent locked sample, not a later Query transaction');
+        self::assertLessThanOrEqual($firstTrackingCall['transaction_entered_at'], $firstTrackingCall['entered_at']);
+        self::assertSame($firstTrackingCall['operation'], $capacityLock['operation']);
+        self::assertLessThanOrEqual($capacityLock['entered_at'], $result['worker_lock']['acquired_at']);
+        if ($mode === 'pre-renewal-expired') {
+            self::assertSame('close', $firstTrackingCall['operation'], 'Execution rejects expiry before invoking any heartbeat');
+            self::assertCount(1, $result['calls']);
+            self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['started']);
+            self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $firstTrackingCall['now']);
+            self::assertSame('returned', $firstTrackingCall['result']);
+            self::assertGreaterThanOrEqual($expiry, $firstTrackingCall['entered_at']);
+            self::assertSame(['close'], array_column($result['capacity_locks'], 'operation'));
+            self::assertGreaterThanOrEqual($expiry, $capacityLock['acquired_at']);
+        } else {
+            self::assertSame('heartbeat', $firstTrackingCall['operation']);
+            self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['transaction_entered_at'], 'Actual DBAL heartbeat entered while the original lease was fresh');
+            self::assertLessThan((int) $result['original']['expires_at'], $firstTrackingCall['lock_ready_at'], 'The independent worker holds the lock before original expiry');
+            self::assertLessThan($expiry, $firstTrackingCall['entered_at']);
+            self::assertLessThan($expiry, $firstTrackingCall['now']);
+            self::assertLessThan($expiry, $capacityLock['entered_at'], 'Real serialized lock request precedes old expiry');
+            self::assertSame($firstTrackingCall['now'] + 5, $firstTrackingCall['expires']);
+        }
         if ($mode === 'timeout') {
             self::assertGreaterThan($result['started'] + 0.9, $result['returned']);
             self::assertLessThan($result['locked']['at'], $result['returned'], 'SQL timeout returns before the independent lock holder releases');
-        } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process genuinely delayed renewal'); }
+        } else { self::assertGreaterThan($result['started'] + 2, $result['returned'], 'The independent process delayed the identified tracking operation'); }
         if ($mode === 'fast') {
+            self::assertSame('returned', $firstTrackingCall['result']);
             self::assertLessThan((int) $result['original']['expires_at'], $result['locked']['at']);
+            self::assertLessThan($expiry, $result['worker_release']['released_at'], 'Actual commit must release before old expiry');
+            self::assertLessThan($expiry, $capacityLock['acquired_at']);
+            self::assertGreaterThanOrEqual($result['locked']['at'], $capacityLock['acquired_at']);
             self::assertSame(['notifications/subscriptions/acknowledged', 'notifications/tools/list_changed'], array_column($frames, 'method'));
         } else {
             self::assertGreaterThanOrEqual((int) $result['original']['expires_at'], $result['locked']['at']);
-            if ($mode !== 'overlong') { self::assertLessThan((int) $result['started'] + 5, $result['returned'], 'The proposed lease remains future'); }
-            else { self::assertGreaterThanOrEqual((int) $result['started'] + 5, $result['returned']); }
+            if ($mode === 'timeout') {
+                self::assertArrayNotHasKey('acquired_at', $capacityLock);
+                self::assertArrayHasKey('failure', $capacityLock);
+            } else {
+                self::assertGreaterThanOrEqual($expiry, $capacityLock['acquired_at'], 'Tracking acquires only after old expiry');
+                self::assertGreaterThanOrEqual($result['locked']['at'], $capacityLock['acquired_at']);
+            }
+            if ($mode === 'expired' || $mode === 'timeout') { self::assertLessThan($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease remains future'); }
+            if ($mode === 'overlong') { self::assertGreaterThanOrEqual($firstTrackingCall['expires'], $result['returned'], 'The actual proposed lease also elapsed'); }
             self::assertCount(1, $frames, 'No new change or completion after the acknowledgment');
             self::assertStringNotContainsString('resultType', $wire);
             self::assertStringNotContainsString('keepalive', $wire);
-            self::assertSame((int) $result['original']['observed_at'], (int) $result['row']['observed_at']);
+            if ($mode === 'pre-renewal-expired') {
+                $expectedClosedRow = array_replace($result['original'], ['observed_at' => $firstTrackingCall['now'], 'closed_at' => $firstTrackingCall['now']]);
+                self::assertSame($expectedClosedRow, $result['row'], 'Only the exact supplied final closure timestamp changes; expiry and identity never move');
+                self::assertGreaterThan((int) $result['original']['observed_at'], (int) $result['row']['observed_at']);
+                self::assertSame((int) $result['row']['observed_at'], (int) $result['row']['closed_at']);
+                self::assertSame([RuntimeException::class], $result['diagnostics']);
+            } else {
+                self::assertSame($result['original'], $result['row'], 'Failed renewal leaves the entire original open row unchanged');
+                self::assertCount(2, $result['calls']);
+                self::assertSame('close', $result['calls'][1]['operation']);
+                self::assertSame(LogicException::class, $result['calls'][1]['result'], 'A failed store cannot subsequently close or revive the row');
+                self::assertSame([$firstTrackingCall['result'], LogicException::class], $result['diagnostics']);
+                if ($mode !== 'timeout') { self::assertSame(RuntimeException::class, $firstTrackingCall['result']); }
+            }
             self::assertSame((int) $result['original']['expires_at'], (int) $result['row']['expires_at'], 'No revival before suppressing output');
             self::assertSame($result['position_before'], $result['position_after']);
             self::assertTrue($result['eof']);
@@ -371,8 +479,13 @@ final class McpSubscriptionJourneyTest extends TestCase
     public static function contentionCases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach (['fast', 'expired', 'overlong', 'timeout'] as $mode) {
-                foreach (['body', 'emitter'] as $transport) { yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport]; }
+            foreach (['fast', 'expired', 'overlong', 'timeout', 'pre-renewal-expired'] as $mode) {
+                foreach (['body', 'emitter'] as $transport) {
+                    yield $backend.'-'.$mode.'-'.$transport => [$backend, $mode, $transport];
+                    if (in_array($mode, ['fast', 'expired'], true)) {
+                        yield $backend.'-'.$mode.'-'.$transport.'-delayed-bootstrap' => [$backend, $mode, $transport, 1100000];
+                    }
+                }
             }
         }
     }
@@ -414,6 +527,24 @@ final class McpSubscriptionJourneyTest extends TestCase
         }
         (new DbalNoticeSchema())->install($this->db); (new DbalSubscriptionSchema())->install($this->db);
         $this->evidence['backend'] = $backend;
+    }
+
+    private function contention(string $backend, string $mode, string $transport, int $bootstrapDelayMicroseconds = 0): array
+    {
+        $this->setupDatabase($backend);
+        $process = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', 'tests/Fixture/Mcp/subscription-contention.php', $this->directory, $mode, $transport, (string) $bootstrapDelayMicroseconds], dirname(__DIR__, 2));
+        $this->processes[] = $process;
+        $processExit = $process->run();
+        $result = file_exists($this->directory.'/contention-result.json') ? json_decode(file_get_contents($this->directory.'/contention-result.json'), true, flags: JSON_THROW_ON_ERROR) : [];
+        $wire = $process->getOutput();
+        $this->evidence['contention_process'] = ['exit' => $processExit, 'output' => $wire, 'error' => $process->getErrorOutput()];
+        if (file_exists($this->directory.'/contention-failure.json')) { $this->evidence['contention_failure'] = json_decode(file_get_contents($this->directory.'/contention-failure.json'), true, flags: JSON_THROW_ON_ERROR); }
+        $this->evidence['contention'] = compact('mode', 'transport', 'bootstrapDelayMicroseconds', 'wire', 'result');
+        self::assertSame(0, $processExit, $process->getErrorOutput().' '.json_encode($result));
+        self::assertLessThanOrEqual($result['registration_started_at'], $result['worker_prepared']['prepared_at'], 'Worker is ready before opening consumes freshness');
+        self::assertGreaterThanOrEqual($bootstrapDelayMicroseconds / 1000000, $result['worker_prepared']['prepared_at'] - $result['worker_prepared']['boot_started']);
+        self::assertGreaterThanOrEqual($result['started'], $result['worker_lock']['acquired_at'], 'Actual store entry requests the worker lock after transport resumes');
+        return [$result, $wire];
     }
 
     private function server(string $scope): string
@@ -466,6 +597,33 @@ final class McpSubscriptionJourneyTest extends TestCase
         while (($line = fgets($socket)) !== false) { if (str_starts_with($line, 'data: ')) { $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); } }
         self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
         return $frames;
+    }
+
+    private function assertSubscriberStates(array $summary, int $notDisconnected, int $disconnected): void
+    {
+        self::assertSame(['recently_observed', 'disconnected', 'stale_uncertain'], array_keys($summary['states']));
+        self::assertSame($disconnected, $summary['states']['disconnected']);
+        // A later heartbeat can be future evidence relative to this invocation; an open stream is not a liveness promise.
+        self::assertSame($notDisconnected, $summary['states']['recently_observed'] + $summary['states']['stale_uncertain']);
+        self::assertSame($summary['subscriptions'], array_sum($summary['states']));
+    }
+
+    private function assertControlledSubscriberState(int $queriedAt, string $state, string $registrationId, int $observedAt, ?int $closedAt): void
+    {
+        $reader = new DbalSubscriberReader($this->db, 'controlled-db', static fn () => $queriedAt);
+        $selection = SubscriberSelection::create(['scope']); $access = SubscriberAccess::create(['scope']);
+        $summary = $reader->summarize($selection, $access)->toArray();
+        $expected = ['recently_observed' => 0, 'disconnected' => 0, 'stale_uncertain' => 0]; $expected[$state] = 1;
+        self::assertSame($expected, $summary['states']);
+        self::assertSame(1, $summary['subscriptions']); self::assertSame(1, $summary['subscriber_ids']);
+        self::assertSame($queriedAt, $summary['scope']['queried_at']);
+        $page = $reader->list(new ListSubscribers($selection), $access)->toArray();
+        self::assertSame(1, $page['total']); self::assertCount(1, $page['subscribers']);
+        self::assertSame($queriedAt, $page['scope']['queried_at']);
+        $view = $page['subscribers'][0];
+        self::assertSame($registrationId, $view['registration_id']); self::assertSame('agent', $view['subscriber']);
+        self::assertSame($state, $view['state']); self::assertSame($observedAt, $view['observed_at']); self::assertSame($closedAt, $view['closed_at']);
+        $this->evidence['controlled_states'][] = ['summary' => $summary, 'page' => $page];
     }
 
     private function inspectSubscribers(array $operations): array

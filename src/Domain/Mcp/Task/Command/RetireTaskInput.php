@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Domain\Mcp\Task\Command;
 
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
@@ -17,13 +18,12 @@ final readonly class RetireTaskInput implements Command
      */
     public function __construct(
         public string $scope,
-        public string $id,
+        public TaskId $id,
         public string $producer,
         public int $expectedVersion,
         public string $group
     ) {
         TaskDefinition::reference($scope);
-        TaskDefinition::identity($id);
         TaskDefinition::reference($producer);
         TaskDefinition::reference($group);
     }
@@ -33,7 +33,13 @@ final readonly class RetireTaskInput implements Command
      */
     public static function fromArray(array $data): static
     {
-        return new self($data['scope'], $data['id'], $data['producer'], $data['expected_version'], $data['group']);
+        return new self(
+            $data['scope'],
+            TaskId::fromString($data['id']),
+            $data['producer'],
+            $data['expected_version'],
+            $data['group']
+        );
     }
 
     /**
@@ -43,7 +49,7 @@ final readonly class RetireTaskInput implements Command
     {
         return [
             'scope'            => $this->scope,
-            'id'               => $this->id,
+            'id'               => $this->id->toString(),
             'producer'         => $this->producer,
             'expected_version' => $this->expectedVersion,
             'group'            => $this->group

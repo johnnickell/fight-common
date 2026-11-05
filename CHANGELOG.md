@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Align execution Application homes directly with Session, Phase, Observation and Detail. Move concrete execution
+  inspection and Notice recovery Tools, schemas and public-safe mapping to `Adapter\Mcp\Tool`; dispatch still
+  uses the shared QueryBus. Group MCP DBAL persistence/read adapters under `Adapter\Mcp\Persistence\{Aggregate}\Dbal`,
+  retaining genuinely shared execution support separately. All affected declarations are never-tagged and move
+  directly without snapshot aliases. Generic Application protocol semantics, released foundation/HTTP bridges,
+  Tool identifiers/schemas, grants, storage, transaction ownership and live delivery remain unchanged. See the
+  [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target).
+- Model durable Task IDs as exact 32-lowercase-hex `TaskId` values across Domain messages, repositories, admissions
+  and handles, explicitly retaining string wire/database boundaries and separate trusted scope. Definition, state,
+  input batch and ordered scoped selection now extend ValueObject with equality/hash/reconstruction and deliberate
+  structured JSON preserving nested representation distinctions. Definition/state/batch value operations retain
+  exact finite floats independently of ambient serialization precision, including lossless construction/reconstruction
+  byte checks at the existing limits; explicit boundary encodings stay unchanged.
+  Task remains the aggregate and TaskInputs remains
+  nested lifecycle bookkeeping. Revise never-tagged APIs directly, without snapshot aliases or schema/lifecycle,
+  retry, input/cancellation or public revision changes. See [Task classification](docs/durable-tasks.md#model-classification-and-value-contracts).
+- Classify execution/Notice Domain roots, values, messages and ports; add role-specific scoped SessionId, PhaseId,
+  NoticeId and producer/UUID ObservationIdentity values. Affected values extend ValueObject with stable
+  reconstruction, same-type equality/hash and deliberate JSON. Remove ObservationFields and receipt-only
+  RecordedObservation; recorded roots still own time and post-commit facts, while RecordedNotice keeps its
+  substantive commit position. Exact storage/wire bytes, precision, null/empty meanings, protected separation,
+  independent grammars and permissions remain unchanged; no schema or aggregate namespace change.
 - Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
   visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
   and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate
@@ -18,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
   and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,
   aggregate invariants, committed cancellation reconstruction, single-use input, bus/filter dispatch and post-commit
-  failure semantics. ObservationRecorder remains unchanged.
+  failure semantics. This handler-ownership change does not alter ObservationRecorder.
 - Replace never-tagged `NoticeStore`/`DbalNoticeStore` with Domain `NoticeRepository`, separately injected
   `TransactionalUnitOfWork`, and Application `NoticeRecoveryReader`. Separate DBAL repository, namespace-serialized
   transaction and self-contained coherent recovery reads preserve allocation/removal atomicity, uncertainty,
@@ -86,6 +108,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the tracked delivery marker/table/live-check/reconciliation mechanism and recurring intake/post-merge
   bookkeeping. Land owns accepted TASK/current-doc closeout, exact live own-PR validation and eligible local
   resource retirement; historical evidence and human merge remain separate. Planning/routing stays offline.
+
+## [1.4.1] - 2026-11-04
+
+### Fixed
+
+- Contain terminal JSON-rendering faults in the opt-in Laravel `SafeLaravelExceptionHandler`. If both normal
+  presentation and fallback encoding fail, return HTTP 500 with `Content-Type: application/json` and the fixed
+  body `{"status":"error","message":"Internal server error."}` without exposing private diagnostics or selected
+  failure headers. The original failure receives one diagnostic attempt; renderer faults do not recursively
+  enter Laravel reporting. Normal mappings, native response finalization, later requests and HTML delegation
+  remain unchanged. Existing opt-in wiring requires no migration; legacy error handlers are unchanged.
+- Restore non-root readability of the existing PHP memory/coverage settings and explicitly propagate PHPStan's
+  existing 512 MiB limit. Maintenance-native database verification can reuse one retained environment across
+  roles and retire it without force only after exact identity and all-consumer checks, including indirect
+  network-namespace dependencies. These are maintainer-tooling fixes, not consumer runtime API changes.
 
 ## [1.4.0] - 2026-10-12
 
@@ -366,7 +403,8 @@ for exact limits and composition requirements.
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/johnnickell/fight-common/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/johnnickell/fight-common/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/johnnickell/fight-common/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/johnnickell/fight-common/compare/v1.1.0...v1.2.0

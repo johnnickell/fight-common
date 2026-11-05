@@ -6,7 +6,7 @@ namespace Fight\Test\Common\Application\Mcp\Task;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Fight\Common\Adapter\Mcp\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Query\QueryPipeline;
 use Fight\Common\Application\Mcp\Task\CommandHandler\AcquireTaskInputHandler;
@@ -102,7 +102,7 @@ final class TaskHandlerTest extends UnitTestCase
         if ($operation !== 'supply') {
             $fixture->supply(self::answers());
         }
-        $before = $fixture->committedTaskReader->read('scope', TaskFixture::ID)->version();
+        $before = $fixture->committedTaskReader->read('scope', TaskFixture::id())->version();
         $eventDispatcher = $this->mock(EventDispatcher::class);
         $eventDispatcher->shouldReceive('trigger')->once()->andReturnUsing(static function ($event) use ($connection): void {
             self::assertFalse($connection->isTransactionActive());
@@ -144,7 +144,7 @@ final class TaskHandlerTest extends UnitTestCase
             $fixture->$callback = static fn () => throw new RuntimeException('private authority');
             try {
                 if ($callback === 'onAdmission') {
-                    $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1));
+                    $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
                 } else {
                     $fixture->acquire();
                 }
@@ -196,7 +196,7 @@ final class TaskHandlerTest extends UnitTestCase
             if ($operation === 'acquire') {
                 $fixture->acquire();
             } else {
-                $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1));
+                $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
             }
             self::fail('Unavailable Tasks must reject');
         } catch (TaskRejected) {
@@ -218,7 +218,7 @@ final class TaskHandlerTest extends UnitTestCase
         $fixture = new TaskFixture($connection);
         $fixture->create();
         $fixture->issue();
-        $maximum = Task::fromArray(array_replace($fixture->committedTaskReader->read('scope', TaskFixture::ID)->toArray(), ['version' => Task::MAX_VERSION]));
+        $maximum = Task::fromArray(array_replace($fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray(), ['version' => Task::MAX_VERSION]));
         $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->taskRepository->save($maximum));
         $before = $connection->fetchAllAssociative('SELECT * FROM fight_tasks');
         try {
@@ -238,7 +238,7 @@ final class TaskHandlerTest extends UnitTestCase
         $before = $fixture->get()->toString();
         $fixture->events->addHandler(ClassName::underscore(AllEvents::class), static fn () => self::fail('No duplicate fact'));
 
-        $fixture->recordTaskStateHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::ID, 'producer', 1, TaskFixture::completed())));
+        $fixture->recordTaskStateHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskFixture::completed())));
 
         self::assertSame($before, $fixture->get()->toString());
     }
@@ -261,16 +261,16 @@ final class TaskHandlerTest extends UnitTestCase
         $queryBus->addFilter($queryFilter);
         $commandBus->execute(new CreateTask(TaskFixture::definition(), TaskState::create('working'), 1000));
         $batch = TaskInputForms::batch(McpInputRequired::fromRequests(['answer' => TaskFixture::form()]), 'caller', $fixture->now + 100);
-        $commandBus->execute(new RequestTaskInput('scope', TaskFixture::ID, 'producer', 1, $batch));
-        $commandBus->execute(new SupplyTaskInput('scope', TaskFixture::ID, 'caller', StrictJson::fromObject(self::answers())));
-        $commandBus->execute(new AcquireTaskInput('scope', TaskFixture::ID, 'caller', TaskFixture::KEY_1));
-        $commandBus->execute(new RequestTaskCancellation('scope', TaskFixture::ID, 'caller'));
+        $commandBus->execute(new RequestTaskInput('scope', TaskFixture::id(), 'producer', 1, $batch));
+        $commandBus->execute(new SupplyTaskInput('scope', TaskFixture::id(), 'caller', StrictJson::fromObject(self::answers())));
+        $commandBus->execute(new AcquireTaskInput('scope', TaskFixture::id(), 'caller', TaskFixture::KEY_1));
+        $commandBus->execute(new RequestTaskCancellation('scope', TaskFixture::id(), 'caller'));
         $before = $connection->fetchAllAssociative('SELECT * FROM fight_tasks');
         $fixture->now += 100;
 
-        self::assertSame(5, $queryBus->fetch(new GetTask('scope', TaskFixture::ID))->get('version'));
-        self::assertTrue($queryBus->fetch(new GetTaskInput('scope', TaskFixture::ID, 'caller'))->get('groups')->get(TaskFixture::KEY_1)->get('consumed'));
-        self::assertNotNull($queryBus->fetch(new GetTaskCancellation('scope', TaskFixture::ID, 'caller'))->get('cancellation'));
+        self::assertSame(5, $queryBus->fetch(new GetTask('scope', TaskFixture::id()))->get('version'));
+        self::assertTrue($queryBus->fetch(new GetTaskInput('scope', TaskFixture::id(), 'caller'))->get('groups')->get(TaskFixture::KEY_1)->get('consumed'));
+        self::assertNotNull($queryBus->fetch(new GetTaskCancellation('scope', TaskFixture::id(), 'caller'))->get('cancellation'));
         self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_tasks'));
     }
 
@@ -281,11 +281,11 @@ final class TaskHandlerTest extends UnitTestCase
         $clock = fn (): int => $fixture->now;
         return match ($operation) {
             'create' => [new CreateTaskHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new CreateTask(TaskFixture::definition(str_repeat('a', 32)), TaskState::create('working'))],
-            'record' => [new RecordTaskStateHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RecordTaskState('scope', TaskFixture::ID, 'producer', 3, TaskFixture::completed())],
-            'request' => [new RequestTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RequestTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskInputForms::batch(McpInputRequired::fromRequests(['answer' => TaskFixture::form()]), 'caller', $fixture->now + 1000))],
-            'supply' => [new SupplyTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new SupplyTaskInput('scope', TaskFixture::ID, 'caller', StrictJson::fromObject(self::answers()))],
-            'acquire' => [new AcquireTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new AcquireTaskInput('scope', TaskFixture::ID, 'caller', TaskFixture::KEY_1)],
-            'retire' => [new RetireTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RetireTaskInput('scope', TaskFixture::ID, 'producer', 3, TaskFixture::KEY_1)]
+            'record' => [new RecordTaskStateHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RecordTaskState('scope', TaskFixture::id(), 'producer', 3, TaskFixture::completed())],
+            'request' => [new RequestTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RequestTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskInputForms::batch(McpInputRequired::fromRequests(['answer' => TaskFixture::form()]), 'caller', $fixture->now + 1000))],
+            'supply' => [new SupplyTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new SupplyTaskInput('scope', TaskFixture::id(), 'caller', StrictJson::fromObject(self::answers()))],
+            'acquire' => [new AcquireTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new AcquireTaskInput('scope', TaskFixture::id(), 'caller', TaskFixture::KEY_1)],
+            'retire' => [new RetireTaskInputHandler($taskRepository, $transactionalUnitOfWork, $fixture, $taskPayloadPolicy, $eventDispatcher, $clock), new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1)]
         };
     }
 

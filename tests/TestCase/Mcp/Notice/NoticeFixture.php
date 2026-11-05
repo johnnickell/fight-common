@@ -6,9 +6,9 @@ namespace Fight\Test\Common\TestCase\Mcp\Notice;
 
 use Closure;
 use Doctrine\DBAL\Connection;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRecoveryReader;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeRepository;
-use Fight\Common\Adapter\Mcp\Notice\Dbal\DbalNoticeTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;

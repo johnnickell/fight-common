@@ -7,7 +7,6 @@ namespace Fight\Common\Domain\Mcp\Observation\Command;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Observation;
-use Fight\Common\Domain\Mcp\Value\ObservationFields;
 use Fight\Common\Domain\Messaging\Command\Command;
 
 /**
@@ -35,7 +34,12 @@ final readonly class RecordProtectedDetail implements Command
      */
     public static function fromArray(array $data): static
     {
-        ObservationFields::structure($data, ['observation', 'content']);
+        $keys = array_keys($data);
+        sort($keys);
+        if ($keys !== ['content', 'observation']) {
+            throw new DomainException('Invalid protected detail Command structure.');
+        }
+
         if (!is_array($data['observation']) || !is_array($data['content'])) {
             throw new DomainException('Invalid protected detail Command.');
         }

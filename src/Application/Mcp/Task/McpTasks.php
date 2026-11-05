@@ -15,6 +15,7 @@ use Fight\Common\Application\Messaging\Query\QueryBus;
 use Fight\Common\Domain\Exception\DomainException;
 use Fight\Common\Domain\Mcp\Task\Query\GetTask;
 use Fight\Common\Domain\Mcp\Task\TaskDefinition;
+use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
 /**
@@ -117,12 +118,12 @@ final readonly class McpTasks implements McpCapability
         }
 
         try {
-            TaskDefinition::identity($parameters['taskId']);
+            $taskId = TaskId::fromString($parameters['taskId']);
         } catch (DomainException) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }
 
-        return McpResult::complete($this->project($this->read($parameters['taskId']), true))
+        return McpResult::complete($this->project($this->read($taskId), true))
             ->withResponseLimit($this->maxResponseBytes);
     }
 
@@ -144,13 +145,13 @@ final readonly class McpTasks implements McpCapability
      */
     public function current(string $id): ?array
     {
-        TaskDefinition::identity($id);
-        $view = $this->queries->fetch(new GetTask($this->scope, $id));
+        $taskId = TaskId::fromString($id);
+        $view = $this->queries->fetch(new GetTask($this->scope, $taskId));
         if ($view === null) {
             return null;
         }
 
-        $this->validateView($view, $id);
+        $this->validateView($view, $taskId);
 
         return $this->project($view, true);
     }
@@ -158,7 +159,7 @@ final readonly class McpTasks implements McpCapability
     /**
      * Retrieves current state through the shared Query rather than Tool catalog or adapter SQL
      */
-    private function read(string $id): StrictJson
+    private function read(TaskId $id): StrictJson
     {
         $view = $this->queries->fetch(new GetTask($this->scope, $id));
         if ($view === null) {
@@ -173,10 +174,10 @@ final readonly class McpTasks implements McpCapability
     /**
      * Validates shared Query identity and mandatory atomically bound revision metadata
      */
-    private function validateView(mixed $view, string $id): void
+    private function validateView(mixed $view, TaskId $id): void
     {
         if (
-            !$view instanceof StrictJson || $view->get('id') !== $id
+            !$view instanceof StrictJson || $view->get('id') !== $id->toString()
             || !$view->get('revision') instanceof StrictJson
         ) {
             throw new DomainException('Invalid Task Query result.');

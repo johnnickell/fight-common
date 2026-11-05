@@ -17,9 +17,7 @@ final readonly class Notice
      * Constructs Notice
      */
     private function __construct(
-        private string $id,
-        private string $producer,
-        private string $scope,
+        private NoticeId $identity,
         private string $topic,
         private string $type,
         private ?NoticeOccurrence $occurrence,
@@ -47,9 +45,11 @@ final readonly class Notice
         }
 
         $notice = new self(
-            self::reference($data['id']),
-            self::reference($data['producer']),
-            self::reference($data['scope']),
+            NoticeId::fromStrings(
+                self::reference($data['scope']),
+                self::reference($data['producer']),
+                self::reference($data['id'])
+            ),
             self::reference($data['topic']),
             self::reference($data['type']),
             $data['occurred_at'] === null ? null : NoticeOccurrence::fromString($data['occurred_at']),
@@ -79,11 +79,19 @@ final readonly class Notice
     }
 
     /**
+     * Returns the scope/producer/local-ID aggregate identity
+     */
+    public function identity(): NoticeId
+    {
+        return $this->identity;
+    }
+
+    /**
      * Returns the producer-scoped notice identity
      */
     public function id(): string
     {
-        return $this->id;
+        return $this->identity->id();
     }
 
     /**
@@ -91,7 +99,7 @@ final readonly class Notice
      */
     public function producer(): string
     {
-        return $this->producer;
+        return $this->identity->producer();
     }
 
     /**
@@ -99,7 +107,7 @@ final readonly class Notice
      */
     public function scope(): string
     {
-        return $this->scope;
+        return $this->identity->scope();
     }
 
     /**
@@ -143,9 +151,9 @@ final readonly class Notice
     {
         return [
             'version'       => 1,
-            'id'            => $this->id,
-            'producer'      => $this->producer,
-            'scope'         => $this->scope,
+            'id'            => $this->identity->id(),
+            'producer'      => $this->identity->producer(),
+            'scope'         => $this->identity->scope(),
             'topic'         => $this->topic,
             'type'          => $this->type,
             'occurred_at'   => $this->occurrence?->toString(),

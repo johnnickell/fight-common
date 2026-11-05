@@ -15,7 +15,7 @@ interface NoticeRepository
     /**
      * Returns retained identity evidence inside the owned transaction
      */
-    public function getByIdentity(string $scope, string $producer, string $id): ?RecordedNotice;
+    public function getByIdentity(NoticeId $identity): ?RecordedNotice;
 
     /**
      * Adds related content, comparison and position inside the owned transaction

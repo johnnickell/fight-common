@@ -42,8 +42,9 @@ handler ownership, disclosure projection, domain values/identities, adapter name
 descriptive-variable-name check. Their records own scope and technical dependencies; priority follows the
 existing five chores without turning independent work into artificial blockers. TASK-00183's rule surface is
 accepted; TASK-00184's DBAL transaction separation, TASK-00185's Task repository separation, TASK-00186's Notice
-repository/recovery separation, TASK-00187's handler ownership and TASK-00188's disclosure projection are accepted.
-TASK-00189 through TASK-00192 remain pending.
+repository/recovery separation, TASK-00187's handler ownership, TASK-00188's disclosure projection and
+TASK-00189's Task values, TASK-00190's execution/Notice values and TASK-00191's adapter namespaces are accepted.
+TASK-00192 remains pending.
 
 The selected [execution introspection map](../wayfinder/mcp-execution-introspection-map.md#planning-handoff) owns
 its approved map-wide decomposition handoff. Its planning is complete through TASK-00171; execution selection
@@ -66,15 +67,12 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | ready-for-agent | — | — |
-| 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | ready-for-agent | — | — |
+| 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | — | — |
 
 ## Waiting
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | ready-for-agent | [TASK-00189](00189-TASK.md), [TASK-00190](00190-TASK.md) | — |
-| 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | [TASK-00191](00191-TASK.md) | — |
 | — | [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
 | — | [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md), [TASK-00195](00195-TASK.md) | — |
 | — | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | ready-for-agent | [TASK-00194](00194-TASK.md) | — |
@@ -131,8 +129,11 @@ their owning records; routing and planning checks stay offline.
 | 11 | [TASK-00121](00121-TASK.md) | Bound MCP Request Reading and Decoding | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #181](https://github.com/johnnickell/fight-common/pull/181) |
 | 11 | [TASK-00188](00188-TASK.md) | Separate Task disclosure projection from aggregate lifecycle rules | — (standalone chore) | done | — | [PR #273](https://github.com/johnnickell/fight-common/pull/273) |
 | 12 | [TASK-00122](00122-TASK.md) | Deliver the Combined Tools, Resources and Skills Journey | [TICKET-00030 — Compose Resources, Skills and Tools Through One Guarded Endpoint](../tickets/00030-TICKET.md) | done | — | [PR #182](https://github.com/johnnickell/fight-common/pull/182) |
+| 12 | [TASK-00189](00189-TASK.md) | Model Task identity and values with the existing ValueObject contract | — (standalone chore) | done | — | [PR #275](https://github.com/johnnickell/fight-common/pull/275) |
 | 13 | [TASK-00123](00123-TASK.md) | Introduce an Optional Metadata-Aware MCP Capability Contract | — (standalone chore) | done | — | [PR #186](https://github.com/johnnickell/fight-common/pull/186) |
+| 13 | [TASK-00190](00190-TASK.md) | Clarify execution and Notice domain building blocks and identities | — (standalone chore) | done | — | [PR #274](https://github.com/johnnickell/fight-common/pull/274) |
 | 14 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | — (standalone chore) | done | — | [PR #187](https://github.com/johnnickell/fight-common/pull/187) |
+| 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | done | — | [PR #278](https://github.com/johnnickell/fight-common/pull/278) |
 | 15 | [TASK-00125](00125-TASK.md) | Reconcile v1.3 MCP documentation and prepare release qualification | — (standalone chore) | done | — | [PR #188](https://github.com/johnnickell/fight-common/pull/188) |
 | — | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | — (standalone chore) | done | — | [PR #159](https://github.com/johnnickell/fight-common/pull/159) |
 | — | [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | — (standalone chore) | done | — | [PR #173](https://github.com/johnnickell/fight-common/pull/173) |
@@ -193,6 +194,8 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00176](00176-TASK.md) | Keep planning routing views and delivery handoffs consistent | — (standalone bug) | done | — | [PR #234](https://github.com/johnnickell/fight-common/pull/234) |
 | — | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | — (standalone chore) | done | — | [PR #251](https://github.com/johnnickell/fight-common/pull/251) |
 | — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | done | — | [PR #266](https://github.com/johnnickell/fight-common/pull/266) |
+| — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
+| — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
 <!-- /planning:board -->
 
 ## Wayfinder
