@@ -14,12 +14,12 @@ use Doctrine\DBAL\Schema\Schema;
  */
 final readonly class DbalEventStoreSchema
 {
-    private const string EVENTS_TABLE = 'event_store_events';
-    private const string GLOBAL_POSITION_TABLE = 'event_store_global_position';
-    private const array TABLES = [
-        self::EVENTS_TABLE,
-        self::GLOBAL_POSITION_TABLE
-    ];
+    /**
+     * Constructs DbalEventStoreSchema
+     */
+    public function __construct(private DbalEventStoreTables $tables = new DbalEventStoreTables())
+    {
+    }
 
     /**
      * Returns the event-store schema definition
@@ -27,7 +27,7 @@ final readonly class DbalEventStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $events = $schema->createTable(self::EVENTS_TABLE);
+        $events = $schema->createTable($this->tables->eventTable()->schemaName());
         $events->addColumn('global_position', 'bigint');
         $events->addColumn('aggregate_name', 'string', ['length' => 255]);
         $events->addColumn('aggregate_identifier', 'string', ['length' => 255]);
@@ -41,11 +41,14 @@ final readonly class DbalEventStoreSchema
         $events->setPrimaryKey(['global_position']);
         $events->addUniqueIndex(
             ['aggregate_name', 'aggregate_identifier', 'stream_version'],
-            'event_store_stream_version_unique'
+            $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_stream_version_unique' : null
         );
-        $events->addUniqueIndex(['message_id'], 'event_store_message_id_unique');
+        $events->addUniqueIndex(
+            ['message_id'],
+            $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_message_id_unique' : null
+        );
 
-        $position = $schema->createTable(self::GLOBAL_POSITION_TABLE);
+        $position = $schema->createTable($this->tables->globalPositionTable()->schemaName());
         $position->addColumn('singleton', 'smallint');
         $position->addColumn('position', 'bigint');
         $position->setPrimaryKey(['singleton']);
@@ -60,20 +63,28 @@ final readonly class DbalEventStoreSchema
     {
         $schemaManager = $connection->createSchemaManager();
         $schema = $this->schema();
+        // PostgreSQL reports case-sensitive names with DBAL quoting markers.
+        // Ordinary names cannot contain these delimiters, so compare exact logical names.
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
 
-        foreach (self::TABLES as $table) {
-            if (!$schemaManager->tablesExist([$table])) {
-                $schemaManager->createTable($schema->getTable($table));
+        foreach ([$this->tables->eventTable(), $this->tables->globalPositionTable()] as $table) {
+            if (!in_array($table->name(), $existingTables, true)) {
+                $schemaManager->createTable($schema->getTable($table->name()));
             }
         }
 
+        $positionTable = $this->tables->globalPositionTable()->quoted($connection->getDatabasePlatform());
+
         if (
             false === $connection->fetchOne(
-                sprintf('SELECT singleton FROM %s WHERE singleton = ?', self::GLOBAL_POSITION_TABLE),
+                sprintf('SELECT singleton FROM %s WHERE singleton = ?', $positionTable),
                 [1]
             )
         ) {
-            $connection->insert(self::GLOBAL_POSITION_TABLE, [
+            $connection->insert($positionTable, [
                 'singleton' => 1,
                 'position'  => 0
             ]);

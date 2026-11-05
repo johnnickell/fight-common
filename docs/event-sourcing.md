@@ -123,6 +123,56 @@ history. An unknown stable event name, unsupported or newer schema version, or
 invalid or incomplete mapping raises `EventMappingException`; reads never guess,
 skip, downcast, or best-effort hydrate stored history.
 
+## Configure physical Event Store tables
+
+Default construction still uses `event_store_events` and `event_store_global_position`.
+To select other tables, explicitly share one
+`Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreTables` between the schema installer and runtime store:
+
+```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:configured-event-storage"
+```
+
+The `eventTable` and `globalPositionTable` arguments are independent. Supplying only `eventTable`
+retains `event_store_global_position`; supplying only `globalPositionTable` retains `event_store_events`.
+Omitting `tables` on either adapter retains its defaults, **not** another instance's selections: wire the same
+selection into both. No environment variables or global registry are consulted. The existing `connection`
+and `eventMapper` named arguments remain supported.
+
+Names must match `[A-Za-z_][A-Za-z0-9_]{0,62}`: 1–63 ASCII characters, beginning with a letter or underscore.
+Case is preserved and names are quoted for the actual platform in DDL and every runtime operation.
+Reserved words are supported; whitespace, punctuation, prequoted identifiers, Unicode and qualified names
+such as `reporting.events` reject with `InvalidArgumentException` during configuration, never as SQL fragments
+or default fallback. Connection configuration still selects the database/schema. The two selected names must
+be distinct even ignoring ASCII case, for portable MySQL composition. Consumers must also avoid collisions
+with unrelated tables and respect the server's table-casing settings. Custom event tables get DBAL-generated
+index names to coexist with the original table; default event index names and all unique keys are retained.
+
+Configuration itself performs no SQL. `install()` explicitly creates missing selected tables and initializes
+a missing singleton at position zero; repeated installation leaves existing tables/state intact. As before,
+it does not validate or repair existing event-column definitions, infer a sequence from history, rename,
+copy, migrate or rewrite data. Missing selected storage raises the existing DBAL errors from reads/appends;
+incompatible selected sequence storage fails initialization, while incompatible existing event storage may
+fail only when used. Overridden logical tables never fall back to populated defaults.
+
+A changed name selects **different storage**, not migrated history. For a partial override, intentionally
+retained tables remain shared: event-only replacement continues the retained sequence, while sequence-only
+replacement still reads existing events. A new zero-valued sequence beside populated events is not automatically
+synchronized; consumers own stopping writers, consistent initialization/reuse of sequence state and any data
+operations before resuming. Do not treat a configuration change as resolution of an uncertain commit.
+All append identity/version checks, rollback/error boundaries and prefix-stable committed ordering remain
+unchanged. Consumers retain database privileges, deployment sequencing and application permissions.
+
+### Reusable Adapter seam
+
+`Adapter\Persistence\Doctrine\DbalTableName` validates an ordinary name at construction. `name()` returns the
+exact logical name, `schemaName()` returns DBAL's portable explicitly quoted schema-asset form, and
+`quoted(AbstractPlatform)` returns an SQL identifier for that platform. Values still use parameter binding.
+This is an Adapter/composition helper, not a Domain value, connection router or settings registry. The Event Store
+selection adds its own two-table collision rule; later checkpoint/publication adapters can reuse the identifier
+helper while owning their own defaults, relationships and schema/runtime composition. Their table customization
+is not implemented by this slice.
+
 ## Migrate durable names and event schemas
 
 Choose durable names before writing the first production event. The stable

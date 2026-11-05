@@ -9,6 +9,7 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\ServiceContainer\Symfony\EventMappingProviderCompilerPass;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreSchema;
+use Fight\Common\Adapter\EventSourcing\Dbal\DbalEventStoreTables;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalProjectionCheckpointStoreSchema;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
@@ -73,6 +74,7 @@ final readonly class EventSourcingGuideExample
             $eventStore,
         );
         self::verifySymfonyExamples();
+        self::verifyConfiguredStorage();
 
         return [
             'aggregate_name' => $reloaded->name(),
@@ -210,6 +212,28 @@ final readonly class EventSourcingGuideExample
             $cursorStore->load('orders.subscribers'),
             (int) $connection->fetchOne('SELECT COUNT(*) FROM publication_failures'),
         ];
+    }
+
+    private static function verifyConfiguredStorage(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $eventMapper = new EventMapper([new OrdersEventMappingProvider()]);
+        // --8<-- [start:configured-event-storage]
+        $tables = new DbalEventStoreTables(
+            eventTable: 'orders_events',
+            globalPositionTable: 'orders_position',
+        );
+        (new DbalEventStoreSchema(tables: $tables))->install($connection);
+        $eventStore = new DbalEventStore(
+            connection: $connection,
+            eventMapper: $eventMapper,
+            tables: $tables,
+        );
+        // --8<-- [end:configured-event-storage]
+        self::persistOrders(new EventSourcedRepository(
+            $eventStore,
+            new AggregateDefinition('orders', Order::class),
+        ));
     }
 
     private static function configureSymfonyContainer(ContainerBuilder $container): void
