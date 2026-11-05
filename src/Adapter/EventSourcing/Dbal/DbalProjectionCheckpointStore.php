@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\EventSourcing\ProjectionCheckpointStore;
 use InvalidArgumentException;
 
@@ -19,8 +20,10 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     /**
      * Constructs DbalProjectionCheckpointStore
      */
-    public function __construct(private Connection $connection)
-    {
+    public function __construct(
+        private Connection $connection,
+        private DbalTableName $table = new DbalTableName('projection_checkpoints')
+    ) {
     }
 
     /**
@@ -29,7 +32,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     public function load(string $projectorName): int
     {
         $checkpoint = $this->connection->fetchOne(
-            'SELECT global_position FROM projection_checkpoints WHERE projector_name = ?',
+            sprintf('SELECT global_position FROM %s WHERE projector_name = ?', $this->tableName()),
             [$projectorName]
         );
 
@@ -57,7 +60,7 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
         }
 
         try {
-            $this->connection->insert('projection_checkpoints', [
+            $this->connection->insert($this->tableName(), [
                 'projector_name'  => $projectorName,
                 'global_position' => $globalPosition
             ]);
@@ -86,19 +89,19 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     {
         if (
             0 === $this->connection->update(
-                'projection_checkpoints',
+                $this->tableName(),
                 ['global_position' => 0],
                 ['projector_name' => $projectorName]
             )
         ) {
             try {
-                $this->connection->insert('projection_checkpoints', [
+                $this->connection->insert($this->tableName(), [
                     'projector_name'  => $projectorName,
                     'global_position' => 0
                 ]);
             } catch (UniqueConstraintViolationException) {
                 $this->connection->update(
-                    'projection_checkpoints',
+                    $this->tableName(),
                     ['global_position' => 0],
                     ['projector_name' => $projectorName]
                 );
@@ -114,12 +117,19 @@ final readonly class DbalProjectionCheckpointStore implements ProjectionCheckpoi
     private function advance(string $projectorName, int $globalPosition): int
     {
         return $this->connection->executeStatement(
-            <<<'SQL'
-                UPDATE projection_checkpoints
-                SET global_position = ?
-                WHERE projector_name = ? AND global_position <= ?
-                SQL,
+            sprintf(
+                'UPDATE %s SET global_position = ? WHERE projector_name = ? AND global_position <= ?',
+                $this->tableName()
+            ),
             [$globalPosition, $projectorName, $globalPosition]
         );
+    }
+
+    /**
+     * Returns the selected platform-quoted checkpoint table
+     */
+    private function tableName(): string
+    {
+        return $this->table->quoted($this->connection->getDatabasePlatform());
     }
 }
