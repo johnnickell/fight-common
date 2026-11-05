@@ -97,7 +97,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
 | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | done | — |
 | [TASK-00194](00194-TASK.md) | Configure Event Store and sequence table names | done | [TICKET-00053](../tickets/00053-TICKET.md) |
-| [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |
+| [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | in-progress | [TICKET-00053](../tickets/00053-TICKET.md) |
 | [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | ready-for-agent | [TICKET-00053](../tickets/00053-TICKET.md) |
 | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | ready-for-agent | [TICKET-00054](../tickets/00054-TICKET.md) |
 | [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent | [TICKET-00054](../tickets/00054-TICKET.md) |

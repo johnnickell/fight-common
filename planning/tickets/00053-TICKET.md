@@ -99,7 +99,7 @@ are requested. These are requirements, not claims that implementation or verific
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00194](../tasks/00194-TASK.md) | Configure Event Store and sequence table names | done |
-| [TASK-00195](../tasks/00195-TASK.md) | Configure projection checkpoint storage | ready-for-agent |
+| [TASK-00195](../tasks/00195-TASK.md) | Configure projection checkpoint storage | in-progress |
 | [TASK-00196](../tasks/00196-TASK.md) | Configure publication storage and complete the customized journey | ready-for-agent |
 <!-- /planning:children -->
 

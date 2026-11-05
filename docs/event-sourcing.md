@@ -169,9 +169,8 @@ unchanged. Consumers retain database privileges, deployment sequencing and appli
 exact logical name, `schemaName()` returns DBAL's portable explicitly quoted schema-asset form, and
 `quoted(AbstractPlatform)` returns an SQL identifier for that platform. Values still use parameter binding.
 This is an Adapter/composition helper, not a Domain value, connection router or settings registry. The Event Store
-selection adds its own two-table collision rule; later checkpoint/publication adapters can reuse the identifier
-helper while owning their own defaults, relationships and schema/runtime composition. Their table customization
-is not implemented by this slice.
+selection adds its own two-table collision rule; checkpoint storage uses the same identifier helper with its
+own default and explicit schema/runtime composition below. Publication table customization remains separate work.
 
 ## Migrate durable names and event schemas
 
@@ -286,6 +285,38 @@ application deployment step, then compose the public worker contracts:
 ```php-inline
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:projection-composition"
 ```
+
+### Configure the checkpoint table
+
+Omitting `table` preserves exactly `projection_checkpoints`. To override it, explicitly pass the same
+`Adapter\Persistence\Doctrine\DbalTableName` to the schema and runtime store:
+
+```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:configured-checkpoints"
+```
+
+The existing `new DbalProjectionCheckpointStore(connection: $connection)` and zero-argument schema construction
+remain supported. Selecting `table` on one instance does not configure another instance; independent worker
+connections must receive the same selection. No environment variables or global registry are consulted.
+
+The shared naming limits above apply: `[A-Za-z_][A-Za-z0-9_]{0,62}`, case preserved, platform-quoted identifiers
+including reserved words, and `InvalidArgumentException` for unsupported/unsafe/qualified names. All projector
+identities and positions remain bound values. Consumers avoid collisions with unrelated tables and respect server
+casing settings. Physical naming never changes a stable projector identity or stored fields.
+
+Configuration and `schema()` perform no SQL. Explicit `install()` creates only a missing selected table and is
+idempotent for an existing selection; as before, it does not validate or repair existing column definitions.
+Missing or incompatible selected storage raises existing DBAL errors when used, never falls back to a populated
+default table and never creates storage implicitly. Changing the selection does not rename, copy, migrate, clear
+or reset old checkpoints. A missing row in the new table means position zero there, not a migrated/rebuilt read
+model. Consumers own deployment privileges, existing-data operations and coherent worker composition.
+
+Load, first/equal/monotonic saves, duplicate-key recovery and reset all use the selected table. Backward saves
+still reject with `InvalidArgumentException`. Reset affects only that table's named projector; the stop-worker,
+read-model cleanup and restart responsibilities below are unchanged. Selecting a different table is not a reset
+or recovery procedure, and configuration grants no administrative authority.
+
+### Poll and rebuild
 
 One poll reads a bounded batch. A long-running worker can repeat that bounded
 operation and back off when the named checkpoint does not advance:
