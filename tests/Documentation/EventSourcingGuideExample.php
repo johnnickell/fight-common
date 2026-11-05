@@ -18,6 +18,7 @@ use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorder;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorderSchema;
 use Fight\Common\Adapter\EventSourcing\Logging\LoggingPublicationFailureRecorder;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\EventSourcing\EventPublicationRunner;
 use Fight\Common\Application\EventSourcing\ProjectionRunner;
 use Fight\Common\Application\EventSourcing\Projector;
@@ -75,6 +76,7 @@ final readonly class EventSourcingGuideExample
         );
         self::verifySymfonyExamples();
         self::verifyConfiguredStorage();
+        self::verifyConfiguredCheckpoints();
 
         return [
             'aggregate_name' => $reloaded->name(),
@@ -296,6 +298,23 @@ final readonly class EventSourcingGuideExample
             }
         }
         // --8<-- [end:projection-worker]
+    }
+
+    private static function verifyConfiguredCheckpoints(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        // --8<-- [start:configured-checkpoints]
+        $checkpointTable = new DbalTableName('orders_projection_progress');
+        $checkpointSchema = new DbalProjectionCheckpointStoreSchema(table: $checkpointTable);
+        $checkpointStore = new DbalProjectionCheckpointStore(connection: $connection, table: $checkpointTable);
+        // Configuration above performs no SQL. Install explicitly during deployment.
+        $checkpointSchema->install($connection);
+        $checkpointStore->save('orders.order-summary', 3);
+        // --8<-- [end:configured-checkpoints]
+        $reopenedCheckpointStore = new DbalProjectionCheckpointStore($connection, $checkpointTable);
+        if (3 !== $reopenedCheckpointStore->load('orders.order-summary')) {
+            throw new RuntimeException('Configured checkpoint storage must preserve projector progress.');
+        }
     }
 
     private static function resetProjection(DbalProjectionCheckpointStore $checkpointStore): void
