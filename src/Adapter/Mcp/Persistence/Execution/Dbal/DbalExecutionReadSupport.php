@@ -22,8 +22,10 @@ final readonly class DbalExecutionReadSupport
     /**
      * Constructs DbalExecutionReadSupport
      */
-    public function __construct(private Connection $connection)
-    {
+    public function __construct(
+        private Connection $connection,
+        private DbalObservationTables $tables = new DbalObservationTables()
+    ) {
     }
 
     /**
@@ -98,7 +100,9 @@ final readonly class DbalExecutionReadSupport
         $producer = '';
         $id = '';
         do {
-            $sql = 'SELECT o.* FROM fight_execution_observations o';
+            $sql = 'SELECT o.* FROM '.$this->tables->observationTable()->quoted(
+                $this->connection->getDatabasePlatform()
+            ).' o';
             $sql .= ' WHERE o.project_id = ? AND o.session_id = ? AND '.$where;
             $args = [$project, $session, ...$parameters];
             if ($phase !== null) {

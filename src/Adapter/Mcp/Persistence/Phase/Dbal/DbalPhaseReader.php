@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalExecutionReadSupport;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Application\Mcp\Observation\Data\ObservationView;
 use Fight\Common\Application\Mcp\Phase\Data\PhasePage;
 use Fight\Common\Application\Mcp\Phase\Data\PhaseView;
@@ -28,9 +29,11 @@ final readonly class DbalPhaseReader implements PhaseReader
     /**
      * Constructs DbalPhaseReader
      */
-    public function __construct(private Connection $connection)
-    {
-        $this->sql = new DbalExecutionReadSupport($connection);
+    public function __construct(
+        private Connection $connection,
+        private DbalObservationTables $tables = new DbalObservationTables()
+    ) {
+        $this->sql = new DbalExecutionReadSupport($connection, $tables);
     }
 
     /**
@@ -39,9 +42,13 @@ final readonly class DbalPhaseReader implements PhaseReader
     public function list(ListExecutionPhases $query, ExecutionAccess $access): ?PhasePage
     {
         try {
+            $platform = $this->connection->getDatabasePlatform();
+            $sessionTable = $this->tables->sessionTable()->quoted($platform);
+            $phaseTable = $this->tables->phaseTable()->quoted($platform);
+            $observationTable = $this->tables->observationTable()->quoted($platform);
             [$sessionWhere, $sessionParameters] = $this->sql->constraints($query->execution()->selection(), $access);
             $session = $this->connection->fetchAssociative(
-                'SELECT s.* FROM fight_execution_sessions s WHERE '.$sessionWhere,
+                'SELECT s.* FROM '.$sessionTable.' s WHERE '.$sessionWhere,
                 $sessionParameters
             );
             if ($session === false) {
@@ -57,12 +64,12 @@ final readonly class DbalPhaseReader implements PhaseReader
             }
 
             $total = (int) $this->connection->fetchOne(
-                'SELECT COUNT(*) FROM fight_execution_phases p WHERE '.$where,
+                'SELECT COUNT(*) FROM '.$phaseTable.' p WHERE '.$where,
                 $parameters
             );
             [$parentWhere, $parentParameters] = $this->sql->phaseConstraints($access, 'parent');
             $sql = 'SELECT p.*, parent.phase_id AS visible_parent';
-            $scope = ' FROM fight_execution_observations o WHERE o.project_id = p.project_id';
+            $scope = ' FROM '.$observationTable.' o WHERE o.project_id = p.project_id';
             $scope .= ' AND o.session_id = p.session_id AND o.phase_id = p.phase_id';
             $scope .= ' ORDER BY o.recorded_at DESC, o.observation_id DESC, ';
             $scope .= $this->sql->binary('o.producer_id').' DESC LIMIT 1)';
@@ -75,7 +82,7 @@ final readonly class DbalPhaseReader implements PhaseReader
                 $sql .= ', '.$expression.' AS latest_'.$field;
             }
 
-            $sql .= ' FROM fight_execution_phases p LEFT JOIN fight_execution_phases parent';
+            $sql .= ' FROM '.$phaseTable.' p LEFT JOIN '.$phaseTable.' parent';
             $sql .= ' ON parent.project_id = p.project_id AND parent.session_id = p.session_id';
             $sql .= ' AND parent.phase_id = p.parent_phase_id AND '.$parentWhere;
             $direction = $query->pagination()->orderings()['latest_recorded_at'] ?? 'DESC';

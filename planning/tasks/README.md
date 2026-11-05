@@ -100,7 +100,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | done | [TICKET-00053](../tickets/00053-TICKET.md) |
 | [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | done | [TICKET-00053](../tickets/00053-TICKET.md) |
 | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | done | [TICKET-00054](../tickets/00054-TICKET.md) |
-| [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent | [TICKET-00054](../tickets/00054-TICKET.md) |
+| [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | done | [TICKET-00054](../tickets/00054-TICKET.md) |
 | [TASK-00199](00199-TASK.md) | Configure durable Task storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
