@@ -82,13 +82,13 @@ final class QueueEventDispatcherTest extends UnitTestCase
     public function test_that_job_hands_reconstituted_messages_to_its_service_and_rejects_invalid_services(): void
     {
         $message = EventMessage::create(new QueueEventDispatcherTestEvent('event-73'));
-        $synchronous = $this->mock(SynchronousEventDispatcher::class);
-        $synchronous->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
+        $eventDispatcher = $this->mock(SynchronousEventDispatcher::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(static function (EventMessage $actual) use ($message): bool {
             self::assertSame($message->arraySerialize(), $actual->arraySerialize());
 
             return true;
         });
-        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($synchronous));
+        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($eventDispatcher));
         try {
             (new EventMessageJob([
                 'kind'    => 'event',

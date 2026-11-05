@@ -18,7 +18,8 @@ TASK-00191 aligns aggregate Application and DBAL homes and moves concrete Query-
 TASK-00192 implements the codebase-wide descriptive-name pass, still awaiting independent acceptance after
 Review-requested dispatcher/factory/backend, registry/transaction-manager, subscription-composition and
 execution-query-bus naming repairs plus the affected operation-shape digest refresh, readable Resource-provider
-and Notice persisted-record support naming corrections, and same-project MySQL readiness/recovery verification; the
+and Notice persisted-record support naming corrections, same-project MySQL readiness/recovery verification, and
+final header-validator, Laravel View-factory and synchronous event-dispatcher local naming corrections; the
 [naming inventory and retained contracts](docs/maintenance/descriptive-variable-names.md) distinguish corrected
 private/provisional collaborators from exact released named-parameter, saved-state and extension exceptions.
 Complete token/path accounting is coverage evidence, not proof of semantic naming completeness. The

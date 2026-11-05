@@ -74,14 +74,14 @@ try {
     } elseif ($composition === 'laravel') {
         // Laravel's stream callback yields the same native Symfony StreamedResponse, not eventStream's sentinel.
         $emitter->prepare($response);
-        $views = new class implements Factory {
+        $viewFactory = new class implements Factory {
             public function exists($view) {} public function file($path, $data = [], $mergeData = []) {}
             public function make($view, $data = [], $mergeData = []) {} public function share($key, $value = null) {}
             public function composer($views, $callback) {} public function creator($views, $callback) {}
             public function addNamespace($namespace, $hints) {} public function replaceNamespace($namespace, $hints) {}
         };
         $redirector = new Illuminate\Routing\Redirector(new Illuminate\Routing\UrlGenerator(new Illuminate\Routing\RouteCollection(), Illuminate\Http\Request::create('/')));
-        $native = new ResponseFactory($views, $redirector)->stream(fn() => $emitter->emitBody($response), $response->getStatusCode(), $response->getHeaders());
+        $native = new ResponseFactory($viewFactory, $redirector)->stream(fn() => $emitter->emitBody($response), $response->getStatusCode(), $response->getHeaders());
         $native->send();
     } elseif ($composition === 'codeigniter') {
         require __DIR__.'/codeigniter.php';

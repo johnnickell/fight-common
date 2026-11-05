@@ -32,8 +32,13 @@ collections, and a subscription composition object named as subscription data (r
 The next Review marked R-01–R-05 resolved, but found the activity fixture's execution-query bus named as overview
 data (R-06) and the operation-shape digest stale after the provisional signature correction (R-07). Later Review
 marked R-01–R-07 resolved but found readable Resource providers named as content/relative values (R-08) and the
-Notice persisted-evidence helper named as record data (R-09). The current repair identifies those provider and
-support roles; a separate MySQL OOM/readiness prerequisite (R-10) is verified through the same native runtime.
+Notice persisted-evidence helper named as record data (R-09). Those provider/support roles were corrected;
+a separate MySQL OOM/readiness prerequisite (R-10) was verified through the same native runtime, without
+establishing its root cause. Latest Review marked R-01–R-10 resolved for their stated scope but found a header
+validator named as header data (R-11), a Laravel View factory named as views (R-12), and a synchronous event
+dispatcher named only by timing (R-13). The final bounded repair identifies those three local capabilities by
+responsibility, preserving genuine header/view data and framework-shaped parameter names. Enumeration had
+included these sites without establishing their semantic compliance; it is not independent acceptance.
 The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
 and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
@@ -82,6 +87,13 @@ and validators are included. No unreadable owned path was encountered.
   OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and
   `capabilityRegistry` where those responsibilities coexist. Laravel queue integration uses `transactionManager`
   for the native DatabaseTransactionsManager, preserving `'db.transactions'` and constructor labels.
+  The [Tool invocation test](https://github.com/johnnickell/fight-common/blob/develop/tests/Application/Mcp/Tool/McpToolInvocationTest.php)
+  uses `headerValidator` for mirror validation, distinct from actual header arrays. The
+  [streaming worker](https://github.com/johnnickell/fight-common/blob/develop/tests/Fixture/Mcp/server.php)
+  uses `viewFactory` for native Laravel response composition; composer/creator `views` parameters remain
+  framework view-name data. The
+  [CodeIgniter queue test](https://github.com/johnnickell/fight-common/blob/develop/tests/Adapter/Messaging/CodeIgniter/QueueEventDispatcherTest.php)
+  uses `eventDispatcher` for its synchronous mock, retaining reconstructed-message equality and service reset/failure checks.
   The four live Task journey providers use `backend` for SQLite/MySQL/PostgreSQL selectors, not `connection`;
   dataset keys/order/values are preserved, separately from the actual DBAL Connection property.
 - Current guides use the same distinctions. Tooling locals clarify receipt paths, lane checkout paths, Docker
