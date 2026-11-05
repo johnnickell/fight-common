@@ -47,10 +47,10 @@ final class McpSkillDiscoveryTest extends UnitTestCase
     {
         $first = SkillRevision::create();
         $second = SkillRevision::create('v2');
-        $streams = $this->mock(StreamFactoryInterface::class);
-        $streams->shouldNotReceive('createStream');
+        $streamFactory = $this->mock(StreamFactoryInterface::class);
+        $streamFactory->shouldNotReceive('createStream');
         $policy = new DiscoveryAvailability();
-        $skillResources = new McpSkillResources([$second, $first], $policy, $streams);
+        $skillResources = new McpSkillResources([$second, $first], $policy, $streamFactory);
         [$skillDiscovery, $responder] = $this->composition($skillResources, new McpSkillDiscoveryLimits(pageSize: 1));
         self::assertSame(['skills/list', 'skills/get'], $skillDiscovery->methods());
         self::assertSame([], $skillDiscovery->mirrorDeclarations());
@@ -214,9 +214,9 @@ final class McpSkillDiscoveryTest extends UnitTestCase
                 McpSkillFile::fromBytes('SKILL.md', $bytes)
             ], new SymfonyMcpSkillFrontmatterParser());
         }
-        $streams = $this->mock(StreamFactoryInterface::class);
-        $streams->shouldNotReceive('createStream');
-        $skillResources = new McpSkillResources($revisions, new DiscoveryAvailability(), $streams);
+        $streamFactory = $this->mock(StreamFactoryInterface::class);
+        $streamFactory->shouldNotReceive('createStream');
+        $skillResources = new McpSkillResources($revisions, new DiscoveryAvailability(), $streamFactory);
         $size = strlen($revisions[0]->entry()->toString());
         $limits = new McpSkillDiscoveryLimits(pageSize: 100, maxEntryBytes: $size, maxResultBytes: $size + 256);
         [, $responder] = $this->composition($skillResources, $limits, server: new McpServerInfo(str_repeat('s', 300), '1'));

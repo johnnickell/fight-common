@@ -38,9 +38,9 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
     public function test_that_real_commands_and_queries_reconstruct_all_content_kinds_in_bounded_byte_exact_chunks(string $backend): void
     {
         $db = $this->database($backend);
-        $events = new SimpleEventDispatcher(); $eventCount = 0;
-        $events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
-        $record = $this->writer($db, $events);
+        $eventDispatcher = new SimpleEventDispatcher(); $eventCount = 0;
+        $eventDispatcher->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
+        $record = $this->writer($db, $eventDispatcher);
         $record(ObservationFixture::session()); $record(ObservationFixture::phase());
         $activity = ObservationFixture::activity(); $record($activity);
         [$queryBus, $admission] = $this->detailBus($db);

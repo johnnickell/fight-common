@@ -15,9 +15,11 @@ repository/transaction separation, TASK-00186 implements Notice repository/recov
 implements Task handler ownership, TASK-00188 implements Task disclosure projection, TASK-00189 implements
 Task identity/value contracts and TASK-00190 implements execution/Notice value and identity correction.
 TASK-00191 aligns aggregate Application and DBAL homes and moves concrete Query-to-Tool presentation to Adapter.
-TASK-00192 implements the codebase-wide descriptive-name pass; the
+TASK-00192 implements the codebase-wide descriptive-name pass, still awaiting independent acceptance after
+Review-requested dispatcher/factory/backend naming repairs; the
 [naming inventory and retained contracts](docs/maintenance/descriptive-variable-names.md) distinguish corrected
-private/provisional collaborators from exact released named-parameter, saved-state and extension exceptions. The
+private/provisional collaborators from exact released named-parameter, saved-state and extension exceptions.
+Complete token/path accounting is coverage evidence, not proof of semantic naming completeness. The
 [source-linked classification](docs/maintenance/evidence-domain-values.md) accounts for the affected roots,
 values, native enums, messages and ports. Scoped SessionId/PhaseId/NoticeId repository arguments prevent
 role interchange while preserving exact component fields; ObservationIdentity composes the unchanged UUID value

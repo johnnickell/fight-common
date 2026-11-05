@@ -35,11 +35,11 @@ final class McpSkillResourcesTest extends UnitTestCase
     public function test_that_provider_serves_only_selected_immutable_files_and_never_opens_during_metadata_reads(): void
     {
         $revision = $this->revision();
-        $streams = $this->mock(StreamFactoryInterface::class);
-        $streams->shouldReceive('createStream')->once()->with("\0\xff")->andReturn(Utils::streamFor("\0\xff"));
-        $streams->shouldReceive('createStream')->once()->with("---\nname: work\n---\n")->andReturn(Utils::streamFor("---\nname: work\n---\n"));
+        $streamFactory = $this->mock(StreamFactoryInterface::class);
+        $streamFactory->shouldReceive('createStream')->once()->with("\0\xff")->andReturn(Utils::streamFor("\0\xff"));
+        $streamFactory->shouldReceive('createStream')->once()->with("---\nname: work\n---\n")->andReturn(Utils::streamFor("---\nname: work\n---\n"));
         $policy = new SkillAvailability();
-        $provider = new McpSkillResources([$revision], $policy, $streams);
+        $provider = new McpSkillResources([$revision], $policy, $streamFactory);
         self::assertSame(array_values($revision->resources()), $provider->resources());
         self::assertSame([], $policy->seen);
         self::assertNull($provider->find('skill://host/v1/work/%53KILL.md'));
@@ -55,8 +55,8 @@ final class McpSkillResourcesTest extends UnitTestCase
     public function test_that_provider_denial_prevents_stream_allocation_even_for_direct_open(): void
     {
         $policy = new SkillAvailability(); $policy->allowed = false;
-        $streams = $this->mock(StreamFactoryInterface::class); $streams->shouldNotReceive('createStream');
-        $provider = new McpSkillResources([$this->revision()], $policy, $streams);
+        $streamFactory = $this->mock(StreamFactoryInterface::class); $streamFactory->shouldNotReceive('createStream');
+        $provider = new McpSkillResources([$this->revision()], $policy, $streamFactory);
         self::assertNotNull($provider->find(self::URI)); // Internal ownership still detects concealed collisions.
         self::assertFalse($provider->isAvailable($provider->find(self::URI)));
         $this->expectException(DomainException::class);
@@ -65,8 +65,8 @@ final class McpSkillResourcesTest extends UnitTestCase
 
     public function test_that_provider_rejects_forged_descriptor_before_stream_allocation(): void
     {
-        $streams = $this->mock(StreamFactoryInterface::class); $streams->shouldNotReceive('createStream');
-        $provider = new McpSkillResources([$this->revision()], new SkillAvailability(), $streams);
+        $streamFactory = $this->mock(StreamFactoryInterface::class); $streamFactory->shouldNotReceive('createStream');
+        $provider = new McpSkillResources([$this->revision()], new SkillAvailability(), $streamFactory);
         $this->expectException(DomainException::class);
         $provider->open(McpResourceInfo::fromArray(['uri' => self::URI, 'name' => 'forged', 'size' => 99]));
     }
@@ -75,10 +75,10 @@ final class McpSkillResourcesTest extends UnitTestCase
     {
         $policy = new SkillAvailability();
         $streamCount = 0;
-        $streams = $this->mock(StreamFactoryInterface::class);
-        $streams->shouldReceive('createStream')->andReturnUsing(function ($bytes) use (&$streamCount) { ++$streamCount; return Utils::streamFor($bytes); });
+        $streamFactory = $this->mock(StreamFactoryInterface::class);
+        $streamFactory->shouldReceive('createStream')->andReturnUsing(function ($bytes) use (&$streamCount) { ++$streamCount; return Utils::streamFor($bytes); });
         $old = $this->revision(); $new = $this->revision('v2');
-        $provider = new McpSkillResources([$new, $old], $policy, $streams);
+        $provider = new McpSkillResources([$new, $old], $policy, $streamFactory);
         $general = new class implements McpResourceAvailability {
             public bool $allowed = true;
             public function isAvailable(McpResourceInfo $resource): bool { return $this->allowed; }
@@ -111,7 +111,7 @@ final class McpSkillResourcesTest extends UnitTestCase
 
         // Even concealed ownership conflicts must fail, not fall through to a second provider.
         $policy->allowed = false;
-        $duplicate = new McpSkillResources([$old], new SkillAvailability(), $streams);
+        $duplicate = new McpSkillResources([$old], new SkillAvailability(), $streamFactory);
         $conflict = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('skills', '1'), [new McpResourceDiscovery([$provider, $duplicate], $general, str_repeat('k', 32), 'skills', readLimits: new McpResourceReadLimits())]));
         foreach (['resources/list' => [], 'resources/read' => ['uri' => self::URI]] as $method => $params) {
             self::assertSame(-32603, $conflict->respond($this->wire($method, $params))->errorCode());
@@ -121,10 +121,10 @@ final class McpSkillResourcesTest extends UnitTestCase
 
     public function test_that_changed_stream_factory_bytes_fail_integrity_without_successful_disclosure(): void
     {
-        $streams = $this->mock(StreamFactoryInterface::class);
+        $streamFactory = $this->mock(StreamFactoryInterface::class);
         $body = Utils::streamFor("\1\xff");
-        $streams->shouldReceive('createStream')->with("\0\xff")->once()->andReturn($body);
-        $provider = new McpSkillResources([$this->revision()], new SkillAvailability(), $streams);
+        $streamFactory->shouldReceive('createStream')->with("\0\xff")->once()->andReturn($body);
+        $provider = new McpSkillResources([$this->revision()], new SkillAvailability(), $streamFactory);
         $info = $provider->find('skill://host/v1/work/binary');
         try { $provider->open($info)->consume($info, new McpResourceReadLimits()); self::fail('Mutated bytes accepted.'); }
         catch (DomainException) { self::assertFalse($body->isReadable()); }

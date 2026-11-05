@@ -24,9 +24,12 @@ The checked boundary is every tracked owned executable source and maintained exa
 
 The canonical ignored Engineer handoff retains the complete per-path inventories, identifier locations, source
 hashes, changed-path mapping, tag observations and actual check results. Every owned path is accounted for;
-this is not a sampled regex claim. Complete lexical/declaration coverage does not mean every repeated body was
-manually read in full or that this chore is a general behavioral/security audit. Ambiguous candidates were traced
-to responsibilities and callers before correction. Vendor/generated output, Git data, ignored runs, immutable
+this is not a sampled regex claim. Complete lexical/declaration coverage does not establish semantic compliance
+or mean every repeated body was manually read in full. Independent Review of the initial candidate found missed
+event-dispatcher and stream-factory roles and backend strings mislabeled as connections (R-01/R-02/R-03).
+The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for those findings
+and equivalent spellings; the initial inventories remain historical evidence, not proof of naming acceptance.
+This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
 historical snapshots/receipts, third-party quoted contracts and nonexecutable artwork are excluded; owned generators
 and validators are included. No unreadable owned path was encountered.
 
@@ -54,6 +57,12 @@ and validators are included. No unreadable owned path was encountered.
 - [Domain collections/values](https://github.com/johnnickell/fight-common/tree/develop/src/Domain) clarify matching
   versus nonmatching partitions, key comparisons, URI components, UUID timestamp units, serialization envelopes
   and formatted output without changing their arithmetic, bytes or ordering.
+- Execution read/inspection/activity/detail test support uses `eventDispatcher` for actual dispatchers,
+  including the shared `writer()` helper argument and positional callers; real event arrays/counts stay distinct.
+  Skill discovery and combined journeys use `streamFactory` for mocked/anonymous PSR-17 factories, while their
+  `opened` traces remain arrays and released production constructor `streams` remains a named-argument contract.
+  The four live Task journey providers use `backend` for SQLite/MySQL/PostgreSQL selectors, not `connection`;
+  dataset keys/order/values are preserved, separately from the actual DBAL Connection property.
 - Current guides use the same distinctions. Tooling locals clarify receipt paths, lane checkout paths, Docker
   containers/mounts/networks, source/runtime fingerprints and placed shapes. Receipt/configuration keys and
   native resource ownership checks are unchanged.

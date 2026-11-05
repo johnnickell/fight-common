@@ -52,13 +52,13 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
                 return $this->allowed;
             }
         };
-        $streams = new class implements StreamFactoryInterface {
+        $streamFactory = new class implements StreamFactoryInterface {
             public array $opened = [];
             public function createStream(string $content = ''): StreamInterface { $this->opened[] = $content; return Utils::streamFor($content); }
             public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface { throw new RuntimeException('No filesystem reads'); }
             public function createStreamFromResource($resource): StreamInterface { throw new RuntimeException('No external streams'); }
         };
-        $skillResources = new McpSkillResources([$second, $first], $policy, $streams);
+        $skillResources = new McpSkillResources([$second, $first], $policy, $streamFactory);
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
         $guard = new class implements McpInvocationGuard {
             public bool $allowed = true;
@@ -83,7 +83,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             $request = $this->request($method, $params);
             foreach ([[$request->withoutHeader('Authorization'), 401], [$request->withHeader('Origin', 'https://evil.test'), 403], [$request->withoutHeader('Mcp-Method'), 400], [$request->withHeader('MCP-Protocol-Version', '2025-11-25'), 400]] as [$bad, $status]) {
                 self::assertSame($status, $app->handle($bad)->getStatusCode());
-                self::assertSame([], $streams->opened);
+                self::assertSame([], $streamFactory->opened);
                 self::assertSame([], $policy->seen);
                 self::assertSame([], $guard->seen);
             }
@@ -91,7 +91,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         $guard->allowed = false;
         self::assertSame(429, $app->handle($this->request('skills/get', ['uri' => $uri]))->getStatusCode());
         self::assertSame([], $policy->seen);
-        self::assertSame([], $streams->opened);
+        self::assertSame([], $streamFactory->opened);
         $guard->allowed = true;
         $discovery = $this->responseResult($app, 'server/discover');
         self::assertArrayHasKey('resources', $discovery['capabilities']);
@@ -105,7 +105,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         self::assertSame($this->entry($second->entry()), $get['skill']);
         self::assertArrayNotHasKey('nextCursor', $get);
         self::assertSame([$get['skill']], $this->responseResult($app, 'skills/list', ['cursor' => $page['nextCursor']])['skills']);
-        self::assertSame([], $streams->opened);
+        self::assertSame([], $streamFactory->opened);
         self::assertContains(['skills/get', null], $guard->seen);
         foreach ([$page, $get] as $result) {
             self::assertSame('complete', $result['resultType']);
@@ -114,17 +114,17 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         }
         $root = $this->responseResult($app, 'resources/read', ['uri' => $uri])['contents'][0]['text'];
         $guide = $this->responseResult($app, 'resources/read', ['uri' => 'skill://catalog/v1/work/references/guide.md'])['contents'][0]['text'];
-        self::assertSame([SkillRevision::ROOT, SkillRevision::GUIDE], $streams->opened);
+        self::assertSame([SkillRevision::ROOT, SkillRevision::GUIDE], $streamFactory->opened);
         foreach ([$uri => $root, 'skill://catalog/v1/work/references/guide.md' => $guide] as $address => $bytes) {
             $manifest = array_column($page['skills'][0]['resources'], null, 'uri');
             self::assertSame(strlen($bytes), $manifest[$address]['size']);
             self::assertSame('sha256:'.hash('sha256', $bytes), $manifest[$address]['digest']);
         }
         // Root mirrors still apply on Resource reads, before policy and content opening.
-        $opened = $streams->opened;
+        $opened = $streamFactory->opened;
         $seen = $policy->seen;
         self::assertSame(400, $app->handle($this->request('resources/read', ['uri' => $uri])->withoutHeader('Mcp-Name'))->getStatusCode());
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame($seen, $policy->seen);
         // Every retained revision's listed manifest remains a complete exact-byte contract.
         foreach ([$first, $second] as $revision) {
@@ -139,7 +139,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         }
         self::assertSame($page['skills'][0], $this->responseResult($app, 'skills/get', ['uri' => $uri])['skill']);
         $policy->allowed = false;
-        $opened = $streams->opened;
+        $opened = $streamFactory->opened;
         self::assertSame([], $this->responseResult($app, 'skills/list')['skills']);
         self::assertSame(-32602, $this->response($app, 'skills/list', ['cursor' => $page['nextCursor']])['error']['code']);
         $unknown = $this->response($app, 'skills/get', ['uri' => 'skill://catalog/missing/work/SKILL.md']);
@@ -149,14 +149,14 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
                 self::assertSame($unknown['error'], $this->response($app, 'resources/read', ['uri' => $address])['error']);
             }
         }
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame([], $diagnostics->events);
         $policy->allowed = true;
         $policy->fail = true;
         foreach (['skills/list' => [], 'skills/get' => ['uri' => $uri]] as $method => $params) {
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, $method, $params)['error']);
         }
-        self::assertSame($opened, $streams->opened);
+        self::assertSame($opened, $streamFactory->opened);
         self::assertSame(['sanitized_skill_failure', 'sanitized_skill_failure'], $diagnostics->events);
         $policy->fail = false;
         self::assertSame($page['skills'], $this->responseResult($app, 'skills/list', ['cursor' => ''])['skills']);

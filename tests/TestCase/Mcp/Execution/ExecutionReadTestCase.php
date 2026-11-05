@@ -266,11 +266,11 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         return $db;
     }
 
-    protected function writer(Connection $db, ?SimpleEventDispatcher $events = null): callable
+    protected function writer(Connection $db, ?SimpleEventDispatcher $eventDispatcher = null): callable
     {
         $transaction = new DbalRecordingTransaction($db);
         $admission = new class implements ObservationAdmission { public function admit(Observation $observation): void {} };
-        $recorder = new ObservationRecorder($transaction, new DbalSessionRepository($transaction), new DbalPhaseRepository($transaction), new DbalObservationRepository($transaction), $admission, $events ?? new SimpleEventDispatcher(), new DbalProtectedContentRepository($transaction));
+        $recorder = new ObservationRecorder($transaction, new DbalSessionRepository($transaction), new DbalPhaseRepository($transaction), new DbalObservationRepository($transaction), $admission, $eventDispatcher ?? new SimpleEventDispatcher(), new DbalProtectedContentRepository($transaction));
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
         $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));

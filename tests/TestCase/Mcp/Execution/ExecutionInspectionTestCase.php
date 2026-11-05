@@ -222,10 +222,10 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
     public function test_that_separate_summary_and_phase_calls_see_new_evidence_without_business_writes_or_events(string $backend): void
     {
         $db = $this->database($backend);
-        $events = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $eventCount = 0;
-        $events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
-        $record = $this->writer($db, $events);
+        $eventDispatcher->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
+        $record = $this->writer($db, $eventDispatcher);
         $record(ObservationFixture::session());
         [$queryBus] = $this->bus($db, ['project' => null]);
         $selected = new GetExecution('project', 'session');

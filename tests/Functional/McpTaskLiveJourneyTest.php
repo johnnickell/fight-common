@@ -130,16 +130,16 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     public static function sourceRaces(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $connection) {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
             foreach (['signal', 'close', 'cleanup'] as $fault) {
-                foreach (['opening', 'baseline', 'update'] as $phase) { yield $connection.'-'.$fault.'-'.$phase => [$connection, $fault, $phase]; }
+                foreach (['opening', 'baseline', 'update'] as $phase) { yield $backend.'-'.$fault.'-'.$phase => [$backend, $fault, $phase]; }
             }
         }
     }
 
-    public static function compositions(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $connection) { foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $connection.'-'.$composition => [$connection, $composition]; } } }
-    public static function outcomes(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $connection) { foreach (['failed', 'cancelled'] as $outcome) { yield $connection.'-'.$outcome => [$connection, $outcome]; } } }
-    public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $connection) { yield $connection => [$connection]; } }
+    public static function compositions(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $backend.'-'.$composition => [$backend, $composition]; } } }
+    public static function outcomes(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['failed', 'cancelled'] as $outcome) { yield $backend.'-'.$outcome => [$backend, $outcome]; } } }
+    public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }
 
     private function database(string $backend): void
     {

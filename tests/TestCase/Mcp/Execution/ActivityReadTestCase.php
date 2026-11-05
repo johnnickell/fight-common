@@ -32,10 +32,10 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
     public function test_that_activity_query_uses_current_scope_and_explicit_reference_grants_without_bodies_or_mutation(string $backend): void
     {
         $db = $this->database($backend);
-        $events = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $count = 0;
-        $events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$count): void { ++$count; });
-        $record = $this->writer($db, $events);
+        $eventDispatcher->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$count): void { ++$count; });
+        $record = $this->writer($db, $eventDispatcher);
         $record(ObservationFixture::session()); $record(ObservationFixture::phase());
         $activity = ObservationFixture::activity();
         $record($activity);
