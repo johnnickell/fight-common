@@ -34,8 +34,11 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
             throw new DomainException('Expected a protected detail observation.');
         }
 
+        $table = $this->transaction->tables()->contentTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
         $row = $this->transaction->connection()->fetchAssociative(
-            'SELECT payload FROM fight_execution_contents WHERE producer_id = ? AND observation_id = ?',
+            'SELECT payload FROM '.$table.' WHERE producer_id = ? AND observation_id = ?',
             [$detail->producerId(), $detail->id()->toString()]
         );
         if ($row === false) {
@@ -62,7 +65,10 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
         }
 
         $capture->validateBody($content->body());
-        $this->transaction->connection()->insert('fight_execution_contents', [
+        $table = $this->transaction->tables()->contentTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
+        $this->transaction->connection()->insert($table, [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString(),
             'payload'        => json_encode($content->toArray(), JSON_THROW_ON_ERROR)
@@ -79,7 +85,10 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
             throw new DomainException('Expected a protected detail observation.');
         }
 
-        $this->transaction->connection()->delete('fight_execution_contents', [
+        $table = $this->transaction->tables()->contentTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
+        $this->transaction->connection()->delete($table, [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString()
         ]);
