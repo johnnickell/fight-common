@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalExecutionReadSupport;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Application\Mcp\Detail\Data\CapturedDetail;
 use Fight\Common\Application\Mcp\Detail\Data\ContentChunk;
 use Fight\Common\Application\Mcp\Detail\Data\DetailReference;
@@ -34,9 +35,11 @@ final readonly class DbalDetailReader implements DetailReader
     /**
      * Constructs DbalDetailReader
      */
-    public function __construct(private Connection $connection)
-    {
-        $this->sql = new DbalExecutionReadSupport($connection);
+    public function __construct(
+        private Connection $connection,
+        private DbalObservationTables $tables = new DbalObservationTables()
+    ) {
+        $this->sql = new DbalExecutionReadSupport($connection, $tables);
     }
 
     /**
@@ -110,9 +113,11 @@ final readonly class DbalDetailReader implements DetailReader
         [$where, $parameters] = $this->sql->constraints($selection->execution()->selection(), $scope);
         [$phases, $phaseParameters] = $this->sql->phaseConstraints($scope, 'p');
         $sql = 'SELECT o.*, s.consumer_reference, p.parent_phase_id, p.agent_id, p.name, p.attempt';
-        $sql .= ' FROM fight_execution_observations o';
-        $sql .= ' JOIN fight_execution_sessions s ON s.project_id = o.project_id AND s.session_id = o.session_id';
-        $sql .= ' JOIN fight_execution_phases p ON p.project_id = o.project_id';
+        $platform = $this->connection->getDatabasePlatform();
+        $sql .= ' FROM '.$this->tables->observationTable()->quoted($platform).' o';
+        $sql .= ' JOIN '.$this->tables->sessionTable()->quoted($platform).' s';
+        $sql .= ' ON s.project_id = o.project_id AND s.session_id = o.session_id';
+        $sql .= ' JOIN '.$this->tables->phaseTable()->quoted($platform).' p ON p.project_id = o.project_id';
         $sql .= ' AND p.session_id = o.session_id AND p.phase_id = o.phase_id';
         $sql .= ' WHERE '.$where.' AND '.$phases.' AND o.phase_id = ? AND o.producer_id = ?';
         $sql .= ' AND o.observation_id = ? AND o.activity_id IS NULL';
@@ -183,9 +188,11 @@ final readonly class DbalDetailReader implements DetailReader
         $comparison = $direction === 'DESC' ? '<' : '>';
         $last = null;
         do {
-            $sql = 'SELECT d.*, CASE WHEN EXISTS (SELECT 1 FROM fight_execution_contents c';
+            $platform = $this->connection->getDatabasePlatform();
+            $sql = 'SELECT d.*, CASE WHEN EXISTS (SELECT 1 FROM '.$this->tables->contentTable()->quoted($platform).' c';
             $sql .= ' WHERE c.producer_id = d.producer_id AND c.observation_id = d.observation_id)';
-            $sql .= ' THEN 1 ELSE 0 END AS content_present FROM fight_execution_observations d WHERE '.$where;
+            $sql .= ' THEN 1 ELSE 0 END AS content_present FROM ';
+            $sql .= $this->tables->observationTable()->quoted($platform).' d WHERE '.$where;
             $args = $parameters;
             if ($last !== null) {
                 $sql .= ' AND (d.recorded_at '.$comparison.' ? OR (d.recorded_at = ?';
@@ -226,7 +233,9 @@ final readonly class DbalDetailReader implements DetailReader
         $chunk = null;
         if ($permitted) {
             $row = $this->connection->fetchAssociative(
-                'SELECT payload FROM fight_execution_contents WHERE producer_id = ? AND observation_id = ?',
+                'SELECT payload FROM '.$this->tables->contentTable()->quoted(
+                    $this->connection->getDatabasePlatform()
+                ).' WHERE producer_id = ? AND observation_id = ?',
                 [$detail->producerId(), $detail->id()->toString()]
             );
             $present = $row !== false;
