@@ -62,7 +62,7 @@ final class McpCombinedJourneyTest extends TestCase
         $link = McpResourceInfo::fromArray(['uri' => $documentUri, 'name' => 'Guide', 'mimeType' => 'text/plain', 'size' => strlen($bytes)]);
         $revision = SkillRevision::create();
         $old = SkillRevision::create('v2');
-        $skillsAvailable = new class implements McpSkillAvailability {
+        $skillAvailability = new class implements McpSkillAvailability {
             public bool $allowed = true;
             public function isAvailable(StrictJson $entry): bool { return $this->allowed; }
         };
@@ -72,7 +72,7 @@ final class McpCombinedJourneyTest extends TestCase
             public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface { throw new RuntimeException('No filesystem reads'); }
             public function createStreamFromResource($resource): StreamInterface { throw new RuntimeException('No external streams'); }
         };
-        $skillResources = new McpSkillResources([$old, $revision], $skillsAvailable, $streamFactory);
+        $skillResourceProvider = new McpSkillResources([$old, $revision], $skillAvailability, $streamFactory);
         $resourceAvailability = new class implements McpResourceAvailability {
             public bool $allowed = true;
             public function isAvailable(McpResourceInfo $resource): bool { return $this->allowed; }
@@ -104,8 +104,8 @@ final class McpCombinedJourneyTest extends TestCase
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_failure'; }
         };
         $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
-        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResources], $resourceAvailability, str_repeat('resource-key', 4), 'combined', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits());
-        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'combined', new McpSkillDiscoveryLimits(pageSize: 1));
+        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResourceProvider], $resourceAvailability, str_repeat('resource-key', 4), 'combined', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('skill-key', 4), 'combined', new McpSkillDiscoveryLimits(pageSize: 1));
         $factory = new HttpFactory();
         $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Combined', '1'), [
                 new McpToolDiscovery($toolRegistry, $toolAvailability, str_repeat('tool-key', 4)),
@@ -204,7 +204,7 @@ final class McpCombinedJourneyTest extends TestCase
         $toolAvailability->allowed = false;
         self::assertSame(-32602, $this->response($app, 'tools/call', ['name' => 'document.find', 'arguments' => (object) ['id' => 'guide']])['error']['code']);
         self::assertSame($bytes, $this->responseResult($app, 'resources/read', ['uri' => $documentUri])['contents'][0]['text']);
-        $skillsAvailable->allowed = false;
+        $skillAvailability->allowed = false;
         self::assertSame([], $this->responseResult($app, 'skills/list')['skills']);
         self::assertSame(-32602, $this->response($app, 'skills/get', ['uri' => $skillUri])['error']['code']);
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $skillUri])['error']['code']);

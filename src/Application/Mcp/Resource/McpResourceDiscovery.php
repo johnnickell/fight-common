@@ -348,7 +348,7 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
      */
     private function read(McpRequest $request, McpResourceReadLimits $limits, array $metadata): McpResult
     {
-        $selected = null;
+        $selectedProvider = null;
         $resource = null;
         try {
             foreach ($this->providers as $provider) {
@@ -365,17 +365,18 @@ final readonly class McpResourceDiscovery implements McpMetadataAwareCapability
                         throw new DomainException('Resource lookup must have exactly one matching URI owner.');
                     }
 
-                    $selected = $provider;
+                    $selectedProvider = $provider;
                     $resource = $found;
                 }
             }
 
             if (
                 $resource !== null
-                && (!$selected instanceof McpProtectedResourceProvider || $selected->isAvailable($resource))
+                && (!$selectedProvider instanceof McpProtectedResourceProvider
+                    || $selectedProvider->isAvailable($resource))
                 && $this->availability->isAvailable($resource)
             ) {
-                $content = $selected->open($resource)->consume($resource, $limits);
+                $content = $selectedProvider->open($resource)->consume($resource, $limits);
 
                 return McpResult::boundedComplete(
                     ['contents' => [$content], 'ttlMs' => $this->ttlMs, 'cacheScope' => $this->cacheScope],

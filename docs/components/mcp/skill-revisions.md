@@ -120,9 +120,9 @@ $revision = McpSkillRevision::fromFiles(
     resourceLimits: $metadataLimits,
     readLimits: $readLimits
 );
-$skillResources = new McpSkillResources([$revision], $currentWholeSkillDecision, $psrStreamFactory);
+$skillResourceProvider = new McpSkillResources([$revision], $currentWholeSkillDecision, $psrStreamFactory);
 $resourceDiscovery = new McpResourceDiscovery(
-    [$skillResources, ...$otherReadableProviders],
+    [$skillResourceProvider, ...$otherReadableProviders],
     $currentResourceDecision,
     $cursorSecret,
     'consumer-catalog',
@@ -189,7 +189,7 @@ use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
 
 $skillDiscovery = new McpSkillDiscovery(
-    $skillResources,
+    $skillResourceProvider,
     $resourceDiscovery,
     $dedicatedSkillsCursorSecret, // Stable secret of 32–4096 bytes, not an access credential.
     'consumer-skills',            // Nonempty catalog scope, at most 128 bytes.

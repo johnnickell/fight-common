@@ -61,7 +61,7 @@ final class McpSkillResourceJourneyTest extends TestCase
             public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface { throw new RuntimeException('No filesystem reads.'); }
             public function createStreamFromResource($resource): StreamInterface { throw new RuntimeException('No external resources.'); }
         };
-        $provider = new McpSkillResources([$new, $revision], $policy, $streamFactory);
+        $skillResourceProvider = new McpSkillResources([$new, $revision], $policy, $streamFactory);
         $ordinaryResourceProvider = new ReadableResources(['document:/planning' => ['bytes' => 'Consumer planning']]);
         $availability = new class implements McpResourceAvailability {
             public function isAvailable(McpResourceInfo $resource): bool { return true; }
@@ -76,7 +76,7 @@ final class McpSkillResourceJourneyTest extends TestCase
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_skill_failure'; }
         };
         $factory = new HttpFactory();
-        $capability = new McpResourceDiscovery([$provider, $ordinaryResourceProvider], $availability, str_repeat('fixture-key', 4), 'skills', new McpResourceLimits(pageSize: 3), readLimits: new McpResourceReadLimits());
+        $capability = new McpResourceDiscovery([$skillResourceProvider, $ordinaryResourceProvider], $availability, str_repeat('fixture-key', 4), 'skills', new McpResourceLimits(pageSize: 3), readLimits: new McpResourceReadLimits());
         $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Skill Resources', '1'), [$capability]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
         $app = new App($factory);
         $app->post('/consumer/mcp', fn(ServerRequestInterface $request) => $endpoint->handle($request));

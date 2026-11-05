@@ -37,8 +37,12 @@ a separate MySQL OOM/readiness prerequisite (R-10) was verified through the same
 establishing its root cause. Latest Review marked R-01–R-10 resolved for their stated scope but found a header
 validator named as header data (R-11), a Laravel View factory named as views (R-12), and a synchronous event
 dispatcher named only by timing (R-13). The final bounded repair identifies those three local capabilities by
-responsibility, preserving genuine header/view data and framework-shaped parameter names. Enumeration had
-included these sites without establishing their semantic compliance; it is not independent acceptance.
+responsibility, preserving genuine header/view data and framework-shaped parameter names. Subsequent Review
+marked R-01–R-13 resolved but identified Skill Resource providers named as resource data (R-14), a Skill
+availability collaborator named as its Boolean answer (R-15), and a selected readable provider named only by
+selection state (R-16). The human-authorized sixth repair makes those roles explicit, including equivalent
+changed/duplicate provider bindings and current composition examples. Enumeration had included these sites
+without establishing their semantic compliance; it is not independent acceptance.
 The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
 and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
@@ -83,7 +87,13 @@ and validators are included. No unreadable owned path was encountered.
   Combined/Prompt/Resource journeys name actual readable providers `documentProvider` and `assetProvider`;
   Skill journeys use `ordinaryResourceProvider` and `externalResourceProvider`, including the request closure
   capture. Skill discovery unit scenarios use `additionalResourceProvider` only for real readable providers,
-  leaving other responder/results and true `entries`/`opened`/`lookedUp` data intact.
+  leaving other responder/results and true `entries`/`opened`/`lookedUp` data intact. Skill discovery's private
+  field, test/helper/closure bindings and the current Skill guide use `skillResourceProvider` for the actual
+  `McpSkillResources` capability, not its resource maps. Alternate changed/duplicate catalogs are
+  `changedProvider`/`duplicateProvider`; Skill Resource unit and journey bindings use `skillResourceProvider`.
+  The combined journey's `skillAvailability` supplies fresh decisions; `allowed` remains its Boolean state.
+  Resource `read()` uses `selectedProvider` for the exact owner; `resources()` retains its genuine `selected`
+  merge index. Ownership, availability-before-open, safe errors and consume/close behavior remain unchanged.
   OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and
   `capabilityRegistry` where those responsibilities coexist. Laravel queue integration uses `transactionManager`
   for the native DatabaseTransactionsManager, preserving `'db.transactions'` and constructor labels.
@@ -164,7 +174,7 @@ is the exception, not the newly descriptive private implementation.
 | [MCP response factory](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Adapter/Http/Mcp/McpResponseFactory.php), [request handler](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Adapter/Http/Mcp/McpRequestHandler.php) | `responses` / `streams` → `responseFactory` / `streamFactory`; `guard` → `invocationGuard`, including retained legacy construction |
 | [McpToolInvoker](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Tool/McpToolInvoker.php) | `validation` / `failures` / `metadata` → `validationService` / `toolFailureMap` / `toolMetadataFilter`; the later never-tagged `tasks` argument instead becomes `taskCapability` directly |
 | [McpToolInteraction](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Tool/Interaction/McpToolInteraction.php) | `protector` / `confirmations` → `stateProtector` / `confirmationStore` |
-| [McpSkillDiscovery](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Skill/McpSkillDiscovery.php), [McpSkillResources](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Skill/McpSkillResources.php) | `provider` / `resources` → `skillResources` / `resourceDiscovery`; `streams` → `streamFactory`; real Resource collections remain `resources` |
+| [McpSkillDiscovery](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Skill/McpSkillDiscovery.php), [McpSkillResources](https://github.com/johnnickell/fight-common/blob/v1.4.1/src/Application/Mcp/Skill/McpSkillResources.php) | `provider` / `resources` → `skillResourceProvider` / `resourceDiscovery`; `streams` → `streamFactory`; real Resource collections remain `resources` |
 
 Other exact released signature exceptions remain unchanged:
 

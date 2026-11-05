@@ -114,10 +114,10 @@ final class McpPromptJourneyTest extends TestCase
             public int $calls = 0;
             public function record(Throwable $failure): void { ++$this->calls; }
         };
-        $skillResources = new McpSkillResources([$revision], $skillAccess, $factory);
+        $skillResourceProvider = new McpSkillResources([$revision], $skillAccess, $factory);
         $documentProvider = new ReadableResources(['doc://guide' => ['bytes' => 'guide']]);
-        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResources], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
-        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'prompts');
+        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResourceProvider], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('skill-key', 4), 'prompts');
         $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
         $promptDiscovery = new McpPromptDiscovery([$promptProvider, $hidden, $static], $promptAccess, str_repeat('prompt-key', 4), 'journey', new McpPromptLimits(pageSize: 1));
         $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Combined Prompts', '1'), [

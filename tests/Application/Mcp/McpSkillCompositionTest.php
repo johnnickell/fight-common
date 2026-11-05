@@ -170,9 +170,9 @@ final class McpSkillCompositionTest extends UnitTestCase
     {
         $policy = new class implements McpSkillAvailability { public function isAvailable(StrictJson $entry): bool { return true; } };
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
-        $skillResources = new McpSkillResources([], $policy, new HttpFactory());
-        $resourceDiscovery = new McpResourceDiscovery([$skillResources], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope');
+        $skillResourceProvider = new McpSkillResources([], $policy, new HttpFactory());
+        $resourceDiscovery = new McpResourceDiscovery([$skillResourceProvider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResourceProvider, $resourceDiscovery, str_repeat('k', 32), 'scope');
         $extension = new ExtensionCapability(['example/other'], ['extensions' => ['com.example/other' => (object) []]]);
         foreach ([[$skillDiscovery, $resourceDiscovery, $extension], [$extension, $resourceDiscovery, $skillDiscovery]] as $capabilities) {
             $registry = $this->registry($capabilities);
@@ -181,7 +181,7 @@ final class McpSkillCompositionTest extends UnitTestCase
             self::assertCount(2, $registry->advertisedCapabilities()['extensions']);
         }
         self::assertArrayNotHasKey('extensions', $this->registry([$resourceDiscovery])->advertisedCapabilities());
-        $other = new McpResourceDiscovery([$skillResources], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        $other = new McpResourceDiscovery([$skillResourceProvider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
         foreach ([[$skillDiscovery, $other], [$other, $skillDiscovery]] as $capabilities) {
             try {
                 $this->registry($capabilities);
