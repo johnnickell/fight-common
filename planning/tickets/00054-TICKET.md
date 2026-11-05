@@ -2,7 +2,7 @@
 id: TICKET-00054
 epic: EPIC-00013
 title: Customize execution persistence tables
-status: ready-for-agent
+status: done
 ---
 
 # Customize execution persistence tables
@@ -101,7 +101,7 @@ are requested. Requirements do not claim current implementation, passed behavior
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | done |
-| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | in-progress |
+| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -144,3 +144,15 @@ remain unchanged. Publication/final-head verification is pending at this adminis
 result belongs in canonical `.runs/tasks/TASK-00197/runs/20261105-land-01/land.md` and the actual PR recorded
 by TASK-00197 after creation. Original planning-checkout instructions are historical; current execution selection
 belongs to the [Board](../tasks/BOARD.md). No merge, release, deployment or recurring post-merge action is implied.
+
+### Complete execution storage acceptance checkpoint — 2026-11-05
+
+TASK-00198 now has independent Review v3 ACCEPT and QA v2 complete PASS on candidate
+`d904518c7d33a8a73d5b32601fa55d604d3dfcd0`, completing configured inspection, protected reads/removal and
+actual guarded MCP integration across SQLite/MySQL/PostgreSQL. Both children are accepted and required QA
+is satisfied, so this TICKET closes without changing its requirements. TASK-00197's earlier checkpoint is history.
+Land's mechanical current-base bridge and fresh integrated gate are recorded in canonical
+`.runs/tasks/TASK-00198/runs/20261105-land-01/land.md`; the independent reports remain unchanged.
+Publication/final-head verification is pending at this administrative checkpoint; that receipt and the actual
+TASK-00198 PR recorded after creation own delivery results. EPIC-00013 remains open for unfinished siblings.
+No merge, release, deployment or recurring post-merge action is implied.
