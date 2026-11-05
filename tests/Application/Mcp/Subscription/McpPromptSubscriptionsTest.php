@@ -41,11 +41,11 @@ final class McpPromptSubscriptionsTest extends UnitTestCase
             self::assertSame(1, $fixture->visiblePrompt->metadataCalls);
         }
         $fixture = $this->fixture(true);
-        $only = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, prompts: true);
-        self::assertSame(['promptsListChanged'], $only->supported());
-        try { new McpCapabilityRegistry(new McpServerInfo('test', '1'), [], $only); self::fail('Absent Prompts'); }
+        $promptSubscriptionComposition = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, prompts: true);
+        self::assertSame(['promptsListChanged'], $promptSubscriptionComposition->supported());
+        try { new McpCapabilityRegistry(new McpServerInfo('test', '1'), [], $promptSubscriptionComposition); self::fail('Absent Prompts'); }
         catch (DomainException) { self::assertTrue(true); }
-        $registry = new McpCapabilityRegistry(new McpServerInfo('test', '1'), [$fixture->registry->capabilityFor('prompts/list')], $only);
+        $registry = new McpCapabilityRegistry(new McpServerInfo('test', '1'), [$fixture->registry->capabilityFor('prompts/list')], $promptSubscriptionComposition);
         self::assertSame(['prompts' => ['listChanged' => true]], $registry->advertisedCapabilities());
     }
 
@@ -86,7 +86,7 @@ final class McpPromptSubscriptionsTest extends UnitTestCase
         }
         $fixture = $this->fixture(true);
         $request = new McpRequestDecoder()->decode((string) SubscriptionFixture::request(['promptsListChanged' => true])->getBody());
-        $execution = $fixture->subscriptions->execution($request); $calls = 0;
+        $execution = $fixture->subscriptionComposition->execution($request); $calls = 0;
         $fixture->policy = static function ($filter, $uri, $notice) use ($execution, &$calls): bool { if ($notice !== null && ++$calls === 2) { $execution->cancel(); } return true; };
         $frames = [];
         $execution->run(static function ($frame) use (&$frames, $fixture): void { $frames[] = $frame; (new NoticeFixture($fixture->connection))->record(['id' => 'cancelled', 'type' => 'mcp.prompts.list_changed']); }, $fixture);

@@ -69,10 +69,10 @@ final class McpSubscriptionsTest extends UnitTestCase
         $server = new McpServerInfo('Fixture', '1');
         $toolDiscovery = $fixture->registry->capabilityFor('tools/list');
         $resourceDiscovery = $fixture->registry->capabilityFor('resources/list');
-        $subscriptions = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), resources: false);
+        $subscriptionComposition = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), resources: false);
         foreach ([[$toolDiscovery, $resourceDiscovery], [$resourceDiscovery, $toolDiscovery]] as $capabilities) {
-            $registry = new McpCapabilityRegistry($server, $capabilities, $subscriptions);
-            self::assertSame($subscriptions, $registry->subscriptions());
+            $registry = new McpCapabilityRegistry($server, $capabilities, $subscriptionComposition);
+            self::assertSame($subscriptionComposition, $registry->subscriptions());
             self::assertSame(['listChanged' => true], $registry->advertisedCapabilities()['tools']);
             self::assertSame(['subscribe' => false, 'listChanged' => false], $registry->advertisedCapabilities()['resources']);
         }
@@ -82,7 +82,7 @@ final class McpSubscriptionsTest extends UnitTestCase
             $claim->shouldReceive('capabilities')->andReturn(['tools' => ['listChanged' => true]]);
             $claim->shouldReceive('mirrorDeclarations')->andReturn([]);
             try {
-                new McpCapabilityRegistry($server, [$claim], $subscriptions);
+                new McpCapabilityRegistry($server, [$claim], $subscriptionComposition);
                 self::fail('Explicit subscriptions must not permit consumer claims or reserved method ownership.');
             } catch (DomainException $failure) {
                 self::assertStringContainsString(count($methods) === 1 ? 'requires a subscription contract' : 'reserved', $failure->getMessage());
@@ -162,12 +162,12 @@ final class McpSubscriptionsTest extends UnitTestCase
         self::assertGreaterThan(0, (int) $fixture->connection->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
         self::assertSame([], $fixture->diagnostics);
         new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), lifetimeSeconds: 120, waitMicroseconds: 1000000, maxFrameBytes: 65536);
-        $onlyTools = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), resources: false);
-        self::assertSame(['toolsListChanged'], $onlyTools->supported());
-        $onlyResources = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false);
-        self::assertSame(['resourcesListChanged', 'resourceSubscriptions'], $onlyResources->supported());
+        $toolSubscriptionComposition = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), resources: false);
+        self::assertSame(['toolsListChanged'], $toolSubscriptionComposition->supported());
+        $resourceSubscriptionComposition = new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false);
+        self::assertSame(['resourcesListChanged', 'resourceSubscriptions'], $resourceSubscriptionComposition->supported());
         self::assertSame(null, (new McpCapabilityRegistry(new McpServerInfo('test', '1'), []))->subscriptions());
-        try { new McpCapabilityRegistry(new McpServerInfo('test', '1'), [], $onlyTools); self::fail('Missing serving family'); } catch (DomainException) { self::assertTrue(true); }
+        try { new McpCapabilityRegistry(new McpServerInfo('test', '1'), [], $toolSubscriptionComposition); self::fail('Missing serving family'); } catch (DomainException) { self::assertTrue(true); }
         foreach ([['tools' => false, 'resources' => false], ['lifetimeSeconds' => 0], ['lifetimeSeconds' => 121], ['waitMicroseconds' => 9999], ['waitMicroseconds' => 1000001], ['maxFrameBytes' => 255], ['maxFrameBytes' => 65537]] as $limits) {
             try { new McpSubscriptions($fixture->queryBus, $fixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), ...$limits); self::fail('Invalid limits'); } catch (DomainException) { self::assertTrue(true); }
         }
@@ -200,7 +200,7 @@ final class McpSubscriptionsTest extends UnitTestCase
             if ($scenario !== 'diagnostics') { self::assertNotEmpty($fixture->diagnostics, $scenario); }
         }
         $fixture = $this->fixture(); $request = new McpRequestDecoder()->decode((string) SubscriptionFixture::request()->getBody());
-        $execution = $fixture->subscriptions->execution($request); $execution->cancel();
+        $execution = $fixture->subscriptionComposition->execution($request); $execution->cancel();
         $execution->run(static function () { self::fail('Cancelled execution'); }, $fixture);
     }
 

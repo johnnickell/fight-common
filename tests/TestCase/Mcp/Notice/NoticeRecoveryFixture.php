@@ -57,9 +57,9 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queryBus = new RoutingQueryBus($router);
         $toolRegistry = new McpToolRegistry([new RecoverNoticesTool($this->queryBus, $maxResponseBytes)]);
-        $registry = new McpCapabilityRegistry(new McpServerInfo($serverName, '1'), [new McpToolDiscovery($toolRegistry, $this, str_repeat('catalog-key-', 4)), new McpToolInvocation(new McpToolInvoker($toolRegistry, $this))]);
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo($serverName, '1'), [new McpToolDiscovery($toolRegistry, $this, str_repeat('catalog-key-', 4)), new McpToolInvocation(new McpToolInvoker($toolRegistry, $this))]);
         $factory = new HttpFactory();
-        $this->endpoint = new McpRequestHandler($registry, new ExactMcpOriginPolicy(['https://client.test']), $this, new McpResponseFactory($factory, $factory, $this));
+        $this->endpoint = new McpRequestHandler($capabilityRegistry, new ExactMcpOriginPolicy(['https://client.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }
 
     public static function codec(): SodiumNoticeContinuationProtector { return new SodiumNoticeContinuationProtector(['testkey1' => str_repeat('k', 32)], 'testkey1'); }

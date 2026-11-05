@@ -34,7 +34,7 @@ final class TaskLiveFixture implements McpSubscriptionAdmission, McpTaskDisclosu
     {
         $this->taskFixture = new TaskFixture($connection);
         $this->subscriptionFixture = new SubscriptionFixture($connection);
-        $this->endpoint = new TaskEndpoint($this->taskFixture, subscriptionsFactory: fn (McpTasks $taskCapability) => new McpSubscriptions(
+        $this->endpoint = new TaskEndpoint($this->taskFixture, subscriptionCompositionFactory: fn (McpTasks $taskCapability) => new McpSubscriptions(
             $this->subscriptionFixture->queryBus, $subscriptionStore ?? $this->subscriptionFixture->subscriptionStore, $this, NoticeSelection::create([$scope]),
             tools: $mixed, resources: false, lifetimeSeconds: $lifetime, waitMicroseconds: 10000,
             maxFrameBytes: $frameBytes, taskCapability: $taskCapability, taskDisclosureGuard: $this

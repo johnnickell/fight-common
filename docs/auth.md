@@ -112,10 +112,10 @@ $requirements = OAuthTokenRequirements::fromConfiguration(
     clockSkewSeconds: 0
 );
 // Consumer-supplied PSR factories, complete validator, request-scoped handoff and redacting diagnostics.
-$responses = new OAuthResponseFactory($responseFactory, $streamFactory);
-$metadataHandler = new OAuthMetadataHandler($metadata, $responses);
+$oauthResponseFactory = new OAuthResponseFactory($responseFactory, $streamFactory);
+$metadataHandler = new OAuthMetadataHandler($metadata, $oauthResponseFactory);
 $resourceServer = new OAuthResourceServer($requirements, $validator, $handoff, $diagnostics);
-$protection = new OAuthMiddleware($resourceServer, OAuthScopeSet::fromArray(['mcp:read']), $responses);
+$protection = new OAuthMiddleware($resourceServer, OAuthScopeSet::fromArray(['mcp:read']), $oauthResponseFactory);
 // The consumer routes metadata GETs to $metadataHandler, and protected MCP requests through:
 $response = $protection->process($request, $guardedMcpEndpoint);
 ```

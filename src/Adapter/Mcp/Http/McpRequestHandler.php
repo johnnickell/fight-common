@@ -92,9 +92,13 @@ readonly class McpRequestHandler implements RequestHandlerInterface
                 ));
             }
 
-            $subscriptions = $this->registry->subscriptions();
-            if ($message->method() === 'subscriptions/listen' && $subscriptions !== null) {
-                return $this->responseFactory->stream($message, $this->responder, $subscriptions->execution($message));
+            $subscriptionComposition = $this->registry->subscriptions();
+            if ($message->method() === 'subscriptions/listen' && $subscriptionComposition !== null) {
+                return $this->responseFactory->stream(
+                    $message,
+                    $this->responder,
+                    $subscriptionComposition->execution($message)
+                );
             }
 
             if (

@@ -31,7 +31,7 @@ Separate opt-in
 
    ```php
    $subscriptionStore = new DbalSubscriptionStore($trackingConnection);
-   $subscriptions = new McpSubscriptions(
+   $subscriptionComposition = new McpSubscriptions(
        $queryBus,
        $subscriptionStore,
        $subscriptionAdmission,
@@ -39,7 +39,7 @@ Separate opt-in
        tools: true,
        resources: true
    );
-   $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
+   $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptionComposition);
    ```
 
    Import these names from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal` and

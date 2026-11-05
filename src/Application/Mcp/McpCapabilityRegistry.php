@@ -61,7 +61,7 @@ final readonly class McpCapabilityRegistry
     public function __construct(
         private ?McpServerInfo $serverInfo,
         array $capabilities,
-        private ?McpSubscriptions $subscriptions = null
+        private ?McpSubscriptions $subscriptionComposition = null
     ) {
         if ($this->serverInfo === null) {
             throw new DomainException('An MCP server identity is required.');
@@ -90,7 +90,7 @@ final readonly class McpCapabilityRegistry
         $advertisedCapabilities = new McpCompositionValidator()->validate(
             $capabilitiesByMethod,
             $advertisedCapabilities,
-            $this->subscriptions
+            $this->subscriptionComposition
         );
 
         $this->capabilitiesByMethod = $capabilitiesByMethod;
@@ -103,7 +103,7 @@ final readonly class McpCapabilityRegistry
      */
     public function subscriptions(): ?McpSubscriptions
     {
-        return $this->subscriptions;
+        return $this->subscriptionComposition;
     }
 
     /**
@@ -180,7 +180,7 @@ final readonly class McpCapabilityRegistry
 
             if (
                 $method === McpResponder::DISCOVER_METHOD
-                || ($method === 'subscriptions/listen' && $this->subscriptions !== null)
+                || ($method === 'subscriptions/listen' && $this->subscriptionComposition !== null)
             ) {
                 throw new DomainException(
                     'The MCP discovery and subscription methods are reserved for their package owners.'

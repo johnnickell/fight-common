@@ -12,10 +12,10 @@ correlation and completion. This is package support, not qualification of deploy
 
 Compose the complete Tasks capability and Tool invoker as in [MCP Tasks](mcp-tasks.md). Pass that **same** `$taskCapability`
 instance as the optional `taskCapability:` collaborator of `McpSubscriptions`, together with the required consumer-implemented
-`taskDisclosureGuard:` guard, then pass the subscriptions to the registry's third argument. For Task-only composition:
+`taskDisclosureGuard:` guard, then pass the subscription composition to the registry's third argument. For Task-only composition:
 
 ```php
-$subscriptions = new McpSubscriptions(
+$subscriptionComposition = new McpSubscriptions(
     $queryBus,
     $subscriptionStore,
     $subscriptionAdmission,
@@ -26,7 +26,7 @@ $subscriptions = new McpSubscriptions(
     taskCapability: $taskCapability,
     taskDisclosureGuard: $taskDisclosureGuard
 );
-$registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
+$registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptionComposition);
 ```
 
 `$subscriptionStore` is the existing idle dedicated `DbalSubscriptionStore`; `$trustedTrackingSelection` is a trusted

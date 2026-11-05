@@ -59,7 +59,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly PromptProvider $visiblePrompt;
     public readonly PromptProvider $hiddenPrompt;
     public readonly McpRequestHandler $endpoint;
-    public readonly McpSubscriptions $subscriptions;
+    public readonly McpSubscriptions $subscriptionComposition;
     public readonly RoutingQueryBus $queryBus;
     public readonly DbalSubscriptionStore $subscriptionStore;
     public readonly McpCapabilityRegistry $registry;
@@ -74,7 +74,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queryBus = new RoutingQueryBus($router);
         $subscriptionStore = $subscriptionStoreDecorator === null ? $this->subscriptionStore : $subscriptionStoreDecorator($this->subscriptionStore);
-        $this->subscriptions = new McpSubscriptions($this->queryBus, $subscriptionStore, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
+        $this->subscriptionComposition = new McpSubscriptions($this->queryBus, $subscriptionStore, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };
@@ -91,7 +91,7 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
             new McpToolInvocation(new McpToolInvoker($toolRegistry, $availability)),
             new McpResourceDiscovery([], $availability, str_repeat('key', 16), 'live'),
             ...($servePrompts ? [new McpPromptDiscovery([$this->visiblePrompt, $this->hiddenPrompt], $promptAccess, str_repeat('prompt', 8), 'live')] : [])
-        ], $this->subscriptions);
+        ], $this->subscriptionComposition);
         $factory = new HttpFactory();
         $guard = new class($this) implements McpInvocationGuard {
             public function __construct(private SubscriptionFixture $fixture) {}

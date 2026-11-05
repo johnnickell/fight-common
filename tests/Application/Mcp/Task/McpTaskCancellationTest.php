@@ -81,14 +81,14 @@ final class McpTaskCancellationTest extends UnitTestCase
         $failure = new RuntimeException('private database detail');
         $commandBus = $this->mock(CommandBus::class); $commandBus->shouldReceive('execute')->once()->andThrow($failure);
         $taskCapability = new McpTasks($this->fixture()->queryBus, $commandBus, 'scope', 'caller');
-        $tools = new McpToolRegistry([]); $availability = $this->mock(McpToolAvailability::class);
+        $toolRegistry = new McpToolRegistry([]); $availability = $this->mock(McpToolAvailability::class);
         $diagnostics = $this->mock(McpDiagnostics::class); $diagnostics->shouldReceive('record')->once()->with($failure);
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
-            $taskCapability, new McpToolInvocation(new McpToolInvoker($tools, $availability, taskCapability: $taskCapability)),
-            new McpToolDiscovery($tools, $availability, str_repeat('key-', 16))
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
+            $taskCapability, new McpToolInvocation(new McpToolInvoker($toolRegistry, $availability, taskCapability: $taskCapability)),
+            new McpToolDiscovery($toolRegistry, $availability, str_repeat('key-', 16))
         ]);
-        self::assertArrayHasKey('io.modelcontextprotocol/tasks', $registry->advertisedCapabilities()['extensions']);
-        $reply = (new McpResponder($registry, diagnostics: $diagnostics))->respond(json_encode([
+        self::assertArrayHasKey('io.modelcontextprotocol/tasks', $capabilityRegistry->advertisedCapabilities()['extensions']);
+        $reply = (new McpResponder($capabilityRegistry, diagnostics: $diagnostics))->respond(json_encode([
             'jsonrpc' => '2.0', 'id' => 'cancel-failed', 'method' => 'tasks/cancel', 'params' => [
                 'taskId' => TaskFixture::ID, '_meta' => [McpRequestMetadata::PROTOCOL_VERSION_KEY => '2026-07-28', McpRequestMetadata::CLIENT_CAPABILITIES_KEY => (object) ['extensions' => (object) ['io.modelcontextprotocol/tasks' => (object) []]]]
             ]

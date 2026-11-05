@@ -103,18 +103,18 @@ final class McpCombinedJourneyTest extends TestCase
             public array $events = [];
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_failure'; }
         };
-        $registry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
+        $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
         $resourceDiscovery = new McpResourceDiscovery([$documents, $skillResources], $resourceAvailability, str_repeat('resource-key', 4), 'combined', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits());
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'combined', new McpSkillDiscoveryLimits(pageSize: 1));
         $factory = new HttpFactory();
-        $capabilities = new McpCapabilityRegistry(new McpServerInfo('Combined', '1'), [
-                new McpToolDiscovery($registry, $toolAvailability, str_repeat('tool-key', 4)),
-                new McpToolInvocation(new McpToolInvoker($registry, $toolAvailability)),
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Combined', '1'), [
+                new McpToolDiscovery($toolRegistry, $toolAvailability, str_repeat('tool-key', 4)),
+                new McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAvailability)),
                 $resourceDiscovery,
                 $skillDiscovery,
         ]);
         $endpoint = new McpRequestHandler(
-            $capabilities, new ExactMcpOriginPolicy(['https://client.test']), $guard,
+            $capabilityRegistry, new ExactMcpOriginPolicy(['https://client.test']), $guard,
             new McpResponseFactory($factory, $factory, $diagnostics),
         );
         $app = new App($factory);
@@ -175,7 +175,7 @@ final class McpCombinedJourneyTest extends TestCase
 
         $before = [$documents->opened, $streamFactory->opened];
         $bounded = new McpRequestHandler(
-            $capabilities, new ExactMcpOriginPolicy(['https://client.test']), $guard,
+            $capabilityRegistry, new ExactMcpOriginPolicy(['https://client.test']), $guard,
             new McpResponseFactory($factory, $factory, $diagnostics),
             new McpRequestDecoder(new McpRequestLimits(256)),
         );

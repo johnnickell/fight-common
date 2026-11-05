@@ -38,8 +38,8 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
         $container->instance(ContainerContract::class, $container);
         $container->instance(EventDispatcherContract::class, new EventDispatcher($container));
         $container->instance(DispatcherContract::class, new BusDispatcher($container));
-        $transactions = new DatabaseTransactionsManager();
-        $container->instance('db.transactions', $transactions);
+        $transactionManager = new DatabaseTransactionsManager();
+        $container->instance('db.transactions', $transactionManager);
         $calls = [];
         $eventDispatcher = new QueuedEventMessageIntegrationDispatcher();
         $eventDispatcher->addHandler(
@@ -74,14 +74,14 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             Meta::create(['trace_id' => 'trace-70', 'attempt' => 1])
         ));
 
-        $transactions->begin('fight-common', 1);
+        $transactionManager->begin('fight-common', 1);
         /** @phpstan-ignore-next-line Laravel queues accept object jobs despite the inherited contract annotation */
         $queue->push($job);
 
         self::assertSame([], $calls);
 
         try {
-            $transactions->commit('fight-common', 1, 0);
+            $transactionManager->commit('fight-common', 1, 0);
             self::fail('The first queued attempt must fail after complete fan-out.');
         } catch (RuntimeException $exception) {
             self::assertSame('retry queued event delivery', $exception->getMessage());

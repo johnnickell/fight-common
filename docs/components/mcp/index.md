@@ -490,8 +490,8 @@ use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 // Explicit consumer-owned Tool objects and request-scoped McpToolAvailability.
 $toolRegistry = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
 $toolDiscovery = new McpToolDiscovery($toolRegistry, $toolAvailability, $cursorSigningKey);
-$registry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$toolDiscovery]);
-$responder = new McpResponder($registry);
+$capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$toolDiscovery]);
+$responder = new McpResponder($capabilityRegistry);
 // The same registry can be supplied to the guarded PSR endpoint below.
 ```
 
@@ -665,8 +665,8 @@ $toolInvocation = new McpToolInvocation(new McpToolInvoker(
         OrderAlreadyClosed::class => 'The order is already closed.'
     ])
 ));
-$registry = new McpCapabilityRegistry($serverInfo, [$toolDiscovery, $toolInvocation]);
-$responder = new McpResponder($registry, diagnostics: $diagnostics);
+$capabilityRegistry = new McpCapabilityRegistry($serverInfo, [$toolDiscovery, $toolInvocation]);
+$responder = new McpResponder($capabilityRegistry, diagnostics: $diagnostics);
 ```
 
 Initial `tools/call` accepts `name` and optional `arguments`; protected interactive retries additionally carry

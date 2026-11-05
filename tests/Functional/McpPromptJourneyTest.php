@@ -120,12 +120,12 @@ final class McpPromptJourneyTest extends TestCase
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'prompts');
         $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
         $promptDiscovery = new McpPromptDiscovery([$promptProvider, $hidden, $static], $promptAccess, str_repeat('prompt-key', 4), 'journey', new McpPromptLimits(pageSize: 1));
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Combined Prompts', '1'), [
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Combined Prompts', '1'), [
             $promptDiscovery, $resourceDiscovery, $skillDiscovery,
             new McpToolDiscovery($toolRegistry, $toolAccess, str_repeat('tool-key', 4)),
             new McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAccess)),
         ]);
-        $endpoint = new McpRequestHandler($registry, new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
+        $endpoint = new McpRequestHandler($capabilityRegistry, new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
         $app = new App($factory);
         $app->post('/consumer/mcp', fn(ServerRequestInterface $request) => $endpoint->handle($request));
         $app->add(function(ServerRequestInterface $request, RequestHandlerInterface $next) use ($factory) {

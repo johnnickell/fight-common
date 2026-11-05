@@ -35,10 +35,10 @@ final readonly class McpCompositionValidator
      *
      * @return array<string, array<mixed>>
      */
-    public function validate(array $methods, array $capabilities, ?McpSubscriptions $subscriptions): array
+    public function validate(array $methods, array $capabilities, ?McpSubscriptions $subscriptionComposition): array
     {
         $this->validateSubscriptionCapabilityFlags($capabilities);
-        $capabilities = $this->activateSubscriptions($methods, $capabilities, $subscriptions);
+        $capabilities = $this->activateSubscriptions($methods, $capabilities, $subscriptionComposition);
         $this->validateSkills($methods, $capabilities);
         $this->validateTasks($methods, $capabilities);
 
@@ -75,15 +75,18 @@ final readonly class McpCompositionValidator
      *
      * @return array<string, array<mixed>>
      */
-    private function activateSubscriptions(array $methods, array $capabilities, ?McpSubscriptions $subscriptions): array
-    {
-        if ($subscriptions === null) {
+    private function activateSubscriptions(
+        array $methods,
+        array $capabilities,
+        ?McpSubscriptions $subscriptionComposition
+    ): array {
+        if ($subscriptionComposition === null) {
             return $capabilities;
         }
 
-        foreach ($subscriptions->supported() as $filter) {
+        foreach ($subscriptionComposition->supported() as $filter) {
             if ($filter === 'taskIds') {
-                if ($subscriptions->tasks() !== ($methods['tasks/get'] ?? null)) {
+                if ($subscriptionComposition->tasks() !== ($methods['tasks/get'] ?? null)) {
                     throw new DomainException('Task notifications require the same complete Task capability.');
                 }
 

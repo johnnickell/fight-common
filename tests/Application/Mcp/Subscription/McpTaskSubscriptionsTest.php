@@ -90,9 +90,9 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
         $fixture->taskFixture->create(); $fixture->taskFixture->readAllowed = false;
         $body = $fixture->endpoint->handler->handle(TaskLiveFixture::request())->getBody();
         self::assertSame([], $this->next($body)['params']['notifications']); $body->close();
-        $subscriptions = new McpSubscriptions($fixture->taskFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
+        $subscriptionComposition = new McpSubscriptions($fixture->taskFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
         $this->expectException(DomainException::class);
-        new McpCapabilityRegistry(new McpServerInfo('Invalid', '1'), [], $subscriptions);
+        new McpCapabilityRegistry(new McpServerInfo('Invalid', '1'), [], $subscriptionComposition);
     }
 
     public function test_that_task_subscriptions_require_the_exact_serving_instance_even_with_complete_task_activation(): void
@@ -100,11 +100,11 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
         $fixture = $this->fixture();
         $endpoint = $fixture->endpoint;
         $otherTaskCapability = new McpTasks($fixture->taskFixture->queryBus, $fixture->taskFixture->commandBus, 'scope', 'caller');
-        $subscriptions = new McpSubscriptions($fixture->taskFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $otherTaskCapability, taskDisclosureGuard: $fixture);
+        $subscriptionComposition = new McpSubscriptions($fixture->taskFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $otherTaskCapability, taskDisclosureGuard: $fixture);
         $discovery = $endpoint->registry->capabilityFor('tools/list');
         foreach ([[$endpoint->taskCapability, $endpoint->invocation], [$endpoint->invocation, $endpoint->taskCapability]] as $capabilities) {
             try {
-                new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [$discovery, ...$capabilities], $subscriptions);
+                new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [$discovery, ...$capabilities], $subscriptionComposition);
                 self::fail('Live Task delivery must not bind a nominally equivalent alternate instance.');
             } catch (DomainException $failure) {
                 self::assertSame('Task notifications require the same complete Task capability.', $failure->getMessage());
@@ -192,7 +192,7 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
         $request = TaskLiveFixture::request(id: '雪"\\');
         $body = $fixture->endpoint->handler->handle($request)->getBody(); $this->next($body); $wire = $body->read(65536); $body->close();
         foreach ([strlen($wire), strlen($wire) - 1] as $budget) {
-            $endpoint = new \Fight\Test\Common\Fixture\Mcp\TaskEndpoint($fixture->taskFixture, subscriptionsFactory: fn ($taskCapability) => new McpSubscriptions($fixture->subscriptionFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, maxFrameBytes: $budget, taskCapability: $taskCapability, taskDisclosureGuard: $fixture));
+            $endpoint = new \Fight\Test\Common\Fixture\Mcp\TaskEndpoint($fixture->taskFixture, subscriptionCompositionFactory: fn ($taskCapability) => new McpSubscriptions($fixture->subscriptionFixture->queryBus, $fixture->subscriptionFixture->subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, maxFrameBytes: $budget, taskCapability: $taskCapability, taskDisclosureGuard: $fixture));
             $body = $endpoint->handler->handle($request)->getBody(); $this->next($body); $actual = $body->read(65536); $body->close();
             self::assertSame($budget === strlen($wire) ? $wire : '', $actual);
             self::assertCount($budget === strlen($wire) ? 0 : 1, $endpoint->diagnostics);
@@ -222,8 +222,8 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
         $subscriptionStore->shouldReceive('open')->once(); $subscriptionStore->shouldReceive('close')->once();
         $subscriptionStore->shouldReceive('heartbeat')->andReturnUsing(function () use ($fixture): void { $fixture->taskFixture->readAllowed = false; });
         $fixture->taskFixture->readAllowed = true;
-        $composition = new McpSubscriptions($fixture->subscriptionFixture->queryBus, $subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
-        $composition->execution($request)->run(static fn () => self::fail('Opening lost its permission'), $fixture->endpoint);
+        $subscriptionComposition = new McpSubscriptions($fixture->subscriptionFixture->queryBus, $subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
+        $subscriptionComposition->execution($request)->run(static fn () => self::fail('Opening lost its permission'), $fixture->endpoint);
     }
 
     public function test_that_idle_observations_coalesce_and_a_regressed_source_never_claims_newer_state(): void
@@ -247,8 +247,8 @@ final class McpTaskSubscriptionsTest extends UnitTestCase
             $execution = null; $heartbeats = 0;
             $subscriptionStore->shouldReceive('heartbeat')->andReturnUsing(static function () use (&$heartbeats, &$execution, $phase): void { if (++$heartbeats === 3 && $phase === 'tracking') { $execution->cancel(); } });
             $request = (new McpRequestDecoder())->decode((string) TaskLiveFixture::request(['taskIds' => [TaskFixture::ID, $second]])->getBody());
-            $composition = new McpSubscriptions($fixture->subscriptionFixture->queryBus, $subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
-            $execution = $composition->execution($request); $frames = [];
+            $subscriptionComposition = new McpSubscriptions($fixture->subscriptionFixture->queryBus, $subscriptionStore, $fixture, NoticeSelection::create(['scope']), tools: false, resources: false, taskCapability: $fixture->endpoint->taskCapability, taskDisclosureGuard: $fixture);
+            $execution = $subscriptionComposition->execution($request); $frames = [];
             $execution->run(static function ($frame) use (&$frames, $execution, $phase, $fixture): void {
                 $frames[] = $frame;
                 if (count($frames) === 1 && $phase === 'query') { $fixture->taskFixture->onRead = static fn () => $execution->cancel(); }

@@ -27,8 +27,10 @@ hashes, changed-path mapping, tag observations and actual check results. Every o
 this is not a sampled regex claim. Complete lexical/declaration coverage does not establish semantic compliance
 or mean every repeated body was manually read in full. Independent Review of the initial candidate found missed
 event-dispatcher and stream-factory roles and backend strings mislabeled as connections (R-01/R-02/R-03).
-The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for those findings
-and equivalent spellings; the initial inventories remain historical evidence, not proof of naming acceptance.
+Renewed Review found a second stream-only factory, response factories/registries/transaction managers named as
+collections, and a subscription composition object named as subscription data (remaining R-03 and R-04/R-05).
+The current repair handoff retains refreshed complete inventories and explicit type/caller dispositions for those
+findings and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
 historical snapshots/receipts, third-party quoted contracts and nonexecutable artwork are excluded; owned generators
 and validators are included. No unreadable owned path was encountered.
@@ -41,7 +43,8 @@ and validators are included. No unreadable owned path was encountered.
   or Task collection; actual Task/Notice/event arrays keep collection names.
 - [Execution/Notice handlers](https://github.com/johnnickell/fight-common/tree/develop/src/Application/Mcp) name
   their operation-specific reader/admission/recorder/remover; publication uses `queryBus`, `commandBus` and
-  `noticePublication`. Subscription composition uses `subscriptionStore`, `subscriptionAdmission` and
+  `noticePublication`. The registry/validator/HTTP handler and owned fixture callers use `subscriptionComposition`
+  for `McpSubscriptions`, distinct from subscription records, `subscriptionStore`, `subscriptionAdmission` and
   `taskDisclosureGuard`. Provisional constructor names change directly, with owned named callers updated.
 - [DBAL MCP adapters](https://github.com/johnnickell/fight-common/tree/develop/src/Adapter/Mcp/Persistence)
   distinguish `recordingTransaction`, `executionReadSupport`, Table builders and SQL strings/rows.
@@ -59,13 +62,35 @@ and validators are included. No unreadable owned path was encountered.
   and formatted output without changing their arithmetic, bytes or ordering.
 - Execution read/inspection/activity/detail test support uses `eventDispatcher` for actual dispatchers,
   including the shared `writer()` helper argument and positional callers; real event arrays/counts stay distinct.
-  Skill discovery and combined journeys use `streamFactory` for mocked/anonymous PSR-17 factories, while their
-  `opened` traces remain arrays and released production constructor `streams` remains a named-argument contract.
+  Skill Resource, discovery and combined journeys use `streamFactory` for mocked/anonymous PSR-17 factories, while
+  their `opened` traces remain arrays and released production constructor `streams` remains a named-argument contract.
+  OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and
+  `capabilityRegistry` where those responsibilities coexist. Laravel queue integration uses `transactionManager`
+  for the native DatabaseTransactionsManager, preserving `'db.transactions'` and constructor labels.
   The four live Task journey providers use `backend` for SQLite/MySQL/PostgreSQL selectors, not `connection`;
   dataset keys/order/values are preserved, separately from the actual DBAL Connection property.
 - Current guides use the same distinctions. Tooling locals clarify receipt paths, lane checkout paths, Docker
   containers/mounts/networks, source/runtime fingerprints and placed shapes. Receipt/configuration keys and
   native resource ownership checks are unchanged.
+
+## Subscription composition and contextual retained names
+
+`McpSubscriptions` constructs independent lazy executions; it is not subscription data. Its provisional registry
+parameter/private state, validator parameters, HTTP local, fixture property/callers and current guides now use
+`subscriptionComposition`. Prompt/Tool/Resource-only test compositions are qualified by the enabled family;
+`subscriptionCompositionFactory` identifies the Task fixture's factory callback. `subscriptions()` remains the
+existing feature accessor. Actual subscription records, protocol family names, notification filters and callback
+behavior are unchanged. All seven local tag names (`v1.0.0`, bare `1.1.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`,
+`v1.4.0`, `v1.4.1`) lack the subscription feature and registry subscription argument; no released name is renamed
+and no compatibility wrapper is needed. The ignored handoff binds exact tag OIDs and declarations.
+
+Concise `factory` remains appropriate for a combined multi-interface HTTP factory or the sole factory under test,
+not a stream-only factory masquerading as data. Likewise, `registry` can identify the sole registration capability
+in a narrowly scoped test; mixed Tool/Capability compositions receive distinct names. `capabilities`/`tools` remain
+real registration/metadata arrays. The Resource discovery merge's `streams` is an array of descriptor generators,
+not a factory; `opened` is a byte trace. Backend/composition selectors remain data, mathematical/collection idioms
+remain concise, and released constructor labels below remain exact supported exceptions. These are specific
+semantic dispositions, not a blanket assertion that every token or unchanged body was independently accepted.
 
 ## Released named-argument exceptions
 

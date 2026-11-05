@@ -35,13 +35,13 @@ final class ProgressEndpoint implements McpDiagnostics, McpInvocationGuard, McpT
     public function __construct(public ProgressTool $tool, bool $progressive = true)
     {
         $factory = new HttpFactory();
-        $tools = new McpToolRegistry([$tool]);
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Progress fixture', '1'), [
-            new McpToolDiscovery($tools, $this, str_repeat('fixture-key-', 4)),
-            new McpToolInvocation(new McpToolInvoker($tools, $this,
+        $toolRegistry = new McpToolRegistry([$tool]);
+        $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Progress fixture', '1'), [
+            new McpToolDiscovery($toolRegistry, $this, str_repeat('fixture-key-', 4)),
+            new McpToolInvocation(new McpToolInvoker($toolRegistry, $this,
                 failures: new McpToolFailureMap([RuntimeException::class => 'Unavailable.']))),
         ]);
-        $this->handler = new McpRequestHandler($registry, new DenyAllMcpOriginPolicy(), $this,
+        $this->handler = new McpRequestHandler($capabilityRegistry, new DenyAllMcpOriginPolicy(), $this,
             new McpResponseFactory($factory, $factory, $this), progressive: $progressive);
     }
 
