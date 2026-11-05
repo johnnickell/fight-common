@@ -45,8 +45,8 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         $record($hidden, ProtectedContent::create($hidden->detail(), 'HIDDEN-BODY'));
         $otherSession = SessionReference::fromStrings('other', 'session', 'other:consumer');
         $record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => $otherSession->toArray()]));
-        [$queryBus, $admission, $overview] = $this->activityBus($db);
-        self::assertSame(1, $overview->fetch(new ListExecutions(ExecutionSelection::create(['project', 'other'])))->toArray()['total']);
+        [$queryBus, $admission, $executionQueryBus] = $this->activityBus($db);
+        self::assertSame(1, $executionQueryBus->fetch(new ListExecutions(ExecutionSelection::create(['project', 'other'])))->toArray()['total']);
         $query = new ListPhaseActivity('project', 'session', 'phase', 1, 1);
         $envelope = QueryMessage::arrayDeserialize(QueryMessage::create($query)->arraySerialize());
         // Timeline permission alone reveals neither references nor their counts.
@@ -103,7 +103,7 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
             $record($detail, ProtectedContent::create($detail->detail(), $body));
             $details[$completeness->value] = $detail;
         }
-        [$queryBus, $admission, $overview] = $this->activityBus($db);
+        [$queryBus, $admission, $executionQueryBus] = $this->activityBus($db);
         $admission->access = ExecutionAccess::create(['project' => null], detailGrants: ['project' => null]);
         $query = new ListPhaseActivity('project', 'session', 'phase');
         $first = $queryBus->fetch($query)->toArray();
@@ -111,14 +111,14 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         foreach ($details as $capture => $detail) {
             self::assertSame(in_array($capture, ['complete', 'partial'], true) ? 'retained' : $capture, $byCapture[$detail->id()->toString()]['availability']);
         }
-        $summary = $overview->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
+        $summary = $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
         foreach ($details as $detail) { $db->delete('fight_execution_contents', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]); }
         $after = $queryBus->fetch($query)->toArray();
         foreach ($after['activities'][0]['details'] as $reference) {
             $capture = $reference['capture']['completeness'];
             self::assertSame(in_array($capture, ['complete', 'partial'], true) ? 'missing' : $capture, $reference['availability']);
         }
-        self::assertSame($summary, $overview->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray());
+        self::assertSame($summary, $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray());
         self::assertSame(5, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_observations WHERE activity_id IS NOT NULL'));
         $admission->access = ExecutionAccess::create(['project' => null]);
         self::assertSame([], $queryBus->fetch($query)->activities()[0]->details());
@@ -216,10 +216,10 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
 
     protected function activityBus(Connection $db): array
     {
-        [$overview, $admission] = $this->bus($db, ['project' => null]);
+        [$executionQueryBus, $admission] = $this->bus($db, ['project' => null]);
         $router = new InMemoryQueryRouter();
         $router->registerHandler(ListPhaseActivityHandler::queryRegistration(), new ListPhaseActivityHandler($admission, new DbalActivityReader($db)));
-        return [new RoutingQueryBus($router), $admission, $overview];
+        return [new RoutingQueryBus($router), $admission, $executionQueryBus];
     }
 
     protected function detail(Observation $activity, CaptureCompleteness $completeness): Observation

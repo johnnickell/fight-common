@@ -29,8 +29,10 @@ or mean every repeated body was manually read in full. Independent Review of the
 event-dispatcher and stream-factory roles and backend strings mislabeled as connections (R-01/R-02/R-03).
 Renewed Review found a second stream-only factory, response factories/registries/transaction managers named as
 collections, and a subscription composition object named as subscription data (remaining R-03 and R-04/R-05).
-The current repair handoff retains refreshed complete inventories and explicit type/caller dispositions for those
-findings and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
+The next Review marked R-01–R-05 resolved, but found the activity fixture's execution-query bus named as overview
+data (R-06) and the operation-shape digest stale after the provisional signature correction (R-07). The current
+repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
+and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
 historical snapshots/receipts, third-party quoted contracts and nonexecutable artwork are excluded; owned generators
 and validators are included. No unreadable owned path was encountered.
@@ -62,6 +64,9 @@ and validators are included. No unreadable owned path was encountered.
   and formatted output without changing their arithmetic, bytes or ordering.
 - Execution read/inspection/activity/detail test support uses `eventDispatcher` for actual dispatchers,
   including the shared `writer()` helper argument and positional callers; real event arrays/counts stay distinct.
+  The [activity fixture](https://github.com/johnnickell/fight-common/blob/develop/tests/TestCase/Mcp/Execution/ActivityReadTestCase.php)
+  distinguishes `executionQueryBus` (execution-summary/list dispatch) from its activity `queryBus` and actual
+  `summary` result data, preserving the helper's tuple order and every query/assertion.
   Skill Resource, discovery and combined journeys use `streamFactory` for mocked/anonymous PSR-17 factories, while
   their `opened` traces remain arrays and released production constructor `streams` remains a named-argument contract.
   OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and
@@ -83,6 +88,12 @@ existing feature accessor. Actual subscription records, protocol family names, n
 behavior are unchanged. All seven local tag names (`v1.0.0`, bare `1.1.0`, `v1.1.0`, `v1.2.0`, `v1.3.0`,
 `v1.4.0`, `v1.4.1`) lack the subscription feature and registry subscription argument; no released name is renamed
 and no compatibility wrapper is needed. The ignored handoff binds exact tag OIDs and declarations.
+The [compatibility manifest](https://github.com/johnnickell/fight-common/blob/develop/compatibility/manifest.json)
+operation-shape digest is refreshed from the existing read-only structural producer for these three changed
+callable shapes (root/canonical registry construction and validator), without changing classification, baseline
+or promise policy. Exact producer/digest agreement is not full surface qualification: the pinned base already
+lacks the `DbalEventStoreTables` classification, and this separate limitation remains unrepaired. No certification
+or new release-process test is implied.
 
 Concise `factory` remains appropriate for a combined multi-interface HTTP factory or the sole factory under test,
 not a stream-only factory masquerading as data. Likewise, `registry` can identify the sole registration capability
