@@ -101,7 +101,7 @@ are requested. Requirements do not claim current implementation, passed behavior
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | done |
-| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent |
+| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

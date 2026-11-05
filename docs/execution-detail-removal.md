@@ -56,7 +56,8 @@ followed by an admitted no-op while safe identity remains. There is no count or 
 
 ## Storage, transactions and failure
 
-The operation deletes **only `fight_execution_contents`**, including its exact body/comparison representation
+The operation deletes **only the selected protected-content table's row** (default `fight_execution_contents`),
+including its exact body/comparison representation
 (or a null-body explicit-absence row). It deliberately retains safe detail identity, original capture metadata,
 recording time and activity link, as well as activity/usage, session and phase summaries. There is no duplicate
 body/digest in safe retry evidence. There are no link mutations to commit separately: the retained links remain
@@ -68,7 +69,7 @@ implementation requires the **same `DbalRecordingTransaction` object** as partic
 The remover injects the existing `TransactionalUnitOfWork` directly and calls `commitTransactional()`.
 `DbalRecordingTransaction` owns execution schema locking and failure translation, composing the generic
 `DbalTransactionalUnitOfWork` for actual begin/commit/rollback. Both use the same dedicated connection and
-existing `fight_execution_schema` version-row write lock. Recording and removal take that common lock **before
+selected state table's version-row write lock (default `fight_execution_schema`). Recording and removal take that common lock **before
 reads** on SQLite, MySQL and PostgreSQL. It serializes schema-wide writers, trading throughput for integrity;
 no global causal/commit order or high-throughput batching is promised.
 
@@ -141,7 +142,15 @@ rule, human/Agent role hierarchy, MCP removal Tool, UI or Workflow authority is 
 
 ## Composition
 
-Reuse recording's already installed, idle database and boundary; do not create an independent content transaction:
+Reuse recording's already installed, idle database and boundary; do not create an independent content transaction.
+The `DbalRecordingTransaction($connection, $tables)` selection governs repositories/removal, while all four readers
+receive the same `tables: $tables` explicitly. See [complete naming composition and inventory](execution-observations.md#five-table-sql-inventory)
+for full/partial overrides, exact defaults and ordinary-name restrictions. The removal use case has no separate
+naming option or new protocol operation. Configuration alone neither installs nor migrates/copies data; a new
+selection never falls back to old defaults or proves deletion there. Retained identity must remain with the content
+namespace to preserve retry guarantees. All participants, including independent connections/workers, must use the
+same selection and serialization boundary for the stated guarantees:
+
 
 ```php
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;

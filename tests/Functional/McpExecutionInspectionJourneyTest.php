@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Fight\Test\Common\Functional;
 
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
 use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
+use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\DetailCapture;
 use Fight\Common\Domain\Mcp\Detail\DetailKind;
+use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
@@ -29,15 +32,16 @@ final class McpExecutionInspectionJourneyTest extends TestCase
 {
     public static function databases(): iterable
     {
-        yield 'sqlite' => ['sqlite'];
-        yield 'mysql' => ['mysql'];
-        yield 'postgresql' => ['postgresql'];
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend.' default' => [$backend, new DbalObservationTables()];
+            yield $backend.' configured' => [$backend, new DbalObservationTables('McpSchema', 'McpSessions', 'McpPhases', 'McpObservations', 'McpContents')];
+        }
     }
 
     #[DataProvider('databases')]
-    public function test_that_guarded_http_matches_shared_queries_across_the_complete_safe_live_journey(string $backend): void
+    public function test_that_guarded_http_matches_shared_queries_across_the_complete_safe_live_journey(string $backend, DbalObservationTables $tables): void
     {
-        $f = new McpExecutionFixture($backend);
+        $f = new McpExecutionFixture($backend, tables: $tables);
         try {
             $f->seed(ObservationFixture::session());
             $f->seed(ObservationFixture::phase());
@@ -52,7 +56,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
             $f->seed(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => $next, 'outcome' => 'succeeded']));
             $f->seed(ObservationFixture::phase(['observation_id' => ObservationId::generate()->toString(), 'phase' => PhaseReference::fromStrings('session', 'empty', null, 'agent', 'empty', 1)->toArray()]));
             // Controlled immutable receipt-time tie; the full UUID, not source time, orders activity.
-            $f->db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+            $f->db->executeStatement('UPDATE '.$tables->observationTable()->quoted($f->db->getDatabasePlatform())." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
             $before = $f->state(); $events = $f->events;
             $discovery = $f->request('server/discover')['body']['result']['capabilities'];
             self::assertArrayHasKey('tools', $discovery);
@@ -107,8 +111,11 @@ final class McpExecutionInspectionJourneyTest extends TestCase
             self::assertNull($this->equivalent($f, 'execution.get', ['project_id' => 'other', 'session_id' => 'session'], new GetExecution('other', 'session')));
             self::assertSame($before, $f->state()); self::assertSame($events, $f->events);
             self::assertFalse($f->db->isTransactionActive());
-            // Removed owned fixture content changes availability, not historical capture completeness.
-            $f->db->delete('fight_execution_contents', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]);
+            // Authorized removal changes availability, not historical capture completeness.
+            $f->removalAllowed = true;
+            $f->remove(new RemoveCapturedDetail(DetailSelection::create('project', 'session', 'phase', $detail->producerId(), $second->id()->toString()), $detail->id(), DetailKind::MESSAGE));
+            self::assertSame(1, $f->removalAdmissionCalls);
+            self::assertFalse($f->db->isTransactionActive());
             $after = $this->equivalent($f, 'execution.activity', $activityArgs, new ListPhaseActivity('project', 'session', 'phase'));
             self::assertSame('missing', $after['activities'][0]['details'][0]['availability']);
             self::assertSame('partial', $after['activities'][0]['details'][0]['capture']['completeness']);
@@ -124,9 +131,9 @@ final class McpExecutionInspectionJourneyTest extends TestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_availability_guard_input_validation_scope_and_storage_failures_reject_safely(string $backend): void
+    public function test_that_current_availability_guard_input_validation_scope_and_storage_failures_reject_safely(string $backend, DbalObservationTables $tables): void
     {
-        $f = new McpExecutionFixture($backend);
+        $f = new McpExecutionFixture($backend, tables: $tables);
         try {
             $f->seed(ObservationFixture::session()); $f->seed(ObservationFixture::phase()); $f->seed(ObservationFixture::activity());
             $args = ['project_id' => 'project', 'session_id' => 'session', 'phase_id' => 'phase'];
@@ -159,7 +166,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
             self::assertNull($f->call('execution.activity', $args)['body']['result']['structuredContent']);
             $f->access = ExecutionAccess::create(['project' => null]);
             self::assertSame($before, $f->state()); self::assertSame($events, $f->events);
-            $f->db->executeStatement('UPDATE fight_execution_observations SET version = 999');
+            $f->db->executeStatement('UPDATE '.$tables->observationTable()->quoted($f->db->getDatabasePlatform()).' SET version = 999');
             $response = $f->call('execution.activity', $args);
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $response['body']['error']);
             self::assertArrayNotHasKey('result', $response['body']);
@@ -169,9 +176,9 @@ final class McpExecutionInspectionJourneyTest extends TestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_units_missing_usage_capture_markers_filters_and_tie_breakers_keep_their_query_meaning(string $backend): void
+    public function test_that_units_missing_usage_capture_markers_filters_and_tie_breakers_keep_their_query_meaning(string $backend, DbalObservationTables $tables): void
     {
-        $f = new McpExecutionFixture($backend);
+        $f = new McpExecutionFixture($backend, tables: $tables);
         try {
             $f->seed(ObservationFixture::session()); $f->seed(ObservationFixture::phase());
             $activity = ObservationFixture::activity(); $f->seed($activity);
@@ -192,7 +199,7 @@ final class McpExecutionInspectionJourneyTest extends TestCase
                 $f->seed($detail, ProtectedContent::create($detail->detail(), $body));
                 $captureById[$detail->id()->toString()] = $completeness->value;
             }
-            $f->db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+            $f->db->executeStatement('UPDATE '.$tables->observationTable()->quoted($f->db->getDatabasePlatform())." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
             $before = $f->state(); $events = $f->events;
             $summary = $this->equivalent($f, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project'])));
             self::assertSame(3, $summary['activities']); self::assertSame(1, $summary['activities_without_usage']);

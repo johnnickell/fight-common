@@ -289,9 +289,14 @@ absence; public removal and its coordination with recording retries remain TICKE
 ## Direct DBAL and Query bus composition
 
 Use the same installed version-one recording namespace and consumer-owned connection. No new tables, indexes,
-projection workers or Event Store are required. Compose the current caller admission and reader explicitly:
+projection workers or Event Store are required. Share recording's explicit `DbalObservationTables` selection with
+every reader, including separate connections/workers. Omit `tables` to retain all five defaults, or use a partial
+selection to retain only the omitted defaults. See the [five-table composition and SQL inventory](execution-observations.md#five-table-sql-inventory)
+for naming restrictions, no-migration consequences and all SQL owners. Current caller admission remains independent
+of storage selection. Compose the admission and reader explicitly:
 
 ```php
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalExecutionReader;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -303,7 +308,9 @@ use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
 
 /** @var ExecutionReadAdmission $currentCallerAdmission Consumer implementation, not Query input */
-$reader = new DbalExecutionReader($connection);
+// Use the same selection as schema installation and recording; this partial example changes content only.
+$tables = new DbalObservationTables(contentTable: 'private_execution_content');
+$reader = new DbalExecutionReader(connection: $connection, tables: $tables);
 $router = new InMemoryQueryRouter();
 $router->registerHandler(SummarizeExecutions::class, new SummarizeExecutionsHandler($currentCallerAdmission, $reader));
 $router->registerHandler(ListExecutions::class, new ListExecutionsHandler($currentCallerAdmission, $reader));
@@ -325,7 +332,7 @@ use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 $router->registerHandler(GetExecution::class, new GetExecutionHandler($currentCallerAdmission, $reader));
 $router->registerHandler(
     ListExecutionPhases::class,
-    new ListExecutionPhasesHandler($currentCallerAdmission, new DbalPhaseReader($connection))
+    new ListExecutionPhasesHandler($currentCallerAdmission, new DbalPhaseReader($connection, $tables))
 );
 $execution = $queries->fetch(new GetExecution('project', 'session'));
 $phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1, perPage: 20));
@@ -340,7 +347,7 @@ use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
 
 $router->registerHandler(
     ListPhaseActivity::class,
-    new ListPhaseActivityHandler($currentCallerAdmission, new DbalActivityReader($connection))
+    new ListPhaseActivityHandler($currentCallerAdmission, new DbalActivityReader($connection, $tables))
 );
 $activity = $queries->fetch(new ListPhaseActivity('project', 'session', 'phase', page: 1, perPage: 20));
 ```

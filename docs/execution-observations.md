@@ -397,11 +397,11 @@ extension values.
 | `observationTable` | `fight_execution_observations` |
 | `contentTable` | `fight_execution_contents` |
 
-Default construction of the schema, transaction and repositories remains supported, including existing named
-arguments. A partial selection such as `new DbalObservationTables(contentTable: 'private_execution_content')`
+Default construction of the schema, transaction, repositories and all four inspection readers remains supported,
+including existing named arguments (`connection` on readers). A partial selection such as `new DbalObservationTables(contentTable: 'private_execution_content')`
 changes only protected storage; the other four names remain exactly as above. Share the same selection between
-`DbalObservationSchema` and `DbalRecordingTransaction`; all four repositories inherit it from their transaction,
-including relationship/retry reads and the protected-content removal primitive. Separate connections/workers must
+`DbalObservationSchema`, `DbalRecordingTransaction` and each reader's optional `tables` argument; all four
+repositories inherit it from their transaction, including relationship/retry reads and protected-content removal. Separate connections/workers must
 receive the same explicit selection. There is no global/environment lookup or inward naming contract.
 
 Names use the shared `Adapter\Persistence\Doctrine\DbalTableName` rule: 1–63 ASCII characters matching
@@ -410,10 +410,36 @@ fallback or SQL interpretation. All five names must be distinct even ignoring ca
 case and permits ordinary reserved words; connection configuration owns database/schema choice. Custom phase and
 observation indexes have stable table-derived names so a configured schema can coexist with defaults.
 
-**Configured support here is recording/reconstruction, not public inspection.** Execution overview, phase/activity
-and protected-detail readers and complete authorized removal/MCP journeys still use default tables. Their conversion
-belongs to TASK-00198; do not wire those readers to this customized recorder and claim a complete configured journey.
-Default-table compositions continue to support the existing inspection/removal use cases.
+The same selection supports the complete recording/inspection/removal path. Compose
+`DbalExecutionReader($connection, $tables)`, `DbalPhaseReader($connection, $tables)`,
+`DbalActivityReader($connection, $tables)` and `DbalDetailReader($connection, $tables)` with the recorder above.
+Register their existing authorized [safe Query handlers](execution-reads.md#direct-dbal-and-query-bus-composition)
+and separately admitted [protected handlers](execution-protected-reads.md#composition-and-compatibility) on the
+ordinary Query bus. Register [RemoveCapturedDetailHandler](execution-detail-removal.md#composition) on the Command
+bus with the **same recording transaction and repositories**, not a second deletion implementation. Optional
+[guarded MCP Tools](mcp-execution-inspection.md#composition-and-trusted-context) consume that Query bus unchanged;
+no request, Query, ID or Tool argument selects a table. Selection grants no recording, safe-read, body-read or
+removal permission, and changing it grants no access to old evidence.
+
+### Five-table SQL inventory
+
+All paths below use the same explicit selection and shared `DbalTableName` quoting. Paths are beneath
+`src/Adapter/Mcp/Persistence/`; no Domain/Application naming contract is added.
+
+| Selected responsibility | Schema/runtime owners and SQL paths |
+| --- | --- |
+| State/lock | `Execution/Dbal/DbalObservationSchema` install/validation and `DbalRecordingTransaction` version-row validation/serialization through commit |
+| Sessions | Schema; `Session/Dbal/DbalSessionRepository` load/add; `DbalExecutionReader` source/count; Phase, Activity and Detail reader subject joins |
+| Phases | Schema; `Phase/Dbal/DbalPhaseRepository` load/add; `DbalPhaseReader` count/source/visible-parent self-join; Activity and Detail reader subject joins |
+| Observations | Schema; `Observation/Dbal/DbalObservationRepository` load/add/retry reconstruction; Execution reader latest-evidence/freshness subqueries; Phase latest-evidence subqueries; `Execution/Dbal/DbalExecutionReadSupport` finite traversal; Activity/Detail finite activity/detail scans |
+| Protected content | Schema; `Detail/Dbal/DbalProtectedContentRepository` load/add/remove; `DbalDetailReader` separately admitted body lookup; Activity and Detail reader presence-only `EXISTS` subqueries |
+
+Safe overview/phase traversal never reads protected bodies. Activity presence checks use only the selected content
+identity; protected body lookup additionally requires its independent current grant. No reader installs storage or
+falls back to populated defaults. Missing/incompatible selected storage fails explicitly, rather than proving empty
+old history, migration success or job completion. Retained identity and common-lock removal/retry semantics do not
+change. SQLite/MySQL/PostgreSQL fixtures retain defaults and exercise configured read, removal, race-worker and
+guarded HTTP compositions, including independent connections and partial overrides.
 
 The selected namespace contains a version/lock table, session subjects, phase subjects, retained
 safe observation rows and separately protected contents. Composite foreign keys enforce

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\SQLitePlatform;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
@@ -18,7 +19,9 @@ $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ER
 $role = $argv[2]; $directory = dirname($argv[1]); $operation = $config['operations'][$role];
 $db = DriverManager::getConnection($config['params']);
 if ($db->getDatabasePlatform() instanceof SQLitePlatform) { $db->executeStatement('PRAGMA busy_timeout = 10000'); }
-$store = new DbalRecordingTransaction($db);
+$tables = new DbalObservationTables(...($config['tables'] ?? []));
+$contentTable = $tables->contentTable()->quoted($db->getDatabasePlatform());
+$store = new DbalRecordingTransaction($db, $tables);
 $barrier = static function () use ($directory): void {
     $deadline = microtime(true) + 10;
     while (!file_exists($directory.'/release')) {
@@ -32,8 +35,8 @@ $admitted = static function () use ($directory, $role, $config, $barrier): void 
 };
 $afterDelete = null;
 if ($config['pause_after_delete'] ?? false) {
-    $afterDelete = static function () use ($directory, $role, $barrier, $db, $config): void {
-        if ((int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_contents WHERE observation_id = ?', [$config['observation']['observation_id']]) !== 0) {
+    $afterDelete = static function () use ($directory, $role, $barrier, $db, $config, $contentTable): void {
+        if ((int) $db->fetchOne('SELECT COUNT(*) FROM '.$contentTable.' WHERE observation_id = ?', [$config['observation']['observation_id']]) !== 0) {
             throw new RuntimeException('Expected actual deletion before barrier.');
         }
         file_put_contents($directory.'/'.$role.'-deleted', 'uncommitted deletion'); $barrier();
