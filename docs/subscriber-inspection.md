@@ -157,8 +157,11 @@ inspect from an independent routed-Query process, distinguish multiple streams/o
 accepted Resource and optional-family fields, revoke inspection access, restrict exact registrations, conceal another
 scope, and observe concurrent clean disconnect. Actual abrupt worker SIGKILL leaves an unclosed row; later independent
 Queries report stale/uncertain, unchanged by late failed heartbeat or the inspection itself, then empty after bounded
-owner cleanup. Storage failure is separate from empty authorized results. Existing cross-process lifecycle lock and
-failure journeys remain in the complete product gate.
+owner cleanup. Storage failure is separate from empty authorized results. Controlled temporal cases use the existing trusted
+adapter clock seam to commit a later heartbeat after capture and assert exact future/open/expiry/closure
+classifications on all three databases. Live journey state assertions use each page's own clock and allow ongoing
+registrations to be recently observed or stale/uncertain; they do not assume a cross-query state snapshot.
+Existing cross-process lifecycle lock and failure journeys remain in the complete product gate.
 
 These nonvisual Before/After lifecycle/Query transcripts are appropriate for a PHP library, not screenshots of a
 nonexistent dashboard. They identify the backend, worker PIDs, HTTP frames/timestamps and before/after Query results;

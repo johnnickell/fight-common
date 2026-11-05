@@ -196,6 +196,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00177](00177-TASK.md) | Consolidate all agent and MCP classes under Mcp | — (standalone chore) | done | — | [PR #251](https://github.com/johnnickell/fight-common/pull/251) |
 | — | [TASK-00193](00193-TASK.md) | Add validated ResultSet construction | — (standalone chore) | done | — | [PR #266](https://github.com/johnnickell/fight-common/pull/266) |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
+| — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
 <!-- /planning:board -->
 
 ## Wayfinder

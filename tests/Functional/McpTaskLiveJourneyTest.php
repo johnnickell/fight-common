@@ -14,11 +14,13 @@ use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Test\Common\Fixture\Mcp\TaskEndpoint;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
+use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveDiagnostics;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 #[CoversNothing]
@@ -28,6 +30,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     private Connection $db;
     private array $servers = [];
     private array $trace = [];
+    private array $socketRequests = [];
 
     #[DataProvider('compositions')]
     public function test_that_real_http_native_frames_follow_independent_suppliers_and_reconnect_without_replaying_intermediates(string $backend, string $composition): void
@@ -35,8 +38,8 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         $this->database($backend);
         $a = $this->server(); $b = $this->server(); $poll = $this->server();
         $start = $this->rpc($poll, TaskEndpoint::request()); self::assertSame('task', $start['result']['resultType']);
-        $left = $this->open($a, $composition, ['taskIds' => [TaskFixture::ID]], 7);
-        $right = $this->open($b, $composition.'&mixed=1', ['taskIds' => [TaskFixture::ID], 'toolsListChanged' => true], '7');
+        $left = $this->open($a, $composition, ['taskIds' => [TaskFixture::ID]], 7, 'left');
+        $right = $this->open($b, $composition.'&mixed=1', ['taskIds' => [TaskFixture::ID], 'toolsListChanged' => true], '7', 'right');
         self::assertSame(['taskIds' => [TaskFixture::ID]], $this->next($left)['params']['notifications']);
         self::assertSame(['taskIds' => [TaskFixture::ID], 'toolsListChanged' => true], $this->next($right)['params']['notifications']);
         $baseline = $this->next($left); $other = $this->next($right);
@@ -157,28 +160,34 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         self::fail($p->getErrorOutput());
     }
 
-    private function send(string $address, ServerRequest $request, string $query = '')
+    private function send(string $address, ServerRequest $request, string $query = '', string $label = 'rpc')
     {
         $socket = stream_socket_client('tcp://'.$address, $errno, $error, 5); self::assertIsResource($socket, $error); stream_set_timeout($socket, 10);
+        $requestKey = 'request-'.(count($this->trace['requests'] ?? []) + 1);
+        $this->socketRequests[(int) $socket] = $requestKey;
+        $this->trace['requests'][$requestKey] = ['label' => $label, 'address' => $address, 'query' => $query, 'body' => (string) $request->getBody(), 'connected' => TaskLiveDiagnostics::clock()];
+        $request = $request->withHeader('X-Fight-Test-Request', $requestKey);
         $body = (string) $request->getBody(); $wire = "POST /mcp?$query HTTP/1.1\r\nHost: $address\r\nConnection: close\r\nContent-Length: ".strlen($body)."\r\n";
         foreach ($request->getHeaders() as $name => $values) { foreach ($values as $value) { $wire .= "$name: $value\r\n"; } } fwrite($socket, $wire."\r\n".$body);
-        $headers = ''; while (($line = fgets($socket)) !== false && $line !== "\r\n") { $headers .= $line; } $this->trace['headers'][] = $headers; return [$socket, $headers];
+        $headers = ''; while (($line = fgets($socket)) !== false && $line !== "\r\n") { $headers .= $line; } $this->trace['headers'][] = $headers; $this->trace['requests'][$requestKey]['headers'] = $headers; $this->socketBoundary($socket, 'headers-read'); return [$socket, $headers];
     }
 
-    private function open(string $address, string $composition, array $filters, int|string $id = 7)
+    private function open(string $address, string $composition, array $filters, int|string $id = 7, string $label = 'stream')
     {
-        [$socket, $headers] = $this->send($address, TaskLiveFixture::request($filters, $id), 'composition='.$composition); self::assertStringContainsString('text/event-stream', $headers); return $socket;
+        [$socket, $headers] = $this->send($address, TaskLiveFixture::request($filters, $id), 'composition='.$composition, $label); self::assertStringContainsString('text/event-stream', $headers); return $socket;
     }
 
     private function rpc(string $address, ServerRequest $request): array
     {
-        [$socket, $headers] = $this->send($address, $request); self::assertStringContainsString('application/json', $headers); $json = stream_get_contents($socket); self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
+        [$socket, $headers] = $this->send($address, $request); self::assertStringContainsString('application/json', $headers); $json = stream_get_contents($socket); $this->recordRaw($socket, $json); $this->socketBoundary($socket, 'rpc-read-end'); self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket);
         $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR); $this->trace['rpc'][] = $data; return $data;
     }
 
     private function next($socket): array
     {
-        while (($line = fgets($socket)) !== false) { if (str_starts_with($line, 'data: ')) { $data = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); $this->trace['frames'][] = ['time' => microtime(true), 'data' => $data]; return $data; } }
+        while (($line = fgets($socket)) !== false) { $this->recordRaw($socket, $line); if (str_starts_with($line, 'data: ')) { $data = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); $this->trace['frames'][] = ['request' => $this->socketRequests[(int) $socket] ?? 'unregistered', ...TaskLiveDiagnostics::clock(), 'data' => $data]; return $data; } }
+        $this->socketBoundary($socket, 'next-read-false');
+        if (isset($this->db)) { $this->trace['failedReadRows'] = TaskLiveDiagnostics::rows($this->db); }
         self::fail('Expected live frame before closure');
     }
 
@@ -189,14 +198,32 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     private function drain($socket): array
     {
-        $frames = []; while (($line = fgets($socket)) !== false) { if (str_starts_with($line, 'data: ')) { $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); } } self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket); $this->trace['tails'][] = $frames; return $frames;
+        $frames = []; while (($line = fgets($socket)) !== false) { $this->recordRaw($socket, $line); if (str_starts_with($line, 'data: ')) { $frames[] = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); } } $this->socketBoundary($socket, 'drain-read-false'); self::assertFalse(stream_get_meta_data($socket)['timed_out']); fclose($socket); $this->trace['tails'][] = $frames; return $frames;
     }
 
-    private function disconnect($socket): void { stream_socket_shutdown($socket, STREAM_SHUT_RDWR); fclose($socket); }
+    private function disconnect($socket): void { $this->socketBoundary($socket, 'client-disconnect'); stream_socket_shutdown($socket, STREAM_SHUT_RDWR); fclose($socket); }
+
+    private function recordRaw($socket, string $bytes): void
+    {
+        $requestKey = $this->socketRequests[(int) $socket] ?? 'unregistered';
+        $requestTrace = &$this->trace['requests'][$requestKey];
+        $requestTrace['rawBytes'] = ($requestTrace['rawBytes'] ?? 0) + strlen($bytes);
+        $requestTrace['raw'] = ($requestTrace['raw'] ?? '').substr($bytes, 0, max(0, 131072 - strlen($requestTrace['raw'] ?? '')));
+        $requestTrace['lastRead'] = TaskLiveDiagnostics::clock();
+        $requestTrace['rawTruncated'] = $requestTrace['rawBytes'] > 131072;
+    }
+
+    private function socketBoundary($socket, string $boundary): void
+    {
+        $requestKey = $this->socketRequests[(int) $socket] ?? 'unregistered';
+        $this->trace['requests'][$requestKey]['boundaries'][] = ['boundary' => $boundary, ...TaskLiveDiagnostics::clock(), 'eof' => feof($socket), 'metadata' => stream_get_meta_data($socket)];
+    }
     private function assertNewer(array $old, array $new): void { self::assertSame($old['_meta'][McpTasks::REVISION]['scope'], $new['_meta'][McpTasks::REVISION]['scope']); self::assertGreaterThan($old['_meta'][McpTasks::REVISION]['value'], $new['_meta'][McpTasks::REVISION]['value']); }
     private function worker(string $mode): array
     {
-        $p = new Process([PHP_BINARY, 'tests/TestCase/Mcp/Task/http-worker.php', $this->directory.'/config.json', $mode], dirname(__DIR__, 2), timeout: 10); $p->mustRun(); $data = json_decode($p->getOutput(), true, flags: JSON_THROW_ON_ERROR); self::assertNotSame(getmypid(), $data['pid']); $this->trace['suppliers'][] = $data; return $data;
+        $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'enter', ...TaskLiveDiagnostics::clock()];
+        $p = new Process([PHP_BINARY, 'tests/TestCase/Mcp/Task/http-worker.php', $this->directory.'/config.json', $mode], dirname(__DIR__, 2), timeout: 10);
+        try { $p->mustRun(); } finally { $this->trace['workerBoundaries'][] = ['mode' => $mode, 'boundary' => 'leave', ...TaskLiveDiagnostics::clock(), 'exit' => $p->getExitCode(), 'output' => $p->getOutput(), 'error' => $p->getErrorOutput()]; } $data = json_decode($p->getOutput(), true, flags: JSON_THROW_ON_ERROR); self::assertNotSame(getmypid(), $data['pid']); $this->trace['suppliers'][] = $data; return $data;
     }
 
     private function assertPrivateStorage(): void
@@ -211,12 +238,16 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     protected function tearDown(): void
     {
         foreach ($this->servers as $p) { $p->stop(); $this->trace['servers'][] = ['exit' => $p->getExitCode(), 'log' => $p->getErrorOutput(), 'output' => $p->getOutput()]; } $this->servers = [];
-        if (isset($this->db)) { $this->db->close(); }
+        if (isset($this->db)) { $this->trace['finalRows'] = TaskLiveDiagnostics::rows($this->db); $this->db->close(); }
         if (isset($this->directory)) {
             foreach (glob($this->directory.'/closed-*.json') as $file) { $this->trace['native'][] = json_decode(file_get_contents($file), true, flags: JSON_THROW_ON_ERROR); }
-            $destination = getenv('FIGHT_TASK_LIVE_EVIDENCE_DIR'); if ($destination !== false) { file_put_contents($destination.'/'.str_replace([' ', '"', '/'], '-', $this->nameWithDataSet()).'.json', json_encode($this->trace, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)); }
+            // Native build/exec does not forward arbitrary host env vars. Keep default capture on the /app bind mount.
+            $destination = getenv('FIGHT_TASK_LIVE_EVIDENCE_DIR');
+            if ($destination === false) { $destination = dirname(__DIR__, 2).'/var/reports/task-live'; }
+            if (!is_dir($destination) && !mkdir($destination, 0700, true) && !is_dir($destination)) { throw new RuntimeException('Cannot create private Task-live evidence directory'); }
+            file_put_contents($destination.'/'.str_replace([' ', '"', '/'], '-', $this->nameWithDataSet()).'-'.bin2hex(random_bytes(4)).'.json', json_encode($this->trace, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
             $this->removeTemporaryDirectory($this->directory, 'fight-task-live-');
         }
-        $this->trace = []; parent::tearDown();
+        $this->trace = []; $this->socketRequests = []; parent::tearDown();
     }
 }
