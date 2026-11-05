@@ -24,7 +24,7 @@ use Throwable;
 final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
 {
     private DbalNoticeTransaction $noticeTransaction;
-    private DbalNoticeRecords $noticeRecords;
+    private DbalNoticeRecords $noticeRecordSupport;
 
     /**
      * Constructs DbalNoticeRecoveryReader
@@ -32,7 +32,7 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
     public function __construct(private Connection $connection)
     {
         $this->noticeTransaction = new DbalNoticeTransaction($connection);
-        $this->noticeRecords = new DbalNoticeRecords($connection);
+        $this->noticeRecordSupport = new DbalNoticeRecords($connection);
     }
 
     /**
@@ -49,7 +49,7 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
             $limit
         ): NoticeRecoveryWindow {
             try {
-                $state = $this->noticeRecords->recoveryState();
+                $state = $this->noticeRecordSupport->recoveryState();
                 $where = '1 = 0';
                 if ($scopes !== []) {
                     $where = 'n.scope IN ('.implode(', ', array_fill(0, count($scopes), '?')).')';
@@ -63,7 +63,7 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
                     $state->namespace(),
                     $state->highWater(),
                     $state->lostThrough(),
-                    array_map($this->noticeRecords->hydrate(...), $rows)
+                    array_map($this->noticeRecordSupport->hydrate(...), $rows)
                 );
             } catch (Throwable $throwable) {
                 throw new NoticeStorageFailed(false, $throwable);
@@ -90,7 +90,7 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
             $sql = $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit);
             $rows = $this->connection->fetchAllAssociative($sql, [$scope, $position]);
 
-            return array_map($this->noticeRecords->hydrate(...), $rows);
+            return array_map($this->noticeRecordSupport->hydrate(...), $rows);
         } catch (Throwable $throwable) {
             throw new NoticeStorageFailed(false, $throwable);
         }

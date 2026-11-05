@@ -168,7 +168,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         $skillResources = new McpSkillResources([$revision], new class implements McpSkillAvailability {
             public function isAvailable(StrictJson $entry): bool { return true; }
         }, new HttpFactory());
-        $external = new ReadableResources([]);
+        $externalResourceProvider = new ReadableResources([]);
         $factory = new HttpFactory();
         $diagnostics = new class implements McpDiagnostics {
             public int $count = 0;
@@ -180,9 +180,9 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         };
         $constructions = 0;
         $app = new App($factory);
-        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($skillResources, $external, $factory, $diagnostics, $guard, &$constructions) {
+        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($skillResources, $externalResourceProvider, $factory, $diagnostics, $guard, &$constructions) {
             ++$constructions;
-            $resourceDiscovery = new McpResourceDiscovery([$skillResources, $external], new class implements McpResourceAvailability {
+            $resourceDiscovery = new McpResourceDiscovery([$skillResources, $externalResourceProvider], new class implements McpResourceAvailability {
                 public function isAvailable(McpResourceInfo $resource): bool { return true; }
             }, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
             $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('fixture-only', 4), 'skills');
@@ -205,18 +205,18 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         }
         self::assertSame(4, $constructions);
         self::assertSame(429, $app->handle($request)->getStatusCode());
-        self::assertSame(0, $external->enumerations);
-        self::assertSame([], $external->lookedUp);
-        self::assertSame([], $external->opened);
+        self::assertSame(0, $externalResourceProvider->enumerations);
+        self::assertSame([], $externalResourceProvider->lookedUp);
+        self::assertSame([], $externalResourceProvider->opened);
         $guard->allowed = true;
         self::assertArrayHasKey('result', $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')]));
-        self::assertSame(1, $external->enumerations);
-        $external->entries = [$revision->entry()->get('uri') => ['bytes' => 'collision']];
+        self::assertSame(1, $externalResourceProvider->enumerations);
+        $externalResourceProvider->entries = [$revision->entry()->get('uri') => ['bytes' => 'collision']];
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, 'skills/get', ['uri' => $revision->entry()->get('uri')])['error']);
-        self::assertSame(2, $external->enumerations);
+        self::assertSame(2, $externalResourceProvider->enumerations);
         self::assertSame(1, $diagnostics->count);
-        self::assertSame([], $external->lookedUp);
-        self::assertSame([], $external->opened);
+        self::assertSame([], $externalResourceProvider->lookedUp);
+        self::assertSame([], $externalResourceProvider->opened);
     }
 
     private function entry(StrictJson $entry): array { return json_decode($entry->toString(), true, flags: JSON_THROW_ON_ERROR); }

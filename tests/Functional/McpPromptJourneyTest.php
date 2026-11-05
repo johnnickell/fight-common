@@ -115,8 +115,8 @@ final class McpPromptJourneyTest extends TestCase
             public function record(Throwable $failure): void { ++$this->calls; }
         };
         $skillResources = new McpSkillResources([$revision], $skillAccess, $factory);
-        $documents = new ReadableResources(['doc://guide' => ['bytes' => 'guide']]);
-        $resourceDiscovery = new McpResourceDiscovery([$documents, $skillResources], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
+        $documentProvider = new ReadableResources(['doc://guide' => ['bytes' => 'guide']]);
+        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResources], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'prompts');
         $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
         $promptDiscovery = new McpPromptDiscovery([$promptProvider, $hidden, $static], $promptAccess, str_repeat('prompt-key', 4), 'journey', new McpPromptLimits(pageSize: 1));
@@ -133,8 +133,8 @@ final class McpPromptJourneyTest extends TestCase
         });
         self::assertSame([], $promptProvider->calls);
         self::assertSame([], $handler->calls);
-        self::assertSame(0, $documents->enumerations);
-        self::assertSame([], $documents->opened);
+        self::assertSame(0, $documentProvider->enumerations);
+        self::assertSame([], $documentProvider->opened);
 
         // Direct retrieval precedes any discovery. No linked Resource provider is enumerated or opened.
         $get = $this->response($app, 'prompts/get', ['name' => 'task.review', 'arguments' => (object) ['id' => '42', 'note' => "\r\n雪"]])['result'];
@@ -143,8 +143,8 @@ final class McpPromptJourneyTest extends TestCase
         self::assertSame("Review 42: Safe task 雪\r\n雪", $get['messages'][0]['content']['text']);
         self::assertSame(['type' => 'resource_link', ...$link->toArray()], $get['messages'][1]['content']);
         self::assertSame(['42'], $handler->calls);
-        self::assertSame(0, $documents->enumerations);
-        self::assertSame([], $documents->opened);
+        self::assertSame(0, $documentProvider->enumerations);
+        self::assertSame([], $documentProvider->opened);
         self::assertStringNotContainsString('do not disclose', json_encode($get));
         self::assertSame('Start here.', $this->response($app, 'prompts/get', ['name' => 'static.start'])['result']['messages'][0]['content']['text']);
         self::assertSame(['42'], $handler->calls);
@@ -197,7 +197,7 @@ final class McpPromptJourneyTest extends TestCase
         // Possession of the earlier successful link does not bypass later Resource authorization.
         $resourceAccess->allowed = false;
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $get['messages'][1]['content']['uri']])['error']['code']);
-        self::assertSame([], $documents->opened);
+        self::assertSame([], $documentProvider->opened);
         $resourceAccess->allowed = true;
         self::assertSame($revision->file($skillUri)->bytes(), $this->response($app, 'resources/read', ['uri' => $skillUri])['result']['contents'][0]['text']);
         self::assertNotEmpty($this->response($app, 'resources/list')['result']['resources']);

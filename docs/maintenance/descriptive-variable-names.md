@@ -30,8 +30,11 @@ event-dispatcher and stream-factory roles and backend strings mislabeled as conn
 Renewed Review found a second stream-only factory, response factories/registries/transaction managers named as
 collections, and a subscription composition object named as subscription data (remaining R-03 and R-04/R-05).
 The next Review marked R-01–R-05 resolved, but found the activity fixture's execution-query bus named as overview
-data (R-06) and the operation-shape digest stale after the provisional signature correction (R-07). The current
-repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
+data (R-06) and the operation-shape digest stale after the provisional signature correction (R-07). Later Review
+marked R-01–R-07 resolved but found readable Resource providers named as content/relative values (R-08) and the
+Notice persisted-evidence helper named as record data (R-09). The current repair identifies those provider and
+support roles; a separate MySQL OOM/readiness prerequisite (R-10) is verified through the same native runtime.
+The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
 and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
 historical snapshots/receipts, third-party quoted contracts and nonexecutable artwork are excluded; owned generators
@@ -50,6 +53,9 @@ and validators are included. No unreadable owned path was encountered.
   `taskDisclosureGuard`. Provisional constructor names change directly, with owned named callers updated.
 - [DBAL MCP adapters](https://github.com/johnnickell/fight-common/tree/develop/src/Adapter/Mcp/Persistence)
   distinguish `recordingTransaction`, `executionReadSupport`, Table builders and SQL strings/rows.
+  The Notice repository/recovery reader use `noticeRecordSupport` for the internal `DbalNoticeRecords` helper's
+  database hydration and recovery-evidence validation, not a collection of notices. Its class/methods and SQL,
+  private construction, integrity checks and transaction ownership remain unchanged.
   [Concrete Tools](https://github.com/johnnickell/fight-common/tree/develop/src/Adapter/Mcp/Tool) distinguish
   validated input, parsed arguments and their typed result projections.
 - [Messaging](https://github.com/johnnickell/fight-common/tree/develop/src/Adapter/Messaging) distinguishes
@@ -69,6 +75,10 @@ and validators are included. No unreadable owned path was encountered.
   `summary` result data, preserving the helper's tuple order and every query/assertion.
   Skill Resource, discovery and combined journeys use `streamFactory` for mocked/anonymous PSR-17 factories, while
   their `opened` traces remain arrays and released production constructor `streams` remains a named-argument contract.
+  Combined/Prompt/Resource journeys name actual readable providers `documentProvider` and `assetProvider`;
+  Skill journeys use `ordinaryResourceProvider` and `externalResourceProvider`, including the request closure
+  capture. Skill discovery unit scenarios use `additionalResourceProvider` only for real readable providers,
+  leaving other responder/results and true `entries`/`opened`/`lookedUp` data intact.
   OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and
   `capabilityRegistry` where those responsibilities coexist. Laravel queue integration uses `transactionManager`
   for the native DatabaseTransactionsManager, preserving `'db.transactions'` and constructor labels.

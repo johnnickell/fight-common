@@ -54,7 +54,7 @@ final class McpCombinedJourneyTest extends TestCase
     {
         $documentUri = 'doc://catalog/v1/guide';
         $bytes = "# Guide 雪\r\nOriginal bytes.\r\n";
-        $documents = new ReadableResources([
+        $documentProvider = new ReadableResources([
             $documentUri => ['bytes' => $bytes, 'listed' => false],
             'doc://catalog/v1/a' => ['bytes' => 'A'],
             'doc://catalog/v1/b' => ['bytes' => 'B'],
@@ -104,7 +104,7 @@ final class McpCombinedJourneyTest extends TestCase
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_failure'; }
         };
         $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
-        $resourceDiscovery = new McpResourceDiscovery([$documents, $skillResources], $resourceAvailability, str_repeat('resource-key', 4), 'combined', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits());
+        $resourceDiscovery = new McpResourceDiscovery([$documentProvider, $skillResources], $resourceAvailability, str_repeat('resource-key', 4), 'combined', new McpResourceLimits(pageSize: 1), readLimits: new McpResourceReadLimits());
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'combined', new McpSkillDiscoveryLimits(pageSize: 1));
         $factory = new HttpFactory();
         $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Combined', '1'), [
@@ -136,7 +136,7 @@ final class McpCombinedJourneyTest extends TestCase
         self::assertStringNotContainsString('must not leak', json_encode($call));
         $document = $this->responseResult($app, 'resources/read', ['uri' => $call['content'][1]['uri']]);
         self::assertSame($bytes, $document['contents'][0]['text']);
-        self::assertSame([$documentUri], $documents->opened);
+        self::assertSame([$documentUri], $documentProvider->opened);
         $resourcePage = $this->responseResult($app, 'resources/list');
         self::assertCount(1, $resourcePage['resources']);
         self::assertSame('private', $resourcePage['cacheScope']);
@@ -145,7 +145,7 @@ final class McpCombinedJourneyTest extends TestCase
         self::assertCount(1, $resourceNext['resources']);
         self::assertNotSame($resourcePage['resources'][0]['uri'], $resourceNext['resources'][0]['uri']);
         self::assertNotContains($documentUri, [$resourcePage['resources'][0]['uri'], $resourceNext['resources'][0]['uri']]);
-        self::assertSame([$documentUri], $documents->opened);
+        self::assertSame([$documentUri], $documentProvider->opened);
         self::assertSame([], $streamFactory->opened);
         $skillPage = $this->responseResult($app, 'skills/list');
         self::assertCount(1, $skillPage['skills']);
@@ -173,7 +173,7 @@ final class McpCombinedJourneyTest extends TestCase
         self::assertSame(0, $skillPage['ttlMs']);
         self::assertSame([], $diagnostics->events);
 
-        $before = [$documents->opened, $streamFactory->opened];
+        $before = [$documentProvider->opened, $streamFactory->opened];
         $bounded = new McpRequestHandler(
             $capabilityRegistry, new ExactMcpOriginPolicy(['https://client.test']), $guard,
             new McpResponseFactory($factory, $factory, $diagnostics),
@@ -184,7 +184,7 @@ final class McpCombinedJourneyTest extends TestCase
         ]);
         self::assertSame(413, $bounded->handle($oversized)->getStatusCode());
         self::assertSame(['guide'], $queryBus->ids);
-        self::assertSame($before, [$documents->opened, $streamFactory->opened]);
+        self::assertSame($before, [$documentProvider->opened, $streamFactory->opened]);
         foreach ([
             $this->request('resources/read', ['uri' => $skillUri])->withoutHeader('Mcp-Name'),
             $this->request('resources/read', ['uri' => $documentUri])->withHeader('Origin', 'https://evil.test'),
@@ -195,11 +195,11 @@ final class McpCombinedJourneyTest extends TestCase
         $guard->allowed = false;
         self::assertSame(429, $app->handle($this->request('resources/read', ['uri' => $skillUri]))->getStatusCode());
         $guard->allowed = true;
-        self::assertSame($before, [$documents->opened, $streamFactory->opened]);
+        self::assertSame($before, [$documentProvider->opened, $streamFactory->opened]);
         $resourceAvailability->allowed = false;
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $documentUri])['error']['code']);
         self::assertSame(['summary' => 'Public summary'], $this->responseResult($app, 'tools/call', ['name' => 'document.find', 'arguments' => (object) ['id' => 'guide']])['structuredContent']);
-        self::assertSame($before, [$documents->opened, $streamFactory->opened]);
+        self::assertSame($before, [$documentProvider->opened, $streamFactory->opened]);
         $resourceAvailability->allowed = true;
         $toolAvailability->allowed = false;
         self::assertSame(-32602, $this->response($app, 'tools/call', ['name' => 'document.find', 'arguments' => (object) ['id' => 'guide']])['error']['code']);
@@ -210,8 +210,8 @@ final class McpCombinedJourneyTest extends TestCase
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $skillUri])['error']['code']);
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $nestedUri])['error']['code']);
         self::assertSame(-32602, $this->response($app, 'resources/read', ['uri' => $old->entry()->get('uri')])['error']['code']);
-        self::assertSame([$documentUri, $documentUri], $documents->opened);
-        $documents->fail = true;
+        self::assertSame([$documentUri, $documentUri], $documentProvider->opened);
+        $documentProvider->fail = true;
         $resourceAvailability->allowed = true;
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'],
             $this->response($app, 'resources/read', ['uri' => $documentUri])['error']);

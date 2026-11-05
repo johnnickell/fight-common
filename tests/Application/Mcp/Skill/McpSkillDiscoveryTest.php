@@ -281,17 +281,17 @@ final class McpSkillDiscoveryTest extends UnitTestCase
         $policy = new DiscoveryAvailability(); $policy->denied = [$revision->entry()->get('uri')];
         $skillResources = new McpSkillResources([$revision], $policy, new HttpFactory());
         foreach ([new McpResourceReadLimits(maxContentBytes: 1), null] as $readLimits) {
-            $other = new ReadableResources($readLimits === null ? [$revision->entry()->get('uri') => ['bytes' => 'collision']] : []);
-            $resourceDiscovery = $this->resources($skillResources, readLimits: $readLimits ?? new McpResourceReadLimits(), extras: [$other]);
+            $additionalResourceProvider = new ReadableResources($readLimits === null ? [$revision->entry()->get('uri') => ['bytes' => 'collision']] : []);
+            $resourceDiscovery = $this->resources($skillResources, readLimits: $readLimits ?? new McpResourceReadLimits(), extras: [$additionalResourceProvider]);
             $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope');
-            self::assertSame(0, $other->enumerations);
-            self::assertSame([], $other->lookedUp);
+            self::assertSame(0, $additionalResourceProvider->enumerations);
+            self::assertSame([], $additionalResourceProvider->lookedUp);
             $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$skillDiscovery, $resourceDiscovery]));
             foreach (['skills/list' => [], 'skills/get' => ['uri' => $revision->entry()->get('uri')]] as $method => $params) {
                 self::assertSame(-32603, $this->response($responder, $method, $params)['error']['code']);
             }
-            self::assertSame($readLimits === null ? 2 : 0, $other->enumerations);
-            self::assertSame([], $other->opened);
+            self::assertSame($readLimits === null ? 2 : 0, $additionalResourceProvider->enumerations);
+            self::assertSame([], $additionalResourceProvider->opened);
             self::assertSame([], $policy->seen);
         }
         $resourceDiscovery = $this->resources($skillResources, readLimits: new McpResourceReadLimits(maxContentBytes: 1024, maxResultBytes: 6500));
@@ -305,8 +305,8 @@ final class McpSkillDiscoveryTest extends UnitTestCase
     {
         $policy = new DiscoveryAvailability();
         $skillResources = new McpSkillResources([SkillRevision::create()], $policy, new HttpFactory());
-        $other = new ReadableResources([]);
-        $resourceDiscovery = $this->resources($skillResources, extras: [$other]);
+        $additionalResourceProvider = new ReadableResources([]);
+        $resourceDiscovery = $this->resources($skillResources, extras: [$additionalResourceProvider]);
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope');
         $diagnostics = new class implements McpDiagnostics { public array $failures = []; public function record(Throwable $failure): void { $this->failures[] = $failure; } };
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$resourceDiscovery, $skillDiscovery]), diagnostics: $diagnostics);
@@ -323,33 +323,33 @@ final class McpSkillDiscoveryTest extends UnitTestCase
     {
         $revision = SkillRevision::create();
         $skillResources = new McpSkillResources([$revision], new DiscoveryAvailability(), new HttpFactory());
-        $other = new ReadableResources([]);
-        $resourceDiscovery = $this->resources($skillResources, extras: [$other]);
+        $additionalResourceProvider = new ReadableResources([]);
+        $resourceDiscovery = $this->resources($skillResources, extras: [$additionalResourceProvider]);
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope', new McpSkillDiscoveryLimits(pageSize: 1));
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$skillDiscovery, $resourceDiscovery]));
-        self::assertSame(0, $other->enumerations);
+        self::assertSame(0, $additionalResourceProvider->enumerations);
         self::assertArrayHasKey('result', $this->response($responder, 'skills/list'));
-        self::assertSame(1, $other->enumerations);
-        $other->entries = [
+        self::assertSame(1, $additionalResourceProvider->enumerations);
+        $additionalResourceProvider->entries = [
             'skill://catalog/zz/hidden' => ['bytes' => 'safe'],
             $revision->entry()->get('uri') => ['bytes' => 'collision']
         ];
         self::assertSame(-32603, $this->response($responder, 'skills/get', ['uri' => $revision->entry()->get('uri')])['error']['code']);
-        self::assertSame(2, $other->enumerations);
-        self::assertSame([], $other->lookedUp);
-        self::assertSame([], $other->opened);
-        $other->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe', 'size' => 999999999]];
+        self::assertSame(2, $additionalResourceProvider->enumerations);
+        self::assertSame([], $additionalResourceProvider->lookedUp);
+        self::assertSame([], $additionalResourceProvider->opened);
+        $additionalResourceProvider->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe', 'size' => 999999999]];
         self::assertSame(-32603, $this->response($responder, 'skills/list')['error']['code']);
-        self::assertSame(3, $other->enumerations);
-        $other->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe']];
+        self::assertSame(3, $additionalResourceProvider->enumerations);
+        $additionalResourceProvider->entries = ['skill://catalog/zz/hidden' => ['bytes' => 'safe']];
         self::assertArrayHasKey('result', $this->response($responder, 'skills/list'));
-        self::assertSame(4, $other->enumerations);
+        self::assertSame(4, $additionalResourceProvider->enumerations);
     }
 
     public function test_that_runtime_catalog_failure_cannot_supply_a_public_protocol_error(): void
     {
         $skillResources = new McpSkillResources([SkillRevision::create()], new DiscoveryAvailability(), new HttpFactory());
-        $other = new class implements McpReadableResourceProvider {
+        $additionalResourceProvider = new class implements McpReadableResourceProvider {
             public bool $fail = false;
             public function resources(): iterable {
                 if ($this->fail) { throw new McpProtocolException(McpProtocolError::invalidParams(), 99); }
@@ -358,10 +358,10 @@ final class McpSkillDiscoveryTest extends UnitTestCase
             public function find(string $uri): ?McpResourceInfo { return null; }
             public function open(McpResourceInfo $resource): McpResourceContent { throw new RuntimeException('No content'); }
         };
-        $resourceDiscovery = $this->resources($skillResources, extras: [$other]);
+        $resourceDiscovery = $this->resources($skillResources, extras: [$additionalResourceProvider]);
         $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope');
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('server', '1'), [$resourceDiscovery, $skillDiscovery]));
-        $other->fail = true;
+        $additionalResourceProvider->fail = true;
         self::assertSame(['jsonrpc' => '2.0', 'id' => 1, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $this->response($responder, 'skills/list'));
     }
 
@@ -369,15 +369,15 @@ final class McpSkillDiscoveryTest extends UnitTestCase
     {
         $revision = SkillRevision::create();
         $skillResources = new McpSkillResources([$revision], new DiscoveryAvailability(), new HttpFactory());
-        $other = new ReadableResources([]);
-        $resourceDiscovery = $this->resources($skillResources, extras: [$other]);
+        $additionalResourceProvider = new ReadableResources([]);
+        $resourceDiscovery = $this->resources($skillResources, extras: [$additionalResourceProvider]);
         try {
             new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope', new McpSkillDiscoveryLimits(maxEntryBytes: 1));
             self::fail('An oversized supplied Skill entry was accepted.');
         } catch (DomainException) {
-            self::assertSame(0, $other->enumerations);
-            self::assertSame([], $other->lookedUp);
-            self::assertSame([], $other->opened);
+            self::assertSame(0, $additionalResourceProvider->enumerations);
+            self::assertSame([], $additionalResourceProvider->lookedUp);
+            self::assertSame([], $additionalResourceProvider->opened);
         }
     }
 
