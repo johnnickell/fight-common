@@ -27,7 +27,10 @@ final readonly class DbalPhaseRepository implements PhaseRepository
      */
     public function getById(PhaseId $id): ?Phase
     {
-        $sql = 'SELECT session_id, phase_id, parent_phase_id, agent_id, name, attempt FROM fight_execution_phases';
+        $table = $this->transaction->tables()->phaseTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
+        $sql = 'SELECT session_id, phase_id, parent_phase_id, agent_id, name, attempt FROM '.$table;
         $sql .= ' WHERE project_id = ? AND phase_id = ?';
         $row = $this->transaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->phaseId()]);
         if ($row === false) {
@@ -46,7 +49,7 @@ final readonly class DbalPhaseRepository implements PhaseRepository
     {
         $this->transaction->requireOwnedTransaction();
         $this->transaction->connection()->insert(
-            'fight_execution_phases',
+            $this->transaction->tables()->phaseTable()->quoted($this->transaction->connection()->getDatabasePlatform()),
             ['project_id' => $phase->projectId()] + $phase->reference()->toArray()
         );
     }

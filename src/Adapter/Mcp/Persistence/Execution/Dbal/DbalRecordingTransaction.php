@@ -25,13 +25,16 @@ use RuntimeException;
 final class DbalRecordingTransaction implements TransactionalUnitOfWork
 {
     private bool $serialized = false;
+    private readonly string $schemaTable;
     private readonly DbalTransactionalUnitOfWork $transactionalUnitOfWork;
 
     /**
      * Constructs DbalRecordingTransaction
      */
-    public function __construct(private readonly Connection $connection)
-    {
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly DbalObservationTables $tables = new DbalObservationTables()
+    ) {
         $this->transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
         $platform = $connection->getDatabasePlatform();
         if (
@@ -41,6 +44,7 @@ final class DbalRecordingTransaction implements TransactionalUnitOfWork
             throw new InvalidArgumentException('Observation storage supports SQLite, MySQL and PostgreSQL only.');
         }
 
+        $this->schemaTable = $tables->schemaTable()->quoted($platform);
         if ($platform instanceof SQLitePlatform) {
             if ($connection->isTransactionActive()) {
                 throw new LogicException('Observation storage requires an idle connection at construction.');
@@ -68,11 +72,11 @@ final class DbalRecordingTransaction implements TransactionalUnitOfWork
                 $operationStarted = true;
                 // Taking the same write lock before reads avoids snapshot/unique-key retry races.
                 $this->connection->executeStatement(
-                    'UPDATE fight_execution_schema SET version = version WHERE singleton = 1'
+                    'UPDATE '.$this->schemaTable.' SET version = version WHERE singleton = 1'
                 );
                 if (
                     (int) $this->connection->fetchOne(
-                        'SELECT version FROM fight_execution_schema WHERE singleton = 1'
+                        'SELECT version FROM '.$this->schemaTable.' WHERE singleton = 1'
                     ) !== 1
                 ) {
                     throw new RuntimeException('Unsupported observation storage version.');
@@ -109,6 +113,14 @@ final class DbalRecordingTransaction implements TransactionalUnitOfWork
     public function connection(): Connection
     {
         return $this->connection;
+    }
+
+    /**
+     * Returns the shared table selection for participating DBAL repositories
+     */
+    public function tables(): DbalObservationTables
+    {
+        return $this->tables;
     }
 
     /**

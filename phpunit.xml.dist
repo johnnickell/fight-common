@@ -14,6 +14,7 @@
             <exclude>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</exclude>
             <exclude>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalConfiguredRecordingIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionReaderIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionInspectionIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Observation/Dbal/DbalActivityReaderIntegrationTest.php</exclude>
@@ -66,6 +67,7 @@
             <file>tests/Adapter/Doctrine/DoctrineDataTypeConsumerContractTest.php</file>
             <file>tests/Adapter/Doctrine/DoctrineStructuredAndMessageCanonicalTypePairTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalRecordingTransactionIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Execution/Dbal/DbalConfiguredRecordingIntegrationTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionReaderIntegrationTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Session/Dbal/DbalExecutionInspectionIntegrationTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Observation/Dbal/DbalActivityReaderIntegrationTest.php</file>

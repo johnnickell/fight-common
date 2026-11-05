@@ -27,7 +27,10 @@ final readonly class DbalSessionRepository implements SessionRepository
      */
     public function getById(SessionId $id): ?Session
     {
-        $sql = 'SELECT project_id, session_id, consumer_reference FROM fight_execution_sessions';
+        $table = $this->transaction->tables()->sessionTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
+        $sql = 'SELECT project_id, session_id, consumer_reference FROM '.$table;
         $sql .= ' WHERE project_id = ? AND session_id = ?';
         $row = $this->transaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->sessionId()]);
 
@@ -40,6 +43,9 @@ final readonly class DbalSessionRepository implements SessionRepository
     public function add(Session $session): void
     {
         $this->transaction->requireOwnedTransaction();
-        $this->transaction->connection()->insert('fight_execution_sessions', $session->reference()->toArray());
+        $table = $this->transaction->tables()->sessionTable()->quoted(
+            $this->transaction->connection()->getDatabasePlatform()
+        );
+        $this->transaction->connection()->insert($table, $session->reference()->toArray());
     }
 }

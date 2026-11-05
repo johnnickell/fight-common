@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
@@ -18,7 +19,9 @@ $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ER
 $role = $argv[2];
 $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
-$store = new DbalRecordingTransaction($connection);
+$tables = new DbalObservationTables(...($config['tables'] ?? []));
+$contentTable = $tables->contentTable()->quoted($connection->getDatabasePlatform());
+$store = new DbalRecordingTransaction($connection, $tables);
 if ($connection->getDatabasePlatform() instanceof \Doctrine\DBAL\Platforms\SQLitePlatform) {
     $connection->executeStatement('PRAGMA busy_timeout = 10000');
 }
@@ -67,7 +70,7 @@ $status = 'recorded';
 try {
     if (($config['removal_role'] ?? null) === $role) {
         // Storage fixture only: future authorized removal must use the same boundary.
-        $store->commitTransactional(static function () use ($connection, $observation, $directory, $role): void {
+        $store->commitTransactional(static function () use ($connection, $observation, $directory, $role, $contentTable): void {
             file_put_contents($directory.'/'.$role.'-admitted', 'storage lock held');
             if ($role === 'first') {
                 $deadline = microtime(true) + 10;
@@ -76,7 +79,7 @@ try {
                     usleep(10000);
                 }
             }
-            $connection->delete('fight_execution_contents', ['producer_id' => $observation->producerId(), 'observation_id' => $observation->id()->toString()]);
+            $connection->delete($contentTable, ['producer_id' => $observation->producerId(), 'observation_id' => $observation->id()->toString()]);
         });
         $status = 'removed';
     } else {

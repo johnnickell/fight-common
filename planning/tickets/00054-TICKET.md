@@ -100,7 +100,7 @@ are requested. Requirements do not claim current implementation, passed behavior
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | ready-for-agent |
+| [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | in-progress |
 | [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent |
 <!-- /planning:children -->
 

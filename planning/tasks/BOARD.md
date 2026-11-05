@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
+| Active Work | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -61,7 +61,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
@@ -69,7 +69,6 @@ their owning records; routing and planning checks stay offline.
 |---|---|---|---|---|---|---|
 | 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | ready-for-agent | — | — |
 | — | [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | ready-for-agent | — | — |
-| — | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | — | — |
 | — | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | — | — |
 
