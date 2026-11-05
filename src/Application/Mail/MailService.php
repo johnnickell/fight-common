@@ -14,11 +14,16 @@ use Fight\Common\Application\Mail\Transport\MailTransport;
  */
 final readonly class MailService implements MailTransport, MailFactory
 {
+    private MailTransport $mailTransport;
+    private MailFactory $mailFactory;
+
     /**
      * Constructs MailService
      */
-    public function __construct(private MailTransport $transport, private MailFactory $factory)
+    public function __construct(MailTransport $transport, MailFactory $factory)
     {
+        $this->mailTransport = $transport;
+        $this->mailFactory = $factory;
     }
 
     /**
@@ -26,7 +31,7 @@ final readonly class MailService implements MailTransport, MailFactory
      */
     public function send(MailMessage $message): void
     {
-        $this->transport->send($message);
+        $this->mailTransport->send($message);
     }
 
     /**
@@ -34,7 +39,7 @@ final readonly class MailService implements MailTransport, MailFactory
      */
     public function createMessage(): MailMessage
     {
-        return $this->factory->createMessage();
+        return $this->mailFactory->createMessage();
     }
 
     /**
@@ -46,7 +51,7 @@ final readonly class MailService implements MailTransport, MailFactory
         string $contentType,
         ?string $embedId = null
     ): Attachment {
-        return $this->factory->createAttachmentFromString(
+        return $this->mailFactory->createAttachmentFromString(
             $body,
             $fileName,
             $contentType,
@@ -63,7 +68,7 @@ final readonly class MailService implements MailTransport, MailFactory
         string $contentType,
         ?string $embedId = null
     ): Attachment {
-        return $this->factory->createAttachmentFromPath(
+        return $this->mailFactory->createAttachmentFromPath(
             $path,
             $fileName,
             $contentType,
@@ -76,6 +81,6 @@ final readonly class MailService implements MailTransport, MailFactory
      */
     public function generateEmbedId(): string
     {
-        return $this->factory->generateEmbedId();
+        return $this->mailFactory->generateEmbedId();
     }
 }

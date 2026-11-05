@@ -7,8 +7,8 @@ DOCKER_BIN="${DOCKER_BIN:-docker}"
 GIT_BIN="${GIT_BIN:-git}"
 PHP_IMAGE="${FIGHT_COMMON_PHP_IMAGE:-}"
 WORKSPACE=''
-OUTCOMES=''
-LANES=()
+COMMAND_OUTCOMES_PATH=''
+LANE_CHECKOUTS=()
 
 usage() {
     echo 'Usage: ./bin/release certify <version>' >&2
@@ -38,15 +38,15 @@ cleanup() {
 
     trap - EXIT
     set +e
-    local cleanup_status=0 target
+    local cleanup_status=0 lane_root
     # Exported lanes are independent temporary repositories, never registered worktrees.
     # Their unique native projects must be absent before deleting their source binds.
-    for target in ${LANES[@]+"${LANES[@]}"}; do
-        if ! (cd "${target}" && ./bin/down --worktree "${target}"); then
+    for lane_root in ${LANE_CHECKOUTS[@]+"${LANE_CHECKOUTS[@]}"}; do
+        if ! (cd "${lane_root}" && ./bin/down --worktree "${lane_root}"); then
             cleanup_status=1
             continue
         fi
-        if ! python3 -B - "${target}" <<'PY'
+        if ! python3 -B - "${lane_root}" <<'PY'
 import hashlib
 from pathlib import Path
 import sys
@@ -85,54 +85,54 @@ PY
 }
 
 export_candidate() {
-    local target="$1"
+    local candidate_root="$1"
 
-    mkdir -p "${target}"
-    "${GIT_BIN}" -C "${ROOT_DIR}" archive "${COMMIT}" | tar -x -C "${target}"
-    "${GIT_BIN}" -C "${target}" init --quiet
+    mkdir -p "${candidate_root}"
+    "${GIT_BIN}" -C "${ROOT_DIR}" archive "${COMMIT}" | tar -x -C "${candidate_root}"
+    "${GIT_BIN}" -C "${candidate_root}" init --quiet
 }
 
 run_step() {
-    local name="$1"
-    local display="$2"
+    local step_name="$1"
+    local display_command="$2"
     local directory="$3"
-    local output="$4"
+    local output_path="$4"
     local started
     local finished
     local status
 
     shift 4
     started="$(date +%s)"
-    printf '[release] %s\n' "${name}"
+    printf '[release] %s\n' "${step_name}"
     set +e
     (
         cd "${directory}"
         "$@"
-    ) > "${output}" 2>&1
+    ) > "${output_path}" 2>&1
     status=$?
     set -e
     finished="$(date +%s)"
 
     if (( status == 0 )); then
         printf '%s\tpassed\t0\t%s\t%s\t%s\n' \
-            "${name}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
-            >> "${OUTCOMES}"
+            "${step_name}" "$(((finished - started) * 1000))" "$(sha256_file "${output_path}")" "${display_command}" \
+            >> "${COMMAND_OUTCOMES_PATH}"
         return 0
     fi
 
     printf '%s\tfailed\t%s\t%s\t%s\t%s\n' \
-        "${name}" "${status}" "$(((finished - started) * 1000))" "$(sha256_file "${output}")" "${display}" \
-        >> "${OUTCOMES}"
-    tail -80 "${output}" >&2
-    printf 'bin/release: %s failed with exit code %s.\n' "${name}" "${status}" >&2
+        "${step_name}" "${status}" "$(((finished - started) * 1000))" "$(sha256_file "${output_path}")" "${display_command}" \
+        >> "${COMMAND_OUTCOMES_PATH}"
+    tail -80 "${output_path}" >&2
+    printf 'bin/release: %s failed with exit code %s.\n' "${step_name}" "${status}" >&2
     return "${status}"
 }
 
 resolve_lowest_dependencies() {
-    local target="$1"
+    local lane_root="$1"
 
     "${DOCKER_BIN}" container run --rm \
-        -v "${target}:/app:delegated" \
+        -v "${lane_root}:/app:delegated" \
         -w /app \
         --user "$(id -u):$(id -g)" \
         --env COMPOSER_HOME=/tmp/fight-common-release-composer \
@@ -153,10 +153,10 @@ composer update ${LOWEST_PACKAGES} --no-interaction --no-progress --prefer-dist 
 }
 
 resolve_default_dependencies() {
-    local target="$1"
+    local lane_root="$1"
 
     "${DOCKER_BIN}" container run --rm \
-        -v "${target}:/app:delegated" \
+        -v "${lane_root}:/app:delegated" \
         -w /app \
         --user "$(id -u):$(id -g)" \
         --env COMPOSER_HOME=/tmp/fight-common-release-composer \
@@ -194,8 +194,8 @@ fi
 
 WORKSPACE="$(mktemp -d /tmp/fight-common-release-certify.XXXXXX)"
 trap cleanup EXIT
-OUTCOMES="${WORKSPACE}/command-outcomes.tsv"
-touch "${OUTCOMES}"
+COMMAND_OUTCOMES_PATH="${WORKSPACE}/command-outcomes.tsv"
+touch "${COMMAND_OUTCOMES_PATH}"
 
 DEFAULT_ROOT="${WORKSPACE}/default"
 LATEST_ROOT="${WORKSPACE}/latest"
@@ -209,8 +209,8 @@ export_candidate "${LATEST_ROOT}"
 export_candidate "${LOWEST_ROOT}"
 # Only native runtime identity varies from the exact archived candidate. Each lane
 # is its own canonical repository, so qualify a unique project before any Docker use.
-for target in "${DEFAULT_ROOT}" "${LATEST_ROOT}" "${LOWEST_ROOT}"; do
-    python3 - "${target}" <<'PY'
+for lane_root in "${DEFAULT_ROOT}" "${LATEST_ROOT}" "${LOWEST_ROOT}"; do
+    python3 - "${lane_root}" <<'PY'
 import hashlib
 import json
 from pathlib import Path
@@ -222,7 +222,7 @@ config['project'] = 'fight-common-release-' + hashlib.sha256(str(root).encode())
 path.write_text(json.dumps(config, indent=2) + '\n')
 print(str(root) + '\t' + config['project'])
 PY
-    LANES+=("${target}")
+    LANE_CHECKOUTS+=("${lane_root}")
 done > "${WORKSPACE}/lane-projects.tsv"
 run_step 'prepare-certifier-image' './bin/up --worktree selected --build-only' \
     "${ROOT_DIR}" "${WORKSPACE}/prepare-image.log" ./bin/up --worktree "${ROOT_DIR}" --build-only

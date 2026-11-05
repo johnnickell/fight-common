@@ -58,9 +58,9 @@ if ($composition === 'slim') {
     $app->post('/mcp', fn(ServerRequestInterface $request) => $fixture->handler->handle($request));
     $response = $app->handle($request);
 } elseif ($composition === 'yii') {
-    $collector = new RouteCollector();
-    $collector->addRoute(Route::post('/mcp')->action(fn(ServerRequestInterface $request) => $fixture->handler->handle($request)));
-    $router = new Router(new UrlMatcher(new RouteCollection($collector)), $factory,
+    $routeCollector = new RouteCollector();
+    $routeCollector->addRoute(Route::post('/mcp')->action(fn(ServerRequestInterface $request) => $fixture->handler->handle($request)));
+    $router = new Router(new UrlMatcher(new RouteCollection($routeCollector)), $factory,
         new MiddlewareFactory(new Container()), new CurrentRoute());
     $response = $router->process($request, $fixture->handler);
 } else {

@@ -46,45 +46,45 @@ final class McpConfirmationJourneyTest extends TestCase
     public function test_that_a_consumer_store_preserves_atomic_binding_expiry_and_consumed_identity(): void
     {
         $path = $this->file();
-        $store = new LockedConfirmationStore($path);
+        $confirmationStore = new LockedConfirmationStore($path);
         $id = str_repeat('a', 64);
         $binding = str_repeat('b', 64);
         $expires = time() + 300;
-        self::assertSame(McpConfirmationOutcome::ABSENT, $store->consume($id, $binding, $expires));
-        $store->issue($id, $binding, $expires);
-        self::assertSame(McpConfirmationOutcome::MISMATCHED, $store->consume($id, str_repeat('c', 64), $expires));
-        self::assertSame(McpConfirmationOutcome::MISMATCHED, $store->consume($id, $binding, $expires + 1));
+        self::assertSame(McpConfirmationOutcome::ABSENT, $confirmationStore->consume($id, $binding, $expires));
+        $confirmationStore->issue($id, $binding, $expires);
+        self::assertSame(McpConfirmationOutcome::MISMATCHED, $confirmationStore->consume($id, str_repeat('c', 64), $expires));
+        self::assertSame(McpConfirmationOutcome::MISMATCHED, $confirmationStore->consume($id, $binding, $expires + 1));
         $lock = fopen($path, 'r+');
         try {
             self::assertTrue(flock($lock, LOCK_EX));
-            self::assertSame(McpConfirmationOutcome::CONTENDED, $store->consume($id, $binding, $expires));
+            self::assertSame(McpConfirmationOutcome::CONTENDED, $confirmationStore->consume($id, $binding, $expires));
         } finally {
             flock($lock, LOCK_UN);
             fclose($lock);
         }
-        self::assertSame(McpConfirmationOutcome::CONSUMED, $store->consume($id, $binding, $expires));
+        self::assertSame(McpConfirmationOutcome::CONSUMED, $confirmationStore->consume($id, $binding, $expires));
         self::assertSame(McpConfirmationOutcome::ALREADY_CONSUMED, new LockedConfirmationStore($path)->consume($id, $binding, $expires));
         try {
-            $store->issue($id, $binding, $expires);
+            $confirmationStore->issue($id, $binding, $expires);
             self::fail('A consumed identity was replaced');
         } catch (RuntimeException $failure) {
             self::assertSame('Confirmation identity exists', $failure->getMessage());
         }
-        self::assertSame(McpConfirmationOutcome::ALREADY_CONSUMED, $store->consume($id, $binding, $expires));
+        self::assertSame(McpConfirmationOutcome::ALREADY_CONSUMED, $confirmationStore->consume($id, $binding, $expires));
         $expired = str_repeat('d', 64);
         $boundary = time();
-        $store->issue($expired, $binding, $boundary);
-        self::assertSame(McpConfirmationOutcome::EXPIRED, $store->consume($expired, $binding, $boundary));
+        $confirmationStore->issue($expired, $binding, $boundary);
+        self::assertSame(McpConfirmationOutcome::EXPIRED, $confirmationStore->consume($expired, $binding, $boundary));
     }
 
     public function test_that_concurrent_semantic_retries_have_one_winner_and_one_command_event_effect(): void
     {
-        $state = $this->file();
-        $effects = $this->file();
-        $parent = $this->responder($state, $effects);
+        $confirmationStatePath = $this->file();
+        $effectsLogPath = $this->file();
+        $parent = $this->responder($confirmationStatePath, $effectsLogPath);
         $issued = $parent->respond($this->wire(['name' => 'value.delete', 'arguments' => ['id' => 'original']], 1))->toArray();
         self::assertSame('input_required', $issued['result']['resultType']);
-        self::assertSame('', file_get_contents($effects));
+        self::assertSame('', file_get_contents($effectsLogPath));
         $parameters = [
             'name' => 'value.delete', 'arguments' => ['id' => 'original'], 'requestState' => $issued['result']['requestState'],
             'inputResponses' => ['approval' => ['action' => 'accept', 'content' => ['confirm' => true]], 'reason' => ['action' => 'accept', 'content' => ['text' => 'fixture reason']]]
@@ -104,7 +104,7 @@ final class McpConfirmationJourneyTest extends TestCase
                         fwrite($pair[1], 'ready');
                         if (fread($pair[1], 1) !== 'g') { exit(2); }
                         // Fresh composition and a separately opened store in each contender process.
-                        $result = $this->responder($state, $effects)->respond($this->wire($parameters, $index + 2))->toArray();
+                        $result = $this->responder($confirmationStatePath, $effectsLogPath)->respond($this->wire($parameters, $index + 2))->toArray();
                         file_put_contents($resultPath, json_encode($result, JSON_THROW_ON_ERROR));
                         exit(0);
                     } catch (Throwable) {
@@ -137,10 +137,10 @@ final class McpConfirmationJourneyTest extends TestCase
             self::assertCount(1, $losers);
             self::assertSame('complete', $winners[0]['result']['resultType']);
             self::assertSame(['code' => -32602, 'message' => 'Invalid params.'], $losers[0]['error']);
-            self::assertSame("command:original\nevent:original\n", file_get_contents($effects));
-            $replay = $this->responder($state, $effects)->respond($this->wire($parameters, 4))->toArray();
+            self::assertSame("command:original\nevent:original\n", file_get_contents($effectsLogPath));
+            $replay = $this->responder($confirmationStatePath, $effectsLogPath)->respond($this->wire($parameters, 4))->toArray();
             self::assertSame($losers[0]['error'], $replay['error']);
-            self::assertSame("command:original\nevent:original\n", file_get_contents($effects));
+            self::assertSame("command:original\nevent:original\n", file_get_contents($effectsLogPath));
         } finally {
             foreach ($children as [$pid, $socket]) {
                 fclose($socket);
@@ -152,30 +152,30 @@ final class McpConfirmationJourneyTest extends TestCase
         }
     }
 
-    private function responder(string $state, string $effects): McpResponder
+    private function responder(string $confirmationStatePath, string $effectsLogPath): McpResponder
     {
-        $events = new SimpleEventDispatcher();
-        $events->addHandler(ClassName::underscore(SampleEvent::class), static function ($message) use ($effects): void {
-            file_put_contents($effects, 'event:'.$message->payload()->toArray()['value']."\n", FILE_APPEND | LOCK_EX);
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->addHandler(ClassName::underscore(SampleEvent::class), static function ($message) use ($effectsLogPath): void {
+            file_put_contents($effectsLogPath, 'event:'.$message->payload()->toArray()['value']."\n", FILE_APPEND | LOCK_EX);
         });
-        $handler = new class($effects, $events) implements CommandHandler {
-            public function __construct(private string $effects, private SimpleEventDispatcher $events) {}
+        $handler = new class($effectsLogPath, $eventDispatcher) implements CommandHandler {
+            public function __construct(private string $effectsLogPath, private SimpleEventDispatcher $eventDispatcher) {}
             public static function commandRegistration(): string { return SampleCommand::class; }
             public function handle(CommandMessage $commandMessage): void {
                 $value = $commandMessage->payload()->toArray()['value'];
-                file_put_contents($this->effects, 'command:'.$value."\n", FILE_APPEND | LOCK_EX);
-                $this->events->trigger(new SampleEvent($value));
+                file_put_contents($this->effectsLogPath, 'command:'.$value."\n", FILE_APPEND | LOCK_EX);
+                $this->eventDispatcher->trigger(new SampleEvent($value));
             }
         };
         $router = new InMemoryCommandRouter();
         $router->registerHandler(SampleCommand::class, $handler);
-        $commands = new RoutingCommandBus($router);
-        $tool = new DestructiveValueTool(static fn(ApplicationData $input) => $commands->execute(new SampleCommand($input->get('id'))));
+        $commandBus = new RoutingCommandBus($router);
+        $tool = new DestructiveValueTool(static fn(ApplicationData $input) => $commandBus->execute(new SampleCommand($input->get('id'))));
         $registry = new McpToolRegistry([$tool]);
         $availability = new class implements McpToolAvailability {
             public function isAvailable(McpToolInfo $tool): bool { return true; }
         };
-        $interaction = new McpToolInteraction(new SodiumMcpStateProtector(1, [1 => str_repeat('k', 32)]), 'caller', confirmations: new LockedConfirmationStore($state));
+        $interaction = new McpToolInteraction(new SodiumMcpStateProtector(1, [1 => str_repeat('k', 32)]), 'caller', confirmations: new LockedConfirmationStore($confirmationStatePath));
         return new McpResponder(new McpCapabilityRegistry(new McpServerInfo('confirmation-fixture', '1'), [
             new McpToolDiscovery($registry, $availability, str_repeat('c', 32)),
             new McpToolInvocation(new McpToolInvoker($registry, $availability, interaction: $interaction))

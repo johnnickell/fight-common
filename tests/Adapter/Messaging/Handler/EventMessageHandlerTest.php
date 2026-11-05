@@ -28,8 +28,8 @@ final class EventMessageHandlerTest extends UnitTestCase
             Meta::create(['trace_id' => 'trace-51', 'nested' => ['attempt' => 2]]),
         );
         $calls = [];
-        $dispatcher = new SimpleEventDispatcher();
-        $dispatcher->addHandler(
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->addHandler(
             ClassName::underscore(EventMessageHandlerSampleEvent::class),
             static function (EventMessage $received) use (&$calls, $message): void {
                 $calls[] = ['event-high', $received];
@@ -37,21 +37,21 @@ final class EventMessageHandlerTest extends UnitTestCase
             },
             20,
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(EventMessageHandlerSampleEvent::class),
             static function (EventMessage $received) use (&$calls): void {
                 $calls[] = ['event-low', $received];
             },
             10,
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(AllEvents::class),
             static function (EventMessage $received) use (&$calls): void {
                 $calls[] = ['all-events', $received];
             },
         );
 
-        $handler = new EventMessageHandler($dispatcher);
+        $handler = new EventMessageHandler($eventDispatcher);
         $handler($message);
         $handler($message);
 

@@ -169,9 +169,9 @@ final class Scheduler
 
         try {
             $this->acquireLock($lockFile);
-        } catch (LockException $e) {
+        } catch (LockException $exception) {
             if ($this->logger instanceof LoggerInterface) {
-                $this->logger->debug($e->getMessage(), ['job' => $job['name']]);
+                $this->logger->debug($exception->getMessage(), ['job' => $job['name']]);
             }
 
             return;
@@ -206,12 +206,12 @@ final class Scheduler
         }
 
         $schedule = (string) $schedule;
-        $tz  = new DateTimeZone($this->timezone->value());
-        $now = new DateTimeImmutable('now', $tz);
+        $nativeTimezone = new DateTimeZone($this->timezone->value());
+        $now = new DateTimeImmutable('now', $nativeTimezone);
 
-        $dt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $schedule, $tz);
-        if ($dt !== false) {
-            return $dt->format('Y-m-d H:i') === $now->format('Y-m-d H:i');
+        $scheduledAt = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $schedule, $nativeTimezone);
+        if ($scheduledAt !== false) {
+            return $scheduledAt->format('Y-m-d H:i') === $now->format('Y-m-d H:i');
         }
 
         return new CronExpression($schedule)->isDue($now);
@@ -265,8 +265,8 @@ final class Scheduler
         if ($this->processRunner instanceof ProcessRunner) {
             $process = ProcessBuilder::create()
                 ->shellCommand($job['command'])
-                ->stdout(fn(string $data) => $this->writeLine($data, $job))
-                ->stderr(fn(string $data) => $this->writeLine($data, $job))
+                ->stdout(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
+                ->stderr(fn(string $outputChunk) => $this->writeLine($outputChunk, $job))
                 ->getProcess();
 
             $this->processRunner->attach($process);
@@ -281,8 +281,8 @@ final class Scheduler
          * @var Closure(callable(string, string): void): int $run
          */
         $run = Closure::fromCallable([$process, 'run']);
-        $run(function (string $type, string $data) use ($job): void {
-            $this->writeLine($data, $job);
+        $run(function (string $outputType, string $outputChunk) use ($job): void {
+            $this->writeLine($outputChunk, $job);
         });
 
         /**
@@ -320,10 +320,10 @@ final class Scheduler
             }
 
             /**
-             * @var Closure(string): object $factory
+             * @var Closure(string): object $processFactory
              */
-            $factory = Closure::fromCallable([$processClass, 'fromShellCommandline']);
-            $process = $factory($command);
+            $processFactory = Closure::fromCallable([$processClass, 'fromShellCommandline']);
+            $process = $processFactory($command);
         }
 
         return $process;
@@ -352,13 +352,13 @@ final class Scheduler
     /**
      * Logs an error if a logger is available
      */
-    private function logError(Throwable $e): void
+    private function logError(Throwable $failure): void
     {
         if (!$this->logger instanceof LoggerInterface) {
             return;
         }
 
-        $this->logger->error($e->getMessage(), ['exception' => $e]);
+        $this->logger->error($failure->getMessage(), ['exception' => $failure]);
     }
 
     /**
@@ -368,7 +368,7 @@ final class Scheduler
      *
      * @throws MailException
      */
-    private function notify(Throwable $e, array $job): void
+    private function notify(Throwable $failure, array $job): void
     {
         if (!$this->mailService instanceof MailService || $job['notify'] === []) {
             return;
@@ -377,15 +377,15 @@ final class Scheduler
         $body = implode("\n", [
             sprintf('Environment: %s', $job['environment']),
             '',
-            sprintf('Error: %s', $e->getMessage()),
+            sprintf('Error: %s', $failure->getMessage()),
             '',
-            sprintf('Code: %s', $e->getCode()),
+            sprintf('Code: %s', $failure->getCode()),
             '',
-            sprintf('File: %s', $e->getFile()),
+            sprintf('File: %s', $failure->getFile()),
             '',
-            sprintf('Line: %d', $e->getLine()),
+            sprintf('Line: %d', $failure->getLine()),
             '',
-            $e->getTraceAsString()
+            $failure->getTraceAsString()
         ]);
 
         $message = $this->mailService->createMessage()

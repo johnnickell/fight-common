@@ -21,8 +21,10 @@ final readonly class RecoverNoticesHandler implements QueryHandler
     /**
      * Constructs RecoverNoticesHandler
      */
-    public function __construct(private NoticeReadAdmission $admission, private NoticeRecovery $recovery)
-    {
+    public function __construct(
+        private NoticeReadAdmission $noticeReadAdmission,
+        private NoticeRecovery $noticeRecovery
+    ) {
     }
 
     /**
@@ -43,7 +45,10 @@ final readonly class RecoverNoticesHandler implements QueryHandler
          */
         $query = $queryMessage->payload();
         try {
-            return $this->recovery->recover($query, $this->admission->currentAccess($query->selection()));
+            return $this->noticeRecovery->recover(
+                $query,
+                $this->noticeReadAdmission->currentAccess($query->selection())
+            );
         } catch (Throwable $throwable) {
             throw new NoticeReadFailed($throwable);
         }

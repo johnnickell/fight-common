@@ -38,16 +38,16 @@ final readonly class SummarizeExecutionsTool implements McpTool
         ExecutionToolSchemas::SUMMARY_INPUT,
         ExecutionToolSchemas::SUMMARY
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::SUMMARY_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::SUMMARY_INPUT);
         /**
-         * @var ExecutionSummary $result
+         * @var ExecutionSummary $executionSummary
          */
-        $result = $this->queryBus->fetch(new SummarizeExecutions(
-            ExecutionSelection::create($input['projects'], $input['filters'] ?? [])
+        $executionSummary = $this->queryBus->fetch(new SummarizeExecutions(
+            ExecutionSelection::create($arguments['projects'], $arguments['filters'] ?? [])
         ));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($executionSummary);
     }
 }

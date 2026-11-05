@@ -25,15 +25,15 @@ use Fight\Common\Application\Mcp\Notice\Publication\NoticePublication;
 use Fight\Common\Application\Mcp\Notice\Publication\RecordNoticeAndPublish;
 
 // $commandBus and $queryBus have the synchronous/shared handlers described above.
-// $policy and $diagnostics are consumer implementations; $hub is a HubInterface.
-$output = new NoticePublication(
+// $noticePublicationPolicy and $noticePublicationDiagnostics are consumer implementations; $hub is a HubInterface.
+$noticePublication = new NoticePublication(
     $queryBus,
-    $policy,
-    $diagnostics,
+    $noticePublicationPolicy,
+    $noticePublicationDiagnostics,
     new MercureHubPublisher($hub),
     new PrivateMercureHubPublisher($hub)
 );
-$status = (new RecordNoticeAndPublish($commandBus, $output))->record($recordNotice);
+$publicationStatus = (new RecordNoticeAndPublish($commandBus, $noticePublication))->record($recordNotice);
 ```
 
 `record()` executes the existing Command before calling `publish(new GetNotice(scope, producer, id))`.

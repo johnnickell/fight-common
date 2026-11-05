@@ -60,25 +60,25 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly PromptProvider $hiddenPrompt;
     public readonly McpRequestHandler $endpoint;
     public readonly McpSubscriptions $subscriptions;
-    public readonly RoutingQueryBus $queries;
-    public readonly DbalSubscriptionStore $store;
+    public readonly RoutingQueryBus $queryBus;
+    public readonly DbalSubscriptionStore $subscriptionStore;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $db, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?Closure $subscriptionStoreDecorator = null)
+    public function __construct(public readonly Connection $connection, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?Closure $subscriptionStoreDecorator = null)
     {
-        (new DbalNoticeSchema())->install($db);
-        (new DbalSubscriptionSchema())->install($db);
-        $this->store = new DbalSubscriptionStore($db);
+        (new DbalNoticeSchema())->install($connection);
+        (new DbalSubscriptionSchema())->install($connection);
+        $this->subscriptionStore = new DbalSubscriptionStore($connection);
         $router = new InMemoryQueryRouter();
-        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($db), NoticeRecoveryFixture::codec()));
+        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($connection), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
-        $this->queries = new RoutingQueryBus($router);
-        $subscriptionStore = $subscriptionStoreDecorator === null ? $this->store : $subscriptionStoreDecorator($this->store);
-        $this->subscriptions = new McpSubscriptions($this->queries, $subscriptionStore, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
+        $this->queryBus = new RoutingQueryBus($router);
+        $subscriptionStore = $subscriptionStoreDecorator === null ? $this->subscriptionStore : $subscriptionStoreDecorator($this->subscriptionStore);
+        $this->subscriptions = new McpSubscriptions($this->queryBus, $subscriptionStore, $this, NoticeSelection::create([$scope]), $tools, $resources, $lifetime, 10000, $frameBytes, $prompts);
         $availability = new class implements McpToolAvailability, McpResourceAvailability {
             public function isAvailable(McpToolInfo|McpResourceInfo $item): bool { return true; }
         };
-        $toolRegistry = new McpToolRegistry([new RecoverNoticesTool($this->queries)]);
+        $toolRegistry = new McpToolRegistry([new RecoverNoticesTool($this->queryBus)]);
         $this->visiblePrompt = new PromptProvider(McpPromptInfo::fromArray(['name' => 'review', 'arguments' => [['name' => 'note']]]));
         $this->visiblePrompt->output = McpPromptOutput::fromArray(['messages' => [['role' => 'user', 'content' => ['type' => 'text', 'text' => 'Safe review']]]]);
         $this->hiddenPrompt = new PromptProvider(McpPromptInfo::fromArray(['name' => 'CONCEALED', 'description' => 'PRIVATE DEFINITION']));

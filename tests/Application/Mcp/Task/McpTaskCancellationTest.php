@@ -35,14 +35,14 @@ final class McpTaskCancellationTest extends UnitTestCase
 {
     public function test_that_real_method_records_intent_without_read_or_input_capability_and_returns_bounded_empty_ack(): void
     {
-        $f = $this->fixture(); $f->create(); $f->readAllowed = false;
-        $method = new McpTaskCancellation($f->commands, 'scope', 'caller');
+        $fixture = $this->fixture(); $fixture->create(); $fixture->readAllowed = false;
+        $method = new McpTaskCancellation($fixture->commandBus, 'scope', 'caller');
         $reply = $method->handle(self::request(['taskId' => TaskFixture::ID]));
         self::assertSame(['resultType' => 'complete'], $reply->toArray());
-        self::assertNotNull($f->cancellation()->get('cancellation'));
-        self::assertSame(2, $f->cancellation()->get('version'));
+        self::assertNotNull($fixture->cancellation()->get('cancellation'));
+        self::assertSame(2, $fixture->cancellation()->get('version'));
         self::assertSame(['resultType' => 'complete'], $method->handle(self::request(['taskId' => TaskFixture::ID]))->toArray());
-        self::assertSame(2, $f->cancellation()->get('version'));
+        self::assertSame(2, $fixture->cancellation()->get('version'));
         self::assertSame('complete', $reply->withMetadata(['public' => 'é"'])->toArray()['resultType']);
         $this->expectException(DomainException::class);
         $reply->withMetadata(['public' => str_repeat('é"', 128)]);
@@ -50,7 +50,7 @@ final class McpTaskCancellationTest extends UnitTestCase
 
     public function test_that_per_request_capabilities_and_bounded_parameter_shapes_precede_mutation_and_disclosure(): void
     {
-        $f = $this->fixture(); $f->create(); $method = new McpTaskCancellation($f->commands, 'scope', 'caller');
+        $fixture = $this->fixture(); $fixture->create(); $method = new McpTaskCancellation($fixture->commandBus, 'scope', 'caller');
         $valid = ['taskId' => TaskFixture::ID];
         $this->failure(fn () => $method->handle(self::request($valid, method: 'tasks/update')), -32601);
         foreach ([[], ['extensions' => (object) []]] as $capabilities) {
@@ -60,31 +60,31 @@ final class McpTaskCancellationTest extends UnitTestCase
         foreach ([[], ['taskId' => 1], ['taskId' => null], ['taskId' => 'guessed'], ['taskId' => str_repeat('é', 1024)], ['taskId' => str_repeat('a', 33)], $valid + ['reason' => 'private reason'], $valid + ['status' => 'cancelled'], ['taskId' => str_repeat('f', 32)]] as $bad) {
             $this->failure(fn () => $method->handle(self::request($bad)), -32602);
         }
-        self::assertSame(1, $f->get()->get('version'));
-        $f->cancelAllowed = false; $this->failure(fn () => $method->handle(self::request($valid)), -32602);
-        $f->cancelAllowed = true; $f->cancel(); $f->cancelAllowed = false;
+        self::assertSame(1, $fixture->get()->get('version'));
+        $fixture->cancelAllowed = false; $this->failure(fn () => $method->handle(self::request($valid)), -32602);
+        $fixture->cancelAllowed = true; $fixture->cancel(); $fixture->cancelAllowed = false;
         $this->failure(fn () => $method->handle(self::request($valid)), -32602);
-        $bus = $this->mock(CommandBus::class); $bus->shouldReceive('execute')->once()->andThrow(new TaskConflict());
-        $this->failure(fn () => (new McpTaskCancellation($bus, 'scope', 'caller'))->handle(self::request($valid)), -32602);
+        $commandBus = $this->mock(CommandBus::class); $commandBus->shouldReceive('execute')->once()->andThrow(new TaskConflict());
+        $this->failure(fn () => (new McpTaskCancellation($commandBus, 'scope', 'caller'))->handle(self::request($valid)), -32602);
     }
 
     public function test_that_internal_failures_propagate_to_central_safe_diagnostics_instead_of_success_or_invalid_identity(): void
     {
-        $bus = $this->mock(CommandBus::class); $failure = new RuntimeException('private storage failure');
-        $bus->shouldReceive('execute')->once()->andThrow($failure);
-        try { (new McpTaskCancellation($bus, 'scope', 'caller'))->handle(self::request(['taskId' => TaskFixture::ID])); self::fail('Internal failure must not acknowledge'); }
+        $commandBus = $this->mock(CommandBus::class); $failure = new RuntimeException('private storage failure');
+        $commandBus->shouldReceive('execute')->once()->andThrow($failure);
+        try { (new McpTaskCancellation($commandBus, 'scope', 'caller'))->handle(self::request(['taskId' => TaskFixture::ID])); self::fail('Internal failure must not acknowledge'); }
         catch (RuntimeException $actual) { self::assertSame($failure, $actual); }
     }
 
     public function test_that_real_method_internal_failure_is_sanitized_by_the_existing_semantic_responder_with_complete_task_composition(): void
     {
         $failure = new RuntimeException('private database detail');
-        $bus = $this->mock(CommandBus::class); $bus->shouldReceive('execute')->once()->andThrow($failure);
-        $tasks = new McpTasks($this->fixture()->queries, $bus, 'scope', 'caller');
+        $commandBus = $this->mock(CommandBus::class); $commandBus->shouldReceive('execute')->once()->andThrow($failure);
+        $taskCapability = new McpTasks($this->fixture()->queryBus, $commandBus, 'scope', 'caller');
         $tools = new McpToolRegistry([]); $availability = $this->mock(McpToolAvailability::class);
         $diagnostics = $this->mock(McpDiagnostics::class); $diagnostics->shouldReceive('record')->once()->with($failure);
         $registry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
-            $tasks, new McpToolInvocation(new McpToolInvoker($tools, $availability, tasks: $tasks)),
+            $taskCapability, new McpToolInvocation(new McpToolInvoker($tools, $availability, taskCapability: $taskCapability)),
             new McpToolDiscovery($tools, $availability, str_repeat('key-', 16))
         ]);
         self::assertArrayHasKey('io.modelcontextprotocol/tasks', $registry->advertisedCapabilities()['extensions']);
@@ -105,7 +105,7 @@ final class McpTaskCancellationTest extends UnitTestCase
         ])));
     }
 
-    private function fixture(): TaskFixture { $c = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]); (new DbalTaskSchema())->install($c); return new TaskFixture($c); }
+    private function fixture(): TaskFixture { $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]); (new DbalTaskSchema())->install($connection); return new TaskFixture($connection); }
     private function failure(callable $operation, int $code): array
     {
         try { $operation(); self::fail('Expected protocol rejection'); }

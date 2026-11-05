@@ -64,9 +64,9 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             self::assertSame(0, pcntl_wexitstatus($higherStatus));
             self::assertSame('', $lowerResult);
             self::assertSame('', $higherResult);
-            $store = new DbalPublicationCursorStore($this->createConnection());
-            self::assertSame(253, $store->load('orders.primary'));
-            self::assertSame(41, $store->load('orders.secondary'));
+            $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection());
+            self::assertSame(253, $publicationCursorStore->load('orders.primary'));
+            self::assertSame(41, $publicationCursorStore->load('orders.secondary'));
         } finally {
             foreach (array_keys($workerProcessIds) as $workerProcessId) {
                 $waitResult = pcntl_waitpid($workerProcessId, $workerStatus, WNOHANG);
@@ -102,9 +102,9 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
      * Returns the publication cursor store with a new connection
      */
     protected function reopenPublicationCursorStore(
-        PublicationCursorStore $store,
+        PublicationCursorStore $publicationCursorStore,
     ): PublicationCursorStore {
-        unset($store);
+        unset($publicationCursorStore);
 
         return new DbalPublicationCursorStore($this->createConnection());
     }
@@ -143,7 +143,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             return $processId;
         }
 
-        $cursorStore = new DbalPublicationCursorStore($this->createConnection());
+        $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection());
         $failures = [];
 
         for ($round = 1; $round <= 24; ++$round) {
@@ -151,7 +151,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             $this->waitForFile(sprintf('%s/go-%d', $coordinationPath, $round));
 
             try {
-                $cursorStore->save('orders.primary', ($round * 10) + $offset);
+                $publicationCursorStore->save('orders.primary', ($round * 10) + $offset);
             } catch (InvalidArgumentException) {
                 // A lower worker may observe that the higher position already won.
             } catch (Throwable $exception) {

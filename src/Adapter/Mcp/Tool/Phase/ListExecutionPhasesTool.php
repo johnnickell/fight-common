@@ -37,21 +37,21 @@ final readonly class ListExecutionPhasesTool implements McpTool
         ExecutionToolSchemas::PHASE_INPUT,
         ExecutionToolSchemas::PHASE_OUTPUT
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::PHASE_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::PHASE_INPUT);
         /**
-         * @var PhasePage|null $result
+         * @var PhasePage|null $phasePage
          */
-        $result = $this->queryBus->fetch(new ListExecutionPhases(
-            $input['project_id'],
-            $input['session_id'],
-            $input['page'] ?? null,
-            $input['per_page'] ?? null,
-            $input['filters'] ?? [],
-            ['latest_recorded_at' => $input['direction'] ?? 'DESC']
+        $phasePage = $this->queryBus->fetch(new ListExecutionPhases(
+            $arguments['project_id'],
+            $arguments['session_id'],
+            $arguments['page'] ?? null,
+            $arguments['per_page'] ?? null,
+            $arguments['filters'] ?? [],
+            ['latest_recorded_at' => $arguments['direction'] ?? 'DESC']
         ));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($phasePage);
     }
 }

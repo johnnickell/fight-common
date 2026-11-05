@@ -39,18 +39,18 @@ final class QueueEventDispatcherTest extends UnitTestCase
             'kind'    => 'event',
             'message' => $message->arraySerialize()
         ])->andReturn(QueuePushResult::success(73));
-        $dispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
-        $dispatcher->dispatch($message);
+        $eventDispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
+        $eventDispatcher->dispatch($message);
 
         $subscriber = $this->mock(EventSubscriber::class);
         $handler = static function (): void {
         };
-        $dispatcher->register($subscriber);
-        $dispatcher->unregister($subscriber);
-        $dispatcher->addHandler('event', $handler);
-        $dispatcher->removeHandler('event', $handler);
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertFalse($dispatcher->hasHandlers());
+        $eventDispatcher->register($subscriber);
+        $eventDispatcher->unregister($subscriber);
+        $eventDispatcher->addHandler('event', $handler);
+        $eventDispatcher->removeHandler('event', $handler);
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
     }
 
     public function test_that_rejects_queue_failures_and_invalid_job_payloads(): void

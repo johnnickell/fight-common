@@ -29,25 +29,25 @@ fi
 php -r '
 libxml_use_internal_errors(true);
 
-$report = $argv[1];
-$xml = simplexml_load_file($report, SimpleXMLElement::class, LIBXML_NONET);
+$cloverReportPath = $argv[1];
+$coverageXml = simplexml_load_file($cloverReportPath, SimpleXMLElement::class, LIBXML_NONET);
 
-if ($xml === false) {
-    fwrite(STDERR, "Clover report is malformed: {$report}\n");
+if ($coverageXml === false) {
+    fwrite(STDERR, "Clover report is malformed: {$cloverReportPath}\n");
     exit(1);
 }
 
-$metrics = $xml->xpath("/coverage/project/metrics");
+$metrics = $coverageXml->xpath("/coverage/project/metrics");
 
 if (!is_array($metrics) || count($metrics) !== 1) {
-    fwrite(STDERR, "Clover project statement metrics are missing: {$report}\n");
+    fwrite(STDERR, "Clover project statement metrics are missing: {$cloverReportPath}\n");
     exit(1);
 }
 
 $attributes = $metrics[0]->attributes();
 
 if (!isset($attributes["statements"], $attributes["coveredstatements"])) {
-    fwrite(STDERR, "Clover project statement metrics are missing: {$report}\n");
+    fwrite(STDERR, "Clover project statement metrics are missing: {$cloverReportPath}\n");
     exit(1);
 }
 
@@ -55,7 +55,7 @@ $statements = (string) $attributes["statements"];
 $coveredStatements = (string) $attributes["coveredstatements"];
 
 if (!ctype_digit($statements) || !ctype_digit($coveredStatements)) {
-    fwrite(STDERR, "Clover project statement metrics must be non-negative integers: {$report}\n");
+    fwrite(STDERR, "Clover project statement metrics must be non-negative integers: {$cloverReportPath}\n");
     exit(1);
 }
 

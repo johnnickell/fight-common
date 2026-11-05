@@ -18,14 +18,14 @@ final class QueuedCommandMessageTest extends UnitTestCase
     public function test_that_handle_reconstitutes_the_complete_command_message(): void
     {
         $message = CommandMessage::create(new QueuedCommandMessageTestCommand('command-73'));
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->once()->withArgs(static function (CommandMessage $actual) use ($message): bool {
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->once()->withArgs(static function (CommandMessage $actual) use ($message): bool {
             self::assertSame($message->arraySerialize(), $actual->arraySerialize());
 
             return true;
         });
 
-        (new QueuedCommandMessage($message))->handle(new CommandMessageHandler($bus));
+        (new QueuedCommandMessage($message))->handle(new CommandMessageHandler($commandBus));
     }
 }
 

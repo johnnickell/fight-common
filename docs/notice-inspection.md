@@ -10,11 +10,11 @@ Tool, stream or Mercure dependency. Reading sends no Command, business mutation,
 Register these three handlers on the ordinary Query router:
 
 ```php
-$reader = new DbalNoticeReader($connection);
-$router->registerHandlers([
-    SummarizeNotices::class => new SummarizeNoticesHandler($trustedAdmission, $reader),
-    ListNotices::class => new ListNoticesHandler($trustedAdmission, $reader),
-    GetNotice::class => new GetNoticeHandler($trustedAdmission, $reader)
+$noticeReader = new DbalNoticeReader($connection);
+$queryRouter->registerHandlers([
+    SummarizeNotices::class => new SummarizeNoticesHandler($noticeReadAdmission, $noticeReader),
+    ListNotices::class => new ListNoticesHandler($noticeReadAdmission, $noticeReader),
+    GetNotice::class => new GetNoticeHandler($noticeReadAdmission, $noticeReader)
 ]);
 $selection = NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
 $summary = $queryBus->fetch(new SummarizeNotices($selection));
@@ -31,7 +31,7 @@ Imports beneath `Fight\Common\` are:
 - results `Application\Mcp\Notice\Data\{NoticeSummary,NoticePage,NoticeView}` and
   `Application\Mcp\Notice\Exception\NoticeReadFailed`.
 
-`$router` can be `Adapter\Messaging\Query\Routing\InMemoryQueryRouter`, with
+`$queryRouter` can be `Adapter\Messaging\Query\Routing\InMemoryQueryRouter`, with
 `Adapter\Messaging\Query\RoutingQueryBus`. No automatic registration or principal lookup is implied. Install the
 existing schema exclusively before use. Supply a dedicated idle DBAL connection with committed isolation;
 active caller transactions and DBAL `READ_UNCOMMITTED` fail without changing the transaction or connection policy.

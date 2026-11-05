@@ -12,17 +12,17 @@ Import selection/Queries from `Fight\Common\Domain\Mcp\Subscription` / `Query`, 
 namespace, results from `Data`, and `DbalSubscriberReader` from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal`.
 
 ```php
-$reader = new DbalSubscriberReader($inspectionConnection, 'production-eu-registration-db');
+$subscriberReader = new DbalSubscriberReader($inspectionConnection, 'production-eu-registration-db');
 foreach ([
-    new SummarizeSubscribersHandler($inspectionAdmission, $reader),
-    new ListSubscribersHandler($inspectionAdmission, $reader)
+    new SummarizeSubscribersHandler($subscriberReadAdmission, $subscriberReader),
+    new ListSubscribersHandler($subscriberReadAdmission, $subscriberReader)
 ] as $handler) {
-    $router->registerHandler($handler::queryRegistration(), $handler);
+    $queryRouter->registerHandler($handler::queryRegistration(), $handler);
 }
-$queries = new RoutingQueryBus($router);
+$queryBus = new RoutingQueryBus($queryRouter);
 $selection = SubscriberSelection::create(['project-a']);
-$summary = $queries->fetch(new SummarizeSubscribers($selection));
-$page = $queries->fetch(new ListSubscribers($selection, page: 1, perPage: 8));
+$summary = $queryBus->fetch(new SummarizeSubscribers($selection));
+$page = $queryBus->fetch(new ListSubscribers($selection, page: 1, perPage: 8));
 ```
 
 The example uses the existing `Adapter\Messaging\Query\Routing\InMemoryQueryRouter` and

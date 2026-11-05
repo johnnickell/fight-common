@@ -69,15 +69,15 @@ composer require johnnickell/fight-common
 use Fight\Common\Domain\EventSourcing\AggregateDefinition;
 use Fight\Common\Domain\EventSourcing\EventSourcedRepository;
 
-$orders = new EventSourcedRepository(
+$orderRepository = new EventSourcedRepository(
     $eventStore,
     new AggregateDefinition('orders', Order::class),
 );
 
 $order = Order::place($orderId, 'Original name');
-$orders->save($order);
+$orderRepository->save($order);
 
-$reloaded = $orders->find($orderId);
+$reloadedOrder = $orderRepository->find($orderId);
 ```
 
 `EventStore::append()` uses an expected stream version and fails closed with

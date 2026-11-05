@@ -14,11 +14,14 @@ use Fight\Common\Domain\Value\Internet\Url;
  */
 final readonly class SmsService implements SmsTransport, SmsFactory
 {
+    private SmsTransport $smsTransport;
+
     /**
      * Constructs SmsService
      */
-    public function __construct(private SmsTransport $transport)
+    public function __construct(SmsTransport $transport)
     {
+        $this->smsTransport = $transport;
     }
 
     /**
@@ -26,7 +29,7 @@ final readonly class SmsService implements SmsTransport, SmsFactory
      */
     public function send(SmsMessage $message): void
     {
-        $this->transport->send($message);
+        $this->smsTransport->send($message);
     }
 
     /**

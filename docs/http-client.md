@@ -108,12 +108,12 @@ final readonly class HttpService implements HttpClient, MessageFactory, StreamFa
 ```php-inline
 class UserApiService
 {
-    public function __construct(private HttpService $http) {}
+    public function __construct(private HttpService $httpService) {}
 
     public function fetchUser(int $id): array
     {
-        $request = $this->http->createRequest('GET', "/users/{$id}");
-        $response = $this->http->send($request);
+        $request = $this->httpService->createRequest('GET', "/users/{$id}");
+        $response = $this->httpService->send($request);
 
         return json_decode((string) $response->getBody(), true);
     }
@@ -299,7 +299,7 @@ final readonly class LoggingHttpClient implements HttpClient
 - **Exception** (on reject): exception message and full exception object
 
 ```php-inline
-$client = new LoggingHttpClient(
+$httpClient = new LoggingHttpClient(
     new GuzzleClient(new GuzzleHttp\Client()),
     $logger,
     LogLevel::INFO
@@ -479,12 +479,12 @@ use Fight\Common\Application\HttpFoundation\HttpMethod;
 
 class UserApiService
 {
-    public function __construct(private HttpService $http) {}
+    public function __construct(private HttpService $httpService) {}
 
     public function getUser(int $id): array
     {
-        $request = $this->http->createRequest(HttpMethod::GET, "/users/{$id}");
-        $response = $this->http->send($request);
+        $request = $this->httpService->createRequest(HttpMethod::GET, "/users/{$id}");
+        $response = $this->httpService->send($request);
 
         return json_decode((string) $response->getBody(), true);
     }
@@ -496,18 +496,18 @@ class UserApiService
 ```php-inline
 class OrderApiService
 {
-    public function __construct(private HttpService $http) {}
+    public function __construct(private HttpService $httpService) {}
 
-    public function createOrder(array $data): array
+    public function createOrder(array $orderData): array
     {
-        $request = $this->http->createRequest(
+        $request = $this->httpService->createRequest(
             'POST',
             '/orders',
             ['Content-Type' => 'application/json'],
-            json_encode($data)
+            json_encode($orderData)
         );
 
-        $response = $this->http->send($request);
+        $response = $this->httpService->send($request);
 
         return json_decode((string) $response->getBody(), true);
     }
@@ -517,10 +517,10 @@ class OrderApiService
 ### Async Request
 
 ```php-inline
-$promise = $this->http->sendAsync($request);
+$responsePromise = $this->httpService->sendAsync($request);
 
 // Attach callbacks
-$promise = $promise->then(
+$responsePromise = $responsePromise->then(
     function (ResponseInterface $response) {
         // handle response
         return $response;
@@ -532,10 +532,10 @@ $promise = $promise->then(
 );
 
 // Wait for resolution
-$promise->wait();
+$responsePromise->wait();
 
-if ($promise->getState() === Promise::FULFILLED) {
-    $response = $promise->getResponse();
+if ($responsePromise->getState() === Promise::FULFILLED) {
+    $response = $responsePromise->getResponse();
 }
 ```
 
@@ -546,7 +546,7 @@ use Fight\Common\Application\HttpClient\Exception\HttpException;
 use Fight\Common\Application\HttpClient\Exception\NetworkException;
 
 try {
-    $response = $this->http->send($request);
+    $response = $this->httpService->send($request);
 } catch (HttpException $e) {
     // Non-2xx response
     $status = $e->getStatusCode();     // 404, 500, etc.
@@ -563,11 +563,11 @@ try {
 use Fight\Common\Adapter\HttpClient\Logging\LoggingHttpClient;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient;
 
-$inner = new GuzzleClient(new GuzzleHttp\Client(['base_uri' => 'https://api.example.com']));
-$client = new LoggingHttpClient($inner, $logger, LogLevel::DEBUG);
+$innerHttpClient = new GuzzleClient(new GuzzleHttp\Client(['base_uri' => 'https://api.example.com']));
+$httpClient = new LoggingHttpClient($innerHttpClient, $logger, LogLevel::DEBUG);
 
 $request  = (new GuzzleMessageFactory())->createRequest('GET', '/health');
-$response = $client->send($request);
+$response = $httpClient->send($request);
 // Logs: method, URI, headers, body → then status, reason, response headers, body
 ```
 
@@ -580,21 +580,21 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use Fight\Common\Adapter\HttpClient\Guzzle\GuzzleClient;
 
-$mock = new MockHandler([
+$mockHandler = new MockHandler([
     new Response(200, [], json_encode(['id' => 1])),
     new Response(404, [], 'Not Found'),
 ]);
 
-$handler = HandlerStack::create($mock);
-$client  = new GuzzleClient(new Client(['handler' => $handler]));
+$handlerStack = HandlerStack::create($mockHandler);
+$httpClient = new GuzzleClient(new Client(['handler' => $handlerStack]));
 
-$service = new HttpService(
-    $client,
+$httpService = new HttpService(
+    $httpClient,
     new GuzzleMessageFactory(),
     new GuzzleStreamFactory(),
     new GuzzleUriFactory()
 );
 
-$response = $service->send($request);  // 200 response
-$response = $service->send($request);  // 404 response
+$response = $httpService->send($request);  // 200 response
+$response = $httpService->send($request);  // 404 response
 ```

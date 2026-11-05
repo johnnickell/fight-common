@@ -18,7 +18,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
     /**
      * Constructs DbalObservationRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -29,7 +29,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
     {
         $sql = 'SELECT version, payload, recorded_at FROM fight_execution_observations';
         $sql .= ' WHERE producer_id = ? AND observation_id = ?';
-        $row = $this->transaction->connection()->fetchAssociative($sql, [$producerId, $id->toString()]);
+        $row = $this->recordingTransaction->connection()->fetchAssociative($sql, [$producerId, $id->toString()]);
         if ($row === false) {
             return null;
         }
@@ -51,9 +51,9 @@ final readonly class DbalObservationRepository implements ObservationRepository
      */
     public function add(Observation $observation): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         $recordedAt = $observation->recordedAt();
-        $this->transaction->connection()->insert('fight_execution_observations', [
+        $this->recordingTransaction->connection()->insert('fight_execution_observations', [
             'producer_id'    => $observation->producerId(),
             'observation_id' => $observation->id()->toString(),
             'project_id'     => $observation->session()->projectId(),

@@ -60,7 +60,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
     public function test_that_run_completes_when_process_succeeds(): void
     {
         $mock    = $this->makeSuccessfulProcessMock();
-        $factory = fn(Process $p) => $mock;
+        $factory = fn(Process $process) => $mock;
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('echo hello'));
@@ -116,7 +116,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_defaults_to_exception_behavior(): void
     {
-        $factory = fn(Process $p) => $this->makeFailingProcessMock();
+        $factory = fn(Process $process) => $this->makeFailingProcessMock();
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('false'));
@@ -132,7 +132,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_throws_on_failure_with_exception_behavior(): void
     {
-        $factory = fn(Process $p) => $this->makeFailingProcessMock();
+        $factory = fn(Process $process) => $this->makeFailingProcessMock();
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('false'));
@@ -144,7 +144,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_wraps_unexpected_throwable_as_process_exception(): void
     {
-        $factory = function (Process $p): SymfonyProcess {
+        $factory = function (Process $process): SymfonyProcess {
             throw new RuntimeException('unexpected error');
         };
 
@@ -176,7 +176,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $mock1->shouldReceive('stop')->zeroOrMoreTimes()->andReturn(null);
 
         $callCount = 0;
-        $factory   = function (Process $p) use ($mock1, &$callCount): SymfonyProcess {
+        $factory   = function (Process $process) use ($mock1, &$callCount): SymfonyProcess {
             $callCount++;
             return $callCount === 1 ? $mock1 : $this->makeSuccessfulProcessMock();
         };
@@ -196,7 +196,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
     public function test_that_process_exception_from_factory_propagates_unchanged(): void
     {
         $original = new ProcessException('from factory');
-        $factory  = function (Process $p) use ($original): SymfonyProcess {
+        $factory  = function (Process $process) use ($original): SymfonyProcess {
             throw $original;
         };
 
@@ -225,7 +225,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $mock->shouldReceive('checkTimeout')->once()->andThrow(new RuntimeException('timed out'));
         $mock->shouldReceive('stop')->zeroOrMoreTimes()->andReturn(null);
 
-        $factory = fn(Process $p) => $mock;
+        $factory = fn(Process $process) => $mock;
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
         $runner->attach(new Process('cmd'));
 
@@ -280,7 +280,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_ignores_failure_with_ignore_behavior(): void
     {
-        $factory = fn(Process $p) => $this->makeFailingProcessMock();
+        $factory = fn(Process $process) => $this->makeFailingProcessMock();
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('false'));
@@ -291,7 +291,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_ignores_throwable_during_init_with_ignore_behavior(): void
     {
-        $factory = function (Process $p): SymfonyProcess {
+        $factory = function (Process $process): SymfonyProcess {
             throw new RuntimeException('factory error');
         };
 
@@ -309,7 +309,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
     public function test_that_run_retries_and_succeeds(): void
     {
         $callCount = 0;
-        $factory   = function (Process $p) use (&$callCount): SymfonyProcess {
+        $factory   = function (Process $process) use (&$callCount): SymfonyProcess {
             $callCount++;
             return $callCount === 1
                 ? $this->makeFailingProcessMock()
@@ -325,7 +325,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_run_throws_after_retries_exhausted(): void
     {
-        $factory = fn(Process $p) => $this->makeFailingProcessMock();
+        $factory = fn(Process $process) => $this->makeFailingProcessMock();
 
         $runner = new SymfonyProcessRunner(delay: 1, tries: 2, processFactory: $factory);
         $runner->attach(new Process('false'));
@@ -342,7 +342,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
     public function test_that_max_concurrent_limits_parallel_processes(): void
     {
         $started = 0;
-        $factory = function (Process $p) use (&$started): SymfonyProcess {
+        $factory = function (Process $process) use (&$started): SymfonyProcess {
             $started++;
             return $this->makeSuccessfulProcessMock();
         };
@@ -358,7 +358,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
     public function test_that_zero_max_concurrent_allows_unlimited_processes(): void
     {
         $started = 0;
-        $factory = function (Process $p) use (&$started): SymfonyProcess {
+        $factory = function (Process $process) use (&$started): SymfonyProcess {
             $started++;
             return $this->makeSuccessfulProcessMock();
         };
@@ -388,7 +388,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $mock->shouldReceive('getWorkingDirectory')->andReturn('/tmp');
         $mock->shouldReceive('stop')->zeroOrMoreTimes()->andReturn(null);
 
-        $factory = fn(Process $p) => $mock;
+        $factory = fn(Process $process) => $mock;
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('sleep 0.1'));
@@ -406,8 +406,8 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $received = null;
 
         $mock = $this->mock(SymfonyProcess::class);
-        $mock->shouldReceive('start')->once()->with(\Mockery::on(function (callable $cb) {
-            $cb(SymfonyProcess::OUT, 'hello stdout');
+        $mock->shouldReceive('start')->once()->with(\Mockery::on(function (callable $outputCallback) {
+            $outputCallback(SymfonyProcess::OUT, 'hello stdout');
             return true;
         }));
         $mock->shouldReceive('getPid')->andReturn(1001);
@@ -425,7 +425,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
             }
         );
 
-        $runner = new SymfonyProcessRunner(delay: 1, processFactory: fn(Process $p) => $mock);
+        $runner = new SymfonyProcessRunner(delay: 1, processFactory: fn(Process $process) => $mock);
         $runner->attach($appProcess);
         $runner->run(ProcessErrorBehavior::EXCEPTION);
 
@@ -437,8 +437,8 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $received = null;
 
         $mock = $this->mock(SymfonyProcess::class);
-        $mock->shouldReceive('start')->once()->with(\Mockery::on(function (callable $cb) {
-            $cb(SymfonyProcess::ERR, 'oh no');
+        $mock->shouldReceive('start')->once()->with(\Mockery::on(function (callable $outputCallback) {
+            $outputCallback(SymfonyProcess::ERR, 'oh no');
             return true;
         }));
         $mock->shouldReceive('getPid')->andReturn(1002);
@@ -456,7 +456,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
             }
         );
 
-        $runner = new SymfonyProcessRunner(delay: 1, processFactory: fn(Process $p) => $mock);
+        $runner = new SymfonyProcessRunner(delay: 1, processFactory: fn(Process $process) => $mock);
         $runner->attach($appProcess);
         $runner->run(ProcessErrorBehavior::EXCEPTION);
 
@@ -474,7 +474,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         // logProcessStarted fires once (successful process, no failure)
         $logger->shouldReceive('log')->once();
 
-        $factory = fn(Process $p) => $this->makeSuccessfulProcessMock();
+        $factory = fn(Process $process) => $this->makeSuccessfulProcessMock();
         $runner  = new SymfonyProcessRunner(logger: $logger, delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('echo hello'));
@@ -489,7 +489,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         // error() called once: logProcessFailed failure line
         $logger->shouldReceive('error')->once();
 
-        $factory = fn(Process $p) => $this->makeFailingProcessMock(outputDisabled: false);
+        $factory = fn(Process $process) => $this->makeFailingProcessMock(outputDisabled: false);
         $runner  = new SymfonyProcessRunner(logger: $logger, delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('false'));
@@ -507,7 +507,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $logger->shouldReceive('log')->once();
         $logger->shouldReceive('error')->once();
 
-        $factory = fn(Process $p) => $this->makeFailingProcessMock(outputDisabled: true);
+        $factory = fn(Process $process) => $this->makeFailingProcessMock(outputDisabled: true);
         $runner  = new SymfonyProcessRunner(logger: $logger, delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('false'));
@@ -527,7 +527,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $logger->shouldReceive('error')->once();
 
         $callCount = 0;
-        $factory   = function (Process $p) use (&$callCount): SymfonyProcess {
+        $factory   = function (Process $process) use (&$callCount): SymfonyProcess {
             $callCount++;
             return $callCount === 1
                 ? $this->makeFailingProcessMock()
@@ -541,7 +541,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
 
     public function test_that_no_logging_occurs_without_logger(): void
     {
-        $factory = fn(Process $p) => $this->makeSuccessfulProcessMock();
+        $factory = fn(Process $process) => $this->makeSuccessfulProcessMock();
         $runner  = new SymfonyProcessRunner(delay: 1, processFactory: $factory);
 
         $runner->attach(new Process('echo hello'));
@@ -555,7 +555,7 @@ class SymfonyProcessRunnerTest extends UnitTestCase
         $logger = $this->mock(LoggerInterface::class);
         $logger->shouldReceive('log')->once()->with(LogLevel::INFO, \Mockery::type('string'));
 
-        $factory = fn(Process $p) => $this->makeSuccessfulProcessMock();
+        $factory = fn(Process $process) => $this->makeSuccessfulProcessMock();
         $runner  = new SymfonyProcessRunner(
             logger: $logger,
             delay: 1,

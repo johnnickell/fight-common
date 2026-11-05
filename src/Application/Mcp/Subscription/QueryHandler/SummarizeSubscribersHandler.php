@@ -21,8 +21,10 @@ final readonly class SummarizeSubscribersHandler implements QueryHandler
     /**
      * Constructs SummarizeSubscribersHandler
      */
-    public function __construct(private SubscriberReadAdmission $admission, private SubscriberReader $reader)
-    {
+    public function __construct(
+        private SubscriberReadAdmission $subscriberReadAdmission,
+        private SubscriberReader $subscriberReader
+    ) {
     }
 
     /**
@@ -43,7 +45,10 @@ final readonly class SummarizeSubscribersHandler implements QueryHandler
          */
         $query = $queryMessage->payload();
         try {
-            return $this->reader->summarize($query->selection(), $this->admission->currentAccess($query->selection()));
+            return $this->subscriberReader->summarize(
+                $query->selection(),
+                $this->subscriberReadAdmission->currentAccess($query->selection())
+            );
         } catch (Throwable $throwable) {
             throw new SubscriberReadFailed($throwable);
         }

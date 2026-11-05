@@ -20,8 +20,8 @@ final class StringComparator implements Comparator
         assert(Validate::isString($object1));
         assert(Validate::isString($object2));
 
-        $comp = strnatcmp((string) $object1, (string) $object2);
+        $comparison = strnatcmp((string) $object1, (string) $object2);
 
-        return $comp <=> 0;
+        return $comparison <=> 0;
     }
 }

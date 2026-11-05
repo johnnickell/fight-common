@@ -299,11 +299,11 @@ The Doctrine ORM adapter wraps `EntityManagerInterface` and implements only `Tra
 ```php-inline
 use Fight\Common\Adapter\Persistence\Doctrine\DoctrineTransactionalUnitOfWork;
 
-$unitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
+$transactionalUnitOfWork = new DoctrineTransactionalUnitOfWork($entityManager);
 
-$result = $unitOfWork->commitTransactional(function () use ($users, $command) {
+$result = $transactionalUnitOfWork->commitTransactional(function () use ($userRepository, $command) {
     $user = User::register($command->email, $command->name);
-    $users->save($user);
+    $userRepository->save($user);
 
     return $user->id();
 });
@@ -369,15 +369,15 @@ interface UserRepository
 class RegisterUserService
 {
     public function __construct(
-        private UserRepository $users,
-        private TransactionalUnitOfWork $unitOfWork
+        private UserRepository $userRepository,
+        private TransactionalUnitOfWork $transactionalUnitOfWork
     ) {}
 
     public function execute(RegisterUserCommand $command): void
     {
-        $this->unitOfWork->commitTransactional(function () use ($command): void {
+        $this->transactionalUnitOfWork->commitTransactional(function () use ($command): void {
             $user = User::register($command->email, $command->name);
-            $this->users->save($user);
+            $this->userRepository->save($user);
         });
     }
 }

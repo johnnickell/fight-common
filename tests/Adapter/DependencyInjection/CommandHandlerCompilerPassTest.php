@@ -66,16 +66,16 @@ class CommandHandlerCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_command_handlers(): void
     {
         $container = new ContainerBuilder();
-        $routerDef = $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
+        $commandRouterDefinition = $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
 
-        $handlerDef = $container->register('handler_id', StubCommandHandler::class);
-        $handlerDef->addTag('common.command_handler', []);
-        $handlerDef->setPublic(true);
+        $handlerDefinition = $container->register('handler_id', StubCommandHandler::class);
+        $handlerDefinition->addTag('common.command_handler', []);
+        $handlerDefinition->setPublic(true);
 
         $pass = new CommandHandlerCompilerPass();
         $pass->process($container);
 
-        $calls = $routerDef->getMethodCalls();
+        $calls = $commandRouterDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('registerHandler', $calls[0][0]);
         self::assertSame([StubCommand::class, 'handler_id'], $calls[0][1]);
@@ -84,20 +84,20 @@ class CommandHandlerCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_command_handlers(): void
     {
         $container = new ContainerBuilder();
-        $routerDef = $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
+        $commandRouterDefinition = $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
 
-        $handlerDef1 = $container->register('handler_1', StubCommandHandler::class);
-        $handlerDef1->addTag('common.command_handler', []);
-        $handlerDef1->setPublic(true);
+        $firstHandlerDefinition = $container->register('handler_1', StubCommandHandler::class);
+        $firstHandlerDefinition->addTag('common.command_handler', []);
+        $firstHandlerDefinition->setPublic(true);
 
-        $handlerDef2 = $container->register('handler_2', StubOtherCommandHandler::class);
-        $handlerDef2->addTag('common.command_handler', []);
-        $handlerDef2->setPublic(true);
+        $secondHandlerDefinition = $container->register('handler_2', StubOtherCommandHandler::class);
+        $secondHandlerDefinition->addTag('common.command_handler', []);
+        $secondHandlerDefinition->setPublic(true);
 
         $pass = new CommandHandlerCompilerPass();
         $pass->process($container);
 
-        $calls = $routerDef->getMethodCalls();
+        $calls = $commandRouterDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('registerHandler', $calls[0][0]);
         self::assertSame([StubCommand::class, 'handler_1'], $calls[0][1]);
@@ -110,9 +110,9 @@ class CommandHandlerCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
 
-        $handlerDef = $container->register('private_handler', StubCommandHandler::class);
-        $handlerDef->addTag('common.command_handler', []);
-        $handlerDef->setPublic(false);
+        $handlerDefinition = $container->register('private_handler', StubCommandHandler::class);
+        $handlerDefinition->addTag('common.command_handler', []);
+        $handlerDefinition->setPublic(false);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must be public');
@@ -126,9 +126,9 @@ class CommandHandlerCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareCommandRouter::class, ServiceAwareCommandRouter::class);
 
-        $badDef = $container->register('bad_handler', StubCommandNonHandlerService::class);
-        $badDef->addTag('common.command_handler', []);
-        $badDef->setPublic(true);
+        $invalidDefinition = $container->register('bad_handler', StubCommandNonHandlerService::class);
+        $invalidDefinition->addTag('common.command_handler', []);
+        $invalidDefinition->setPublic(true);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

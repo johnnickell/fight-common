@@ -24,9 +24,9 @@ final readonly class NoticePublication
      * Constructs NoticePublication
      */
     public function __construct(
-        private QueryBus $queries,
-        private NoticePublicationPolicy $policy,
-        private NoticePublicationDiagnostics $diagnostics,
+        private QueryBus $queryBus,
+        private NoticePublicationPolicy $noticePublicationPolicy,
+        private NoticePublicationDiagnostics $noticePublicationDiagnostics,
         private ?Publisher $publicPublisher = null,
         private ?PrivatePublisher $privatePublisher = null
     ) {
@@ -41,7 +41,7 @@ final readonly class NoticePublication
     public function publish(GetNotice $identity): NoticePublicationStatus
     {
         try {
-            $view = $this->queries->fetch($identity);
+            $view = $this->queryBus->fetch($identity);
             if ($view === null) {
                 return NoticePublicationStatus::NOT_AVAILABLE;
             }
@@ -51,7 +51,7 @@ final readonly class NoticePublication
             }
 
             try {
-                $grant = $this->policy->currentGrant($view);
+                $grant = $this->noticePublicationPolicy->currentGrant($view);
                 if ($grant === null) {
                     return NoticePublicationStatus::DENIED;
                 }
@@ -91,7 +91,7 @@ final readonly class NoticePublication
     private function report(Throwable $failure): void
     {
         try {
-            $this->diagnostics->record($failure);
+            $this->noticePublicationDiagnostics->record($failure);
         } catch (Throwable) {
             // The failed outcome remains observable even if the private diagnostic sink is unavailable.
         }

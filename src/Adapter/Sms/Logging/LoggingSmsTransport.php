@@ -14,14 +14,17 @@ use Psr\Log\LogLevel;
  */
 final readonly class LoggingSmsTransport implements SmsTransport
 {
+    private SmsTransport $smsTransport;
+
     /**
      * Constructs LoggingSmsTransport
      */
     public function __construct(
-        private SmsTransport $transport,
+        SmsTransport $transport,
         private LoggerInterface $logger,
         private string $logLevel = LogLevel::DEBUG
     ) {
+        $this->smsTransport = $transport;
     }
 
     /**
@@ -36,6 +39,6 @@ final readonly class LoggingSmsTransport implements SmsTransport
             'media_count' => count($message->getMedia())
         ]);
 
-        $this->transport->send($message);
+        $this->smsTransport->send($message);
     }
 }

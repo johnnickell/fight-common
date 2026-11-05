@@ -34,12 +34,12 @@ final class DbalPublicationCursorStoreUnitTest extends UnitTestCase
     {
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('fetchOne')->once()->andReturn(6);
-        $store = new DbalPublicationCursorStore($connection);
+        $publicationCursorStore = new DbalPublicationCursorStore($connection);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Publication cursor orders cannot move backward from 6 to -1.');
 
-        $store->save('orders', -1);
+        $publicationCursorStore->save('orders', -1);
     }
 
     public function test_that_save_advances_an_existing_cursor_without_an_insert(): void
@@ -79,12 +79,12 @@ final class DbalPublicationCursorStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('executeStatement')->twice()->andReturn(0);
         $connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
         $connection->shouldReceive('fetchOne')->once()->andReturn(8);
-        $store = new DbalPublicationCursorStore($connection);
+        $publicationCursorStore = new DbalPublicationCursorStore($connection);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Publication cursor orders cannot move backward from 8 to 7.');
 
-        $store->save('orders', 7);
+        $publicationCursorStore->save('orders', 7);
     }
 
     private function uniqueConstraintViolation(): UniqueConstraintViolationException

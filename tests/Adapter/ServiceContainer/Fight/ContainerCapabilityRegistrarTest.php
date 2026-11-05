@@ -88,41 +88,41 @@ class ContainerCapabilityRegistrarTest extends UnitTestCase
     public function test_that_register_template_helpers_uses_explicit_helper_and_collaborator_maps(): void
     {
         $container = new Container();
-        /** @var TemplateEngine&MockInterface $engine */
-        $engine = $this->mock(TemplateEngine::class);
+        /** @var TemplateEngine&MockInterface $templateEngine */
+        $templateEngine = $this->mock(TemplateEngine::class);
         $helper = new class implements TemplateHelper {
             public function getName(): string
             {
                 return 'test';
             }
         };
-        $engine->shouldReceive('addHelper')->once()->with($helper);
+        $templateEngine->shouldReceive('addHelper')->once()->with($helper);
 
         ContainerCapabilityRegistrar::registerTemplateHelpers(
             $container,
             ['helper' => fn(): TemplateHelper => $helper],
-            ['template.engine' => fn(): TemplateEngine => $engine],
+            ['template.engine' => fn(): TemplateEngine => $templateEngine],
             ['template.engine' => ['helper']]
         );
 
         self::assertSame($helper, $container->get('helper'));
-        self::assertSame($engine, $container->get('template.engine'));
+        self::assertSame($templateEngine, $container->get('template.engine'));
     }
 
     public function test_that_register_http_client_exposes_one_transport_as_fight_and_psr18_contracts(): void
     {
         $container = new Container();
-        $transport = new StubHttpClient();
+        $httpClient = new StubHttpClient();
 
-        ContainerCapabilityRegistrar::registerHttpClient($container, fn(): HttpClient => $transport);
+        ContainerCapabilityRegistrar::registerHttpClient($container, fn(): HttpClient => $httpClient);
 
         $fightClient = $container->get(HttpClient::class);
         $psrClient = $container->get(ClientInterface::class);
 
-        self::assertSame($transport, $fightClient);
+        self::assertSame($httpClient, $fightClient);
         self::assertInstanceOf(Psr18Client::class, $psrClient);
         self::assertFalse($this->isFightHttpClient($psrClient));
-        self::assertSame($transport->response, $psrClient->sendRequest(new Request('GET', 'https://example.com')));
+        self::assertSame($httpClient->response, $psrClient->sendRequest(new Request('GET', 'https://example.com')));
     }
 
     private function mockCommandBus(): \Fight\Common\Application\Messaging\Command\SynchronousCommandBus&MockInterface

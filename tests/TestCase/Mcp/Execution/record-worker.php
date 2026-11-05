@@ -18,11 +18,11 @@ $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ER
 $role = $argv[2];
 $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
-$store = new DbalRecordingTransaction($connection);
+$recordingTransaction = new DbalRecordingTransaction($connection);
 if ($connection->getDatabasePlatform() instanceof \Doctrine\DBAL\Platforms\SQLitePlatform) {
     $connection->executeStatement('PRAGMA busy_timeout = 10000');
 }
-$fixture = new RecordingFixture($store);
+$fixture = new RecordingFixture($recordingTransaction);
 $fixture->setOnAdmit(static function () use ($directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'admitted');
     if ($role === 'first') {
@@ -67,7 +67,7 @@ $status = 'recorded';
 try {
     if (($config['removal_role'] ?? null) === $role) {
         // Storage fixture only: future authorized removal must use the same boundary.
-        $store->commitTransactional(static function () use ($connection, $observation, $directory, $role): void {
+        $recordingTransaction->commitTransactional(static function () use ($connection, $observation, $directory, $role): void {
             file_put_contents($directory.'/'.$role.'-admitted', 'storage lock held');
             if ($role === 'first') {
                 $deadline = microtime(true) + 10;
@@ -85,7 +85,7 @@ try {
 } catch (Throwable $throwable) {
     $status = $throwable::class;
 }
-$stored = (new DbalObservationRepository($store))->getById($observation->producerId(), $observation->id());
+$stored = (new DbalObservationRepository($recordingTransaction))->getById($observation->producerId(), $observation->id());
 echo json_encode([
     'status' => $status,
     'events' => $events,

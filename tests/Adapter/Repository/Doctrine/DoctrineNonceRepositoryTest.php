@@ -24,16 +24,16 @@ class DoctrineNonceRepositoryTest extends UnitTestCase
      */
     private function makeRepo(MockInterface $connection, string $table = 'nonces'): DoctrineNonceRepository
     {
-        /** @var MockInterface&ClassMetadata<Nonce> $meta */
-        $meta = $this->mock(ClassMetadata::class);
-        $meta->shouldReceive('getTableName')->andReturn($table);
+        /** @var MockInterface&ClassMetadata<Nonce> $nonceMetadata */
+        $nonceMetadata = $this->mock(ClassMetadata::class);
+        $nonceMetadata->shouldReceive('getTableName')->andReturn($table);
 
-        /** @var MockInterface&EntityManagerInterface $em */
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('getClassMetadata')->with(Nonce::class)->andReturn($meta);
-        $em->shouldReceive('getConnection')->andReturn($connection);
+        /** @var MockInterface&EntityManagerInterface $entityManager */
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('getClassMetadata')->with(Nonce::class)->andReturn($nonceMetadata);
+        $entityManager->shouldReceive('getConnection')->andReturn($connection);
 
-        return new DoctrineNonceRepository($em);
+        return new DoctrineNonceRepository($entityManager);
     }
 
     public function test_that_consume_inserts_nonce_row(): void

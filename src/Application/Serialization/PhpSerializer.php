@@ -19,23 +19,23 @@ class PhpSerializer implements Serializer
      */
     public function deserialize(string $state): Serializable
     {
-        $data = @unserialize($state);
+        $serializationEnvelope = @unserialize($state);
 
         $keys = ['@', '$'];
         foreach ($keys as $key) {
-            if (!isset($data[$key])) {
+            if (!isset($serializationEnvelope[$key])) {
                 $message = sprintf('Invalid serialization format: %s', $state);
                 throw new DomainException($message);
             }
         }
 
-        $class = ClassName::full($data['@']);
+        $serializedClass = ClassName::full($serializationEnvelope['@']);
 
-        if (!is_subclass_of($class, Serializable::class)) {
+        if (!is_subclass_of($serializedClass, Serializable::class)) {
             throw new DomainException('Class must implement Serializable interface');
         }
 
-        return $class::arrayDeserialize($data['$']);
+        return $serializedClass::arrayDeserialize($serializationEnvelope['$']);
     }
 
     /**
@@ -43,11 +43,11 @@ class PhpSerializer implements Serializer
      */
     public function serialize(Serializable $object): string
     {
-        $data = [
+        $serializationEnvelope = [
             '@' => ClassName::canonical($object),
             '$' => $object->arraySerialize()
         ];
 
-        return serialize($data);
+        return serialize($serializationEnvelope);
     }
 }

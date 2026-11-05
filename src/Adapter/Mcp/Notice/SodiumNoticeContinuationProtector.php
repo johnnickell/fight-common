@@ -28,9 +28,9 @@ final readonly class SodiumNoticeContinuationProtector implements NoticeContinua
      *
      * @phpstan-param array<string, string> $keys
      */
-    public function __construct(array $keys, private string $activeKey)
+    public function __construct(array $keys, private string $activeKeyId)
     {
-        if (!extension_loaded('sodium') || count($keys) < 1 || count($keys) > 8 || !isset($keys[$activeKey])) {
+        if (!extension_loaded('sodium') || count($keys) < 1 || count($keys) > 8 || !isset($keys[$activeKeyId])) {
             throw new DomainException('Invalid notice continuation configuration.');
         }
 
@@ -56,12 +56,12 @@ final readonly class SodiumNoticeContinuationProtector implements NoticeContinua
         $payload = str_pad($plaintext, self::PADDED_BYTES, "\0");
         $cipher = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
             $payload,
-            self::AAD.$this->activeKey,
+            self::AAD.$this->activeKeyId,
             $nonce,
-            $this->keys[$this->activeKey]
+            $this->keys[$this->activeKeyId]
         );
 
-        return 'v1.'.$this->activeKey.'.'.base64_encode($nonce.$cipher);
+        return 'v1.'.$this->activeKeyId.'.'.base64_encode($nonce.$cipher);
     }
 
     /**

@@ -26,13 +26,13 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
     /** @var MockInterface|ContainerInterface */
     private ContainerInterface $container;
 
-    private ServiceAwareEventDispatcher $dispatcher;
+    private ServiceAwareEventDispatcher $eventDispatcher;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->container = $this->mock(ContainerInterface::class);
-        $this->dispatcher = new ServiceAwareEventDispatcher($this->container);
+        $this->eventDispatcher = new ServiceAwareEventDispatcher($this->container);
     }
 
     public function test_that_register_service_with_simple_string_adds_handler_service(): void
@@ -43,8 +43,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('my_service')
             ->andReturn($subscriber);
 
-        $this->dispatcher->registerService(SampleServiceSubscriberSimple::class, 'my_service');
-        $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+        $this->eventDispatcher->registerService(SampleServiceSubscriberSimple::class, 'my_service');
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
 
         self::assertTrue($subscriber->called);
     }
@@ -57,8 +57,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('my_service')
             ->andReturn($subscriber);
 
-        $this->dispatcher->registerService(SampleServiceSubscriberPriority::class, 'my_service');
-        $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+        $this->eventDispatcher->registerService(SampleServiceSubscriberPriority::class, 'my_service');
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
 
         self::assertTrue($subscriber->called);
     }
@@ -71,8 +71,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('my_service')
             ->andReturn($subscriber);
 
-        $this->dispatcher->registerService(SampleServiceSubscriberMultiple::class, 'my_service');
-        $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+        $this->eventDispatcher->registerService(SampleServiceSubscriberMultiple::class, 'my_service');
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
 
         self::assertContains('first', $subscriber->calls);
         self::assertContains('second', $subscriber->calls);
@@ -87,9 +87,9 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->andReturn($subscriber);
 
         $eventType = ClassName::underscore(SampleServiceEvent::class);
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
 
-        $handlers = $this->dispatcher->getHandlers($eventType);
+        $handlers = $this->eventDispatcher->getHandlers($eventType);
 
         self::assertCount(1, $handlers);
     }
@@ -103,8 +103,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
 
         self::assertTrue($subscriber->called);
     }
@@ -130,13 +130,13 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('all_events_success')
             ->andReturn(new SuccessfulServiceAwareHandler('all-events-success'));
 
-        $this->dispatcher->addHandlerService($eventType, 'event_failure', 'handle', 20);
-        $this->dispatcher->addHandlerService($eventType, 'event_success', 'handle', 10);
-        $this->dispatcher->addHandlerService($allEvents, 'all_events_failure', 'handle', 20);
-        $this->dispatcher->addHandlerService($allEvents, 'all_events_success', 'handle', 10);
+        $this->eventDispatcher->addHandlerService($eventType, 'event_failure', 'handle', 20);
+        $this->eventDispatcher->addHandlerService($eventType, 'event_success', 'handle', 10);
+        $this->eventDispatcher->addHandlerService($allEvents, 'all_events_failure', 'handle', 20);
+        $this->eventDispatcher->addHandlerService($allEvents, 'all_events_success', 'handle', 10);
 
         try {
-            $this->dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+            $this->eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
             self::fail('Dispatch should report the collected service handler failures.');
         } catch (EventDispatchFailed $failed) {
             self::assertSame(
@@ -172,11 +172,11 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('resolution_failure')
             ->andThrow($resolutionFailure);
 
-        $dispatcher = new ServiceAwareEventDispatcher($this->container);
-        $dispatcher->addHandlerService($eventType, 'resolution_failure', 'handle');
+        $eventDispatcher = new ServiceAwareEventDispatcher($this->container);
+        $eventDispatcher->addHandlerService($eventType, 'resolution_failure', 'handle');
 
         try {
-            $dispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
+            $eventDispatcher->dispatch(EventMessage::create(new SampleServiceEvent()));
             self::fail('Dispatch should propagate the service resolution failure.');
         } catch (Throwable $throwable) {
             self::assertSame($resolutionFailure, $throwable);
@@ -193,8 +193,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $handlers = $this->dispatcher->getHandlers();
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $handlers = $this->eventDispatcher->getHandlers();
 
         self::assertCount(1, $handlers);
     }
@@ -208,8 +208,8 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $handlers = $this->dispatcher->getHandlers($eventType);
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $handlers = $this->eventDispatcher->getHandlers($eventType);
 
         self::assertCount(1, $handlers);
     }
@@ -217,27 +217,27 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
     public function test_that_has_handlers_with_null_returns_true_when_service_ids_present(): void
     {
         $eventType = ClassName::underscore(SampleServiceEvent::class);
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
 
-        self::assertTrue($this->dispatcher->hasHandlers());
+        self::assertTrue($this->eventDispatcher->hasHandlers());
     }
 
     public function test_that_has_handlers_with_null_returns_false_when_nothing_registered(): void
     {
-        self::assertFalse($this->dispatcher->hasHandlers());
+        self::assertFalse($this->eventDispatcher->hasHandlers());
     }
 
     public function test_that_has_handlers_with_type_returns_true_when_service_id_present(): void
     {
         $eventType = ClassName::underscore(SampleServiceEvent::class);
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
 
-        self::assertTrue($this->dispatcher->hasHandlers($eventType));
+        self::assertTrue($this->eventDispatcher->hasHandlers($eventType));
     }
 
     public function test_that_has_handlers_with_type_delegates_to_parent_when_no_service(): void
     {
-        self::assertFalse($this->dispatcher->hasHandlers('nonexistent_event'));
+        self::assertFalse($this->eventDispatcher->hasHandlers('nonexistent_event'));
     }
 
     public function test_that_remove_handler_removes_from_service_ids_and_handlers(): void
@@ -249,12 +249,12 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $this->dispatcher->getHandlers($eventType);
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->getHandlers($eventType);
 
-        $this->dispatcher->removeHandler($eventType, [$subscriber, 'onEvent']);
+        $this->eventDispatcher->removeHandler($eventType, [$subscriber, 'onEvent']);
 
-        self::assertFalse($this->dispatcher->hasHandlers($eventType));
+        self::assertFalse($this->eventDispatcher->hasHandlers($eventType));
     }
 
     public function test_that_lazy_load_reuses_same_service_instance(): void
@@ -266,10 +266,10 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $this->dispatcher->getHandlers($eventType);
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->getHandlers($eventType);
 
-        $handlers = $this->dispatcher->getHandlers($eventType);
+        $handlers = $this->eventDispatcher->getHandlers($eventType);
 
         self::assertCount(1, $handlers);
     }
@@ -284,10 +284,10 @@ class ServiceAwareEventDispatcherTest extends UnitTestCase
             ->with('svc')
             ->andReturn($subscriber1, $subscriber2);
 
-        $this->dispatcher->addHandlerService($eventType, 'svc', 'onEvent');
-        $this->dispatcher->getHandlers($eventType);
+        $this->eventDispatcher->addHandlerService($eventType, 'svc', 'onEvent');
+        $this->eventDispatcher->getHandlers($eventType);
 
-        $handlers = $this->dispatcher->getHandlers($eventType);
+        $handlers = $this->eventDispatcher->getHandlers($eventType);
 
         self::assertCount(1, $handlers);
     }
@@ -315,7 +315,7 @@ class SampleServiceSubscriberSimple implements EventSubscriber
         return [SampleServiceEvent::class => 'onEvent'];
     }
 
-    public function onEvent(EventMessage $m): void
+    public function onEvent(EventMessage $eventMessage): void
     {
         $this->called = true;
     }
@@ -330,7 +330,7 @@ class SampleServiceSubscriberPriority implements EventSubscriber
         return [SampleServiceEvent::class => ['onEvent', 5]];
     }
 
-    public function onEvent(EventMessage $m): void
+    public function onEvent(EventMessage $eventMessage): void
     {
         $this->called = true;
     }
@@ -345,12 +345,12 @@ class SampleServiceSubscriberMultiple implements EventSubscriber
         return [SampleServiceEvent::class => [['onFirst', 10], ['onSecond']]];
     }
 
-    public function onFirst(EventMessage $m): void
+    public function onFirst(EventMessage $eventMessage): void
     {
         $this->calls[] = 'first';
     }
 
-    public function onSecond(EventMessage $m): void
+    public function onSecond(EventMessage $eventMessage): void
     {
         $this->calls[] = 'second';
     }

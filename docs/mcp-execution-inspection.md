@@ -25,17 +25,17 @@ use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
-// $queries is the ordinary QueryBus with all five shared inspection handlers.
-// $availability implements McpToolAvailability using current consumer request context.
-$tools = new McpToolRegistry([
-    new SummarizeExecutionsTool($queries),
-    new ListExecutionsTool($queries),
-    new GetExecutionTool($queries),
-    new ListExecutionPhasesTool($queries),
-    new ListPhaseActivityTool($queries)
+// $queryBus is the ordinary QueryBus with all five shared inspection handlers.
+// $toolAvailability implements McpToolAvailability using current consumer request context.
+$toolRegistry = new McpToolRegistry([
+    new SummarizeExecutionsTool($queryBus),
+    new ListExecutionsTool($queryBus),
+    new GetExecutionTool($queryBus),
+    new ListExecutionPhasesTool($queryBus),
+    new ListPhaseActivityTool($queryBus)
 ]);
-$discovery = new McpToolDiscovery($tools, $availability, $dedicatedCursorKey);
-$invocation = new McpToolInvocation(new McpToolInvoker($tools, $availability));
+$toolDiscovery = new McpToolDiscovery($toolRegistry, $toolAvailability, $dedicatedCursorKey);
+$toolInvocation = new McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAvailability));
 // Add both capabilities to the existing McpCapabilityRegistry and guarded McpRequestHandler.
 ```
 
@@ -150,8 +150,8 @@ use Fight\Common\Adapter\Mcp\Tool\Detail\GetCapturedDetailTool;
 use Fight\Common\Adapter\Mcp\Tool\Detail\ListCapturedMessagesTool;
 
 // Add to the explicitly selected safe Tool instances before constructing McpToolRegistry.
-$selectedTools[] = new ListCapturedMessagesTool($queries);
-$selectedTools[] = new GetCapturedDetailTool($queries);
+$selectedTools[] = new ListCapturedMessagesTool($queryBus);
+$selectedTools[] = new GetCapturedDetailTool($queryBus);
 ```
 
 Availability and detail admission remain **independent and fresh on every page/chunk**. Consumers resolve current

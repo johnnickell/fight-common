@@ -303,14 +303,14 @@ use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
 
 /** @var ExecutionReadAdmission $currentCallerAdmission Consumer implementation, not Query input */
-$reader = new DbalExecutionReader($connection);
-$router = new InMemoryQueryRouter();
-$router->registerHandler(SummarizeExecutions::class, new SummarizeExecutionsHandler($currentCallerAdmission, $reader));
-$router->registerHandler(ListExecutions::class, new ListExecutionsHandler($currentCallerAdmission, $reader));
-$queries = new RoutingQueryBus($router);
+$executionReader = new DbalExecutionReader($connection);
+$queryRouter = new InMemoryQueryRouter();
+$queryRouter->registerHandler(SummarizeExecutions::class, new SummarizeExecutionsHandler($currentCallerAdmission, $executionReader));
+$queryRouter->registerHandler(ListExecutions::class, new ListExecutionsHandler($currentCallerAdmission, $executionReader));
+$queryBus = new RoutingQueryBus($queryRouter);
 $selection = ExecutionSelection::create(['project'], ['consumer_reference' => 'build:147']);
-$summary = $queries->fetch(new SummarizeExecutions($selection));
-$page = $queries->fetch(new ListExecutions($selection, page: 1, perPage: 20));
+$summary = $queryBus->fetch(new SummarizeExecutions($selection));
+$page = $queryBus->fetch(new ListExecutions($selection, page: 1, perPage: 20));
 ```
 
 For selected navigation, add these explicit registrations to the same router/admission and connection:
@@ -322,13 +322,13 @@ use Fight\Common\Application\Mcp\Session\QueryHandler\GetExecutionHandler;
 use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
 use Fight\Common\Domain\Mcp\Session\Query\GetExecution;
 
-$router->registerHandler(GetExecution::class, new GetExecutionHandler($currentCallerAdmission, $reader));
-$router->registerHandler(
+$queryRouter->registerHandler(GetExecution::class, new GetExecutionHandler($currentCallerAdmission, $executionReader));
+$queryRouter->registerHandler(
     ListExecutionPhases::class,
     new ListExecutionPhasesHandler($currentCallerAdmission, new DbalPhaseReader($connection))
 );
-$execution = $queries->fetch(new GetExecution('project', 'session'));
-$phases = $queries->fetch(new ListExecutionPhases('project', 'session', page: 1, perPage: 20));
+$execution = $queryBus->fetch(new GetExecution('project', 'session'));
+$phases = $queryBus->fetch(new ListExecutionPhases('project', 'session', page: 1, perPage: 20));
 ```
 
 For activity, register this handler on the same router with the same current admission:
@@ -338,11 +338,11 @@ use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
 use Fight\Common\Application\Mcp\Observation\QueryHandler\ListPhaseActivityHandler;
 use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
 
-$router->registerHandler(
+$queryRouter->registerHandler(
     ListPhaseActivity::class,
     new ListPhaseActivityHandler($currentCallerAdmission, new DbalActivityReader($connection))
 );
-$activity = $queries->fetch(new ListPhaseActivity('project', 'session', 'phase', page: 1, perPage: 20));
+$activity = $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', page: 1, perPage: 20));
 ```
 
 To disclose reference metadata, the consumer's fresh admission may for example return

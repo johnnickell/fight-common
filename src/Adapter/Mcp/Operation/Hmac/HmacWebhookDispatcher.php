@@ -25,6 +25,10 @@ readonly class HmacWebhookDispatcher implements WebhookDispatcher
         'deploy'
     ];
 
+    private HttpClient $httpClient;
+    private MessageFactory $messageFactory;
+    private RequestService $requestSigner;
+
     /**
      * Constructs HmacWebhookDispatcher
      *
@@ -33,10 +37,13 @@ readonly class HmacWebhookDispatcher implements WebhookDispatcher
      * @param RequestService $signer
      */
     public function __construct(
-        private HttpClient $client,
-        private MessageFactory $factory,
-        private RequestService $signer
+        HttpClient $client,
+        MessageFactory $factory,
+        RequestService $signer
     ) {
+        $this->httpClient = $client;
+        $this->messageFactory = $factory;
+        $this->requestSigner = $signer;
     }
 
     /**
@@ -56,15 +63,15 @@ readonly class HmacWebhookDispatcher implements WebhookDispatcher
 
         $body = json_encode(['action' => $action, 'payload' => $payload], JSON_UNESCAPED_SLASHES);
 
-        $request = $this->factory->createRequest(
+        $request = $this->messageFactory->createRequest(
             'POST',
             $url,
             ['Content-Type' => 'application/json'],
             $body
         );
 
-        $signed = $this->signer->signRequest($request);
+        $signedRequest = $this->requestSigner->signRequest($request);
 
-        $this->client->send($signed);
+        $this->httpClient->send($signedRequest);
     }
 }

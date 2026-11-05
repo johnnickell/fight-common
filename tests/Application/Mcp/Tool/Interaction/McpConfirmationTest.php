@@ -43,26 +43,26 @@ final class McpConfirmationTest extends UnitTestCase
 {
     public function test_that_confirmations_bind_the_complete_state_and_consume_before_one_command(): void
     {
-        $store = $this->store();
-        $commands = $this->mock(CommandBus::class);
-        $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
-        $tool = new DestructiveValueTool(function (ApplicationData $input) use ($store, $commands): void {
-            self::assertTrue($store->consumed);
-            $commands->execute(new SampleCommand($input->get('id')));
+        $confirmationStore = $this->store();
+        $commandBus = $this->mock(CommandBus::class);
+        $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
+        $tool = new DestructiveValueTool(function (ApplicationData $input) use ($confirmationStore, $commandBus): void {
+            self::assertTrue($confirmationStore->consumed);
+            $commandBus->execute(new SampleCommand($input->get('id')));
         });
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $token = $this->issue($responder);
-        self::assertSame(1, $store->issues);
-        self::assertSame(0, $store->acquisitions);
+        self::assertSame(1, $confirmationStore->issues);
+        self::assertSame(0, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
         $plaintext = $this->protector()->open($token);
         $state = StrictJson::fromString($plaintext);
         self::assertSame('confirmation', $state->get('mode'));
-        self::assertSame($state->get('confirmation'), $store->id);
-        self::assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $store->id);
-        self::assertSame(hash('sha256', $plaintext), $store->binding);
-        self::assertSame($state->get('expires'), $store->expires);
-        self::assertGreaterThan(time(), $store->expires);
+        self::assertSame($state->get('confirmation'), $confirmationStore->id);
+        self::assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $confirmationStore->id);
+        self::assertSame(hash('sha256', $plaintext), $confirmationStore->binding);
+        self::assertSame($state->get('expires'), $confirmationStore->expires);
+        self::assertGreaterThan(time(), $confirmationStore->expires);
         self::assertStringNotContainsString('original', $token);
         $result = $responder->respond($this->wire($this->retry($token), 2))->toArray();
         self::assertSame('complete', $result['result']['resultType']);
@@ -72,15 +72,15 @@ final class McpConfirmationTest extends UnitTestCase
         $replay = $responder->respond($this->wire($this->retry($token), 3))->toArray();
         $this->assertRejected($replay);
         self::assertSame(1, $tool->resumes);
-        self::assertSame(2, $store->acquisitions);
+        self::assertSame(2, $confirmationStore->acquisitions);
     }
 
     #[DataProvider('refusals')]
     public function test_that_any_decline_or_cancel_retires_all_forms_without_resume(string $action, bool $mixed): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool(static function (): void { self::fail('Refusal dispatched'); });
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $params = $this->retry($this->issue($responder));
         $params['inputResponses']['approval'] = ['action' => $action];
         if (!$mixed) {
@@ -90,7 +90,7 @@ final class McpConfirmationTest extends UnitTestCase
         self::assertSame('complete', $result['result']['resultType']);
         self::assertSame([['type' => 'text', 'text' => 'Confirmation not accepted.']], $result['result']['content']);
         self::assertArrayNotHasKey('structuredContent', $result['result']);
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
         self::assertSame(0, $tool->resumes);
         $this->assertRejected($responder->respond($this->wire($params, 3))->toArray());
     }
@@ -106,13 +106,13 @@ final class McpConfirmationTest extends UnitTestCase
     #[DataProvider('invalidRetries')]
     public function test_that_invalid_state_or_responses_never_acquire_or_dispatch(string $change): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $params = $this->retry($this->issue($responder));
         $id = 2;
         switch ($change) {
-            case 'caller': $responder = $this->responder($tool, $store, caller: 'other'); break;
+            case 'caller': $responder = $this->responder($tool, $confirmationStore, caller: 'other'); break;
             case 'name': $params['name'] = 'different'; break;
             case 'arguments': $params['arguments']['id'] = 'other'; break;
             case 'same-id': $id = 1; break;
@@ -138,8 +138,8 @@ final class McpConfirmationTest extends UnitTestCase
                 $params['requestState'] = $this->protector()->seal($state->toString());
         }
         $this->assertRejected($responder->respond($this->wire($params, $id))->toArray());
-        self::assertFalse($store->consumed);
-        self::assertSame(0, $store->acquisitions);
+        self::assertFalse($confirmationStore->consumed);
+        self::assertSame(0, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
     }
 
@@ -153,13 +153,13 @@ final class McpConfirmationTest extends UnitTestCase
     #[DataProvider('acquisitionFailures')]
     public function test_that_every_store_rejection_and_failure_is_one_safe_terminal_shape(?McpConfirmationOutcome $outcome): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $token = $this->issue($responder);
-        $store->outcome = $outcome;
+        $confirmationStore->outcome = $outcome;
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 2))->toArray());
-        self::assertSame(1, $store->acquisitions);
+        self::assertSame(1, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
     }
 
@@ -175,47 +175,47 @@ final class McpConfirmationTest extends UnitTestCase
 
     public function test_that_a_revoked_confirmation_is_unknown_before_response_validation_or_acquisition(): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $token = $this->issue($this->responder($tool, $store));
+        $token = $this->issue($this->responder($tool, $confirmationStore));
         $params = $this->retry($token);
         $params['inputResponses'] = 'invalid';
-        $hidden = $this->responder($tool, $store, available: false, caller: 'wrong')->respond($this->wire($params, 2))->toArray();
-        $unknown = $this->responder(null, $store)->respond($this->wire($params, 2))->toArray();
+        $hidden = $this->responder($tool, $confirmationStore, available: false, caller: 'wrong')->respond($this->wire($params, 2))->toArray();
+        $unknown = $this->responder(null, $confirmationStore)->respond($this->wire($params, 2))->toArray();
         self::assertSame($unknown, $hidden);
         self::assertSame('Unknown or unavailable tool.', $hidden['error']['message']);
-        self::assertSame(0, $store->acquisitions);
+        self::assertSame(0, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
     }
 
     public function test_that_incapable_initial_and_retry_requests_never_enter_the_tool_or_store(): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $params = ['name' => 'value.delete', 'arguments' => null];
         $first = $responder->respond($this->wire($params, capable: false))->toArray();
         self::assertSame(-32021, $first['error']['code']);
         self::assertSame(0, $tool->calls);
-        self::assertSame(0, $store->issues);
+        self::assertSame(0, $confirmationStore->issues);
         $token = $this->issue($responder);
         $retry = $responder->respond($this->wire($this->retry($token), 2, false))->toArray();
         self::assertSame(-32021, $retry['error']['code']);
-        self::assertSame(0, $store->acquisitions);
+        self::assertSame(0, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
     }
 
     #[DataProvider('issueFailures')]
     public function test_that_issue_requires_a_working_store_and_never_exposes_unregistered_state(string $failure): void
     {
-        $store = $failure === 'missing' ? null : $this->store();
-        if ($store !== null) {
-            $store->failIssue = true;
+        $confirmationStore = $failure === 'missing' ? null : $this->store();
+        if ($confirmationStore !== null) {
+            $confirmationStore->failIssue = true;
         }
         $diagnostics = $this->mock(McpDiagnostics::class);
         $diagnostics->shouldReceive('record')->once();
         $tool = new DestructiveValueTool();
-        $result = $this->responder($tool, $store, diagnostics: $diagnostics)->respond($this->wire(['name' => 'value.delete', 'arguments' => ['id' => 'original']]))->toArray();
+        $result = $this->responder($tool, $confirmationStore, diagnostics: $diagnostics)->respond($this->wire(['name' => 'value.delete', 'arguments' => ['id' => 'original']]))->toArray();
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $result['error']);
         self::assertSame(0, $tool->resumes);
         self::assertArrayNotHasKey('result', $result);
@@ -230,7 +230,7 @@ final class McpConfirmationTest extends UnitTestCase
     #[DataProvider('acquiredFailures')]
     public function test_that_acquired_state_is_never_restored_after_any_resume_outcome(string $failure): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $mutations = 0;
         $tool = new DestructiveValueTool(function () use (&$mutations): void { ++$mutations; });
         $diagnostics = $this->mock(McpDiagnostics::class);
@@ -245,7 +245,7 @@ final class McpConfirmationTest extends UnitTestCase
             $tool->invalidOutput = true;
             $diagnostics->shouldReceive('record')->once();
         }
-        $responder = $this->responder($tool, $store, diagnostics: $diagnostics, failures: $map);
+        $responder = $this->responder($tool, $confirmationStore, diagnostics: $diagnostics, failures: $map);
         $token = $this->issue($responder);
         $first = $responder->respond($this->wire($this->retry($token), 2))->toArray();
         if ($failure === 'expected') {
@@ -255,7 +255,7 @@ final class McpConfirmationTest extends UnitTestCase
         } else {
             self::assertSame('complete', $first['result']['resultType']);
         }
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
         self::assertSame(1, $tool->resumes);
         self::assertSame(in_array($failure, ['success', 'response'], true) ? 1 : 0, $mutations);
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 3))->toArray());
@@ -273,9 +273,9 @@ final class McpConfirmationTest extends UnitTestCase
     #[DataProvider('cancellationPoints')]
     public function test_that_cancellation_after_acquisition_never_releases_or_redispatches(string $point): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool(static function (): void { self::fail('Cancelled mutation dispatched'); });
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $token = $this->issue($responder);
         $reporter = new class implements McpProgressReporter {
             public bool $cancelled = false;
@@ -283,13 +283,13 @@ final class McpConfirmationTest extends UnitTestCase
             public function isCancelled(): bool { return $this->cancelled; }
         };
         if ($point === 'before') {
-            $store->afterConsume = static function () use ($reporter): void { $reporter->cancelled = true; };
+            $confirmationStore->afterConsume = static function () use ($reporter): void { $reporter->cancelled = true; };
         } else {
             $tool->duringResume = static function () use ($reporter): void { $reporter->cancelled = true; };
         }
-        $result = $this->invoker($tool, $store)->invokeRequest(new McpRequestDecoder()->decode($this->wire($this->retry($token), 2)), $reporter);
+        $result = $this->invoker($tool, $confirmationStore)->invokeRequest(new McpRequestDecoder()->decode($this->wire($this->retry($token), 2)), $reporter);
         self::assertSame('complete', $result->toArray()['resultType']);
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
         self::assertSame($point === 'before' ? 0 : 1, $tool->resumes);
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 3))->toArray());
         self::assertSame($point === 'before' ? 0 : 1, $tool->resumes);
@@ -303,9 +303,9 @@ final class McpConfirmationTest extends UnitTestCase
 
     public function test_that_stream_closure_during_progress_preserves_consumption_and_suppresses_final_output(): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool(static function (): void { self::fail('Disconnected mutation dispatched'); });
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $token = $this->issue($responder);
         $tool->report = true;
         $wire = json_decode($this->wire($this->retry($token), 2), true);
@@ -321,47 +321,47 @@ final class McpConfirmationTest extends UnitTestCase
         self::assertCount(1, $frames);
         self::assertSame('notifications/progress', $frames[0]['method']);
         self::assertTrue($execution->isCancelled());
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
         self::assertSame(1, $tool->resumes);
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 3))->toArray());
     }
 
     public function test_that_an_uncertain_store_write_cannot_restore_an_acquired_confirmation(): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $token = $this->issue($responder);
-        $store->afterConsume = static function (): void { throw new RuntimeException('Lost acknowledgement'); };
+        $confirmationStore->afterConsume = static function (): void { throw new RuntimeException('Lost acknowledgement'); };
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 2))->toArray());
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
         self::assertSame(0, $tool->resumes);
         $this->assertRejected($responder->respond($this->wire($this->retry($token), 3))->toArray());
         self::assertSame(0, $tool->resumes);
-        self::assertSame(2, $store->acquisitions); // One attempt per request, no internal retry.
+        self::assertSame(2, $confirmationStore->acquisitions); // One attempt per request, no internal retry.
     }
 
     public function test_that_confirmation_content_policy_remains_with_the_consumer_tool(): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool(static function (): void { self::fail('Consumer refused mutation dispatched'); });
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $params = $this->retry($this->issue($responder));
         $params['inputResponses']['approval']['content']['confirm'] = false;
         $result = $responder->respond($this->wire($params, 2))->toArray();
         self::assertSame('complete', $result['result']['resultType']);
         self::assertSame(1, $tool->resumes); // Accept is protocol action, not inferred business approval.
-        self::assertTrue($store->consumed);
+        self::assertTrue($confirmationStore->consumed);
     }
 
     public function test_that_a_configured_store_is_never_used_for_ordinary_retries(): void
     {
-        $store = $this->mock(McpConfirmationStore::class); // No issue/consume expectation.
+        $confirmationStore = $this->mock(McpConfirmationStore::class); // No issue/consume expectation.
         $tool = new InteractiveValueTool();
         $availability = new class implements McpToolAvailability {
             public function isAvailable(McpToolInfo $tool): bool { return true; }
         };
-        $invoker = new McpToolInvoker(new McpToolRegistry([$tool]), $availability, interaction: new McpToolInteraction($this->protector(), 'caller', confirmations: $store));
+        $invoker = new McpToolInvoker(new McpToolRegistry([$tool]), $availability, interaction: new McpToolInteraction($this->protector(), 'caller', confirmations: $confirmationStore));
         $initial = new McpRequestDecoder()->decode($this->wire(['name' => 'value.interactive', 'arguments' => ['id' => 'original']]));
         $issued = $invoker->invokeRequest($initial)->toArray();
         $parameters = ['name' => 'value.interactive', 'arguments' => ['id' => 'original'], 'requestState' => $issued['requestState'], 'inputResponses' => ['details' => ['action' => 'cancel']]];
@@ -374,9 +374,9 @@ final class McpConfirmationTest extends UnitTestCase
     #[DataProvider('changedBindings')]
     public function test_that_even_authentic_altered_state_cannot_acquire_another_confirmation(string $field): void
     {
-        $store = $this->store();
+        $confirmationStore = $this->store();
         $tool = new DestructiveValueTool();
-        $responder = $this->responder($tool, $store);
+        $responder = $this->responder($tool, $confirmationStore);
         $original = $this->issue($responder);
         $state = StrictJson::fromString($this->protector()->open($original), 70);
         $state = match ($field) {
@@ -387,8 +387,8 @@ final class McpConfirmationTest extends UnitTestCase
         };
         $replacement = $this->protector()->seal($state->toString());
         $this->assertRejected($responder->respond($this->wire($this->retry($replacement), 2))->toArray());
-        self::assertFalse($store->consumed);
-        self::assertSame(1, $store->acquisitions);
+        self::assertFalse($confirmationStore->consumed);
+        self::assertSame(1, $confirmationStore->acquisitions);
         self::assertSame(0, $tool->resumes);
         self::assertSame('complete', $responder->respond($this->wire($this->retry($original), 3))->toArray()['result']['resultType']);
     }
@@ -438,15 +438,15 @@ final class McpConfirmationTest extends UnitTestCase
         return new SodiumMcpStateProtector(1, [1 => str_repeat('k', 32)]);
     }
 
-    private function invoker(?DestructiveValueTool $tool, ?McpConfirmationStore $store, bool $available = true, string $caller = 'caller', ?McpToolFailureMap $failures = null): McpToolInvoker
+    private function invoker(?DestructiveValueTool $tool, ?McpConfirmationStore $confirmationStore, bool $available = true, string $caller = 'caller', ?McpToolFailureMap $failures = null): McpToolInvoker
     {
         return new McpToolInvoker(new McpToolRegistry($tool === null ? [] : [$tool]), new class($available) implements McpToolAvailability {
             public function __construct(private bool $available) {}
             public function isAvailable(McpToolInfo $tool): bool { return $this->available; }
-        }, failures: $failures ?? new McpToolFailureMap(), interaction: new McpToolInteraction($this->protector(), $caller, confirmations: $store));
+        }, failures: $failures ?? new McpToolFailureMap(), interaction: new McpToolInteraction($this->protector(), $caller, confirmations: $confirmationStore));
     }
 
-    private function responder(?DestructiveValueTool $tool, ?McpConfirmationStore $store, bool $available = true, string $caller = 'caller', ?McpDiagnostics $diagnostics = null, ?McpToolFailureMap $failures = null): McpResponder
+    private function responder(?DestructiveValueTool $tool, ?McpConfirmationStore $confirmationStore, bool $available = true, string $caller = 'caller', ?McpDiagnostics $diagnostics = null, ?McpToolFailureMap $failures = null): McpResponder
     {
         $availability = new class($available) implements McpToolAvailability {
             public function __construct(private bool $available) {}
@@ -454,7 +454,7 @@ final class McpConfirmationTest extends UnitTestCase
         };
         return new McpResponder(new McpCapabilityRegistry(new McpServerInfo('test', '1'), [
             new McpToolDiscovery(new McpToolRegistry($tool === null ? [] : [$tool]), $availability, str_repeat('c', 32)),
-            new McpToolInvocation($this->invoker($tool, $store, $available, $caller, $failures))
+            new McpToolInvocation($this->invoker($tool, $confirmationStore, $available, $caller, $failures))
         ]), diagnostics: $diagnostics ?? $this->mock(McpDiagnostics::class));
     }
 

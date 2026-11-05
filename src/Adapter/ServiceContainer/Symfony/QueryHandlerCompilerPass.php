@@ -25,14 +25,17 @@ class QueryHandlerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(ServiceAwareQueryRouter::class);
+        $queryRouterDefinition = $container->findDefinition(ServiceAwareQueryRouter::class);
         $taggedServices = $container->findTaggedServiceIds('common.query_handler', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $handlerServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($handlerServiceId);
 
             if (!$serviceDefinition->isPublic()) {
-                $message = sprintf('The service "%s" must be public as query handlers are lazy-loaded', $id);
+                $message = sprintf(
+                    'The service "%s" must be public as query handlers are lazy-loaded',
+                    $handlerServiceId
+                );
                 throw new Exception($message);
             }
 
@@ -43,13 +46,17 @@ class QueryHandlerCompilerPass implements CompilerPassInterface
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(QueryHandler::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, QueryHandler::class);
+                $message = sprintf(
+                    'Service "%s" must implement interface "%s"',
+                    $handlerServiceId,
+                    QueryHandler::class
+                );
                 throw new Exception($message);
             }
 
-            $query = $serviceClass::queryRegistration();
+            $queryClass = $serviceClass::queryRegistration();
 
-            $definition->addMethodCall('registerHandler', [$query, $id]);
+            $queryRouterDefinition->addMethodCall('registerHandler', [$queryClass, $handlerServiceId]);
         }
     }
 }

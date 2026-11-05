@@ -195,8 +195,8 @@ final class Meta implements Arrayable, Countable, IteratorAggregate, JsonSeriali
             case 'NULL':
                 return true;
             case 'array':
-                foreach ($value as $val) {
-                    if (!$this->isValid($val)) {
+                foreach ($value as $nestedValue) {
+                    if (!$this->isValid($nestedValue)) {
                         return false;
                     }
                 }

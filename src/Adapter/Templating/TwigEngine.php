@@ -22,12 +22,14 @@ final class TwigEngine implements TemplateEngine
      * @var array<string, TemplateHelper>
      */
     private array $helpers = [];
+    private readonly Environment $twigEnvironment;
 
     /**
      * Constructs TwigEngine
      */
-    public function __construct(private readonly Environment $environment)
+    public function __construct(Environment $environment)
     {
+        $this->twigEnvironment = $environment;
     }
 
     /**
@@ -36,7 +38,7 @@ final class TwigEngine implements TemplateEngine
     public function render(string $template, array $data = []): string
     {
         try {
-            return $this->environment->render($template, $data);
+            return $this->twigEnvironment->render($template, $data);
         } catch (LoaderError $loaderError) {
             throw TemplateNotFoundException::fromName($template, $loaderError);
         } catch (Throwable $throwable) {
@@ -49,7 +51,7 @@ final class TwigEngine implements TemplateEngine
      */
     public function exists(string $template): bool
     {
-        return $this->environment->getLoader()->exists($template);
+        return $this->twigEnvironment->getLoader()->exists($template);
     }
 
     /**
@@ -72,7 +74,7 @@ final class TwigEngine implements TemplateEngine
         }
 
         $this->helpers[$name] = $helper;
-        $this->environment->addGlobal($name, $helper);
+        $this->twigEnvironment->addGlobal($name, $helper);
     }
 
     /**

@@ -61,8 +61,8 @@ final readonly class EventSourcingGuideExample
      */
     public static function run(): array
     {
-        [$connection, $eventStore, $repository] = self::createPersistenceServices();
-        [$firstOrderId, $reloaded, $secondOrderId] = self::persistOrders($repository);
+        [$connection, $eventStore, $orderRepository] = self::createPersistenceServices();
+        [$firstOrderId, $reloaded, $secondOrderId] = self::persistOrders($orderRepository);
         [$projection, $projectionCheckpoint] = self::projectOrders(
             $connection,
             $eventStore,
@@ -101,36 +101,36 @@ final readonly class EventSourcingGuideExample
         $eventMapper = new EventMapper([new OrdersEventMappingProvider()]);
         // --8<-- [end:manual-mapper]
         $eventStore = new DbalEventStore($connection, $eventMapper);
-        $repository = new EventSourcedRepository(
+        $orderRepository = new EventSourcedRepository(
             $eventStore,
             new AggregateDefinition('orders', Order::class),
         );
         // --8<-- [end:event-store-composition]
 
-        return [$connection, $eventStore, $repository];
+        return [$connection, $eventStore, $orderRepository];
     }
 
     /**
-     * @param EventSourcedRepository $repository
+     * @param EventSourcedRepository $orderRepository
      *
      * @return array{OrderId, Order, OrderId}
      */
-    private static function persistOrders(EventSourcedRepository $repository): array
+    private static function persistOrders(EventSourcedRepository $orderRepository): array
     {
         // --8<-- [start:persist-reload]
         $firstOrderId = OrderId::generate();
         $firstOrder = Order::place($firstOrderId, 'Original name');
         $firstOrder->rename('Current name');
-        $repository->save($firstOrder);
+        $orderRepository->save($firstOrder);
 
-        $reloaded = $repository->find($firstOrderId);
+        $reloaded = $orderRepository->find($firstOrderId);
 
         if (!$reloaded instanceof Order) {
             throw new RuntimeException('The documented order must reload from its event stream.');
         }
 
         $secondOrderId = OrderId::generate();
-        $repository->save(Order::place($secondOrderId, 'Second order'));
+        $orderRepository->save(Order::place($secondOrderId, 'Second order'));
         // --8<-- [end:persist-reload]
 
         return [$firstOrderId, $reloaded, $secondOrderId];
@@ -149,14 +149,14 @@ final readonly class EventSourcingGuideExample
         (new DbalProjectionCheckpointStoreSchema())->install($connection);
         $orderSummaryWriter = new InMemoryOrderSummaryWriter();
         $orderSummaryProjector = new OrderSummaryProjector($orderSummaryWriter);
-        $checkpointStore = new DbalProjectionCheckpointStore($connection);
-        $projectionRunner = new ProjectionRunner($eventStore, $checkpointStore);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection);
+        $projectionRunner = new ProjectionRunner($eventStore, $projectionCheckpointStore);
         $projectionRunner->run($orderSummaryProjector, 100);
         // --8<-- [end:projection-composition]
 
         self::runProjectionWorker(
             static fn(): bool => true,
-            $checkpointStore,
+            $projectionCheckpointStore,
             $projectionRunner,
             $orderSummaryProjector,
         );
@@ -164,8 +164,8 @@ final readonly class EventSourcingGuideExample
         $orderSummaryWriter->upsertIfNewer($firstOrderId->toString(), 'Stale first order', 1);
         $orderSummaryWriter->upsertIfNewer($secondOrderId->toString(), 'Stale second order', 2);
 
-        $checkpoint = $checkpointStore->load($orderSummaryProjector->name());
-        self::resetProjection($checkpointStore);
+        $checkpoint = $projectionCheckpointStore->load($orderSummaryProjector->name());
+        self::resetProjection($projectionCheckpointStore);
 
         return [$orderSummaryWriter->state(), $checkpoint];
     }
@@ -192,14 +192,14 @@ final readonly class EventSourcingGuideExample
             static fn(): never => throw new RuntimeException('Documented subscriber failure.'),
         );
 
-        $cursorStore = new DbalPublicationCursorStore($connection);
+        $publicationCursorStore = new DbalPublicationCursorStore($connection);
         $durableFailureRecorder = new DbalPublicationFailureRecorder($connection);
         $failureRecorder = new LoggingPublicationFailureRecorder($durableFailureRecorder, new NullLogger());
         $publicationRunner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
             $eventDispatcher,
-            $cursorStore,
+            $publicationCursorStore,
             $failureRecorder,
         );
         // --8<-- [end:publication-composition]
@@ -209,7 +209,7 @@ final readonly class EventSourcingGuideExample
 
         return [
             $dispatchedNames,
-            $cursorStore->load('orders.subscribers'),
+            $publicationCursorStore->load('orders.subscribers'),
             (int) $connection->fetchOne('SELECT COUNT(*) FROM publication_failures'),
         ];
     }
@@ -281,27 +281,27 @@ final readonly class EventSourcingGuideExample
 
     private static function runProjectionWorker(
         callable $shutdownRequested,
-        DbalProjectionCheckpointStore $checkpointStore,
+        DbalProjectionCheckpointStore $projectionCheckpointStore,
         ProjectionRunner $projectionRunner,
         OrderSummaryProjector $orderSummaryProjector,
     ): void {
         // --8<-- [start:projection-worker]
         while (!$shutdownRequested()) {
-            $before = $checkpointStore->load($orderSummaryProjector->name());
+            $before = $projectionCheckpointStore->load($orderSummaryProjector->name());
 
             $projectionRunner->run($orderSummaryProjector, 100);
 
-            if ($before === $checkpointStore->load($orderSummaryProjector->name())) {
+            if ($before === $projectionCheckpointStore->load($orderSummaryProjector->name())) {
                 usleep(250_000);
             }
         }
         // --8<-- [end:projection-worker]
     }
 
-    private static function resetProjection(DbalProjectionCheckpointStore $checkpointStore): void
+    private static function resetProjection(DbalProjectionCheckpointStore $projectionCheckpointStore): void
     {
         // --8<-- [start:projection-reset]
-        $checkpointStore->reset('orders.order-summary');
+        $projectionCheckpointStore->reset('orders.order-summary');
         // --8<-- [end:projection-reset]
     }
 }

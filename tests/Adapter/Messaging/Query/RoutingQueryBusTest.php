@@ -24,16 +24,16 @@ class RoutingQueryBusTest extends UnitTestCase
         /** @var MockInterface|QueryHandler $handler */
         $handler = $this->mock(QueryHandler::class);
         $handler->shouldReceive('handle')
-            ->withArgs(fn(QueryMessage $msg): bool => $msg->payload() instanceof SampleRoutingQuery)
+            ->withArgs(fn(QueryMessage $queryMessage): bool => $queryMessage->payload() instanceof SampleRoutingQuery)
             ->andReturn($expected);
 
         /** @var MockInterface|QueryRouter $router */
         $router = $this->mock(QueryRouter::class);
         $router->shouldReceive('match')->andReturn($handler);
 
-        $bus = new RoutingQueryBus($router);
+        $queryBus = new RoutingQueryBus($router);
 
-        self::assertSame($expected, $bus->fetch(new SampleRoutingQuery()));
+        self::assertSame($expected, $queryBus->fetch(new SampleRoutingQuery()));
     }
 
     public function test_that_consumer_handler_missing_resource_propagates_unchanged(): void
@@ -79,9 +79,9 @@ class RoutingQueryBusTest extends UnitTestCase
         $router = $this->mock(QueryRouter::class);
         $router->shouldReceive('match')->with($query)->andReturn($handler);
 
-        $bus = new RoutingQueryBus($router);
+        $queryBus = new RoutingQueryBus($router);
 
-        self::assertSame($expected, $bus->dispatch($message));
+        self::assertSame($expected, $queryBus->dispatch($message));
     }
 }
 

@@ -49,27 +49,27 @@ final class ContainerCapabilityRegistrar
 
         if ($commandHandlers !== []) {
             /**
-             * @var ServiceAwareCommandRouter $router
+             * @var ServiceAwareCommandRouter $commandRouter
              */
-            $router = $container->get($collaborators['command.router']);
-            $router->registerHandlers($commandHandlers);
+            $commandRouter = $container->get($collaborators['command.router']);
+            $commandRouter->registerHandlers($commandHandlers);
         }
 
         if ($queryHandlers !== []) {
             /**
-             * @var ServiceAwareQueryRouter $router
+             * @var ServiceAwareQueryRouter $queryRouter
              */
-            $router = $container->get($collaborators['query.router']);
-            $router->registerHandlers($queryHandlers);
+            $queryRouter = $container->get($collaborators['query.router']);
+            $queryRouter->registerHandlers($queryHandlers);
         }
 
         if ($eventSubscribers !== []) {
             /**
-             * @var ServiceAwareEventDispatcher $dispatcher
+             * @var ServiceAwareEventDispatcher $eventDispatcher
              */
-            $dispatcher = $container->get($collaborators['event.dispatcher']);
+            $eventDispatcher = $container->get($collaborators['event.dispatcher']);
             foreach ($eventSubscribers as $subscriberClass => $serviceId) {
-                $dispatcher->registerService($subscriberClass, $serviceId);
+                $eventDispatcher->registerService($subscriberClass, $serviceId);
             }
         }
 
@@ -106,13 +106,13 @@ final class ContainerCapabilityRegistrar
 
         foreach ($helpers as $engineServiceId => $helperServiceIds) {
             /**
-             * @var TemplateEngine $engine
+             * @var TemplateEngine $templateEngine
              */
-            $engine = $container->get($engineServiceId);
+            $templateEngine = $container->get($engineServiceId);
             foreach ($helperServiceIds as $helperServiceId) {
                 $helper = $container->get($helperServiceId);
                 assert($helper instanceof TemplateHelper);
-                $engine->addHelper($helper);
+                $templateEngine->addHelper($helper);
             }
         }
     }
@@ -129,10 +129,10 @@ final class ContainerCapabilityRegistrar
         $container->set(
             ClientInterface::class,
             static function (Container $container): Psr18Client {
-                $transport = $container->get(HttpClient::class);
-                assert($transport instanceof HttpClient);
+                $httpClient = $container->get(HttpClient::class);
+                assert($httpClient instanceof HttpClient);
 
-                return new Psr18Client($transport);
+                return new Psr18Client($httpClient);
             }
         );
     }
@@ -141,17 +141,20 @@ final class ContainerCapabilityRegistrar
      * Registers explicit shared and transient service factories
      *
      * @param Container $container The service container
-     * @param array<string, callable(Container): mixed> $services Shared service factories
-     * @param array<string, callable(Container): mixed> $factories Transient service factories
+     * @param array<string, callable(Container): mixed> $sharedServiceFactories Shared service factories
+     * @param array<string, callable(Container): mixed> $transientServiceFactories Transient service factories
      */
-    private static function registerServices(Container $container, array $services, array $factories): void
-    {
-        foreach ($services as $serviceId => $factory) {
-            $container->set($serviceId, $factory);
+    private static function registerServices(
+        Container $container,
+        array $sharedServiceFactories,
+        array $transientServiceFactories
+    ): void {
+        foreach ($sharedServiceFactories as $serviceId => $serviceFactory) {
+            $container->set($serviceId, $serviceFactory);
         }
 
-        foreach ($factories as $serviceId => $factory) {
-            $container->factory($serviceId, $factory);
+        foreach ($transientServiceFactories as $serviceId => $serviceFactory) {
+            $container->factory($serviceId, $serviceFactory);
         }
     }
 }

@@ -121,15 +121,15 @@ final readonly class StorageService
 on transport failure.
 
 ```php-inline
-$service = new StorageService();
-$service->addStorage('local', $localStorage);
-$service->addStorage('s3', $s3Storage);
+$storageService = new StorageService();
+$storageService->addStorage('local', $localStorage);
+$storageService->addStorage('s3', $s3Storage);
 
 // Copy a file from local disk to S3
-$service->copyStorageToStorage('local', '/tmp/photo.jpg', 's3', 'photos/photo.jpg');
+$storageService->copyStorageToStorage('local', '/tmp/photo.jpg', 's3', 'photos/photo.jpg');
 
 // Move (copy + delete source)
-$service->moveStorageToStorage('local', '/tmp/invoice.pdf', 's3', 'invoices/invoice.pdf');
+$storageService->moveStorageToStorage('local', '/tmp/invoice.pdf', 's3', 'invoices/invoice.pdf');
 ```
 
 ---
@@ -355,10 +355,10 @@ Boolean query methods (`exists`, `isFile`, `isDir`, `isLink`, `isReadable`, `isW
 `isExecutable`) call the PHP native function directly without try/catch and do not throw.
 
 ```php-inline
-$fs = new SymfonyFilesystem();
-$fs->mkdir('/tmp/build/logs', 0755);
-$fs->copy('/tmp/source.txt', '/tmp/build/source.txt', true);
-$contents = $fs->get('/tmp/build/source.txt');
+$filesystem = new SymfonyFilesystem();
+$filesystem->mkdir('/tmp/build/logs', 0755);
+$filesystem->copy('/tmp/source.txt', '/tmp/build/source.txt', true);
+$contents = $filesystem->get('/tmp/build/source.txt');
 ```
 
 ---
@@ -500,18 +500,18 @@ use Fight\Common\Application\FileStorage\FileStorage;
 
 class AvatarService
 {
-    public function __construct(private FileStorage $storage) {}
+    public function __construct(private FileStorage $fileStorage) {}
 
     public function upload(string $userId, string $tmpPath): void
     {
         $resource = fopen($tmpPath, 'rb');
-        $this->storage->putFile("avatars/{$userId}.jpg", $resource);
+        $this->fileStorage->putFile("avatars/{$userId}.jpg", $resource);
         fclose($resource);
     }
 
     public function getAvatar(string $userId): string
     {
-        return $this->storage->getFileContents("avatars/{$userId}.jpg");
+        return $this->fileStorage->getFileContents("avatars/{$userId}.jpg");
     }
 }
 ```
@@ -523,12 +523,12 @@ use Fight\Common\Application\FileStorage\StorageService;
 
 class MediaManager
 {
-    public function __construct(private StorageService $storages) {}
+    public function __construct(private StorageService $storageService) {}
 
     public function publish(int $mediaId): void
     {
         // Move from staging (local) to CDN (S3)
-        $this->storages->moveStorageToStorage(
+        $this->storageService->moveStorageToStorage(
             'staging',
             "media/{$mediaId}/original.jpg",
             'cdn',
@@ -541,13 +541,13 @@ class MediaManager
 ### FileStorage — List Files
 
 ```php-inline
-$files = $this->storage->listFiles('photos/2024');
+$files = $this->fileStorage->listFiles('photos/2024');
 // ['photos/2024/img001.jpg', 'photos/2024/img002.jpg']
 
-$allFiles = $this->storage->listFilesRecursively('photos');
+$allFiles = $this->fileStorage->listFilesRecursively('photos');
 // ['photos/2024/img001.jpg', 'photos/2024/12/img003.jpg', …]
 
-$dirs = $this->storage->listDirectories('photos');
+$dirs = $this->fileStorage->listDirectories('photos');
 // ['photos/2024', 'photos/2023']
 ```
 
@@ -558,24 +558,24 @@ use Fight\Common\Application\Filesystem\Filesystem;
 
 class ConfigService
 {
-    public function __construct(private Filesystem $fs) {}
+    public function __construct(private Filesystem $filesystem) {}
 
     public function dump(array $config): void
     {
-        $path = sprintf('%s/config.php', $this->fs->dirName(__FILE__));
+        $path = sprintf('%s/config.php', $this->filesystem->dirName(__FILE__));
 
-        $this->fs->put($path, '<?php return ' . var_export($config, true) . ';');
+        $this->filesystem->put($path, '<?php return ' . var_export($config, true) . ';');
     }
 
     public function load(): array
     {
         $path = sprintf('%s/config.php', dirname(__DIR__));
 
-        if (!$this->fs->isFile($path)) {
+        if (!$this->filesystem->isFile($path)) {
             return [];
         }
 
-        return $this->fs->getReturn($path) ?: [];
+        return $this->filesystem->getReturn($path) ?: [];
     }
 }
 ```
@@ -585,21 +585,21 @@ class ConfigService
 ```php-inline
 class BuildService
 {
-    public function __construct(private Filesystem $fs) {}
+    public function __construct(private Filesystem $filesystem) {}
 
     public function deploy(string $releaseDir, string $sourceDir): void
     {
         // Create release directory
-        $this->fs->mkdir($releaseDir, 0755);
+        $this->filesystem->mkdir($releaseDir, 0755);
 
         // Mirror source to release
-        $this->fs->mirror($sourceDir, $releaseDir, true, true);
+        $this->filesystem->mirror($sourceDir, $releaseDir, true, true);
 
         // Remove old cache files
-        $this->fs->remove("{$releaseDir}/var/cache/*");
+        $this->filesystem->remove("{$releaseDir}/var/cache/*");
 
         // Set permissions
-        $this->fs->chmod("{$releaseDir}/var", 0775, 0002, true);
+        $this->filesystem->chmod("{$releaseDir}/var", 0775, 0002, true);
     }
 }
 ```
@@ -613,9 +613,9 @@ use Fight\Common\Adapter\FileStorage\FlysystemStorage;
 
 $adapter = new InMemoryFilesystemAdapter();
 $flysystem = new Filesystem($adapter);
-$storage = new FlysystemStorage($flysystem);
+$fileStorage = new FlysystemStorage($flysystem);
 
-$storage->putFile('test.txt', 'hello');
-echo $storage->getFileContents('test.txt'); // 'hello'
-echo $storage->hasFile('test.txt');         // true
+$fileStorage->putFile('test.txt', 'hello');
+echo $fileStorage->getFileContents('test.txt'); // 'hello'
+echo $fileStorage->hasFile('test.txt');         // true
 ```

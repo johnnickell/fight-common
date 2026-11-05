@@ -24,24 +24,24 @@ final readonly class DbalNoticeSchema
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $state = $schema->createTable(self::TABLES[0]);
-        $state->addColumn('singleton', 'integer');
-        $state->addColumn('version', 'integer');
-        $state->addColumn('last_position', 'integer');
-        $state->addColumn('namespace', 'string', ['length' => 32]);
-        $state->addColumn('lost_through', 'integer');
-        $state->setPrimaryKey(['singleton']);
+        $stateTable = $schema->createTable(self::TABLES[0]);
+        $stateTable->addColumn('singleton', 'integer');
+        $stateTable->addColumn('version', 'integer');
+        $stateTable->addColumn('last_position', 'integer');
+        $stateTable->addColumn('namespace', 'string', ['length' => 32]);
+        $stateTable->addColumn('lost_through', 'integer');
+        $stateTable->setPrimaryKey(['singleton']);
 
-        $notices = $schema->createTable(self::TABLES[1]);
-        $notices->addColumn('position', 'integer');
-        $notices->addColumn('scope', 'string', ['length' => 96]);
-        $notices->addColumn('producer', 'string', ['length' => 96]);
-        $notices->addColumn('notice_id', 'string', ['length' => 96]);
-        $notices->addColumn('recorded_at', 'string', ['length' => 27]);
-        $notices->addColumn('payload', 'text');
-        $notices->setPrimaryKey(['position']);
-        $notices->addUniqueIndex(['scope', 'producer', 'notice_id'], 'fight_notice_identity');
-        $notices->addIndex(['scope', 'position'], 'fight_notice_recovery');
+        $noticeTable = $schema->createTable(self::TABLES[1]);
+        $noticeTable->addColumn('position', 'integer');
+        $noticeTable->addColumn('scope', 'string', ['length' => 96]);
+        $noticeTable->addColumn('producer', 'string', ['length' => 96]);
+        $noticeTable->addColumn('notice_id', 'string', ['length' => 96]);
+        $noticeTable->addColumn('recorded_at', 'string', ['length' => 27]);
+        $noticeTable->addColumn('payload', 'text');
+        $noticeTable->setPrimaryKey(['position']);
+        $noticeTable->addUniqueIndex(['scope', 'producer', 'notice_id'], 'fight_notice_identity');
+        $noticeTable->addIndex(['scope', 'position'], 'fight_notice_recovery');
 
         foreach ([self::TABLES[2], self::TABLES[3]] as $name) {
             $table = $schema->createTable($name);
@@ -74,20 +74,20 @@ final readonly class DbalNoticeSchema
             throw new RuntimeException('Notice schema installation requires an idle connection.');
         }
 
-        $manager = $connection->createSchemaManager();
-        $present = array_intersect(self::TABLES, $manager->listTableNames());
+        $schemaManager = $connection->createSchemaManager();
+        $present = array_intersect(self::TABLES, $schemaManager->listTableNames());
         if ($present !== []) {
             if (count($present) !== count(self::TABLES)) {
                 throw new RuntimeException('Incomplete notice schema.');
             }
 
             $version = $connection->fetchOne('SELECT version FROM fight_notice_state WHERE singleton = 1');
-            $notices = $manager->introspectTable(self::TABLES[1]);
+            $noticeTable = $schemaManager->introspectTable(self::TABLES[1]);
             if (
-                (int) $version !== 1 || !$notices->hasIndex('fight_notice_identity')
-                || !$notices->hasIndex('fight_notice_recovery')
-                || !$manager->introspectTable(self::TABLES[0])->hasColumn('namespace')
-                || !$manager->introspectTable(self::TABLES[0])->hasColumn('lost_through')
+                (int) $version !== 1 || !$noticeTable->hasIndex('fight_notice_identity')
+                || !$noticeTable->hasIndex('fight_notice_recovery')
+                || !$schemaManager->introspectTable(self::TABLES[0])->hasColumn('namespace')
+                || !$schemaManager->introspectTable(self::TABLES[0])->hasColumn('lost_through')
             ) {
                 throw new RuntimeException('Unsupported notice schema.');
             }
@@ -95,10 +95,10 @@ final readonly class DbalNoticeSchema
             return;
         }
 
-        $schema = $manager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
         foreach (self::TABLES as $name) {
-            $manager->createTable($schema->getTable($name));
+            $schemaManager->createTable($schema->getTable($name));
         }
 
         $connection->insert(self::TABLES[0], [

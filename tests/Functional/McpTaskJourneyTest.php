@@ -40,8 +40,8 @@ final class McpTaskJourneyTest extends UnitTestCase
     private function journey(string $backend, string $composition, string $scenario): void
     {
         $directory = sys_get_temp_dir().'/fight-task-http-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($directory, 0700));
-        $c = $this->database($backend, $directory);
-        file_put_contents($directory.'/config.json', json_encode(['params' => $c->getParams()], JSON_THROW_ON_ERROR));
+        $connection = $this->database($backend, $directory);
+        file_put_contents($directory.'/config.json', json_encode(['params' => $connection->getParams()], JSON_THROW_ON_ERROR));
         $reservation = stream_socket_server('tcp://127.0.0.1:0', $errno, $error); self::assertIsResource($reservation, $error);
         $address = stream_socket_get_name($reservation, false); fclose($reservation);
         $server = new Process([PHP_BINARY, '-d', 'output_buffering=0', '-d', 'zlib.output_compression=0', '-d', 'display_errors=0', '-S', $address, 'tests/Fixture/Mcp/task-server.php'], dirname(__DIR__, 2), ['FIGHT_TASK_HTTP_DIRECTORY' => $directory], timeout: 60);
@@ -64,13 +64,13 @@ final class McpTaskJourneyTest extends UnitTestCase
                 $data = json_decode($json, true, flags: JSON_THROW_ON_ERROR); $trace[] = ['method' => $method, 'headers' => $headers, 'body' => $data]; return $data;
             };
             if ($scenario === 'storage-failure') {
-                if ($backend === 'sqlite') { $c->executeStatement("CREATE TRIGGER reject_task_creation BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END"); }
-                else { $c->executeStatement("ALTER TABLE fight_tasks ADD CONSTRAINT reject_task_creation CHECK (scope <> 'scope')"); }
+                if ($backend === 'sqlite') { $connection->executeStatement("CREATE TRIGGER reject_task_creation BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END"); }
+                else { $connection->executeStatement("ALTER TABLE fight_tasks ADD CONSTRAINT reject_task_creation CHECK (scope <> 'scope')"); }
                 self::assertSame(-32603, $call('tools/call', ['name' => 'example.operation'])['error']['code']);
-                self::assertSame(0, (int) $c->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
-                if ($backend === 'sqlite') { $c->executeStatement('DROP TRIGGER reject_task_creation'); }
-                elseif ($backend === 'mysql') { $c->executeStatement('ALTER TABLE fight_tasks DROP CHECK reject_task_creation'); }
-                else { $c->executeStatement('ALTER TABLE fight_tasks DROP CONSTRAINT reject_task_creation'); }
+                self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+                if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER reject_task_creation'); }
+                elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE fight_tasks DROP CHECK reject_task_creation'); }
+                else { $connection->executeStatement('ALTER TABLE fight_tasks DROP CONSTRAINT reject_task_creation'); }
             }
             $start = $call('tools/call', ['name' => 'example.operation'], $scenario === 'response-loss');
             if ($scenario === 'response-loss') {
@@ -81,7 +81,7 @@ final class McpTaskJourneyTest extends UnitTestCase
             else { self::assertSame('task', $start['result']['resultType']); self::assertSame('working', $start['result']['status']); }
             // This new socket and the producer process share only committed reusable storage, not the HTTP object.
             $poll = $call('tasks/get', ['taskId' => TaskFixture::ID]); self::assertSame('working', $poll['result']['status']);
-            $fresh = new TaskFixture(DriverManager::getConnection($c->getParams()));
+            $fresh = new TaskFixture(DriverManager::getConnection($connection->getParams()));
             self::assertSame(1, $fresh->get()->get('version')); self::assertNull($fresh->cancellation()->get('cancellation'));
             if ($scenario === 'input') {
                 $worker = $this->worker($directory, 'input'); $trace[] = ['producer' => $worker];
@@ -115,11 +115,11 @@ final class McpTaskJourneyTest extends UnitTestCase
             file_put_contents($directory.'/flags.json', json_encode(['readAllowed' => true, 'discloseAllowed' => false])); self::assertSame(-32602, $call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
             file_put_contents($directory.'/flags.json', '{}'); self::assertSame(-32602, $call('tasks/get', ['taskId' => str_repeat('b', 32)])['error']['code']);
             self::assertNull($fresh->get(scope: 'different-scope'));
-            $c->executeStatement('DELETE FROM fight_tasks'); self::assertSame(-32602, $call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
-            $c->executeStatement('DROP TABLE fight_tasks'); self::assertSame(-32603, $call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
+            $connection->executeStatement('DELETE FROM fight_tasks'); self::assertSame(-32602, $call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
+            $connection->executeStatement('DROP TABLE fight_tasks'); self::assertSame(-32603, $call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
             self::assertStringNotContainsString('notifications/', json_encode($trace));
         } finally {
-            $server->stop(); $c->close();
+            $server->stop(); $connection->close();
             $destination = getenv('FIGHT_TASK_EVIDENCE_DIR');
             if ($destination !== false) {
                 $prefix = $destination.'/'.$backend.'-'.$composition.'-'.$scenario;
@@ -145,6 +145,6 @@ final class McpTaskJourneyTest extends UnitTestCase
     {
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $directory.'/task.sqlite']; }
         else { $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN'); self::assertIsString($dsn, 'Real disposable database required'); $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn); }
-        $c = DriverManager::getConnection($params); foreach (array_reverse(DbalTaskSchema::TABLES) as $table) { $c->executeStatement('DROP TABLE IF EXISTS '.$table); } (new DbalTaskSchema())->install($c); return $c;
+        $connection = DriverManager::getConnection($params); foreach (array_reverse(DbalTaskSchema::TABLES) as $table) { $connection->executeStatement('DROP TABLE IF EXISTS '.$table); } (new DbalTaskSchema())->install($connection); return $connection;
     }
 }

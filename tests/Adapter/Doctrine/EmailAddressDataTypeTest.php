@@ -65,8 +65,8 @@ class EmailAddressDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_database_value_returns_string_for_email_address(): void
     {
-        $obj = EmailAddress::fromString('user@example.com');
-        $result = $this->type->convertToDatabaseValue($obj, $this->platform);
+        $emailAddress = EmailAddress::fromString('user@example.com');
+        $result = $this->type->convertToDatabaseValue($emailAddress, $this->platform);
 
         self::assertSame('user@example.com', $result);
     }
@@ -83,10 +83,10 @@ class EmailAddressDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_php_value_returns_same_instance(): void
     {
-        $obj = EmailAddress::fromString('admin@example.com');
-        $result = $this->type->convertToPHPValue($obj, $this->platform);
+        $emailAddress = EmailAddress::fromString('admin@example.com');
+        $result = $this->type->convertToPHPValue($emailAddress, $this->platform);
 
-        self::assertSame($obj, $result);
+        self::assertSame($emailAddress, $result);
     }
 
     public function test_that_convert_to_php_value_creates_email_address_from_string(): void

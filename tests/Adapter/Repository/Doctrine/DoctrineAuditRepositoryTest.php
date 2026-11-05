@@ -25,35 +25,35 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
     public function test_that_add_persists_entry(): void
     {
         $entry = AuditEntry::record('user:1', 'login');
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('persist')->once()->with($entry);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('persist')->once()->with($entry);
 
-        $repo = new DoctrineAuditRepository($em);
-        $repo->add($entry);
+        $auditRepository = new DoctrineAuditRepository($entityManager);
+        $auditRepository->add($entry);
     }
 
     public function test_that_get_by_actor_returns_result_set(): void
     {
         $entry = AuditEntry::record('user:1', 'login');
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(0)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(100)->once()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(0)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(100)->once()->andReturn($queryBuilder);
 
         $paginator->shouldReceive('count')->once()->andReturn(1);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -62,38 +62,38 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
             }
         };
 
-        $result = $repo->getByActor('user:1', new Pagination());
+        $resultSet = $auditRepository->getByActor('user:1', new Pagination());
 
-        self::assertInstanceOf(ResultSet::class, $result);
-        self::assertSame(1, $result->totalRecords());
-        self::assertSame(1, $result->count());
-        self::assertSame(1, $result->page());
-        self::assertSame(100, $result->perPage());
-        self::assertTrue($entry->id()->equals($result->records()->first()->id()));
+        self::assertInstanceOf(ResultSet::class, $resultSet);
+        self::assertSame(1, $resultSet->totalRecords());
+        self::assertSame(1, $resultSet->count());
+        self::assertSame(1, $resultSet->page());
+        self::assertSame(100, $resultSet->perPage());
+        self::assertTrue($entry->id()->equals($resultSet->records()->first()->id()));
     }
 
     public function test_that_get_by_action_returns_result_set(): void
     {
         $entry = AuditEntry::record('system', 'deploy');
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.action = :action')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('action', 'deploy')->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(0)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(100)->once()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.action = :action')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('action', 'deploy')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(0)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(100)->once()->andReturn($queryBuilder);
 
         $paginator->shouldReceive('count')->once()->andReturn(1);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -102,10 +102,10 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
             }
         };
 
-        $result = $repo->getByAction('deploy', new Pagination());
+        $resultSet = $auditRepository->getByAction('deploy', new Pagination());
 
-        self::assertInstanceOf(ResultSet::class, $result);
-        self::assertSame(1, $result->totalRecords());
+        self::assertInstanceOf(ResultSet::class, $resultSet);
+        self::assertSame(1, $resultSet->totalRecords());
     }
 
     public function test_that_get_between_returns_result_set(): void
@@ -113,26 +113,26 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         $from = new DateTimeImmutable('2026-01-01T00:00:00.000001Z');
         $to = new DateTimeImmutable('2026-12-31T23:59:59.999999Z');
         $entry = AuditEntry::record('user:1', 'login');
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.timestamp >= :from AND e.timestamp <= :to')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('from', $from)->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('to', $to)->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(0)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(100)->once()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.timestamp >= :from AND e.timestamp <= :to')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('from', $from)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('to', $to)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(0)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(100)->once()->andReturn($queryBuilder);
 
         $paginator->shouldReceive('count')->once()->andReturn(1);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -141,35 +141,35 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
             }
         };
 
-        $result = $repo->getBetween($from, $to, new Pagination());
+        $resultSet = $auditRepository->getBetween($from, $to, new Pagination());
 
-        self::assertInstanceOf(ResultSet::class, $result);
-        self::assertSame(1, $result->totalRecords());
+        self::assertInstanceOf(ResultSet::class, $resultSet);
+        self::assertSame(1, $resultSet->totalRecords());
     }
 
     public function test_that_get_by_actor_applies_orderings(): void
     {
         $entry = AuditEntry::record('user:1', 'login');
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(0)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(50)->once()->andReturn($qb);
-        $qb->shouldReceive('addOrderBy')->with('e.timestamp', 'DESC')->once()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(0)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(50)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('addOrderBy')->with('e.timestamp', 'DESC')->once()->andReturn($queryBuilder);
 
         $paginator->shouldReceive('count')->once()->andReturn(1);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -179,35 +179,35 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         };
 
         $pagination = new Pagination(1, 50, ['timestamp' => 'DESC']);
-        $result = $repo->getByActor('user:1', $pagination);
+        $resultSet = $auditRepository->getByActor('user:1', $pagination);
 
-        self::assertInstanceOf(ResultSet::class, $result);
-        self::assertSame(50, $result->perPage());
+        self::assertInstanceOf(ResultSet::class, $resultSet);
+        self::assertSame(50, $resultSet->perPage());
     }
 
     public function test_that_get_by_actor_consumes_strict_pagination_without_signature_changes(): void
     {
         $entry = AuditEntry::record('user:1', 'login');
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(50)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(25)->once()->andReturn($qb);
-        $qb->shouldReceive('addOrderBy')->with('e.timestamp', 'DESC')->once()->ordered()->andReturn($qb);
-        $qb->shouldReceive('addOrderBy')->with('e.action', 'ASC')->once()->ordered()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('actor', 'user:1')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(50)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(25)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('addOrderBy')->with('e.timestamp', 'DESC')->once()->ordered()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('addOrderBy')->with('e.action', 'ASC')->once()->ordered()->andReturn($queryBuilder);
         $paginator->shouldReceive('count')->once()->andReturn(51);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([$entry]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -217,36 +217,36 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
         };
 
         $pagination = Pagination::strict(3, 25, ['timestamp' => 'desc', 'action' => 'asc']);
-        $result = $repo->getByActor('user:1', $pagination);
+        $resultSet = $auditRepository->getByActor('user:1', $pagination);
 
-        self::assertSame(3, $result->page());
-        self::assertSame(25, $result->perPage());
-        self::assertSame(51, $result->totalRecords());
-        self::assertSame(1, $result->count());
-        self::assertSame($entry, $result->records()->first());
+        self::assertSame(3, $resultSet->page());
+        self::assertSame(25, $resultSet->perPage());
+        self::assertSame(51, $resultSet->totalRecords());
+        self::assertSame(1, $resultSet->count());
+        self::assertSame($entry, $resultSet->records()->first());
     }
 
     public function test_that_get_by_actor_returns_empty_result_set(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
-        $qb = $this->mock(QueryBuilder::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $queryBuilder = $this->mock(QueryBuilder::class);
         $paginator = $this->mock(Paginator::class);
 
-        $em->shouldReceive('createQueryBuilder')->once()->andReturn($qb);
-        $qb->shouldReceive('select')->with('e')->once()->andReturn($qb);
-        $qb->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($qb);
-        $qb->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($qb);
-        $qb->shouldReceive('setParameter')->with('actor', 'nobody')->once()->andReturn($qb);
-        $qb->shouldReceive('setFirstResult')->with(0)->once()->andReturn($qb);
-        $qb->shouldReceive('setMaxResults')->with(100)->once()->andReturn($qb);
+        $entityManager->shouldReceive('createQueryBuilder')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('select')->with('e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('from')->with(AuditEntry::class, 'e')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('where')->with('e.actor = :actor')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setParameter')->with('actor', 'nobody')->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setFirstResult')->with(0)->once()->andReturn($queryBuilder);
+        $queryBuilder->shouldReceive('setMaxResults')->with(100)->once()->andReturn($queryBuilder);
 
         $paginator->shouldReceive('count')->once()->andReturn(0);
         $paginator->shouldReceive('getIterator')->once()->andReturn(new ArrayIterator([]));
 
-        $repo = new class($em, $paginator) extends DoctrineAuditRepository {
-            public function __construct(EntityManagerInterface $em, private readonly Paginator $paginator)
+        $auditRepository = new class($entityManager, $paginator) extends DoctrineAuditRepository {
+            public function __construct(EntityManagerInterface $entityManager, private readonly Paginator $paginator)
             {
-                parent::__construct($em);
+                parent::__construct($entityManager);
             }
 
             protected function createPaginator(QueryBuilder|Query $query): Paginator
@@ -255,27 +255,27 @@ class DoctrineAuditRepositoryTest extends UnitTestCase
             }
         };
 
-        $result = $repo->getByActor('nobody', new Pagination());
+        $resultSet = $auditRepository->getByActor('nobody', new Pagination());
 
-        self::assertTrue($result->isEmpty());
-        self::assertSame(0, $result->totalRecords());
-        self::assertSame(0, $result->count());
+        self::assertTrue($resultSet->isEmpty());
+        self::assertSame(0, $resultSet->totalRecords());
+        self::assertSame(0, $resultSet->count());
     }
 
     public function test_that_create_paginator_returns_paginator_instance(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
+        $entityManager = $this->mock(EntityManagerInterface::class);
         $query = $this->mock(Query::class);
 
-        $repo = new class($em) extends DoctrineAuditRepository {
+        $auditRepository = new class($entityManager) extends DoctrineAuditRepository {
             public function exposeCreatePaginator(QueryBuilder|Query $query): Paginator
             {
                 return $this->createPaginator($query);
             }
         };
 
-        $result = $repo->exposeCreatePaginator($query);
+        $paginator = $auditRepository->exposeCreatePaginator($query);
 
-        self::assertInstanceOf(Paginator::class, $result);
+        self::assertInstanceOf(Paginator::class, $paginator);
     }
 }

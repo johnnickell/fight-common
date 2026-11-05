@@ -60,13 +60,13 @@ final class McpTasksTest extends UnitTestCase
 
     public function test_that_activation_start_and_get_use_flat_coherent_shapes_and_ordinary_results_remain_possible(): void
     {
-        $e = $this->endpoint;
-        $discovery = $e->call('server/discover', [])['result'];
+        $endpoint = $this->endpoint;
+        $discovery = $endpoint->call('server/discover', [])['result'];
         self::assertSame([], $discovery['capabilities']['extensions'][McpTasks::EXTENSION]);
-        self::assertSame(['tasks/get', 'tasks/update', 'tasks/cancel'], $e->tasks->methods());
-        self::assertSame([], $e->tasks->mirrorDeclarations());
-        self::assertSame($e->tasks, $e->invocation->tasks());
-        $result = $e->call()['result'];
+        self::assertSame(['tasks/get', 'tasks/update', 'tasks/cancel'], $endpoint->taskCapability->methods());
+        self::assertSame([], $endpoint->taskCapability->mirrorDeclarations());
+        self::assertSame($endpoint->taskCapability, $endpoint->invocation->tasks());
+        $result = $endpoint->call()['result'];
         self::assertSame('task', $result['resultType']);
         self::assertSame(TaskFixture::ID, $result['taskId']);
         self::assertSame('working', $result['status']);
@@ -74,26 +74,26 @@ final class McpTasksTest extends UnitTestCase
         self::assertSame($result['createdAt'], $result['lastUpdatedAt']);
         self::assertSame(60000, $result['ttlMs']); self::assertSame(25, $result['pollIntervalMs']);
         self::assertArrayNotHasKey('state', $result); self::assertArrayNotHasKey('result', $result);
-        $poll = $e->call('tasks/get', ['taskId' => TaskFixture::ID])['result'];
+        $poll = $endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['result'];
         self::assertSame('complete', $poll['resultType']); unset($result['resultType'], $poll['resultType']);
         self::assertSame($result, $poll);
-        $e->tool->ordinary = true;
-        self::assertTrue($e->call()['result']['structuredContent']['ok']);
-        self::assertSame('complete', $e->call()['result']['resultType']);
+        $endpoint->tool->ordinary = true;
+        self::assertTrue($endpoint->call()['result']['structuredContent']['ok']);
+        self::assertSame('complete', $endpoint->call()['result']['resultType']);
     }
 
     #[DataProvider('states')]
     public function test_that_detailed_projection_preserves_original_outcomes_and_omits_only_absent_optional_metadata(string $status): void
     {
-        $f = $this->fixture; $f->create(); $f->now += 1234;
-        if ($status === 'input_required') { $f->issue(count: 2); }
+        $fixture = $this->fixture; $fixture->create(); $fixture->now += 1234;
+        if ($status === 'input_required') { $fixture->issue(count: 2); }
         else {
             $state = match ($status) {
                 'completed' => TaskFixture::completed(true),
                 'failed' => TaskState::create('failed', '', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])),
                 default => TaskState::create($status, 'Public 状態')
             };
-            $f->record($state);
+            $fixture->record($state);
         }
         $result = $this->endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['result'];
         self::assertSame($status, $result['status']); self::assertNull($result['ttlMs']);
@@ -107,7 +107,7 @@ final class McpTasksTest extends UnitTestCase
         elseif ($status === 'failed') { self::assertSame(['code' => -32603, 'message' => 'Internal error'], $result['error']); self::assertSame('', $result['statusMessage']); }
         else { self::assertSame('Public 状態', $result['statusMessage']); }
         self::assertArrayNotHasKey('definition', $result); self::assertArrayNotHasKey('version', $result);
-        $created = $this->endpoint->tasks->created(new McpTaskHandle(TaskFixture::id()))->toArray();
+        $created = $this->endpoint->taskCapability->created(new McpTaskHandle(TaskFixture::id()))->toArray();
         self::assertSame($status, $created['status']); self::assertArrayNotHasKey('result', $created); self::assertArrayNotHasKey('inputRequests', $created); self::assertArrayNotHasKey('error', $created);
     }
 
@@ -115,94 +115,94 @@ final class McpTasksTest extends UnitTestCase
 
     public function test_that_missing_or_malformed_capabilities_precede_tool_effects_including_direct_invocation(): void
     {
-        $e = $this->endpoint;
+        $endpoint = $this->endpoint;
         foreach ([(object) [], (object) ['extensions' => (object) []], (object) ['extensions' => (object) [McpTasks::EXTENSION => true]], (object) ['extensions' => (object) [McpTasks::EXTENSION => []]]] as $caps) {
-            self::assertContains($e->call(capabilities: $caps)['error']['code'], [-32021, -32602]);
+            self::assertContains($endpoint->call(capabilities: $caps)['error']['code'], [-32021, -32602]);
         }
-        try { $e->invoker->invoke('example.operation', (object) []); self::fail('Direct invocation has no negotiation'); }
+        try { $endpoint->invoker->invoke('example.operation', (object) []); self::fail('Direct invocation has no negotiation'); }
         catch (McpProtocolException $failure) { self::assertSame(-32021, $failure->protocolError()->toArray()['code']); }
-        self::assertSame(0, $e->tool->starts); self::assertNull($this->fixture->get());
-        self::assertTrue($e->call(params: ['name' => 'example.operation', 'arguments' => (object) ['extra' => true]])['result']['isError']);
-        self::assertSame(0, $e->tool->starts);
-        $e->available = false;
-        self::assertSame(-32602, $e->call()['error']['code']); self::assertSame(0, $e->tool->starts);
-        $e->available = true;
-        $invoker = new McpToolInvoker(new McpToolRegistry([$e->tool]), $e);
+        self::assertSame(0, $endpoint->tool->starts); self::assertNull($this->fixture->get());
+        self::assertTrue($endpoint->call(params: ['name' => 'example.operation', 'arguments' => (object) ['extra' => true]])['result']['isError']);
+        self::assertSame(0, $endpoint->tool->starts);
+        $endpoint->available = false;
+        self::assertSame(-32602, $endpoint->call()['error']['code']); self::assertSame(0, $endpoint->tool->starts);
+        $endpoint->available = true;
+        $invoker = new McpToolInvoker(new McpToolRegistry([$endpoint->tool]), $endpoint);
         $request = $this->decoded();
-        try { $invoker->invokeRequest($request); self::fail('No partial activation'); } catch (DomainException) { self::assertSame(0, $e->tool->starts); }
+        try { $invoker->invokeRequest($request); self::fail('No partial activation'); } catch (DomainException) { self::assertSame(0, $endpoint->tool->starts); }
     }
 
     public function test_that_each_task_method_requires_current_support_and_uses_its_own_mutation_admission(): void
     {
-        $e = $this->endpoint; $e->call(); $this->fixture->issue();
+        $endpoint = $this->endpoint; $endpoint->call(); $this->fixture->issue();
         foreach (['tasks/get', 'tasks/update', 'tasks/cancel'] as $method) {
-            self::assertSame(-32021, $e->call($method, ['taskId' => TaskFixture::ID], (object) [])['error']['code']);
+            self::assertSame(-32021, $endpoint->call($method, ['taskId' => TaskFixture::ID], (object) [])['error']['code']);
         }
-        self::assertSame(-32601, $e->call('tasks/list', [])['error']['code']);
-        self::assertSame(-32601, $e->call('tasks/result', [])['error']['code']);
+        self::assertSame(-32601, $endpoint->call('tasks/list', [])['error']['code']);
+        self::assertSame(-32601, $endpoint->call('tasks/result', [])['error']['code']);
         $this->fixture->readAllowed = false;
-        self::assertSame(-32602, $e->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
-        self::assertSame('complete', $e->call('tasks/cancel', ['taskId' => TaskFixture::ID])['result']['resultType']);
+        self::assertSame(-32602, $endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
+        self::assertSame('complete', $endpoint->call('tasks/cancel', ['taskId' => TaskFixture::ID])['result']['resultType']);
         self::assertNotNull($this->fixture->cancellation()->get('cancellation'));
-        self::assertSame('complete', $e->call('tasks/update', ['taskId' => TaskFixture::ID, 'inputResponses' => (object) [TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'yes']]]])['result']['resultType']);
+        self::assertSame('complete', $endpoint->call('tasks/update', ['taskId' => TaskFixture::ID, 'inputResponses' => (object) [TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'yes']]]])['result']['resultType']);
         $this->fixture->readAllowed = true; $this->fixture->cancelAllowed = false; $this->fixture->submitAllowed = false;
-        self::assertSame(-32602, $e->call('tasks/cancel', ['taskId' => TaskFixture::ID])['error']['code']);
-        self::assertSame(-32602, $e->call('tasks/update', ['taskId' => TaskFixture::ID, 'inputResponses' => (object) []])['error']['code']);
-        self::assertSame('working', $e->call('tasks/get', ['taskId' => TaskFixture::ID])['result']['status']);
-        try { $e->tasks->handle($this->decoded()); self::fail('Wrong method'); } catch (McpProtocolException $failure) { self::assertSame(-32601, $failure->protocolError()->toArray()['code']); }
+        self::assertSame(-32602, $endpoint->call('tasks/cancel', ['taskId' => TaskFixture::ID])['error']['code']);
+        self::assertSame(-32602, $endpoint->call('tasks/update', ['taskId' => TaskFixture::ID, 'inputResponses' => (object) []])['error']['code']);
+        self::assertSame('working', $endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['result']['status']);
+        try { $endpoint->taskCapability->handle($this->decoded()); self::fail('Wrong method'); } catch (McpProtocolException $failure) { self::assertSame(-32601, $failure->protocolError()->toArray()['code']); }
     }
 
     public function test_that_invalid_missing_concealed_and_expired_records_are_safe_while_storage_failure_is_distinct(): void
     {
-        $e = $this->endpoint; $e->call();
-        foreach ([['taskId' => 'bad'], ['taskId' => str_repeat('b', 32)], ['taskId' => TaskFixture::ID, 'extra' => true]] as $params) { self::assertSame(-32602, $e->call('tasks/get', $params)['error']['code']); }
+        $endpoint = $this->endpoint; $endpoint->call();
+        foreach ([['taskId' => 'bad'], ['taskId' => str_repeat('b', 32)], ['taskId' => TaskFixture::ID, 'extra' => true]] as $params) { self::assertSame(-32602, $endpoint->call('tasks/get', $params)['error']['code']); }
         $request = $this->decoded('tasks/get', []);
-        try { $e->tasks->handle($request); self::fail('Missing identity'); } catch (McpProtocolException $failure) { self::assertSame(-32602, $failure->protocolError()->toArray()['code']); }
-        $this->fixture->discloseAllowed = false; self::assertSame(-32602, $e->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
-        $this->fixture->discloseAllowed = true; $this->fixture->now += 60000; self::assertSame(-32602, $e->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
-        $queries = $this->mock(QueryBus::class); $commands = $this->mock(CommandBus::class);
-        $tasks = new McpTasks($queries, $commands, 'scope', 'caller');
-        $queries->shouldReceive('fetch')->once()->andReturn(StrictJson::fromObject(['id' => str_repeat('b', 32)]));
-        try { $tasks->created(new McpTaskHandle(TaskFixture::id())); self::fail('Mismatched Query identity'); } catch (DomainException) {}
-        $queries->shouldReceive('fetch')->once()->andThrow(new RuntimeException('private storage failure'));
-        try { $tasks->handle($this->decoded('tasks/get', ['taskId' => TaskFixture::ID])); self::fail('Storage errors are not absence'); } catch (RuntimeException $failure) { self::assertSame('private storage failure', $failure->getMessage()); }
+        try { $endpoint->taskCapability->handle($request); self::fail('Missing identity'); } catch (McpProtocolException $failure) { self::assertSame(-32602, $failure->protocolError()->toArray()['code']); }
+        $this->fixture->discloseAllowed = false; self::assertSame(-32602, $endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
+        $this->fixture->discloseAllowed = true; $this->fixture->now += 60000; self::assertSame(-32602, $endpoint->call('tasks/get', ['taskId' => TaskFixture::ID])['error']['code']);
+        $queryBus = $this->mock(QueryBus::class); $commandBus = $this->mock(CommandBus::class);
+        $taskCapability = new McpTasks($queryBus, $commandBus, 'scope', 'caller');
+        $queryBus->shouldReceive('fetch')->once()->andReturn(StrictJson::fromObject(['id' => str_repeat('b', 32)]));
+        try { $taskCapability->created(new McpTaskHandle(TaskFixture::id())); self::fail('Mismatched Query identity'); } catch (DomainException) {}
+        $queryBus->shouldReceive('fetch')->once()->andThrow(new RuntimeException('private storage failure'));
+        try { $taskCapability->handle($this->decoded('tasks/get', ['taskId' => TaskFixture::ID])); self::fail('Storage errors are not absence'); } catch (RuntimeException $failure) { self::assertSame('private storage failure', $failure->getMessage()); }
     }
 
     public function test_that_current_creation_disclosure_and_postcommit_failures_never_fabricate_an_acknowledgment(): void
     {
-        $e = $this->endpoint; $e->tool->onStart = function (): void { $this->fixture->discloseAllowed = false; };
-        self::assertSame(-32603, $e->call()['error']['code']); self::assertCount(1, $e->diagnostics);
+        $endpoint = $this->endpoint; $endpoint->tool->onStart = function (): void { $this->fixture->discloseAllowed = false; };
+        self::assertSame(-32603, $endpoint->call()['error']['code']); self::assertCount(1, $endpoint->diagnostics);
         $this->fixture->discloseAllowed = true; self::assertNotNull($this->fixture->get());
-        $e->tool->onStart = static fn () => throw new RuntimeException('private submission failure');
-        self::assertSame(-32603, $e->call()['error']['code']); self::assertNotNull($this->fixture->get());
-        self::assertCount(2, $e->diagnostics);
+        $endpoint->tool->onStart = static fn () => throw new RuntimeException('private submission failure');
+        self::assertSame(-32603, $endpoint->call()['error']['code']); self::assertNotNull($this->fixture->get());
+        self::assertCount(2, $endpoint->diagnostics);
     }
 
     public function test_that_task_mirrors_and_existing_http_guards_reject_before_mutation(): void
     {
-        $e = $this->endpoint; $e->call();
+        $endpoint = $this->endpoint; $endpoint->call();
         foreach (['tasks/get', 'tasks/update', 'tasks/cancel'] as $method) {
             $request = TaskEndpoint::request($method, ['taskId' => TaskFixture::ID]);
             foreach ([$request->withoutHeader('Mcp-Name'), $request->withHeader('Mcp-Name', 'wrong'), $request->withHeader('Mcp-Name', [TaskFixture::ID, TaskFixture::ID]), $request->withHeader('Mcp-Method', 'tools/call')] as $bad) {
-                $response = $e->handler->handle($bad); self::assertSame(400, $response->getStatusCode());
+                $response = $endpoint->handler->handle($bad); self::assertSame(400, $response->getStatusCode());
             }
         }
         $request = TaskEndpoint::request('tasks/cancel', ['taskId' => TaskFixture::ID]);
-        self::assertSame(403, $e->handler->handle($request->withHeader('Origin', 'https://evil.test'))->getStatusCode());
-        $e->allowed = false; self::assertSame(429, $e->handler->handle($request)->getStatusCode());
+        self::assertSame(403, $endpoint->handler->handle($request->withHeader('Origin', 'https://evil.test'))->getStatusCode());
+        $endpoint->allowed = false; self::assertSame(429, $endpoint->handler->handle($request)->getStatusCode());
         self::assertNull($this->fixture->cancellation()->get('cancellation'));
-        self::assertSame(['tasks/cancel', TaskFixture::ID], end($e->guardCalls));
+        self::assertSame(['tasks/cancel', TaskFixture::ID], end($endpoint->guardCalls));
     }
 
     public function test_that_creation_exact_envelope_budget_and_creation_denial_do_not_claim_inaccessible_success(): void
     {
-        $f = $this->fixture; $e = $this->endpoint;
-        $f->createAllowed = false; self::assertSame(-32603, $e->call()['error']['code']); self::assertNull($f->get());
-        $f->createAllowed = true;
-        $body = (string) $e->handler->handle(TaskEndpoint::request())->getBody();
-        self::assertSame($body, (string) (new TaskEndpoint($f, strlen($body)))->handler->handle(TaskEndpoint::request())->getBody());
-        self::assertSame(-32603, (new TaskEndpoint($f, strlen($body) - 1))->call()['error']['code']);
-        self::assertNotNull($f->get());
+        $fixture = $this->fixture; $endpoint = $this->endpoint;
+        $fixture->createAllowed = false; self::assertSame(-32603, $endpoint->call()['error']['code']); self::assertNull($fixture->get());
+        $fixture->createAllowed = true;
+        $body = (string) $endpoint->handler->handle(TaskEndpoint::request())->getBody();
+        self::assertSame($body, (string) (new TaskEndpoint($fixture, strlen($body)))->handler->handle(TaskEndpoint::request())->getBody());
+        self::assertSame(-32603, (new TaskEndpoint($fixture, strlen($body) - 1))->call()['error']['code']);
+        self::assertNotNull($fixture->get());
     }
 
     public function test_that_final_encoded_budget_counts_nested_escaping_id_and_central_metadata_exactly(): void
@@ -239,13 +239,13 @@ final class McpTasksTest extends UnitTestCase
 
     public function test_that_partial_or_mismatched_activation_and_invalid_budgets_reject_at_composition(): void
     {
-        $e = $this->endpoint; $server = new McpServerInfo('Fixture', '1');
-        $ordinary = new McpToolInvocation(new McpToolInvoker(new McpToolRegistry([]), $e));
-        foreach ([[$e->tasks], [$e->tasks, $ordinary], [$e->invocation]] as $capabilities) {
+        $endpoint = $this->endpoint; $server = new McpServerInfo('Fixture', '1');
+        $ordinary = new McpToolInvocation(new McpToolInvoker(new McpToolRegistry([]), $endpoint));
+        foreach ([[$endpoint->taskCapability], [$endpoint->taskCapability, $ordinary], [$endpoint->invocation]] as $capabilities) {
             try { new McpCapabilityRegistry($server, $capabilities); self::fail('Partial composition'); } catch (DomainException) {}
         }
         foreach ([0, McpTasks::MAX_RESPONSE_BYTES + 1] as $budget) {
-            try { new McpTasks($this->fixture->queries, $this->fixture->commands, 'scope', 'caller', $budget); self::fail('Invalid budget'); } catch (DomainException) {}
+            try { new McpTasks($this->fixture->queryBus, $this->fixture->commandBus, 'scope', 'caller', $budget); self::fail('Invalid budget'); } catch (DomainException) {}
         }
         try { McpResult::task(['resultType' => 'complete']); self::fail('Cannot override discriminator'); } catch (DomainException) {}
         try { new McpTaskHandle(TaskFixture::id('invalid')); self::fail('Invalid identity'); } catch (DomainException) {}
@@ -257,17 +257,17 @@ final class McpTasksTest extends UnitTestCase
         $endpoint = $this->endpoint;
         $server = new McpServerInfo('Fixture', '1');
         $discovery = $endpoint->registry->capabilityFor('tools/list');
-        $otherTasks = new McpTasks($this->fixture->queries, $this->fixture->commands, 'scope', 'caller');
-        foreach ([[$endpoint->tasks, $endpoint->invocation], [$endpoint->invocation, $endpoint->tasks]] as $capabilities) {
+        $otherTaskCapability = new McpTasks($this->fixture->queryBus, $this->fixture->commandBus, 'scope', 'caller');
+        foreach ([[$endpoint->taskCapability, $endpoint->invocation], [$endpoint->invocation, $endpoint->taskCapability]] as $capabilities) {
             $registry = new McpCapabilityRegistry($server, [$discovery, ...$capabilities]);
             self::assertSame($server, $registry->serverInfo());
             self::assertSame($endpoint->invocation, $registry->capabilityFor('tools/call'));
             foreach (['tasks/get', 'tasks/update', 'tasks/cancel'] as $method) {
-                self::assertSame($endpoint->tasks, $registry->capabilityFor($method));
+                self::assertSame($endpoint->taskCapability, $registry->capabilityFor($method));
             }
             self::assertSame('{}', $registry->advertisedCapabilities()['extensions'][McpTasks::EXTENSION]->toString());
         }
-        foreach ([[$otherTasks, $endpoint->invocation], [$endpoint->invocation, $otherTasks]] as $capabilities) {
+        foreach ([[$otherTaskCapability, $endpoint->invocation], [$endpoint->invocation, $otherTaskCapability]] as $capabilities) {
             try {
                 new McpCapabilityRegistry($server, [$discovery, ...$capabilities]);
                 self::fail('Nominally equivalent Task instances must not activate.');

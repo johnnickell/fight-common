@@ -30,20 +30,20 @@ final class FileStorageServiceProvider extends ServiceProvider
         $this->app->singleton(FileStorage::class, static function (Container $container): FlysystemStorage {
             $config = $container->make('config');
             assert($config instanceof Config);
-            $disk = $config->get('fight-common.file-storage.disk');
+            $diskName = $config->get('fight-common.file-storage.disk');
 
-            if (!is_string($disk) || $disk === '') {
+            if (!is_string($diskName) || $diskName === '') {
                 throw new InvalidArgumentException(
                     'The fight-common.file-storage.disk configuration must name a Laravel disk.'
                 );
             }
 
-            $filesystem = $container->make(FilesystemFactory::class)->disk($disk);
+            $filesystem = $container->make(FilesystemFactory::class)->disk($diskName);
             assert($filesystem instanceof FilesystemAdapter);
 
-            $driver = $filesystem->getDriver();
+            $filesystemOperator = $filesystem->getDriver();
 
-            return new FlysystemStorage($driver);
+            return new FlysystemStorage($filesystemOperator);
         });
     }
 }

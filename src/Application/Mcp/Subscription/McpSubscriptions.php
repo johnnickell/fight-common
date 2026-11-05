@@ -21,9 +21,9 @@ final readonly class McpSubscriptions
      * Selection and admission are trusted request-scoped composition, never request arguments
      */
     public function __construct(
-        private QueryBus $queries,
-        private McpSubscriptionStore $store,
-        private McpSubscriptionAdmission $admission,
+        private QueryBus $queryBus,
+        private McpSubscriptionStore $subscriptionStore,
+        private McpSubscriptionAdmission $subscriptionAdmission,
         private NoticeSelection $selection,
         private bool $tools = true,
         private bool $resources = true,
@@ -31,12 +31,13 @@ final readonly class McpSubscriptions
         private int $waitMicroseconds = 200000,
         private int $maxFrameBytes = 16384,
         private bool $prompts = false,
-        private ?McpTasks $tasks = null,
-        private ?McpTaskDisclosureGuard $taskDisclosure = null
+        private ?McpTasks $taskCapability = null,
+        private ?McpTaskDisclosureGuard $taskDisclosureGuard = null
     ) {
         if (
-            (!$tools && !$resources && !$prompts && $tasks === null)
-            || (($tasks === null) !== ($taskDisclosure === null)) || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
+            (!$tools && !$resources && !$prompts && $taskCapability === null)
+            || (($taskCapability === null) !== ($taskDisclosureGuard === null))
+            || $lifetimeSeconds < 1 || $lifetimeSeconds > 120
             || $waitMicroseconds < 10000 || $waitMicroseconds > 1000000
             || $maxFrameBytes < 256 || $maxFrameBytes > 65536
         ) {
@@ -55,7 +56,7 @@ final readonly class McpSubscriptions
             ...($this->tools ? ['toolsListChanged'] : []),
             ...($this->resources ? ['resourcesListChanged', 'resourceSubscriptions'] : []),
             ...($this->prompts ? ['promptsListChanged'] : []),
-            ...($this->tasks !== null ? ['taskIds'] : [])
+            ...($this->taskCapability !== null ? ['taskIds'] : [])
         ];
     }
 
@@ -64,7 +65,7 @@ final readonly class McpSubscriptions
      */
     public function tasks(): ?McpTasks
     {
-        return $this->tasks;
+        return $this->taskCapability;
     }
 
     /**
@@ -76,15 +77,15 @@ final readonly class McpSubscriptions
             $request->id(),
             McpSubscriptionFilter::fromRequest($request),
             $this->supported(),
-            $this->queries,
-            $this->store,
-            $this->admission,
+            $this->queryBus,
+            $this->subscriptionStore,
+            $this->subscriptionAdmission,
             $this->selection,
             $this->lifetimeSeconds,
             $this->waitMicroseconds,
             $this->maxFrameBytes,
-            $this->tasks,
-            $this->taskDisclosure
+            $this->taskCapability,
+            $this->taskDisclosureGuard
         );
     }
 }

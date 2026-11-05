@@ -32,10 +32,10 @@ final class McpResourceReadTest extends UnitTestCase
 {
     public function test_that_opt_in_reads_share_one_owner_and_do_not_break_metadata_only_composition(): void
     {
-        $resources = $this->capability([]);
-        self::assertSame(['resources/list', 'resources/templates/list', 'resources/read'], $resources->methods());
-        $registry = new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$resources]);
-        self::assertSame($resources, $registry->capabilityFor('resources/read'));
+        $resourceDiscovery = $this->capability([]);
+        self::assertSame(['resources/list', 'resources/templates/list', 'resources/read'], $resourceDiscovery->methods());
+        $registry = new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$resourceDiscovery]);
+        self::assertSame($resourceDiscovery, $registry->capabilityFor('resources/read'));
         self::assertSame(['resources' => ['subscribe' => false, 'listChanged' => false]], $registry->advertisedCapabilities());
         $legacy = $this->mock(McpResourceProvider::class);
         $legacy->shouldNotReceive('resources');
@@ -50,8 +50,8 @@ final class McpResourceReadTest extends UnitTestCase
         $first = new ReadProvider(['test:/a' => 'A']);
         $second = new ReadProvider(['test:/unlisted' => "雪\r\n"], listed: false);
         foreach ([[$first, $second], [$second, $first]] as $providers) {
-            $resources = $this->capability($providers);
-            $read = $resources->handle($this->request('test:/unlisted'))->toArray();
+            $resourceDiscovery = $this->capability($providers);
+            $read = $resourceDiscovery->handle($this->request('test:/unlisted'))->toArray();
             self::assertSame(['resultType' => 'complete', 'contents' => [['uri' => 'test:/unlisted', 'mimeType' => 'text/plain', 'text' => "雪\r\n"]], 'ttlMs' => 0, 'cacheScope' => 'private'], $read);
         }
         self::assertSame([], $first->opened);
@@ -63,21 +63,21 @@ final class McpResourceReadTest extends UnitTestCase
     public function test_that_private_and_public_cache_hints_never_reuse_content_or_authority(): void
     {
         foreach (['private', 'public'] as $scope) {
-            $provider = new ReadProvider(['test:/a' => 'first']);
+            $resourceProvider = new ReadProvider(['test:/a' => 'first']);
             $availability = new ReadAvailability();
-            $resources = new McpResourceDiscovery([$provider], $availability, str_repeat('k', 32), 'scope', ttlMs: 500, cacheScope: $scope, readLimits: new McpResourceReadLimits());
-            $first = $resources->handle($this->request('test:/a'))->toArray();
+            $resourceDiscovery = new McpResourceDiscovery([$resourceProvider], $availability, str_repeat('k', 32), 'scope', ttlMs: 500, cacheScope: $scope, readLimits: new McpResourceReadLimits());
+            $first = $resourceDiscovery->handle($this->request('test:/a'))->toArray();
             self::assertSame(500, $first['ttlMs']);
             self::assertSame($scope, $first['cacheScope']);
-            $provider->entries['test:/a'] = 'changed';
-            self::assertSame('changed', $resources->handle($this->request('test:/a'))->toArray()['contents'][0]['text']);
+            $resourceProvider->entries['test:/a'] = 'changed';
+            self::assertSame('changed', $resourceDiscovery->handle($this->request('test:/a'))->toArray()['contents'][0]['text']);
             $availability->allowed = false;
-            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$resources]));
+            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$resourceDiscovery]));
             $denied = $responder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->toArray();
             self::assertSame($denied, $responder->respond($this->wire('resources/read', ['uri' => 'test:/missing']))->toArray());
             self::assertSame(['code' => -32602, 'message' => 'Invalid params.'], $denied['error']);
-            self::assertSame(['test:/a', 'test:/a'], $provider->opened);
-            $anotherCaller = $this->capability([$provider], new ReadAvailability());
+            self::assertSame(['test:/a', 'test:/a'], $resourceProvider->opened);
+            $anotherCaller = $this->capability([$resourceProvider], new ReadAvailability());
             self::assertSame('changed', $anotherCaller->handle($this->request('test:/a'))->toArray()['contents'][0]['text']);
         }
     }
@@ -85,11 +85,11 @@ final class McpResourceReadTest extends UnitTestCase
     #[DataProvider('invalidParameters')]
     public function test_that_invalid_requests_do_not_touch_providers(array $parameters): void
     {
-        $provider = $this->mock(McpReadableResourceProvider::class);
-        $provider->shouldNotReceive('find');
-        $provider->shouldNotReceive('open');
+        $resourceProvider = $this->mock(McpReadableResourceProvider::class);
+        $resourceProvider->shouldNotReceive('find');
+        $resourceProvider->shouldNotReceive('open');
         $this->expectException(McpProtocolException::class);
-        $this->capability([$provider])->handle($this->decode('resources/read', $parameters));
+        $this->capability([$resourceProvider])->handle($this->decode('resources/read', $parameters));
     }
 
     public static function invalidParameters(): iterable
@@ -102,11 +102,11 @@ final class McpResourceReadTest extends UnitTestCase
     #[DataProvider('nonIdenticalUris')]
     public function test_that_traversal_and_encoded_aliases_cannot_escape_exact_registration(string $uri): void
     {
-        $provider = new ReadProvider(['file:///safe/a' => 'protected']);
-        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$this->capability([$provider])]));
+        $resourceProvider = new ReadProvider(['file:///safe/a' => 'protected']);
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$this->capability([$resourceProvider])]));
         self::assertSame(-32602, $responder->respond($this->wire('resources/read', ['uri' => $uri]))->errorCode());
-        self::assertSame([], $provider->opened);
-        self::assertSame([$uri], $provider->lookedUp);
+        self::assertSame([], $resourceProvider->opened);
+        self::assertSame([$uri], $resourceProvider->lookedUp);
     }
 
     public static function nonIdenticalUris(): iterable
@@ -116,9 +116,9 @@ final class McpResourceReadTest extends UnitTestCase
 
     public function test_that_registered_encoded_identity_is_not_decoded_into_a_different_target(): void
     {
-        $provider = new ReadProvider(['test:/a' => 'literal', 'test:/%61' => 'encoded']);
-        self::assertSame('encoded', $this->capability([$provider])->handle($this->request('test:/%61'))->toArray()['contents'][0]['text']);
-        self::assertSame(['test:/%61'], $provider->opened);
+        $resourceProvider = new ReadProvider(['test:/a' => 'literal', 'test:/%61' => 'encoded']);
+        self::assertSame('encoded', $this->capability([$resourceProvider])->handle($this->request('test:/%61'))->toArray()['contents'][0]['text']);
+        self::assertSame(['test:/%61'], $resourceProvider->opened);
     }
 
     public function test_that_ambiguous_ownership_is_rejected_before_availability_even_for_hidden_resources(): void
@@ -135,60 +135,60 @@ final class McpResourceReadTest extends UnitTestCase
 
     public function test_that_a_provider_cannot_normalize_lookup_into_another_registered_target(): void
     {
-        $provider = $this->mock(McpReadableResourceProvider::class);
-        $provider->shouldReceive('find')->with('file:///safe/../a')->once()->andReturn(McpResourceInfo::fromArray(['uri' => 'file:///a', 'name' => 'wrong']));
-        $provider->shouldNotReceive('open');
+        $resourceProvider = $this->mock(McpReadableResourceProvider::class);
+        $resourceProvider->shouldReceive('find')->with('file:///safe/../a')->once()->andReturn(McpResourceInfo::fromArray(['uri' => 'file:///a', 'name' => 'wrong']));
+        $resourceProvider->shouldNotReceive('open');
         $this->expectException(DomainException::class);
-        $this->capability([$provider])->handle($this->request('file:///safe/../a'));
+        $this->capability([$resourceProvider])->handle($this->request('file:///safe/../a'));
     }
 
     public function test_that_oversized_descriptors_cannot_be_listed_or_opened_in_read_composition(): void
     {
-        $provider = new ReadProvider(['test:/a' => 'ab']);
-        $resources = $this->capability([$provider], readLimits: new McpResourceReadLimits(1, 1024));
+        $resourceProvider = new ReadProvider(['test:/a' => 'ab']);
+        $resourceDiscovery = $this->capability([$resourceProvider], readLimits: new McpResourceReadLimits(1, 1024));
         foreach ([$this->request('test:/a'), $this->decode('resources/list')] as $request) {
-            try { $resources->handle($request); self::fail('Unservable descriptor accepted.'); }
-            catch (DomainException) { self::assertSame([], $provider->opened); }
+            try { $resourceDiscovery->handle($request); self::fail('Unservable descriptor accepted.'); }
+            catch (DomainException) { self::assertSame([], $resourceProvider->opened); }
         }
-        $provider->entries = ['test:/'.str_repeat('a', 100) => 'a'];
-        $small = $this->capability([$provider], limits: new McpResourceLimits(32, 64, 1));
+        $resourceProvider->entries = ['test:/'.str_repeat('a', 100) => 'a'];
+        $small = $this->capability([$resourceProvider], limits: new McpResourceLimits(32, 64, 1));
         $this->expectException(DomainException::class);
         $small->handle($this->decode('resources/list'));
     }
 
     public function test_that_lookup_cannot_escape_the_serving_descriptor_budget(): void
     {
-        $provider = $this->mock(McpReadableResourceProvider::class);
-        $provider->shouldReceive('find')->andReturn(McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => str_repeat('n', 100)]));
-        $provider->shouldNotReceive('open');
+        $resourceProvider = $this->mock(McpReadableResourceProvider::class);
+        $resourceProvider->shouldReceive('find')->andReturn(McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => str_repeat('n', 100)]));
+        $resourceProvider->shouldNotReceive('open');
         $this->expectException(DomainException::class);
-        $this->capability([$provider], limits: new McpResourceLimits(32, 64, 1))->handle($this->request('test:/a'));
+        $this->capability([$resourceProvider], limits: new McpResourceLimits(32, 64, 1))->handle($this->request('test:/a'));
     }
 
     public function test_that_unservable_central_metadata_rejects_listing_and_reading_before_content_opens(): void
     {
-        $provider = new ReadProvider(['test:/a' => 'a']);
-        $resources = $this->capability([$provider], readLimits: new McpResourceReadLimits(1, 400));
-        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', 500), '1'), [$resources]));
+        $resourceProvider = new ReadProvider(['test:/a' => 'a']);
+        $resourceDiscovery = $this->capability([$resourceProvider], readLimits: new McpResourceReadLimits(1, 400));
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', 500), '1'), [$resourceDiscovery]));
         self::assertSame(-32603, $responder->respond($this->wire('resources/list', []))->errorCode());
         self::assertSame(-32603, $responder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
-        self::assertSame([], $provider->opened);
+        self::assertSame([], $resourceProvider->opened);
     }
 
     public function test_that_complete_read_budget_accepts_the_exact_bound_and_rejects_one_over_before_io(): void
     {
         foreach ([str_repeat("\0", 8), str_repeat("\xff", 8)] as $bytes) {
-            $provider = $this->mock(McpReadableResourceProvider::class);
+            $resourceProvider = $this->mock(McpReadableResourceProvider::class);
             $info = McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => 'A', 'size' => 8]);
-            $provider->shouldReceive('resources')->andReturn([$info]);
-            $provider->shouldReceive('find')->andReturn($info);
-            $provider->shouldReceive('open')->once()->andReturnUsing(fn() => $bytes[0] === "\0" ? McpResourceContent::text($info, Utils::streamFor($bytes)) : McpResourceContent::binary($info, Utils::streamFor($bytes)));
-            $resources = new McpResourceDiscovery([$provider], new ReadAvailability(), str_repeat('k', 32), 'scope', ttlMs: 9007199254740991, cacheScope: 'public', readLimits: new McpResourceReadLimits(8, 400));
+            $resourceProvider->shouldReceive('resources')->andReturn([$info]);
+            $resourceProvider->shouldReceive('find')->andReturn($info);
+            $resourceProvider->shouldReceive('open')->once()->andReturnUsing(fn() => $bytes[0] === "\0" ? McpResourceContent::text($info, Utils::streamFor($bytes)) : McpResourceContent::binary($info, Utils::streamFor($bytes)));
+            $resourceDiscovery = new McpResourceDiscovery([$resourceProvider], new ReadAvailability(), str_repeat('k', 32), 'scope', ttlMs: 9007199254740991, cacheScope: 'public', readLimits: new McpResourceReadLimits(8, 400));
             $wire = $this->wire('resources/read', ['uri' => 'test:/a']);
             $expected = ['resultType' => 'complete', 'contents' => [['uri' => 'test:/a', 'text' => str_repeat("\0", 8)]], 'ttlMs' => 9007199254740991, 'cacheScope' => 'public', '_meta' => ['io.modelcontextprotocol/serverInfo' => ['name' => 's', 'version' => '1']]];
             $padding = 400 - strlen(json_encode($expected, JSON_THROW_ON_ERROR));
             $identity = new McpServerInfo(str_repeat('s', $padding + 1), '1');
-            $responder = new McpResponder(new McpCapabilityRegistry($identity, [$resources]));
+            $responder = new McpResponder(new McpCapabilityRegistry($identity, [$resourceDiscovery]));
             self::assertSame('test:/a', $responder->respond($this->wire('resources/list', []))->toArray()['result']['resources'][0]['uri']);
             $exact = $responder->respond($wire)->toArray()['result'];
             $encodedBytes = strlen(json_encode($exact, JSON_THROW_ON_ERROR));
@@ -196,7 +196,7 @@ final class McpResourceReadTest extends UnitTestCase
             if ($bytes[0] === "\0") { self::assertSame(400, $encodedBytes); }
             $item = $exact['contents'][0];
             self::assertSame($bytes, $item['text'] ?? base64_decode($item['blob'], true));
-            $overflow = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', $padding + 2), '1'), [$resources]));
+            $overflow = new McpResponder(new McpCapabilityRegistry(new McpServerInfo(str_repeat('s', $padding + 2), '1'), [$resourceDiscovery]));
             self::assertSame(-32603, $overflow->respond($this->wire('resources/list', []))->errorCode());
             self::assertSame(-32603, $overflow->respond($wire)->errorCode());
             // A different responder must not poison the shared capability with its larger identity.
@@ -206,14 +206,14 @@ final class McpResourceReadTest extends UnitTestCase
 
     public function test_that_escaped_server_metadata_is_budgeted_without_changing_discovery_only_consumers(): void
     {
-        $provider = new ReadProvider(['test:/a' => 'a']);
+        $resourceProvider = new ReadProvider(['test:/a' => 'a']);
         $identity = new McpServerInfo('雪', str_repeat("\0", 40));
-        $readable = $this->capability([$provider], readLimits: new McpResourceReadLimits(1, 400));
+        $readable = $this->capability([$resourceProvider], readLimits: new McpResourceReadLimits(1, 400));
         $readResponder = new McpResponder(new McpCapabilityRegistry($identity, [$readable]));
         self::assertSame(-32603, $readResponder->respond($this->wire('resources/list', []))->errorCode());
         self::assertSame(-32603, $readResponder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
-        self::assertSame([], $provider->opened);
-        $legacy = new McpResourceDiscovery([$provider], new ReadAvailability(), str_repeat('k', 32), 'scope');
+        self::assertSame([], $resourceProvider->opened);
+        $legacy = new McpResourceDiscovery([$resourceProvider], new ReadAvailability(), str_repeat('k', 32), 'scope');
         $legacyResponder = new McpResponder(new McpCapabilityRegistry($identity, [$legacy]));
         self::assertSame('test:/a', $legacyResponder->respond($this->wire('resources/list', []))->toArray()['result']['resources'][0]['uri']);
         self::assertSame(-32601, $legacyResponder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->errorCode());
@@ -224,15 +224,15 @@ final class McpResourceReadTest extends UnitTestCase
         foreach (['find', 'open', 'availability'] as $stage) {
             foreach ([new RuntimeException('secret provider detail'), new McpProtocolException(McpProtocolError::unsupportedProtocolVersion(['secret'], 'secret'), 1)] as $error) {
                 $info = McpResourceInfo::fromArray(['uri' => 'test:/a', 'name' => 'A']);
-                $provider = $this->mock(McpReadableResourceProvider::class);
+                $resourceProvider = $this->mock(McpReadableResourceProvider::class);
                 $availability = $this->mock(McpResourceAvailability::class);
-                if ($stage === 'find') { $provider->shouldReceive('find')->andThrow($error); $provider->shouldNotReceive('open'); }
+                if ($stage === 'find') { $resourceProvider->shouldReceive('find')->andThrow($error); $resourceProvider->shouldNotReceive('open'); }
                 else {
-                    $provider->shouldReceive('find')->andReturn($info);
-                    if ($stage === 'availability') { $availability->shouldReceive('isAvailable')->andThrow($error); $provider->shouldNotReceive('open'); }
-                    else { $availability->shouldReceive('isAvailable')->andReturn(true); $provider->shouldReceive('open')->andThrow($error); }
+                    $resourceProvider->shouldReceive('find')->andReturn($info);
+                    if ($stage === 'availability') { $availability->shouldReceive('isAvailable')->andThrow($error); $resourceProvider->shouldNotReceive('open'); }
+                    else { $availability->shouldReceive('isAvailable')->andReturn(true); $resourceProvider->shouldReceive('open')->andThrow($error); }
                 }
-                $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$this->capability([$provider], $availability)]));
+                $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Reads', '1'), [$this->capability([$resourceProvider], $availability)]));
                 self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], $responder->respond($this->wire('resources/read', ['uri' => 'test:/a']))->toArray());
             }
         }

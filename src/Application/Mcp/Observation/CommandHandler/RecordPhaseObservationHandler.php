@@ -18,7 +18,7 @@ final readonly class RecordPhaseObservationHandler implements CommandHandler
     /**
      * Constructs RecordPhaseObservationHandler
      */
-    public function __construct(private ObservationRecorder $recorder)
+    public function __construct(private ObservationRecorder $observationRecorder)
     {
     }
 
@@ -40,6 +40,6 @@ final readonly class RecordPhaseObservationHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected recording command.');
         }
 
-        $this->recorder->record($command->observation());
+        $this->observationRecorder->record($command->observation());
     }
 }

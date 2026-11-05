@@ -13,7 +13,7 @@ use Fight\Common\Domain\Mcp\Detail\DetailKind;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 
 $selection = DetailSelection::create('project', 'session', 'phase', 'producer', $activityUuid);
-$commands->execute(new RemoveCapturedDetail($selection, $detailId, DetailKind::MESSAGE));
+$commandBus->execute(new RemoveCapturedDetail($selection, $detailId, DetailKind::MESSAGE));
 ```
 
 The selection limit is **exactly one detail per Command**. There is no wildcard, list, page, age predicate,

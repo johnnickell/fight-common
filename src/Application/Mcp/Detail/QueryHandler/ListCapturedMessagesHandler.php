@@ -19,8 +19,10 @@ final readonly class ListCapturedMessagesHandler implements QueryHandler
     /**
      * Constructs ListCapturedMessagesHandler
      */
-    public function __construct(private DetailReadAdmission $admission, private DetailReader $reader)
-    {
+    public function __construct(
+        private DetailReadAdmission $detailReadAdmission,
+        private DetailReader $detailReader
+    ) {
     }
 
     /**
@@ -40,8 +42,8 @@ final readonly class ListCapturedMessagesHandler implements QueryHandler
          * @var ListCapturedMessages $query
          */
         $query = $queryMessage->payload();
-        $access = $this->admission->currentAccess($query->selection());
+        $access = $this->detailReadAdmission->currentAccess($query->selection());
 
-        return $this->reader->messages($query, $access);
+        return $this->detailReader->messages($query, $access);
     }
 }

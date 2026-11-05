@@ -15,7 +15,7 @@ use Fight\Common\Application\Observability\MetricsCollector;
  */
 final readonly class StatsDMetricsCollector implements MetricsCollector
 {
-    private Closure $sender;
+    private Closure $metricSender;
 
     /**
      * Constructs StatsDMetricsCollector
@@ -28,7 +28,7 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
         private string $prefix = '',
         ?Closure $sender = null
     ) {
-        $this->sender = $sender ?? new UdpMetricSender($this->host, $this->port)->send(...);
+        $this->metricSender = $sender ?? new UdpMetricSender($this->host, $this->port)->send(...);
     }
 
     /**
@@ -36,7 +36,7 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
      */
     public function increment(string $metric, array $tags = []): void
     {
-        ($this->sender)($this->format($metric, '1', 'c', $tags));
+        ($this->metricSender)($this->format($metric, '1', 'c', $tags));
     }
 
     /**
@@ -44,7 +44,7 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
      */
     public function gauge(string $metric, float $value, array $tags = []): void
     {
-        ($this->sender)($this->format($metric, (string) $value, 'g', $tags));
+        ($this->metricSender)($this->format($metric, (string) $value, 'g', $tags));
     }
 
     /**
@@ -52,7 +52,7 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
      */
     public function histogram(string $metric, float $value, array $tags = []): void
     {
-        ($this->sender)($this->format($metric, (string) $value, 'ms', $tags));
+        ($this->metricSender)($this->format($metric, (string) $value, 'ms', $tags));
     }
 
     /**
@@ -60,18 +60,18 @@ final readonly class StatsDMetricsCollector implements MetricsCollector
      *
      * @param string $metric
      * @param string $value
-     * @param string $type
+     * @param string $metricType
      * @param array<string, string> $tags
      */
-    private function format(string $metric, string $value, string $type, array $tags): string
+    private function format(string $metric, string $value, string $metricType, array $tags): string
     {
         $name = $this->prefix !== '' ? $this->prefix.'.'.$metric : $metric;
-        $line = sprintf('%s:%s|%s', $name, $value, $type);
+        $line = sprintf('%s:%s|%s', $name, $value, $metricType);
 
         if (!empty($tags)) {
             $tagParts = [];
-            foreach ($tags as $key => $val) {
-                $tagParts[] = $key.':'.$val;
+            foreach ($tags as $tagName => $tagValue) {
+                $tagParts[] = $tagName.':'.$tagValue;
             }
 
             $line .= '|#'.implode(',', $tagParts);

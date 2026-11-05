@@ -51,24 +51,24 @@ final readonly class Url extends Uri
         }
 
         $parts = [];
-        $order = [];
+        $parameterNames = [];
 
         // sort query params by key and remove missing keys
-        foreach (explode('&', $query) as $param) {
-            if ('' === $param) {
+        foreach (explode('&', $query) as $queryParameter) {
+            if ('' === $queryParameter) {
                 continue;
             }
 
-            if ('=' === $param[0]) {
+            if ('=' === $queryParameter[0]) {
                 continue;
             }
 
-            $parts[] = $param;
-            $kvp = explode('=', $param, 2);
-            $order[] = $kvp[0];
+            $parts[] = $queryParameter;
+            $parameterParts = explode('=', $queryParameter, 2);
+            $parameterNames[] = $parameterParts[0];
         }
 
-        array_multisort($order, SORT_ASC, $parts);
+        array_multisort($parameterNames, SORT_ASC, $parts);
 
         return parent::normalizeQuery(implode('&', $parts));
     }

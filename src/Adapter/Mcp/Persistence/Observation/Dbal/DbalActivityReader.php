@@ -24,14 +24,14 @@ use Throwable;
  */
 final readonly class DbalActivityReader implements ActivityReader
 {
-    private DbalExecutionReadSupport $sql;
+    private DbalExecutionReadSupport $executionReadSupport;
 
     /**
      * Constructs DbalActivityReader
      */
     public function __construct(private Connection $connection)
     {
-        $this->sql = new DbalExecutionReadSupport($connection);
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection);
     }
 
     /**
@@ -40,8 +40,8 @@ final readonly class DbalActivityReader implements ActivityReader
     public function list(ListPhaseActivity $query, ExecutionAccess $access): ?ActivityPage
     {
         try {
-            [$scope, $parameters] = $this->sql->constraints($query->execution()->selection(), $access);
-            [$visible, $phaseParameters] = $this->sql->phaseConstraints($access, 'p');
+            [$scope, $parameters] = $this->executionReadSupport->constraints($query->execution()->selection(), $access);
+            [$visible, $phaseParameters] = $this->executionReadSupport->phaseConstraints($access, 'p');
             $sql = 'SELECT p.*, s.consumer_reference FROM fight_execution_phases p';
             $sql .= ' JOIN fight_execution_sessions s ON s.project_id = p.project_id AND s.session_id = p.session_id';
             $sql .= ' WHERE '.$scope.' AND '.$visible.' AND p.phase_id = ?';
@@ -100,7 +100,7 @@ final readonly class DbalActivityReader implements ActivityReader
 
         $direction = $query->pagination()->orderings()['recorded_at'] ?? 'DESC';
         $comparison = $direction === 'DESC' ? '<' : '>';
-        $producer = $this->sql->binary('o.producer_id');
+        $producer = $this->executionReadSupport->binary('o.producer_id');
         $last = null;
         do {
             $sql = 'SELECT o.* FROM fight_execution_observations o WHERE '.$where;
@@ -114,10 +114,10 @@ final readonly class DbalActivityReader implements ActivityReader
 
             $sql .= ' ORDER BY o.recorded_at '.$direction.', o.observation_id '.$direction;
             $sql .= ', '.$producer.' '.$direction;
-            $batch = $this->connection->fetchAllAssociative($this->sql->limit($sql, 100), $args);
+            $batch = $this->connection->fetchAllAssociative($this->executionReadSupport->limit($sql, 100), $args);
             foreach ($batch as $row) {
                 $last = $row;
-                $evidence = $this->sql->decode($row);
+                $evidence = $this->executionReadSupport->decode($row);
                 $this->validateScope($evidence, $phase);
                 if ($evidence->detail() !== null) {
                     throw new DomainException('Invalid stored activity relationship.');
@@ -162,7 +162,7 @@ final readonly class DbalActivityReader implements ActivityReader
         $sql .= ' WHERE d.project_id = ? AND d.session_id = ? AND d.phase_id = ?';
         $sql .= ' AND d.producer_id = ? AND d.activity_id = ? AND '.$allowed;
         $sql .= ' ORDER BY d.recorded_at DESC, d.observation_id DESC';
-        $rows = $this->connection->fetchAllAssociative($this->sql->limit($sql, 33), [
+        $rows = $this->connection->fetchAllAssociative($this->executionReadSupport->limit($sql, 33), [
             $project, $activity->session()->sessionId(), $activity->phase()?->phaseId(),
             $activity->producerId(), $activity->id()->toString(), ...$parameters
         ]);
@@ -172,7 +172,7 @@ final readonly class DbalActivityReader implements ActivityReader
 
         $references = [];
         foreach ($rows as $row) {
-            $detail = $this->sql->decode($row);
+            $detail = $this->executionReadSupport->decode($row);
             $capture = $detail->detail();
             if ($capture === null || !$capture->acceptsActivity($detail, $activity)) {
                 throw new DomainException('Invalid stored detail relationship.');

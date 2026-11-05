@@ -34,10 +34,10 @@ final class ObservationFixture
 
     public static function activity(array $changes = []): Observation
     {
-        $phase = self::phase();
+        $phaseObservation = self::phase();
         $observation = Observation::forActivity(
             ObservationId::fromString('019a1234-5678-4abc-8def-123456789abe'),
-            'instrumentation', $phase->session(), $phase->phase(),
+            'instrumentation', $phaseObservation->session(), $phaseObservation->phase(),
             ObservationOccurrence::fromString('2026-10-20T12:34:56.120Z'),
             PhaseActivity::create('consumer/model-call', 'Safe summary', 'model:one', [
                 UsageMeasurement::create('provider/input', 'token', 'response', UsageCompleteness::COMPLETE, '0'),
@@ -51,10 +51,10 @@ final class ObservationFixture
 
     public static function detail(array $changes = []): Observation
     {
-        $base = self::phase();
+        $phaseObservation = self::phase();
         $observation = Observation::forDetail(
             ObservationId::fromString('019a1234-5678-4abc-8def-123456789abf'),
-            'instrumentation', $base->session(), $base->phase(),
+            'instrumentation', $phaseObservation->session(), $phaseObservation->phase(),
             ObservationOccurrence::fromString('2026-10-20T12:34:56.12Z'),
             DetailCapture::create(self::activity()->id(), DetailKind::MESSAGE, 'text/plain', CaptureCompleteness::COMPLETE)
         );

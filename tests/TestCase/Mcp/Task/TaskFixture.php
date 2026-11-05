@@ -90,9 +90,9 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public readonly DbalTaskRepository $taskRepository;
     public readonly DbalTaskTransaction $transactionalUnitOfWork;
     public readonly CommittedTaskReader $committedTaskReader;
-    public readonly RoutingCommandBus $commands;
-    public readonly RoutingQueryBus $queries;
-    public readonly SimpleEventDispatcher $events;
+    public readonly RoutingCommandBus $commandBus;
+    public readonly RoutingQueryBus $queryBus;
+    public readonly SimpleEventDispatcher $eventDispatcher;
     public readonly CreateTaskHandler $createTaskHandler;
     public readonly RecordTaskStateHandler $recordTaskStateHandler;
     public readonly RemoveTasksHandler $removeTasksHandler;
@@ -103,19 +103,19 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $this->transactionalUnitOfWork = new DbalTaskTransaction($connection);
         $this->taskRepository = new DbalTaskRepository($this->transactionalUnitOfWork);
         $this->committedTaskReader = $this->taskRepository;
-        $this->events = new SimpleEventDispatcher();
+        $this->eventDispatcher = new SimpleEventDispatcher();
         $taskPayloadPolicy = new ToolTaskPayloadPolicy(fn () => $this->discloseAllowed);
         $clock = fn (): int => $this->now;
-        $this->createTaskHandler = new CreateTaskHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->events, $clock);
-        $this->recordTaskStateHandler = new RecordTaskStateHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->events, $clock);
-        $this->removeTasksHandler = new RemoveTasksHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $this->events);
+        $this->createTaskHandler = new CreateTaskHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
+        $this->recordTaskStateHandler = new RecordTaskStateHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
+        $this->removeTasksHandler = new RemoveTasksHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $this->eventDispatcher);
         $this->getTaskHandler = new GetTaskHandler($this->committedTaskReader, $this, $taskPayloadPolicy, $clock);
-        $this->requestTaskInputHandler = new RequestTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->events, $clock);
-        $this->supplyTaskInputHandler = new SupplyTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->events, $clock);
-        $this->acquireTaskInputHandler = new AcquireTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $this, $taskPayloadPolicy, $this->events, $clock);
-        $this->retireTaskInputHandler = new RetireTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->events, $clock);
+        $this->requestTaskInputHandler = new RequestTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
+        $this->supplyTaskInputHandler = new SupplyTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
+        $this->acquireTaskInputHandler = new AcquireTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
+        $this->retireTaskInputHandler = new RetireTaskInputHandler($this->taskRepository, $this->transactionalUnitOfWork, $this, $taskPayloadPolicy, $this->eventDispatcher, $clock);
         $this->getTaskInputHandler = new GetTaskInputHandler($this->committedTaskReader, $this, $this, $clock);
-        $this->requestTaskCancellationHandler = new RequestTaskCancellationHandler($this->taskRepository, $this->transactionalUnitOfWork, $this->committedTaskReader, $this, $this->events, $clock);
+        $this->requestTaskCancellationHandler = new RequestTaskCancellationHandler($this->taskRepository, $this->transactionalUnitOfWork, $this->committedTaskReader, $this, $this->eventDispatcher, $clock);
         $this->getTaskCancellationHandler = new GetTaskCancellationHandler($this->committedTaskReader, $this, $clock);
         $commandRouter = new InMemoryCommandRouter();
         $commandRouter->registerHandler(RequestTaskCancellation::class, $this->requestTaskCancellationHandler);
@@ -126,12 +126,12 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $commandRouter->registerHandler(CreateTask::class, $this->createTaskHandler);
         $commandRouter->registerHandler(RecordTaskState::class, $this->recordTaskStateHandler);
         $commandRouter->registerHandler(RemoveTasks::class, $this->removeTasksHandler);
-        $this->commands = new RoutingCommandBus($commandRouter);
+        $this->commandBus = new RoutingCommandBus($commandRouter);
         $queryRouter = new InMemoryQueryRouter();
         $queryRouter->registerHandler(GetTaskCancellation::class, $this->getTaskCancellationHandler);
         $queryRouter->registerHandler(GetTaskInput::class, $this->getTaskInputHandler);
         $queryRouter->registerHandler(GetTask::class, $this->getTaskHandler);
-        $this->queries = new RoutingQueryBus($queryRouter);
+        $this->queryBus = new RoutingQueryBus($queryRouter);
     }
 
     public static function id(string $value = self::ID): TaskId
@@ -159,7 +159,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
 
     public function create(?int $ttl = null, ?int $poll = null, string $id = self::ID): void
     {
-        $this->commands->execute(new CreateTask(self::definition($id), TaskState::create('working'), $ttl, $poll));
+        $this->commandBus->execute(new CreateTask(self::definition($id), TaskState::create('working'), $ttl, $poll));
     }
 
     public function record(TaskState $state, int $expectedVersion = 1, ?int $poll = null): void
@@ -168,7 +168,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
             $this->issue(expectedVersion: $expectedVersion);
             return;
         }
-        $this->commands->execute(new RecordTaskState('scope', self::id(), 'producer', $expectedVersion, $state, $poll));
+        $this->commandBus->execute(new RecordTaskState('scope', self::id(), 'producer', $expectedVersion, $state, $poll));
     }
 
     public static function form(string $message = 'Provide input', array $rules = []): McpInputRequest
@@ -181,32 +181,32 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
         $forms = [];
         for ($index = 0; $index < $count; ++$index) { $forms['form-'.$index] = self::form(); }
         $input = $confirmation ? McpInputRequired::confirmation($forms) : McpInputRequired::fromRequests($forms);
-        $this->commands->execute(new RequestTaskInput('scope', self::id($id), 'producer', $expectedVersion, TaskInputForms::batch($input, $caller, $expiresAt ?? $this->now + 1000)));
+        $this->commandBus->execute(new RequestTaskInput('scope', self::id($id), 'producer', $expectedVersion, TaskInputForms::batch($input, $caller, $expiresAt ?? $this->now + 1000)));
     }
 
     public function supply(array $responses, string $caller = 'caller', string $scope = 'scope', string $id = self::ID): void
     {
-        $this->commands->execute(new SupplyTaskInput($scope, self::id($id), $caller, StrictJson::fromObject($responses)));
+        $this->commandBus->execute(new SupplyTaskInput($scope, self::id($id), $caller, StrictJson::fromObject($responses)));
     }
 
     public function observe(string $caller = 'caller', string $scope = 'scope', string $id = self::ID): ?StrictJson
     {
-        return $this->queries->fetch(new GetTaskInput($scope, self::id($id), $caller));
+        return $this->queryBus->fetch(new GetTaskInput($scope, self::id($id), $caller));
     }
 
     public function acquire(string $group = self::KEY_1, string $caller = 'caller'): void
     {
-        $this->commands->execute(new AcquireTaskInput('scope', self::id(), $caller, $group));
+        $this->commandBus->execute(new AcquireTaskInput('scope', self::id(), $caller, $group));
     }
 
     public function cancel(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): void
     {
-        $this->commands->execute(new RequestTaskCancellation($scope, self::id($id), $caller));
+        $this->commandBus->execute(new RequestTaskCancellation($scope, self::id($id), $caller));
     }
 
     public function cancellation(string $scope = 'scope', string $id = self::ID, string $caller = 'caller'): ?StrictJson
     {
-        return $this->queries->fetch(new GetTaskCancellation($scope, self::id($id), $caller));
+        return $this->queryBus->fetch(new GetTaskCancellation($scope, self::id($id), $caller));
     }
 
     public function allowsCancellation(string $scope, TaskId $id, string $caller): bool
@@ -241,7 +241,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
 
     public function remove(array $ids = [self::ID], string $scope = 'scope'): void
     {
-        $this->commands->execute(new RemoveTasks(TaskSelection::fromIds($scope, array_map(self::id(...), $ids))));
+        $this->commandBus->execute(new RemoveTasks(TaskSelection::fromIds($scope, array_map(self::id(...), $ids))));
     }
 
     public function allowsRemoval(string $scope, TaskId $id): bool
@@ -254,7 +254,7 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
 
     public function get(string $id = self::ID, string $scope = 'scope'): ?StrictJson
     {
-        return $this->queries->fetch(new GetTask($scope, self::id($id)));
+        return $this->queryBus->fetch(new GetTask($scope, self::id($id)));
     }
 
     public function allowsCreation(TaskDefinition $definition): bool

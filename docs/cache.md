@@ -172,14 +172,14 @@ class UserRepository
 {
     public function __construct(
         private Cache $cache,
-        private Connection $db
+        private Connection $connection
     ) {}
 
     public function findById(int $id): ?array
     {
         return $this->cache->read(
             sprintf('user.%d', $id),
-            fn () => $this->db->fetchAssociative('SELECT * FROM users WHERE id = ?', [$id]) ?: null,
+            fn () => $this->connection->fetchAssociative('SELECT * FROM users WHERE id = ?', [$id]) ?: null,
             300  // 5 minutes
         );
     }
@@ -191,15 +191,15 @@ class UserRepository
 ```php-inline
 class WeatherService
 {
-    public function __construct(private Cache $cache, private HttpService $http) {}
+    public function __construct(private Cache $cache, private HttpService $httpService) {}
 
     public function getForecast(string $city): array
     {
         return $this->cache->read(
             "weather.{$city}",
             function () use ($city) {
-                $response = $this->http->send(
-                    $this->http->createRequest('GET', "/weather/{$city}")
+                $response = $this->httpService->send(
+                    $this->httpService->createRequest('GET', "/weather/{$city}")
                 );
                 return json_decode((string) $response->getBody(), true);
             },

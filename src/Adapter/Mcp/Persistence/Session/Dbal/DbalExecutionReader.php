@@ -34,14 +34,14 @@ final readonly class DbalExecutionReader implements ExecutionReader
     private const int BATCH_SIZE = 100;
     private const int MAX_USAGE_GROUPS = 128;
 
-    private DbalExecutionReadSupport $sql;
+    private DbalExecutionReadSupport $executionReadSupport;
 
     /**
      * Constructs DbalExecutionReader
      */
     public function __construct(private Connection $connection)
     {
-        $this->sql = new DbalExecutionReadSupport($connection);
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection);
     }
 
     /**
@@ -50,7 +50,7 @@ final readonly class DbalExecutionReader implements ExecutionReader
     public function summarize(ExecutionSelection $selection, ExecutionAccess $access): ExecutionSummary
     {
         try {
-            [$where, $parameters] = $this->sql->constraints($selection, $access);
+            [$where, $parameters] = $this->executionReadSupport->constraints($selection, $access);
             [$select, $selectParameters] = $this->selectExecutions($access);
             $outcomes = ['unknown' => 0, 'succeeded' => 0, 'failed' => 0, 'cancelled' => 0];
             $executions = 0;
@@ -62,11 +62,12 @@ final readonly class DbalExecutionReader implements ExecutionReader
             $afterSession = '';
             do {
                 $sql = $select.' WHERE '.$where;
-                $sql .= ' AND ('.$this->sql->binary('s.project_id').' > ? OR (';
-                $sql .= 's.project_id = ? AND '.$this->sql->binary('s.session_id').' > ?))';
-                $sql .= ' ORDER BY '.$this->sql->binary('s.project_id').', '.$this->sql->binary('s.session_id');
+                $sql .= ' AND ('.$this->executionReadSupport->binary('s.project_id').' > ? OR (';
+                $sql .= 's.project_id = ? AND '.$this->executionReadSupport->binary('s.session_id').' > ?))';
+                $sql .= ' ORDER BY '.$this->executionReadSupport->binary('s.project_id');
+                $sql .= ', '.$this->executionReadSupport->binary('s.session_id');
                 $rows = $this->connection->fetchAllAssociative(
-                    $this->sql->limit($sql, self::BATCH_SIZE),
+                    $this->executionReadSupport->limit($sql, self::BATCH_SIZE),
                     [...$selectParameters, ...$parameters, $afterProject, $afterProject, $afterSession]
                 );
                 foreach ($rows as $row) {
@@ -78,7 +79,11 @@ final readonly class DbalExecutionReader implements ExecutionReader
                         $latest = $time;
                     }
 
-                    $observations = $this->sql->observations($row['project_id'], $row['session_id'], $access);
+                    $observations = $this->executionReadSupport->observations(
+                        $row['project_id'],
+                        $row['session_id'],
+                        $access
+                    );
                     foreach ($observations as $observation) {
                         $activity = $observation->activity();
                         if ($activity === null) {
@@ -126,7 +131,7 @@ final readonly class DbalExecutionReader implements ExecutionReader
     public function list(ListExecutions $query, ExecutionAccess $access): ExecutionPage
     {
         try {
-            [$where, $parameters] = $this->sql->constraints($query->selection(), $access);
+            [$where, $parameters] = $this->executionReadSupport->constraints($query->selection(), $access);
             $total = (int) $this->connection->fetchOne(
                 'SELECT COUNT(*) FROM fight_execution_sessions s WHERE '.$where,
                 $parameters
@@ -135,9 +140,10 @@ final readonly class DbalExecutionReader implements ExecutionReader
             $direction = $pagination->orderings()['latest_recorded_at'] ?? 'DESC';
             [$select, $selectParameters] = $this->selectExecutions($access);
             $sql = $select.' WHERE '.$where.' ORDER BY latest_recorded_at '.$direction;
-            $sql .= ', '.$this->sql->binary('s.project_id').' ASC, '.$this->sql->binary('s.session_id').' ASC';
+            $sql .= ', '.$this->executionReadSupport->binary('s.project_id').' ASC, ';
+            $sql .= $this->executionReadSupport->binary('s.session_id').' ASC';
             $rows = $this->connection->fetchAllAssociative(
-                $this->sql->limit($sql, $pagination->limit(), $pagination->offset()),
+                $this->executionReadSupport->limit($sql, $pagination->limit(), $pagination->offset()),
                 [...$selectParameters, ...$parameters]
             );
 
@@ -158,7 +164,7 @@ final readonly class DbalExecutionReader implements ExecutionReader
     public function inspect(GetExecution $query, ExecutionAccess $access): ?ExecutionInspection
     {
         try {
-            [$where, $parameters] = $this->sql->constraints($query->selection(), $access);
+            [$where, $parameters] = $this->executionReadSupport->constraints($query->selection(), $access);
             [$select, $selectParameters] = $this->selectExecutions($access);
             $row = $this->connection->fetchAssociative(
                 $select.' WHERE '.$where,
@@ -188,13 +194,13 @@ final readonly class DbalExecutionReader implements ExecutionReader
     private function selectExecutions(ExecutionAccess $access): array
     {
         $scope = 'o.project_id = s.project_id AND o.session_id = s.session_id';
-        [$visible, $parameters] = $this->sql->phaseConstraints($access, 'o');
+        [$visible, $parameters] = $this->executionReadSupport->phaseConstraints($access, 'o');
         $sql = 'SELECT s.project_id, s.session_id, s.consumer_reference, ';
         $sql .= "(SELECT COALESCE(MAX(o.recorded_at), '') FROM fight_execution_observations o WHERE ";
         $sql .= $scope.' AND '.$visible.') AS latest_recorded_at';
         $latestSession = ' FROM fight_execution_observations o WHERE '.$scope;
         $latestSession .= ' AND o.phase_id IS NULL ORDER BY o.recorded_at DESC, o.observation_id DESC, ';
-        $latestSession .= $this->sql->binary('o.producer_id').' DESC LIMIT 1)';
+        $latestSession .= $this->executionReadSupport->binary('o.producer_id').' DESC LIMIT 1)';
         foreach (['payload', 'version', 'observation_id', 'producer_id', 'recorded_at'] as $field) {
             $sql .= ', (SELECT o.'.$field.$latestSession.' AS session_'.$field;
         }
@@ -238,7 +244,7 @@ final readonly class DbalExecutionReader implements ExecutionReader
             $evidence[$field] = $row['session_'.$field];
         }
 
-        $observation = $this->sql->decode($evidence);
+        $observation = $this->executionReadSupport->decode($evidence);
         if (
             $observation->phase() !== null
             || $observation->session()->toArray() !== [

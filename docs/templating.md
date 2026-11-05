@@ -89,7 +89,7 @@ final class AssetHelper implements TemplateHelper
 Registered on any engine:
 
 ```php-inline
-$engine->addHelper(new AssetHelper());
+$templateEngine->addHelper(new AssetHelper());
 ```
 
 ---
@@ -105,7 +105,7 @@ A full native PHP template engine with template inheritance, a block system, HTM
 ```php-inline
 use Fight\Common\Adapter\Templating\PhpEngine;
 
-$engine = new PhpEngine(
+$templateEngine = new PhpEngine(
     paths: ['/var/www/templates', '/var/www/vendor/templates'],
     helpers: [new AssetHelper()]
 );
@@ -117,7 +117,7 @@ Paths are searched in order. The colon separator in template names is converted 
 ### Rendering
 
 ```php-inline
-$engine->render('Controller:action.php', ['name' => 'Alice']);
+$templateEngine->render('Controller:action.php', ['name' => 'Alice']);
 ```
 
 The data array is extracted into the template scope. The key `this` is reserved and throws `TemplatingException` if present.
@@ -181,7 +181,7 @@ Throws `TemplatingException` if the helper is not registered.
 Templates are resolved to absolute file paths on first access and cached internally. `loadTemplate()` → `getTemplatePath()` iterates the configured paths and returns the first readable file match. Throws `TemplateNotFoundException` if no path matches.
 
 ```php-inline
-$engine->exists('Controller:action.php');     // checks all paths
+$templateEngine->exists('Controller:action.php');     // checks all paths
 ```
 
 ---
@@ -197,10 +197,10 @@ use Fight\Common\Adapter\Templating\TwigEngine;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
-$loader = new FilesystemLoader('/var/www/templates');
-$twig = new Twig\Environment($loader);
+$templateLoader = new FilesystemLoader('/var/www/templates');
+$twig = new Twig\Environment($templateLoader);
 
-$engine = new TwigEngine($twig);
+$templateEngine = new TwigEngine($twig);
 ```
 
 | Method | Behavior |
@@ -211,7 +211,7 @@ $engine = new TwigEngine($twig);
 | `addHelper()` | Stores the helper and adds it as a Twig global (`$environment->addGlobal($name, $helper)`) |
 
 ```php-inline
-$engine->addHelper(new AssetHelper());
+$templateEngine->addHelper(new AssetHelper());
 // In Twig: {{ asset.path('style.css') }}
 ```
 
@@ -228,14 +228,14 @@ use Fight\Common\Adapter\Templating\DelegatingEngine;
 use Fight\Common\Adapter\Templating\PhpEngine;
 use Fight\Common\Adapter\Templating\TwigEngine;
 
-$engine = new DelegatingEngine([
+$templateEngine = new DelegatingEngine([
     new PhpEngine(['/var/www/templates']),
     new TwigEngine($environment),
 ]);
 
 // Routes by file extension
-$engine->render('page.php');          // → PhpEngine
-$engine->render('page.html.twig');    // → TwigEngine
+$templateEngine->render('page.php');          // → PhpEngine
+$templateEngine->render('page.html.twig');    // → TwigEngine
 ```
 
 ### Helper Injection
@@ -243,7 +243,7 @@ $engine->render('page.html.twig');    // → TwigEngine
 Helpers registered on the `DelegatingEngine` are not immediately forwarded to sub-engines. Instead, they are stored locally and lazily injected into the resolved sub-engine at `render()` time:
 
 ```php-inline
-$engine->addHelper(new AssetHelper());
+$templateEngine->addHelper(new AssetHelper());
 // On render: $resolvedEngine->addHelper($helper) is called for each stored helper
 ```
 
@@ -254,8 +254,8 @@ This means sub-engines only receive helpers when they actually render, and each 
 `getEngine()` iterates sub-engines in order and returns the first match:
 
 ```php-inline
-$engine->supports('page.php');       // true (PhpEngine supports .php)
-$engine->exists('page.php');         // false if no path can resolve it
+$templateEngine->supports('page.php');       // true (PhpEngine supports .php)
+$templateEngine->exists('page.php');         // false if no path can resolve it
 ```
 
 Throws `TemplatingException` if no engine `supports()` the template.

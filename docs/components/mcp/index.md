@@ -215,7 +215,7 @@ use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Resource\McpResourceLimits;
 use Fight\Common\Application\Mcp\Resource\McpResourceProvider;
 
-$documents = new class implements McpResourceProvider {
+$documentProvider = new class implements McpResourceProvider {
     public function resources(): iterable
     {
         // A real provider can stream already ordered metadata rows, without reading document bytes.
@@ -228,17 +228,17 @@ $documents = new class implements McpResourceProvider {
 };
 
 // Consumer-provided, request-scoped collaborator; it keeps identity and permissions privately.
-/** @var McpResourceAvailability $visibility */
+/** @var McpResourceAvailability $resourceAvailability */
 $limits = new McpResourceLimits(pageSize: 50);
-$resources = new McpResourceDiscovery(
-    [$documents],
-    $visibility,
+$resourceDiscovery = new McpResourceDiscovery(
+    [$documentProvider],
+    $resourceAvailability,
     $dedicatedCursorSecret, // Stable across serving processes; at least 32 bytes, never an access token.
     'planning-documents',   // Distinct catalog/endpoint scope; not a principal.
     $limits,
 );
 
-// Add $resources to the existing McpCapabilityRegistry and McpRequestHandler composition.
+// Add $resourceDiscovery to the existing McpCapabilityRegistry and McpRequestHandler composition.
 // Do not register a second owner for either Resource discovery method.
 ```
 
@@ -357,11 +357,11 @@ use Fight\Common\Application\Mcp\Resource\McpResourceReadLimits;
 use Psr\Http\Message\StreamFactoryInterface;
 
 // Small fixed demonstration only; production providers open a bounded lazy stream from owned storage.
-$documents = new class ($streamFactory) implements McpReadableResourceProvider {
+$documentProvider = new class ($streamFactory) implements McpReadableResourceProvider {
     private const URI = 'context://revision-42/guide';
     private const TEXT = "# Guide 雪\r\n";
 
-    public function __construct(private readonly StreamFactoryInterface $streams) {}
+    public function __construct(private readonly StreamFactoryInterface $streamFactory) {}
 
     public function resources(): iterable
     {
@@ -381,15 +381,15 @@ $documents = new class ($streamFactory) implements McpReadableResourceProvider {
 
     public function open(McpResourceInfo $resource): McpResourceContent
     {
-        return McpResourceContent::text($resource, $this->streams->createStream(self::TEXT));
+        return McpResourceContent::text($resource, $this->streamFactory->createStream(self::TEXT));
     }
 };
 
-$resources = new McpResourceDiscovery(
-    [$documents], $visibility, $dedicatedCursorSecret, 'planning-documents',
+$resourceDiscovery = new McpResourceDiscovery(
+    [$documentProvider], $resourceAvailability, $dedicatedCursorSecret, 'planning-documents',
     readLimits: new McpResourceReadLimits()
 );
-// Compose this one capability in the existing registry/guarded endpoint, not alongside the earlier $resources.
+// Compose this one capability in the existing registry/guarded endpoint, not alongside the earlier $resourceDiscovery.
 ```
 
 Send `resources/read` with `params.uri` and the existing mandatory request `_meta`; over HTTP `Mcp-Name` mirrors
@@ -488,9 +488,9 @@ use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
 
 // Explicit consumer-owned Tool objects and request-scoped McpToolAvailability.
-$tools = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
-$discovery = new McpToolDiscovery($tools, $availability, $cursorSigningKey);
-$registry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$discovery]);
+$toolRegistry = new McpToolRegistry([$findOrderTool, $listOrdersTool]);
+$toolDiscovery = new McpToolDiscovery($toolRegistry, $toolAvailability, $cursorSigningKey);
+$registry = new McpCapabilityRegistry(new McpServerInfo('Orders', '1.0.0'), [$toolDiscovery]);
 $responder = new McpResponder($registry);
 // The same registry can be supplied to the guarded PSR endpoint below.
 ```
@@ -648,7 +648,7 @@ below supplies SSE and observed-disconnect cancellation; rollback is never impli
 
 ## Validated Tool invocation
 
-Compose `McpToolInvocation(new McpToolInvoker($tools, $availability, ...))` alongside `McpToolDiscovery` in the same
+Compose `McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAvailability, ...))` alongside `McpToolDiscovery` in the same
 capability registry. Both advertise `tools: {listChanged: false}`; discovery remains the required anchor method.
 Use the same request-scoped availability implementation for both. The invoker is a semantic boundary, not a bus,
 authorizer or transaction owner.
@@ -658,14 +658,14 @@ use Fight\Common\Application\Mcp\Tool\McpToolFailureMap;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 
-$invocation = new McpToolInvocation(new McpToolInvoker(
-    $tools,
-    $availability,
+$toolInvocation = new McpToolInvocation(new McpToolInvoker(
+    $toolRegistry,
+    $toolAvailability,
     failures: new McpToolFailureMap([
         OrderAlreadyClosed::class => 'The order is already closed.'
     ])
 ));
-$registry = new McpCapabilityRegistry($serverInfo, [$discovery, $invocation]);
+$registry = new McpCapabilityRegistry($serverInfo, [$toolDiscovery, $toolInvocation]);
 $responder = new McpResponder($registry, diagnostics: $diagnostics);
 ```
 
@@ -705,7 +705,7 @@ Declare rules beside `McpToolInfo`, for example:
 #[Validation(rules: [['field' => 'id', 'label' => 'Order', 'rules' => 'required|not_blank']])]
 public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
 {
-    $order = $this->queries->fetch(new GetOrder($input->get('id')));
+    $order = $this->queryBus->fetch(new GetOrder($input->get('id')));
 
     return McpToolOutput::structured((object) ['id' => $order->id]);
 }
@@ -800,8 +800,8 @@ $protector = new SodiumMcpStateProtector(
     keys: [1 => $previousRandom32ByteKey, 2 => $activeRandom32ByteKey]
 );
 $invoker = new McpToolInvoker(
-    $tools,
-    $availability,
+    $toolRegistry,
+    $toolAvailability,
     interaction: new McpToolInteraction($protector, $neutralCallerBinding)
 );
 ```
@@ -1072,10 +1072,10 @@ optional `McpToolAuditMetadata::fieldsFor(McpToolInfo)` implementation may close
 project explicitly allowlisted namespaced scalar fields:
 
 ```php
-$metadata = new McpToolMetadataFilter($auditProjection, ['orders/actorId', 'orders/traceId']);
-$commands->addFilter($metadata);
-$queries->addFilter($metadata);
-$invoker = new McpToolInvoker($tools, $availability, metadata: $metadata);
+$toolMetadataFilter = new McpToolMetadataFilter($auditProjection, ['orders/actorId', 'orders/traceId']);
+$commandPipeline->addFilter($toolMetadataFilter);
+$queryPipeline->addFilter($toolMetadataFilter);
+$invoker = new McpToolInvoker($toolRegistry, $toolAvailability, metadata: $toolMetadataFilter);
 ```
 
 Field declarations reject unnamespaced names, the reserved `fight.mcp/` namespace, and credential/password/secret/
@@ -1209,8 +1209,8 @@ retains the prior 511-container ceiling. Capability-specific metadata/Tool limit
 use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Protocol\McpRequestLimits;
 
-$decoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
-// Supply decoder: $decoder to the existing McpRequestHandler constructor.
+$requestDecoder = new McpRequestDecoder(new McpRequestLimits(maxBytes: 2097152, maxDepth: 128));
+// Supply decoder: $requestDecoder to the existing McpRequestHandler constructor.
 // Its limits() value is also used for bounded HTTP reading; there is no second HTTP budget to synchronize.
 ```
 

@@ -20,23 +20,23 @@ final class JsonSerializer implements Serializer
      */
     public function deserialize(string $state): Serializable
     {
-        $data = json_decode($state, true);
+        $serializationEnvelope = json_decode($state, true);
 
         $keys = ['@', '$'];
         foreach ($keys as $key) {
-            if (!isset($data[$key])) {
+            if (!isset($serializationEnvelope[$key])) {
                 $message = sprintf('Invalid serialization format: %s', $state);
                 throw new DomainException($message);
             }
         }
 
-        $class = ClassName::full($data['@']);
+        $serializedClass = ClassName::full($serializationEnvelope['@']);
 
-        if (!is_subclass_of($class, Serializable::class)) {
+        if (!is_subclass_of($serializedClass, Serializable::class)) {
             throw new DomainException('Class must implement Serializable interface');
         }
 
-        return $class::arrayDeserialize($data['$']);
+        return $serializedClass::arrayDeserialize($serializationEnvelope['$']);
     }
 
     /**
@@ -44,11 +44,11 @@ final class JsonSerializer implements Serializer
      */
     public function serialize(Serializable $object): string
     {
-        $data = [
+        $serializationEnvelope = [
             '@' => ClassName::canonical($object),
             '$' => $object->arraySerialize()
         ];
 
-        return json_encode($data, JSON_UNESCAPED_SLASHES);
+        return json_encode($serializationEnvelope, JSON_UNESCAPED_SLASHES);
     }
 }

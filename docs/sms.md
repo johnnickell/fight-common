@@ -109,17 +109,17 @@ final readonly class SmsService implements SmsTransport, SmsFactory
 ```php-inline
 class VerificationService
 {
-    public function __construct(private SmsService $sms) {}
+    public function __construct(private SmsService $smsService) {}
 
     public function sendCode(string $phone, string $code): void
     {
-        $message = $this->sms->createMessage(
+        $message = $this->smsService->createMessage(
             to:   $phone,
             from: '+15550000000',
             body: "Your code is {$code}"
         );
 
-        $this->sms->send($message);
+        $this->smsService->send($message);
     }
 }
 ```
@@ -286,17 +286,17 @@ use Fight\Common\Application\Sms\SmsService;
 
 class OrderShippedNotifier
 {
-    public function __construct(private SmsService $sms) {}
+    public function __construct(private SmsService $smsService) {}
 
     public function notify(Order $order): void
     {
-        $message = $this->sms->createMessage(
+        $message = $this->smsService->createMessage(
             to:   $order->customerPhone(),
             from: '+15550000000',
             body: sprintf('Your order #%d has shipped!', $order->id())
         );
 
-        $this->sms->send($message);
+        $this->smsService->send($message);
     }
 }
 ```
@@ -304,14 +304,14 @@ class OrderShippedNotifier
 ### Sending MMS with Media
 
 ```php-inline
-$message = $this->sms->createMessage(
+$message = $this->smsService->createMessage(
     to:        $recipient,
     from:      '+15550000000',
     body:      'Here is your receipt.',
     mediaUrls: ['https://example.com/receipts/1234.pdf']
 );
 
-$this->sms->send($message);
+$this->smsService->send($message);
 ```
 
 ### Building a Message Manually
@@ -319,13 +319,13 @@ $this->sms->send($message);
 ```php-inline
 use Fight\Common\Application\Sms\Message\SmsMessage;
 
-$mediaUrl = $this->sms->createMediaUrl('https://example.com/image.jpg');
+$mediaUrl = $this->smsService->createMediaUrl('https://example.com/image.jpg');
 
 $message = SmsMessage::create('+15550001234', '+15550000000')
     ->setBody('Check this out')
     ->addMedia($mediaUrl);
 
-$this->sms->send($message);
+$this->smsService->send($message);
 ```
 
 ### Testing with NullSmsTransport
@@ -334,6 +334,6 @@ $this->sms->send($message);
 use Fight\Common\Adapter\Sms\Null\NullSmsTransport;
 use Fight\Common\Application\Sms\SmsService;
 
-$service = new SmsService(new NullSmsTransport());
-$service->send($message);  // no-op, no exception
+$smsService = new SmsService(new NullSmsTransport());
+$smsService->send($message);  // no-op, no exception
 ```

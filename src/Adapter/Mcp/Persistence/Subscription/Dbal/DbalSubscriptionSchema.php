@@ -22,23 +22,23 @@ final readonly class DbalSubscriptionSchema
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $state = $schema->createTable(self::TABLES[0]);
-        $state->addColumn('singleton', 'integer');
-        $state->addColumn('version', 'integer');
-        $state->setPrimaryKey(['singleton']);
+        $stateTable = $schema->createTable(self::TABLES[0]);
+        $stateTable->addColumn('singleton', 'integer');
+        $stateTable->addColumn('version', 'integer');
+        $stateTable->setPrimaryKey(['singleton']);
 
-        $rows = $schema->createTable(self::TABLES[1]);
+        $subscriptionTable = $schema->createTable(self::TABLES[1]);
         foreach (['registration_id', 'owner'] as $field) {
-            $rows->addColumn($field, 'string', ['length' => 32]);
+            $subscriptionTable->addColumn($field, 'string', ['length' => 32]);
         }
 
-        $rows->addColumn('context', 'text');
+        $subscriptionTable->addColumn('context', 'text');
         foreach (['opened_at', 'observed_at', 'expires_at', 'closed_at'] as $field) {
-            $rows->addColumn($field, 'integer');
+            $subscriptionTable->addColumn($field, 'integer');
         }
 
-        $rows->setPrimaryKey(['registration_id']);
-        $rows->addIndex(['expires_at'], 'fight_mcp_subscription_expiry');
+        $subscriptionTable->setPrimaryKey(['registration_id']);
+        $subscriptionTable->addIndex(['expires_at'], 'fight_mcp_subscription_expiry');
         if ($platform instanceof AbstractMySQLPlatform) {
             foreach (self::TABLES as $name) {
                 $table = $schema->getTable($name);
@@ -58,13 +58,13 @@ final readonly class DbalSubscriptionSchema
             throw new RuntimeException('Subscription installation requires an idle connection.');
         }
 
-        $manager = $connection->createSchemaManager();
-        $present = array_intersect(self::TABLES, $manager->listTableNames());
+        $schemaManager = $connection->createSchemaManager();
+        $present = array_intersect(self::TABLES, $schemaManager->listTableNames());
         if ($present !== []) {
             if (
                 count($present) !== 2 || (int) $connection->fetchOne(
                     'SELECT version FROM fight_mcp_subscription_state WHERE singleton = 1'
-                ) !== 1 || !$manager->introspectTable(self::TABLES[1])->hasIndex('fight_mcp_subscription_expiry')
+                ) !== 1 || !$schemaManager->introspectTable(self::TABLES[1])->hasIndex('fight_mcp_subscription_expiry')
             ) {
                 throw new RuntimeException('Unsupported subscription schema.');
             }
@@ -72,10 +72,10 @@ final readonly class DbalSubscriptionSchema
             return;
         }
 
-        $schema = $manager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
         foreach (self::TABLES as $name) {
-            $manager->createTable($schema->getTable($name));
+            $schemaManager->createTable($schema->getTable($name));
         }
 
         $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1]);

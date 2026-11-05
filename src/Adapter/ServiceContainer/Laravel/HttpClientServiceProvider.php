@@ -26,9 +26,9 @@ final class HttpClientServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(HttpClient::class, static function (Container $container): GuzzleClient {
-            $client = $container->make(ClientInterface::class);
+            $httpClient = $container->make(ClientInterface::class);
 
-            return new GuzzleClient($client);
+            return new GuzzleClient($httpClient);
         });
     }
 }

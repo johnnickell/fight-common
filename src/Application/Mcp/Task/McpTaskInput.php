@@ -28,7 +28,7 @@ final readonly class McpTaskInput
     /**
      * Constructs McpTaskInput
      */
-    public function __construct(private CommandBus $commands, private string $scope, private string $caller)
+    public function __construct(private CommandBus $commandBus, private string $scope, private string $caller)
     {
         TaskDefinition::reference($scope);
         TaskDefinition::reference($caller);
@@ -77,7 +77,7 @@ final readonly class McpTaskInput
         }
 
         try {
-            $this->commands->execute($command);
+            $this->commandBus->execute($command);
         } catch (TaskRejected | TaskConflict) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), $request->id());
         }

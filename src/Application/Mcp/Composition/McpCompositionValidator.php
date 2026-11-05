@@ -157,12 +157,12 @@ final readonly class McpCompositionValidator
     private function validateTasks(array $methods, array $capabilities): void
     {
         $settings = $capabilities['extensions'][McpTasks::EXTENSION] ?? null;
-        $invocation = $methods['tools/call'] ?? null;
-        $tasks = $methods['tasks/get'] ?? null;
+        $toolInvocation = $methods['tools/call'] ?? null;
+        $taskCapability = $methods['tasks/get'] ?? null;
         if ($settings === null) {
             if (
                 isset($methods['tasks/get']) || isset($methods['tasks/update']) || isset($methods['tasks/cancel'])
-                || ($invocation instanceof McpToolInvocation && $invocation->tasks() !== null)
+                || ($toolInvocation instanceof McpToolInvocation && $toolInvocation->tasks() !== null)
             ) {
                 throw new DomainException('Task composition requires the complete Tasks extension.');
             }
@@ -171,9 +171,10 @@ final readonly class McpCompositionValidator
         }
 
         if (
-            $settings->properties() !== [] || !$tasks instanceof McpTasks
-            || ($methods['tasks/update'] ?? null) !== $tasks || ($methods['tasks/cancel'] ?? null) !== $tasks
-            || !$invocation instanceof McpToolInvocation || $invocation->tasks() !== $tasks
+            $settings->properties() !== [] || !$taskCapability instanceof McpTasks
+            || ($methods['tasks/update'] ?? null) !== $taskCapability
+            || ($methods['tasks/cancel'] ?? null) !== $taskCapability
+            || !$toolInvocation instanceof McpToolInvocation || $toolInvocation->tasks() !== $taskCapability
         ) {
             throw new DomainException('Tasks requires shared start, get, input and cancellation composition.');
         }

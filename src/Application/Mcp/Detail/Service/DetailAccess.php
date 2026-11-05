@@ -16,7 +16,7 @@ final readonly class DetailAccess
     /**
      * Constructs DetailAccess
      */
-    private function __construct(private ExecutionAccess $scope, private ExecutionAccess $bodies)
+    private function __construct(private ExecutionAccess $metadataAccess, private ExecutionAccess $bodyAccess)
     {
     }
 
@@ -45,7 +45,7 @@ final readonly class DetailAccess
      */
     public function scope(): ExecutionAccess
     {
-        return $this->scope;
+        return $this->metadataAccess;
     }
 
     /**
@@ -53,7 +53,7 @@ final readonly class DetailAccess
      */
     public function permitsBody(string $project, string $producer, string $id): bool
     {
-        $grants = $this->bodies->detailGrants();
+        $grants = $this->bodyAccess->detailGrants();
         if (!array_key_exists($project, $grants)) {
             return false;
         }

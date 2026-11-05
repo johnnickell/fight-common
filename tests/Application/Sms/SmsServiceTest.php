@@ -22,13 +22,13 @@ class SmsServiceTest extends UnitTestCase
     public function test_that_optional_phone_adoption_builds_without_sending_and_sends_only_on_request(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
-        self::assertInstanceOf(SmsFactory::class, $service);
+        $smsService = new SmsService($transport);
+        self::assertInstanceOf(SmsFactory::class, $smsService);
         $to = E164PhoneNumber::fromString('+15550001234');
         $from = E164PhoneNumber::fromString('+15559998765');
         $media = Url::parse('https://example.com/image.jpg');
         // The strict mock has no send expectation during value and message construction.
-        $message = $service->createMessage(
+        $message = $smsService->createMessage(
             $to->toString(),
             $from->toString(),
             'Hello',
@@ -41,7 +41,7 @@ class SmsServiceTest extends UnitTestCase
         self::assertSame($media, $message->getMedia()[0]);
         self::assertSame('https://example.com/other.jpg', $message->getMedia()[1]->toString());
         $transport->shouldReceive('send')->once()->with($message);
-        $service->send($message);
+        $smsService->send($message);
     }
 
     #[DataProvider('stringAddresses')]
@@ -74,16 +74,16 @@ class SmsServiceTest extends UnitTestCase
         $transport = $this->mock(SmsTransport::class);
         $transport->shouldReceive('send')->once()->with($message);
 
-        $service = new SmsService($transport);
-        $service->send($message);
+        $smsService = new SmsService($transport);
+        $smsService->send($message);
     }
 
     public function test_that_create_message_returns_configured_sms_message(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
-        $message = $service->createMessage('+1234567890', '+0987654321');
+        $message = $smsService->createMessage('+1234567890', '+0987654321');
 
         self::assertInstanceOf(SmsMessage::class, $message);
         self::assertSame('+1234567890', $message->getTo());
@@ -93,9 +93,9 @@ class SmsServiceTest extends UnitTestCase
     public function test_that_create_message_with_body_sets_body(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
-        $message = $service->createMessage('+1234567890', '+0987654321', 'Hello World');
+        $message = $smsService->createMessage('+1234567890', '+0987654321', 'Hello World');
 
         self::assertSame('Hello World', $message->getBody());
     }
@@ -104,9 +104,9 @@ class SmsServiceTest extends UnitTestCase
     {
         $url = Url::parse('https://example.com/image.jpg');
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
-        $message = $service->createMessage('+1234567890', '+0987654321', null, [$url]);
+        $message = $smsService->createMessage('+1234567890', '+0987654321', null, [$url]);
 
         self::assertCount(1, $message->getMedia());
         self::assertSame($url, $message->getMedia()[0]);
@@ -115,9 +115,9 @@ class SmsServiceTest extends UnitTestCase
     public function test_that_create_message_accepts_url_string_and_parses_it(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
-        $message = $service->createMessage(
+        $message = $smsService->createMessage(
             '+1234567890',
             '+0987654321',
             null,
@@ -132,9 +132,9 @@ class SmsServiceTest extends UnitTestCase
     public function test_that_create_media_url_parses_and_returns_url(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
-        $url = $service->createMediaUrl('https://example.com/image.jpg');
+        $url = $smsService->createMediaUrl('https://example.com/image.jpg');
 
         self::assertInstanceOf(Url::class, $url);
         self::assertSame('https://example.com/image.jpg', (string) $url);
@@ -143,10 +143,10 @@ class SmsServiceTest extends UnitTestCase
     public function test_that_create_media_url_throws_domain_exception_for_invalid_urls(): void
     {
         $transport = $this->mock(SmsTransport::class);
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
         $this->expectException(DomainException::class);
-        $service->createMediaUrl('not-a-valid-url');
+        $smsService->createMediaUrl('not-a-valid-url');
     }
 
     public function test_that_send_throws_sms_exception_when_transport_fails(): void
@@ -157,10 +157,10 @@ class SmsServiceTest extends UnitTestCase
             new SmsException('Transport failure')
         );
 
-        $service = new SmsService($transport);
+        $smsService = new SmsService($transport);
 
         $this->expectException(SmsException::class);
         $this->expectExceptionMessage('Transport failure');
-        $service->send($message);
+        $smsService->send($message);
     }
 }

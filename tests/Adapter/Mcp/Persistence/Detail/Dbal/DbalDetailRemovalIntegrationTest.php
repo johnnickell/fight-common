@@ -68,10 +68,10 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_public_removal_commits_all_kinds_and_preserves_summary_links_and_truthful_queries(string $backend): void
     {
-        $db = $this->database($backend); $store = new DbalRecordingTransaction($db);
-        $record = $this->seed($store); $remove = new RemovalFixture($store);
+        $db = $this->database($backend); $recordingTransaction = new DbalRecordingTransaction($db);
+        $record = $this->seed($recordingTransaction); $remove = new RemovalFixture($recordingTransaction);
         $events = 0; $record->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
-        [$queries] = $this->queries($db);
+        [$queryBus] = $this->queries($db);
         foreach (DetailKind::cases() as $kind) {
             foreach (CaptureCompleteness::cases() as $completeness) {
                 $capture = DetailCapture::create(ObservationFixture::activity()->id(), $kind, 'text/plain', $completeness, $kind === DetailKind::PROCESS_OUTPUT ? OutputSegment::create('stdout', 0, 0) : null);
@@ -80,26 +80,26 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
                 $record->record($detail, ProtectedContent::create($capture, $hasBody ? 'PROTECTED-ERASE-ME' : null));
                 $command = RemovalFixture::command($detail);
                 $query = new GetCapturedDetail($command->selection(), $detail->id(), $kind);
-                $before = $queries->fetch($query)->toArray();
+                $before = $queryBus->fetch($query)->toArray();
                 self::assertSame($hasBody ? 'retained' : $completeness->value, $before['reference']['availability']);
-                $safe = $this->safeState($db); $summary = $this->summary($queries); $eventCount = $events;
+                $safe = $this->safeState($db); $summary = $this->summary($queryBus); $eventCount = $events;
                 $envelope = CommandMessage::arrayDeserialize(CommandMessage::create($command)->arraySerialize());
-                $remove->bus->dispatch($envelope);
+                $remove->commandBus->dispatch($envelope);
                 self::assertFalse($db->isTransactionActive());
                 $other = $this->connect($db->getParams());
                 self::assertSame(0, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_execution_contents WHERE observation_id = ?', [$detail->id()->toString()]), 'Acknowledgment must follow a commit visible on an independent connection.');
-                $after = $queries->fetch($query)->toArray();
+                $after = $queryBus->fetch($query)->toArray();
                 self::assertNull($after['chunk']);
                 self::assertSame($hasBody ? 'missing' : $completeness->value, $after['reference']['availability']);
                 self::assertSame($before['reference']['capture'], $after['reference']['capture']);
                 self::assertSame($safe, $this->safeState($db));
-                self::assertSame($summary, $this->summary($queries));
-                $activity = $queries->fetch(new ListPhaseActivity('project', 'session', 'phase'))->toArray();
+                self::assertSame($summary, $this->summary($queryBus));
+                $activity = $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase'))->toArray();
                 $references = $activity['activities'][0]['details'];
                 $reference = array_values(array_filter($references, static fn ($ref) => $ref['observation_id'] === $detail->id()->toString()))[0];
                 self::assertSame($after['reference'], $reference);
                 self::assertStringNotContainsString('PROTECTED-ERASE-ME', json_encode([$activity, $summary, $after]));
-                $remove->bus->execute($command);
+                $remove->commandBus->execute($command);
                 self::assertSame($eventCount, $events, 'Removal and reads publish no events.');
             }
         }
@@ -110,26 +110,26 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_read_grants_do_not_authorize_removal_and_repeats_recheck_current_scope(string $backend): void
     {
-        $db = $this->database($backend); $store = new DbalRecordingTransaction($db); $record = $this->seed($store);
+        $db = $this->database($backend); $recordingTransaction = new DbalRecordingTransaction($db); $record = $this->seed($recordingTransaction);
         $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
-        [$queries, $readAdmission] = $this->queries($db); $remove = new RemovalFixture($store); $command = RemovalFixture::command($detail);
-        self::assertNotNull($queries->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE))->toArray()['chunk']);
+        [$queryBus, $readAdmission] = $this->queries($db); $remove = new RemovalFixture($recordingTransaction); $command = RemovalFixture::command($detail);
+        self::assertNotNull($queryBus->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE))->toArray()['chunk']);
         $remove->allowed = false; $before = $this->allState($db);
-        $this->rejects(static fn () => $remove->bus->execute($command));
+        $this->rejects(static fn () => $remove->commandBus->execute($command));
         self::assertSame($before, $this->allState($db));
         $remove->allowed = true; $readAdmission->access = DetailAccess::create([]);
-        self::assertNull($queries->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE)));
-        $remove->bus->execute($command); // Removal does not require read access.
-        $remove->allowed = false; $this->rejects(static fn () => $remove->bus->execute($command));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($command->selection(), $detail->id(), DetailKind::MESSAGE)));
+        $remove->commandBus->execute($command); // Removal does not require read access.
+        $remove->allowed = false; $this->rejects(static fn () => $remove->commandBus->execute($command));
         $remove->allowed = true;
         foreach (['project_id', 'session_id', 'phase_id', 'producer_id', 'activity_id'] as $field) {
             $selection = $command->selection()->toArray(); $selection[$field] = $field === 'activity_id' ? ObservationId::generate()->toString() : 'concealed';
-            $this->rejects(static fn () => $remove->bus->execute(new RemoveCapturedDetail(DetailSelection::fromArray($selection), $detail->id(), DetailKind::MESSAGE)));
+            $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail(DetailSelection::fromArray($selection), $detail->id(), DetailKind::MESSAGE)));
         }
-        $this->rejects(static fn () => $remove->bus->execute(new RemoveCapturedDetail($command->selection(), $detail->id(), DetailKind::TOOL_RESULT)));
-        $this->rejects(static fn () => $remove->bus->execute(new RemoveCapturedDetail($command->selection(), ObservationId::generate(), DetailKind::MESSAGE)));
-        $this->rejects(static fn () => $remove->bus->execute(new RemoveCapturedDetail($command->selection(), ObservationFixture::phase()->id(), DetailKind::MESSAGE)));
-        $remove->bus->execute($command);
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), $detail->id(), DetailKind::TOOL_RESULT)));
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), ObservationId::generate(), DetailKind::MESSAGE)));
+        $this->rejects(static fn () => $remove->commandBus->execute(new RemoveCapturedDetail($command->selection(), ObservationFixture::phase()->id(), DetailKind::MESSAGE)));
+        $remove->commandBus->execute($command);
         self::assertSame(12, $remove->admissions);
         self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_contents'));
     }
@@ -137,27 +137,27 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_failure_after_real_delete_rolls_back_and_outer_transactions_preserve_caller_work(string $backend): void
     {
-        $db = $this->database($backend); $store = new DbalRecordingTransaction($db); $record = $this->seed($store);
+        $db = $this->database($backend); $recordingTransaction = new DbalRecordingTransaction($db); $record = $this->seed($recordingTransaction);
         $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'PRIVATE'));
         $command = RemovalFixture::command($detail); $before = $this->allState($db);
-        $failing = new RemovalFixture($store, static function () use ($db): void {
+        $failing = new RemovalFixture($recordingTransaction, static function () use ($db): void {
             self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_contents'));
             throw new RuntimeException('Injected failure after deletion.');
         });
-        try { $failing->bus->execute($command); self::fail('Expected rollback.'); }
+        try { $failing->commandBus->execute($command); self::fail('Expected rollback.'); }
         catch (RuntimeException $failure) { self::assertSame('Injected failure after deletion.', $failure->getMessage()); }
         self::assertSame($before, $this->allState($this->connect($db->getParams())));
-        self::assertFalse($store->isClosed());
-        $remove = new RemovalFixture($store);
+        self::assertFalse($recordingTransaction->isClosed());
+        $remove = new RemovalFixture($recordingTransaction);
         $db->beginTransaction();
         $db->insert('fight_execution_sessions', SessionReference::fromStrings('caller', 'unrelated', 'owned')->toArray());
-        try { $remove->bus->execute($command); self::fail('Expected outer transaction rejection.'); }
+        try { $remove->commandBus->execute($command); self::fail('Expected outer transaction rejection.'); }
         catch (LogicException) { self::assertTrue($db->isTransactionActive()); self::assertSame(0, $remove->admissions); }
         self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_contents'));
         self::assertSame(2, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
         $db->commit();
         self::assertSame(2, (int) $this->connect($db->getParams())->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
-        $remove->bus->execute($command);
+        $remove->commandBus->execute($command);
         self::assertSame(0, (int) $this->connect($db->getParams())->fetchOne('SELECT COUNT(*) FROM fight_execution_contents'));
     }
 
@@ -172,13 +172,13 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
         }
         $proxy->shouldReceive('commit')->once()->andReturnUsing(static function () use ($db): void { $db->commit(); throw new RuntimeException('Lost acknowledgment.'); });
         $proxy->shouldNotReceive('rollBack');
-        $store = new DbalRecordingTransaction($proxy); $remove = new RemovalFixture($store);
-        try { $remove->bus->execute(RemovalFixture::command($detail)); self::fail('Must report uncertain outcome.'); }
+        $recordingTransaction = new DbalRecordingTransaction($proxy); $remove = new RemovalFixture($recordingTransaction);
+        try { $remove->commandBus->execute(RemovalFixture::command($detail)); self::fail('Must report uncertain outcome.'); }
         catch (ObservationStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
-        self::assertTrue($store->isClosed()); self::assertSame(1, $remove->admissions);
+        self::assertTrue($recordingTransaction->isClosed()); self::assertSame(1, $remove->admissions);
         $fresh = $this->connect($db->getParams());
         self::assertSame(0, (int) $fresh->fetchOne('SELECT COUNT(*) FROM fight_execution_contents'));
-        $repeat = new RemovalFixture(new DbalRecordingTransaction($fresh)); $repeat->bus->execute(RemovalFixture::command($detail));
+        $repeat = new RemovalFixture(new DbalRecordingTransaction($fresh)); $repeat->commandBus->execute(RemovalFixture::command($detail));
         self::assertSame(1, $repeat->admissions);
     }
 
@@ -188,22 +188,22 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
         $db = $this->database($backend); $record = $this->seed(new DbalRecordingTransaction($db));
         $detail = ObservationFixture::detail(); $record->record($detail, ProtectedContent::create($detail->detail(), 'abcdef'));
         $second = ObservationFixture::detail(['observation_id' => ObservationId::generate()->toString()]); $record->record($second, ProtectedContent::create($second->detail(), 'other'));
-        [$queries] = $this->queries($db); $selection = RemovalFixture::command($detail)->selection();
-        self::assertSame(2, $queries->fetch(new ListCapturedMessages($selection, 1, 1))->toArray()['total']);
-        self::assertSame(3, $queries->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk']['next_offset']);
-        $dir = $this->directory(); $config = $dir.'/config.json';
+        [$queryBus] = $this->queries($db); $selection = RemovalFixture::command($detail)->selection();
+        self::assertSame(2, $queryBus->fetch(new ListCapturedMessages($selection, 1, 1))->toArray()['total']);
+        self::assertSame(3, $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk']['next_offset']);
+        $temporaryDirectory = $this->directory(); $config = $temporaryDirectory.'/config.json';
         file_put_contents($config, json_encode(['params' => $db->getParams(), 'observation' => $detail->toArray(), 'operations' => ['first' => 'remove'], 'pause_after_delete' => true], JSON_THROW_ON_ERROR));
         $worker = $this->worker($config, 'first');
         try {
-            $worker->start(); $this->waitFor($dir.'/first-deleted', $worker);
-            $during = $queries->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
+            $worker->start(); $this->waitFor($temporaryDirectory.'/first-deleted', $worker);
+            $during = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
             self::assertSame('def', base64_decode($during['chunk']['data'], true), 'Independent read wins before commit and sees the old committed body.');
-            file_put_contents($dir.'/release', 'commit'); self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
+            file_put_contents($temporaryDirectory.'/release', 'commit'); self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
             self::assertSame('removed', json_decode($worker->getOutput(), true, flags: JSON_THROW_ON_ERROR)['status']);
-            $after = $queries->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
+            $after = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray();
             self::assertNull($after['chunk']); self::assertSame('missing', $after['reference']['availability']);
             $pages = [];
-            foreach ([1, 2] as $page) { $pages = [...$pages, ...$queries->fetch(new ListCapturedMessages($selection, $page, 1))->toArray()['messages']]; }
+            foreach ([1, 2] as $page) { $pages = [...$pages, ...$queryBus->fetch(new ListCapturedMessages($selection, $page, 1))->toArray()['messages']]; }
             $removed = array_values(array_filter($pages, static fn ($row) => $row['reference']['observation_id'] === $detail->id()->toString()))[0];
             self::assertNull($removed['chunk']); self::assertSame('missing', $removed['reference']['availability']);
         } finally { $worker->stop(); }
@@ -212,25 +212,25 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
     #[DataProvider('races')]
     public function test_that_competing_public_removals_and_recording_retries_obey_retained_comparison_boundaries(string $backend, string $competitor, bool $removalFirst, bool $retained): void
     {
-        $db = $this->database($backend); $store = new DbalRecordingTransaction($db); $record = $this->seed($store);
+        $db = $this->database($backend); $recordingTransaction = new DbalRecordingTransaction($db); $record = $this->seed($recordingTransaction);
         $detail = ObservationFixture::detail(); $content = ProtectedContent::create($detail->detail(), 'private-body'); $record->record($detail, $content);
         if (!$retained) {
             // Consumer-owned identity purge fixture, deliberately not a public metadata-purge capability.
-            (new RemovalFixture($store))->bus->execute(RemovalFixture::command($detail));
-            $store->commitTransactional(static fn () => $db->delete('fight_execution_observations', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]));
+            (new RemovalFixture($recordingTransaction))->commandBus->execute(RemovalFixture::command($detail));
+            $recordingTransaction->commitTransactional(static fn () => $db->delete('fight_execution_observations', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]));
         }
         $operations = $removalFirst ? ['first' => 'remove', 'second' => $competitor] : ['first' => $competitor, 'second' => 'remove'];
-        $dir = $this->directory(); $config = $dir.'/config.json';
+        $temporaryDirectory = $this->directory(); $config = $temporaryDirectory.'/config.json';
         file_put_contents($config, json_encode(['params' => $db->getParams(), 'observation' => $detail->toArray(), 'content' => $content->toArray(), 'operations' => $operations], JSON_THROW_ON_ERROR));
         $first = $this->worker($config, 'first'); $second = $this->worker($config, 'second');
         try {
-            $first->start(); $this->waitFor($dir.'/first-admitted', $first);
-            $second->start(); $this->waitFor($dir.'/second-started', $second);
-            self::assertFileDoesNotExist($dir.'/second-admitted', 'First worker already owns the common serialization lock.');
-            file_put_contents($dir.'/release', 'proceed');
+            $first->start(); $this->waitFor($temporaryDirectory.'/first-admitted', $first);
+            $second->start(); $this->waitFor($temporaryDirectory.'/second-started', $second);
+            self::assertFileDoesNotExist($temporaryDirectory.'/second-admitted', 'First worker already owns the common serialization lock.');
+            file_put_contents($temporaryDirectory.'/release', 'proceed');
             self::assertSame(0, $first->wait(), $first->getErrorOutput()); self::assertSame(0, $second->wait(), $second->getErrorOutput());
-            $a = json_decode($first->getOutput(), true, flags: JSON_THROW_ON_ERROR); $b = json_decode($second->getOutput(), true, flags: JSON_THROW_ON_ERROR);
-            $removal = $removalFirst ? $a : $b; $retry = $removalFirst ? $b : $a;
+            $firstResult = json_decode($first->getOutput(), true, flags: JSON_THROW_ON_ERROR); $secondResult = json_decode($second->getOutput(), true, flags: JSON_THROW_ON_ERROR);
+            $removal = $removalFirst ? $firstResult : $secondResult; $retry = $removalFirst ? $secondResult : $firstResult;
             self::assertSame(!$retained && $removalFirst ? DetailRemovalRejected::class : 'removed', $removal['status']);
             $expected = 'recorded';
             if ($retained && $competitor === 'remove') { $expected = 'removed'; }
@@ -238,7 +238,7 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
             elseif ($retained && $removalFirst) { $expected = ProtectedContentRemoved::class; }
             elseif ($retained && $competitor === 'body-conflict') { $expected = ObservationConflict::class; }
             self::assertSame($expected, $retry['status']);
-            self::assertSame(1, $a['admissions']); self::assertSame(1, $b['admissions']);
+            self::assertSame(1, $firstResult['admissions']); self::assertSame(1, $secondResult['admissions']);
             self::assertSame(0, $removal['events']); self::assertSame($retained ? 0 : 1, $retry['events']);
             $body = $db->fetchOne('SELECT payload FROM fight_execution_contents');
             if (!$retained && $removalFirst) {
@@ -270,9 +270,9 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
         }
     }
 
-    private function seed(DbalRecordingTransaction $store): RecordingFixture
+    private function seed(DbalRecordingTransaction $recordingTransaction): RecordingFixture
     {
-        $fixture = new RecordingFixture($store);
+        $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $observation) { $fixture->record($observation); }
         return $fixture;
     }
@@ -297,9 +297,9 @@ final class DbalDetailRemovalIntegrationTest extends UnitTestCase
         return [new RoutingQueryBus($router), $detailAdmission];
     }
 
-    private function summary(RoutingQueryBus $bus): array
+    private function summary(RoutingQueryBus $queryBus): array
     {
-        return [$bus->fetch(new GetExecution('project', 'session'))->toArray(), $bus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray(), $bus->fetch(new ListExecutionPhases('project', 'session'))->toArray()];
+        return [$queryBus->fetch(new GetExecution('project', 'session'))->toArray(), $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray(), $queryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()];
     }
 
     private function rejects(callable $operation): void

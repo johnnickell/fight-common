@@ -18,7 +18,7 @@ final readonly class RemoveNoticesHandler implements CommandHandler
     /**
      * Constructs RemoveNoticesHandler
      */
-    public function __construct(private NoticeRemover $remover)
+    public function __construct(private NoticeRemover $noticeRemover)
     {
     }
 
@@ -40,6 +40,6 @@ final readonly class RemoveNoticesHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected notice removal command.');
         }
 
-        $this->remover->remove($command->selection());
+        $this->noticeRemover->remove($command->selection());
     }
 }

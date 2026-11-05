@@ -70,25 +70,25 @@ final class DbalExecutionReaderTest extends ExecutionReadTestCase
             $activity['activity']['usage'] = [UsageMeasurement::create('consumer/metric'.$i, 'unit', 'source', UsageCompleteness::COMPLETE, '1')->toArray()];
             $record(Observation::fromArray($activity));
         }
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         $this->expectException(ExecutionReadFailed::class);
-        $bus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])));
+        $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])));
     }
 
     public function test_that_corrupt_stored_evidence_fails_safely_instead_of_fabricating_an_outcome(): void
     {
         $db = $this->database('sqlite');
         $this->writer($db)(ObservationFixture::session());
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         foreach ([['version' => 2], ['version' => 1, 'payload' => 'null'], ['payload' => 'PROTECTED-SENTINEL']] as $corruption) {
             $db->update('fight_execution_observations', $corruption, ['producer_id' => 'instrumentation']);
-            try { $bus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project']))); self::fail('Invalid retained data must fail.'); }
+            try { $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project']))); self::fail('Invalid retained data must fail.'); }
             catch (ExecutionReadFailed $failure) { self::assertStringNotContainsString('PROTECTED-SENTINEL', $failure->getMessage()); }
         }
         $db->update('fight_execution_observations', ['version' => 1, 'payload' => ObservationFixture::session()->comparison()], ['producer_id' => 'instrumentation']);
         $this->writer($db)(ObservationFixture::phase());
         $db->update('fight_execution_observations', ['version' => 2], ['observation_id' => ObservationFixture::phase()->id()->toString()]);
         $this->expectException(ExecutionReadFailed::class);
-        $bus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])));
+        $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])));
     }
 }

@@ -50,7 +50,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         foreach ([TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), TaskState::create('cancelled')] as $index => $terminal) {
             $id = str_repeat((string) ($index + 1), 32);
             $fresh->create(id: $id);
-            $fresh->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::id($id), 'producer', 1, $terminal));
+            $fresh->commandBus->execute(new \Fight\Common\Domain\Mcp\Task\Command\RecordTaskState('scope', TaskFixture::id($id), 'producer', 1, $terminal));
             self::assertSame($terminal->data()->toString(), (new TaskFixture($this->connect($params)))->get($id)->get('state')->toString());
         }
         $snapshot = $reconnected->get()->toString(); $reconnected->readAllowed = false; self::assertNull($reconnected->get());
@@ -79,7 +79,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         try { $uncertain->record(TaskFixture::completed()); self::fail('Uncertainty required.'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
         self::assertTrue($uncertain->transactionalUnitOfWork->isClosed());
         $fresh = new TaskFixture($this->connect($params)); $calls = 0;
-        $fresh->events->addHandler(ClassName::underscore(TaskChanged::class), static function (EventMessage $message) use (&$calls, $params): void {
+        $fresh->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function (EventMessage $message) use (&$calls, $params): void {
             ++$calls; $other = DriverManager::getConnection($params);
             self::assertSame($message->payload()->toArray()['version'], (new TaskFixture($other))->get($message->payload()->toArray()['id'])->get('version'));
             $other->close(); throw new RuntimeException('Private publication failure');
@@ -132,11 +132,11 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $nested = 'leaf';
         for ($depth = 0; $depth < 63; ++$depth) { $nested = (object) ['node' => $nested]; }
         $operation = TaskFixture::definition()->operation()->with('retained', $nested, 64);
-        $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
+        $fixture->commandBus->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         $fresh = new TaskFixture($this->connect($connection->getParams()));
         self::assertSame('working', $fresh->get()->get('state')->get('status'));
         self::assertSame($operation->toString(), $fresh->committedTaskReader->read('scope', TaskFixture::id())->definition()->operation()->toString());
-        $fresh->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
+        $fresh->commandBus->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame(1, $fresh->get()->get('version'));
     }
 
@@ -195,7 +195,7 @@ final class TaskLifecycleJourneyTest extends UnitTestCase
         $fresh->removeAllowed = true; $fresh->now += 500; $fresh->create(2000);
         self::assertSame(1, $fresh->get()->get('version')); self::assertSame($fresh->now, $fresh->get()->get('created_at'));
         $facts = [];
-        $fresh->events->addHandler(ClassName::underscore(TaskDataRemoved::class), static function (EventMessage $message) use ($params, &$facts): void {
+        $fresh->eventDispatcher->addHandler(ClassName::underscore(TaskDataRemoved::class), static function (EventMessage $message) use ($params, &$facts): void {
             $other = DriverManager::getConnection($params);
             try { self::assertNull((new TaskFixture($other))->get()); self::assertSame(0, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_tasks')); }
             finally { $other->close(); }

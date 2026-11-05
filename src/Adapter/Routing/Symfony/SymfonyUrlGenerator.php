@@ -50,29 +50,29 @@ readonly class SymfonyUrlGenerator implements UrlGenerator
             }
 
             return $url;
-        } catch (RouteException $e) {
+        } catch (RouteException $exception) {
             throw new RouteNotFoundException(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
+                $exception->getMessage(),
+                $exception->getCode(),
+                $exception
             );
-        } catch (MissingException $e) {
+        } catch (MissingException $exception) {
             throw new MissingParametersException(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
+                $exception->getMessage(),
+                $exception->getCode(),
+                $exception
             );
-        } catch (ParameterException $e) {
+        } catch (ParameterException $exception) {
             throw new InvalidParameterException(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
+                $exception->getMessage(),
+                $exception->getCode(),
+                $exception
             );
-        } catch (Throwable $e) {
+        } catch (Throwable $exception) {
             throw new UrlGenerationException(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
+                $exception->getMessage(),
+                $exception->getCode(),
+                $exception
             );
         }
     }

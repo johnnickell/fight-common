@@ -85,7 +85,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
     public function test_that_routed_lifecycle_commits_coherent_state_and_rechecks_current_independent_permissions(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $facts = [];
-        $fixture->events->addHandler(ClassName::underscore(TaskChanged::class), static function (EventMessage $message) use (&$facts, $connection): void {
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function (EventMessage $message) use (&$facts, $connection): void {
             self::assertFalse($connection->isTransactionActive()); $facts[] = $message->payload()->toArray();
         });
         $fixture->create(1000, 25); $fixture->create(1000, 25);
@@ -123,7 +123,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         try { $fixture->record(TaskFixture::completed()); self::fail('Missing cannot complete.'); } catch (TaskRejected) { self::assertNull($fixture->get()); }
         $fixture->create(); $before = $fixture->get()->toString();
         foreach ([new RecordTaskState('scope', TaskFixture::id(), 'other', 1, TaskFixture::completed()), new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'private diagnostic']))), new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskState::create('completed', result: StrictJson::fromObject(['content' => [], 'structuredContent' => (object) ['ok' => 'wrong'], 'isError' => false])))] as $command) {
-            try { $fixture->commands->execute($command); self::fail('Unsafe evidence must reject.'); } catch (TaskRejected) { self::assertSame($before, $fixture->get()->toString()); }
+            try { $fixture->commandBus->execute($command); self::fail('Unsafe evidence must reject.'); } catch (TaskRejected) { self::assertSame($before, $fixture->get()->toString()); }
         }
         // Tampered but structurally valid state cannot bypass original contract validation on reads.
         $data = $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray();
@@ -135,7 +135,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
     public function test_that_postcommit_dispatch_failure_retains_state_and_retry_does_not_replay_facts(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $calls = 0;
-        $fixture->events->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$calls): void { ++$calls; throw new RuntimeException('private'); });
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$calls): void { ++$calls; throw new RuntimeException('private'); });
         try { $fixture->create(); self::fail('Expected committed failure.'); } catch (CommittedTaskDispatchFailed $failure) {
             self::assertSame('Task committed; fact dispatch failed.', $failure->getMessage()); self::assertSame(1, $failure->event()->toArray()['version']);
         }
@@ -251,7 +251,7 @@ final class DbalTaskRepositoryTest extends UnitTestCase
         $nested = 'leaf';
         for ($depth = 0; $depth < 63; ++$depth) { $nested = (object) ['node' => $nested]; }
         $operation = TaskFixture::definition()->operation()->with('retained', $nested, 64);
-        $fixture->commands->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
+        $fixture->commandBus->execute(new CreateTask(TaskFixture::definition(operation: $operation), TaskState::create('working')));
         self::assertSame('working', $fixture->get()->get('state')->get('status'));
         self::assertSame($operation->toString(), $fixture->committedTaskReader->read('scope', TaskFixture::id())->definition()->operation()->toString());
     }

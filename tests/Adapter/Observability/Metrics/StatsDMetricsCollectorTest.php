@@ -13,7 +13,7 @@ class StatsDMetricsCollectorTest extends UnitTestCase
 {
     private array $captured = [];
 
-    private StatsDMetricsCollector $collector;
+    private StatsDMetricsCollector $metricsCollector;
 
     protected function setUp(): void
     {
@@ -21,7 +21,7 @@ class StatsDMetricsCollectorTest extends UnitTestCase
 
         $captured = &$this->captured;
 
-        $this->collector = new StatsDMetricsCollector(
+        $this->metricsCollector = new StatsDMetricsCollector(
             'localhost',
             8125,
             'app',
@@ -33,7 +33,7 @@ class StatsDMetricsCollectorTest extends UnitTestCase
 
     public function test_that_increment_formats_counter_with_tags(): void
     {
-        $this->collector->increment('command.executed', ['type' => 'PlaceOrderCommand']);
+        $this->metricsCollector->increment('command.executed', ['type' => 'PlaceOrderCommand']);
 
         self::assertSame(
             ['app.command.executed:1|c|#type:PlaceOrderCommand'],
@@ -43,14 +43,14 @@ class StatsDMetricsCollectorTest extends UnitTestCase
 
     public function test_that_increment_without_tags_omits_tag_suffix(): void
     {
-        $this->collector->increment('command.executed');
+        $this->metricsCollector->increment('command.executed');
 
         self::assertSame(['app.command.executed:1|c'], $this->captured);
     }
 
     public function test_that_gauge_formats_gauge_metric(): void
     {
-        $this->collector->gauge('queue.depth', 42.0, ['queue' => 'orders']);
+        $this->metricsCollector->gauge('queue.depth', 42.0, ['queue' => 'orders']);
 
         self::assertSame(
             ['app.queue.depth:42|g|#queue:orders'],
@@ -60,14 +60,14 @@ class StatsDMetricsCollectorTest extends UnitTestCase
 
     public function test_that_histogram_formats_timing_metric(): void
     {
-        $this->collector->histogram('command.latency_ms', 123.5);
+        $this->metricsCollector->histogram('command.latency_ms', 123.5);
 
         self::assertSame(['app.command.latency_ms:123.5|ms'], $this->captured);
     }
 
     public function test_that_multiple_tags_are_joined_with_comma(): void
     {
-        $this->collector->increment('event', ['type' => 'LoginCommand', 'exception' => 'AuthException']);
+        $this->metricsCollector->increment('event', ['type' => 'LoginCommand', 'exception' => 'AuthException']);
 
         self::assertStringContainsString('#type:LoginCommand,exception:AuthException', $this->captured[0]);
     }
@@ -75,7 +75,7 @@ class StatsDMetricsCollectorTest extends UnitTestCase
     public function test_that_empty_prefix_omits_dot_separator(): void
     {
         $captured = [];
-        $collector = new StatsDMetricsCollector(
+        $metricsCollector = new StatsDMetricsCollector(
             'localhost',
             8125,
             '',
@@ -84,7 +84,7 @@ class StatsDMetricsCollectorTest extends UnitTestCase
             }
         );
 
-        $collector->increment('my.metric');
+        $metricsCollector->increment('my.metric');
 
         self::assertSame(['my.metric:1|c'], $captured);
     }
@@ -93,8 +93,8 @@ class StatsDMetricsCollectorTest extends UnitTestCase
     {
         // Exercises the default UDP sender path (no injected closure).
         // Sends to loopback; UDP is fire-and-forget so nothing listens.
-        $collector = new StatsDMetricsCollector('127.0.0.1', 8125, 'test');
-        $collector->increment('coverage.probe');
+        $metricsCollector = new StatsDMetricsCollector('127.0.0.1', 8125, 'test');
+        $metricsCollector->increment('coverage.probe');
         $this->addToAssertionCount(1);
     }
 }

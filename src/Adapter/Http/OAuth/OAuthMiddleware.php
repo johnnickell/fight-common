@@ -16,16 +16,21 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final readonly class OAuthMiddleware implements MiddlewareInterface
 {
+    private OAuthResourceServer $resourceServer;
+    private OAuthResponseFactory $oauthResponseFactory;
+
     /**
      * Constructs OAuthMiddleware
      *
      * Compose per consumer resource operation, never select scopes from an untrusted MCP method or Tool.
      */
     public function __construct(
-        private OAuthResourceServer $server,
+        OAuthResourceServer $server,
         private OAuthScopeSet $requiredScopes,
-        private OAuthResponseFactory $responses
+        OAuthResponseFactory $responses
     ) {
+        $this->resourceServer = $server;
+        $this->oauthResponseFactory = $responses;
     }
 
     /**
@@ -33,15 +38,15 @@ final readonly class OAuthMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $failure = $this->server->authorize(
+        $failure = $this->resourceServer->authorize(
             $request->getHeader('Authorization'),
             $this->requiredScopes,
             $this->unsupportedTransport($request)
         );
         if ($failure !== null) {
-            return $this->responses->rejection(
+            return $this->oauthResponseFactory->rejection(
                 $failure,
-                $this->server->requirements()->metadata(),
+                $this->resourceServer->requirements()->metadata(),
                 $this->requiredScopes
             );
         }

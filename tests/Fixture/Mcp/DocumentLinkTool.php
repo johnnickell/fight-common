@@ -21,7 +21,7 @@ final readonly class DocumentLinkTool implements McpTool
     /**
      * Constructs DocumentLinkTool
      */
-    public function __construct(private QueryBus $queries, private McpResourceInfo $document)
+    public function __construct(private QueryBus $queryBus, private McpResourceInfo $document)
     {
     }
 
@@ -46,7 +46,7 @@ final readonly class DocumentLinkTool implements McpTool
      */
     public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $result = $this->queries->fetch(new SampleQuery($input->get('id')));
+        $result = $this->queryBus->fetch(new SampleQuery($input->get('id')));
 
         return McpToolOutput::structuredWithResourceLinks((object) ['summary' => $result['summary']], $this->document);
     }

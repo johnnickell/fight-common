@@ -20,36 +20,36 @@ class MetricsCommandFilterTest extends UnitTestCase
     {
         $message = CommandMessage::create(new SampleMetricsCommand());
 
-        /** @var MockInterface|MetricsCollector $metrics */
-        $metrics = $this->mock(MetricsCollector::class);
-        $metrics->shouldReceive('increment')
+        /** @var MockInterface|MetricsCollector $metricsCollector */
+        $metricsCollector = $this->mock(MetricsCollector::class);
+        $metricsCollector->shouldReceive('increment')
             ->once()
-            ->withArgs(fn(string $m, array $t): bool => $m === 'command.executed' && isset($t['type']));
-        $metrics->shouldReceive('histogram')
+            ->withArgs(fn(string $metricName, array $tags): bool => $metricName === 'command.executed' && isset($tags['type']));
+        $metricsCollector->shouldReceive('histogram')
             ->once()
-            ->withArgs(fn(string $m): bool => $m === 'command.latency_ms');
+            ->withArgs(fn(string $metricName): bool => $metricName === 'command.latency_ms');
 
-        $filter = new MetricsCommandFilter($metrics);
-        $filter->process($message, function (CommandMessage $msg): void {});
+        $filter = new MetricsCommandFilter($metricsCollector);
+        $filter->process($message, function (CommandMessage $commandMessage): void {});
     }
 
     public function test_that_process_emits_failed_and_rethrows_on_exception(): void
     {
         $message = CommandMessage::create(new SampleMetricsCommand());
 
-        /** @var MockInterface|MetricsCollector $metrics */
-        $metrics = $this->mock(MetricsCollector::class);
-        $metrics->shouldReceive('increment')
+        /** @var MockInterface|MetricsCollector $metricsCollector */
+        $metricsCollector = $this->mock(MetricsCollector::class);
+        $metricsCollector->shouldReceive('increment')
             ->once()
-            ->withArgs(fn(string $m, array $t): bool => $m === 'command.failed' && isset($t['exception']));
-        $metrics->shouldReceive('histogram')
+            ->withArgs(fn(string $metricName, array $tags): bool => $metricName === 'command.failed' && isset($tags['exception']));
+        $metricsCollector->shouldReceive('histogram')
             ->once()
-            ->withArgs(fn(string $m): bool => $m === 'command.latency_ms');
+            ->withArgs(fn(string $metricName): bool => $metricName === 'command.latency_ms');
 
-        $filter = new MetricsCommandFilter($metrics);
+        $filter = new MetricsCommandFilter($metricsCollector);
 
         $this->expectException(RuntimeException::class);
-        $filter->process($message, fn(CommandMessage $msg): never => throw new RuntimeException('oops'));
+        $filter->process($message, fn(CommandMessage $commandMessage): never => throw new RuntimeException('oops'));
     }
 }
 

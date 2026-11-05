@@ -34,12 +34,12 @@ final class DbalProjectionCheckpointStoreUnitTest extends UnitTestCase
     {
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('fetchOne')->once()->andReturn(6);
-        $store = new DbalProjectionCheckpointStore($connection);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Projection checkpoint orders cannot move backward from 6 to -1.');
 
-        $store->save('orders', -1);
+        $projectionCheckpointStore->save('orders', -1);
     }
 
     public function test_that_save_advances_an_existing_checkpoint_without_an_insert(): void
@@ -79,12 +79,12 @@ final class DbalProjectionCheckpointStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('executeStatement')->twice()->andReturn(0);
         $connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
         $connection->shouldReceive('fetchOne')->once()->andReturn(8);
-        $store = new DbalProjectionCheckpointStore($connection);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Projection checkpoint orders cannot move backward from 8 to 7.');
 
-        $store->save('orders', 7);
+        $projectionCheckpointStore->save('orders', 7);
     }
 
     public function test_that_reset_updates_an_existing_checkpoint(): void

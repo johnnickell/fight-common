@@ -37,7 +37,7 @@ final class DbalTaskRemovalIntegrationTest extends UnitTestCase
                 4 => TaskState::create('cancelled')
             };
             if ($state->status() === 'input_required') { $fixture->issue(id: $id); }
-            else { $fixture->commands->execute(new RecordTaskState('scope', TaskFixture::id($id), 'producer', 1, $state)); }
+            else { $fixture->commandBus->execute(new RecordTaskState('scope', TaskFixture::id($id), 'producer', 1, $state)); }
         }
         $protected = $connection->fetchOne('SELECT payload FROM fight_tasks WHERE scope = ? AND task_id = ?', ['scope', $ids[1]]);
         self::assertStringContainsString('creation_digest', $protected);

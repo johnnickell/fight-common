@@ -34,11 +34,11 @@ final class FilesystemServiceProviderIntegrationTest extends UnitTestCase
 
     public function test_that_filesystem_provider_adapts_the_registered_files_service(): void
     {
-        /** @var IlluminateFilesystem&MockInterface $native */
-        $native = $this->mock(IlluminateFilesystem::class);
-        $native->shouldReceive('isFile')->once()->with('/sentinel')->andReturnTrue();
+        /** @var IlluminateFilesystem&MockInterface $nativeFilesystem */
+        $nativeFilesystem = $this->mock(IlluminateFilesystem::class);
+        $nativeFilesystem->shouldReceive('isFile')->once()->with('/sentinel')->andReturnTrue();
         $application = new Application(__DIR__);
-        $application->instance('files', $native);
+        $application->instance('files', $nativeFilesystem);
         $application->register(FilesystemServiceProvider::class);
 
         self::assertTrue($application->make(Filesystem::class)->isFile('/sentinel'));

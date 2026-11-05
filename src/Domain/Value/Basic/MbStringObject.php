@@ -1041,9 +1041,9 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
 
         assert(Validate::areSameType($this, $object));
 
-        $strComp = strnatcmp($this->value, (string) $object->value);
+        $comparison = strnatcmp($this->value, (string) $object->value);
 
-        return $strComp <=> 0;
+        return $comparison <=> 0;
     }
 
     /**
@@ -1082,10 +1082,10 @@ final readonly class MbStringObject extends ValueObject implements ArrayAccess, 
         }
 
         foreach ($parts as $part) {
-            $len = mb_strlen((string) $part, static::ENCODING);
+            $partLength = mb_strlen((string) $part, static::ENCODING);
             $first = mb_substr((string) $part, 0, 1, static::ENCODING);
-            if ($len > 1) {
-                $remaining = mb_substr((string) $part, 1, $len - 1, static::ENCODING);
+            if ($partLength > 1) {
+                $remaining = mb_substr((string) $part, 1, $partLength - 1, static::ENCODING);
                 $output[] = mb_strtoupper($first, static::ENCODING).mb_strtolower($remaining, static::ENCODING);
             } else {
                 $output[] = mb_strtoupper($first, static::ENCODING);

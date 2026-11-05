@@ -107,10 +107,10 @@ final class McpToolInvokerTest extends UnitTestCase
 
     public function test_that_query_tool_maps_one_query_and_projects_only_safe_output(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $queries->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item-1'])
+        $queryBus = $this->mock(QueryBus::class);
+        $queryBus->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item-1'])
             ->andReturn(['value' => 'public', 'secret' => 'must not leave the consumer']);
-        $result = $this->responder([new ReadValueTool($queries)])
+        $result = $this->responder([new ReadValueTool($queryBus)])
             ->respond($this->wire(['name' => 'value.read', 'arguments' => (object) ['id' => 'item-1']]))->toArray()['result'];
         self::assertEquals(StrictJson::fromObject(['value' => 'public']), $result['structuredContent']);
         self::assertSame('{"value":"public"}', $result['content'][0]['text']);
@@ -119,9 +119,9 @@ final class McpToolInvokerTest extends UnitTestCase
 
     public function test_that_mutation_tool_executes_once_and_acknowledges_only_the_known_identifier(): void
     {
-        $commands = $this->mock(CommandBus::class);
-        $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'caller-id']);
-        $result = $this->responder([new WriteValueTool($commands)])
+        $commandBus = $this->mock(CommandBus::class);
+        $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'caller-id']);
+        $result = $this->responder([new WriteValueTool($commandBus)])
             ->respond($this->wire(['name' => 'value.write', 'arguments' => (object) ['id' => 'caller-id']]))->toArray()['result'];
         self::assertEquals(StrictJson::fromObject(['id' => 'caller-id']), $result['structuredContent']);
         self::assertSame('{"id":"caller-id"}', $result['content'][0]['text']);
@@ -130,8 +130,8 @@ final class McpToolInvokerTest extends UnitTestCase
     #[DataProvider('invalidArguments')]
     public function test_that_schema_and_rule_failures_are_tool_results_without_bus_dispatch(mixed $arguments, string $message): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $result = $this->responder([new ReadValueTool($queries)])
+        $queryBus = $this->mock(QueryBus::class);
+        $result = $this->responder([new ReadValueTool($queryBus)])
             ->respond($this->wire(['name' => 'value.read', 'arguments' => $arguments]))->toArray();
         self::assertSame(true, $result['result']['isError']);
         self::assertSame($message, $result['result']['content'][0]['text']);
@@ -234,11 +234,11 @@ final class McpToolInvokerTest extends UnitTestCase
 
     public function test_that_nonconformant_output_is_not_mapped_to_a_public_business_failure(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $queries->shouldReceive('fetch')->once()->andReturn(['value' => 1]);
+        $queryBus = $this->mock(QueryBus::class);
+        $queryBus->shouldReceive('fetch')->once()->andReturn(['value' => 1]);
         $diagnostics = $this->mock(McpDiagnostics::class);
         $diagnostics->shouldReceive('record')->once();
-        $result = $this->responder([new ReadValueTool($queries)], failures: new McpToolFailureMap([DomainException::class => 'Not public here']), diagnostics: $diagnostics)
+        $result = $this->responder([new ReadValueTool($queryBus)], failures: new McpToolFailureMap([DomainException::class => 'Not public here']), diagnostics: $diagnostics)
             ->respond($this->wire(['name' => 'value.read', 'arguments' => (object) ['id' => 'item-1']]))->toArray();
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $result['error']);
         self::assertArrayNotHasKey('result', $result);

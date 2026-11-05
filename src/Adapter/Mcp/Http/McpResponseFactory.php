@@ -20,14 +20,19 @@ use Throwable;
  */
 readonly class McpResponseFactory
 {
+    private ResponseFactoryInterface $responseFactory;
+    private StreamFactoryInterface $streamFactory;
+
     /**
      * Constructs McpResponseFactory
      */
     public function __construct(
-        private ResponseFactoryInterface $responses,
-        private StreamFactoryInterface $streams,
+        ResponseFactoryInterface $responses,
+        StreamFactoryInterface $streams,
         private McpDiagnostics $diagnostics
     ) {
+        $this->responseFactory = $responses;
+        $this->streamFactory = $streams;
     }
 
     /**
@@ -43,9 +48,9 @@ readonly class McpResponseFactory
             default => 400,
         };
 
-        return $this->responses->createResponse($status)
+        return $this->responseFactory->createResponse($status)
             ->withHeader('Content-Type', 'application/json')
-            ->withBody($this->streams->createStream($response->toJson()));
+            ->withBody($this->streamFactory->createStream($response->toJson()));
     }
 
     /**
@@ -56,7 +61,7 @@ readonly class McpResponseFactory
         McpResponder $responder,
         ?McpSubscriptionExecution $subscription = null
     ): ResponseInterface {
-        return $this->responses->createResponse(200)
+        return $this->responseFactory->createResponse(200)
             ->withHeader('Content-Type', 'text/event-stream')
             ->withHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
             ->withHeader('X-Accel-Buffering', 'no')
@@ -69,7 +74,7 @@ readonly class McpResponseFactory
      */
     public function rejection(int $status): ResponseInterface
     {
-        $response = $this->responses->createResponse($status)->withBody($this->streams->createStream());
+        $response = $this->responseFactory->createResponse($status)->withBody($this->streamFactory->createStream());
         if ($status === 405) {
             return $response->withHeader('Allow', 'POST');
         }

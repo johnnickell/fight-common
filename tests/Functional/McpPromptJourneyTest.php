@@ -70,18 +70,18 @@ final class McpPromptJourneyTest extends TestCase
         };
         $router = new InMemoryQueryRouter();
         $router->registerHandler(SampleQuery::class, $handler);
-        $queries = new RoutingQueryBus($router);
+        $queryBus = new RoutingQueryBus($router);
         $revision = SkillRevision::create();
         $skillUri = $revision->entry()->get('uri');
         $link = McpResourceInfo::fromArray(['uri' => $skillUri, 'name' => 'Work Skill', 'mimeType' => 'text/markdown']);
-        $provider = new class($queries, $link) implements McpPrompt {
+        $promptProvider = new class($queryBus, $link) implements McpPrompt {
             public array $calls = [];
-            public function __construct(private QueryBus $queries, private McpResourceInfo $link) {}
+            public function __construct(private QueryBus $queryBus, private McpResourceInfo $link) {}
             public function info(): McpPromptInfo { return McpPromptInfo::fromArray(['name' => 'task.review', 'description' => 'Review one permitted task', 'arguments' => [['name' => 'id', 'required' => true], ['name' => 'note']]]); }
             public function get(array $arguments): McpPromptOutput
             {
                 $this->calls[] = $arguments;
-                $result = $this->queries->fetch(new SampleQuery($arguments['id']));
+                $result = $this->queryBus->fetch(new SampleQuery($arguments['id']));
                 return McpPromptOutput::fromArray(['description' => 'Review', 'messages' => [
                     ['role' => 'user', 'content' => ['type' => 'text', 'text' => 'Review '.$arguments['id'].': '.$result['summary'].($arguments['note'] ?? '')]],
                     ['role' => 'assistant', 'content' => ['type' => 'resource_link', ...$this->link->toArray()]],
@@ -116,14 +116,14 @@ final class McpPromptJourneyTest extends TestCase
         };
         $skillResources = new McpSkillResources([$revision], $skillAccess, $factory);
         $documents = new ReadableResources(['doc://guide' => ['bytes' => 'guide']]);
-        $resources = new McpResourceDiscovery([$documents, $skillResources], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
-        $skills = new McpSkillDiscovery($skillResources, $resources, str_repeat('skill-key', 4), 'prompts');
-        $tools = new McpToolRegistry([new DocumentLinkTool($queries, $link)]);
-        $prompts = new McpPromptDiscovery([$provider, $hidden, $static], $promptAccess, str_repeat('prompt-key', 4), 'journey', new McpPromptLimits(pageSize: 1));
+        $resourceDiscovery = new McpResourceDiscovery([$documents, $skillResources], $resourceAccess, str_repeat('resource-key', 4), 'prompts', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('skill-key', 4), 'prompts');
+        $toolRegistry = new McpToolRegistry([new DocumentLinkTool($queryBus, $link)]);
+        $promptDiscovery = new McpPromptDiscovery([$promptProvider, $hidden, $static], $promptAccess, str_repeat('prompt-key', 4), 'journey', new McpPromptLimits(pageSize: 1));
         $registry = new McpCapabilityRegistry(new McpServerInfo('Combined Prompts', '1'), [
-            $prompts, $resources, $skills,
-            new McpToolDiscovery($tools, $toolAccess, str_repeat('tool-key', 4)),
-            new McpToolInvocation(new McpToolInvoker($tools, $toolAccess)),
+            $promptDiscovery, $resourceDiscovery, $skillDiscovery,
+            new McpToolDiscovery($toolRegistry, $toolAccess, str_repeat('tool-key', 4)),
+            new McpToolInvocation(new McpToolInvoker($toolRegistry, $toolAccess)),
         ]);
         $endpoint = new McpRequestHandler($registry, new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
         $app = new App($factory);
@@ -131,7 +131,7 @@ final class McpPromptJourneyTest extends TestCase
         $app->add(function(ServerRequestInterface $request, RequestHandlerInterface $next) use ($factory) {
             return $request->getHeaderLine('Authorization') === 'Bearer fixture-only' ? $next->handle($request) : $factory->createResponse(401);
         });
-        self::assertSame([], $provider->calls);
+        self::assertSame([], $promptProvider->calls);
         self::assertSame([], $handler->calls);
         self::assertSame(0, $documents->enumerations);
         self::assertSame([], $documents->opened);
@@ -163,13 +163,13 @@ final class McpPromptJourneyTest extends TestCase
         $second = $this->response($app, 'prompts/list', ['cursor' => $first['nextCursor']])['result'];
         self::assertSame(['task.review'], array_column($second['prompts'], 'name'));
         self::assertArrayNotHasKey('nextCursor', $second);
-        self::assertCount(1, $provider->calls);
+        self::assertCount(1, $promptProvider->calls);
         self::assertSame([], $hidden->calls);
         self::assertSame(-32602, $this->response($app, 'prompts/list', ['cursor' => str_repeat('x', 48)])['error']['code']);
         foreach ([['name' => 'task.review'], ['name' => 'task.review', 'arguments' => (object) ['id' => 42]], ['name' => 'task.review', 'arguments' => (object) ['id' => str_repeat('x', 16385)]], ['name' => 'task.review', 'arguments' => (object) ['id' => '42', 'principal' => 'admin']], ['name' => 'hidden.internal'], ['name' => 'unknown']] as $invalid) {
             self::assertSame(['code' => -32602, 'message' => 'Invalid params.'], $this->response($app, 'prompts/get', $invalid)['error']);
         }
-        self::assertCount(1, $provider->calls);
+        self::assertCount(1, $promptProvider->calls);
         self::assertSame(['42'], $handler->calls);
 
         foreach ([
@@ -181,13 +181,13 @@ final class McpPromptJourneyTest extends TestCase
         $guard->allowed = false;
         self::assertSame(429, $app->handle($this->request('prompts/get', ['name' => 'static.start']))->getStatusCode());
         $guard->allowed = true;
-        self::assertCount(1, $provider->calls);
+        self::assertCount(1, $promptProvider->calls);
 
         $promptAccess->allowed = false;
         self::assertSame([], $this->response($app, 'prompts/list')['result']['prompts']);
         self::assertSame(-32602, $this->response($app, 'prompts/list', ['cursor' => $first['nextCursor']])['error']['code']);
         self::assertSame(-32602, $this->response($app, 'prompts/get', ['name' => 'task.review', 'arguments' => (object) ['id' => '42']])['error']['code']);
-        self::assertCount(1, $provider->calls);
+        self::assertCount(1, $promptProvider->calls);
         $promptAccess->allowed = true;
         $handler->allowed = false;
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $this->response($app, 'prompts/get', ['name' => 'task.review', 'arguments' => (object) ['id' => '42']])['error']);
@@ -207,7 +207,7 @@ final class McpPromptJourneyTest extends TestCase
         $tool = $this->response($app, 'tools/call', ['name' => 'document.find', 'arguments' => (object) ['id' => 'guide']])['result'];
         self::assertSame(['summary' => 'Safe task 雪'], $tool['structuredContent']);
         self::assertSame(['42', '42', 'guide'], $handler->calls);
-        self::assertSame([['id' => '42', 'note' => "\r\n雪"], ['id' => '42']], $provider->calls);
+        self::assertSame([['id' => '42', 'note' => "\r\n雪"], ['id' => '42']], $promptProvider->calls);
         self::assertSame([[]], $static->calls);
         self::assertSame([], $hidden->calls);
         self::assertContains(['prompts/get', 'task.review'], $guard->calls);
@@ -216,7 +216,7 @@ final class McpPromptJourneyTest extends TestCase
 
     public function test_that_guarded_http_enforces_complete_encoded_boundaries_and_rejects_unsupported_output_atomically(): void
     {
-        $provider = new class implements McpPrompt {
+        $promptProvider = new class implements McpPrompt {
             public array $output = ['messages' => [['role' => 'user', 'content' => ['type' => 'text', 'text' => "雪\n\"\\"]]]];
             public function info(): McpPromptInfo { return McpPromptInfo::fromArray(['name' => 'Bounded', 'description' => '雪']); }
             public function get(array $arguments): McpPromptOutput { return McpPromptOutput::fromArray($this->output); }
@@ -228,8 +228,8 @@ final class McpPromptJourneyTest extends TestCase
             public function allows(string $method, ?string $name): bool { return true; }
         };
         $factory = new HttpFactory();
-        $endpoint = function(McpPromptLimits $limits) use ($provider, $policy, $guard, $factory): McpRequestHandler {
-            $capability = new McpPromptDiscovery([$provider], $policy, str_repeat('fixture-key', 4), 'bounds', $limits);
+        $endpoint = function(McpPromptLimits $limits) use ($promptProvider, $policy, $guard, $factory): McpRequestHandler {
+            $capability = new McpPromptDiscovery([$promptProvider], $policy, str_repeat('fixture-key', 4), 'bounds', $limits);
             return new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo(str_repeat('雪"', 40), '1'), [$capability]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, new class implements McpDiagnostics { public function record(Throwable $failure): void {} }));
         };
         foreach (['prompts/list' => [], 'prompts/get' => ['name' => 'Bounded']] as $method => $params) {
@@ -259,7 +259,7 @@ final class McpPromptJourneyTest extends TestCase
             ['messages' => [['role' => 'user', 'content' => ['type' => 'resource_link', 'uri' => '/private/path', 'name' => 'bad']]]],
             ['messages' => [['role' => 'user', 'content' => ['type' => 'text', 'text' => str_repeat('x', 65537)]]]],
         ] as $invalid) {
-            $provider->output = $invalid;
+            $promptProvider->output = $invalid;
             $actual = $endpoint(new McpPromptLimits())->handle($this->request('prompts/get', ['name' => 'Bounded']));
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], json_decode((string) $actual->getBody(), true)['error']);
         }

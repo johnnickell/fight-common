@@ -58,7 +58,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface { throw new RuntimeException('No filesystem reads'); }
             public function createStreamFromResource($resource): StreamInterface { throw new RuntimeException('No external streams'); }
         };
-        $provider = new McpSkillResources([$second, $first], $policy, $streams);
+        $skillResources = new McpSkillResources([$second, $first], $policy, $streams);
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
         $guard = new class implements McpInvocationGuard {
             public bool $allowed = true;
@@ -70,9 +70,9 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
             public function record(Throwable $failure): void { $this->events[] = 'sanitized_skill_failure'; }
         };
         $factory = new HttpFactory();
-        $resources = new McpResourceDiscovery([$provider], $general, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
-        $skills = new McpSkillDiscovery($provider, $resources, str_repeat('fixture-only', 4), 'skills', new McpSkillDiscoveryLimits(pageSize: 1));
-        $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skills, $resources]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
+        $resourceDiscovery = new McpResourceDiscovery([$skillResources], $general, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('fixture-only', 4), 'skills', new McpSkillDiscoveryLimits(pageSize: 1));
+        $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skillDiscovery, $resourceDiscovery]), new ExactMcpOriginPolicy(['https://client.test']), $guard, new McpResponseFactory($factory, $factory, $diagnostics));
         $app = new App($factory);
         $app->post('/consumer/mcp', fn(ServerRequestInterface $request) => $endpoint->handle($request));
         $app->add(function (ServerRequestInterface $request, RequestHandlerInterface $next) use ($factory) {
@@ -165,7 +165,7 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
     public function test_that_request_scoped_construction_does_not_probe_dynamic_providers_before_guarded_dispatch(): void
     {
         $revision = SkillRevision::create();
-        $provider = new McpSkillResources([$revision], new class implements McpSkillAvailability {
+        $skillResources = new McpSkillResources([$revision], new class implements McpSkillAvailability {
             public function isAvailable(StrictJson $entry): bool { return true; }
         }, new HttpFactory());
         $external = new ReadableResources([]);
@@ -180,14 +180,14 @@ final class McpSkillDiscoveryJourneyTest extends TestCase
         };
         $constructions = 0;
         $app = new App($factory);
-        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($provider, $external, $factory, $diagnostics, $guard, &$constructions) {
+        $app->post('/consumer/mcp', function (ServerRequestInterface $request) use ($skillResources, $external, $factory, $diagnostics, $guard, &$constructions) {
             ++$constructions;
-            $resources = new McpResourceDiscovery([$provider, $external], new class implements McpResourceAvailability {
+            $resourceDiscovery = new McpResourceDiscovery([$skillResources, $external], new class implements McpResourceAvailability {
                 public function isAvailable(McpResourceInfo $resource): bool { return true; }
             }, str_repeat('fixture-only', 4), 'resources', readLimits: new McpResourceReadLimits());
-            $skills = new McpSkillDiscovery($provider, $resources, str_repeat('fixture-only', 4), 'skills');
+            $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('fixture-only', 4), 'skills');
             $handler = new McpRequestHandler(
-                new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skills, $resources]),
+                new McpCapabilityRegistry(new McpServerInfo('Skills journey', '1'), [$skillDiscovery, $resourceDiscovery]),
                 new ExactMcpOriginPolicy(['https://client.test']),
                 $guard,
                 new McpResponseFactory($factory, $factory, $diagnostics)

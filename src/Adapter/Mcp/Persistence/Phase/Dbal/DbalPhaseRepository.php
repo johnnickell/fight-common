@@ -18,7 +18,7 @@ final readonly class DbalPhaseRepository implements PhaseRepository
     /**
      * Constructs DbalPhaseRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -29,7 +29,7 @@ final readonly class DbalPhaseRepository implements PhaseRepository
     {
         $sql = 'SELECT session_id, phase_id, parent_phase_id, agent_id, name, attempt FROM fight_execution_phases';
         $sql .= ' WHERE project_id = ? AND phase_id = ?';
-        $row = $this->transaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->phaseId()]);
+        $row = $this->recordingTransaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->phaseId()]);
         if ($row === false) {
             return null;
         }
@@ -44,8 +44,8 @@ final readonly class DbalPhaseRepository implements PhaseRepository
      */
     public function add(Phase $phase): void
     {
-        $this->transaction->requireOwnedTransaction();
-        $this->transaction->connection()->insert(
+        $this->recordingTransaction->requireOwnedTransaction();
+        $this->recordingTransaction->connection()->insert(
             'fight_execution_phases',
             ['project_id' => $phase->projectId()] + $phase->reference()->toArray()
         );

@@ -170,19 +170,19 @@ final class McpSkillCompositionTest extends UnitTestCase
     {
         $policy = new class implements McpSkillAvailability { public function isAvailable(StrictJson $entry): bool { return true; } };
         $general = new class implements McpResourceAvailability { public function isAvailable(McpResourceInfo $resource): bool { return true; } };
-        $provider = new McpSkillResources([], $policy, new HttpFactory());
-        $resources = new McpResourceDiscovery([$provider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        $skills = new McpSkillDiscovery($provider, $resources, str_repeat('k', 32), 'scope');
+        $skillResources = new McpSkillResources([], $policy, new HttpFactory());
+        $resourceDiscovery = new McpResourceDiscovery([$skillResources], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        $skillDiscovery = new McpSkillDiscovery($skillResources, $resourceDiscovery, str_repeat('k', 32), 'scope');
         $extension = new ExtensionCapability(['example/other'], ['extensions' => ['com.example/other' => (object) []]]);
-        foreach ([[$skills, $resources, $extension], [$extension, $resources, $skills]] as $capabilities) {
+        foreach ([[$skillDiscovery, $resourceDiscovery, $extension], [$extension, $resourceDiscovery, $skillDiscovery]] as $capabilities) {
             $registry = $this->registry($capabilities);
-            self::assertSame($skills, $registry->capabilityFor('skills/get'));
-            self::assertSame($resources, $registry->capabilityFor('resources/read'));
+            self::assertSame($skillDiscovery, $registry->capabilityFor('skills/get'));
+            self::assertSame($resourceDiscovery, $registry->capabilityFor('resources/read'));
             self::assertCount(2, $registry->advertisedCapabilities()['extensions']);
         }
-        self::assertArrayNotHasKey('extensions', $this->registry([$resources])->advertisedCapabilities());
-        $other = new McpResourceDiscovery([$provider], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
-        foreach ([[$skills, $other], [$other, $skills]] as $capabilities) {
+        self::assertArrayNotHasKey('extensions', $this->registry([$resourceDiscovery])->advertisedCapabilities());
+        $other = new McpResourceDiscovery([$skillResources], $general, str_repeat('k', 32), 'scope', readLimits: new McpResourceReadLimits());
+        foreach ([[$skillDiscovery, $other], [$other, $skillDiscovery]] as $capabilities) {
             try {
                 $this->registry($capabilities);
                 self::fail('A nominally equivalent Resources capability must not replace the shared instance.');

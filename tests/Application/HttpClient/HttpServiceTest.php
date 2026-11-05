@@ -34,7 +34,7 @@ class HttpServiceTest extends UnitTestCase
     /** @var MockInterface|UriFactory */
     private $uriFactory;
 
-    private HttpService $service;
+    private HttpService $httpService;
 
     #[Override]
     protected function setUp(): void
@@ -43,7 +43,7 @@ class HttpServiceTest extends UnitTestCase
         $this->messageFactory = $this->mock(MessageFactory::class);
         $this->streamFactory = $this->mock(StreamFactory::class);
         $this->uriFactory = $this->mock(UriFactory::class);
-        $this->service = new HttpService(
+        $this->httpService = new HttpService(
             $this->httpClient,
             $this->messageFactory,
             $this->streamFactory,
@@ -53,10 +53,10 @@ class HttpServiceTest extends UnitTestCase
 
     public function test_that_construction_creates_service_implementing_all_interfaces(): void
     {
-        self::assertInstanceOf(HttpClient::class, $this->service);
-        self::assertInstanceOf(MessageFactory::class, $this->service);
-        self::assertInstanceOf(StreamFactory::class, $this->service);
-        self::assertInstanceOf(UriFactory::class, $this->service);
+        self::assertInstanceOf(HttpClient::class, $this->httpService);
+        self::assertInstanceOf(MessageFactory::class, $this->httpService);
+        self::assertInstanceOf(StreamFactory::class, $this->httpService);
+        self::assertInstanceOf(UriFactory::class, $this->httpService);
     }
 
     public function test_that_send_delegates_to_http_client_and_returns_response(): void
@@ -72,7 +72,7 @@ class HttpServiceTest extends UnitTestCase
             ->with($request, [])
             ->andReturn($response);
 
-        $result = $this->service->send($request);
+        $result = $this->httpService->send($request);
 
         self::assertSame($response, $result);
     }
@@ -90,7 +90,7 @@ class HttpServiceTest extends UnitTestCase
             ->with($request, [])
             ->andReturn($promise);
 
-        $result = $this->service->sendAsync($request);
+        $result = $this->httpService->sendAsync($request);
 
         self::assertSame($promise, $result);
     }
@@ -106,7 +106,7 @@ class HttpServiceTest extends UnitTestCase
             ->with('GET', 'https://example.com', [], null, '1.1')
             ->andReturn($request);
 
-        $result = $this->service->createRequest('GET', 'https://example.com');
+        $result = $this->httpService->createRequest('GET', 'https://example.com');
 
         self::assertSame($request, $result);
     }
@@ -122,7 +122,7 @@ class HttpServiceTest extends UnitTestCase
             ->with(200, [], null, '1.1', null)
             ->andReturn($response);
 
-        $result = $this->service->createResponse();
+        $result = $this->httpService->createResponse();
 
         self::assertSame($response, $result);
     }
@@ -138,7 +138,7 @@ class HttpServiceTest extends UnitTestCase
             ->with(null)
             ->andReturn($stream);
 
-        $result = $this->service->createStream();
+        $result = $this->httpService->createStream();
 
         self::assertSame($stream, $result);
     }
@@ -154,7 +154,7 @@ class HttpServiceTest extends UnitTestCase
             ->with('https://example.com')
             ->andReturn($uri);
 
-        $result = $this->service->createUri('https://example.com');
+        $result = $this->httpService->createUri('https://example.com');
 
         self::assertSame($uri, $result);
     }

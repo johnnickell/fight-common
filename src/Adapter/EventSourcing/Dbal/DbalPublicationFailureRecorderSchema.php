@@ -23,32 +23,32 @@ final readonly class DbalPublicationFailureRecorderSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $failures = $schema->createTable(self::FAILURE_TABLE);
-        $failures->addColumn('publication_name', 'string', ['length' => 255]);
-        $failures->addColumn('aggregate_name', 'string', ['length' => 255]);
-        $failures->addColumn('aggregate_identifier', 'string', ['length' => 1024]);
-        $failures->addColumn('event_name', 'string', ['length' => 255]);
-        $failures->addColumn('schema_version', 'integer');
-        $failures->addColumn('stream_version', 'bigint');
-        $failures->addColumn('global_position', 'bigint');
-        $failures->addColumn('message_id', 'string', ['length' => 36]);
-        $failures->addColumn('dispatch_started_at', 'string', ['length' => 32]);
-        $failures->setPrimaryKey(['publication_name', 'global_position']);
+        $failureTable = $schema->createTable(self::FAILURE_TABLE);
+        $failureTable->addColumn('publication_name', 'string', ['length' => 255]);
+        $failureTable->addColumn('aggregate_name', 'string', ['length' => 255]);
+        $failureTable->addColumn('aggregate_identifier', 'string', ['length' => 1024]);
+        $failureTable->addColumn('event_name', 'string', ['length' => 255]);
+        $failureTable->addColumn('schema_version', 'integer');
+        $failureTable->addColumn('stream_version', 'bigint');
+        $failureTable->addColumn('global_position', 'bigint');
+        $failureTable->addColumn('message_id', 'string', ['length' => 36]);
+        $failureTable->addColumn('dispatch_started_at', 'string', ['length' => 32]);
+        $failureTable->setPrimaryKey(['publication_name', 'global_position']);
 
-        $handlerFailures = $schema->createTable(self::HANDLER_FAILURE_TABLE);
-        $handlerFailures->addColumn('publication_name', 'string', ['length' => 255]);
-        $handlerFailures->addColumn('global_position', 'bigint');
-        $handlerFailures->addColumn('handler_position', 'integer');
-        $handlerFailures->addColumn('callable_description', 'text');
-        $handlerFailures->addColumn('exception_class', 'string', ['length' => 1024]);
-        $handlerFailures->addColumn('exception_code', 'bigint');
-        $handlerFailures->addColumn('diagnostic_message', 'text');
-        $handlerFailures->setPrimaryKey([
+        $handlerFailureTable = $schema->createTable(self::HANDLER_FAILURE_TABLE);
+        $handlerFailureTable->addColumn('publication_name', 'string', ['length' => 255]);
+        $handlerFailureTable->addColumn('global_position', 'bigint');
+        $handlerFailureTable->addColumn('handler_position', 'integer');
+        $handlerFailureTable->addColumn('callable_description', 'text');
+        $handlerFailureTable->addColumn('exception_class', 'string', ['length' => 1024]);
+        $handlerFailureTable->addColumn('exception_code', 'bigint');
+        $handlerFailureTable->addColumn('diagnostic_message', 'text');
+        $handlerFailureTable->setPrimaryKey([
             'publication_name',
             'global_position',
             'handler_position'
         ]);
-        $handlerFailures->addForeignKeyConstraint(
+        $handlerFailureTable->addForeignKeyConstraint(
             self::FAILURE_TABLE,
             ['publication_name', 'global_position'],
             ['publication_name', 'global_position'],

@@ -17,14 +17,14 @@ final readonly class StorageService
     /**
      * @var HashTable<string, FileStorage>
      */
-    private HashTable $storage;
+    private HashTable $storagesByKey;
 
     /**
      * Constructs StorageService
      */
     public function __construct()
     {
-        $this->storage = HashTable::of('string', FileStorage::class);
+        $this->storagesByKey = HashTable::of('string', FileStorage::class);
     }
 
     /**
@@ -34,11 +34,11 @@ final readonly class StorageService
      */
     public function getStorage(string $key): FileStorage
     {
-        if (!$this->storage->has($key)) {
+        if (!$this->storagesByKey->has($key)) {
             throw StorageNotFoundException::fromKey($key);
         }
 
-        return $this->storage->get($key);
+        return $this->storagesByKey->get($key);
     }
 
     /**
@@ -84,10 +84,10 @@ final readonly class StorageService
      */
     public function addStorage(string $key, FileStorage $storage): void
     {
-        if ($this->storage->has($key)) {
+        if ($this->storagesByKey->has($key)) {
             throw DuplicateStorageException::fromKey($key);
         }
 
-        $this->storage->set($key, $storage);
+        $this->storagesByKey->set($key, $storage);
     }
 }

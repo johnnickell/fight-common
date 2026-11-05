@@ -145,12 +145,12 @@ use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Detail\Query\GetCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
 
-$protectedReader = new DbalDetailReader($connection);
-$router->registerHandler(GetCapturedDetail::class, new GetCapturedDetailHandler($protectedAdmission, $protectedReader));
-$router->registerHandler(ListCapturedMessages::class, new ListCapturedMessagesHandler($protectedAdmission, $protectedReader));
+$detailReader = new DbalDetailReader($connection);
+$queryRouter->registerHandler(GetCapturedDetail::class, new GetCapturedDetailHandler($detailReadAdmission, $detailReader));
+$queryRouter->registerHandler(ListCapturedMessages::class, new ListCapturedMessagesHandler($detailReadAdmission, $detailReader));
 $selection = DetailSelection::create('project', 'session', 'phase', 'producer', $activityUuid);
-$page = $queries->fetch(new ListCapturedMessages($selection, page: 1, perPage: 10));
-$detail = $queries->fetch(new GetCapturedDetail($selection, $detailId, $kind, offset: 0, length: 4096));
+$page = $queryBus->fetch(new ListCapturedMessages($selection, page: 1, perPage: 10));
+$detail = $queryBus->fetch(new GetCapturedDetail($selection, $detailId, $kind, offset: 0, length: 4096));
 ```
 
 TASK-00153 adds **12 opt-in public declarations**: `DetailSelection`, both Queries, both handlers, `DetailAccess`,

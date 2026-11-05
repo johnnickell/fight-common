@@ -19,8 +19,10 @@ final readonly class ListExecutionPhasesHandler implements QueryHandler
     /**
      * Constructs ListExecutionPhasesHandler
      */
-    public function __construct(private ExecutionReadAdmission $admission, private PhaseReader $reader)
-    {
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private PhaseReader $phaseReader
+    ) {
     }
 
     /**
@@ -40,8 +42,8 @@ final readonly class ListExecutionPhasesHandler implements QueryHandler
          * @var ListExecutionPhases $query
          */
         $query = $queryMessage->payload();
-        $access = $this->admission->currentAccess($query->execution()->selection());
+        $access = $this->executionReadAdmission->currentAccess($query->execution()->selection());
 
-        return $this->reader->list($query, $access);
+        return $this->phaseReader->list($query, $access);
     }
 }

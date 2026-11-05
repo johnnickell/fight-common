@@ -20,7 +20,7 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
     /**
      * Constructs DbalProtectedContentRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -34,7 +34,7 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
             throw new DomainException('Expected a protected detail observation.');
         }
 
-        $row = $this->transaction->connection()->fetchAssociative(
+        $row = $this->recordingTransaction->connection()->fetchAssociative(
             'SELECT payload FROM fight_execution_contents WHERE producer_id = ? AND observation_id = ?',
             [$detail->producerId(), $detail->id()->toString()]
         );
@@ -55,14 +55,14 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
      */
     public function add(Observation $detail, ProtectedContent $content): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         $capture = $detail->detail();
         if ($capture === null) {
             throw new DomainException('Expected a protected detail observation.');
         }
 
         $capture->validateBody($content->body());
-        $this->transaction->connection()->insert('fight_execution_contents', [
+        $this->recordingTransaction->connection()->insert('fight_execution_contents', [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString(),
             'payload'        => json_encode($content->toArray(), JSON_THROW_ON_ERROR)
@@ -74,12 +74,12 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
      */
     public function removeFor(Observation $detail): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         if ($detail->detail() === null) {
             throw new DomainException('Expected a protected detail observation.');
         }
 
-        $this->transaction->connection()->delete('fight_execution_contents', [
+        $this->recordingTransaction->connection()->delete('fight_execution_contents', [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString()
         ]);

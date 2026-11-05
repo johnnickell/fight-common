@@ -22,9 +22,9 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
     }
 
     protected function reopenProjectionCheckpointStore(
-        ProjectionCheckpointStore $store,
+        ProjectionCheckpointStore $projectionCheckpointStore,
     ): ProjectionCheckpointStore {
-        unset($store);
+        unset($projectionCheckpointStore);
 
         return new DbalProjectionCheckpointStore($this->createConnection());
     }
@@ -71,9 +71,9 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
             self::assertSame(0, pcntl_wexitstatus($higherStatus));
             self::assertSame('', $lowerResult);
             self::assertSame('', $higherResult);
-            $store = new DbalProjectionCheckpointStore($this->createConnection());
-            self::assertSame(253, $store->load('orders.order-summary'));
-            self::assertSame(41, $store->load('billing.revenue-summary'));
+            $projectionCheckpointStore = new DbalProjectionCheckpointStore($this->createConnection());
+            self::assertSame(253, $projectionCheckpointStore->load('orders.order-summary'));
+            self::assertSame(41, $projectionCheckpointStore->load('billing.revenue-summary'));
         } finally {
             foreach (array_keys($workerProcessIds) as $workerProcessId) {
                 $waitResult = pcntl_waitpid($workerProcessId, $workerStatus, WNOHANG);
@@ -120,7 +120,7 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
             return $processId;
         }
 
-        $checkpointStore = new DbalProjectionCheckpointStore($this->createConnection());
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($this->createConnection());
         $failures = [];
 
         for ($round = 1; $round <= 24; ++$round) {
@@ -128,7 +128,7 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
             $this->waitForFile(sprintf('%s/go-%d', $coordinationPath, $round));
 
             try {
-                $checkpointStore->save('orders.order-summary', ($round * 10) + $offset);
+                $projectionCheckpointStore->save('orders.order-summary', ($round * 10) + $offset);
             } catch (InvalidArgumentException) {
                 // A lower worker may observe that the higher position already won.
             } catch (Throwable $exception) {

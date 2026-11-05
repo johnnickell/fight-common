@@ -25,22 +25,22 @@ trait HmacMethods
         // normalize the query string
         if ($queryString !== '') {
             $parts = [];
-            $order = [];
-            foreach (explode('&', $queryString) as $param) {
-                if ('' === $param) {
+            $parameterNames = [];
+            foreach (explode('&', $queryString) as $queryParameter) {
+                if ('' === $queryParameter) {
                     continue;
                 }
 
-                if ('=' === $param[0]) {
+                if ('=' === $queryParameter[0]) {
                     continue;
                 }
 
-                $parts[] = $param;
-                $kvp = explode('=', $param, 2);
-                $order[] = $kvp[0];
+                $parts[] = $queryParameter;
+                $parameterParts = explode('=', $queryParameter, 2);
+                $parameterNames[] = $parameterParts[0];
             }
 
-            array_multisort($order, SORT_ASC, $parts);
+            array_multisort($parameterNames, SORT_ASC, $parts);
             $queryString = implode('&', $parts);
             $uri = $uri->withQuery($queryString);
         }

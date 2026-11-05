@@ -18,7 +18,7 @@ final readonly class RecordNoticeHandler implements CommandHandler
     /**
      * Constructs RecordNoticeHandler
      */
-    public function __construct(private NoticeRecorder $recorder)
+    public function __construct(private NoticeRecorder $noticeRecorder)
     {
     }
 
@@ -40,6 +40,6 @@ final readonly class RecordNoticeHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected notice command.');
         }
 
-        $this->recorder->record($command->notice());
+        $this->noticeRecorder->record($command->notice());
     }
 }

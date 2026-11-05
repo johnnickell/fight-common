@@ -17,11 +17,11 @@ class DoctrineUnitOfWorkTest extends UnitTestCase
 {
     public function test_that_deprecated_legacy_commit_flushes_the_entity_manager(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('flush')->once()->withNoArgs();
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('flush')->once()->withNoArgs();
 
-        $uow = new DoctrineUnitOfWork($em);
-        $uow->commit();
+        $unitOfWork = new DoctrineUnitOfWork($entityManager);
+        $unitOfWork->commit();
     }
 
     public function test_that_commit_transactional_wraps_operation_in_transaction(): void
@@ -29,23 +29,23 @@ class DoctrineUnitOfWorkTest extends UnitTestCase
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('isTransactionActive')->once()->andReturnFalse();
 
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('getConnection')->once()->andReturn($connection);
-        $em->shouldReceive('wrapInTransaction')->once()->andReturnUsing(fn(callable $fn) => $fn());
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('getConnection')->once()->andReturn($connection);
+        $entityManager->shouldReceive('wrapInTransaction')->once()->andReturnUsing(fn(callable $operation) => $operation());
 
-        $uow = new DoctrineUnitOfWork($em);
-        $result = $uow->commitTransactional(fn(): string => 'done');
+        $transactionalUnitOfWork = new DoctrineUnitOfWork($entityManager);
+        $result = $transactionalUnitOfWork->commitTransactional(fn(): string => 'done');
 
         self::assertSame('done', $result);
     }
 
     public function test_that_implements_transactional_and_legacy_unit_of_work_contracts(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
-        $uow = new DoctrineUnitOfWork($em);
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $unitOfWork = new DoctrineUnitOfWork($entityManager);
 
-        self::assertInstanceOf(TransactionalUnitOfWork::class, $uow);
-        self::assertInstanceOf(UnitOfWork::class, $uow);
+        self::assertInstanceOf(TransactionalUnitOfWork::class, $unitOfWork);
+        self::assertInstanceOf(UnitOfWork::class, $unitOfWork);
     }
 
     public function test_that_commit_transactional_rejects_an_active_doctrine_transaction(): void
@@ -53,14 +53,14 @@ class DoctrineUnitOfWorkTest extends UnitTestCase
         $connection = $this->mock(Connection::class);
         $connection->shouldReceive('isTransactionActive')->once()->andReturnTrue();
 
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('getConnection')->once()->andReturn($connection);
-        $em->shouldNotReceive('wrapInTransaction');
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('getConnection')->once()->andReturn($connection);
+        $entityManager->shouldNotReceive('wrapInTransaction');
 
-        $uow = new DoctrineUnitOfWork($em);
+        $transactionalUnitOfWork = new DoctrineUnitOfWork($entityManager);
 
         $this->expectException(\LogicException::class);
-        $uow->commitTransactional(static fn(): null => null);
+        $transactionalUnitOfWork->commitTransactional(static fn(): null => null);
     }
 
     public function test_that_commit_transactional_propagates_callback_failures_through_doctrine(): void
@@ -69,35 +69,35 @@ class DoctrineUnitOfWorkTest extends UnitTestCase
         $connection->shouldReceive('isTransactionActive')->once()->andReturnFalse();
 
         $failure = new \RuntimeException('transaction failure');
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('getConnection')->once()->andReturn($connection);
-        $em->shouldReceive('wrapInTransaction')->once()->andReturnUsing(
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('getConnection')->once()->andReturn($connection);
+        $entityManager->shouldReceive('wrapInTransaction')->once()->andReturnUsing(
             static fn(callable $operation): mixed => $operation()
         );
 
-        $uow = new DoctrineUnitOfWork($em);
+        $transactionalUnitOfWork = new DoctrineUnitOfWork($entityManager);
 
         $this->expectExceptionObject($failure);
-        $uow->commitTransactional(static function () use ($failure): never {
+        $transactionalUnitOfWork->commitTransactional(static function () use ($failure): never {
             throw $failure;
         });
     }
 
     public function test_that_is_closed_returns_true_when_entity_manager_is_not_open(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('isOpen')->once()->andReturnFalse();
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('isOpen')->once()->andReturnFalse();
 
-        $uow = new DoctrineUnitOfWork($em);
-        self::assertTrue($uow->isClosed());
+        $unitOfWork = new DoctrineUnitOfWork($entityManager);
+        self::assertTrue($unitOfWork->isClosed());
     }
 
     public function test_that_is_closed_returns_false_when_entity_manager_is_open(): void
     {
-        $em = $this->mock(EntityManagerInterface::class);
-        $em->shouldReceive('isOpen')->once()->andReturnTrue();
+        $entityManager = $this->mock(EntityManagerInterface::class);
+        $entityManager->shouldReceive('isOpen')->once()->andReturnTrue();
 
-        $uow = new DoctrineUnitOfWork($em);
-        self::assertFalse($uow->isClosed());
+        $unitOfWork = new DoctrineUnitOfWork($entityManager);
+        self::assertFalse($unitOfWork->isClosed());
     }
 }

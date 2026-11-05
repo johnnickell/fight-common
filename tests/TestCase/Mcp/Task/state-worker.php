@@ -30,9 +30,9 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connect
     }
     $connection->commit();
 });
-$fixture = new TaskFixture($proxy); $events = 0;
-foreach ([\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class, \Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved::class] as $event) {
-    $fixture->events->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore($event), static function () use (&$events): void { ++$events; });
+$fixture = new TaskFixture($proxy); $eventCount = 0;
+foreach ([\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class, \Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved::class] as $eventClass) {
+    $fixture->eventDispatcher->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore($eventClass), static function () use (&$eventCount): void { ++$eventCount; });
 }
 $fixture->onAdmission = static function () use ($fixture, $directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'ready');
@@ -58,5 +58,5 @@ try {
     }
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }
-echo json_encode(['status' => $status, 'events' => $events, 'admissions' => $fixture->admissions], JSON_THROW_ON_ERROR);
+echo json_encode(['status' => $status, 'events' => $eventCount, 'admissions' => $fixture->admissions], JSON_THROW_ON_ERROR);
 M::close();

@@ -21,14 +21,16 @@ final class YiiTemplateEngine implements TemplateEngine
      * @var array<string, TemplateHelper>
      */
     private array $helpers = [];
+    private readonly ViewInterface $viewRenderer;
 
     /**
      * Constructs YiiTemplateEngine
      */
     public function __construct(
-        private readonly ViewInterface $view,
+        ViewInterface $view,
         private readonly string $templatesPath
     ) {
+        $this->viewRenderer = $view;
     }
 
     /**
@@ -41,10 +43,10 @@ final class YiiTemplateEngine implements TemplateEngine
         }
 
         try {
-            $view = $this->view->withClearedState()->withBasePath($this->templatesPath);
-            $view->setParameters($this->helpers);
+            $configuredViewRenderer = $this->viewRenderer->withClearedState()->withBasePath($this->templatesPath);
+            $configuredViewRenderer->setParameters($this->helpers);
 
-            return $view->render($template, $data);
+            return $configuredViewRenderer->render($template, $data);
         } catch (Throwable $throwable) {
             throw new TemplatingException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }

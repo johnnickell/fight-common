@@ -35,11 +35,11 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
      */
     public function getByActor(string $actor, Pagination $pagination): ResultSet
     {
-        $qb = $this->createQueryBuilder('e')
+        $queryBuilder = $this->createQueryBuilder('e')
             ->where('e.actor = :actor')
             ->setParameter('actor', $actor);
 
-        return $this->paginate($qb, $pagination);
+        return $this->paginate($queryBuilder, $pagination);
     }
 
     /**
@@ -49,11 +49,11 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
      */
     public function getByAction(string $action, Pagination $pagination): ResultSet
     {
-        $qb = $this->createQueryBuilder('e')
+        $queryBuilder = $this->createQueryBuilder('e')
             ->where('e.action = :action')
             ->setParameter('action', $action);
 
-        return $this->paginate($qb, $pagination);
+        return $this->paginate($queryBuilder, $pagination);
     }
 
     /**
@@ -63,12 +63,12 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
      */
     public function getBetween(DateTimeImmutable $from, DateTimeImmutable $to, Pagination $pagination): ResultSet
     {
-        $qb = $this->createQueryBuilder('e')
+        $queryBuilder = $this->createQueryBuilder('e')
             ->where('e.timestamp >= :from AND e.timestamp <= :to')
             ->setParameter('from', $from)
             ->setParameter('to', $to);
 
-        return $this->paginate($qb, $pagination);
+        return $this->paginate($queryBuilder, $pagination);
     }
 
     /**
@@ -84,17 +84,17 @@ class DoctrineAuditRepository extends DoctrineRepository implements AuditReposit
      *
      * @return ResultSet<AuditEntry>
      */
-    private function paginate(QueryBuilder $qb, Pagination $pagination): ResultSet
+    private function paginate(QueryBuilder $queryBuilder, Pagination $pagination): ResultSet
     {
-        $qb->setFirstResult($pagination->offset())
+        $queryBuilder->setFirstResult($pagination->offset())
             ->setMaxResults($pagination->limit());
 
         foreach ($pagination->orderings() as $field => $direction) {
             $property = StringObject::create($field)->toCamelCase()->toString();
-            $qb->addOrderBy(sprintf('e.%s', $property), $direction);
+            $queryBuilder->addOrderBy(sprintf('e.%s', $property), $direction);
         }
 
-        $paginator = $this->createPaginator($qb);
+        $paginator = $this->createPaginator($queryBuilder);
         $totalRecords = count($paginator);
         $items = iterator_to_array($paginator);
         $records = ArrayList::of(AuditEntry::class)->replace($items);

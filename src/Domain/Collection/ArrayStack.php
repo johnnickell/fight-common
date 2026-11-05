@@ -317,18 +317,18 @@ final class ArrayStack implements Stack
      */
     public function partition(callable $predicate): array
     {
-        $stack1 = static::of($this->itemType());
-        $stack2 = static::of($this->itemType());
+        $matchingItems = static::of($this->itemType());
+        $nonMatchingItems = static::of($this->itemType());
 
         for ($i = 0; $i < $this->count; $i++) {
             if (call_user_func($predicate, $this->items[$i], $i)) {
-                $stack1->push($this->items[$i]);
+                $matchingItems->push($this->items[$i]);
             } else {
-                $stack2->push($this->items[$i]);
+                $nonMatchingItems->push($this->items[$i]);
             }
         }
 
-        return [$stack1, $stack2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

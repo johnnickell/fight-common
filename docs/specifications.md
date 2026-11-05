@@ -161,8 +161,8 @@ class PremiumCustomerSpecification extends CompositeSpecification
     }
 }
 
-$spec = new PremiumCustomerSpecification(100000.0);
-$spec->isSatisfiedBy($customer);
+$premiumCustomerSpecification = new PremiumCustomerSpecification(100000.0);
+$premiumCustomerSpecification->isSatisfiedBy($customer);
 ```
 
 The `$candidate` has no type constraint on the interface — use `instanceof` or `assert` in your implementation to guard.
@@ -265,7 +265,7 @@ $canInviteMember = (new TeamNotFullSpecification(10))
 Each combinator creates a node in a tree. When `isSatisfiedBy` is called, the tree is traversed depth-first.
 
 ```php-inline
-$spec = (new IsAdminSpecification())
+$activeEditorOrAdminSpecification = (new IsAdminSpecification())
     ->or(new IsEditorSpecification())
     ->and(new IsActiveSpecification());
 ```

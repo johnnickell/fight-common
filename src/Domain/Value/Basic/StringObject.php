@@ -955,9 +955,9 @@ final readonly class StringObject extends ValueObject implements ArrayAccess, Co
 
         assert(Validate::areSameType($this, $object));
 
-        $strComp = strnatcmp($this->value, (string) $object->value);
+        $comparison = strnatcmp($this->value, (string) $object->value);
 
-        return $strComp <=> 0;
+        return $comparison <=> 0;
     }
 
     /**

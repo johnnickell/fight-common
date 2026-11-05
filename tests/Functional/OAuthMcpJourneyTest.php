@@ -147,9 +147,9 @@ final class OAuthMcpJourneyTest extends TestCase
         $signer = new HmacRequestService('fixture-key', $private, static fn(int $size): string => 'fixture-nonce');
         $signed = $signer->signRequest($this->request());
         self::assertSame('HMAC-SHA256', $signed->getHeaderLine('Authorization'));
-        $nonces = $this->createMock(NonceRepository::class);
-        $nonces->expects(self::once())->method('consume');
-        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonces);
+        $nonceRepository = $this->createMock(NonceRepository::class);
+        $nonceRepository->expects(self::once())->method('consume');
+        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonceRepository);
         $validator = $this->createMock(OAuthTokenValidator::class);
         $validator->expects(self::never())->method('validate');
         $handoff = $this->createMock(OAuthClaimsHandoff::class);

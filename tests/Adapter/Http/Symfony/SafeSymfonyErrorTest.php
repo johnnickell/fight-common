@@ -198,8 +198,8 @@ final class SafeSymfonyErrorTest extends UnitTestCase
     public function test_that_validation_subscriber_failure_is_fixed_without_public_field_data(): void
     {
         $reports = [];
-        $dispatcher = $this->dispatcher($this->diagnostics($reports));
-        $dispatcher->addSubscriber(new \Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber(new ValidationService()));
+        $eventDispatcher = $this->dispatcher($this->diagnostics($reports));
+        $eventDispatcher->addSubscriber(new \Fight\Common\Adapter\Http\Symfony\EventSubscriber\SymfonyValidationSubscriber(new ValidationService()));
         $request = Request::create('/validate', 'POST', [], server: ['HTTP_ACCEPT' => 'application/json']);
         $request->attributes->set('_controller', [new class {
             #[Validation(rules: [['field' => 'email', 'label' => 'password=synthetic-secret', 'rules' => 'required']])]
@@ -208,7 +208,7 @@ final class SafeSymfonyErrorTest extends UnitTestCase
                 return new Response('should not execute');
             }
         }, 'handle']);
-        $response = (new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true))->handle($request);
+        $response = (new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true))->handle($request);
 
         self::assertSame(400, $response->getStatusCode());
         self::assertSame('{"status":"fail","data":{"message":"Invalid input."}}', $response->getContent());
@@ -252,15 +252,15 @@ final class SafeSymfonyErrorTest extends UnitTestCase
             ->getTag('kernel.event_listener')[0]['priority']);
         self::assertFalse($container->has(SymfonyExceptionSubscriber::class));
 
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addListener(KernelEvents::EXCEPTION, [
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addListener(KernelEvents::EXCEPTION, [
             $container->get(SafeSymfonyExceptionSubscriber::class), 'onKernelException',
         ], 64);
         $request = Request::create('/', server: ['HTTP_ACCEPT' => 'application/json']);
         $request->attributes->set('_controller', static function (): never {
             throw new RuntimeException('password=synthetic-secret');
         });
-        $response = (new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true))->handle($request);
+        $response = (new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true))->handle($request);
         self::assertSame('{"status":"error","message":"Internal server error."}', $response->getContent());
         self::assertCount(1, $reports);
     }
@@ -291,13 +291,13 @@ final class SafeSymfonyErrorTest extends UnitTestCase
                 $this->logger->error('HTTP failure', ['type' => $failure::class]);
             }
         };
-        $dispatcher = $this->dispatcher($redacting);
-        $dispatcher->addSubscriber(new ErrorListener(null, $logger));
-        $dispatcher->addListener(KernelEvents::EXCEPTION, static function ($event): void {
+        $eventDispatcher = $this->dispatcher($redacting);
+        $eventDispatcher->addSubscriber(new ErrorListener(null, $logger));
+        $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function ($event): void {
             $event->setResponse(new Response('delegated', 299));
             $event->allowCustomResponseCode();
         }, -200);
-        $kernel = new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true);
+        $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
         foreach (['application/json', 'text/html'] as $accept) {
             $request = Request::create('/secret', server: ['HTTP_ACCEPT' => $accept]);
             $request->attributes->set('_controller', static function (): never {
@@ -381,11 +381,11 @@ final class SafeSymfonyErrorTest extends UnitTestCase
 
     private function dispatcher(SafeHttpDiagnostics $diagnostics, ?SafeHttpProjector $projector = null): EventDispatcher
     {
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addListener(KernelEvents::EXCEPTION, [new SafeSymfonyExceptionSubscriber(
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addListener(KernelEvents::EXCEPTION, [new SafeSymfonyExceptionSubscriber(
             new SafeErrorController(new SafeHttpErrorPolicy(), $diagnostics, $projector)
         ), 'onKernelException'], 64);
-        return $dispatcher;
+        return $eventDispatcher;
     }
 
     private function dispatch(
@@ -396,14 +396,14 @@ final class SafeSymfonyErrorTest extends UnitTestCase
         bool $xhr = false,
         ?SafeHttpProjector $projector = null
     ): Response {
-        $dispatcher = $this->dispatcher($diagnostics, $projector);
+        $eventDispatcher = $this->dispatcher($diagnostics, $projector);
         if (!$catch) {
-            $dispatcher->addListener(KernelEvents::EXCEPTION, static function ($event): void {
+            $eventDispatcher->addListener(KernelEvents::EXCEPTION, static function ($event): void {
                 $event->setResponse(new Response('delegated', 299));
                 $event->allowCustomResponseCode();
             }, -128);
         }
-        $kernel = new HttpKernel($dispatcher, new ControllerResolver(), handleAllThrowables: true);
+        $kernel = new HttpKernel($eventDispatcher, new ControllerResolver(), handleAllThrowables: true);
         $request = Request::create('/secret', server: array_filter([
             'HTTP_ACCEPT' => $accept,
             'HTTP_X_REQUESTED_WITH' => $xhr ? 'XMLHttpRequest' : null,

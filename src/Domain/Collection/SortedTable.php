@@ -478,12 +478,12 @@ final class SortedTable implements OrderedTable
      */
     public function partition(callable $predicate): array
     {
-        $table1 = static::create(
+        $matchingItems = static::create(
             $this->comparator,
             $this->keyType(),
             $this->valueType()
         );
-        $table2 = static::create(
+        $nonMatchingItems = static::create(
             $this->comparator,
             $this->keyType(),
             $this->valueType()
@@ -491,13 +491,13 @@ final class SortedTable implements OrderedTable
 
         foreach ($this->getIterator() as $key => $value) {
             if (call_user_func($predicate, $value, $key)) {
-                $table1->set($key, $value);
+                $matchingItems->set($key, $value);
             } else {
-                $table2->set($key, $value);
+                $nonMatchingItems->set($key, $value);
             }
         }
 
-        return [$table1, $table2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

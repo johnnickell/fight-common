@@ -25,23 +25,23 @@ final class RemovalFixture implements DetailRemovalAdmission
     public bool $allowed = true;
     public int $admissions = 0;
     public ?Closure $onAdmit = null;
-    public readonly RoutingCommandBus $bus;
+    public readonly RoutingCommandBus $commandBus;
 
-    public function __construct(DbalRecordingTransaction $transaction, ?Closure $afterDelete = null)
+    public function __construct(DbalRecordingTransaction $recordingTransaction, ?Closure $afterDelete = null)
     {
-        $repository = new DbalProtectedContentRepository($transaction);
+        $protectedContentRepository = new DbalProtectedContentRepository($recordingTransaction);
         if ($afterDelete !== null) {
-            $repository = new class($repository, $afterDelete) implements ProtectedContentRepository {
-                public function __construct(private ProtectedContentRepository $inner, private Closure $afterDelete) {}
-                public function getFor(Observation $detail): ?ProtectedContent { return $this->inner->getFor($detail); }
-                public function add(Observation $detail, ProtectedContent $content): void { $this->inner->add($detail, $content); }
-                public function removeFor(Observation $detail): void { $this->inner->removeFor($detail); ($this->afterDelete)(); }
+            $protectedContentRepository = new class($protectedContentRepository, $afterDelete) implements ProtectedContentRepository {
+                public function __construct(private ProtectedContentRepository $innerProtectedContentRepository, private Closure $afterDelete) {}
+                public function getFor(Observation $detail): ?ProtectedContent { return $this->innerProtectedContentRepository->getFor($detail); }
+                public function add(Observation $detail, ProtectedContent $content): void { $this->innerProtectedContentRepository->add($detail, $content); }
+                public function removeFor(Observation $detail): void { $this->innerProtectedContentRepository->removeFor($detail); ($this->afterDelete)(); }
             };
         }
-        $remover = new DetailRemover($transaction, new DbalObservationRepository($transaction), $repository, $this);
+        $remover = new DetailRemover($recordingTransaction, new DbalObservationRepository($recordingTransaction), $protectedContentRepository, $this);
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RemoveCapturedDetailHandler::commandRegistration(), new RemoveCapturedDetailHandler($remover));
-        $this->bus = new RoutingCommandBus($router);
+        $this->commandBus = new RoutingCommandBus($router);
     }
 
     public function admit(RemoveCapturedDetail $command): void

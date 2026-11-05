@@ -25,7 +25,7 @@ consumer job, Workflow nor execution authority. Polling has no Subscriptions, Me
 
 Domain constructors, repository/committed-read methods and Task admission ports take `TaskId`; database columns,
 message arrays and MCP `taskId` remain the same strings. Convert incoming trusted selections with
-`TaskId::fromString($bytes)` and encode outward with `$id->toString()`. Repository hydration compares both exact
+`TaskId::fromString($bytes)` and encode outward with `$taskId->toString()`. Repository hydration compares both exact
 scope and ID value, not PHP instance identity. No wrapper is added for every caller/producer/form-key string.
 
 The four composite values provide `fromString()`/`toString()` over their existing structured JSON fields, plus
@@ -100,7 +100,7 @@ facade is required. Their Domain payloads are `Domain\Mcp\Task\Command\{CreateTa
 `Domain\Mcp\Task\Query\GetTask`; removal uses `Domain\Mcp\Task\Command\RemoveTasks`. See `tests/TestCase/Mcp/Task/TaskFixture.php` for executable explicit bus composition.
 The existing bus signatures remain `CommandBus::execute(): void`, `QueryBus::fetch()` and `EventDispatcher::trigger()`.
 
-A typical application sequence, after composing `$commands` and `$queries`, is:
+A typical application sequence, after composing `$commandBus` and `$queryBus`, is:
 
 ```php
 use Fight\Common\Domain\Mcp\Task\Command\CreateTask;
@@ -111,23 +111,23 @@ use Fight\Common\Domain\Mcp\Task\TaskId;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
 
-$id = TaskId::generate(); // Generate before the void Command; possession grants nothing.
-$definition = TaskDefinition::create($id, 'project:example', 'producer:example', StrictJson::fromObject([
+$taskId = TaskId::generate(); // Generate before the void Command; possession grants nothing.
+$taskDefinition = TaskDefinition::create($taskId, 'project:example', 'producer:example', StrictJson::fromObject([
     'kind' => 'tool',
     'name' => 'example.operation',
     'revision' => 'retained-contract-v1',
     'output_schema' => (object) ['type' => 'object']
 ]));
-$commands->execute(new CreateTask($definition, TaskState::create('working'), 60000, 500));
-$view = $queries->fetch(new GetTask('project:example', $id));
+$commandBus->execute(new CreateTask($taskDefinition, TaskState::create('working'), 60000, 500));
+$taskView = $queryBus->fetch(new GetTask('project:example', $taskId));
 // Only trusted producer evidence establishes this result. No operation is re-executed here.
-$result = StrictJson::fromObject([
+$taskResult = StrictJson::fromObject([
     'content' => [(object) ['type' => 'text', 'text' => 'Finished']],
     'structuredContent' => (object) ['ok' => true],
     'isError' => false
 ]);
-$commands->execute(new RecordTaskState(
-    'project:example', $id, 'producer:example', 1, TaskState::create('completed', result: $result)
+$commandBus->execute(new RecordTaskState(
+    'project:example', $taskId, 'producer:example', 1, TaskState::create('completed', result: $taskResult)
 ));
 ```
 
@@ -199,7 +199,7 @@ before any such explicit recreation. Common does not promise cross-lifetime dedu
 use Fight\Common\Domain\Mcp\Task\Command\RemoveTasks;
 use Fight\Common\Domain\Mcp\Task\TaskSelection;
 
-$commands->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$id])));
+$commandBus->execute(new RemoveTasks(TaskSelection::fromIds('project:example', [$taskId])));
 // A fresh GetTask under independent read permission now returns null, with no asserted absence reason.
 ```
 

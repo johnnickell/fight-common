@@ -23,8 +23,10 @@ use Throwable;
  */
 readonly class McpRequestHandler implements RequestHandlerInterface
 {
-    private McpHeaderValidator $headers;
+    private McpHeaderValidator $headerValidator;
     private McpResponder $responder;
+    private McpInvocationGuard $invocationGuard;
+    private McpResponseFactory $responseFactory;
 
     /**
      * Constructs McpRequestHandler
@@ -32,12 +34,14 @@ readonly class McpRequestHandler implements RequestHandlerInterface
     public function __construct(
         private McpCapabilityRegistry $registry,
         private McpOriginPolicy $originPolicy,
-        private McpInvocationGuard $guard,
-        private McpResponseFactory $responses,
+        McpInvocationGuard $guard,
+        McpResponseFactory $responses,
         private McpRequestDecoder $decoder = new McpRequestDecoder(),
         private bool $progressive = false
     ) {
-        $this->headers = new McpHeaderValidator($registry);
+        $this->invocationGuard = $guard;
+        $this->responseFactory = $responses;
+        $this->headerValidator = new McpHeaderValidator($registry);
         $this->responder = new McpResponder($registry);
     }
 
@@ -49,30 +53,30 @@ readonly class McpRequestHandler implements RequestHandlerInterface
         $message = null;
         try {
             if (!$this->allowsOrigin($request)) {
-                return $this->responses->rejection(403);
+                return $this->responseFactory->rejection(403);
             }
 
             if ($request->getMethod() !== 'POST') {
-                return $this->responses->rejection(405);
+                return $this->responseFactory->rejection(405);
             }
 
             if (!$this->acceptsBoth($request->getHeader('Accept'))) {
-                return $this->responses->rejection(406);
+                return $this->responseFactory->rejection(406);
             }
 
             if (!$this->isJson($request->getHeader('Content-Type'))) {
-                return $this->responses->rejection(415);
+                return $this->responseFactory->rejection(415);
             }
 
             $json = new McpRequestBodyReader()->read($request->getBody(), $this->decoder->limits());
             if ($json === null) {
-                return $this->responses->rejection(413);
+                return $this->responseFactory->rejection(413);
             }
 
             $message = $this->decoder->decode($json);
-            $name = $this->headers->validate($message, $request->getHeaders());
+            $name = $this->headerValidator->validate($message, $request->getHeaders());
             if ($message->metadata()->protocolVersion() !== McpResponder::PROTOCOL_VERSION) {
-                return $this->responses->fromResponse(McpJsonResponse::error(
+                return $this->responseFactory->fromResponse(McpJsonResponse::error(
                     $message->id(),
                     McpProtocolError::unsupportedProtocolVersion(
                         [McpResponder::PROTOCOL_VERSION],
@@ -81,8 +85,8 @@ readonly class McpRequestHandler implements RequestHandlerInterface
                 ));
             }
 
-            if (!$this->guard->allows($message->method(), $name)) {
-                return $this->responses->fromResponse(McpJsonResponse::error(
+            if (!$this->invocationGuard->allows($message->method(), $name)) {
+                return $this->responseFactory->fromResponse(McpJsonResponse::error(
                     $message->id(),
                     McpProtocolError::invocationLimit()
                 ));
@@ -90,24 +94,24 @@ readonly class McpRequestHandler implements RequestHandlerInterface
 
             $subscriptions = $this->registry->subscriptions();
             if ($message->method() === 'subscriptions/listen' && $subscriptions !== null) {
-                return $this->responses->stream($message, $this->responder, $subscriptions->execution($message));
+                return $this->responseFactory->stream($message, $this->responder, $subscriptions->execution($message));
             }
 
             if (
                 $this->progressive && $message->method() === 'tools/call'
                 && $message->metadata()->progressToken() !== null
             ) {
-                return $this->responses->stream($message, $this->responder);
+                return $this->responseFactory->stream($message, $this->responder);
             }
 
-            return $this->responses->fromResponse($this->responder->dispatch($message));
+            return $this->responseFactory->fromResponse($this->responder->dispatch($message));
         } catch (McpProtocolException $exception) {
-            return $this->responses->fromResponse(McpJsonResponse::error(
+            return $this->responseFactory->fromResponse(McpJsonResponse::error(
                 $message?->id() ?? $exception->requestId(),
                 $exception->protocolError()
             ));
         } catch (Throwable $failure) {
-            return $this->responses->failure($failure, $message?->id());
+            return $this->responseFactory->failure($failure, $message?->id());
         }
     }
 

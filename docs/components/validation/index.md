@@ -68,15 +68,15 @@ composer require johnnickell/fight-common
 use Fight\Common\Application\Validation\Exception\ValidationException;
 use Fight\Common\Application\Validation\ValidationService;
 
-$validation = new ValidationService();
+$validationService = new ValidationService();
 
 try {
-    $data = $validation->validate(
+    $validatedData = $validationService->validate(
         ['email' => 'customer@example.com'],
         [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']],
     );
 
-    $email = $data->get('email');
+    $email = $validatedData->get('email');
 } catch (ValidationException $failure) {
     $errors = $failure->getErrors();
 }

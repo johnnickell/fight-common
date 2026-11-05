@@ -43,7 +43,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         $record = $this->writer($db, $events);
         $record(ObservationFixture::session()); $record(ObservationFixture::phase());
         $activity = ObservationFixture::activity(); $record($activity);
-        [$bus, $admission] = $this->detailBus($db);
+        [$queryBus, $admission] = $this->detailBus($db);
         $selection = $this->selection($activity);
         foreach (DetailKind::cases() as $kind) {
             $detail = $this->captured($activity, $kind, CaptureCompleteness::PARTIAL);
@@ -54,7 +54,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             do {
                 $query = new GetCapturedDetail($selection, $detail->id(), $kind, $offset, 4093);
                 $envelope = QueryMessage::arrayDeserialize(QueryMessage::create($query)->arraySerialize());
-                $result = $bus->dispatch($envelope)->toArray();
+                $result = $queryBus->dispatch($envelope)->toArray();
                 $chunk = $result['chunk'];
                 self::assertSame('base64', $chunk['encoding']);
                 self::assertSame($offset, $chunk['offset']);
@@ -72,14 +72,14 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             self::assertSame($before, $this->detailState($db));
             self::assertSame($count, $eventCount);
             self::assertFalse($db->isTransactionActive());
-            $end = $bus->fetch(new GetCapturedDetail($selection, $detail->id(), $kind, strlen($body), 1))->toArray()['chunk'];
+            $end = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), $kind, strlen($body), 1))->toArray()['chunk'];
             self::assertSame('', $end['data']); self::assertSame(0, $end['bytes']); self::assertNull($end['next_offset']);
             if ($kind === DetailKind::PROCESS_OUTPUT) {
                 self::assertSame(['stream' => 'stdout', 'index' => 3, 'offset' => 100], $result['reference']['capture']['segment']);
             }
         }
         self::assertGreaterThan(10, $admission->calls);
-        $messages = $bus->dispatch(QueryMessage::arrayDeserialize(QueryMessage::create(new ListCapturedMessages($selection))->arraySerialize()));
+        $messages = $queryBus->dispatch(QueryMessage::arrayDeserialize(QueryMessage::create(new ListCapturedMessages($selection))->arraySerialize()));
         self::assertCount(1, $messages->messages());
         self::assertSame(1024, $messages->toArray()['messages'][0]['chunk']['bytes']);
         self::assertSame(1024, $messages->toArray()['messages'][0]['chunk']['next_offset']);
@@ -99,24 +99,24 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         $record(ObservationFixture::phase(['session' => $session->toArray(), 'observation_id' => ObservationId::generate()->toString()]));
         $foreignActivity = ObservationFixture::activity(['session' => $session->toArray(), 'observation_id' => ObservationId::generate()->toString()]); $record($foreignActivity);
         $foreign = $this->captured($foreignActivity); $record($foreign, ProtectedContent::create($foreign->detail(), 'OTHER-PROJECT'));
-        [$bus, $admission] = $this->detailBus($db);
+        [$queryBus, $admission] = $this->detailBus($db);
         $selection = $this->selection($activity); $query = new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE);
-        self::assertSame('SECRET-HUMAN-ONLY', base64_decode($bus->fetch($query)->toArray()['chunk']['data'], true));
-        $initial = $bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk'];
+        self::assertSame('SECRET-HUMAN-ONLY', base64_decode($queryBus->fetch($query)->toArray()['chunk']['data'], true));
+        $initial = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk'];
         self::assertSame(3, $initial['next_offset']);
-        self::assertSame(1, $bus->fetch(new ListCapturedMessages($selection, 1, 1))->toArray()['total']);
+        self::assertSame(1, $queryBus->fetch(new ListCapturedMessages($selection, 1, 1))->toArray()['total']);
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => [$this->detailKey($detail)]]);
-        $agent = $bus->fetch($query)->toArray();
+        $agent = $queryBus->fetch($query)->toArray();
         self::assertFalse($agent['body_permitted']); self::assertNull($agent['chunk']);
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray()['chunk']);
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray()['chunk']);
         self::assertSame('retained', $agent['reference']['availability']);
         self::assertStringNotContainsString('SECRET-HUMAN-ONLY', json_encode($agent));
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $other->id(), DetailKind::MESSAGE)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $other->id(), DetailKind::MESSAGE)));
         $admission->access = DetailAccess::create(['project' => null], bodyGrants: ['project' => null]);
-        self::assertNull($bus->fetch($query)); self::assertNull($bus->fetch(new ListCapturedMessages($selection)));
-        self::assertNull($bus->fetch(new ListCapturedMessages($selection, 2, 1)));
+        self::assertNull($queryBus->fetch($query)); self::assertNull($queryBus->fetch(new ListCapturedMessages($selection)));
+        self::assertNull($queryBus->fetch(new ListCapturedMessages($selection, 2, 1)));
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => []], bodyGrants: ['project' => null]);
-        self::assertNull($bus->fetch($query));
+        self::assertNull($queryBus->fetch($query));
         $admission->access = $this->allDetailAccess();
         foreach ([
             $this->selection($activity, ['project_id' => 'other']),
@@ -125,21 +125,21 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             $this->selection($activity, ['producer_id' => 'guessed']),
             $this->selection($activity, ['activity_id' => ObservationId::generate()->toString()])
         ] as $wrong) {
-            self::assertNull($bus->fetch(new GetCapturedDetail($wrong, $detail->id(), DetailKind::MESSAGE)));
-            self::assertNull($bus->fetch(new ListCapturedMessages($wrong)));
+            self::assertNull($queryBus->fetch(new GetCapturedDetail($wrong, $detail->id(), DetailKind::MESSAGE)));
+            self::assertNull($queryBus->fetch(new ListCapturedMessages($wrong)));
         }
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $other->id(), DetailKind::MESSAGE)));
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $foreign->id(), DetailKind::MESSAGE)));
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::TOOL_RESULT)));
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, ObservationId::generate(), DetailKind::MESSAGE)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $other->id(), DetailKind::MESSAGE)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $foreign->id(), DetailKind::MESSAGE)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::TOOL_RESULT)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, ObservationId::generate(), DetailKind::MESSAGE)));
         $admission->access = DetailAccess::create(['project' => ['not-this-session']], metadataGrants: ['project' => null], bodyGrants: ['project' => null]);
-        self::assertNull($bus->fetch($query));
+        self::assertNull($queryBus->fetch($query));
         $admission->access = DetailAccess::create(['project' => null], ['project' => []], ['project' => null], ['project' => null]);
-        self::assertNull($bus->fetch($query));
+        self::assertNull($queryBus->fetch($query));
         $admission->access = $this->allDetailAccess();
         $db->executeStatement('DROP TABLE fight_execution_contents');
-        $this->assertDetailFailure(static fn () => $bus->fetch($query));
-        $this->assertDetailFailure(static fn () => $bus->fetch(new ListCapturedMessages($selection)));
+        $this->assertDetailFailure(static fn () => $queryBus->fetch($query));
+        $this->assertDetailFailure(static fn () => $queryBus->fetch(new ListCapturedMessages($selection)));
         self::assertGreaterThan(10, $admission->calls);
     }
 
@@ -149,29 +149,29 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         $db = $this->database($backend); $record = $this->writer($db);
         $record(ObservationFixture::session()); $record(ObservationFixture::phase());
         $activity = ObservationFixture::activity(); $record($activity);
-        [$bus] = $this->detailBus($db); $selection = $this->selection($activity);
+        [$queryBus] = $this->detailBus($db); $selection = $this->selection($activity);
         foreach (CaptureCompleteness::cases() as $completeness) {
             $detail = $this->captured($activity, completeness: $completeness);
             $captured = in_array($completeness, [CaptureCompleteness::COMPLETE, CaptureCompleteness::PARTIAL], true);
             $record($detail, ProtectedContent::create($detail->detail(), $captured ? '' : null));
             $query = new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE);
-            $result = $bus->fetch($query)->toArray();
+            $result = $queryBus->fetch($query)->toArray();
             self::assertSame($completeness->value, $result['reference']['capture']['completeness']);
             self::assertSame($captured ? 'retained' : $completeness->value, $result['reference']['availability']);
             if ($captured) { self::assertSame('', $result['chunk']['data']); self::assertNull($result['chunk']['next_offset']); }
             else { self::assertNull($result['chunk']); }
             $db->delete('fight_execution_contents', ['observation_id' => $detail->id()->toString(), 'producer_id' => $detail->producerId()]);
-            $missing = $bus->fetch($query)->toArray();
+            $missing = $queryBus->fetch($query)->toArray();
             self::assertNull($missing['chunk']);
             self::assertSame($captured ? 'missing' : $completeness->value, $missing['reference']['availability']);
         }
         $detail = $this->captured($activity); $record($detail, ProtectedContent::create($detail->detail(), 'retained only until removed'));
-        $first = $bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk'];
+        $first = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk'];
         self::assertSame(3, $first['next_offset']);
         $db->delete('fight_execution_contents', ['observation_id' => $detail->id()->toString()]);
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray()['chunk']);
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray()['chunk']);
         $db->delete('fight_execution_observations', ['observation_id' => $detail->id()->toString()]);
-        self::assertNull($bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE)));
+        self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE)));
     }
 
     #[DataProvider('databases')]
@@ -187,29 +187,29 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             $record($detail, ProtectedContent::create($detail->detail(), 'message-'.$i)); $details[] = $detail;
         }
         $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.123456Z'");
-        [$bus, $admission] = $this->detailBus($db); $selection = $this->selection($activity);
+        [$queryBus, $admission] = $this->detailBus($db); $selection = $this->selection($activity);
         $query = new ListCapturedMessages($selection, 1, 1);
-        $first = $bus->fetch($query)->toArray();
+        $first = $queryBus->fetch($query)->toArray();
         self::assertSame(3, $first['total']); self::assertSame($ids[2], $first['messages'][0]['reference']['observation_id']);
         self::assertSame('2026-10-20T12:00:00Z', $first['messages'][0]['reference']['occurred_at']);
         self::assertSame('2026-10-22T12:00:00.123456Z', $first['messages'][0]['reference']['recorded_at']);
         self::assertSame(1, $details[2]->recorded(Observation::timestamp('2026-10-22T12:00:00.123456Z'))->compareRecordingTo($details[1]->recorded(Observation::timestamp('2026-10-22T12:00:00.123456Z'))));
-        self::assertSame($ids[1], $bus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
-        self::assertSame($ids[0], $bus->fetch(new ListCapturedMessages($selection, 1, 1, ['recorded_at' => 'asc']))->toArray()['messages'][0]['reference']['observation_id']);
+        self::assertSame($ids[1], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
+        self::assertSame($ids[0], $queryBus->fetch(new ListCapturedMessages($selection, 1, 1, ['recorded_at' => 'asc']))->toArray()['messages'][0]['reference']['observation_id']);
         $db->update('fight_execution_observations', ['recorded_at' => '2026-10-22T12:00:00.123457Z'], ['observation_id' => $ids[0]]);
-        self::assertSame($ids[0], $bus->fetch($query)->toArray()['messages'][0]['reference']['observation_id']);
+        self::assertSame($ids[0], $queryBus->fetch($query)->toArray()['messages'][0]['reference']['observation_id']);
         // A late-arriving older occurrence becomes the newest receipt, shifting the live page.
         $late = $this->captured($activity, occurrence: '2020-01-01T00:00:00.1Z'); $record($late, ProtectedContent::create($late->detail(), 'late'));
-        self::assertSame($ids[0], $bus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
+        self::assertSame($ids[0], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
         $db->delete('fight_execution_contents', ['observation_id' => $late->id()->toString()]);
         $db->delete('fight_execution_observations', ['observation_id' => $late->id()->toString()]);
-        self::assertSame($ids[2], $bus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
-        $empty = $bus->fetch(new ListCapturedMessages($selection, 20, 32))->toArray(); self::assertSame(3, $empty['total']); self::assertSame([], $empty['messages']);
+        self::assertSame($ids[2], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
+        $empty = $queryBus->fetch(new ListCapturedMessages($selection, 20, 32))->toArray(); self::assertSame(3, $empty['total']); self::assertSame([], $empty['messages']);
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => [$this->detailKey($details[1]), 'other/'.$ids[0]]], bodyGrants: ['project' => [$this->detailKey($details[1])]]);
-        $page = $bus->fetch(new ListCapturedMessages($selection))->toArray();
+        $page = $queryBus->fetch(new ListCapturedMessages($selection))->toArray();
         self::assertSame(1, $page['total']); self::assertTrue($page['messages'][0]['body_permitted']);
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => [$this->detailKey($details[0])]], bodyGrants: ['project' => [$this->detailKey($details[1])]]);
-        self::assertNull($bus->fetch(new ListCapturedMessages($selection))->toArray()['messages'][0]['chunk']);
+        self::assertNull($queryBus->fetch(new ListCapturedMessages($selection))->toArray()['messages'][0]['chunk']);
     }
 
     #[DataProvider('databases')]
@@ -225,12 +225,12 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             $record($detail, ProtectedContent::create($detail->detail(), str_repeat('m', 2048)));
         }
         $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.123456Z'");
-        [$bus] = $this->detailBus($db); $selection = $this->selection($activity);
-        $desc = $bus->fetch(new ListCapturedMessages($selection, 4, 32))->toArray();
+        [$queryBus] = $this->detailBus($db); $selection = $this->selection($activity);
+        $desc = $queryBus->fetch(new ListCapturedMessages($selection, 4, 32))->toArray();
         self::assertSame(101, $desc['total']); self::assertCount(5, $desc['messages']);
-        $asc = $bus->fetch(new ListCapturedMessages($selection, 1, 5, ['recorded_at' => 'ASC']))->toArray();
+        $asc = $queryBus->fetch(new ListCapturedMessages($selection, 1, 5, ['recorded_at' => 'ASC']))->toArray();
         self::assertSame(array_reverse(array_column(array_column($desc['messages'], 'reference'), 'observation_id')), array_column(array_column($asc['messages'], 'reference'), 'observation_id'));
-        self::assertLessThan(262144, strlen(json_encode($bus->fetch(new ListCapturedMessages($selection))->toArray(), JSON_THROW_ON_ERROR)));
+        self::assertLessThan(262144, strlen(json_encode($queryBus->fetch(new ListCapturedMessages($selection))->toArray(), JSON_THROW_ON_ERROR)));
     }
 
     protected function detailBus(Connection $db): array

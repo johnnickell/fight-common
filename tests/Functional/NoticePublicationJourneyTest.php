@@ -83,14 +83,14 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             }
             return 'controlled-hub-id';
         });
-        $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
+        $operation = new NoticePublication($inspection->queryBus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
         $composition = new RecordNoticeAndPublish($writer->commandBus, $operation);
         $command = RecordNotice::fromArray(NoticeFixture::data(['metadata' => ['app/label' => '雪"\\/', 'app/hidden' => 'NOT-FOR-BROADCAST']]));
 
         self::assertSame(NoticePublicationStatus::PUBLISHED, $composition->record($command));
-        $saved = $inspection->bus->fetch(new GetNotice('scope', 'producer', 'notice-1'));
+        $saved = $inspection->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-1'));
         self::assertSame(NoticePublicationStatus::FAILED, $composition->record($command));
-        self::assertSame($saved->toArray(), $inspection->bus->fetch(new GetNotice('scope', 'producer', 'notice-1'))->toArray());
+        self::assertSame($saved->toArray(), $inspection->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-1'))->toArray());
         self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
         $grant = null;
         self::assertSame(NoticePublicationStatus::DENIED, $composition->record($command));
@@ -121,10 +121,10 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         self::assertSame($unknown, json_decode($updates[2]->getData(), true)['relationships']);
         self::assertNull(json_decode($updates[2]->getData(), true)['occurred_at']);
         self::assertSame($broadcast, json_decode($updates[3]->getData(), true)['relationships']);
-        $page = $inspection->bus->fetch(new ListNotices(NoticeSelection::create(['scope', 'scope-2'])))->toArray();
+        $page = $inspection->queryBus->fetch(new ListNotices(NoticeSelection::create(['scope', 'scope-2'])))->toArray();
         self::assertSame(3, $page['total']);
         self::assertStringNotContainsString('CONCEALED-SENTINEL', json_encode($page));
-        $batch = $recovery->queries->fetch(new RecoverNotices(NoticeSelection::create(['scope', 'scope-2'])))->toArray();
+        $batch = $recovery->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['scope', 'scope-2'])))->toArray();
         self::assertSame(['notice-1', 'unknown', 'broadcast'], array_column($batch['notices'], 'id'));
         self::assertSame('complete', $batch['status']);
         self::assertStringNotContainsString('CONCEALED-SENTINEL', json_encode($batch));
@@ -142,7 +142,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $hub->shouldNotReceive('publish');
         $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
         $diagnostics->shouldReceive('record')->once()->withArgs(static fn ($failure) => $failure instanceof NoticeReadFailed);
-        $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
+        $operation = new NoticePublication($inspection->queryBus, $policy, $diagnostics, new MercureHubPublisher($hub), new PrivateMercureHubPublisher($hub));
         $composition = new RecordNoticeAndPublish($writer->commandBus, $operation);
         $command = RecordNotice::fromArray(NoticeFixture::data());
         if ($backend === 'sqlite') {
@@ -188,7 +188,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
         $diagnostics->shouldNotReceive('record');
         // No hub or publisher collaborators are constructed or resolved in this composition.
-        $operation = new NoticePublication($inspection->bus, $policy, $diagnostics);
+        $operation = new NoticePublication($inspection->queryBus, $policy, $diagnostics);
         self::assertSame(NoticePublicationStatus::UNSUPPORTED, (new RecordNoticeAndPublish($removal->recording->commandBus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data())));
         $args = ['scopes' => ['scope']];
         $before = $recovery->call($args)['body']['result']['structuredContent'];
@@ -199,7 +199,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         self::assertSame(['notices.recover'], array_column($recovery->request('tools/list')['body']['result']['tools'], 'name'));
         $inspection->access = NoticeAccess::create([]);
         self::assertSame(NoticePublicationStatus::NOT_AVAILABLE, $operation->publish(new GetNotice('scope', 'producer', 'notice-1')));
-        self::assertNull($inspection->bus->fetch(new GetNotice('scope', 'producer', 'notice-1')));
+        self::assertNull($inspection->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-1')));
         $recovery->access = NoticeRecoveryFixture::access([], revision: 'revoked');
         $revoked = $recovery->call($args + ['continuation' => $before['continuation']]);
         self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $revoked['body']['error']);
@@ -239,7 +239,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             self::assertTrue($update->isPrivate());
             return 'controlled-id';
         });
-        $operation = new NoticePublication($inspection->bus, $policy, $diagnostics, privatePublisher: new PrivateMercureHubPublisher($hub));
+        $operation = new NoticePublication($inspection->queryBus, $policy, $diagnostics, privatePublisher: new PrivateMercureHubPublisher($hub));
         try {
             (new RecordNoticeAndPublish($writer->commandBus, $operation))->record(RecordNotice::fromArray(NoticeFixture::data()));
             self::fail('Existing committed-fact failure must propagate, not pretend recording rolled back.');

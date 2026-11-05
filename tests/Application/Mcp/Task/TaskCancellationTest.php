@@ -48,7 +48,7 @@ final class TaskCancellationTest extends UnitTestCase
         $fixture->issue(confirmation: true);
         $before = $fixture->committedTaskReader->read('scope', TaskFixture::id());
         $events = [];
-        $fixture->events->addHandler(
+        $fixture->eventDispatcher->addHandler(
             ClassName::underscore(TaskChanged::class),
             static function ($message) use ($fixture, &$events): void {
                 self::assertNotNull($fixture->committedTaskReader->read('scope', TaskFixture::id())->cancellation());
@@ -109,7 +109,7 @@ final class TaskCancellationTest extends UnitTestCase
             $fixture->create();
             $fixture->record($state);
             $before = $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray();
-            $fixture->events->addHandler(
+            $fixture->eventDispatcher->addHandler(
                 ClassName::underscore(TaskChanged::class),
                 static fn () => self::fail('No new cancellation fact'),
             );
@@ -225,7 +225,7 @@ final class TaskCancellationTest extends UnitTestCase
         $fixture = $this->fixture();
         $fixture->create();
         $calls = 0;
-        $fixture->events->addHandler(
+        $fixture->eventDispatcher->addHandler(
             ClassName::underscore(TaskChanged::class),
             static function () use (&$calls): void {
                 ++$calls;
@@ -258,7 +258,7 @@ final class TaskCancellationTest extends UnitTestCase
             } else {
                 $committedTaskReader->shouldReceive('read')->once()->andReturn($reconstructed);
             }
-            $requestTaskCancellationHandler = new RequestTaskCancellationHandler($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->events, fn () => $fixture->now);
+            $requestTaskCancellationHandler = new RequestTaskCancellationHandler($taskRepository, $transactionalUnitOfWork, $committedTaskReader, $fixture, $fixture->eventDispatcher, fn () => $fixture->now);
 
             try {
                 $requestTaskCancellationHandler->handle(CommandMessage::create(new RequestTaskCancellation('scope', $taskId, 'caller')));

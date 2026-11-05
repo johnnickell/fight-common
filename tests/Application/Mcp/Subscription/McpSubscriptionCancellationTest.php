@@ -30,14 +30,14 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
     #[DataProvider('bodyCallbacks')]
     public function test_that_closing_during_a_guarded_callback_returns_no_new_bytes_and_closes_tracking(string $boundary): void
     {
-        $f = $this->fixture();
-        $body = $f->endpoint->handle(SubscriptionFixture::request())->getBody();
+        $fixture = $this->fixture();
+        $body = $fixture->endpoint->handle(SubscriptionFixture::request())->getBody();
         if ($boundary === 'opening-source') {
-            $f->queryPolicy = static function () use ($body): void { $body->close(); };
+            $fixture->queryPolicy = static function () use ($body): void { $body->close(); };
         } else {
             self::assertStringContainsString('acknowledged', $body->read(65536));
-            (new NoticeFixture($f->db))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']);
-            $f->policy = static function ($filter, $uri, $notice) use ($body): bool {
+            (new NoticeFixture($fixture->connection))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']);
+            $fixture->policy = static function ($filter, $uri, $notice) use ($body): bool {
                 if ($notice !== null) { $body->close(); }
                 return true;
             };
@@ -48,10 +48,10 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
         self::assertSame($position, $body->tell());
         self::assertTrue($body->eof());
         self::assertFalse($body->isReadable());
-        self::assertSame(0, (int) $f->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0'));
-        self::assertSame($boundary === 'opening-source' ? 0 : 1, (int) $f->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
-        self::assertSame($boundary === 'opening-source' ? 0 : 1, (int) $f->db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
-        self::assertSame([], $f->diagnostics);
+        self::assertSame(0, (int) $fixture->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0'));
+        self::assertSame($boundary === 'opening-source' ? 0 : 1, (int) $fixture->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+        self::assertSame($boundary === 'opening-source' ? 0 : 1, (int) $fixture->connection->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        self::assertSame([], $fixture->diagnostics);
         $body->close();
     }
 
@@ -63,21 +63,21 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
 
     public function test_that_an_expired_opening_source_never_registers_or_acknowledges(): void
     {
-        $f = $this->fixture();
-        $body = $f->endpoint->handle(SubscriptionFixture::request())->getBody();
-        $f->queryPolicy = static function (): void { usleep(1100000); };
+        $fixture = $this->fixture();
+        $body = $fixture->endpoint->handle(SubscriptionFixture::request())->getBody();
+        $fixture->queryPolicy = static function (): void { usleep(1100000); };
         self::assertSame('', $body->read(65536));
         self::assertTrue($body->eof());
         self::assertSame(0, $body->tell());
-        self::assertSame(0, (int) $f->db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
-        self::assertSame([], $f->diagnostics);
+        self::assertSame(0, (int) $fixture->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+        self::assertSame([], $fixture->diagnostics);
         $body->close();
     }
 
     #[DataProvider('cancellationBoundaries')]
     public function test_that_callback_stop_state_prevents_fresh_signals_and_preserves_honest_completion(string $boundary, bool $acknowledged, bool $registered, bool $expire = false): void
     {
-        $f = $this->fixture();
+        $fixture = $this->fixture();
         $execution = null;
         $events = [];
         $hit = static function (string $event) use ($boundary, &$execution, &$events, $expire): void {
@@ -95,29 +95,29 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
                 return true;
             }
         };
-        $store = $this->mock(McpSubscriptionStore::class);
-        $store->shouldReceive('open')->andReturnUsing(static function () use ($hit): void { $hit('open'); });
+        $subscriptionStore = $this->mock(McpSubscriptionStore::class);
+        $subscriptionStore->shouldReceive('open')->andReturnUsing(static function () use ($hit): void { $hit('open'); });
         $heartbeats = 0;
-        $store->shouldReceive('heartbeat')->andReturnUsing(static function () use ($hit, &$heartbeats, $boundary): void {
+        $subscriptionStore->shouldReceive('heartbeat')->andReturnUsing(static function () use ($hit, &$heartbeats, $boundary): void {
             ++$heartbeats;
             $hit($heartbeats === 1 ? 'opening-heartbeat' : (in_array($boundary, ['completion-heartbeat', 'close'], true) ? 'completion-heartbeat' : match ($heartbeats) { 2 => 'source-heartbeat', 3 => 'notice-heartbeat', 4 => 'delivery-heartbeat', default => 'keepalive-heartbeat' }));
         });
-        $store->shouldReceive('close')->andReturnUsing(static function () use ($hit): void { $hit('close'); });
-        $queries = $this->mock(QueryBus::class);
+        $subscriptionStore->shouldReceive('close')->andReturnUsing(static function () use ($hit): void { $hit('close'); });
+        $queryBus = $this->mock(QueryBus::class);
         $reads = 0;
         $notice = new NoticeView(Notice::fromArray(NoticeFixture::data(['id' => 'retained', 'type' => 'mcp.tools.list_changed'])), '2026-10-25T00:00:00Z');
-        $queries->shouldReceive('fetch')->andReturnUsing(static function () use ($hit, &$reads, $notice): NoticeRecoveryBatch {
+        $queryBus->shouldReceive('fetch')->andReturnUsing(static function () use ($hit, &$reads, $notice): NoticeRecoveryBatch {
             $hit(++$reads === 1 ? 'opening-source' : 'live-source');
             return new NoticeRecoveryBatch($reads === 1 ? [] : [$notice], 'complete', 'opaque');
         });
         $request = new McpRequestDecoder()->decode((string) SubscriptionFixture::request()->getBody());
-        $execution = (new McpSubscriptions($queries, $store, $admission, NoticeSelection::create(['scope']), lifetimeSeconds: 1, waitMicroseconds: 10000))->execution($request);
+        $execution = (new McpSubscriptions($queryBus, $subscriptionStore, $admission, NoticeSelection::create(['scope']), lifetimeSeconds: 1, waitMicroseconds: 10000))->execution($request);
         $frames = [];
         $execution->run(static function (string $frame) use (&$frames, $boundary): void {
             $frames[] = $frame;
             // Reach graceful completion deterministically without repeatedly fetching the same fixture batch.
             if ($boundary === 'completion-heartbeat' || $boundary === 'close') { usleep(1100000); }
-        }, $f);
+        }, $fixture);
 
         self::assertContains($boundary, $events);
         self::assertCount($acknowledged ? ($expire ? 2 : 1) : 0, $frames, json_encode($events));
@@ -125,7 +125,7 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
         if ($acknowledged && $expire) { self::assertStringContainsString('"resultType":"complete"', $frames[1]); }
         self::assertSame($registered, in_array('open', $events, true));
         self::assertSame($registered ? 1 : 0, count(array_filter($events, static fn ($event) => $event === 'close')));
-        self::assertSame([], $f->diagnostics);
+        self::assertSame([], $fixture->diagnostics);
         if (in_array($boundary, ['subscriber', 'initial-admission'], true)) { self::assertNotContains('opening-source', $events); }
         if ($boundary === 'source-heartbeat') { self::assertNotContains('live-source', $events); }
         if ($boundary === 'notice-heartbeat') { self::assertNotContains('notice-admission', $events); }
@@ -147,24 +147,24 @@ final class McpSubscriptionCancellationTest extends UnitTestCase
 
     public function test_that_keepalive_tracking_cancellation_sends_no_keepalive_after_return(): void
     {
-        $f = $this->fixture();
+        $fixture = $this->fixture();
         $execution = null;
-        $store = $this->mock(McpSubscriptionStore::class);
-        $store->shouldReceive('open')->once();
-        $store->shouldReceive('close')->once();
+        $subscriptionStore = $this->mock(McpSubscriptionStore::class);
+        $subscriptionStore->shouldReceive('open')->once();
+        $subscriptionStore->shouldReceive('close')->once();
         $heartbeats = 0;
-        $store->shouldReceive('heartbeat')->times(3)->andReturnUsing(static function () use (&$heartbeats, &$execution): void {
+        $subscriptionStore->shouldReceive('heartbeat')->times(3)->andReturnUsing(static function () use (&$heartbeats, &$execution): void {
             if (++$heartbeats === 3) { $execution->cancel(); }
         });
-        $queries = $this->mock(QueryBus::class);
-        $queries->shouldReceive('fetch')->twice()->andReturn(new NoticeRecoveryBatch([], 'complete', 'opaque'));
+        $queryBus = $this->mock(QueryBus::class);
+        $queryBus->shouldReceive('fetch')->twice()->andReturn(new NoticeRecoveryBatch([], 'complete', 'opaque'));
         $request = new McpRequestDecoder()->decode((string) SubscriptionFixture::request()->getBody());
-        $execution = (new McpSubscriptions($queries, $store, $f, NoticeSelection::create(['scope']), lifetimeSeconds: 1, waitMicroseconds: 10000))->execution($request);
+        $execution = (new McpSubscriptions($queryBus, $subscriptionStore, $fixture, NoticeSelection::create(['scope']), lifetimeSeconds: 1, waitMicroseconds: 10000))->execution($request);
         $frames = [];
-        $execution->run(static function ($frame) use (&$frames): void { $frames[] = $frame; }, $f);
+        $execution->run(static function ($frame) use (&$frames): void { $frames[] = $frame; }, $fixture);
         self::assertCount(1, $frames);
         self::assertStringContainsString('acknowledged', $frames[0]);
-        self::assertSame([], $f->diagnostics);
+        self::assertSame([], $fixture->diagnostics);
     }
 
     private function fixture(): SubscriptionFixture

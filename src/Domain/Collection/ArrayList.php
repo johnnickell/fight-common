@@ -716,18 +716,18 @@ final class ArrayList implements ItemList
      */
     public function partition(callable $predicate): array
     {
-        $list1 = static::of($this->itemType());
-        $list2 = static::of($this->itemType());
+        $matchingItems = static::of($this->itemType());
+        $nonMatchingItems = static::of($this->itemType());
 
         foreach ($this->items as $index => $item) {
             if (call_user_func($predicate, $item, $index)) {
-                $list1->add($item);
+                $matchingItems->add($item);
             } else {
-                $list2->add($item);
+                $nonMatchingItems->add($item);
             }
         }
 
-        return [$list1, $list2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

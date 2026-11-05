@@ -58,7 +58,7 @@ final class McpResponseEmitterTest extends UnitTestCase
         $fixture->queryPolicy = static function () use ($fixture): void {
             // The first Query establishes the boundary before this independently recorded live change.
             static $reads = 0;
-            if (++$reads === 2) { (new NoticeFixture($fixture->db))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']); }
+            if (++$reads === 2) { (new NoticeFixture($fixture->connection))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']); }
         };
         $fixture->policy = static function ($filter, $uri, $notice) use ($response): bool {
             if ($notice !== null) { $response->getBody()->close(); }
@@ -72,8 +72,8 @@ final class McpResponseEmitterTest extends UnitTestCase
         self::assertStringNotContainsString('list_changed', $wire);
         self::assertStringNotContainsString('resultType', $wire);
         self::assertTrue($response->getBody()->eof());
-        self::assertGreaterThan(0, (int) $fixture->db->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
-        self::assertSame(1, (int) $fixture->db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        self::assertGreaterThan(0, (int) $fixture->connection->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
+        self::assertSame(1, (int) $fixture->connection->fetchOne('SELECT COUNT(*) FROM fight_notices'));
         self::assertFalse(SapiDouble::$ignoreAbort);
         self::assertSame([], $fixture->diagnostics);
     }

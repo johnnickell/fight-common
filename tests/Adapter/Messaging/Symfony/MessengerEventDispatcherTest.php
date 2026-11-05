@@ -25,19 +25,19 @@ final class MessengerEventDispatcherTest extends UnitTestCase
 
             return $envelope;
         });
-        $dispatcher = new MessengerEventDispatcher($sender);
-        $dispatcher->trigger(new MessengerEventDispatcherTestEvent('trigger-73'));
-        $dispatcher->dispatch($message);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher->trigger(new MessengerEventDispatcherTestEvent('trigger-73'));
+        $eventDispatcher->dispatch($message);
 
         $subscriber = $this->mock(EventSubscriber::class);
         $handler = static function (): void {
         };
-        $dispatcher->register($subscriber);
-        $dispatcher->unregister($subscriber);
-        $dispatcher->addHandler('event', $handler);
-        $dispatcher->removeHandler('event', $handler);
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertFalse($dispatcher->hasHandlers());
+        $eventDispatcher->register($subscriber);
+        $eventDispatcher->unregister($subscriber);
+        $eventDispatcher->addHandler('event', $handler);
+        $eventDispatcher->removeHandler('event', $handler);
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
     }
 }
 

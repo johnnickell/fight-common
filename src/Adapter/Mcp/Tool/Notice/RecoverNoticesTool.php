@@ -41,24 +41,24 @@ final readonly class RecoverNoticesTool implements McpTool
         NoticeToolSchemas::INPUT,
         NoticeToolSchemas::OUTPUT
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $json = StrictJson::fromObject($data->toArray());
-        if (!McpToolSchemaValidator::matches($json, StrictJson::fromObject(NoticeToolSchemas::INPUT))) {
+        $argumentsJson = StrictJson::fromObject($input->toArray());
+        if (!McpToolSchemaValidator::matches($argumentsJson, StrictJson::fromObject(NoticeToolSchemas::INPUT))) {
             throw new DomainException('Invalid notice Tool selection.');
         }
 
-        $input = json_decode($json->toString(), true, flags: JSON_THROW_ON_ERROR);
+        $arguments = json_decode($argumentsJson->toString(), true, flags: JSON_THROW_ON_ERROR);
         /**
-         * @var NoticeRecoveryBatch $result
+         * @var NoticeRecoveryBatch $noticeRecoveryBatch
          */
-        $result = $this->queryBus->fetch(new RecoverNotices(
-            NoticeSelection::create($input['scopes'], $input['filters'] ?? []),
-            $input['continuation'] ?? null,
-            $input['batch_size'] ?? 32,
-            $input['scan_limit'] ?? 100
+        $noticeRecoveryBatch = $this->queryBus->fetch(new RecoverNotices(
+            NoticeSelection::create($arguments['scopes'], $arguments['filters'] ?? []),
+            $arguments['continuation'] ?? null,
+            $arguments['batch_size'] ?? 32,
+            $arguments['scan_limit'] ?? 100
         ));
-        $projection = $result->toArray();
+        $projection = $noticeRecoveryBatch->toArray();
         foreach ($projection['notices'] as &$notice) {
             $notice['metadata'] = (object) $notice['metadata'];
         }

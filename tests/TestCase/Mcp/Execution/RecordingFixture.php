@@ -31,27 +31,27 @@ final class RecordingFixture implements ObservationAdmission
     private int $admissions = 0;
     private ?array $permittedSessions = null;
     private ?array $permittedPhases = null;
-    private readonly RoutingCommandBus $bus;
-    private readonly SimpleEventDispatcher $events;
+    private readonly RoutingCommandBus $commandBus;
+    private readonly SimpleEventDispatcher $eventDispatcher;
     private ?Closure $onAdmit = null;
 
-    public function __construct(DbalRecordingTransaction $transaction)
+    public function __construct(DbalRecordingTransaction $recordingTransaction)
     {
-        $this->events = new SimpleEventDispatcher();
+        $this->eventDispatcher = new SimpleEventDispatcher();
         $recorder = new ObservationRecorder(
-            $transaction,
-            new DbalSessionRepository($transaction),
-            new DbalPhaseRepository($transaction),
-            new DbalObservationRepository($transaction),
+            $recordingTransaction,
+            new DbalSessionRepository($recordingTransaction),
+            new DbalPhaseRepository($recordingTransaction),
+            new DbalObservationRepository($recordingTransaction),
             $this,
-            $this->events,
-            new DbalProtectedContentRepository($transaction)
+            $this->eventDispatcher,
+            new DbalProtectedContentRepository($recordingTransaction)
         );
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordSessionObservation::class, new RecordSessionObservationHandler($recorder));
         $router->registerHandler(RecordPhaseObservation::class, new RecordPhaseObservationHandler($recorder));
         $router->registerHandler(RecordProtectedDetail::class, new RecordProtectedDetailHandler($recorder));
-        $this->bus = new RoutingCommandBus($router);
+        $this->commandBus = new RoutingCommandBus($router);
     }
 
     public function setAllowed(bool $allowed): void
@@ -76,12 +76,12 @@ final class RecordingFixture implements ObservationAdmission
 
     public function bus(): RoutingCommandBus
     {
-        return $this->bus;
+        return $this->commandBus;
     }
 
     public function events(): SimpleEventDispatcher
     {
-        return $this->events;
+        return $this->eventDispatcher;
     }
 
     public function setOnAdmit(?Closure $onAdmit): void
@@ -117,6 +117,6 @@ final class RecordingFixture implements ObservationAdmission
         } else {
             $command = new RecordPhaseObservation($observation);
         }
-        $this->bus->execute($command);
+        $this->commandBus->execute($command);
     }
 }

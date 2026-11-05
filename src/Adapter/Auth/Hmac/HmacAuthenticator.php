@@ -31,16 +31,18 @@ final class HmacAuthenticator implements Authenticator
         'X-Nonce'
     ];
     private string $secret;
+    private readonly string $publicCredential;
 
     /**
      * Constructs HmacAuthenticator
      */
     public function __construct(
-        private readonly string $public,
+        string $public,
         string $private,
         private readonly int $timeTolerance,
         private readonly ?NonceRepository $nonceRepository = null
     ) {
+        $this->publicCredential = $public;
         $this->secret = hex2bin($private);
     }
 
@@ -68,7 +70,7 @@ final class HmacAuthenticator implements Authenticator
         }
 
         // validate that the credential matches the public key
-        if ($this->public !== $request->getHeaderLine('Credential')) {
+        if ($this->publicCredential !== $request->getHeaderLine('Credential')) {
             throw new AuthException('Invalid credential', HttpStatus::UNAUTHORIZED);
         }
 

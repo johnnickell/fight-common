@@ -38,7 +38,7 @@ use Throwable;
 final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailability, McpInvocationGuard, McpDiagnostics
 {
     public NoticeAccess $access;
-    public readonly RoutingQueryBus $queries;
+    public readonly RoutingQueryBus $queryBus;
     public readonly McpRequestHandler $endpoint;
     public int $admissions = 0;
     public int $availabilityCalls = 0;
@@ -48,16 +48,16 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
     public string $lastResponse = '';
     public string $requestId = 'notice-雪-"-\\';
 
-    public function __construct(public readonly Connection $db, int $maxResultBytes = 65536, int $maxResponseBytes = 1048576, string $serverName = 'Notice fixture', ?NoticeContinuationProtector $protector = null)
+    public function __construct(public readonly Connection $connection, int $maxResultBytes = 65536, int $maxResponseBytes = 1048576, string $serverName = 'Notice fixture', ?NoticeContinuationProtector $protector = null)
     {
         $this->access = self::access();
         $router = new InMemoryQueryRouter();
-        $recovery = new NoticeRecovery(new DbalNoticeRecoveryReader($db), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
+        $recovery = new NoticeRecovery(new DbalNoticeRecoveryReader($connection), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
         $handler = new RecoverNoticesHandler($this, $recovery);
         $router->registerHandler($handler::queryRegistration(), $handler);
-        $this->queries = new RoutingQueryBus($router);
-        $tools = new McpToolRegistry([new RecoverNoticesTool($this->queries, $maxResponseBytes)]);
-        $registry = new McpCapabilityRegistry(new McpServerInfo($serverName, '1'), [new McpToolDiscovery($tools, $this, str_repeat('catalog-key-', 4)), new McpToolInvocation(new McpToolInvoker($tools, $this))]);
+        $this->queryBus = new RoutingQueryBus($router);
+        $toolRegistry = new McpToolRegistry([new RecoverNoticesTool($this->queryBus, $maxResponseBytes)]);
+        $registry = new McpCapabilityRegistry(new McpServerInfo($serverName, '1'), [new McpToolDiscovery($toolRegistry, $this, str_repeat('catalog-key-', 4)), new McpToolInvocation(new McpToolInvoker($toolRegistry, $this))]);
         $factory = new HttpFactory();
         $this->endpoint = new McpRequestHandler($registry, new ExactMcpOriginPolicy(['https://client.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }
@@ -80,5 +80,5 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
         return ['status' => $response->getStatusCode(), 'body' => json_decode($this->lastResponse, true, flags: JSON_THROW_ON_ERROR)];
     }
 
-    public function state(): array { return array_map(fn ($table) => $this->db->fetchAllAssociative('SELECT * FROM '.$table), DbalNoticeSchema::TABLES); }
+    public function state(): array { return array_map(fn ($table) => $this->connection->fetchAllAssociative('SELECT * FROM '.$table), DbalNoticeSchema::TABLES); }
 }

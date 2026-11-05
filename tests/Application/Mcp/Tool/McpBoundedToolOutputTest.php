@@ -74,9 +74,9 @@ final class McpBoundedToolOutputTest extends UnitTestCase
 
     public function test_that_execution_output_schema_rejects_unexpected_typed_projection_fields_at_runtime(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $queries->shouldReceive('fetch')->once()->andReturn(new ExecutionSummary(0, ['body' => 1], 0, 0, [], null));
-        $registry = new McpToolRegistry([new SummarizeExecutionsTool($queries)]);
+        $queryBus = $this->mock(QueryBus::class);
+        $queryBus->shouldReceive('fetch')->once()->andReturn(new ExecutionSummary(0, ['body' => 1], 0, 0, [], null));
+        $registry = new McpToolRegistry([new SummarizeExecutionsTool($queryBus)]);
         $available = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [
             new McpToolDiscovery($registry, $available, str_repeat('key-', 8)),

@@ -19,7 +19,7 @@ final class ServiceAwareQueryRouter implements QueryRouter
     /**
      * @var array<string, string>
      */
-    private array $handlers = [];
+    private array $handlerServiceIdsByType = [];
 
     /**
      * Constructs ServiceAwareQueryRouter
@@ -48,8 +48,8 @@ final class ServiceAwareQueryRouter implements QueryRouter
      */
     public function registerHandlers(array $queryToHandlerMap): void
     {
-        foreach ($queryToHandlerMap as $queryClass => $serviceName) {
-            $this->registerHandler($queryClass, $serviceName);
+        foreach ($queryToHandlerMap as $queryClass => $handlerServiceId) {
+            $this->registerHandler($queryClass, $handlerServiceId);
         }
     }
 
@@ -62,7 +62,7 @@ final class ServiceAwareQueryRouter implements QueryRouter
 
         $type = Type::create($queryClass)->toString();
 
-        $this->handlers[$type] = $serviceName;
+        $this->handlerServiceIdsByType[$type] = $serviceName;
     }
 
     /**
@@ -76,9 +76,9 @@ final class ServiceAwareQueryRouter implements QueryRouter
         }
 
         $type = Type::create($queryClass)->toString();
-        $service = $this->handlers[$type];
+        $handlerServiceId = $this->handlerServiceIdsByType[$type];
 
-        return $this->container->get($service);
+        return $this->container->get($handlerServiceId);
     }
 
     /**
@@ -88,12 +88,12 @@ final class ServiceAwareQueryRouter implements QueryRouter
     {
         $type = Type::create($queryClass)->toString();
 
-        if (!isset($this->handlers[$type])) {
+        if (!isset($this->handlerServiceIdsByType[$type])) {
             return false;
         }
 
-        $service = $this->handlers[$type];
+        $handlerServiceId = $this->handlerServiceIdsByType[$type];
 
-        return $this->container->has($service);
+        return $this->container->has($handlerServiceId);
     }
 }

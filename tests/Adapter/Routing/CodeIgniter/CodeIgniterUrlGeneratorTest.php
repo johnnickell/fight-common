@@ -22,9 +22,9 @@ final class CodeIgniterUrlGeneratorTest extends UrlGeneratorConformanceTestCase
 {
     protected function urlGenerator(): UrlGenerator
     {
-        /** @var RouteCollectionInterface&MockInterface $routes */
-        $routes = $this->mock(RouteCollectionInterface::class);
-        $routes->shouldReceive('reverseRoute')->andReturnUsing(static function (string $name, mixed ...$parameters): string|false {
+        /** @var RouteCollectionInterface&MockInterface $routeCollection */
+        $routeCollection = $this->mock(RouteCollectionInterface::class);
+        $routeCollection->shouldReceive('reverseRoute')->andReturnUsing(static function (string $name, mixed ...$parameters): string|false {
             if ($name === 'missing') {
                 return false;
             }
@@ -40,7 +40,7 @@ final class CodeIgniterUrlGeneratorTest extends UrlGeneratorConformanceTestCase
             return '/accounts/'.$parameters[0];
         });
 
-        return new CodeIgniterUrlGenerator($routes, 'https://fight.example/');
+        return new CodeIgniterUrlGenerator($routeCollection, 'https://fight.example/');
     }
 
     protected function expectedRelativeUrl(): string
@@ -67,13 +67,13 @@ final class CodeIgniterUrlGeneratorTest extends UrlGeneratorConformanceTestCase
 
     public function test_that_generate_translates_unexpected_native_failures(): void
     {
-        /** @var RouteCollectionInterface&MockInterface $routes */
-        $routes = $this->mock(RouteCollectionInterface::class);
-        $routes->shouldReceive('reverseRoute')->once()->andThrow(new RuntimeException('native routing failure'));
+        /** @var RouteCollectionInterface&MockInterface $routeCollection */
+        $routeCollection = $this->mock(RouteCollectionInterface::class);
+        $routeCollection->shouldReceive('reverseRoute')->once()->andThrow(new RuntimeException('native routing failure'));
 
         $this->expectException(UrlGenerationException::class);
         $this->expectExceptionMessage('native routing failure');
-        (new CodeIgniterUrlGenerator($routes, 'https://fight.example'))->generate('account.show');
+        (new CodeIgniterUrlGenerator($routeCollection, 'https://fight.example'))->generate('account.show');
     }
 
     public function test_that_generate_translates_a_native_missing_route(): void

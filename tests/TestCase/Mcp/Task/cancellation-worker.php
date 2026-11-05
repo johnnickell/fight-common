@@ -23,29 +23,29 @@ $connection->beforeCommit = static function () use ($role, $directory): void {
         usleep(10000);
     }
 };
-$f = new TaskFixture($connection); $events = 0;
-$f->events->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$events): void { ++$events; });
-$admission = static function () use ($f, $role, $directory): void {
+$fixture = new TaskFixture($connection); $events = 0;
+$fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$events): void { ++$events; });
+$admission = static function () use ($fixture, $role, $directory): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'yes');
-    if ($role === 'second' && file_exists($directory.'/revoked')) { $f->cancelAllowed = false; $f->continueAllowed = false; $f->submitAllowed = false; }
+    if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->cancelAllowed = false; $fixture->continueAllowed = false; $fixture->submitAllowed = false; }
 };
-$f->onCancellationAdmission = $admission; $f->onInputAdmission = $admission; $f->onAdmission = $admission;
+$fixture->onCancellationAdmission = $admission; $fixture->onInputAdmission = $admission; $fixture->onAdmission = $admission;
 file_put_contents($directory.'/'.$role.'-started', 'yes');
 $operation = $config[$role];
 try {
     match ($operation) {
-        'cancel' => $f->cancel(),
-        'supply' => $f->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'accepted']]]),
-        'acquire' => $f->acquire(),
-        'issue' => $f->issue(expectedVersion: $config['version']),
-        'completed' => $f->record(TaskFixture::completed(), $config['version']),
-        'failed' => $f->record(TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), $config['version']),
-        'cancelled' => $f->record(TaskState::create('cancelled'), $config['version']),
+        'cancel' => $fixture->cancel(),
+        'supply' => $fixture->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => 'accepted']]]),
+        'acquire' => $fixture->acquire(),
+        'issue' => $fixture->issue(expectedVersion: $config['version']),
+        'completed' => $fixture->record(TaskFixture::completed(), $config['version']),
+        'failed' => $fixture->record(TaskState::create('failed', error: StrictJson::fromObject(['code' => -32603, 'message' => 'Internal error'])), $config['version']),
+        'cancelled' => $fixture->record(TaskState::create('cancelled'), $config['version']),
         'observe' => null
     };
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }
-$observed = $f->cancellation(); $input = $f->observe();
+$observed = $fixture->cancellation(); $input = $fixture->observe();
 $result = ['status' => $status, 'events' => $events, 'pid' => getmypid(), 'observation' => $observed, 'input' => $input, 'operation' => $operation, 'backend' => $config['params']['driver']];
 $trace = getenv('FIGHT_COMMON_TASK_CANCELLATION_TRACE');
 if (is_string($trace) && $trace !== '') { file_put_contents($trace, json_encode($result, JSON_THROW_ON_ERROR)."\n", FILE_APPEND | LOCK_EX); }

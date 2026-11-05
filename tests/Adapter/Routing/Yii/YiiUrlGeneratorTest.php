@@ -26,12 +26,12 @@ class YiiUrlGeneratorTest extends UrlGeneratorConformanceTestCase
 {
     protected function urlGenerator(): UrlGenerator
     {
-        $collector = new RouteCollector();
-        $collector->addRoute(Route::get('/accounts/{id:\\d+}')->name('account.show'));
+        $routeCollector = new RouteCollector();
+        $routeCollector->addRoute(Route::get('/accounts/{id:\\d+}')->name('account.show'));
 
         return new YiiUrlGenerator(
             new NativeUrlGenerator(
-                new RouteCollection($collector),
+                new RouteCollection($routeCollector),
                 scheme: 'https',
                 host: 'fight.example'
             )

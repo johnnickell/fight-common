@@ -25,12 +25,12 @@ final class TemplatingServiceProvider extends ServiceProvider
         $this->app->singleton(
             TemplateEngine::class,
             static function (Container $container): LaravelBladeTemplateEngine {
-                $view = $container->make('view');
-                assert($view instanceof Factory);
+                $viewFactory = $container->make('view');
+                assert($viewFactory instanceof Factory);
                 $templatesPath = $container->make('fight.templates_path');
                 assert(is_string($templatesPath));
 
-                return new LaravelBladeTemplateEngine($view, $templatesPath);
+                return new LaravelBladeTemplateEngine($viewFactory, $templatesPath);
             }
         );
     }

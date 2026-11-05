@@ -34,8 +34,8 @@ final class TaskInputJourneyTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_real_issuance_reconstruction_partial_admission_and_protected_single_use_continuation_survive_reconnect(string $backend): void
     {
-        $c = $this->database($backend); $params = $c->getParams(); $f = new TaskFixture($c);
-        $f->create(); $f->issue(confirmation: true, count: 2);
+        $connection = $this->database($backend); $params = $connection->getParams(); $fixture = new TaskFixture($connection);
+        $fixture->create(); $fixture->issue(confirmation: true, count: 2);
         $fresh = new TaskFixture($this->connect($params));
         self::assertSame([TaskFixture::KEY_1, TaskFixture::KEY_2], array_keys($fresh->get()->get('state')->get('input')->properties()));
         $fresh->supply([TaskFixture::KEY_1 => self::accept('yes'), 'unknown' => ['untrusted' => false]]);
@@ -68,7 +68,7 @@ final class TaskInputJourneyTest extends UnitTestCase
         $fresh->supply([$otherKey => self::accept('current')], id: $other);
         self::assertSame('current', $fresh->observe(id: $other)->get('groups')->get($otherKey)->get('answers')->get($otherKey)->get('content')->get('answer'));
         $fresh->remove([TaskFixture::ID, $other]); self::assertNull((new TaskFixture($this->connect($params)))->observe());
-        self::assertSame(0, (int) $c->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
     }
 
     #[DataProvider('statusMessages')]
@@ -81,7 +81,7 @@ final class TaskInputJourneyTest extends UnitTestCase
         $fixture->issue(expiresAt: $issuedAt + 100);
         $fixture->issue(expectedVersion: 2, expiresAt: $issuedAt + 200);
         $requests = $fixture->get()->get('state')->get('input');
-        $fixture->commands->execute(new RecordTaskState(
+        $fixture->commandBus->execute(new RecordTaskState(
             'scope', TaskFixture::id(), 'producer', 3, TaskState::create('input_required', $message, $requests)
         ));
         $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
@@ -116,11 +116,11 @@ final class TaskInputJourneyTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_real_rollback_uncertain_commit_and_postcommit_failure_preserve_truthful_input_and_caller_work(string $backend): void
     {
-        $c = $this->database($backend); $params = $c->getParams(); $f = new TaskFixture($c); $f->create();
+        $taskConnection = $this->database($backend); $params = $taskConnection->getParams(); $fixture = new TaskFixture($taskConnection); $fixture->create();
         foreach (['issue', 'supply', 'acquire'] as $stage) {
             $connection = $this->checkConnection($params); $candidate = new TaskFixture($connection);
             $operation = match ($stage) { 'issue' => fn () => $candidate->issue(), 'supply' => fn () => $candidate->supply([TaskFixture::KEY_1 => self::accept('valid')]), default => fn () => $candidate->acquire() };
-            $before = $c->fetchOne('SELECT payload FROM fight_tasks');
+            $before = $taskConnection->fetchOne('SELECT payload FROM fight_tasks');
             $connection->beforeCommit = static fn () => throw new RuntimeException('Injected before actual commit');
             try { $operation(); self::fail('Precommit rollback required.'); } catch (TaskStorageFailed $failure) { self::assertTrue($failure->outcomeUncertain()); }
             self::assertSame($before, $this->connect($params)->fetchOne('SELECT payload FROM fight_tasks'));
@@ -136,69 +136,69 @@ final class TaskInputJourneyTest extends UnitTestCase
             if ($stage === 'acquire') { self::assertTrue($group->get('consumed')); }
         }
         $fresh = new TaskFixture($this->connect($params)); $calls = 0;
-        $fresh->events->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$calls): void { ++$calls; throw new RuntimeException('Private postcommit delivery'); });
+        $fresh->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$calls): void { ++$calls; throw new RuntimeException('Private postcommit delivery'); });
         $fresh->supply([TaskFixture::KEY_1 => false]); self::assertSame(0, $calls);
         try { $fresh->issue(expectedVersion: 4); self::fail('Durable issue must precede failed fact delivery.'); } catch (CommittedTaskDispatchFailed) { self::assertSame([TaskFixture::KEY_2], array_keys((new TaskFixture($this->connect($params)))->get()->get('state')->get('input')->properties())); }
-        $c->executeStatement('CREATE TABLE input_caller_work (id INTEGER)'); $c->beginTransaction(); $c->insert('input_caller_work', ['id' => 7]);
-        foreach ([fn () => $f->supply([]), fn () => $f->issue(expectedVersion: 5), fn () => $f->acquire()] as $operation) {
-            try { $operation(); self::fail('Caller transaction is unsupported.'); } catch (LogicException) { self::assertTrue($c->isTransactionActive()); self::assertSame(7, (int) $c->fetchOne('SELECT id FROM input_caller_work')); }
+        $taskConnection->executeStatement('CREATE TABLE input_caller_work (id INTEGER)'); $taskConnection->beginTransaction(); $taskConnection->insert('input_caller_work', ['id' => 7]);
+        foreach ([fn () => $fixture->supply([]), fn () => $fixture->issue(expectedVersion: 5), fn () => $fixture->acquire()] as $operation) {
+            try { $operation(); self::fail('Caller transaction is unsupported.'); } catch (LogicException) { self::assertTrue($taskConnection->isTransactionActive()); self::assertSame(7, (int) $taskConnection->fetchOne('SELECT id FROM input_caller_work')); }
         }
-        $c->commit(); self::assertSame(7, (int) $this->connect($params)->fetchOne('SELECT id FROM input_caller_work'));
-        $c->executeStatement('DROP TABLE input_caller_work');
+        $taskConnection->commit(); self::assertSame(7, (int) $this->connect($params)->fetchOne('SELECT id FROM input_caller_work'));
+        $taskConnection->executeStatement('DROP TABLE input_caller_work');
     }
 
     #[DataProvider('databases')]
     public function test_that_real_constraint_rollback_never_partially_consumes_a_valid_batch(string $backend): void
     {
-        $c = $this->database($backend); $f = new TaskFixture($c); $f->create(); $f->issue(count: 2); $before = $c->fetchOne('SELECT payload FROM fight_tasks');
-        if ($backend === 'sqlite') { $c->executeStatement("CREATE TRIGGER fail_input BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END"); }
-        else { $c->executeStatement("ALTER TABLE fight_tasks ADD CONSTRAINT fail_input CHECK (payload NOT LIKE '%accepted-body%')"); }
-        try { $f->supply([TaskFixture::KEY_1 => self::accept('accepted-body'), TaskFixture::KEY_2 => self::accept('accepted-body')]); self::fail('Constraint failure required.'); }
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection); $fixture->create(); $fixture->issue(count: 2); $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
+        if ($backend === 'sqlite') { $connection->executeStatement("CREATE TRIGGER fail_input BEFORE INSERT ON fight_tasks BEGIN SELECT RAISE(ABORT, 'private'); END"); }
+        else { $connection->executeStatement("ALTER TABLE fight_tasks ADD CONSTRAINT fail_input CHECK (payload NOT LIKE '%accepted-body%')"); }
+        try { $fixture->supply([TaskFixture::KEY_1 => self::accept('accepted-body'), TaskFixture::KEY_2 => self::accept('accepted-body')]); self::fail('Constraint failure required.'); }
         catch (TaskStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }
-        self::assertSame($before, $this->connect($c->getParams())->fetchOne('SELECT payload FROM fight_tasks'));
-        if ($backend === 'sqlite') { $c->executeStatement('DROP TRIGGER fail_input'); }
-        elseif ($backend === 'mysql') { $c->executeStatement('ALTER TABLE fight_tasks DROP CHECK fail_input'); }
-        else { $c->executeStatement('ALTER TABLE fight_tasks DROP CONSTRAINT fail_input'); }
-        $f->supply([TaskFixture::KEY_1 => self::accept('accepted-body'), TaskFixture::KEY_2 => self::accept('accepted-body')]); self::assertTrue($f->observe()->get('groups')->get(TaskFixture::KEY_1)->get('ready'));
+        self::assertSame($before, $this->connect($connection->getParams())->fetchOne('SELECT payload FROM fight_tasks'));
+        if ($backend === 'sqlite') { $connection->executeStatement('DROP TRIGGER fail_input'); }
+        elseif ($backend === 'mysql') { $connection->executeStatement('ALTER TABLE fight_tasks DROP CHECK fail_input'); }
+        else { $connection->executeStatement('ALTER TABLE fight_tasks DROP CONSTRAINT fail_input'); }
+        $fixture->supply([TaskFixture::KEY_1 => self::accept('accepted-body'), TaskFixture::KEY_2 => self::accept('accepted-body')]); self::assertTrue($fixture->observe()->get('groups')->get(TaskFixture::KEY_1)->get('ready'));
     }
 
     #[DataProvider('databases')]
     public function test_that_reconstructed_supersession_expiry_and_seeded_lifetime_exhaustion_preserve_finite_identity(string $backend): void
     {
-        $c = $this->database($backend); $f = new TaskFixture($c); $f->create(); $f->issue(confirmation: true, count: 2);
-        $f->supply([TaskFixture::KEY_1 => self::accept('partial')]);
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
-        $f = new TaskFixture($this->connect($c->getParams())); $f->issue(expectedVersion: 4);
-        self::assertSame([TaskFixture::KEY_3], array_keys($f->get()->get('state')->get('input')->properties()));
-        $before = $c->fetchOne('SELECT payload FROM fight_tasks');
-        $f->supply([TaskFixture::KEY_1 => false, TaskFixture::KEY_2 => false]);
-        self::assertSame($before, $c->fetchOne('SELECT payload FROM fight_tasks'));
-        try { $f->supply([TaskFixture::KEY_3 => self::accept(str_repeat('é', 17000))]); self::fail('All encoded bytes are bounded.'); }
-        catch (\Fight\Common\Domain\Exception\DomainException) { self::assertSame($before, $c->fetchOne('SELECT payload FROM fight_tasks')); }
-        $f->now += 1000; $f->supply([TaskFixture::KEY_3 => self::accept('expired')]);
-        self::assertTrue($f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('expired'));
-        self::assertSame([], $f->observe()->get('groups')->get(TaskFixture::KEY_3)->get('answers')->properties());
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 5, TaskFixture::KEY_3));
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection); $fixture->create(); $fixture->issue(confirmation: true, count: 2);
+        $fixture->supply([TaskFixture::KEY_1 => self::accept('partial')]);
+        $fixture->commandBus->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
+        $fixture = new TaskFixture($this->connect($connection->getParams())); $fixture->issue(expectedVersion: 4);
+        self::assertSame([TaskFixture::KEY_3], array_keys($fixture->get()->get('state')->get('input')->properties()));
+        $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
+        $fixture->supply([TaskFixture::KEY_1 => false, TaskFixture::KEY_2 => false]);
+        self::assertSame($before, $connection->fetchOne('SELECT payload FROM fight_tasks'));
+        try { $fixture->supply([TaskFixture::KEY_3 => self::accept(str_repeat('é', 17000))]); self::fail('All encoded bytes are bounded.'); }
+        catch (\Fight\Common\Domain\Exception\DomainException) { self::assertSame($before, $connection->fetchOne('SELECT payload FROM fight_tasks')); }
+        $fixture->now += 1000; $fixture->supply([TaskFixture::KEY_3 => self::accept('expired')]);
+        self::assertTrue($fixture->observe()->get('groups')->get(TaskFixture::KEY_3)->get('expired'));
+        self::assertSame([], $fixture->observe()->get('groups')->get(TaskFixture::KEY_3)->get('answers')->properties());
+        $fixture->commandBus->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 5, TaskFixture::KEY_3));
         // Seed the documented near-exhaustion value; direct units additionally execute all 1,024 rounds.
-        $data = $f->committedTaskReader->read('scope', TaskFixture::id())->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
-        $f->transactionalUnitOfWork->commitTransactional(fn () => $f->taskRepository->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
-        $f->issue(expectedVersion: 6); $last = TaskFixture::KEY_PREFIX.'1024';
-        self::assertSame([$last], array_keys($f->get()->get('state')->get('input')->properties()));
-        $f->commands->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 7, $last));
-        $fresh = new TaskFixture($this->connect($c->getParams())); $before = $c->fetchOne('SELECT payload FROM fight_tasks');
+        $data = $fixture->committedTaskReader->read('scope', TaskFixture::id())->toArray(); $data['inputs'] = $data['inputs']->with('issued', 1023);
+        $fixture->transactionalUnitOfWork->commitTransactional(fn () => $fixture->taskRepository->save(\Fight\Common\Domain\Mcp\Task\Task::fromArray($data)));
+        $fixture->issue(expectedVersion: 6); $last = TaskFixture::KEY_PREFIX.'1024';
+        self::assertSame([$last], array_keys($fixture->get()->get('state')->get('input')->properties()));
+        $fixture->commandBus->execute(new \Fight\Common\Domain\Mcp\Task\Command\RetireTaskInput('scope', TaskFixture::id(), 'producer', 7, $last));
+        $fresh = new TaskFixture($this->connect($connection->getParams())); $before = $connection->fetchOne('SELECT payload FROM fight_tasks');
         try { $fresh->issue(expectedVersion: 8); self::fail('Lifetime exhaustion cannot wrap after payload retirement.'); }
-        catch (TaskConflict) { self::assertSame($before, $c->fetchOne('SELECT payload FROM fight_tasks')); }
+        catch (TaskConflict) { self::assertSame($before, $connection->fetchOne('SELECT payload FROM fight_tasks')); }
         self::assertSame([], $fresh->observe()->get('groups')->properties());
     }
 
     #[DataProvider('races')]
     public function test_that_independent_processes_admit_once_and_preserve_confirmation_and_terminal_winners(string $backend, string $mode): void
     {
-        $c = $this->database($backend); $f = new TaskFixture($c); $f->create();
-        $f->issue(confirmation: in_array($mode, ['refusal', 'partial-refusal', 'acquire'], true), count: $mode === 'partial-refusal' ? 2 : 1);
-        if ($mode === 'acquire') { $f->supply([TaskFixture::KEY_1 => self::accept('first-answer')]); }
+        $connection = $this->database($backend); $fixture = new TaskFixture($connection); $fixture->create();
+        $fixture->issue(confirmation: in_array($mode, ['refusal', 'partial-refusal', 'acquire'], true), count: $mode === 'partial-refusal' ? 2 : 1);
+        if ($mode === 'acquire') { $fixture->supply([TaskFixture::KEY_1 => self::accept('first-answer')]); }
         $directory = $this->directory(); $config = $directory.'/config.json';
-        file_put_contents($config, json_encode(['params' => $c->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
+        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'mode' => $mode], JSON_THROW_ON_ERROR));
         $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'first'], timeout: 25);
         $second = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Task/input-worker.php', $config, 'second'], timeout: 25);
         try {
@@ -212,7 +212,7 @@ final class TaskInputJourneyTest extends UnitTestCase
             self::assertSame('committed', $one['status']); self::assertSame(1, $one['events']);
             self::assertSame(match ($mode) { 'input-first', 'acquire' => TaskConflict::class, 'revoked' => TaskRejected::class, default => 'committed' }, $two['status']);
             self::assertSame($mode === 'partial-refusal' ? 1 : 0, $two['events']);
-            $fresh = new TaskFixture($this->connect($c->getParams())); $group = $fresh->observe()->get('groups')->get(TaskFixture::KEY_1);
+            $fresh = new TaskFixture($this->connect($connection->getParams())); $group = $fresh->observe()->get('groups')->get(TaskFixture::KEY_1);
             $expectedStatus = match ($mode) { 'completed-first' => 'completed', 'failed-first' => 'failed', 'cancelled-first' => 'cancelled', default => 'working' };
             self::assertSame($expectedStatus, $fresh->get()->get('state')->get('status'));
             if (in_array($mode, ['completed-first', 'failed-first', 'cancelled-first'], true)) { self::assertSame([], $group->get('answers')->properties()); }
@@ -234,16 +234,16 @@ final class TaskInputJourneyTest extends UnitTestCase
 
     public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }
     public static function races(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['duplicate', 'conflict', 'completed-first', 'failed-first', 'cancelled-first', 'input-first', 'refusal', 'partial-refusal', 'acquire', 'revoked'] as $mode) { yield $backend.'-'.$mode => [$backend, $mode]; } } }
-    protected function tearDown(): void { foreach ($this->connections as $c) { $c->close(); } foreach ($this->directories as $d) { $this->removeTemporaryDirectory($d, 'fight-task-input-'); } parent::tearDown(); }
+    protected function tearDown(): void { foreach ($this->connections as $connection) { $connection->close(); } foreach ($this->directories as $temporaryDirectory) { $this->removeTemporaryDirectory($temporaryDirectory, 'fight-task-input-'); } parent::tearDown(); }
     private static function accept(string $answer): array { return ['action' => 'accept', 'content' => (object) ['answer' => $answer]]; }
     private function database(string $backend): Connection
     {
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $this->directory().'/input.sqlite']; }
         else { $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN'); self::assertIsString($dsn, 'Actual disposable server required.'); $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn); }
-        $c = $this->connect($params); foreach (array_reverse(DbalTaskSchema::TABLES) as $table) { $c->executeStatement('DROP TABLE IF EXISTS '.$table); } (new DbalTaskSchema())->install($c); return $c;
+        $connection = $this->connect($params); foreach (array_reverse(DbalTaskSchema::TABLES) as $table) { $connection->executeStatement('DROP TABLE IF EXISTS '.$table); } (new DbalTaskSchema())->install($connection); return $connection;
     }
-    private function connect(array $params): Connection { $c = DriverManager::getConnection($params); if ($params['driver'] === 'pdo_sqlite') { $c->executeStatement('PRAGMA busy_timeout = 10000'); } $this->connections[] = $c; return $c; }
-    private function checkConnection(array $params): TaskCheckConnection { $c = new TaskCheckConnection($params, DriverManager::getConnection($params)->getDriver()); $this->connections[] = $c; return $c; }
-    private function directory(): string { $d = sys_get_temp_dir().'/fight-task-input-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($d, 0700)); $this->directories[] = $d; return $d; }
+    private function connect(array $params): Connection { $connection = DriverManager::getConnection($params); if ($params['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); } $this->connections[] = $connection; return $connection; }
+    private function checkConnection(array $params): TaskCheckConnection { $connection = new TaskCheckConnection($params, DriverManager::getConnection($params)->getDriver()); $this->connections[] = $connection; return $connection; }
+    private function directory(): string { $temporaryDirectory = sys_get_temp_dir().'/fight-task-input-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($temporaryDirectory, 0700)); $this->directories[] = $temporaryDirectory; return $temporaryDirectory; }
     private function waitFor(string $path, Process $worker): void { $deadline = microtime(true) + 15; while (!file_exists($path)) { if (!$worker->isRunning() || microtime(true) > $deadline) { self::fail('Barrier unavailable: '.$worker->getErrorOutput().$worker->getOutput()); } usleep(10000); } self::assertFileExists($path); }
 }

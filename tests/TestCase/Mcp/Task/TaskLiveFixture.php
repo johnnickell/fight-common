@@ -20,8 +20,8 @@ use RuntimeException;
 
 final class TaskLiveFixture implements McpSubscriptionAdmission, McpTaskDisclosureGuard
 {
-    public readonly TaskFixture $task;
-    public readonly SubscriptionFixture $notices;
+    public readonly TaskFixture $taskFixture;
+    public readonly SubscriptionFixture $subscriptionFixture;
     public readonly TaskEndpoint $endpoint;
     public bool $allowed = true;
     public ?Closure $policy = null;
@@ -30,14 +30,14 @@ final class TaskLiveFixture implements McpSubscriptionAdmission, McpTaskDisclosu
     public array $guardedStates = [];
     public array $writers = [];
 
-    public function __construct(Connection $db, int $frameBytes = 65536, bool $mixed = false, ?McpSubscriptionStore $store = null, int $lifetime = 1, string $scope = 'scope')
+    public function __construct(Connection $connection, int $frameBytes = 65536, bool $mixed = false, ?McpSubscriptionStore $subscriptionStore = null, int $lifetime = 1, string $scope = 'scope')
     {
-        $this->task = new TaskFixture($db);
-        $this->notices = new SubscriptionFixture($db);
-        $this->endpoint = new TaskEndpoint($this->task, subscriptions: fn (McpTasks $tasks) => new McpSubscriptions(
-            $this->notices->queries, $store ?? $this->notices->store, $this, NoticeSelection::create([$scope]),
+        $this->taskFixture = new TaskFixture($connection);
+        $this->subscriptionFixture = new SubscriptionFixture($connection);
+        $this->endpoint = new TaskEndpoint($this->taskFixture, subscriptionsFactory: fn (McpTasks $taskCapability) => new McpSubscriptions(
+            $this->subscriptionFixture->queryBus, $subscriptionStore ?? $this->subscriptionFixture->subscriptionStore, $this, NoticeSelection::create([$scope]),
             tools: $mixed, resources: false, lifetimeSeconds: $lifetime, waitMicroseconds: 10000,
-            maxFrameBytes: $frameBytes, tasks: $tasks, taskDisclosure: $this
+            maxFrameBytes: $frameBytes, taskCapability: $taskCapability, taskDisclosureGuard: $this
         ), scope: $scope);
     }
 
@@ -46,7 +46,7 @@ final class TaskLiveFixture implements McpSubscriptionAdmission, McpTaskDisclosu
         // Controlled consumer conformance fixture, not a production identity/policy/synchronization engine.
         ($this->onGuard ?? static fn () => null)($states, $disclose);
         foreach ($states as $id => $state) {
-            if (!$this->allows($subscriber, 'taskIds', $id, null) || !$this->task->readAllowed || !$this->task->discloseAllowed) {
+            if (!$this->allows($subscriber, 'taskIds', $id, null) || !$this->taskFixture->readAllowed || !$this->taskFixture->discloseAllowed) {
                 throw new RuntimeException('Fixture disclosure unavailable');
             }
         }

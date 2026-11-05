@@ -18,14 +18,19 @@ use Throwable;
  */
 final readonly class SafeErrorController
 {
+    private SafeHttpErrorPolicy $httpErrorPolicy;
+    private ?SafeHttpProjector $httpErrorProjector;
+
     /**
      * Constructs SafeErrorController
      */
     public function __construct(
-        private SafeHttpErrorPolicy $policy,
+        SafeHttpErrorPolicy $policy,
         private SafeHttpDiagnostics $diagnostics,
-        private ?SafeHttpProjector $projector = null
+        ?SafeHttpProjector $projector = null
     ) {
+        $this->httpErrorPolicy = $policy;
+        $this->httpErrorProjector = $projector;
     }
 
     /**
@@ -36,16 +41,16 @@ final readonly class SafeErrorController
         try {
             $this->diagnostics->report($failure);
             $native = SymfonyHttpFailure::translate($failure);
-            $status = $this->policy->status($native);
-            $projection = $this->projector?->project($failure, $status);
-            [$status, $envelope, $headers] = $this->policy->present($native, $projection);
+            $status = $this->httpErrorPolicy->status($native);
+            $projection = $this->httpErrorProjector?->project($failure, $status);
+            [$status, $envelope, $headers] = $this->httpErrorPolicy->present($native, $projection);
 
             return JSendResponse::fromEnvelope($envelope, $status, $headers);
         } catch (Throwable) {
             // Reporting, translation, projection and serialization must all fail closed.
         }
 
-        [$status, $envelope, $headers] = $this->policy->fallback();
+        [$status, $envelope, $headers] = $this->httpErrorPolicy->fallback();
 
         return JSendResponse::fromEnvelope($envelope, $status, $headers);
     }

@@ -22,16 +22,16 @@ final readonly class DbalTaskSchema
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $state = $schema->createTable(self::TABLES[0]);
-        $state->addColumn('singleton', 'integer');
-        $state->addColumn('version', 'integer');
-        $state->setPrimaryKey(['singleton']);
+        $stateTable = $schema->createTable(self::TABLES[0]);
+        $stateTable->addColumn('singleton', 'integer');
+        $stateTable->addColumn('version', 'integer');
+        $stateTable->setPrimaryKey(['singleton']);
 
-        $tasks = $schema->createTable(self::TABLES[1]);
-        $tasks->addColumn('scope', 'string', ['length' => 96]);
-        $tasks->addColumn('task_id', 'string', ['length' => 32]);
-        $tasks->addColumn('payload', 'text', ['length' => 16777215]);
-        $tasks->setPrimaryKey(['scope', 'task_id']);
+        $taskTable = $schema->createTable(self::TABLES[1]);
+        $taskTable->addColumn('scope', 'string', ['length' => 96]);
+        $taskTable->addColumn('task_id', 'string', ['length' => 32]);
+        $taskTable->addColumn('payload', 'text', ['length' => 16777215]);
+        $taskTable->setPrimaryKey(['scope', 'task_id']);
         if ($platform instanceof AbstractMySQLPlatform) {
             foreach (self::TABLES as $name) {
                 $table = $schema->getTable($name);
@@ -53,8 +53,8 @@ final readonly class DbalTaskSchema
             throw new RuntimeException('Task schema installation requires an idle connection.');
         }
 
-        $manager = $connection->createSchemaManager();
-        $present = array_intersect(self::TABLES, $manager->listTableNames());
+        $schemaManager = $connection->createSchemaManager();
+        $present = array_intersect(self::TABLES, $schemaManager->listTableNames());
         if ($present !== []) {
             if (count($present) !== count(self::TABLES)) {
                 throw new RuntimeException('Incomplete Task schema.');
@@ -62,7 +62,7 @@ final readonly class DbalTaskSchema
 
             if (
                 (int) $connection->fetchOne('SELECT version FROM fight_task_state WHERE singleton = 1') !== 1
-                || !$manager->introspectTable(self::TABLES[1])->hasColumn('payload')
+                || !$schemaManager->introspectTable(self::TABLES[1])->hasColumn('payload')
             ) {
                 throw new RuntimeException('Unsupported Task schema.');
             }
@@ -70,10 +70,10 @@ final readonly class DbalTaskSchema
             return;
         }
 
-        $schema = $manager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
         foreach (self::TABLES as $name) {
-            $manager->createTable($schema->getTable($name));
+            $schemaManager->createTable($schema->getTable($name));
         }
 
         $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1]);

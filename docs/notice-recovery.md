@@ -12,14 +12,14 @@ Imports below are beneath `Fight\Common\`:
 
 ```php
 $noticeRecoveryReader = new Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader($dedicatedIdleConnection);
-$protector = new Adapter\Mcp\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
-$recovery = new Application\Mcp\Notice\Service\NoticeRecovery($noticeRecoveryReader, $protector);
-$handler = new Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $recovery);
-$router->registerHandler(Domain\Mcp\Notice\Query\RecoverNotices::class, $handler);
+$noticeContinuationProtector = new Adapter\Mcp\Notice\SodiumNoticeContinuationProtector($dedicatedKeys, $activeKeyId);
+$noticeRecovery = new Application\Mcp\Notice\Service\NoticeRecovery($noticeRecoveryReader, $noticeContinuationProtector);
+$recoverNoticesHandler = new Application\Mcp\Notice\QueryHandler\RecoverNoticesHandler($trustedReadAdmission, $noticeRecovery);
+$queryRouter->registerHandler(Domain\Mcp\Notice\Query\RecoverNotices::class, $recoverNoticesHandler);
 $selection = Domain\Mcp\Notice\NoticeSelection::create(['project-a'], ['topic' => 'catalog/tools']);
 $batch = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection));
 $next = $queryBus->fetch(new Domain\Mcp\Notice\Query\RecoverNotices($selection, $batch->continuation()));
-$tool = new Adapter\Mcp\Tool\Notice\RecoverNoticesTool($queryBus);
+$recoverNoticesTool = new Adapter\Mcp\Tool\Notice\RecoverNoticesTool($queryBus);
 ```
 
 Install the existing DBAL schema exclusively. Use an idle committed-isolation connection as for recording/removal;
@@ -51,7 +51,7 @@ storage. Missing epoch or namespace-evidence permission permits current authoriz
 allow-all policy or stronger proof of consumer assertions. Consumers must provide an honest epoch or use null.
 Admission is invocation-local, not a permission lease; already disclosed bytes cannot be retracted.
 
-Register `$tool` explicitly in `McpToolRegistry`, then ordinary `McpToolDiscovery` and `McpToolInvocation` with a
+Register `$recoverNoticesTool` explicitly in `McpToolRegistry`, then ordinary `McpToolDiscovery` and `McpToolInvocation` with a
 consumer `McpToolAvailability`, and the existing `McpRequestHandler` with Origin policy, invocation guard, diagnostics
 and PSR response factories. No endpoint or route is registered by this feature. Availability is rechecked independently
 from Query access: visible Tool metadata never grants notice access. Discovery performs no notice Query. No other

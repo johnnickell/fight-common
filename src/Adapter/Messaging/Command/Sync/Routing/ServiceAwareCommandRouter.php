@@ -19,7 +19,7 @@ final class ServiceAwareCommandRouter implements CommandRouter
     /**
      * @var array<string, string>
      */
-    private array $handlers = [];
+    private array $handlerServiceIdsByType = [];
 
     /**
      * Constructs ServiceAwareCommandRouter
@@ -48,8 +48,8 @@ final class ServiceAwareCommandRouter implements CommandRouter
      */
     public function registerHandlers(array $commandToHandlerMap): void
     {
-        foreach ($commandToHandlerMap as $commandClass => $serviceName) {
-            $this->registerHandler($commandClass, $serviceName);
+        foreach ($commandToHandlerMap as $commandClass => $handlerServiceId) {
+            $this->registerHandler($commandClass, $handlerServiceId);
         }
     }
 
@@ -62,7 +62,7 @@ final class ServiceAwareCommandRouter implements CommandRouter
 
         $type = Type::create($commandClass)->toString();
 
-        $this->handlers[$type] = $serviceName;
+        $this->handlerServiceIdsByType[$type] = $serviceName;
     }
 
     /**
@@ -76,9 +76,9 @@ final class ServiceAwareCommandRouter implements CommandRouter
         }
 
         $type = Type::create($commandClass)->toString();
-        $service = $this->handlers[$type];
+        $handlerServiceId = $this->handlerServiceIdsByType[$type];
 
-        return $this->container->get($service);
+        return $this->container->get($handlerServiceId);
     }
 
     /**
@@ -88,12 +88,12 @@ final class ServiceAwareCommandRouter implements CommandRouter
     {
         $type = Type::create($commandClass)->toString();
 
-        if (!isset($this->handlers[$type])) {
+        if (!isset($this->handlerServiceIdsByType[$type])) {
             return false;
         }
 
-        $service = $this->handlers[$type];
+        $handlerServiceId = $this->handlerServiceIdsByType[$type];
 
-        return $this->container->has($service);
+        return $this->container->has($handlerServiceId);
     }
 }

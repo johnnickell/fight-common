@@ -22,10 +22,10 @@ final readonly class DbalProjectionCheckpointStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $checkpoints = $schema->createTable(self::TABLE);
-        $checkpoints->addColumn('projector_name', 'string', ['length' => 255]);
-        $checkpoints->addColumn('global_position', 'bigint');
-        $checkpoints->setPrimaryKey(['projector_name']);
+        $checkpointTable = $schema->createTable(self::TABLE);
+        $checkpointTable->addColumn('projector_name', 'string', ['length' => 255]);
+        $checkpointTable->addColumn('global_position', 'bigint');
+        $checkpointTable->setPrimaryKey(['projector_name']);
 
         return $schema;
     }

@@ -43,12 +43,12 @@ readonly class SlimUrlGenerator implements UrlGenerator
             }
 
             return $routeParser->urlFor($name, $parameters, $query);
-        } catch (RuntimeException $e) {
-            throw new RouteNotFoundException($e->getMessage(), $e->getCode(), $e);
-        } catch (InvalidArgumentException $e) {
-            throw new InvalidParameterException($e->getMessage(), $e->getCode(), $e);
-        } catch (Throwable $e) {
-            throw new UrlGenerationException($e->getMessage(), $e->getCode(), $e);
+        } catch (RuntimeException $exception) {
+            throw new RouteNotFoundException($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (InvalidArgumentException $exception) {
+            throw new InvalidParameterException($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (Throwable $exception) {
+            throw new UrlGenerationException($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 

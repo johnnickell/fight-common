@@ -31,19 +31,19 @@ final class DetailRemoverTest extends UnitTestCase
     public function test_that_handler_admits_before_lookup_and_removes_only_inside_its_real_commit_boundary(): void
     {
         $command = $this->command(); $detail = ObservationFixture::detail();
-        $transaction = $this->mock(TransactionalUnitOfWork::class);
+        $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
         $active = false; $committed = false;
-        $transaction->shouldReceive('commitTransactional')->once()->andReturnUsing(static function (callable $operation) use (&$active, &$committed): void {
+        $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andReturnUsing(static function (callable $operation) use (&$active, &$committed): void {
             $active = true; $operation(); $active = false; $committed = true;
         });
         $admission = $this->mock(DetailRemovalAdmission::class);
         $admission->shouldReceive('admit')->once()->with($command)->globally()->ordered()->andReturnUsing(static function () use (&$active): void { self::assertTrue($active); });
-        $observations = $this->mock(ObservationRepository::class);
-        $observations->shouldReceive('getById')->once()->with('instrumentation', $command->detailId())->globally()->ordered()->andReturn($detail);
-        $observations->shouldReceive('getById')->once()->with('instrumentation', $command->selection()->activityId())->globally()->ordered()->andReturn(ObservationFixture::activity());
-        $contents = $this->mock(ProtectedContentRepository::class);
-        $contents->shouldReceive('removeFor')->once()->with($detail)->globally()->ordered()->andReturnUsing(static function () use (&$active, &$committed): void { self::assertTrue($active); self::assertFalse($committed); });
-        $handler = new RemoveCapturedDetailHandler(new DetailRemover($transaction, $observations, $contents, $admission));
+        $observationRepository = $this->mock(ObservationRepository::class);
+        $observationRepository->shouldReceive('getById')->once()->with('instrumentation', $command->detailId())->globally()->ordered()->andReturn($detail);
+        $observationRepository->shouldReceive('getById')->once()->with('instrumentation', $command->selection()->activityId())->globally()->ordered()->andReturn(ObservationFixture::activity());
+        $protectedContentRepository = $this->mock(ProtectedContentRepository::class);
+        $protectedContentRepository->shouldReceive('removeFor')->once()->with($detail)->globally()->ordered()->andReturnUsing(static function () use (&$active, &$committed): void { self::assertTrue($active); self::assertFalse($committed); });
+        $handler = new RemoveCapturedDetailHandler(new DetailRemover($transactionalUnitOfWork, $observationRepository, $protectedContentRepository, $admission));
         self::assertSame(RemoveCapturedDetail::class, $handler::commandRegistration());
         $handler->handle(CommandMessage::create($command));
         self::assertTrue($committed);
@@ -52,25 +52,25 @@ final class DetailRemoverTest extends UnitTestCase
     #[DataProvider('rejections')]
     public function test_that_denied_unknown_and_inconsistent_selections_share_safe_rejection_without_deletion(string $case): void
     {
-        $transaction = $this->mock(TransactionalUnitOfWork::class);
-        $transaction->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn (callable $operation) => $operation());
+        $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
+        $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andReturnUsing(static fn (callable $operation) => $operation());
         $admission = $this->mock(DetailRemovalAdmission::class);
-        $permit = $admission->shouldReceive('admit')->once()->globally()->ordered();
-        $observations = $this->mock(ObservationRepository::class);
-        if ($case === 'denied') { $permit->andThrow(new DetailRemovalRejected()); }
+        $admissionExpectation = $admission->shouldReceive('admit')->once()->globally()->ordered();
+        $observationRepository = $this->mock(ObservationRepository::class);
+        if ($case === 'denied') { $admissionExpectation->andThrow(new DetailRemovalRejected()); }
         else {
-            $observations->shouldReceive('getById')->once()->globally()->ordered()->andReturn(match ($case) {
+            $observationRepository->shouldReceive('getById')->once()->globally()->ordered()->andReturn(match ($case) {
                 'unknown' => null,
                 'wrong-detail' => ObservationFixture::phase(),
                 default => ObservationFixture::detail()
             });
             if (in_array($case, ['missing-activity', 'wrong-activity'], true)) {
-                $observations->shouldReceive('getById')->once()->globally()->ordered()->andReturn($case === 'missing-activity' ? null : ObservationFixture::phase());
+                $observationRepository->shouldReceive('getById')->once()->globally()->ordered()->andReturn($case === 'missing-activity' ? null : ObservationFixture::phase());
             }
         }
-        $contents = $this->mock(ProtectedContentRepository::class);
-        $contents->shouldNotReceive('removeFor');
-        $remover = new DetailRemover($transaction, $observations, $contents, $admission);
+        $protectedContentRepository = $this->mock(ProtectedContentRepository::class);
+        $protectedContentRepository->shouldNotReceive('removeFor');
+        $remover = new DetailRemover($transactionalUnitOfWork, $observationRepository, $protectedContentRepository, $admission);
         $this->expectException(DetailRemovalRejected::class);
         $this->expectExceptionMessage('Captured detail removal was not admitted.');
         $remover->remove($this->command());
@@ -90,10 +90,10 @@ final class DetailRemoverTest extends UnitTestCase
 
     public function test_that_transaction_failure_is_not_acknowledged_as_success(): void
     {
-        $transaction = $this->mock(TransactionalUnitOfWork::class);
+        $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
         $failure = new RuntimeException('commit did not acknowledge');
-        $transaction->shouldReceive('commitTransactional')->once()->andThrow($failure);
-        $remover = new DetailRemover($transaction, $this->mock(ObservationRepository::class), $this->mock(ProtectedContentRepository::class), $this->mock(DetailRemovalAdmission::class));
+        $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andThrow($failure);
+        $remover = new DetailRemover($transactionalUnitOfWork, $this->mock(ObservationRepository::class), $this->mock(ProtectedContentRepository::class), $this->mock(DetailRemovalAdmission::class));
         try { $remover->remove($this->command()); self::fail('Expected original failure.'); }
         catch (RuntimeException $actual) { self::assertSame($failure, $actual); }
     }

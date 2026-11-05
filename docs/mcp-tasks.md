@@ -21,12 +21,12 @@ use Fight\Common\Application\Mcp\Tool\McpToolDiscovery;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 
-$tasks = new McpTasks($queries, $commands, $trustedScope, $trustedCaller);
-$invoker = new McpToolInvoker($tools, $availability, tasks: $tasks);
-$registry = new McpCapabilityRegistry($serverInfo, [
-    new McpToolDiscovery($tools, $availability, $cursorKey),
-    new McpToolInvocation($invoker),
-    $tasks
+$taskCapability = new McpTasks($queryBus, $commandBus, $trustedScope, $trustedCaller);
+$toolInvoker = new McpToolInvoker($toolRegistry, $toolAvailability, taskCapability: $taskCapability);
+$capabilityRegistry = new McpCapabilityRegistry($serverInfo, [
+    new McpToolDiscovery($toolRegistry, $toolAvailability, $cursorKey),
+    new McpToolInvocation($toolInvoker),
+    $taskCapability
 ]);
 ```
 
@@ -65,7 +65,7 @@ Ordinary Tools are never converted into Task Tools implicitly.
 
 Inside `start()`, generate a fresh `Domain\Mcp\Task\TaskId::generate()`, capture the original Tool contract and arguments, and
 execute `CreateTask` through CommandBus. Consumers own submission and its failure/reconciliation policy. Return
-`new McpTaskHandle($id)` only for a durably created operation. Common then fetches `GetTask($trustedScope, $id)`
+`new McpTaskHandle($taskId)` only for a durably created operation. Common then fetches `GetTask($trustedScope, $taskId)`
 through QueryBus, including fresh read and whole-state disclosure checks, before acknowledging the handle.
 An in-memory object or queued submission alone cannot pass this boundary. Creation grants do not imply disclosure;
 failed/missing/withheld current state produces no successful handle acknowledgment even if creation committed.

@@ -29,14 +29,14 @@ use Throwable;
  */
 final readonly class DbalDetailReader implements DetailReader
 {
-    private DbalExecutionReadSupport $sql;
+    private DbalExecutionReadSupport $executionReadSupport;
 
     /**
      * Constructs DbalDetailReader
      */
     public function __construct(private Connection $connection)
     {
-        $this->sql = new DbalExecutionReadSupport($connection);
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection);
     }
 
     /**
@@ -107,8 +107,8 @@ final readonly class DbalDetailReader implements DetailReader
             return null;
         }
 
-        [$where, $parameters] = $this->sql->constraints($selection->execution()->selection(), $scope);
-        [$phases, $phaseParameters] = $this->sql->phaseConstraints($scope, 'p');
+        [$where, $parameters] = $this->executionReadSupport->constraints($selection->execution()->selection(), $scope);
+        [$phases, $phaseParameters] = $this->executionReadSupport->phaseConstraints($scope, 'p');
         $sql = 'SELECT o.*, s.consumer_reference, p.parent_phase_id, p.agent_id, p.name, p.attempt';
         $sql .= ' FROM fight_execution_observations o';
         $sql .= ' JOIN fight_execution_sessions s ON s.project_id = o.project_id AND s.session_id = o.session_id';
@@ -124,7 +124,7 @@ final readonly class DbalDetailReader implements DetailReader
             return null;
         }
 
-        $activity = $this->sql->decode($row);
+        $activity = $this->executionReadSupport->decode($row);
         $phase = PhaseReference::fromStrings(
             $row['session_id'],
             $row['phase_id'],
@@ -194,10 +194,10 @@ final readonly class DbalDetailReader implements DetailReader
             }
 
             $sql .= ' ORDER BY d.recorded_at '.$direction.', d.observation_id '.$direction;
-            $rows = $this->connection->fetchAllAssociative($this->sql->limit($sql, 100), $args);
+            $rows = $this->connection->fetchAllAssociative($this->executionReadSupport->limit($sql, 100), $args);
             foreach ($rows as $row) {
                 $last = $row;
-                $detail = $this->sql->decode($row);
+                $detail = $this->executionReadSupport->decode($row);
                 if ($detail->detail() === null || !$detail->detail()->acceptsActivity($detail, $activity)) {
                     throw new DomainException('Invalid stored protected detail relationship.');
                 }

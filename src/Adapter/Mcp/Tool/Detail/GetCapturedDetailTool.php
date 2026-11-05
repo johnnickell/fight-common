@@ -37,26 +37,26 @@ final readonly class GetCapturedDetailTool implements McpTool
         ExecutionToolSchemas::DETAIL_INPUT,
         ExecutionToolSchemas::CAPTURED_DETAIL
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::DETAIL_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::DETAIL_INPUT);
         /**
-         * @var CapturedDetail|null $result
+         * @var CapturedDetail|null $capturedDetail
          */
-        $result = $this->queryBus->fetch(GetCapturedDetail::fromArray([
+        $capturedDetail = $this->queryBus->fetch(GetCapturedDetail::fromArray([
             'selection' => [
-                'project_id'  => $input['project_id'],
-                'session_id'  => $input['session_id'],
-                'phase_id'    => $input['phase_id'],
-                'producer_id' => $input['producer_id'],
-                'activity_id' => $input['activity_id']
+                'project_id'  => $arguments['project_id'],
+                'session_id'  => $arguments['session_id'],
+                'phase_id'    => $arguments['phase_id'],
+                'producer_id' => $arguments['producer_id'],
+                'activity_id' => $arguments['activity_id']
             ],
-            'detail_id' => $input['detail_id'],
-            'kind'      => $input['kind'],
-            'offset'    => $input['offset'] ?? 0,
-            'length'    => $input['length'] ?? 4096
+            'detail_id' => $arguments['detail_id'],
+            'kind'      => $arguments['kind'],
+            'offset'    => $arguments['offset'] ?? 0,
+            'length'    => $arguments['length'] ?? 4096
         ]));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($capturedDetail);
     }
 }

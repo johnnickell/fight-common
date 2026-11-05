@@ -37,22 +37,22 @@ final readonly class ListPhaseActivityTool implements McpTool
         ExecutionToolSchemas::ACTIVITY_INPUT,
         ExecutionToolSchemas::ACTIVITY_OUTPUT
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::ACTIVITY_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::ACTIVITY_INPUT);
         /**
-         * @var ActivityPage|null $result
+         * @var ActivityPage|null $activityPage
          */
-        $result = $this->queryBus->fetch(new ListPhaseActivity(
-            $input['project_id'],
-            $input['session_id'],
-            $input['phase_id'],
-            $input['page'] ?? null,
-            $input['per_page'] ?? null,
-            $input['filters'] ?? [],
-            ['recorded_at' => $input['direction'] ?? 'DESC']
+        $activityPage = $this->queryBus->fetch(new ListPhaseActivity(
+            $arguments['project_id'],
+            $arguments['session_id'],
+            $arguments['phase_id'],
+            $arguments['page'] ?? null,
+            $arguments['per_page'] ?? null,
+            $arguments['filters'] ?? [],
+            ['recorded_at' => $arguments['direction'] ?? 'DESC']
         ));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($activityPage);
     }
 }

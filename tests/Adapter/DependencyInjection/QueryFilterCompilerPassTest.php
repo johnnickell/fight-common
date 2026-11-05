@@ -64,15 +64,15 @@ class QueryFilterCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_query_filters(): void
     {
         $container = new ContainerBuilder();
-        $pipelineDef = $container->register(QueryPipeline::class, QueryPipeline::class);
+        $queryPipelineDefinition = $container->register(QueryPipeline::class, QueryPipeline::class);
 
-        $filterDef = $container->register('filter_id', StubQueryFilter::class);
-        $filterDef->addTag('common.query_filter', []);
+        $filterDefinition = $container->register('filter_id', StubQueryFilter::class);
+        $filterDefinition->addTag('common.query_filter', []);
 
         $pass = new QueryFilterCompilerPass();
         $pass->process($container);
 
-        $calls = $pipelineDef->getMethodCalls();
+        $calls = $queryPipelineDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('addFilter', $calls[0][0]);
         self::assertInstanceOf(Reference::class, $calls[0][1][0]);
@@ -82,18 +82,18 @@ class QueryFilterCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_query_filters(): void
     {
         $container = new ContainerBuilder();
-        $pipelineDef = $container->register(QueryPipeline::class, QueryPipeline::class);
+        $queryPipelineDefinition = $container->register(QueryPipeline::class, QueryPipeline::class);
 
-        $filterDef1 = $container->register('filter_1', StubQueryFilter::class);
-        $filterDef1->addTag('common.query_filter', []);
+        $firstFilterDefinition = $container->register('filter_1', StubQueryFilter::class);
+        $firstFilterDefinition->addTag('common.query_filter', []);
 
-        $filterDef2 = $container->register('filter_2', StubOtherQueryFilter::class);
-        $filterDef2->addTag('common.query_filter', []);
+        $secondFilterDefinition = $container->register('filter_2', StubOtherQueryFilter::class);
+        $secondFilterDefinition->addTag('common.query_filter', []);
 
         $pass = new QueryFilterCompilerPass();
         $pass->process($container);
 
-        $calls = $pipelineDef->getMethodCalls();
+        $calls = $queryPipelineDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('addFilter', $calls[0][0]);
         self::assertSame('filter_1', (string) $calls[0][1][0]);
@@ -106,8 +106,8 @@ class QueryFilterCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(QueryPipeline::class, QueryPipeline::class);
 
-        $badDef = $container->register('bad_filter', StubQryFilterNonFilterService::class);
-        $badDef->addTag('common.query_filter', []);
+        $invalidDefinition = $container->register('bad_filter', StubQryFilterNonFilterService::class);
+        $invalidDefinition->addTag('common.query_filter', []);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

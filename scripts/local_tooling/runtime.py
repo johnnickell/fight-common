@@ -116,8 +116,8 @@ def guard(root, checkout, project):
         if labels.get('com.docker.compose.project') != project:
             continue
         require(labels.get('io.fight.checkout') == str(checkout), 'Unknown/foreign project container; retain it')
-        require(all(Path(m['Source']).resolve() == checkout for m in container['Mounts']
-                    if m['Type'] == 'bind' and m['Destination'] == '/app'), 'Project container mounts another checkout')
+        require(all(Path(mount['Source']).resolve() == checkout for mount in container['Mounts']
+                    if mount['Type'] == 'bind' and mount['Destination'] == '/app'), 'Project container mounts another checkout')
         owned.add(container['Id'])
     for kind in ('volumes', 'networks'):
         for resource in native_ids(root, kind, project):
@@ -125,11 +125,11 @@ def guard(root, checkout, project):
             require((value.get('Labels') or {}).get('io.fight.checkout') == str(checkout),
                     'Unknown/foreign project ' + kind + '; retain it')
             if kind == 'volumes':
-                require(not any(c['Id'] not in owned and any(m.get('Name') == value['Name']
-                        for m in c['Mounts']) for c in containers), 'Volume has a foreign/stopped consumer')
+                require(not any(container['Id'] not in owned and any(mount.get('Name') == value['Name']
+                        for mount in container['Mounts']) for container in containers), 'Volume has a foreign/stopped consumer')
             else:
-                require(not any(c['Id'] not in owned and any(n.get('NetworkID') == value['Id']
-                        for n in c['NetworkSettings']['Networks'].values()) for c in containers),
+                require(not any(container['Id'] not in owned and any(network.get('NetworkID') == value['Id']
+                        for network in container['NetworkSettings']['Networks'].values()) for container in containers),
                         'Network has a foreign/stopped consumer')
 
 

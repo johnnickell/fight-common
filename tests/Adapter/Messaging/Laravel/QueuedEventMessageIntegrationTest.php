@@ -41,8 +41,8 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
         $transactions = new DatabaseTransactionsManager();
         $container->instance('db.transactions', $transactions);
         $calls = [];
-        $dispatcher = new QueuedEventMessageIntegrationDispatcher();
-        $dispatcher->addHandler(
+        $eventDispatcher = new QueuedEventMessageIntegrationDispatcher();
+        $eventDispatcher->addHandler(
             ClassName::underscore(QueuedEventMessageIntegrationEvent::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['event-high', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
@@ -50,20 +50,20 @@ final class QueuedEventMessageIntegrationTest extends UnitTestCase
             },
             20
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(QueuedEventMessageIntegrationEvent::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['event-low', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
             },
             10
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(AllEvents::class),
             static function (EventMessage $message) use (&$calls): void {
                 $calls[] = ['all-events', $message->id()->toString(), $message->timestamp()->format('Y-m-d H:i:s.u'), $message->payloadType()->toString(), $message->payload()->toArray(), $message->meta()->toArray()];
             }
         );
-        $container->instance(EventMessageHandler::class, new EventMessageHandler($dispatcher));
+        $container->instance(EventMessageHandler::class, new EventMessageHandler($eventDispatcher));
         $queue = new RecordingSyncQueue();
         $queue->setContainer($container);
         $queue->setConnectionName('sync');
