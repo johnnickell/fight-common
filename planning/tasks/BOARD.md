@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Active Work | [TASK-00199](00199-TASK.md) | Configure durable Task storage | in-progress | — |
+| Ready Frontier | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -61,7 +61,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | in-progress | — | — |
+| None | — | — | — | — | — | — |
 
 ## Ready Frontier
 
@@ -75,7 +75,7 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00199](00199-TASK.md), [TASK-00200](00200-TASK.md) | — |
+| — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00200](00200-TASK.md) | — |
 | — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | [TASK-00198](00198-TASK.md), [TASK-00201](00201-TASK.md) | — |
 
 ## Needs Info
@@ -194,6 +194,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00195](00195-TASK.md) | Configure projection checkpoint storage | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | done | — | [PR #282](https://github.com/johnnickell/fight-common/pull/282) |
 | — | [TASK-00196](00196-TASK.md) | Configure publication storage and complete the customized journey | [TICKET-00053 — Customize Event Sourcing persistence tables](../tickets/00053-TICKET.md) | done | — | [PR #284](https://github.com/johnnickell/fight-common/pull/284) |
 | — | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | done | — | [PR #283](https://github.com/johnnickell/fight-common/pull/283) |
+| — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | — |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
 <!-- /planning:board -->
