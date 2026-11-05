@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
@@ -12,7 +13,9 @@ require __DIR__.'/../../../../vendor/autoload.php';
 
 $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($config['params']);
-$fixture = new TaskFixture($connection);
+// The live subscription journey retains its existing default-only configuration.
+$tables = new DbalTaskTables($config['stateTable'] ?? 'fight_task_state', $config['taskTable'] ?? 'fight_tasks');
+$fixture = new TaskFixture($connection, $tables);
 $mode = $argv[2];
 $attempted = false;
 if ($mode === 'input') { $fixture->issue(confirmation: true, count: 2); }

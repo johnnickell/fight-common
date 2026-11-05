@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Mockery as M;
@@ -30,7 +31,8 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($connect
     }
     $connection->commit();
 });
-$fixture = new TaskFixture($proxy); $events = 0;
+$tables = new DbalTaskTables($config['stateTable'], $config['taskTable']);
+$fixture = new TaskFixture($proxy, $tables); $events = 0;
 foreach ([\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class, \Fight\Common\Domain\Mcp\Task\Event\TaskDataRemoved::class] as $event) {
     $fixture->events->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore($event), static function () use (&$events): void { ++$events; });
 }

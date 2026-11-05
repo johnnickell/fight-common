@@ -7,6 +7,7 @@ namespace Fight\Test\Common\TestCase\Mcp\Task;
 use Closure;
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
@@ -98,9 +99,9 @@ final class TaskFixture implements TaskCreationAdmission, TaskUpdateAdmission, T
     public readonly RemoveTasksHandler $removeTasksHandler;
     public readonly GetTaskHandler $getTaskHandler;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, DbalTaskTables $tables = new DbalTaskTables())
     {
-        $this->transactionalUnitOfWork = new DbalTaskTransaction($connection);
+        $this->transactionalUnitOfWork = new DbalTaskTransaction($connection, $tables);
         $this->taskRepository = new DbalTaskRepository($this->transactionalUnitOfWork);
         $this->committedTaskReader = $this->taskRepository;
         $this->events = new SimpleEventDispatcher();
