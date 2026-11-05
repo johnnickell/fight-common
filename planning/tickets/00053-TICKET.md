@@ -2,7 +2,7 @@
 id: TICKET-00053
 epic: EPIC-00013
 title: Customize Event Sourcing persistence tables
-status: ready-for-agent
+status: done
 ---
 
 # Customize Event Sourcing persistence tables
@@ -100,7 +100,7 @@ are requested. These are requirements, not claims that implementation or verific
 |---|---|---|
 | [TASK-00194](../tasks/00194-TASK.md) | Configure Event Store and sequence table names | done |
 | [TASK-00195](../tasks/00195-TASK.md) | Configure projection checkpoint storage | done |
-| [TASK-00196](../tasks/00196-TASK.md) | Configure publication storage and complete the customized journey | ready-for-agent |
+| [TASK-00196](../tasks/00196-TASK.md) | Configure publication storage and complete the customized journey | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -142,3 +142,17 @@ is pending at its administrative closeout checkpoint. Its durable canonical deli
 `.runs/tasks/TASK-00195/runs/20261105-land-01/land.md`; its TASK metadata records the verified PR after creation.
 The planning-checkout instruction above is historical. Consult the [Board](../tasks/BOARD.md) for current routing;
 this checkpoint neither assigns another TASK nor creates a post-merge planning obligation.
+
+### Complete Event Sourcing acceptance checkpoint — 2026-11-05
+
+All three child TASKs now have accepted implementation and satisfied required QA. TASK-00196 completes the three
+publication selections, actual default/configured six-table journey and final SQL-path inventory. Its canonical
+Review v3 accept and QA v2 PASS bind `3f5a18bc84c58350ed7e916e81377169f923cce1`; Land's mechanical integration
+with develop preserves that accepted behavior and passed a fresh complete local gate at
+`b595df2d924b9d8f39d8da2dd64e32fdcb4f9d20`. Automatic parent completion closes this TICKET with its final child.
+The preceding TASK-00195 checkpoint is historical, not today's unfinished-child instruction.
+
+Publication/final-head verification is pending at this administrative checkpoint. Current delivery results and
+resource dispositions are in canonical `.runs/tasks/TASK-00196/runs/20261105-land-01/land.md` and the actual PR
+recorded by TASK-00196 after creation. Completion is not merge, release or deployment; EPIC-00013 remains open
+for its other TICKETs. Current routing remains on the Board, without a tracked delivery queue or post-merge chore.

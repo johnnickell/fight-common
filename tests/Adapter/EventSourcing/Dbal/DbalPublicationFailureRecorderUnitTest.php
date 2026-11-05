@@ -8,7 +8,9 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureRecorder;
+use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationFailureTables;
 use Fight\Common\Application\EventSourcing\EventPublicationFailure;
 use Fight\Common\Application\Messaging\Event\EventDispatchFailed;
 use Fight\Common\Application\Messaging\Event\EventHandlerFailure;
@@ -20,19 +22,29 @@ use Fight\Common\Domain\Messaging\MessageId;
 use Fight\Common\Domain\Messaging\Meta;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 #[CoversClass(DbalPublicationFailureRecorder::class)]
 final class DbalPublicationFailureRecorderUnitTest extends UnitTestCase
 {
-    public function test_that_record_inserts_the_failure_and_each_handler_snapshot_atomically(): void
+    public static function selections(): iterable
     {
+        yield 'default' => [new DbalPublicationFailureTables(), 'publication_failures', 'publication_handler_failures'];
+        yield 'configured' => [new DbalPublicationFailureTables('Order', 'Group'), 'Order', 'Group'];
+    }
+
+    #[DataProvider('selections')]
+    public function test_that_record_inserts_the_failure_and_each_handler_snapshot_atomically(
+        DbalPublicationFailureTables $tables, string $failureTable, string $handlerFailureTable,
+    ): void {
         $connection = $this->mock(Connection::class);
+        $connection->shouldReceive('getDatabasePlatform')->once()->andReturn(new SQLitePlatform());
         $connection->shouldReceive('transactional')->once()->andReturnUsing(
             function (callable $operation) use ($connection): void {
                 $operation($connection);
             },
         );
-        $connection->shouldReceive('insert')->once()->with('publication_failures', [
+        $connection->shouldReceive('insert')->once()->with('"'.$failureTable.'"', [
             'publication_name' => 'orders.subscribers',
             'aggregate_name' => 'order',
             'aggregate_identifier' => 'order-42',
@@ -43,7 +55,7 @@ final class DbalPublicationFailureRecorderUnitTest extends UnitTestCase
             'message_id' => '6ba7b841-9dad-11d1-80b4-00c04fd430c8',
             'dispatch_started_at' => '2026-08-09T09:15:30.123456+00:00',
         ]);
-        $connection->shouldReceive('insert')->once()->with('publication_handler_failures', [
+        $connection->shouldReceive('insert')->once()->with('"'.$handlerFailureTable.'"', [
             'publication_name' => 'orders.subscribers',
             'global_position' => 23,
             'handler_position' => 0,
@@ -53,7 +65,7 @@ final class DbalPublicationFailureRecorderUnitTest extends UnitTestCase
             'diagnostic_message' => 'Inventory unavailable.',
         ]);
 
-        (new DbalPublicationFailureRecorder($connection))->record($this->failure());
+        (new DbalPublicationFailureRecorder(connection: $connection, tables: $tables))->record($this->failure());
     }
 
     public function test_that_record_keeps_the_first_evidence_when_the_correlation_key_already_exists(): void
