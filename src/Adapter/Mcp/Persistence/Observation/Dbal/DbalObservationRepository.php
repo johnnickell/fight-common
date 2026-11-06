@@ -27,7 +27,10 @@ final readonly class DbalObservationRepository implements ObservationRepository
      */
     public function getById(string $producerId, ObservationId $id): ?Observation
     {
-        $sql = 'SELECT version, payload, recorded_at FROM fight_execution_observations';
+        $table = $this->recordingTransaction->tables()->observationTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
+        );
+        $sql = 'SELECT version, payload, recorded_at FROM '.$table;
         $sql .= ' WHERE producer_id = ? AND observation_id = ?';
         $row = $this->recordingTransaction->connection()->fetchAssociative($sql, [$producerId, $id->toString()]);
         if ($row === false) {
@@ -53,7 +56,10 @@ final readonly class DbalObservationRepository implements ObservationRepository
     {
         $this->recordingTransaction->requireOwnedTransaction();
         $recordedAt = $observation->recordedAt();
-        $this->recordingTransaction->connection()->insert('fight_execution_observations', [
+        $table = $this->recordingTransaction->tables()->observationTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
+        );
+        $this->recordingTransaction->connection()->insert($table, [
             'producer_id'    => $observation->producerId(),
             'observation_id' => $observation->id()->toString(),
             'project_id'     => $observation->session()->projectId(),

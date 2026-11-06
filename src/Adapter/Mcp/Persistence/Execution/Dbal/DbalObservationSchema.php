@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use RuntimeException;
 
 /**
@@ -24,22 +25,29 @@ final readonly class DbalObservationSchema
     ];
 
     /**
+     * Constructs DbalObservationSchema
+     */
+    public function __construct(private DbalObservationTables $tables = new DbalObservationTables())
+    {
+    }
+
+    /**
      * Adds version-one tables to a consumer-owned schema without changing other tables
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $schemaVersionTable = $schema->createTable(self::TABLES[0]);
+        $schemaVersionTable = $schema->createTable($this->tables->schemaTable()->schemaName());
         $schemaVersionTable->addColumn('singleton', 'integer');
         $schemaVersionTable->addColumn('version', 'integer');
         $schemaVersionTable->setPrimaryKey(['singleton']);
 
-        $sessionTable = $schema->createTable(self::TABLES[1]);
+        $sessionTable = $schema->createTable($this->tables->sessionTable()->schemaName());
         $sessionTable->addColumn('project_id', 'string', ['length' => 128]);
         $sessionTable->addColumn('session_id', 'string', ['length' => 128]);
         $sessionTable->addColumn('consumer_reference', 'string', ['length' => 128]);
         $sessionTable->setPrimaryKey(['project_id', 'session_id']);
 
-        $phaseTable = $schema->createTable(self::TABLES[2]);
+        $phaseTable = $schema->createTable($this->tables->phaseTable()->schemaName());
         $phaseTable->addColumn('project_id', 'string', ['length' => 128]);
         $phaseTable->addColumn('session_id', 'string', ['length' => 128]);
         $phaseTable->addColumn('phase_id', 'string', ['length' => 128]);
@@ -48,19 +56,22 @@ final readonly class DbalObservationSchema
         $phaseTable->addColumn('name', 'string', ['length' => 64]);
         $phaseTable->addColumn('attempt', 'integer');
         $phaseTable->setPrimaryKey(['project_id', 'phase_id']);
-        $phaseTable->addUniqueIndex(['project_id', 'session_id', 'phase_id'], 'fight_execution_phase_session');
+        $phaseTable->addUniqueIndex(
+            ['project_id', 'session_id', 'phase_id'],
+            $this->indexName($this->tables->phaseTable(), self::TABLES[2], 'fight_execution_phase_session')
+        );
         $phaseTable->addForeignKeyConstraint(
-            self::TABLES[1],
+            $this->tables->sessionTable()->schemaName(),
             ['project_id', 'session_id'],
             ['project_id', 'session_id']
         );
         $phaseTable->addForeignKeyConstraint(
-            self::TABLES[2],
+            $this->tables->phaseTable()->schemaName(),
             ['project_id', 'session_id', 'parent_phase_id'],
             ['project_id', 'session_id', 'phase_id']
         );
 
-        $observationTable = $schema->createTable(self::TABLES[3]);
+        $observationTable = $schema->createTable($this->tables->observationTable()->schemaName());
         $observationTable->addColumn('producer_id', 'string', ['length' => 128]);
         $observationTable->addColumn('observation_id', 'string', ['length' => 36]);
         $observationTable->addColumn('project_id', 'string', ['length' => 128]);
@@ -71,39 +82,42 @@ final readonly class DbalObservationSchema
         $observationTable->addColumn('payload', 'text');
         $observationTable->addColumn('recorded_at', 'string', ['length' => 27]);
         $observationTable->setPrimaryKey(['producer_id', 'observation_id']);
-        $observationTable->addIndex(['recorded_at', 'observation_id'], 'fight_execution_recording_order');
+        $observationTable->addIndex(
+            ['recorded_at', 'observation_id'],
+            $this->indexName($this->tables->observationTable(), self::TABLES[3], 'fight_execution_recording_order')
+        );
         $observationTable->addForeignKeyConstraint(
-            self::TABLES[1],
+            $this->tables->sessionTable()->schemaName(),
             ['project_id', 'session_id'],
             ['project_id', 'session_id']
         );
         $observationTable->addForeignKeyConstraint(
-            self::TABLES[2],
+            $this->tables->phaseTable()->schemaName(),
             ['project_id', 'session_id', 'phase_id'],
             ['project_id', 'session_id', 'phase_id']
         );
         $observationTable->addForeignKeyConstraint(
-            self::TABLES[3],
+            $this->tables->observationTable()->schemaName(),
             ['producer_id', 'activity_id'],
             ['producer_id', 'observation_id']
         );
 
-        $protectedContentTable = $schema->createTable(self::TABLES[4]);
+        $protectedContentTable = $schema->createTable($this->tables->contentTable()->schemaName());
         $protectedContentTable->addColumn('producer_id', 'string', ['length' => 128]);
         $protectedContentTable->addColumn('observation_id', 'string', ['length' => 36]);
         // JSON escaping may expand a bounded body beyond MySQL's ordinary TEXT limit.
         $protectedContentTable->addColumn('payload', 'text', ['length' => 16777215]);
         $protectedContentTable->setPrimaryKey(['producer_id', 'observation_id']);
         $protectedContentTable->addForeignKeyConstraint(
-            self::TABLES[3],
+            $this->tables->observationTable()->schemaName(),
             ['producer_id', 'observation_id'],
             ['producer_id', 'observation_id'],
             ['onDelete' => 'CASCADE']
         );
 
         if ($platform instanceof AbstractMySQLPlatform) {
-            foreach (self::TABLES as $name) {
-                $table = $schema->getTable($name);
+            foreach ($this->selectedTables() as $name) {
+                $table = $schema->getTable($name->schemaName());
                 $table->addOption('engine', 'InnoDB');
                 $table->addOption('charset', 'utf8mb4');
                 $table->addOption('collation', 'utf8mb4_bin');
@@ -124,22 +138,32 @@ final readonly class DbalObservationSchema
         }
 
         $schemaManager = $connection->createSchemaManager();
-        $present = array_intersect(self::TABLES, $schemaManager->listTableNames());
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
+        $selectedNames = array_map(static fn(DbalTableName $table): string => $table->name(), $this->selectedTables());
+        $present = array_intersect($selectedNames, $existingTables);
         if ($present !== []) {
             if (
-                count($present) !== count(self::TABLES)
+                count($present) !== count($selectedNames)
                 || (int) $connection->fetchOne(
-                    'SELECT version FROM fight_execution_schema WHERE singleton = 1'
+                    sprintf(
+                        'SELECT version FROM %s WHERE singleton = 1',
+                        $this->tables->schemaTable()->quoted($connection->getDatabasePlatform())
+                    )
                 ) !== 1
             ) {
                 throw new RuntimeException('Unsupported or incomplete observation schema.');
             }
 
-            $observationTable = $schemaManager->introspectTable(self::TABLES[3]);
-            if (
-                !$observationTable->hasIndex('fight_execution_recording_order')
-                || !$observationTable->hasColumn('activity_id')
-            ) {
+            $observationTable = $schemaManager->introspectTable($this->tables->observationTable()->schemaName());
+            $indexName = $this->indexName(
+                $this->tables->observationTable(),
+                self::TABLES[3],
+                'fight_execution_recording_order'
+            );
+            if (!$observationTable->hasIndex($indexName) || !$observationTable->hasColumn('activity_id')) {
                 throw new RuntimeException('Incomplete observation schema version one.');
             }
 
@@ -148,10 +172,41 @@ final readonly class DbalObservationSchema
 
         $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
-        foreach (self::TABLES as $tableName) {
-            $schemaManager->createTable($schema->getTable($tableName));
+        foreach ($this->selectedTables() as $tableName) {
+            $schemaManager->createTable($schema->getTable($tableName->schemaName()));
         }
 
-        $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1]);
+        $connection->insert(
+            $this->tables->schemaTable()->quoted($connection->getDatabasePlatform()),
+            ['singleton' => 1, 'version' => 1]
+        );
+    }
+
+    /**
+     * Returns the selected tables in dependency order
+     *
+     * @phpstan-return list<DbalTableName>
+     */
+    private function selectedTables(): array
+    {
+        return [
+            $this->tables->schemaTable(),
+            $this->tables->sessionTable(),
+            $this->tables->phaseTable(),
+            $this->tables->observationTable(),
+            $this->tables->contentTable()
+        ];
+    }
+
+    /**
+     * Returns a stable index name without conflicting with a default installation
+     */
+    private function indexName(DbalTableName $table, string $defaultTable, string $defaultIndex): string
+    {
+        if ($table->name() === $defaultTable) {
+            return $defaultIndex;
+        }
+
+        return $defaultIndex.'_'.substr(hash('sha256', $table->name()), 0, 12);
     }
 }

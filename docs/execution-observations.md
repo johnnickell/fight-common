@@ -227,11 +227,12 @@ inconsistent relationships share `InvalidObservationRelationship` without disclo
 new attempt with a different performing identity, use a new phase subject ID and the intended attempt number.
 
 ```php
-use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
-use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
-use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
+use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Session\Dbal\DbalSessionRepository;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
@@ -248,12 +249,20 @@ use Fight\Common\Domain\Mcp\Observation\ObservationId;
 use Fight\Common\Domain\Mcp\Phase\PhaseReference;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
 
+// Explicit consumer composition; omit any argument to retain that table's default.
+$tables = new DbalObservationTables(
+    schemaTable: 'execution_state',
+    sessionTable: 'execution_sessions',
+    phaseTable: 'execution_phases',
+    observationTable: 'execution_observations',
+    contentTable: 'execution_contents'
+);
 // Deployment/setup only, using a dedicated idle Doctrine DBAL connection:
-(new DbalObservationSchema())->install($connection);
+(new DbalObservationSchema($tables))->install($connection);
 
 // $observationAdmission implements ObservationAdmission using current trusted context.
 // This adapter implements TransactionalUnitOfWork and adds execution's required serialization.
-$recordingTransaction = new DbalRecordingTransaction($connection);
+$recordingTransaction = new DbalRecordingTransaction($connection, $tables);
 $eventDispatcher = new SimpleEventDispatcher();
 $observationRecorder = new ObservationRecorder(
     $recordingTransaction,
@@ -338,7 +347,8 @@ ORM/filter/consumer transaction. The boundary rejects an already-active transact
 writes before admission/writes; it never commits or rolls back caller-owned work. Do not share/manage this connection
 while recording. Successful void acknowledgment follows the actual outer database commit, not a released savepoint.
 
-Every recording takes a write lock on the single `fight_execution_schema` version row before reading. This deliberately
+Every recording takes a write lock on the selected state table's single version row before reading
+(default `fight_execution_schema`). This deliberately
 serializes recordings within this schema, including independently competing retries, so current relationships and
 retained content are checked after the prior writer. It trades write throughput for straightforward portable integrity;
 it does not allocate global positions or promise commit/causal order. Consumers own connection lock timeouts/backoff
@@ -377,8 +387,62 @@ needed. SQLite foreign keys are enabled at recording-boundary construction, requ
 MySQL tables explicitly use InnoDB and `utf8mb4_bin` to preserve exact reference/producer case while supporting UTF-8
 extension values.
 
-The reserved `fight_execution_*` namespace contains a version/lock table, session subjects, phase subjects, retained
-safe observation rows and separately protected `fight_execution_contents`. Composite foreign keys enforce
+`DbalObservationTables` independently selects all five tables at trusted Adapter composition:
+
+| Constructor argument | Default |
+| --- | --- |
+| `schemaTable` | `fight_execution_schema` |
+| `sessionTable` | `fight_execution_sessions` |
+| `phaseTable` | `fight_execution_phases` |
+| `observationTable` | `fight_execution_observations` |
+| `contentTable` | `fight_execution_contents` |
+
+Default construction of the schema, transaction, repositories and all four inspection readers remains supported,
+including existing named arguments (`connection` on readers). A partial selection such as `new DbalObservationTables(contentTable: 'private_execution_content')`
+changes only protected storage; the other four names remain exactly as above. Share the same selection between
+`DbalObservationSchema`, `DbalRecordingTransaction` and each reader's optional `tables` argument; all four
+repositories inherit it from their transaction, including relationship/retry reads and protected-content removal. Separate connections/workers must
+receive the same explicit selection. There is no global/environment lookup or inward naming contract.
+
+Names use the shared `Adapter\Persistence\Doctrine\DbalTableName` rule: 1–63 ASCII characters matching
+`[A-Za-z_][A-Za-z0-9_]{0,62}`. Unsafe/quoted/qualified names reject with `InvalidArgumentException`, without trimming,
+fallback or SQL interpretation. All five names must be distinct even ignoring case. Platform quoting preserves
+case and permits ordinary reserved words; connection configuration owns database/schema choice. Custom phase and
+observation indexes have stable table-derived names so a configured schema can coexist with defaults.
+
+The same selection supports the complete recording/inspection/removal path. Compose
+`DbalExecutionReader($connection, $tables)`, `DbalPhaseReader($connection, $tables)`,
+`DbalActivityReader($connection, $tables)` and `DbalDetailReader($connection, $tables)` with the recorder above.
+Register their existing authorized [safe Query handlers](execution-reads.md#direct-dbal-and-query-bus-composition)
+and separately admitted [protected handlers](execution-protected-reads.md#composition-and-compatibility) on the
+ordinary Query bus. Register [RemoveCapturedDetailHandler](execution-detail-removal.md#composition) on the Command
+bus with the **same recording transaction and repositories**, not a second deletion implementation. Optional
+[guarded MCP Tools](mcp-execution-inspection.md#composition-and-trusted-context) consume that Query bus unchanged;
+no request, Query, ID or Tool argument selects a table. Selection grants no recording, safe-read, body-read or
+removal permission, and changing it grants no access to old evidence.
+
+### Five-table SQL inventory
+
+All paths below use the same explicit selection and shared `DbalTableName` quoting. Paths are beneath
+`src/Adapter/Mcp/Persistence/`; no Domain/Application naming contract is added.
+
+| Selected responsibility | Schema/runtime owners and SQL paths |
+| --- | --- |
+| State/lock | `Execution/Dbal/DbalObservationSchema` install/validation and `DbalRecordingTransaction` version-row validation/serialization through commit |
+| Sessions | Schema; `Session/Dbal/DbalSessionRepository` load/add; `DbalExecutionReader` source/count; Phase, Activity and Detail reader subject joins |
+| Phases | Schema; `Phase/Dbal/DbalPhaseRepository` load/add; `DbalPhaseReader` count/source/visible-parent self-join; Activity and Detail reader subject joins |
+| Observations | Schema; `Observation/Dbal/DbalObservationRepository` load/add/retry reconstruction; Execution reader latest-evidence/freshness subqueries; Phase latest-evidence subqueries; `Execution/Dbal/DbalExecutionReadSupport` finite traversal; Activity/Detail finite activity/detail scans |
+| Protected content | Schema; `Detail/Dbal/DbalProtectedContentRepository` load/add/remove; `DbalDetailReader` separately admitted body lookup; Activity and Detail reader presence-only `EXISTS` subqueries |
+
+Safe overview/phase traversal never reads protected bodies. Activity presence checks use only the selected content
+identity; protected body lookup additionally requires its independent current grant. No reader installs storage or
+falls back to populated defaults. Missing/incompatible selected storage fails explicitly, rather than proving empty
+old history, migration success or job completion. Retained identity and common-lock removal/retry semantics do not
+change. SQLite/MySQL/PostgreSQL fixtures retain defaults and exercise configured read, removal, race-worker and
+guarded HTTP compositions, including independent connections and partial overrides.
+
+The selected namespace contains a version/lock table, session subjects, phase subjects, retained
+safe observation rows and separately protected contents. Composite foreign keys enforce
 same-project/session parent and observation links. Observation rows hold producer-scoped identity, safe versioned
 payload/comparison, nullable `activity_id` FK and immutable recording time. The linked activity cannot be deleted while
 safe detail observations reference it. Content rows are FK-linked by `(producer_id, observation_id)`; deleting their
@@ -386,16 +450,22 @@ safe identity cascades content, not session/phase summaries. Database grants and
 
 `install()` creates only its tables and initial version row on an idle connection; repeated installation validates
 complete presence, version `1` and the required recording-order index. It does not repair
-partial installations, infer unknown versions or alter consumer tables. Setup is deployment-owned and must be exclusive; MySQL DDL is not advertised as transactional. After
+partial installations, infer unknown versions or alter consumer tables. A partial override is a complete five-table
+selection, not permission to repair a partially present selection. Install a fresh selection as a unit, or explicitly
+compose/provision the complete intended schema before validation when sharing existing omitted-default tables.
+Setup is deployment-owned and must be exclusive; MySQL DDL is not advertised as transactional. After
 a failed setup, inspect/recover the partial namespace explicitly. For migration composition, call
 `addTo($schema, $connection->getDatabasePlatform())` on a consumer-owned DBAL `Schema`, apply only the intended new tables,
-and seed `fight_execution_schema` with `singleton = 1, version = 1` before recording. Preserve the declared constraints,
-engine and collations. No destructive migration or maintenance/archival orchestration is supplied.
+and seed the selected state table with `singleton = 1, version = 1` before recording. Preserve the declared constraints,
+engine and collations. Selecting names alone performs no DDL, renames, migration, data copying or rewriting.
+A new selection neither moves existing evidence nor reconciles an uncertain commit; missing/incompatible storage
+fails without runtime installation or fallback. Consumers own existing-data operations, privileges and coordinated
+deployment of all participants. No destructive migration or maintenance/archival orchestration is supplied.
 
 All times are stored as canonical fixed UTC text rather than precision-losing native datetime mappings; supplied
 microseconds and server recording microseconds round-trip. The **entire** UUID is stored, including its random suffix.
-Neither COMB time bits nor recording timestamps imply causal order or commit order; public browsing remains
-future work. Qualification exercises real SQLite/MySQL/PostgreSQL round trips, independent competing session and phase
+Neither COMB time bits nor recording timestamps imply causal order or commit order; public browsing uses the
+separate [execution read boundary](execution-reads.md). Qualification exercises real SQLite/MySQL/PostgreSQL round trips, independent competing session and phase
 writers, FKs, rollback, outer-transaction rejection, lost commit acknowledgment and post-commit subscriber failure.
 Package evidence is not consumer runtime/deployment qualification.
 

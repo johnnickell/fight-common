@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\EventSourcing\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 
 /**
  * Class DbalProjectionCheckpointStoreSchema
@@ -14,7 +15,12 @@ use Doctrine\DBAL\Schema\Schema;
  */
 final readonly class DbalProjectionCheckpointStoreSchema
 {
-    private const string TABLE = 'projection_checkpoints';
+    /**
+     * Constructs DbalProjectionCheckpointStoreSchema
+     */
+    public function __construct(private DbalTableName $table = new DbalTableName('projection_checkpoints'))
+    {
+    }
 
     /**
      * Returns the projection-checkpoint schema definition
@@ -22,7 +28,7 @@ final readonly class DbalProjectionCheckpointStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $checkpointTable = $schema->createTable(self::TABLE);
+        $checkpointTable = $schema->createTable($this->table->schemaName());
         $checkpointTable->addColumn('projector_name', 'string', ['length' => 255]);
         $checkpointTable->addColumn('global_position', 'bigint');
         $checkpointTable->setPrimaryKey(['projector_name']);
@@ -37,8 +43,14 @@ final readonly class DbalProjectionCheckpointStoreSchema
     {
         $schemaManager = $connection->createSchemaManager();
 
-        if (!$schemaManager->tablesExist([self::TABLE])) {
-            $schemaManager->createTable($this->schema()->getTable(self::TABLE));
+        // PostgreSQL reports case-sensitive names with DBAL quoting markers.
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
+
+        if (!in_array($this->table->name(), $existingTables, true)) {
+            $schemaManager->createTable($this->schema()->getTable($this->table->name()));
         }
     }
 }

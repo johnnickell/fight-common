@@ -11,7 +11,13 @@ and actual Agent OS/Pi deployment are not required or qualified by this package 
 Register the shared Query handlers on the consumer's `QueryBus` first, with `ExecutionReadAdmission` resolved
 from **current trusted request context**, not Tool arguments or protocol/envelope metadata. Use the existing
 `DbalExecutionReader`, `DbalPhaseReader` and `DbalActivityReader` for SQLite, MySQL or PostgreSQL; Tools know
-only `QueryBus::fetch()` and typed safe results. The admission implementation supplies current project/session,
+only `QueryBus::fetch()` and typed safe results. At trusted composition, share recording/schema's
+`DbalObservationTables` as each reader's optional `tables` argument, including `DbalDetailReader` for protected Tools.
+The [five-table inventory](execution-observations.md#five-table-sql-inventory) documents defaults, partial overrides,
+validation/quoting and no-migration/no-fallback consequences. Default reader construction and `connection` named
+arguments remain supported. No Tool argument/request field selects storage, and naming confers no access or
+retention lease. Existing independently admitted removal Commands use recording's selected repositories/transaction;
+there is still no MCP removal Tool. The admission implementation supplies current project/session,
 phase/activity and separate detail-reference grants. Configure Agent permissions independently from humans.
 
 ```php

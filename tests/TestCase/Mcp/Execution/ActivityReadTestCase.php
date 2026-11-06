@@ -112,18 +112,18 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
             self::assertSame(in_array($capture, ['complete', 'partial'], true) ? 'retained' : $capture, $byCapture[$detail->id()->toString()]['availability']);
         }
         $summary = $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray();
-        foreach ($details as $detail) { $db->delete('fight_execution_contents', ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]); }
+        foreach ($details as $detail) { $db->delete($this->table($db, 'contents'), ['producer_id' => $detail->producerId(), 'observation_id' => $detail->id()->toString()]); }
         $after = $queryBus->fetch($query)->toArray();
         foreach ($after['activities'][0]['details'] as $reference) {
             $capture = $reference['capture']['completeness'];
             self::assertSame(in_array($capture, ['complete', 'partial'], true) ? 'missing' : $capture, $reference['availability']);
         }
         self::assertSame($summary, $executionQueryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'])))->toArray());
-        self::assertSame(5, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_execution_observations WHERE activity_id IS NOT NULL'));
+        self::assertSame(5, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$this->table($db, 'observations').' WHERE activity_id IS NOT NULL'));
         $admission->access = ExecutionAccess::create(['project' => null]);
         self::assertSame([], $queryBus->fetch($query)->activities()[0]->details());
         // Concealed detail metadata is never decoded or counted, even if corrupt.
-        $db->executeStatement('UPDATE fight_execution_observations SET version = 999 WHERE activity_id IS NOT NULL');
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations').' SET version = 999 WHERE activity_id IS NOT NULL');
         self::assertSame(1, $queryBus->fetch($query)->toArray()['total']);
     }
 
@@ -136,9 +136,9 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         $high = ObservationFixture::activity(['observation_id' => '10000000-0000-4000-8000-ffffffffffff']);
         $producer = ObservationFixture::activity(['observation_id' => $high->id()->toString(), 'producer_id' => 'z-producer']);
         foreach ([$low, $high, $producer] as $activity) { $record($activity); }
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
         $record($low);
-        self::assertSame('2026-10-22T12:00:00.000001Z', $db->fetchOne('SELECT recorded_at FROM fight_execution_observations WHERE observation_id = ?', [$low->id()->toString()]));
+        self::assertSame('2026-10-22T12:00:00.000001Z', $db->fetchOne('SELECT recorded_at FROM '.$this->table($db, 'observations').' WHERE observation_id = ?', [$low->id()->toString()]));
         [$queryBus] = $this->activityBus($db);
         $query = new ListPhaseActivity('project', 'session', 'phase', 1, 1);
         $all = $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase'))->toArray()['activities'];
@@ -149,13 +149,13 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         self::assertSame($low->id()->toString(), $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 1, 1, orderings: ['recorded_at' => 'asc']))->toArray()['activities'][0]['observation_id']);
         $late = ObservationFixture::activity(['observation_id' => '00000000-0000-4000-8000-000000000001', 'occurred_at' => '2020-01-01T00:00:00Z']);
         $record($late);
-        $db->update('fight_execution_observations', ['recorded_at' => '2026-10-22T12:00:00.000002Z'], ['observation_id' => $late->id()->toString()]);
+        $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-22T12:00:00.000002Z'], ['observation_id' => $late->id()->toString()]);
         self::assertSame($late->id()->toString(), $queryBus->fetch($query)->toArray()['activities'][0]['observation_id']);
         self::assertSame($producer->id()->toString(), $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 2, 1))->toArray()['activities'][0]['observation_id']);
         // Insert after page one: page two can repeat the old first row.
         $new = ObservationFixture::activity(['observation_id' => ObservationId::generate()->toString()]); $record($new);
         self::assertSame($late->id()->toString(), $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 2, 1))->toArray()['activities'][0]['observation_id']);
-        $db->delete('fight_execution_observations', ['observation_id' => $new->id()->toString()]);
+        $db->delete($this->table($db, 'observations'), ['observation_id' => $new->id()->toString()]);
         self::assertSame('z-producer', $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 2, 1))->toArray()['activities'][0]['producer_id']);
         self::assertSame('2020-01-01T00:00:00Z', $queryBus->fetch($query)->toArray()['activities'][0]['occurred_at']);
     }
@@ -179,9 +179,9 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         self::assertSame([], $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 3, 100))->activities());
         $id = '10000000-0000-4000-8000-000000000000';
         $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => ['instrumentation/'.$id]]);
-        $db->executeStatement('UPDATE fight_execution_observations SET version = 999 WHERE observation_id <> ?', [$id]);
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations').' SET version = 999 WHERE observation_id <> ?', [$id]);
         self::assertSame(1, $queryBus->fetch($query)->toArray()['total']);
-        $db->executeStatement('DROP TABLE fight_execution_contents');
+        $db->executeStatement('DROP TABLE '.$this->table($db, 'contents'));
         self::assertSame(1, $queryBus->fetch($query)->toArray()['total'], 'No reference grant means no protected storage dependency.');
         $admission->access = ExecutionAccess::create(['project' => null], activityGrants: ['project' => ['instrumentation/'.$id]], detailGrants: ['project' => null]);
         try { $queryBus->fetch($query); self::fail('Storage error must not become absent detail.'); }
@@ -198,12 +198,12 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
         $record($first); $record($second);
         $detail = $this->detail($second, CaptureCompleteness::COMPLETE);
         $record($detail, ProtectedContent::create($detail->detail(), 'PROTECTED-SENTINEL'));
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.123456Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.123456Z'");
         [$queryBus, $admission] = $this->activityBus($db);
         $admission->access = ExecutionAccess::create(['project' => null], detailGrants: ['project' => null]);
         self::assertSame($first->id()->toString(), $queryBus->fetch(new ListPhaseActivity('project', 'session', 'phase', 1, 1))->toArray()['activities'][0]['observation_id']);
         $query = new ListPhaseActivity('project', 'session', 'phase', 2, 1);
-        $db->delete('fight_execution_contents', ['observation_id' => $detail->id()->toString()]);
+        $db->delete($this->table($db, 'contents'), ['observation_id' => $detail->id()->toString()]);
         $after = $queryBus->fetch($query)->toArray();
         self::assertSame(2, $after['total']);
         self::assertSame('complete', $after['activities'][0]['details'][0]['capture']['completeness']);
@@ -218,7 +218,7 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
     {
         [$executionQueryBus, $admission] = $this->bus($db, ['project' => null]);
         $router = new InMemoryQueryRouter();
-        $router->registerHandler(ListPhaseActivityHandler::queryRegistration(), new ListPhaseActivityHandler($admission, new DbalActivityReader($db)));
+        $router->registerHandler(ListPhaseActivityHandler::queryRegistration(), new ListPhaseActivityHandler($admission, new DbalActivityReader($db, $this->tables($db))));
         return [new RoutingQueryBus($router), $admission, $executionQueryBus];
     }
 
@@ -238,7 +238,7 @@ abstract class ActivityReadTestCase extends ExecutionReadTestCase
     private function storedState(Connection $db): array
     {
         $state = [];
-        foreach (['schema', 'sessions', 'phases', 'observations', 'contents'] as $suffix) { $state[$suffix] = $db->fetchAllAssociative('SELECT * FROM fight_execution_'.$suffix); }
+        foreach (['schema', 'sessions', 'phases', 'observations', 'contents'] as $suffix) { $state[$suffix] = $db->fetchAllAssociative('SELECT * FROM '.$this->table($db, $suffix)); }
         return $state;
     }
 }

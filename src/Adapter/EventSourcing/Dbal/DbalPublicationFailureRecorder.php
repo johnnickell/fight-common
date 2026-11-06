@@ -19,8 +19,10 @@ final readonly class DbalPublicationFailureRecorder implements PublicationFailur
     /**
      * Constructs DbalPublicationFailureRecorder
      */
-    public function __construct(private Connection $connection)
-    {
+    public function __construct(
+        private Connection $connection,
+        private DbalPublicationFailureTables $tables = new DbalPublicationFailureTables()
+    ) {
     }
 
     /**
@@ -30,7 +32,8 @@ final readonly class DbalPublicationFailureRecorder implements PublicationFailur
     {
         try {
             $this->connection->transactional(function (Connection $connection) use ($failure): void {
-                $connection->insert('publication_failures', [
+                $platform = $connection->getDatabasePlatform();
+                $connection->insert($this->tables->failureTable()->quoted($platform), [
                     'publication_name'     => $failure->publicationName(),
                     'aggregate_name'       => $failure->streamId()->aggregateName(),
                     'aggregate_identifier' => $failure->streamId()->identifier(),
@@ -43,7 +46,7 @@ final readonly class DbalPublicationFailureRecorder implements PublicationFailur
                 ]);
 
                 foreach ($failure->handlerFailures() as $handlerPosition => $handlerFailure) {
-                    $connection->insert('publication_handler_failures', [
+                    $connection->insert($this->tables->handlerFailureTable()->quoted($platform), [
                         'publication_name'     => $failure->publicationName(),
                         'global_position'      => $failure->globalPosition(),
                         'handler_position'     => $handlerPosition,

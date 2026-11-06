@@ -135,7 +135,11 @@ selection and pre-submission redaction remain mandatory; structure validation is
 ## Composition and compatibility
 
 Compose a consumer implementation of `DetailReadAdmission` separately from safe admission, then register both
-handlers on the ordinary Query router:
+handlers on the ordinary Query router. Pass the same trusted `DbalObservationTables` selection as schema,
+recording and safe readers; the optional `tables` argument defaults to the unchanged five names. Full/partial
+selections use the shared [ordinary-name restrictions and SQL inventory](execution-observations.md#five-table-sql-inventory).
+Neither metadata/body permission nor table choice grants the other. Missing/incompatible selected storage fails
+without installation, migration or fallback, including content-presence checks and separately permitted body reads:
 
 ```php
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalDetailReader;
@@ -145,7 +149,8 @@ use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Detail\Query\GetCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
 
-$detailReader = new DbalDetailReader($connection);
+// $tables is the same explicit DbalObservationTables used by schema/recording/safe readers.
+$detailReader = new DbalDetailReader(connection: $connection, tables: $tables);
 $queryRouter->registerHandler(GetCapturedDetail::class, new GetCapturedDetailHandler($detailReadAdmission, $detailReader));
 $queryRouter->registerHandler(ListCapturedMessages::class, new ListCapturedMessagesHandler($detailReadAdmission, $detailReader));
 $selection = DetailSelection::create('project', 'session', 'phase', 'producer', $activityUuid);

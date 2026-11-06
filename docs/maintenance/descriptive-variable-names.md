@@ -6,9 +6,19 @@ collections/data. Existing mathematical operands, parser indices and well-establ
 remain concise. No message/Tool identity, schema, wire key, operation ordering or business rule changes.
 Independent Review and QA own acceptance; this inventory is implementation documentation, not their verdict.
 
+## Acceptance checkpoint and integration
+
+Independent Review accepted `3c112387f943bc715cba7dd9063e4d1652d740a1`; independent QA passed all
+16 required scenario groups, with two criterion-specific N/A dispositions. All R-01–R-17 findings are resolved
+for their stated scope. The [TASK completion record](https://github.com/johnnickell/fight-common/blob/develop/planning/tasks/00192-TASK.md#completion-notes)
+separates that accepted snapshot from Land's later mechanical table-configuration integration and publication.
+The original inventory counts below describe the accepted snapshot, not a fresh all-body audit of advancing base
+additions. Land retains current path accounting, dependency traces, conflict resolutions and fresh integration
+verification in its durable ignored delivery receipt; canonical independent reports and earlier failures stay intact.
+
 ## Inventory and method
 
-The checked boundary is every tracked owned executable source and maintained example, including:
+At the accepted snapshot, the checked boundary is every tracked owned executable source and maintained example, including:
 
 | Boundary | Coverage and disposition |
 | --- | --- |

@@ -11,6 +11,7 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseRepository;
@@ -56,12 +57,13 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
 {
     private array $directories = [];
     private array $connections = [];
+    private DbalObservationTables $tables;
 
     #[DataProvider('databases')]
-    public function test_that_commands_roundtrip_complete_session_parent_and_child_evidence(string $backend): void
+    public function test_that_commands_roundtrip_complete_session_parent_and_child_evidence(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $session = ObservationFixture::session([
             'started_at' => '2026-10-20T12:00:00.000018Z',
@@ -80,7 +82,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             'outcome' => 'unknown',
         ]);
         $fixture->record($child);
-        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()));
+        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
         foreach ([$session, $parent, $child] as $observation) {
             $saved = (new DbalObservationRepository($reopened))->getById('instrumentation', $observation->id());
             self::assertSame($observation->toArray(), $saved->toArray());
@@ -99,18 +101,18 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_records_reconstruct_as_independent_roots_and_retries_preserve_evidence(string $backend): void
+    public function test_that_current_records_reconstruct_as_independent_roots_and_retries_preserve_evidence(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $writer = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $connection = $this->database($backend, $configured);
+        $writer = new RecordingFixture(new DbalRecordingTransaction($connection, $this->tables));
         $writer->record(ObservationFixture::session());
         $writer->record(ObservationFixture::phase(['phase' => PhaseReference::fromStrings('session', 'parent', null, 'reviewer', 'review', 2)->toArray()]));
         $writer->record(ObservationFixture::phase([
             'observation_id' => '019a1234-5678-4abc-8def-ffffffffffff',
             'phase' => PhaseReference::fromStrings('session', 'child', 'parent', 'builder', 'repair', 3)->toArray(),
         ]));
-        $rows = $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations');
-        $recordingTransaction = new DbalRecordingTransaction($this->connect($connection->getParams()));
+        $rows = $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'observations'));
+        $recordingTransaction = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
         $sessionRepository = new DbalSessionRepository($recordingTransaction);
         $phaseRepository = new DbalPhaseRepository($recordingTransaction);
         $observationRepository = new DbalObservationRepository($recordingTransaction);
@@ -141,7 +143,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             self::assertSame('123456', $root->occurredAt()->format('u'));
             $fixture->record(Observation::fromArray(json_decode($row['payload'], true, flags: JSON_THROW_ON_ERROR)));
             self::assertSame($row['recorded_at'], $observationRepository->getById($row['producer_id'], $id)->recordedAt()->format('Y-m-d\\TH:i:s.u\\Z'));
-            self::assertSame($row['payload'], $connection->fetchOne('SELECT payload FROM fight_execution_observations WHERE producer_id = ? AND observation_id = ?', [$row['producer_id'], $row['observation_id']]));
+            self::assertSame($row['payload'], $connection->fetchOne('SELECT payload FROM '.$this->table($connection, 'observations').' WHERE producer_id = ? AND observation_id = ?', [$row['producer_id'], $row['observation_id']]));
         }
         self::assertSame(3, $fixture->admissions());
         self::assertSame(3, $this->rowCount($connection, 'observations'));
@@ -150,12 +152,12 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_reference_mutations_cannot_corrupt_committed_commands_or_retries(string $backend): void
+    public function test_that_reference_mutations_cannot_corrupt_committed_commands_or_retries(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
-        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()));
+        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
         $events = 0;
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
 
@@ -195,10 +197,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_retries_preserve_recording_time_and_recheck_current_trust(string $backend): void
+    public function test_that_retries_preserve_recording_time_and_recheck_current_trust(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $observation = ObservationFixture::session();
         $events = 0;
@@ -237,10 +239,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_session_phase_and_parent_scope_is_not_granted_by_existing_records(string $backend): void
+    public function test_that_current_session_phase_and_parent_scope_is_not_granted_by_existing_records(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $session = ObservationFixture::session();
         $phase = ObservationFixture::phase();
@@ -275,10 +277,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_cross_scope_and_inconsistent_relationships_reject_without_partial_writes(string $backend): void
+    public function test_that_cross_scope_and_inconsistent_relationships_reject_without_partial_writes(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $fixture->record(ObservationFixture::session());
         $fixture->record(ObservationFixture::phase());
@@ -318,7 +320,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame(1, $this->rowCount($connection, 'phases'));
         // Database FKs independently reject cross-session parents, not only Application checks.
         try {
-            $connection->insert('fight_execution_phases', ['project_id' => 'project'] + PhaseReference::fromStrings('other-session', 'illegal', 'phase', 'agent', 'work', 1)->toArray());
+            $connection->insert($this->table($connection, 'phases'), ['project_id' => 'project'] + PhaseReference::fromStrings('other-session', 'illegal', 'phase', 'agent', 'work', 1)->toArray());
             self::fail('Expected referential integrity rejection.');
         } catch (Exception) {
             self::assertSame(1, $this->rowCount($connection, 'phases'));
@@ -326,10 +328,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_database_trigger_failure_rolls_back_relationships_and_emits_nothing(string $backend): void
+    public function test_that_database_trigger_failure_rolls_back_relationships_and_emits_nothing(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $events = 0;
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
@@ -364,18 +366,20 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_subscriber_failure_occurs_after_real_commit_and_retry_does_not_replay(string $backend): void
+    public function test_that_subscriber_failure_occurs_after_real_commit_and_retry_does_not_replay(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
+        $connection = $this->database($backend, $configured);
         $otherConnection = $this->connect($connection->getParams());
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $observationTable = $this->table($connection, 'observations');
+        $sessionTable = $this->table($connection, 'sessions');
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $observation = ObservationFixture::session();
         $subscribers = [];
-        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$subscribers, $otherConnection, $connection): void {
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$subscribers, $otherConnection, $connection, $observationTable, $sessionTable): void {
             self::assertFalse($connection->isTransactionActive());
-            self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
-            self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
+            self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM '.$observationTable));
+            self::assertSame(1, (int) $otherConnection->fetchOne('SELECT COUNT(*) FROM '.$sessionTable));
             self::assertSame(['observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'], array_keys($message->payload()->toArray()));
             $subscribers[] = 'failed';
             throw new RuntimeException('private subscriber detail');
@@ -398,13 +402,13 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_caller_work_is_not_committed_or_rolled_back_by_recording(string $backend): void
+    public function test_that_caller_work_is_not_committed_or_rolled_back_by_recording(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $connection->beginTransaction();
-        $connection->insert('fight_execution_sessions', SessionReference::fromStrings('caller', 'unrelated', 'owned')->toArray());
+        $connection->insert($this->table($connection, 'sessions'), SessionReference::fromStrings('caller', 'unrelated', 'owned')->toArray());
         try {
             $fixture->record(ObservationFixture::session());
             self::fail('Expected outer transaction rejection.');
@@ -419,9 +423,9 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_lost_commit_acknowledgment_reports_uncertainty_despite_committed_data(string $backend): void
+    public function test_that_lost_commit_acknowledgment_reports_uncertainty_despite_committed_data(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
+        $connection = $this->database($backend, $configured);
         // The proxy loses only the acknowledgment after the real database commits.
         $proxy = $this->mock(Connection::class);
         foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert'] as $method) {
@@ -432,7 +436,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             throw new RuntimeException('Injected loss of commit acknowledgment.');
         });
         $proxy->shouldNotReceive('rollBack');
-        $recordingTransaction = new DbalRecordingTransaction($proxy);
+        $recordingTransaction = new DbalRecordingTransaction($proxy, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $events = 0;
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
@@ -446,7 +450,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         }
         self::assertTrue($recordingTransaction->isClosed());
         self::assertSame(0, $events);
-        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()));
+        $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
         self::assertSame($observation->toArray(), (new DbalObservationRepository($reopened))->getById('instrumentation', $observation->id())->toArray());
         $freshFixture = new RecordingFixture($reopened);
         $freshFixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Matching uncertain retry must not replay an event.'); });
@@ -456,10 +460,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('races')]
-    public function test_that_independent_competing_retries_serialize_and_compare_content(string $backend, bool|string $phase, bool $conflict): void
+    public function test_that_independent_competing_retries_serialize_and_compare_content(string $backend, bool|string $phase, bool $conflict, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $fixture = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $connection = $this->database($backend, $configured);
+        $fixture = new RecordingFixture(new DbalRecordingTransaction($connection, $this->tables));
         if ($phase) { $fixture->record(ObservationFixture::session()); }
         $activity = is_string($phase);
         if ($activity) { $fixture->record(ObservationFixture::phase()); }
@@ -468,7 +472,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $observation = $detail ? ObservationFixture::detail() : ($activity ? ObservationFixture::activity() : ($phase ? ObservationFixture::phase() : ObservationFixture::session()));
         $directory = $this->directory();
         $config = $directory.'/config.json';
-        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'observation' => $observation->toArray(), 'conflict' => $conflict, 'usage_conflict' => $phase === 'usage', 'content' => $detail ? ['version' => 1, 'body' => 'private-body'] : null, 'metadata_conflict' => $phase === 'detail-metadata'], JSON_THROW_ON_ERROR));
+        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'tables' => $this->tableConfiguration(), 'observation' => $observation->toArray(), 'conflict' => $conflict, 'usage_conflict' => $phase === 'usage', 'content' => $detail ? ['version' => 1, 'body' => 'private-body'] : null, 'metadata_conflict' => $phase === 'detail-metadata'], JSON_THROW_ON_ERROR));
         $first = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Execution/record-worker.php', $config, 'first'], timeout: 20);
         $second = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Execution/record-worker.php', $config, 'second'], timeout: 20);
         try {
@@ -496,7 +500,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             self::assertSame($observation->toArray(), $retry['payload']);
             self::assertSame($detail ? 4 : ($activity ? 3 : ($phase ? 2 : 1)), $this->rowCount($connection, 'observations'));
             if ($detail) {
-                self::assertSame('private-body', (new DbalProtectedContentRepository(new DbalRecordingTransaction($connection)))->getFor($observation)->body());
+                self::assertSame('private-body', (new DbalProtectedContentRepository(new DbalRecordingTransaction($connection, $this->tables)))->getFor($observation)->body());
                 self::assertSame(1, $this->rowCount($connection, 'contents'));
             }
             self::assertSame(1, $this->rowCount($connection, 'sessions'));
@@ -509,10 +513,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_activity_and_usage_roundtrip_recheck_admission_and_conflict_without_overwrite(string $backend): void
+    public function test_that_activity_and_usage_roundtrip_recheck_admission_and_conflict_without_overwrite(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $fixture->record(ObservationFixture::session());
         $fixture->record(ObservationFixture::phase());
@@ -520,7 +524,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
         $observation = ObservationFixture::activity();
         $fixture->bus()->execute(RecordPhaseObservation::fromArray($observation->toArray()));
-        $observationRepository = new DbalObservationRepository(new DbalRecordingTransaction($this->connect($connection->getParams())));
+        $observationRepository = new DbalObservationRepository(new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables));
         $saved = $observationRepository->getById('instrumentation', $observation->id());
         self::assertSame($observation->toArray(), $saved->toArray());
         self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
@@ -559,16 +563,16 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertSame(1, $this->rowCount($connection, 'phases'));
         // Retained-record guarantee ends after deliberate removal of its identity/comparison row.
         $fixture->setAllowed(true);
-        $connection->delete('fight_execution_observations', ['producer_id' => 'instrumentation', 'observation_id' => $observation->id()->toString()]);
+        $connection->delete($this->table($connection, 'observations'), ['producer_id' => 'instrumentation', 'observation_id' => $observation->id()->toString()]);
         $fixture->record($observation);
         self::assertSame(2, $events);
     }
 
     #[DataProvider('databases')]
-    public function test_that_activity_missing_or_cross_scope_phase_rejects_without_creating_subjects(string $backend): void
+    public function test_that_activity_missing_or_cross_scope_phase_rejects_without_creating_subjects(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $fixture = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $connection = $this->database($backend, $configured);
+        $fixture = new RecordingFixture(new DbalRecordingTransaction($connection, $this->tables));
         $fixture->record(ObservationFixture::session());
         $activity = ObservationFixture::activity();
         try { $fixture->record($activity); self::fail('Activity must not create its phase.'); }
@@ -594,15 +598,16 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_activity_usage_and_retry_identity_roll_back_after_insert_and_commit_before_subscribers(string $backend): void
+    public function test_that_activity_usage_and_retry_identity_roll_back_after_insert_and_commit_before_subscribers(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $observationTable = $this->table($connection, 'observations');
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $fixture->record(ObservationFixture::session());
         $fixture->record(ObservationFixture::phase());
         if ($backend === 'sqlite') {
-            $connection->executeStatement("CREATE TRIGGER fight_execution_fail AFTER INSERT ON fight_execution_observations BEGIN SELECT RAISE(ABORT, 'injected'); END");
+            $connection->executeStatement("CREATE TRIGGER fight_execution_fail AFTER INSERT ON ".$observationTable." BEGIN SELECT RAISE(ABORT, 'injected'); END");
         } elseif ($backend === 'mysql') {
             // The ordinary test user cannot create triggers under MySQL binary logging.
             // Forward a real insert, then inject a real failing statement before commit.
@@ -616,18 +621,18 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
                 if ($inject) { $connection->executeStatement('INSERT INTO absent_activity_failure_table (id) VALUES (1)'); }
                 return $result;
             });
-            $recordingTransaction = new DbalRecordingTransaction($proxy);
+            $recordingTransaction = new DbalRecordingTransaction($proxy, $this->tables);
             $fixture = new RecordingFixture($recordingTransaction);
         } else {
             $connection->executeStatement("CREATE FUNCTION fight_execution_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected'; END; $$");
-            $connection->executeStatement('CREATE TRIGGER fight_execution_fail AFTER INSERT ON fight_execution_observations FOR EACH ROW EXECUTE FUNCTION fight_execution_fail()');
+            $connection->executeStatement('CREATE TRIGGER fight_execution_fail AFTER INSERT ON '.$observationTable.' FOR EACH ROW EXECUTE FUNCTION fight_execution_fail()');
         }
         $calls = 0;
         $other = $this->connect($connection->getParams());
-        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$calls, $other, $connection): void {
+        $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$calls, $other, $connection, $observationTable): void {
             ++$calls;
             self::assertFalse($connection->isTransactionActive());
-            self::assertSame(3, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
+            self::assertSame(3, (int) $other->fetchOne('SELECT COUNT(*) FROM '.$observationTable));
             self::assertSame(['observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'], array_keys($message->payload()->toArray()));
             throw new RuntimeException('private subscriber diagnostic');
         });
@@ -652,31 +657,38 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_installation_preserves_evidence_and_commands_remain_available(string $backend): void
+    public function test_that_current_installation_preserves_evidence_and_commands_remain_available(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
+        $connection = $this->database($backend, $configured);
         $schemaManager = $connection->createSchemaManager();
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         $fixture->record(ObservationFixture::session());
         $fixture->record(ObservationFixture::phase());
         $fixture->record(ObservationFixture::activity());
-        $before = $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id');
-        (new DbalObservationSchema())->install($connection);
-        (new DbalObservationSchema())->install($connection);
-        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM fight_execution_schema WHERE singleton = 1'));
-        self::assertTrue($schemaManager->introspectTable('fight_execution_observations')->hasIndex('fight_execution_recording_order'));
-        self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id'));
+        $before = $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'observations').' ORDER BY observation_id');
+        (new DbalObservationSchema($this->tables))->install($connection);
+        (new DbalObservationSchema($this->tables))->install($connection);
+        self::assertSame(1, (int) $connection->fetchOne('SELECT version FROM '.$this->table($connection, 'schema').' WHERE singleton = 1'));
+        $recordingIndexes = array_filter(
+            $schemaManager->introspectTable($this->tables->observationTable()->schemaName())->getIndexes(),
+            static fn ($index): bool => $index->getColumns() === ['recorded_at', 'observation_id'] && !$index->isUnique() && !$index->isPrimary()
+        );
+        self::assertCount(1, $recordingIndexes);
+        if (!$configured) {
+            self::assertTrue($schemaManager->introspectTable($this->tables->observationTable()->schemaName())->hasIndex('fight_execution_recording_order'));
+        }
+        self::assertSame($before, $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'observations').' ORDER BY observation_id'));
         // Ordinary recording uses the same current schema and pipeline.
         (new RecordingFixture($recordingTransaction))->record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString()]));
         self::assertSame(4, $this->rowCount($connection, 'observations'));
     }
 
     #[DataProvider('orderingDatasets')]
-    public function test_that_recording_comparison_agrees_with_sql_independently_of_bootstrap_time(string $backend, string $bootstrapDate, bool $bootstrapNewer): void
+    public function test_that_recording_comparison_agrees_with_sql_independently_of_bootstrap_time(string $backend, string $bootstrapDate, bool $bootstrapNewer, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $observationRepository = new DbalObservationRepository($recordingTransaction);
         // Adapter conformance controls every receipt; the separate Command test uses the real server clock.
         $bootstrap = [ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()];
@@ -699,7 +711,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             $recordingTransaction->commitTransactional(static fn () => $observationRepository->add($root));
             self::assertSame($occurrence, $observationRepository->getById('instrumentation', $root->id())->occurrence()->toString());
         }
-        $rows = $connection->fetchAllAssociative('SELECT producer_id, observation_id FROM fight_execution_observations ORDER BY recorded_at DESC, observation_id DESC');
+        $rows = $connection->fetchAllAssociative('SELECT producer_id, observation_id FROM '.$this->table($connection, 'observations').' ORDER BY recorded_at DESC, observation_id DESC');
         $roots = array_map(static fn (array $row) => $observationRepository->getById($row['producer_id'], ObservationId::fromString($row['observation_id'])), $rows);
         $application = array_reverse($roots);
         usort($application, static fn (Observation $firstResult, Observation $secondResult): int => $secondResult->compareRecordingTo($firstResult));
@@ -725,13 +737,13 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_protected_kinds_capture_markers_and_byte_boundaries_reconstruct_separately(string $backend): void
+    public function test_that_protected_kinds_capture_markers_and_byte_boundaries_reconstruct_separately(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $fixture->record($root); }
-        $safeBefore = $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations ORDER BY observation_id');
+        $safeBefore = $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'observations').' ORDER BY observation_id');
         $events = [];
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use (&$events): void { $events[] = $message->payload()->toArray(); });
         foreach (DetailKind::cases() as $kind) {
@@ -744,12 +756,12 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
                 $content = ProtectedContent::create($capture, $body);
                 $command = new RecordProtectedDetail($detail, $content);
                 $fixture->bus()->execute(RecordProtectedDetail::fromArray($command->toArray()));
-                $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()));
+                $reopened = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
                 $saved = (new DbalObservationRepository($reopened))->getById('instrumentation', $detail->id());
                 self::assertSame($detail->toArray(), $saved->toArray());
                 self::assertSame($body, (new DbalProtectedContentRepository($reopened))->getFor($saved)->body());
                 self::assertSame('2026-10-20T12:34:56.12Z', $saved->occurrence()->toString());
-                self::assertSame($detail->id()->toString(), $connection->fetchOne('SELECT observation_id FROM fight_execution_contents WHERE observation_id = ?', [$detail->id()->toString()]));
+                self::assertSame($detail->id()->toString(), $connection->fetchOne('SELECT observation_id FROM '.$this->table($connection, 'contents').' WHERE observation_id = ?', [$detail->id()->toString()]));
                 $fixture->record($detail, $content);
                 self::assertEquals($saved->recordedAt(), (new DbalObservationRepository($reopened))->getById('instrumentation', $detail->id())->recordedAt());
                 foreach (['content_type', 'completeness', 'kind', 'segment'] as $field) {
@@ -764,23 +776,23 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             }
         }
         self::assertCount(20, $events);
-        foreach (array_merge($events, $connection->fetchAllAssociative('SELECT * FROM fight_execution_observations'), $connection->fetchAllAssociative('SELECT * FROM fight_execution_sessions'), $connection->fetchAllAssociative('SELECT * FROM fight_execution_phases')) as $safe) {
+        foreach (array_merge($events, $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'observations')), $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'sessions')), $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'phases'))) as $safe) {
             self::assertStringNotContainsString('private-', json_encode($safe, JSON_THROW_ON_ERROR));
         }
-        foreach ($safeBefore as $row) { self::assertSame($row, $connection->fetchAssociative('SELECT * FROM fight_execution_observations WHERE observation_id = ?', [$row['observation_id']])); }
-        (new DbalObservationSchema())->install($connection);
+        foreach ($safeBefore as $row) { self::assertSame($row, $connection->fetchAssociative('SELECT * FROM '.$this->table($connection, 'observations').' WHERE observation_id = ?', [$row['observation_id']])); }
+        (new DbalObservationSchema($this->tables))->install($connection);
         self::assertSame(23, $this->rowCount($connection, 'observations'));
     }
 
     #[DataProvider('databases')]
-    public function test_that_detail_insert_failures_rollback_identity_link_and_body_then_dispatch_only_after_commit(string $backend): void
+    public function test_that_detail_insert_failures_rollback_identity_link_and_body_then_dispatch_only_after_commit(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $bootstrap = new RecordingFixture(new DbalRecordingTransaction($connection));
+        $connection = $this->database($backend, $configured);
+        $bootstrap = new RecordingFixture(new DbalRecordingTransaction($connection, $this->tables));
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $bootstrap->record($root); }
         $detail = ObservationFixture::detail();
         $content = ProtectedContent::create($detail->detail(), 'private-body');
-        foreach (['fight_execution_observations', 'fight_execution_contents'] as $failAfter) {
+        foreach ([$this->table($connection, 'observations'), $this->table($connection, 'contents')] as $failAfter) {
             $proxy = $this->mock(Connection::class);
             foreach (['getDatabasePlatform', 'isTransactionActive', 'isAutoCommit', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'commit', 'rollBack'] as $method) {
                 $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
@@ -790,7 +802,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
                 if ($arguments[0] === $failAfter) { $connection->executeStatement('INSERT INTO absent_detail_failure (id) VALUES (1)'); }
                 return $result;
             });
-            $recordingTransaction = new DbalRecordingTransaction($proxy);
+            $recordingTransaction = new DbalRecordingTransaction($proxy, $this->tables);
             $fixture = new RecordingFixture($recordingTransaction);
             $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (): void { self::fail('Rolled-back detail cannot publish.'); });
             try { $fixture->record($detail, $content); self::fail('Expected injected real database failure.'); }
@@ -800,7 +812,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             self::assertNull((new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $detail->id()));
             self::assertFalse($connection->isTransactionActive());
         }
-        $other = new DbalRecordingTransaction($this->connect($connection->getParams()));
+        $other = new DbalRecordingTransaction($this->connect($connection->getParams()), $this->tables);
         $calls = 0;
         $bootstrap->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function (EventMessage $message) use ($other, $detail, &$calls): void {
             ++$calls;
@@ -822,10 +834,12 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_removed_content_never_restores_on_retained_retry_and_summaries_and_expired_markers_survive(string $backend): void
+    public function test_that_removed_content_never_restores_on_retained_retry_and_summaries_and_expired_markers_survive(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $contentTable = $this->table($connection, 'contents');
+        $observationTable = $this->table($connection, 'observations');
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $fixture->record($root); }
         $detail = ObservationFixture::detail();
@@ -834,12 +848,12 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $expiredCapture = DetailCapture::create(ObservationFixture::activity()->id(), DetailKind::MESSAGE, 'text/plain', CaptureCompleteness::EXPIRED);
         $expired = ObservationFixture::detail(['observation_id' => ObservationId::generate()->toString(), 'detail' => $expiredCapture->toArray()]);
         $fixture->record($expired, ProtectedContent::create($expiredCapture, null));
-        $summaries = [$connection->fetchAllAssociative('SELECT * FROM fight_execution_sessions'), $connection->fetchAllAssociative('SELECT * FROM fight_execution_phases')];
+        $summaries = [$connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'sessions')), $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'phases'))];
         $recorded = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $detail->id());
         $events = 0;
         $fixture->events()->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$events): void { ++$events; });
         // Future removal Commands must share this serialization boundary with recording.
-        $recordingTransaction->commitTransactional(static fn () => $connection->delete('fight_execution_contents', ['producer_id' => 'instrumentation', 'observation_id' => $detail->id()->toString()]));
+        $recordingTransaction->commitTransactional(static fn () => $connection->delete($contentTable, ['producer_id' => 'instrumentation', 'observation_id' => $detail->id()->toString()]));
         $fixture->setAllowed(false);
         try { $fixture->record($detail, $body); self::fail('Retry must recheck current admission even after removal.'); } catch (RecordingDenied) {}
         $fixture->setAllowed(true);
@@ -853,22 +867,22 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         self::assertNull((new DbalProtectedContentRepository($recordingTransaction))->getFor($expired)->body());
         self::assertSame(0, $events);
         self::assertEquals($recorded->recordedAt(), (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $detail->id())->recordedAt());
-        try { $connection->delete('fight_execution_observations', ['observation_id' => ObservationFixture::activity()->id()->toString()]); self::fail('FK must retain target while detail references it.'); } catch (Exception) {}
-        $recordingTransaction->commitTransactional(static fn () => $connection->delete('fight_execution_observations', ['producer_id' => 'instrumentation', 'observation_id' => $detail->id()->toString()]));
+        try { $connection->delete($observationTable, ['observation_id' => ObservationFixture::activity()->id()->toString()]); self::fail('FK must retain target while detail references it.'); } catch (Exception) {}
+        $recordingTransaction->commitTransactional(static fn () => $connection->delete($observationTable, ['producer_id' => 'instrumentation', 'observation_id' => $detail->id()->toString()]));
         // Removal of identity as well ends the deduplication guarantee: this is a new recording.
         usleep(1000);
         $fixture->record($detail, $body);
         self::assertSame(1, $events);
         self::assertGreaterThan($recorded->recordedAt(), (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $detail->id())->recordedAt());
-        self::assertSame($summaries, [$connection->fetchAllAssociative('SELECT * FROM fight_execution_sessions'), $connection->fetchAllAssociative('SELECT * FROM fight_execution_phases')]);
+        self::assertSame($summaries, [$connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'sessions')), $connection->fetchAllAssociative('SELECT * FROM '.$this->table($connection, 'phases'))]);
         self::assertSame(5, $this->rowCount($connection, 'observations'));
     }
 
     #[DataProvider('databases')]
-    public function test_that_detail_scope_and_activity_consistency_reject_before_partial_writes(string $backend): void
+    public function test_that_detail_scope_and_activity_consistency_reject_before_partial_writes(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $fixture->record($root); }
         $detail = ObservationFixture::detail();
@@ -893,10 +907,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_an_existing_activity_id_in_another_scope_never_grants_a_detail_link(string $backend): void
+    public function test_that_an_existing_activity_id_in_another_scope_never_grants_a_detail_link(string $backend, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $fixture->record($root); }
         foreach (['project', 'session', 'producer'] as $mismatch) {
@@ -927,10 +941,10 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
     }
 
     #[DataProvider('removalRaces')]
-    public function test_that_storage_removal_and_retry_serialize_without_restoring_deleted_body(string $backend, bool $removalFirst): void
+    public function test_that_storage_removal_and_retry_serialize_without_restoring_deleted_body(string $backend, bool $removalFirst, bool $configured = false): void
     {
-        $connection = $this->database($backend);
-        $recordingTransaction = new DbalRecordingTransaction($connection);
+        $connection = $this->database($backend, $configured);
+        $recordingTransaction = new DbalRecordingTransaction($connection, $this->tables);
         $fixture = new RecordingFixture($recordingTransaction);
         foreach ([ObservationFixture::session(), ObservationFixture::phase(), ObservationFixture::activity()] as $root) { $fixture->record($root); }
         $detail = ObservationFixture::detail();
@@ -939,7 +953,7 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         $before = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $detail->id())->recordedAt();
         $directory = $this->directory();
         $config = $directory.'/config.json';
-        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'observation' => $detail->toArray(), 'content' => $content->toArray(), 'conflict' => false, 'removal_role' => $removalFirst ? 'first' : 'second'], JSON_THROW_ON_ERROR));
+        file_put_contents($config, json_encode(['params' => $connection->getParams(), 'tables' => $this->tableConfiguration(), 'observation' => $detail->toArray(), 'content' => $content->toArray(), 'conflict' => false, 'removal_role' => $removalFirst ? 'first' : 'second'], JSON_THROW_ON_ERROR));
         $first = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Execution/record-worker.php', $config, 'first'], timeout: 20);
         $second = new Process([PHP_BINARY, __DIR__.'/../../../../../TestCase/Mcp/Execution/record-worker.php', $config, 'second'], timeout: 20);
         try {
@@ -974,30 +988,33 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
 
     public static function removalRaces(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            foreach ([false, true] as $first) { yield $backend.'-'.($first ? 'removal-first' : 'retry-first') => [$backend, $first]; }
+        foreach (self::databases() as $label => [$backend, $configured]) {
+            foreach ([false, true] as $first) { yield $label.'-'.($first ? 'removal-first' : 'retry-first') => [$backend, $first, $configured]; }
         }
     }
 
     public static function orderingDatasets(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend.'-bootstrap-before' => [$backend, '2026-10-21', false];
-            yield $backend.'-bootstrap-after' => [$backend, '2026-10-23', true];
+        foreach (self::databases() as $label => [$backend, $configured]) {
+            yield $label.'-bootstrap-before' => [$backend, '2026-10-21', false, $configured];
+            yield $label.'-bootstrap-after' => [$backend, '2026-10-23', true, $configured];
         }
     }
 
     public static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; }
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend => [$backend, false];
+            yield $backend.'-configured' => [$backend, true];
+        }
     }
 
     public static function races(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+        foreach (self::databases() as $label => [$backend, $configured]) {
             foreach ([false, true, 'activity', 'usage', 'detail-body', 'detail-metadata'] as $phase) {
                 foreach ([false, true] as $conflict) {
-                    yield $backend.'-'.(is_string($phase) ? $phase : ($phase ? 'phase' : 'session')).'-'.($conflict ? 'conflict' : 'matching') => [$backend, $phase, $conflict];
+                    yield $label.'-'.(is_string($phase) ? $phase : ($phase ? 'phase' : 'session')).'-'.($conflict ? 'conflict' : 'matching') => [$backend, $phase, $conflict, $configured];
                 }
             }
         }
@@ -1010,8 +1027,9 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         parent::tearDown();
     }
 
-    private function database(string $backend): Connection
+    private function database(string $backend, bool $configured = false): Connection
     {
+        $this->tables = $configured ? $this->configuredTables() : new DbalObservationTables();
         if ($backend === 'sqlite') {
             $params = ['driver' => 'pdo_sqlite', 'path' => $this->directory().'/observations.sqlite'];
         } else {
@@ -1020,11 +1038,15 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
         $connection = $this->connect($params);
-        foreach (array_reverse(DbalObservationSchema::TABLES) as $table) {
-            $connection->executeStatement('DROP TABLE IF EXISTS '.$table);
+        $configuredTables = $this->configuredTables();
+        $defaultTables = new DbalObservationTables();
+        foreach (['contentTable', 'observationTable', 'phaseTable', 'sessionTable', 'schemaTable'] as $accessor) {
+            foreach ([$configuredTables->$accessor(), $defaultTables->$accessor()] as $table) {
+                $connection->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($connection->getDatabasePlatform()));
+            }
         }
         if ($backend === 'postgresql') { $connection->executeStatement('DROP FUNCTION IF EXISTS fight_execution_fail()'); }
-        (new DbalObservationSchema())->install($connection);
+        (new DbalObservationSchema($this->tables))->install($connection);
         return $connection;
     }
 
@@ -1047,32 +1069,62 @@ final class DbalRecordingTransactionIntegrationTest extends UnitTestCase
         return $path;
     }
 
+    private function configuredTables(): DbalObservationTables
+    {
+        return new DbalObservationTables('Current_user', 'ExecutionSessions', 'ExecutionPhases', 'ExecutionObservations', 'ExecutionContents');
+    }
+
+    private function tableConfiguration(): array
+    {
+        return [
+            'schemaTable' => $this->tables->schemaTable()->name(),
+            'sessionTable' => $this->tables->sessionTable()->name(),
+            'phaseTable' => $this->tables->phaseTable()->name(),
+            'observationTable' => $this->tables->observationTable()->name(),
+            'contentTable' => $this->tables->contentTable()->name(),
+        ];
+    }
+
+    private function table(Connection $connection, string $suffix): string
+    {
+        $table = match ($suffix) {
+            'schema' => $this->tables->schemaTable(),
+            'sessions' => $this->tables->sessionTable(),
+            'phases' => $this->tables->phaseTable(),
+            'observations' => $this->tables->observationTable(),
+            'contents' => $this->tables->contentTable(),
+        };
+        return $table->quoted($connection->getDatabasePlatform());
+    }
+
     private function rowCount(Connection $connection, string $suffix): int
     {
-        return (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_'.$suffix);
+        return (int) $connection->fetchOne('SELECT COUNT(*) FROM '.$this->table($connection, $suffix));
     }
 
     private function failureTrigger(Connection $connection, string $backend, bool $phase = false): void
     {
+        $observationTable = $this->table($connection, 'observations');
         if ($backend === 'sqlite') {
-            $connection->executeStatement("CREATE TRIGGER fight_execution_fail BEFORE INSERT ON fight_execution_observations BEGIN SELECT RAISE(ABORT, 'injected'); END");
+            $connection->executeStatement("CREATE TRIGGER fight_execution_fail BEFORE INSERT ON ".$observationTable." BEGIN SELECT RAISE(ABORT, 'injected'); END");
         } elseif ($backend === 'mysql') {
             $id = $phase ? ObservationFixture::phase()->id() : ObservationFixture::session()->id();
-            $connection->executeStatement("ALTER TABLE fight_execution_observations ADD CONSTRAINT fight_execution_fail CHECK (observation_id <> '".$id->toString()."')");
+            $connection->executeStatement("ALTER TABLE ".$observationTable." ADD CONSTRAINT fight_execution_fail CHECK (observation_id <> '".$id->toString()."')");
         } else {
             $connection->executeStatement("CREATE FUNCTION fight_execution_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected'; END; $$");
-            $connection->executeStatement('CREATE TRIGGER fight_execution_fail BEFORE INSERT ON fight_execution_observations FOR EACH ROW EXECUTE FUNCTION fight_execution_fail()');
+            $connection->executeStatement('CREATE TRIGGER fight_execution_fail BEFORE INSERT ON '.$observationTable.' FOR EACH ROW EXECUTE FUNCTION fight_execution_fail()');
         }
     }
 
     private function dropFailureTrigger(Connection $connection, string $backend): void
     {
+        $observationTable = $this->table($connection, 'observations');
         if ($backend === 'mysql') {
-            $connection->executeStatement('ALTER TABLE fight_execution_observations DROP CHECK fight_execution_fail');
+            $connection->executeStatement('ALTER TABLE '.$observationTable.' DROP CHECK fight_execution_fail');
             return;
         }
         $sql = 'DROP TRIGGER fight_execution_fail';
-        if ($backend === 'postgresql') { $sql .= ' ON fight_execution_observations'; }
+        if ($backend === 'postgresql') { $sql .= ' ON '.$observationTable; }
         $connection->executeStatement($sql);
         if ($backend === 'postgresql') { $connection->executeStatement('DROP FUNCTION fight_execution_fail()'); }
     }

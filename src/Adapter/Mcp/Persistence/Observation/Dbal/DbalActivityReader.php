@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalExecutionReadSupport;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Application\Mcp\Detail\Data\DetailReference;
 use Fight\Common\Application\Mcp\Observation\Data\ActivityPage;
 use Fight\Common\Application\Mcp\Observation\Data\ActivityView;
@@ -29,9 +30,11 @@ final readonly class DbalActivityReader implements ActivityReader
     /**
      * Constructs DbalActivityReader
      */
-    public function __construct(private Connection $connection)
-    {
-        $this->executionReadSupport = new DbalExecutionReadSupport($connection);
+    public function __construct(
+        private Connection $connection,
+        private DbalObservationTables $tables = new DbalObservationTables()
+    ) {
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection, $tables);
     }
 
     /**
@@ -42,8 +45,10 @@ final readonly class DbalActivityReader implements ActivityReader
         try {
             [$scope, $parameters] = $this->executionReadSupport->constraints($query->execution()->selection(), $access);
             [$visible, $phaseParameters] = $this->executionReadSupport->phaseConstraints($access, 'p');
-            $sql = 'SELECT p.*, s.consumer_reference FROM fight_execution_phases p';
-            $sql .= ' JOIN fight_execution_sessions s ON s.project_id = p.project_id AND s.session_id = p.session_id';
+            $platform = $this->connection->getDatabasePlatform();
+            $sql = 'SELECT p.*, s.consumer_reference FROM '.$this->tables->phaseTable()->quoted($platform).' p';
+            $sql .= ' JOIN '.$this->tables->sessionTable()->quoted($platform).' s';
+            $sql .= ' ON s.project_id = p.project_id AND s.session_id = p.session_id';
             $sql .= ' WHERE '.$scope.' AND '.$visible.' AND p.phase_id = ?';
             $phase = $this->connection->fetchAssociative(
                 $sql,
@@ -103,7 +108,9 @@ final readonly class DbalActivityReader implements ActivityReader
         $producer = $this->executionReadSupport->binary('o.producer_id');
         $last = null;
         do {
-            $sql = 'SELECT o.* FROM fight_execution_observations o WHERE '.$where;
+            $sql = 'SELECT o.* FROM '.$this->tables->observationTable()->quoted(
+                $this->connection->getDatabasePlatform()
+            ).' o WHERE '.$where;
             $args = $parameters;
             if ($last !== null) {
                 $sql .= ' AND (o.recorded_at '.$comparison.' ? OR (o.recorded_at = ? AND (o.observation_id ';
@@ -156,9 +163,10 @@ final readonly class DbalActivityReader implements ActivityReader
         }
 
         [$allowed, $parameters] = $this->grants($ids, 'd');
-        $sql = 'SELECT d.*, CASE WHEN EXISTS (SELECT 1 FROM fight_execution_contents c';
+        $platform = $this->connection->getDatabasePlatform();
+        $sql = 'SELECT d.*, CASE WHEN EXISTS (SELECT 1 FROM '.$this->tables->contentTable()->quoted($platform).' c';
         $sql .= ' WHERE c.producer_id = d.producer_id AND c.observation_id = d.observation_id)';
-        $sql .= ' THEN 1 ELSE 0 END AS content_present FROM fight_execution_observations d';
+        $sql .= ' THEN 1 ELSE 0 END AS content_present FROM '.$this->tables->observationTable()->quoted($platform).' d';
         $sql .= ' WHERE d.project_id = ? AND d.session_id = ? AND d.phase_id = ?';
         $sql .= ' AND d.producer_id = ? AND d.activity_id = ? AND '.$allowed;
         $sql .= ' ORDER BY d.recorded_at DESC, d.observation_id DESC';

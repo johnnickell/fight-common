@@ -169,9 +169,9 @@ unchanged. Consumers retain database privileges, deployment sequencing and appli
 exact logical name, `schemaName()` returns DBAL's portable explicitly quoted schema-asset form, and
 `quoted(AbstractPlatform)` returns an SQL identifier for that platform. Values still use parameter binding.
 This is an Adapter/composition helper, not a Domain value, connection router or settings registry. The Event Store
-selection adds its own two-table collision rule; later checkpoint/publication adapters can reuse the identifier
-helper while owning their own defaults, relationships and schema/runtime composition. Their table customization
-is not implemented by this slice.
+selection adds its own two-table collision rule; checkpoint storage uses the same identifier helper with its
+own default and explicit schema/runtime composition below. Publication cursors use the same helper; the
+publication-failure pair adds the same case-insensitive collision rule as the Event Store pair.
 
 ## Migrate durable names and event schemas
 
@@ -212,7 +212,7 @@ while they still own the released messages.
 When a migration changes read-model logic or adds an event class to
 `eventClasses()`, rebuild that model using the projection sequence already
 documented below: Stop the projection worker. Clear or recreate the read model.
-Run `$checkpointStore->reset('orders.order-summary');`. Restart the projection
+Run `$projectionCheckpointStore->reset('orders.order-summary');`. Restart the projection
 worker. Do not apply that checkpoint procedure to publication cursors, which
 have no reset operation in 1.2.
 
@@ -284,8 +284,41 @@ Install the checkpoint schema independently from the event-store schema as an
 application deployment step, then compose the public worker contracts:
 
 ```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:default-checkpoint-storage"
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:projection-composition"
 ```
+
+### Configure the checkpoint table
+
+Omitting `table` preserves exactly `projection_checkpoints`. To override it, explicitly pass the same
+`Adapter\Persistence\Doctrine\DbalTableName` to the schema and runtime store:
+
+```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:configured-checkpoints"
+```
+
+The existing `new DbalProjectionCheckpointStore(connection: $connection)` and zero-argument schema construction
+remain supported. Selecting `table` on one instance does not configure another instance; independent worker
+connections must receive the same selection. No environment variables or global registry are consulted.
+
+The shared naming limits above apply: `[A-Za-z_][A-Za-z0-9_]{0,62}`, case preserved, platform-quoted identifiers
+including reserved words, and `InvalidArgumentException` for unsupported/unsafe/qualified names. All projector
+identities and positions remain bound values. Consumers avoid collisions with unrelated tables and respect server
+casing settings. Physical naming never changes a stable projector identity or stored fields.
+
+Configuration and `schema()` perform no SQL. Explicit `install()` creates only a missing selected table and is
+idempotent for an existing selection; as before, it does not validate or repair existing column definitions.
+Missing or incompatible selected storage raises existing DBAL errors when used, never falls back to a populated
+default table and never creates storage implicitly. Changing the selection does not rename, copy, migrate, clear
+or reset old checkpoints. A missing row in the new table means position zero there, not a migrated/rebuilt read
+model. Consumers own deployment privileges, existing-data operations and coherent worker composition.
+
+Load, first/equal/monotonic saves, duplicate-key recovery and reset all use the selected table. Backward saves
+still reject with `InvalidArgumentException`. Reset affects only that table's named projector; the stop-worker,
+read-model cleanup and restart responsibilities below are unchanged. Selecting a different table is not a reset
+or recovery procedure, and configuration grants no administrative authority.
+
+### Poll and rebuild
 
 One poll reads a bounded batch. A long-running worker can repeat that bounded
 operation and back off when the named checkpoint does not advance:
@@ -351,6 +384,8 @@ logging recorder is composable: it logs a portable failure snapshot first,
 then delegates the same snapshot to the durable DBAL recorder.
 
 ```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:default-cursor-storage"
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:default-failure-storage"
 --8<-- "tests/Documentation/EventSourcingGuideExample.php:publication-composition"
 ```
 
@@ -359,6 +394,58 @@ Here, `$eventStore` is the same store used by the repository, and
 as `SimpleEventDispatcher` or `ServiceAwareEventDispatcher`. An asynchronous
 dispatcher cannot provide the completed subscriber-execution boundary this
 runner requires.
+
+### Configure publication storage and all six tables
+
+Publication storage has three independent selections:
+
+| Responsibility | Explicit selection | Omitted default |
+| --- | --- | --- |
+| Completed fan-out cursor | `DbalPublicationCursorStore` / `DbalPublicationCursorStoreSchema` `table: DbalTableName` | `publication_cursors` |
+| Aggregated failure | `DbalPublicationFailureTables(failureTable: ...)` | `publication_failures` |
+| Failed handler snapshots | `DbalPublicationFailureTables(handlerFailureTable: ...)` | `publication_handler_failures` |
+
+Pass the same cursor `table` to its schema and runtime store, and the same failure `tables` to
+`DbalPublicationFailureRecorderSchema` and `DbalPublicationFailureRecorder`. Existing positional construction,
+`connection: $connection` and zero-argument schemas remain supported. Omitted selections retain exactly their
+own defaults, not another instance's choices. For example, `new DbalPublicationFailureTables(failureTable:
+'orders_errors')` intentionally retains `publication_handler_failures`; selecting only `handlerFailureTable`
+retains `publication_failures`. Configuring the cursor alone does not configure either failure table.
+
+This complete executable composition uses all six selected tables with the existing aggregate, projection and
+publication operations above. The functional journey runs both this variant and the unchanged default variant:
+
+```php-inline
+--8<-- "tests/Documentation/EventSourcingGuideExample.php:configured-six-table-composition"
+```
+
+Import these selections from `Fight\Common\Adapter\EventSourcing\Dbal` and `DbalTableName` from
+`Fight\Common\Adapter\Persistence\Doctrine`. The connection and complete mapper are composed as above. Each
+independent worker connection must receive the same relevant selections explicitly; no implicit environment or
+global configuration is read. Consumers own names, privileges, database/schema choice and deployment sequencing.
+
+The shared `[A-Za-z_][A-Za-z0-9_]{0,62}` limits apply to each name. Reserved words and mixed case are quoted
+through the actual platform, while unsafe, prequoted or qualified names raise `InvalidArgumentException` at
+configuration. The failure pair rejects names equal ignoring ASCII case. Consumers also avoid cross-capability
+and unrelated-table collisions and respect server casing settings. All publication identities, positions and
+snapshot fields remain bound data. DBAL generates table-specific primary/index/foreign-key names; the selected
+handler table's composite foreign key references the selected failure table with the existing delete cascade.
+
+Configuration and `schema()` do no SQL. Explicit `install()` creates only missing selected tables (parent before
+handler), without validating, repairing or replacing existing columns or foreign keys. In particular, a partial
+rename beside an existing handler table does **not** retarget its old foreign key. Consumers must prepare a
+coherent schema themselves before changing a live selection; naming is not a migration tool. Missing/incompatible
+selected storage raises existing DBAL errors on use, without implicit installation or fallback to populated
+defaults. Installation never renames, migrates or copies old cursor/failure data. A missing cursor row in newly
+selected storage means zero there, not recovered publication progress: switching storage can redispatch history.
+
+Cursor loads, monotonic saves and duplicate-key recovery all use the selected cursor table. Parent and ordered
+handler snapshots are recorded atomically under their selected names; recording failure rolls back the attempt,
+and retries retain the first evidence per publication name/global position. Stable identities, stored columns,
+bounded diagnostics and delivery/retry semantics below are unchanged. There is no new reset, automatic replay,
+exactly-once guarantee or permission boundary.
+
+### Poll and diagnose
 
 A worker can invoke one bounded poll at a time:
 
@@ -405,3 +492,23 @@ the original throwable are not retained in the portable record.
 Fight Common 1.2 provides no automatic or targeted replay of publication
 failures. Whole-stream or failed-handler replay, including any interpretation
 of historical handler identities after refactors, remains application-owned.
+
+## Six-table schema and SQL-path inventory
+
+This inventory covers TICKET-00053's complete DBAL Event Sourcing boundary. Physical defaults below occur only
+in explicit default selections (and the Event Store's retained default index-name choice); runtime paths use the
+selected, platform-quoted identifier. `database/` contains no alternative Event Sourcing SQL definitions.
+
+| Default / selection owner | Schema and explicit installation | Every runtime SQL responsibility |
+| --- | --- | --- |
+| `event_store_events` / `DbalEventStoreTables::eventTable()` | [DbalEventStoreSchema](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalEventStoreSchema.php) `schema()` creates columns, primary and stream/message unique keys; `install()` checks selected existence and creates missing storage | [DbalEventStore](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalEventStore.php) `append()` stream count, message-identity lookup and insert; `readStream()`; `readAllAfter()`; post-rollback `isExactRetry()`, `streamVersion()` and `hasExistingMessageId()` |
+| `event_store_global_position` / `DbalEventStoreTables::globalPositionTable()` | Same schema defines singleton/position; installer checks/initializes the selected singleton at zero | Same store `append()` SQLite writer-reservation update, sequence read (server `FOR UPDATE`) and sequence update in the append transaction |
+| `projection_checkpoints` / explicit `DbalTableName` | [DbalProjectionCheckpointStoreSchema](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalProjectionCheckpointStoreSchema.php) `schema()` defines selected table/key; `install()` checks/creates selected storage | [DbalProjectionCheckpointStore](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalProjectionCheckpointStore.php) `load()`, `save()` conditional `advance()`/insert/duplicate recovery/read, and `reset()` update/insert/duplicate recovery |
+| `publication_cursors` / explicit `DbalTableName` | [DbalPublicationCursorStoreSchema](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalPublicationCursorStoreSchema.php) `schema()` defines selected table/key; `install()` checks/creates selected storage | [DbalPublicationCursorStore](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalPublicationCursorStore.php) `load()`, `save()` conditional `advance()`/insert/duplicate recovery/read; no reset |
+| `publication_failures` / `DbalPublicationFailureTables::failureTable()` | [DbalPublicationFailureRecorderSchema](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalPublicationFailureRecorderSchema.php) `schema()` defines parent/key; `install()` checks/creates selected parent first | [DbalPublicationFailureRecorder](https://github.com/johnnickell/fight-common/blob/develop/src/Adapter/EventSourcing/Dbal/DbalPublicationFailureRecorder.php) `record()` selected parent insert inside the shared parent/handler transaction; duplicate-key rollback retains first evidence |
+| `publication_handler_failures` / `DbalPublicationFailureTables::handlerFailureTable()` | Same schema defines handler columns/key and selected-parent composite FK/cascade; installer checks/creates selected handler after parent | Same recorder `record()` inserts ordered snapshots into the selected handler table inside that transaction |
+
+Aggregate repositories, `ProjectionRunner` and `EventPublicationRunner` use inward ports, not separate SQL.
+Schema objects derive from selected assets; parameter binding still governs values. The default/configured
+functional journey consumes the actual Event Store, checkpoint, cursor and recorder adapters. Three-platform
+conformance owns durable/retry/concurrency and atomicity evidence; the combined SQLite journey does not replace it.

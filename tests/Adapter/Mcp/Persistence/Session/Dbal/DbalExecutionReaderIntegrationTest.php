@@ -12,6 +12,9 @@ final class DbalExecutionReaderIntegrationTest extends ExecutionReadTestCase
 {
     public static function databases(): iterable
     {
-        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; }
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend => [$backend];
+            yield $backend.'-configured' => [$backend.'-configured'];
+        }
     }
 }

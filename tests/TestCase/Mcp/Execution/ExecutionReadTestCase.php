@@ -9,6 +9,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Phase\Dbal\DbalPhaseReader;
@@ -52,6 +53,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 abstract class ExecutionReadTestCase extends UnitTestCase
 {
     private array $connections = [];
+    private array $connectionTables = [];
 
     public static function databases(): iterable
     {
@@ -106,7 +108,7 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         $record($this->session('other', 'c', 'cancelled'));
         $record($this->session('other', 'hidden', 'succeeded'));
         // Deliberately tie receipt time: full UUID determines the latest session outcome.
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-20T12:00:00.123456Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-20T12:00:00.123456Z'");
         [$queryBus, $admission] = $this->bus($db, ['project' => null, 'other' => ['c']]);
         $selection = ExecutionSelection::create(['project', 'other']);
         $before = $this->state($db);
@@ -150,16 +152,16 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         $record = $this->writer($db);
         $record($this->session('project', 'a'));
         $record($this->session('project', 'b'));
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-20T12:00:00.000001Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-20T12:00:00.000001Z'");
         [$queryBus] = $this->bus($db, ['project' => null, 'omitted' => null]);
         $selection = ExecutionSelection::create(['project']);
         self::assertSame('a', $queryBus->fetch(new ListExecutions($selection, 1, 1))->executions()[0]->session()->sessionId());
         $record($this->session('project', 'new'));
         self::assertSame('a', $queryBus->fetch(new ListExecutions($selection, 2, 1))->executions()[0]->session()->sessionId(), 'Live inserts may repeat a row across pages.');
-        $db->delete('fight_execution_observations', ['project_id' => 'project', 'session_id' => 'new']);
-        $db->delete('fight_execution_sessions', ['project_id' => 'project', 'session_id' => 'new']);
+        $db->delete($this->table($db, 'observations'), ['project_id' => 'project', 'session_id' => 'new']);
+        $db->delete($this->table($db, 'sessions'), ['project_id' => 'project', 'session_id' => 'new']);
         self::assertSame('b', $queryBus->fetch(new ListExecutions($selection, 2, 1))->executions()[0]->session()->sessionId());
-        $db->delete('fight_execution_observations', ['project_id' => 'project', 'session_id' => 'a']);
+        $db->delete($this->table($db, 'observations'), ['project_id' => 'project', 'session_id' => 'a']);
         $summary = $queryBus->fetch(new SummarizeExecutions($selection))->toArray();
         self::assertSame(2, $summary['outcomes']['unknown']);
         self::assertSame([], $summary['usage']);
@@ -173,9 +175,9 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         self::assertSame(0, $empty['executions']);
         self::assertNull($empty['latest_recorded_at']);
         self::assertSame([], $empty['usage']);
-        $db->executeStatement('DROP TABLE fight_execution_contents');
+        $db->executeStatement('DROP TABLE '.$this->table($db, 'contents'));
         self::assertSame(2, $queryBus->fetch(new SummarizeExecutions($selection))->toArray()['executions'], 'Safe reads do not need protected storage.');
-        $db->executeStatement('DROP TABLE fight_execution_observations');
+        $db->executeStatement('DROP TABLE '.$this->table($db, 'observations'));
         foreach ([new SummarizeExecutions($selection), new ListExecutions($selection)] as $query) {
             try { $queryBus->fetch($query); self::fail('A failed database must not become an empty selection.'); }
             catch (ExecutionReadFailed $failure) {
@@ -230,18 +232,18 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         $low = ObservationFixture::session(['observation_id' => '00000000-0000-4000-8000-000000000001', 'outcome' => 'succeeded', 'occurred_at' => '2026-10-20T12:00:00.000000Z']);
         $record($high);
         $record($low);
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-        $db->update('fight_execution_observations', ['recorded_at' => '2026-10-22T12:00:00.000002Z'], ['observation_id' => $low->id()->toString()]);
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+        $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-22T12:00:00.000002Z'], ['observation_id' => $low->id()->toString()]);
         [$queryBus] = $this->bus($db, ['project' => null]);
         $query = new ListExecutions(ExecutionSelection::create(['project']));
         self::assertSame('succeeded', $queryBus->fetch($query)->executions()[0]->outcome()->value);
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
         self::assertSame('failed', $queryBus->fetch($query)->executions()[0]->outcome()->value);
         $time = Observation::timestamp('2026-10-22T12:00:00.000001Z');
         self::assertSame(1, $high->recorded($time)->compareRecordingTo($low->recorded($time)));
         $sameId = Observation::fromArray(array_replace($high->toArray(), ['producer_id' => 'z-producer', 'outcome' => 'cancelled']));
         $record($sameId);
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.000001Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
         self::assertSame('cancelled', $queryBus->fetch($query)->executions()[0]->outcome()->value);
     }
 
@@ -250,8 +252,15 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         return ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => SessionReference::fromStrings($project, $session, 'consumer:'.$session)->toArray(), 'outcome' => $outcome]);
     }
 
-    protected function database(string $backend): Connection
+    protected function database(string $backend, ?DbalObservationTables $tables = null): Connection
     {
+        $defaultTables = new DbalObservationTables();
+        $configuredTables = new DbalObservationTables('ReadState', 'ReadSessions', 'ReadPhases', 'ReadObservations', 'Order');
+        if (str_ends_with($backend, '-configured')) {
+            $backend = substr($backend, 0, -strlen('-configured'));
+            $tables ??= $configuredTables;
+        }
+        $tables ??= $defaultTables;
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'memory' => true]; }
         else {
             $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN');
@@ -260,15 +269,39 @@ abstract class ExecutionReadTestCase extends UnitTestCase
         }
         $db = DriverManager::getConnection($params);
         $this->connections[] = $db;
+        $this->connectionTables[spl_object_id($db)] = $tables;
         if ($backend === 'sqlite') { $db->executeStatement('PRAGMA foreign_keys = ON'); }
-        foreach (array_reverse(DbalObservationSchema::TABLES) as $table) { $db->executeStatement('DROP TABLE IF EXISTS '.$table); }
-        (new DbalObservationSchema())->install($db);
+        // Drop dependent roles across counterparts before any shared/default parent table.
+        foreach (['contents', 'observations', 'phases', 'sessions', 'schema'] as $suffix) {
+            foreach ([$tables, $defaultTables, $configuredTables] as $cleanupTables) {
+                $db->executeStatement('DROP TABLE IF EXISTS '.$this->table($db, $suffix, $cleanupTables));
+            }
+        }
+        (new DbalObservationSchema($tables))->install($db);
         return $db;
+    }
+
+    protected function tables(Connection $db): DbalObservationTables
+    {
+        return $this->connectionTables[spl_object_id($db)] ?? new DbalObservationTables();
+    }
+
+    protected function table(Connection $db, string $suffix, ?DbalObservationTables $tables = null): string
+    {
+        $tables ??= $this->tables($db);
+        $table = match ($suffix) {
+            'schema' => $tables->schemaTable(),
+            'sessions' => $tables->sessionTable(),
+            'phases' => $tables->phaseTable(),
+            'observations' => $tables->observationTable(),
+            'contents' => $tables->contentTable()
+        };
+        return $table->quoted($db->getDatabasePlatform());
     }
 
     protected function writer(Connection $db, ?SimpleEventDispatcher $eventDispatcher = null): callable
     {
-        $transaction = new DbalRecordingTransaction($db);
+        $transaction = new DbalRecordingTransaction($db, $this->tables($db));
         $admission = new class implements ObservationAdmission { public function admit(Observation $observation): void {} };
         $recorder = new ObservationRecorder($transaction, new DbalSessionRepository($transaction), new DbalPhaseRepository($transaction), new DbalObservationRepository($transaction), $admission, $eventDispatcher ?? new SimpleEventDispatcher(), new DbalProtectedContentRepository($transaction));
         $router = new InMemoryCommandRouter();
@@ -291,18 +324,18 @@ abstract class ExecutionReadTestCase extends UnitTestCase
             public function __construct(public ExecutionAccess $access) {}
             public function currentAccess(ExecutionSelection $selection): ExecutionAccess { ++$this->calls; return $this->access; }
         };
-        $reader = new DbalExecutionReader($db);
+        $reader = new DbalExecutionReader($db, $this->tables($db));
         $router = new InMemoryQueryRouter();
         $router->registerHandler(SummarizeExecutionsHandler::queryRegistration(), new SummarizeExecutionsHandler($admission, $reader));
         $router->registerHandler(ListExecutionsHandler::queryRegistration(), new ListExecutionsHandler($admission, $reader));
         $router->registerHandler(GetExecutionHandler::queryRegistration(), new GetExecutionHandler($admission, $reader));
-        $router->registerHandler(ListExecutionPhasesHandler::queryRegistration(), new ListExecutionPhasesHandler($admission, new DbalPhaseReader($db)));
+        $router->registerHandler(ListExecutionPhasesHandler::queryRegistration(), new ListExecutionPhasesHandler($admission, new DbalPhaseReader($db, $this->tables($db))));
         return [new RoutingQueryBus($router), $admission];
     }
 
     private function state(Connection $db): array
     {
-        return array_map(static fn ($table) => $db->fetchAllAssociative('SELECT * FROM '.$table), DbalObservationSchema::TABLES);
+        return array_map(fn ($suffix) => $db->fetchAllAssociative('SELECT * FROM '.$this->table($db, $suffix)), ['schema', 'sessions', 'phases', 'observations', 'contents']);
     }
 
     protected function tearDown(): void

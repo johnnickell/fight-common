@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Fight\Test\Common\TestCase\EventSourcing;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStore;
 use Fight\Common\Adapter\EventSourcing\Dbal\DbalPublicationCursorStoreSchema;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\EventSourcing\PublicationCursorStore;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Throwable;
 
@@ -19,13 +22,48 @@ use Throwable;
  */
 abstract class DbalPublicationCursorStoreConformanceTestCase extends PublicationCursorStoreConformanceTestCase
 {
+    private string $tableName = 'publication_cursors';
+
+    public static function selections(): iterable
+    {
+        yield 'default' => ['publication_cursors'];
+        yield 'configured reserved word' => ['Order'];
+    }
+
+    public function test_that_configured_cursors_preserve_the_lifecycle_and_populated_defaults(): void
+    {
+        $this->tableName = 'Order';
+        $this->test_that_named_publication_cursors_follow_the_durable_lifecycle_contract();
+        $this->assertDefaultStorageUntouched();
+    }
+
+    public function test_that_selection_neither_installs_migrates_nor_falls_back(): void
+    {
+        $connection = $this->resetDatabase();
+        new DbalPublicationCursorStore(connection: $connection)->save('orders.primary', 99);
+        $table = new DbalTableName('Order');
+        $sqlTable = $table->quoted($connection->getDatabasePlatform());
+        $connection->executeStatement('DROP TABLE IF EXISTS '.$sqlTable);
+        $publicationCursorStore = new DbalPublicationCursorStore($connection, $table);
+        $schema = new DbalPublicationCursorStoreSchema($table);
+        $schema->schema();
+        $this->assertStorageOperationsFail($publicationCursorStore);
+        self::assertSame(99, new DbalPublicationCursorStore($connection)->load('orders.primary'));
+        $connection->executeStatement('CREATE TABLE '.$sqlTable.' (wrong_column INT)');
+        $schema->install($connection);
+        $this->assertStorageOperationsFail($publicationCursorStore);
+        self::assertSame(99, new DbalPublicationCursorStore($connection)->load('orders.primary'));
+    }
+
     /**
      * Verifies competing workers cannot regress the durable cursor
      */
-    public function test_that_concurrent_workers_cannot_regress_committed_progress(): void
+    #[DataProvider('selections')]
+    public function test_that_concurrent_workers_cannot_regress_committed_progress(string $tableName): void
     {
+        $this->tableName = $tableName;
         $setupConnection = $this->resetDatabase();
-        new DbalPublicationCursorStore($setupConnection)->save('orders.secondary', 41);
+        new DbalPublicationCursorStore($setupConnection, new DbalTableName($tableName))->save('orders.secondary', 41);
         $setupConnection->close();
         $coordinationPath = sprintf(
             '%s/fight-common-publication-cursor-race-%s',
@@ -64,9 +102,12 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             self::assertSame(0, pcntl_wexitstatus($higherStatus));
             self::assertSame('', $lowerResult);
             self::assertSame('', $higherResult);
-            $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection());
+            $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($tableName));
             self::assertSame(253, $publicationCursorStore->load('orders.primary'));
             self::assertSame(41, $publicationCursorStore->load('orders.secondary'));
+            if ('publication_cursors' !== $tableName) {
+                $this->assertDefaultStorageUntouched();
+            }
         } finally {
             foreach (array_keys($workerProcessIds) as $workerProcessId) {
                 $waitResult = pcntl_waitpid($workerProcessId, $workerStatus, WNOHANG);
@@ -95,7 +136,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
      */
     protected function createPublicationCursorStore(): PublicationCursorStore
     {
-        return new DbalPublicationCursorStore($this->resetDatabase());
+        return new DbalPublicationCursorStore($this->resetDatabase(), new DbalTableName($this->tableName));
     }
 
     /**
@@ -106,7 +147,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
     ): PublicationCursorStore {
         unset($publicationCursorStore);
 
-        return new DbalPublicationCursorStore($this->createConnection());
+        return new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($this->tableName));
     }
 
     /**
@@ -115,15 +156,24 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
     protected function resetDatabase(): Connection
     {
         $connection = $this->createConnection();
-        $connection->executeStatement('DROP TABLE IF EXISTS publication_cursors');
+        foreach (['publication_cursors', 'Order'] as $name) {
+            $table = new DbalTableName($name);
+            $connection->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($connection->getDatabasePlatform()));
+        }
 
-        $schema = new DbalPublicationCursorStoreSchema();
+        $schema = new DbalPublicationCursorStoreSchema(new DbalTableName($this->tableName));
         $schema->install($connection);
         $schema->install($connection);
 
-        self::assertTrue($connection->createSchemaManager()->tablesExist([
-            'publication_cursors'
-        ]));
+        if ('publication_cursors' !== $this->tableName) {
+            (new DbalPublicationCursorStoreSchema())->install($connection);
+            $defaultCursorStore = new DbalPublicationCursorStore($connection);
+            $defaultCursorStore->save('orders.primary', 999);
+            $defaultCursorStore->save('orders.secondary', 999);
+        }
+        self::assertSame(0, new DbalPublicationCursorStore(
+            $connection, new DbalTableName($this->tableName),
+        )->load('orders.primary'));
 
         return $connection;
     }
@@ -143,7 +193,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             return $processId;
         }
 
-        $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection());
+        $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($this->tableName));
         $failures = [];
 
         for ($round = 1; $round <= 24; ++$round) {
@@ -163,6 +213,31 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
 
         file_put_contents(sprintf('%s/%s-result', $coordinationPath, $worker), implode("\n", $failures));
         exit(0);
+    }
+
+    private function assertDefaultStorageUntouched(): void
+    {
+        $connection = $this->createConnection();
+        self::assertSame([
+            ['publication_name' => 'orders.primary', 'global_position' => 999],
+            ['publication_name' => 'orders.secondary', 'global_position' => 999],
+        ], $connection->fetchAllAssociative('SELECT * FROM publication_cursors ORDER BY publication_name'));
+    }
+
+    private function assertStorageOperationsFail(DbalPublicationCursorStore $publicationCursorStore): void
+    {
+        foreach (['load', 'save'] as $operation) {
+            try {
+                if ('save' === $operation) {
+                    $publicationCursorStore->save('orders.primary', 1);
+                } else {
+                    $publicationCursorStore->load('orders.primary');
+                }
+                self::fail('Expected missing/incompatible selected cursor storage to fail.');
+            } catch (Exception) {
+                self::assertTrue(true);
+            }
+        }
     }
 
     /**

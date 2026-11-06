@@ -13,6 +13,7 @@ use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalDetailReader;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalProtectedContentRepository;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalRecordingTransaction;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalActivityReader;
 use Fight\Common\Adapter\Mcp\Persistence\Observation\Dbal\DbalObservationRepository;
@@ -32,11 +33,16 @@ use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\Detail\CommandHandler\RemoveCapturedDetailHandler;
+use Fight\Common\Application\Mcp\Detail\Exception\DetailRemovalRejected;
 use Fight\Common\Application\Mcp\Detail\QueryHandler\GetCapturedDetailHandler;
 use Fight\Common\Application\Mcp\Detail\QueryHandler\ListCapturedMessagesHandler;
 use Fight\Common\Application\Mcp\Detail\Service\DetailAccess;
 use Fight\Common\Application\Mcp\Detail\Service\DetailReadAdmission;
+use Fight\Common\Application\Mcp\Detail\Service\DetailRemovalAdmission;
+use Fight\Common\Application\Mcp\Detail\Service\DetailRemover;
 use Fight\Common\Application\Mcp\Http\McpInvocationGuard;
 use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\Observation\CommandHandler\RecordPhaseObservationHandler;
@@ -58,6 +64,7 @@ use Fight\Common\Application\Mcp\Tool\McpToolInfo;
 use Fight\Common\Application\Mcp\Tool\McpToolInvocation;
 use Fight\Common\Application\Mcp\Tool\McpToolInvoker;
 use Fight\Common\Application\Mcp\Tool\McpToolRegistry;
+use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\DetailSelection;
 use Fight\Common\Domain\Mcp\Detail\ProtectedContent;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
@@ -79,6 +86,8 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
     public ExecutionAccess $access;
     public DetailAccess $detailAccess;
     public int $detailAdmissionCalls = 0;
+    public int $removalAdmissionCalls = 0;
+    public bool $removalAllowed = false;
     public int $commandCalls = 0;
     public array $availabilitySequence = [];
     public bool $available = true;
@@ -91,7 +100,7 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
     public string $requestId = 'inspection-雪';
     private RoutingCommandBus $commandBus;
 
-    public function __construct(string $backend, bool $protected = false, string $serverName = 'Execution fixture')
+    public function __construct(string $backend, bool $protected = false, string $serverName = 'Execution fixture', public readonly DbalObservationTables $tables = new DbalObservationTables())
     {
         $params = ['driver' => 'pdo_sqlite', 'memory' => true];
         if ($backend !== 'sqlite') {
@@ -101,27 +110,29 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
         }
         $this->connection = DriverManager::getConnection($params);
         if ($backend === 'sqlite') { $this->connection->executeStatement('PRAGMA foreign_keys = ON'); }
-        foreach (array_reverse(DbalObservationSchema::TABLES) as $table) { $this->connection->executeStatement('DROP TABLE IF EXISTS '.$table); }
-        new DbalObservationSchema()->install($this->connection);
-        $recordingTransaction = new DbalRecordingTransaction($this->connection);
+        foreach (array_reverse($this->selectedTables()) as $table) { $this->connection->executeStatement('DROP TABLE IF EXISTS '.$table->quoted($this->connection->getDatabasePlatform())); }
+        new DbalObservationSchema($tables)->install($this->connection);
+        $recordingTransaction = new DbalRecordingTransaction($this->connection, $tables);
         $eventDispatcher = new SimpleEventDispatcher();
         $eventDispatcher->addHandler(ClassName::underscore(ObservationRecorded::class), function (): void { ++$this->eventCount; });
-        $observationRecorder = new ObservationRecorder(
-            $recordingTransaction,
-            new DbalSessionRepository($recordingTransaction),
-            new DbalPhaseRepository($recordingTransaction),
-            new DbalObservationRepository($recordingTransaction),
-            $this,
-            $eventDispatcher,
-            new DbalProtectedContentRepository($recordingTransaction)
-        );
+        $observationRepository = new DbalObservationRepository($recordingTransaction);
+        $protectedContentRepository = new DbalProtectedContentRepository($recordingTransaction);
+        $observationRecorder = new ObservationRecorder($recordingTransaction, new DbalSessionRepository($recordingTransaction), new DbalPhaseRepository($recordingTransaction), $observationRepository, $this, $eventDispatcher, $protectedContentRepository);
+        $removalAdmission = new class($this) implements DetailRemovalAdmission {
+            public function __construct(private McpExecutionFixture $fixture) {}
+            public function admit(RemoveCapturedDetail $command): void {
+                ++$this->fixture->removalAdmissionCalls;
+                if (!$this->fixture->removalAllowed) { throw new DetailRemovalRejected(); }
+            }
+        };
+        $remover = new DetailRemover($recordingTransaction, $observationRepository, $protectedContentRepository, $removalAdmission);
         $commandRouter = new InMemoryCommandRouter();
-        foreach ([new RecordSessionObservationHandler($observationRecorder), new RecordPhaseObservationHandler($observationRecorder), new RecordProtectedDetailHandler($observationRecorder)] as $handler) { $commandRouter->registerHandler($handler::commandRegistration(), $handler); }
+        foreach ([new RecordSessionObservationHandler($observationRecorder), new RecordPhaseObservationHandler($observationRecorder), new RecordProtectedDetailHandler($observationRecorder), new RemoveCapturedDetailHandler($remover)] as $handler) { $commandRouter->registerHandler($handler::commandRegistration(), $handler); }
         $this->commandBus = new RoutingCommandBus($commandRouter);
         $this->access = ExecutionAccess::create(['project' => null], detailGrants: ['project' => null]);
-        $executionReader = new DbalExecutionReader($this->connection);
+        $executionReader = new DbalExecutionReader($this->connection, $tables);
         $queryRouter = new InMemoryQueryRouter();
-        foreach ([new SummarizeExecutionsHandler($this, $executionReader), new ListExecutionsHandler($this, $executionReader), new GetExecutionHandler($this, $executionReader), new ListExecutionPhasesHandler($this, new DbalPhaseReader($this->connection)), new ListPhaseActivityHandler($this, new DbalActivityReader($this->connection))] as $handler) { $queryRouter->registerHandler($handler::queryRegistration(), $handler); }
+        foreach ([new SummarizeExecutionsHandler($this, $executionReader), new ListExecutionsHandler($this, $executionReader), new GetExecutionHandler($this, $executionReader), new ListExecutionPhasesHandler($this, new DbalPhaseReader($this->connection, $tables)), new ListPhaseActivityHandler($this, new DbalActivityReader($this->connection, $tables))] as $handler) { $queryRouter->registerHandler($handler::queryRegistration(), $handler); }
         $this->queryBus = new RoutingQueryBus($queryRouter);
         $this->detailAccess = DetailAccess::create(['project' => null], metadataGrants: ['project' => null], bodyGrants: ['project' => null]);
         $detailReadAdmission = new class($this) implements DetailReadAdmission {
@@ -131,7 +142,7 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
                 return $this->fixture->detailAccess;
             }
         };
-        $detailReader = new DbalDetailReader($this->connection);
+        $detailReader = new DbalDetailReader($this->connection, $tables);
         foreach ([new GetCapturedDetailHandler($detailReadAdmission, $detailReader), new ListCapturedMessagesHandler($detailReadAdmission, $detailReader)] as $handler) { $queryRouter->registerHandler($handler::queryRegistration(), $handler); }
         $registered = [new SummarizeExecutionsTool($this->queryBus), new ListExecutionsTool($this->queryBus), new GetExecutionTool($this->queryBus), new ListExecutionPhasesTool($this->queryBus), new ListPhaseActivityTool($this->queryBus)];
         if ($protected) { $registered[] = new ListCapturedMessagesTool($this->queryBus); $registered[] = new GetCapturedDetailTool($this->queryBus); }
@@ -156,6 +167,12 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
         $this->commandBus->execute($command);
     }
 
+    public function remove(RemoveCapturedDetail $command): void
+    {
+        ++$this->commandCalls;
+        $this->commandBus->execute($command);
+    }
+
     public function call(string $name, array $arguments): array
     {
         return $this->request('tools/call', ['name' => $name, 'arguments' => (object) $arguments]);
@@ -173,6 +190,11 @@ final class McpExecutionFixture implements ExecutionReadAdmission, ObservationAd
 
     public function state(): array
     {
-        return array_map(fn(string $table): array => $this->connection->fetchAllAssociative('SELECT * FROM '.$table), DbalObservationSchema::TABLES);
+        return array_map(fn(DbalTableName $table): array => $this->connection->fetchAllAssociative('SELECT * FROM '.$table->quoted($this->connection->getDatabasePlatform())), $this->selectedTables());
+    }
+
+    private function selectedTables(): array
+    {
+        return [$this->tables->schemaTable(), $this->tables->sessionTable(), $this->tables->phaseTable(), $this->tables->observationTable(), $this->tables->contentTable()];
     }
 }

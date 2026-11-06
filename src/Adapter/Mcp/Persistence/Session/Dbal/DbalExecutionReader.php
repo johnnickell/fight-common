@@ -6,6 +6,7 @@ namespace Fight\Common\Adapter\Mcp\Persistence\Session\Dbal;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalExecutionReadSupport;
+use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationTables;
 use Fight\Common\Application\Mcp\Observation\Data\ObservationView;
 use Fight\Common\Application\Mcp\Session\Data\ExecutionInspection;
 use Fight\Common\Application\Mcp\Session\Data\ExecutionPage;
@@ -39,9 +40,11 @@ final readonly class DbalExecutionReader implements ExecutionReader
     /**
      * Constructs DbalExecutionReader
      */
-    public function __construct(private Connection $connection)
-    {
-        $this->executionReadSupport = new DbalExecutionReadSupport($connection);
+    public function __construct(
+        private Connection $connection,
+        private DbalObservationTables $tables = new DbalObservationTables()
+    ) {
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection, $tables);
     }
 
     /**
@@ -133,7 +136,9 @@ final readonly class DbalExecutionReader implements ExecutionReader
         try {
             [$where, $parameters] = $this->executionReadSupport->constraints($query->selection(), $access);
             $total = (int) $this->connection->fetchOne(
-                'SELECT COUNT(*) FROM fight_execution_sessions s WHERE '.$where,
+                'SELECT COUNT(*) FROM '.$this->tables->sessionTable()->quoted(
+                    $this->connection->getDatabasePlatform()
+                ).' s WHERE '.$where,
                 $parameters
             );
             $pagination = $query->pagination();
@@ -193,19 +198,22 @@ final readonly class DbalExecutionReader implements ExecutionReader
      */
     private function selectExecutions(ExecutionAccess $access): array
     {
+        $platform = $this->connection->getDatabasePlatform();
+        $observationTable = $this->tables->observationTable()->quoted($platform);
+        $sessionTable = $this->tables->sessionTable()->quoted($platform);
         $scope = 'o.project_id = s.project_id AND o.session_id = s.session_id';
         [$visible, $parameters] = $this->executionReadSupport->phaseConstraints($access, 'o');
         $sql = 'SELECT s.project_id, s.session_id, s.consumer_reference, ';
-        $sql .= "(SELECT COALESCE(MAX(o.recorded_at), '') FROM fight_execution_observations o WHERE ";
+        $sql .= "(SELECT COALESCE(MAX(o.recorded_at), '') FROM ".$observationTable.' o WHERE ';
         $sql .= $scope.' AND '.$visible.') AS latest_recorded_at';
-        $latestSession = ' FROM fight_execution_observations o WHERE '.$scope;
+        $latestSession = ' FROM '.$observationTable.' o WHERE '.$scope;
         $latestSession .= ' AND o.phase_id IS NULL ORDER BY o.recorded_at DESC, o.observation_id DESC, ';
         $latestSession .= $this->executionReadSupport->binary('o.producer_id').' DESC LIMIT 1)';
         foreach (['payload', 'version', 'observation_id', 'producer_id', 'recorded_at'] as $field) {
             $sql .= ', (SELECT o.'.$field.$latestSession.' AS session_'.$field;
         }
 
-        return [$sql.' FROM fight_execution_sessions s', $parameters];
+        return [$sql.' FROM '.$sessionTable.' s', $parameters];
     }
 
     /**

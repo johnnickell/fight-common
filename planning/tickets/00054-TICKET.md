@@ -2,7 +2,7 @@
 id: TICKET-00054
 epic: EPIC-00013
 title: Customize execution persistence tables
-status: ready-for-agent
+status: done
 ---
 
 # Customize execution persistence tables
@@ -100,11 +100,14 @@ are requested. Requirements do not claim current implementation, passed behavior
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | ready-for-agent |
-| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | ready-for-agent |
+| [TASK-00197](../tasks/00197-TASK.md) | Record executions in configurable tables | done |
+| [TASK-00198](../tasks/00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
+
+The following planning checkpoints preserve their original scope and checkout instructions, not current
+implementation/publication state. The current implementation checkpoint follows them below.
 
 John approved the complete three-TICKET decomposition of EPIC-00013, including this five-table execution persistence
 requirement area. He subsequently approved this complete two-TASK split, normally one PR per TASK:
@@ -132,4 +135,24 @@ Order stays unranked so this planning does not reorder existing ranked work. Rel
 priority remain unassigned. No implementation, runtime, implementation branch, commit or publication occurred under
 these records. Consult the Board for execution selection.
 
-Next: `/skill:next` from the isolated planning checkout.
+### Implementation acceptance checkpoint — 2026-11-05
+
+TASK-00197's configured recording/schema/repository slice has independent Review ACCEPT and QA PASS on candidate
+`1f5a487b93126a38660f1d4b7c3da09c6086a9eb`. TASK-00198 remains unfinished, so this TICKET stays open;
+configured inspection and complete protected-read/removal/MCP journeys are not yet claimed. Requirements above
+remain unchanged. Publication/final-head verification is pending at this administrative checkpoint; the current
+result belongs in canonical `.runs/tasks/TASK-00197/runs/20261105-land-01/land.md` and the actual PR recorded
+by TASK-00197 after creation. Original planning-checkout instructions are historical; current execution selection
+belongs to the [Board](../tasks/BOARD.md). No merge, release, deployment or recurring post-merge action is implied.
+
+### Complete execution storage acceptance checkpoint — 2026-11-05
+
+TASK-00198 now has independent Review v3 ACCEPT and QA v2 complete PASS on candidate
+`d904518c7d33a8a73d5b32601fa55d604d3dfcd0`, completing configured inspection, protected reads/removal and
+actual guarded MCP integration across SQLite/MySQL/PostgreSQL. Both children are accepted and required QA
+is satisfied, so this TICKET closes without changing its requirements. TASK-00197's earlier checkpoint is history.
+Land's mechanical current-base bridge and fresh integrated gate are recorded in canonical
+`.runs/tasks/TASK-00198/runs/20261105-land-01/land.md`; the independent reports remain unchanged.
+Publication/final-head verification is pending at this administrative checkpoint; that receipt and the actual
+TASK-00198 PR recorded after creation own delivery results. EPIC-00013 remains open for unfinished siblings.
+No merge, release, deployment or recurring post-merge action is implied.

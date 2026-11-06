@@ -6,7 +6,6 @@ namespace Fight\Test\Common\TestCase\Mcp\Execution;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Detail\Dbal\DbalDetailReader;
-use Fight\Common\Adapter\Mcp\Persistence\Execution\Dbal\DbalObservationSchema;
 use Fight\Common\Adapter\Messaging\Event\Sync\SimpleEventDispatcher;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -137,7 +136,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         $admission->access = DetailAccess::create(['project' => null], ['project' => []], ['project' => null], ['project' => null]);
         self::assertNull($queryBus->fetch($query));
         $admission->access = $this->allDetailAccess();
-        $db->executeStatement('DROP TABLE fight_execution_contents');
+        $db->executeStatement('DROP TABLE '.$this->table($db, 'contents'));
         $this->assertDetailFailure(static fn () => $queryBus->fetch($query));
         $this->assertDetailFailure(static fn () => $queryBus->fetch(new ListCapturedMessages($selection)));
         self::assertGreaterThan(10, $admission->calls);
@@ -160,7 +159,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             self::assertSame($captured ? 'retained' : $completeness->value, $result['reference']['availability']);
             if ($captured) { self::assertSame('', $result['chunk']['data']); self::assertNull($result['chunk']['next_offset']); }
             else { self::assertNull($result['chunk']); }
-            $db->delete('fight_execution_contents', ['observation_id' => $detail->id()->toString(), 'producer_id' => $detail->producerId()]);
+            $db->delete($this->table($db, 'contents'), ['observation_id' => $detail->id()->toString(), 'producer_id' => $detail->producerId()]);
             $missing = $queryBus->fetch($query)->toArray();
             self::assertNull($missing['chunk']);
             self::assertSame($captured ? 'missing' : $completeness->value, $missing['reference']['availability']);
@@ -168,9 +167,9 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         $detail = $this->captured($activity); $record($detail, ProtectedContent::create($detail->detail(), 'retained only until removed'));
         $first = $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 0, 3))->toArray()['chunk'];
         self::assertSame(3, $first['next_offset']);
-        $db->delete('fight_execution_contents', ['observation_id' => $detail->id()->toString()]);
+        $db->delete($this->table($db, 'contents'), ['observation_id' => $detail->id()->toString()]);
         self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 3, 3))->toArray()['chunk']);
-        $db->delete('fight_execution_observations', ['observation_id' => $detail->id()->toString()]);
+        $db->delete($this->table($db, 'observations'), ['observation_id' => $detail->id()->toString()]);
         self::assertNull($queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE)));
     }
 
@@ -186,7 +185,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             $detail = $this->captured($activity, id: $id, occurrence: '2026-10-20T12:00:0'.(2 - $i).'Z');
             $record($detail, ProtectedContent::create($detail->detail(), 'message-'.$i)); $details[] = $detail;
         }
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.123456Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.123456Z'");
         [$queryBus, $admission] = $this->detailBus($db); $selection = $this->selection($activity);
         $query = new ListCapturedMessages($selection, 1, 1);
         $first = $queryBus->fetch($query)->toArray();
@@ -196,13 +195,13 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
         self::assertSame(1, $details[2]->recorded(Observation::timestamp('2026-10-22T12:00:00.123456Z'))->compareRecordingTo($details[1]->recorded(Observation::timestamp('2026-10-22T12:00:00.123456Z'))));
         self::assertSame($ids[1], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
         self::assertSame($ids[0], $queryBus->fetch(new ListCapturedMessages($selection, 1, 1, ['recorded_at' => 'asc']))->toArray()['messages'][0]['reference']['observation_id']);
-        $db->update('fight_execution_observations', ['recorded_at' => '2026-10-22T12:00:00.123457Z'], ['observation_id' => $ids[0]]);
+        $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-22T12:00:00.123457Z'], ['observation_id' => $ids[0]]);
         self::assertSame($ids[0], $queryBus->fetch($query)->toArray()['messages'][0]['reference']['observation_id']);
         // A late-arriving older occurrence becomes the newest receipt, shifting the live page.
         $late = $this->captured($activity, occurrence: '2020-01-01T00:00:00.1Z'); $record($late, ProtectedContent::create($late->detail(), 'late'));
         self::assertSame($ids[0], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
-        $db->delete('fight_execution_contents', ['observation_id' => $late->id()->toString()]);
-        $db->delete('fight_execution_observations', ['observation_id' => $late->id()->toString()]);
+        $db->delete($this->table($db, 'contents'), ['observation_id' => $late->id()->toString()]);
+        $db->delete($this->table($db, 'observations'), ['observation_id' => $late->id()->toString()]);
         self::assertSame($ids[2], $queryBus->fetch(new ListCapturedMessages($selection, 2, 1))->toArray()['messages'][0]['reference']['observation_id']);
         $empty = $queryBus->fetch(new ListCapturedMessages($selection, 20, 32))->toArray(); self::assertSame(3, $empty['total']); self::assertSame([], $empty['messages']);
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => [$this->detailKey($details[1]), 'other/'.$ids[0]]], bodyGrants: ['project' => [$this->detailKey($details[1])]]);
@@ -224,7 +223,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             $detail = $this->captured($activity, $i === 50 ? DetailKind::TOOL_ARGUMENTS : DetailKind::MESSAGE);
             $record($detail, ProtectedContent::create($detail->detail(), str_repeat('m', 2048)));
         }
-        $db->executeStatement("UPDATE fight_execution_observations SET recorded_at = '2026-10-22T12:00:00.123456Z'");
+        $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.123456Z'");
         [$queryBus] = $this->detailBus($db); $selection = $this->selection($activity);
         $desc = $queryBus->fetch(new ListCapturedMessages($selection, 4, 32))->toArray();
         self::assertSame(101, $desc['total']); self::assertCount(5, $desc['messages']);
@@ -240,7 +239,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
             public function __construct(public DetailAccess $access) {}
             public function currentAccess(DetailSelection $selection): DetailAccess { ++$this->calls; return $this->access; }
         };
-        $reader = new DbalDetailReader($db); $router = new InMemoryQueryRouter();
+        $reader = new DbalDetailReader($db, $this->tables($db)); $router = new InMemoryQueryRouter();
         $router->registerHandler(GetCapturedDetailHandler::queryRegistration(), new GetCapturedDetailHandler($admission, $reader));
         $router->registerHandler(ListCapturedMessagesHandler::queryRegistration(), new ListCapturedMessagesHandler($admission, $reader));
         return [new RoutingQueryBus($router), $admission];
@@ -269,7 +268,7 @@ abstract class DetailReadTestCase extends ExecutionReadTestCase
 
     protected function detailState(Connection $db): array
     {
-        return array_map(static fn ($table) => $db->fetchAllAssociative('SELECT * FROM '.$table), DbalObservationSchema::TABLES);
+        return array_map(fn ($suffix) => $db->fetchAllAssociative('SELECT * FROM '.$this->table($db, $suffix)), ['schema', 'sessions', 'phases', 'observations', 'contents']);
     }
 
     protected function assertDetailFailure(callable $read): void
