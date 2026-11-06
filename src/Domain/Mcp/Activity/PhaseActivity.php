@@ -26,17 +26,23 @@ final readonly class PhaseActivity extends ValueObject
         private string $kind,
         private string $summary,
         private ?string $modelId,
-        private array $usage
+        private array $usage,
+        private ?ActivityExecution $execution
     ) {
     }
 
     /**
-     * Creates safe activity with optional measured usage and model identity
+     * Creates safe activity with optional measured usage, model identity and typed execution
      *
      * @phpstan-param array<array-key, mixed> $usage
      */
-    public static function create(string $kind, string $summary, ?string $modelId = null, array $usage = []): self
-    {
+    public static function create(
+        string $kind,
+        string $summary,
+        ?string $modelId = null,
+        array $usage = [],
+        ?ActivityExecution $execution = null
+    ): self {
         if (
             strlen($summary) > 512 || preg_match('//u', $summary) !== 1
             || preg_match('/[\x00-\x1f\x7f]/', $summary) === 1
@@ -60,7 +66,8 @@ final readonly class PhaseActivity extends ValueObject
             ObservationName::fromString($kind)->toString(),
             $summary,
             $modelId === null ? null : ObservationReference::fromString($modelId)->toString(),
-            array_values($snapshot)
+            array_values($snapshot),
+            $execution
         );
     }
 
@@ -77,13 +84,14 @@ final readonly class PhaseActivity extends ValueObject
 
         $keys = array_keys($data);
         sort($keys);
-        if ($keys !== ['kind', 'model_id', 'summary', 'usage', 'version']) {
+        if ($keys !== ['execution', 'kind', 'model_id', 'summary', 'usage', 'version']) {
             throw new DomainException('Invalid activity structure.');
         }
 
         if (
             !is_string($data['kind']) || !is_string($data['summary'])
             || ($data['model_id'] !== null && !is_string($data['model_id']))
+            || ($data['execution'] !== null && !is_array($data['execution']))
             || !is_array($data['usage']) || !array_is_list($data['usage']) || count($data['usage']) > 32
         ) {
             throw new DomainException('Invalid activity structure.');
@@ -98,7 +106,13 @@ final readonly class PhaseActivity extends ValueObject
             $usage[] = UsageMeasurement::fromArray($measurement);
         }
 
-        return self::create($data['kind'], $data['summary'], $data['model_id'], $usage);
+        return self::create(
+            $data['kind'],
+            $data['summary'],
+            $data['model_id'],
+            $usage,
+            $data['execution'] === null ? null : ActivityExecution::fromArray($data['execution'])
+        );
     }
 
     /**
@@ -167,6 +181,14 @@ final readonly class PhaseActivity extends ValueObject
     }
 
     /**
+     * Returns optional typed execution facts without business authority
+     */
+    public function execution(): ?ActivityExecution
+    {
+        return $this->execution;
+    }
+
+    /**
      * Returns versioned safe activity without protected bodies
      *
      * @return array<string, mixed>
@@ -174,11 +196,12 @@ final readonly class PhaseActivity extends ValueObject
     public function toArray(): array
     {
         return [
-            'version'  => 1,
-            'kind'     => $this->kind,
-            'summary'  => $this->summary,
-            'model_id' => $this->modelId,
-            'usage'    => array_map(
+            'version'   => 1,
+            'kind'      => $this->kind,
+            'summary'   => $this->summary,
+            'model_id'  => $this->modelId,
+            'execution' => $this->execution?->toArray(),
+            'usage'     => array_map(
                 static fn (UsageMeasurement $measurement): array => $measurement->toArray(),
                 $this->usage
             )

@@ -93,7 +93,13 @@ finite arrays, explicit outcomes and completeness/availability states.
 - Ordering preserves the shared immutable receipt-time/full observation UUID contract, including microseconds
   and deterministic producer/reference ties; it is not causal/commit order. Occurrence time preserves supplied
   precision independently. Performing Agent, model and instrumentation producer remain distinct.
-- Activity exposes only safe summaries and separately permitted detail **metadata**. No protected body, comparison,
+- Activity exposes safe summaries, optional typed execution facts and separately permitted detail **metadata**.
+  `activity.execution` is null if omitted; otherwise it contains closed `target`, `timing`, `result` objects as
+  [recorded](execution-observations.md#typed-activity-execution-facts), with unknown target null and independently
+  nullable timing. `result.kind` is unknown/returned/threw/exited/cancelled, with only `threw` carrying safe
+  `failure_kind` and only `exited` carrying native integer `exit_code`; incompatible fields remain null. These
+  facts establish no business commit, Workflow success or acceptance, and do not become latest session/phase state.
+  No protected body, comparison,
   concealed reference count or extension data is projected. Complete/partial capture remains historical; a missing
   content row means `missing` with unknown reason. Explicit absent/unavailable/expired markers survive. A retained
   reference is neither body permission nor a retention lease. Structural safety does not redact consumer secrets
@@ -105,7 +111,11 @@ Shared application limits remain in force. Tool output schemas bound each page t
 phase, usage measurements to 32 per activity, detail references to 32 per activity and summary usage groups to
 256 (the current DBAL reader admits at most 128). References are at most 128 characters, activity summaries at
 most 512 characters, timestamps at most 27 characters, usage values at most 128 characters and aggregate decimal
-text at most 1,026. Domain byte/value validation remains stricter where applicable; schemas supplement it.
+text at most 1,026. Execution target capability/name and thrown failure classification use 1–128 characters;
+endpoint timestamps use the same 27-character ceiling and retain actual source precision. Elapsed is nullable
+canonical nonnegative Duration text with at most 21 characters (native integer bounds still apply). Every new
+nested object rejects unknown/missing fields; result schemas enforce the kind-specific null/required combinations.
+Domain byte/value validation remains stricter where applicable; schemas supplement it.
 
 Every inspection Tool also rejects a projected JSON representation above **262,144 encoded bytes**, before text
 construction. `McpToolOutput::boundedStructured()` opts into a **1,048,576-byte final encoded JSON-RPC success
@@ -139,7 +149,12 @@ and the two protected Tools directly, without old Application aliases; see the [
 `McpToolOutput::boundedStructured()` and its budget accessor are additive opt-in methods. The internal result
 budget propagation methods and the central response validation preserve all existing unbounded result behavior;
 no Tool interface signature, released alias, Query/admission/DBAL contract, dependency floor, schema/index,
-recording format or transaction guarantee changes. The Execution API remains provisional until tagged; no codecs,
+or transaction guarantee changes. The typed activity amendment adds four final readonly Domain values and required
+nullable `activity.execution` to the never-released version-one recording and Tool output representations directly,
+without changing the existing Tool catalog, permission seams or encoded bounds. Old caller construction still
+works and now returns explicit null execution. Body removal does not redact safe target/timing/result metadata or
+consumer copies. This is package behavior, not automatic capture, installed Agent OS/client qualification or release
+certification. The Execution API remains provisional until tagged; no codecs,
 aliases or migrations for earlier development snapshots are introduced. The pre-existing release-manifest
 operation fingerprint reconciliation remains release-owned; this product build is not release certification.
 

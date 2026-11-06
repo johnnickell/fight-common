@@ -241,10 +241,21 @@ separate [protected inspection](execution-protected-reads.md) admission; referen
 
 `ActivityPage::activities()` returns typed `ActivityView`s; `toArray()` contains `activities`, authorized `total`,
 `page`, `per_page`. Each row contains only `producer_id`, `observation_id`, `occurred_at`, `recorded_at`, performing
-`agent_id`, the version-one safe `activity` (kind, consumer-redacted summary, model and exact bounded usage), and
+`agent_id`, the version-one safe `activity` (kind, consumer-redacted summary, model, optional typed execution and
+exact bounded usage), and
 `details`. Models, instrumentation producers and performing Agents remain distinct. Extensions, consumer/parent
 relationships and protected bytes are never projected. Summary safety depends on consumer pre-submission
 redaction; this is structural separation, not an arbitrary secret detector or independent review verdict.
+
+`activity.execution` is explicit null when not supplied. Otherwise the same closed typed target/timing/result
+[recording representation](execution-observations.md#typed-activity-execution-facts) survives reconstruction:
+`target` is null or `{capability, name}`; `timing` has independently nullable `started_at`, `ended_at`, `elapsed`
+(canonical Duration text); `result` has `kind`, `failure_kind`, `exit_code`. Partial timestamps retain source
+precision, elapsed is measured independently, and unknown/returned/threw/exited/cancelled are observed boundary
+results, not session/phase completion, business commit, Review acceptance or Workflow success. Current read/activity
+grants still apply before decoding; target names confer no permission. No extensions or protected arguments,
+results, paths or exception messages are disclosed. Protected-body removal retains these safe facts, not redacts
+them. No new reader, ledger, Tool, snapshot or read mutation is introduced.
 
 `ActivityView::details()` returns typed `DetailReference`s. At most **32 permitted references per activity** are
 returned, newest recording time/full UUID first; excess fails the entire Query, never truncates. The complete

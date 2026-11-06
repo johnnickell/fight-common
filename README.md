@@ -66,6 +66,12 @@ through QueryBus; DBAL adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`. 
 [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target) for direct never-released moves
 and the unchanged released bridges.
 
+[Execution observations](docs/execution-observations.md#typed-activity-execution-facts) can optionally retain safe
+`ActivityExecution` target, partial timing, independently measured Duration and observed call/process result inside
+`PhaseActivity`. The existing Command → DBAL → shared Query → guarded `execution.activity` path preserves them;
+omitted execution is null. Returned/thrown/exited/cancelled never establishes business or Workflow success.
+Consumers still own capture, redaction and permissions; body removal does not redact safe metadata or copies.
+
 For [durable Tasks](docs/durable-tasks.md#explicit-composition), inject Domain `TaskRepository`, the existing
 `TransactionalUnitOfWork` and the protected `CommittedTaskReader` capability separately. The DBAL repository and
 Task transaction boundary share one dedicated connection; persistence does not own commit. Each Task handler

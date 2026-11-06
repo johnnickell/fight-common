@@ -106,7 +106,7 @@ This requirement adds no safe-metadata purge/redaction engine, attributed remova
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00205](../tasks/00205-TASK.md) | Record and inspect typed activity execution facts | ready-for-agent |
+| [TASK-00205](../tasks/00205-TASK.md) | Record and inspect typed activity execution facts | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

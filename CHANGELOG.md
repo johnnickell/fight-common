@@ -82,6 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional typed phase activity execution facts: final readonly `ActivityExecution`, `ActivityTarget`,
+  `ActivityTiming` and `ActivityResult`, reusing precision-preserving occurrences and fixed elapsed Duration.
+  Existing recording/reconstruction, immutable retries, shared activity Query and guarded `execution.activity`
+  expose closed target/timing/result data; omitted execution is explicit null. Partial/unknown measurements stay
+  honest and observed return/throw/exit/cancellation is never business success. Amend the never-released version-one
+  payload directly without historical codecs, new Tools, transaction APIs, automatic capture or consumer adoption.
+  Protected-body removal retains safe execution metadata and existing no-resurrection/permission guarantees.
 - Reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork` without ORM dependencies, preserving callback
   results, owned rollback, caller/nested rejection and terminal truthful `DbalTransactionOutcomeUncertain` failures.
   Auto-commit-off connections reject before callback without mode changes or caller-work interference; default

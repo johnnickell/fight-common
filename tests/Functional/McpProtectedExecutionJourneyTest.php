@@ -9,6 +9,10 @@ use Fight\Common\Application\Mcp\Detail\Exception\DetailRemovalRejected;
 use Fight\Common\Application\Mcp\Detail\Service\DetailAccess;
 use Fight\Common\Application\Mcp\Observation\Exception\ProtectedContentRemoved;
 use Fight\Common\Application\Mcp\Session\Service\ExecutionAccess;
+use Fight\Common\Domain\Mcp\Activity\ActivityExecution;
+use Fight\Common\Domain\Mcp\Activity\ActivityResult;
+use Fight\Common\Domain\Mcp\Activity\ActivityTarget;
+use Fight\Common\Domain\Mcp\Activity\ActivityTiming;
 use Fight\Common\Domain\Mcp\Detail\CaptureCompleteness;
 use Fight\Common\Domain\Mcp\Detail\Command\RemoveCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\DetailCapture;
@@ -20,6 +24,7 @@ use Fight\Common\Domain\Mcp\Detail\Query\GetCapturedDetail;
 use Fight\Common\Domain\Mcp\Detail\Query\ListCapturedMessages;
 use Fight\Common\Domain\Mcp\Observation\Observation;
 use Fight\Common\Domain\Mcp\Observation\ObservationId;
+use Fight\Common\Domain\Mcp\Observation\ObservationOccurrence;
 use Fight\Common\Domain\Mcp\Observation\Query\ListPhaseActivity;
 use Fight\Common\Domain\Mcp\Phase\Query\ListExecutionPhases;
 use Fight\Common\Domain\Mcp\Session\ExecutionSelection;
@@ -28,6 +33,7 @@ use Fight\Common\Domain\Mcp\Session\Query\ListExecutions;
 use Fight\Common\Domain\Mcp\Session\Query\SummarizeExecutions;
 use Fight\Common\Domain\Mcp\Session\SessionReference;
 use Fight\Common\Domain\Messaging\Query\Query;
+use Fight\Common\Domain\Value\DateTime\Duration;
 use Fight\Test\Common\Fixture\Mcp\Execution\McpExecutionFixture;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -82,6 +88,7 @@ final class McpProtectedExecutionJourneyTest extends TestCase
             $activities = $this->equivalent($fixture, 'execution.activity', $exact + ['phase_id' => $phase], new ListPhaseActivity('project', 'session', $phase));
             $this->assertNoBody($activities, $bodies);
             $row = $activities['activities'][0];
+            self::assertSame($this->executionFacts(), $row['activity']['execution']);
             $selection = $exact + ['phase_id' => $phase, 'producer_id' => $row['producer_id'], 'activity_id' => $row['observation_id']];
             self::assertCount(5, $row['details']);
             foreach ($row['details'] as $reference) {
@@ -323,6 +330,7 @@ final class McpProtectedExecutionJourneyTest extends TestCase
             $safe = $this->equivalent($fixture, 'execution.activity', ['project_id' => 'project', 'session_id' => 'session', 'phase_id' => 'phase'], new ListPhaseActivity('project', 'session', 'phase'));
             $references = array_column($safe['activities'][0]['details'], null, 'observation_id');
             self::assertSame('missing', $references[$detail->id()->toString()]['availability']);
+            self::assertSame($this->executionFacts(), $safe['activities'][0]['activity']['execution']);
             self::assertSame($summary, $this->equivalent($fixture, 'execution.summarize', ['projects' => ['project']], new SummarizeExecutions(ExecutionSelection::create(['project']))));
             $this->assertNoBody($safe, ['PROTECTED-REMOVAL-SENTINEL', 'PROTECTED-STILL-RETAINED']);
             $fixture->remove($command);
@@ -373,7 +381,22 @@ final class McpProtectedExecutionJourneyTest extends TestCase
     private function seedActivity(McpExecutionFixture $fixture): Observation
     {
         $fixture->seed(ObservationFixture::session()); $fixture->seed(ObservationFixture::phase());
-        $activity = ObservationFixture::activity(); $fixture->seed($activity); return $activity;
+        $execution = ActivityExecution::fromParts(
+            ActivityTarget::fromStrings('process', 'inspect'),
+            ActivityTiming::fromParts(null, ObservationOccurrence::fromString('2026-10-20T12:00:00.1200Z'), Duration::fromMicroseconds(0)),
+            ActivityResult::threw('process:interrupted')
+        );
+        $activity = ObservationFixture::activity(['activity' => array_replace(ObservationFixture::activity()->activity()->toArray(), ['execution' => $execution->toArray()])]);
+        $fixture->seed($activity); return $activity;
+    }
+
+    private function executionFacts(): array
+    {
+        return [
+            'target' => ['capability' => 'process', 'name' => 'inspect'],
+            'timing' => ['started_at' => null, 'ended_at' => '2026-10-20T12:00:00.1200Z', 'elapsed' => '0us'],
+            'result' => ['kind' => 'threw', 'failure_kind' => 'process:interrupted', 'exit_code' => null],
+        ];
     }
 
     private function seedDetail(McpExecutionFixture $fixture, Observation $activity, DetailKind $kind = DetailKind::MESSAGE, CaptureCompleteness $completeness = CaptureCompleteness::COMPLETE, ?string $body = 'PROTECTED-SENTINEL'): Observation

@@ -21,7 +21,7 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent | — |
+| Active Work | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | in-progress | — |
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -67,14 +67,13 @@ their owning records; routing and planning checks stay offline.
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| None | — | — | — | — | — | — |
+| — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | in-progress | — | — |
 
 ## Ready Frontier
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | — | — |
-| — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 

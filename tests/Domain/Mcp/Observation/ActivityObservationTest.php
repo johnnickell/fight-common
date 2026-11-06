@@ -6,6 +6,10 @@ namespace Fight\Test\Common\Domain\Mcp\Observation;
 
 use DateTimeImmutable;
 use Fight\Common\Domain\Exception\DomainException;
+use Fight\Common\Domain\Mcp\Activity\ActivityExecution;
+use Fight\Common\Domain\Mcp\Activity\ActivityResult;
+use Fight\Common\Domain\Mcp\Activity\ActivityTarget;
+use Fight\Common\Domain\Mcp\Activity\ActivityTiming;
 use Fight\Common\Domain\Mcp\Activity\PhaseActivity;
 use Fight\Common\Domain\Mcp\Observation\Command\RecordPhaseObservation;
 use Fight\Common\Domain\Mcp\Observation\Event\ObservationRecorded;
@@ -15,6 +19,7 @@ use Fight\Common\Domain\Mcp\Observation\ObservationOutcome;
 use Fight\Common\Domain\Mcp\Usage\UsageCompleteness;
 use Fight\Common\Domain\Mcp\Usage\UsageMeasurement;
 use Fight\Common\Domain\Mcp\Value\ObservationName;
+use Fight\Common\Domain\Value\DateTime\Duration;
 use Fight\Test\Common\TestCase\Mcp\Execution\ObservationFixture;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -72,6 +77,137 @@ final class ActivityObservationTest extends UnitTestCase
         self::assertStringNotContainsString('Safe public summary', json_encode($event->toArray()));
         self::assertNull(ObservationFixture::phase()->activity());
         self::assertNull(ObservationFixture::phase()->occurrence());
+    }
+
+    public function test_that_execution_roundtrips_through_activity_and_command_without_changing_observation_state(): void
+    {
+        $execution = ActivityExecution::fromParts(
+            ActivityTarget::fromStrings('tool', 'read'),
+            ActivityTiming::fromParts(ObservationOccurrence::fromString('2026-11-06T12:00:00.120Z'), null, Duration::fromMicroseconds(7)),
+            ActivityResult::returned()
+        );
+        $activity = PhaseActivity::create('agent-os/tool', 'Tool invocation returned', execution: $execution);
+        $expected = [
+            'version' => 1,
+            'kind' => 'agent-os/tool',
+            'summary' => 'Tool invocation returned',
+            'model_id' => null,
+            'execution' => [
+                'target' => ['capability' => 'tool', 'name' => 'read'],
+                'timing' => ['started_at' => '2026-11-06T12:00:00.120Z', 'ended_at' => null, 'elapsed' => '7us'],
+                'result' => ['kind' => 'returned', 'failure_kind' => null, 'exit_code' => null],
+            ],
+            'usage' => [],
+        ];
+        self::assertSame($execution, $activity->execution());
+        self::assertSame($expected, $activity->toArray());
+        self::assertSame($expected, $activity->jsonSerialize());
+        self::assertSame(json_encode($expected, JSON_THROW_ON_ERROR), json_encode($activity, JSON_THROW_ON_ERROR));
+        self::assertSame(json_encode($expected, JSON_THROW_ON_ERROR), $activity->toString());
+        foreach ([PhaseActivity::fromString($activity->toString()), PhaseActivity::fromArray(array_reverse($expected, true))] as $copy) {
+            self::assertTrue($activity->equals($copy));
+            self::assertSame($activity->hashValue(), $copy->hashValue());
+            self::assertSame($expected, $copy->toArray());
+        }
+        $base = ObservationFixture::phase();
+        $observation = Observation::forActivity($base->id(), $base->producerId(), $base->session(), $base->phase(), ObservationOccurrence::fromString('2026-11-06T12:00:01Z'), $activity);
+        $copy = RecordPhaseObservation::fromArray((new RecordPhaseObservation($observation))->toArray())->observation();
+        self::assertSame($expected, $copy->activity()->toArray());
+        self::assertSame($observation->comparison(), $copy->comparison());
+        self::assertTrue($observation->matches($copy));
+        self::assertNull($copy->startedAt());
+        self::assertNull($copy->endedAt());
+        self::assertSame(ObservationOutcome::UNKNOWN, $copy->outcome());
+        $event = ObservationRecorded::fromRecorded($copy->recorded(new DateTimeImmutable('2026-11-06T12:00:02Z')));
+        self::assertSame(['observation_id', 'producer_id', 'project_id', 'session_id', 'phase_id', 'recorded_at'], array_keys($event->toArray()));
+        self::assertStringNotContainsString('execution', json_encode($event->toArray(), JSON_THROW_ON_ERROR));
+
+        foreach ([
+            ActivityExecution::fromParts(ActivityTarget::fromStrings('tool', 'write'), $execution->timing(), $execution->result()),
+            ActivityExecution::fromParts($execution->target(), ActivityTiming::fromParts(null, null, Duration::fromMicroseconds(0)), $execution->result()),
+            ActivityExecution::fromParts($execution->target(), $execution->timing(), ActivityResult::cancelled()),
+            null,
+        ] as $changedExecution) {
+            $changedActivity = PhaseActivity::create('agent-os/tool', 'Tool invocation returned', execution: $changedExecution);
+            self::assertFalse($activity->equals($changedActivity));
+            self::assertNotSame($activity->hashValue(), $changedActivity->hashValue());
+            $changedObservation = Observation::forActivity($base->id(), $base->producerId(), $base->session(), $base->phase(), $observation->occurrence(), $changedActivity);
+            self::assertFalse($observation->matches($changedObservation));
+        }
+    }
+
+    public function test_that_execution_is_explicitly_null_when_not_supplied_and_not_a_legacy_shape(): void
+    {
+        $activity = PhaseActivity::create('agent-os/tool', 'No execution evidence');
+        self::assertNull($activity->execution());
+        self::assertArrayHasKey('execution', $activity->toArray());
+        self::assertNull($activity->toArray()['execution']);
+        self::assertNull(PhaseActivity::fromString($activity->toString())->execution());
+        $data = $activity->toArray();
+        unset($data['execution']);
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/\AInvalid activity structure\.\z/D');
+        PhaseActivity::fromArray($data);
+    }
+
+    #[DataProvider('invalidActivityTexts')]
+    public function test_that_activity_rejects_malformed_or_scalar_text_with_fixed_error(string $text): void
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/\AInvalid activity text\.\z/D');
+        PhaseActivity::fromString($text);
+    }
+
+    public static function invalidActivityTexts(): iterable
+    {
+        foreach (['private sentinel', '{', 'null', 'false', '1', '"private sentinel"'] as $text) {
+            yield [$text];
+        }
+    }
+
+    public function test_that_activity_snapshots_nested_execution_input_and_output(): void
+    {
+        $name = 'read';
+        $execution = [
+            'target' => ['capability' => 'tool', 'name' => &$name],
+            'timing' => ['started_at' => null, 'ended_at' => null, 'elapsed' => '0us'],
+            'result' => ['kind' => 'exited', 'failure_kind' => null, 'exit_code' => -1],
+        ];
+        $data = PhaseActivity::create('agent-os/process', 'Exited')->toArray();
+        $data['execution'] = &$execution;
+        $activity = PhaseActivity::fromArray($data);
+        $name = 'write';
+        $execution = null;
+        $output = $activity->toArray();
+        $output['execution']['target']['name'] = 'write';
+        $output['execution']['timing']['elapsed'] = '999us';
+        $output['execution']['result']['exit_code'] = 0;
+        self::assertSame('read', $activity->execution()->target()->name());
+        self::assertSame('0us', $activity->execution()->timing()->elapsed()->toString());
+        self::assertSame(-1, $activity->execution()->result()->exitCode());
+    }
+
+    #[DataProvider('invalidExecutionActivities')]
+    public function test_that_activity_rejects_malformed_nested_execution_with_safe_fixed_errors(mixed $execution, string $message): void
+    {
+        $data = PhaseActivity::create('agent-os/tool', 'safe')->toArray();
+        $data['execution'] = $execution;
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessageMatches('/\A'.preg_quote($message, '/').'\z/D');
+        PhaseActivity::fromArray($data);
+    }
+
+    public static function invalidExecutionActivities(): iterable
+    {
+        foreach (['private sentinel', false, 1] as $execution) {
+            yield [$execution, 'Invalid activity structure.'];
+        }
+        yield [[], 'Invalid activity execution structure.'];
+        yield [[
+            'target' => ['capability' => 'tool', 'name' => 'read', 'arguments' => 'private sentinel'],
+            'timing' => ['started_at' => null, 'ended_at' => null, 'elapsed' => null],
+            'result' => ['kind' => 'unknown', 'failure_kind' => null, 'exit_code' => null],
+        ], 'Invalid activity target.'];
     }
 
     public function test_that_all_observation_kinds_use_one_current_version_one_shape(): void
@@ -191,6 +327,7 @@ final class ActivityObservationTest extends UnitTestCase
         $measurement = ['version' => 1, 'metric' => 'v/a', 'unit' => 'token', 'provenance' => 'provider', 'completeness' => 'complete', 'value' => '0'];
         foreach ([
             ['version' => 2], ['body' => 'private'], ['kind' => null], ['summary' => 0], ['model_id' => []], ['model_id' => 'bad model'],
+            ['execution' => false], ['execution' => []],
             ['summary' => str_repeat('x', 513)], ['summary' => "\xff"], ['summary' => "safe\nbody"], ['kind' => 'plain'],
             ['usage' => null], ['usage' => ['key' => $measurement]], ['usage' => array_fill(0, 33, $measurement)], ['usage' => [null]],
             ['usage' => [$measurement, $measurement]],
