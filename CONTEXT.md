@@ -21,7 +21,7 @@ execution-query-bus naming repairs plus the affected operation-shape digest refr
 and Notice persisted-record support naming corrections, same-project MySQL readiness/recovery verification, and
 header-validator, Laravel View-factory and synchronous event-dispatcher local naming corrections, followed by
 human-authorized Skill Resource-provider, Skill-availability collaborator and exact-read selected-provider
-naming corrections; the
+naming corrections, then Tool-availability supplier locals and matching Skill/Resource policy placeholders. The
 [naming inventory and retained contracts](docs/maintenance/descriptive-variable-names.md) distinguish corrected
 private/provisional collaborators from exact released named-parameter, saved-state and extension exceptions.
 Complete token/path accounting is coverage evidence, not proof of semantic naming completeness. The

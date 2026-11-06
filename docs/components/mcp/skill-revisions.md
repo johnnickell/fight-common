@@ -120,10 +120,10 @@ $revision = McpSkillRevision::fromFiles(
     resourceLimits: $metadataLimits,
     readLimits: $readLimits
 );
-$skillResourceProvider = new McpSkillResources([$revision], $currentWholeSkillDecision, $psrStreamFactory);
+$skillResourceProvider = new McpSkillResources([$revision], $skillAvailability, $psrStreamFactory);
 $resourceDiscovery = new McpResourceDiscovery(
     [$skillResourceProvider, ...$otherReadableProviders],
-    $currentResourceDecision,
+    $resourceAvailability,
     $cursorSecret,
     'consumer-catalog',
     $metadataLimits,

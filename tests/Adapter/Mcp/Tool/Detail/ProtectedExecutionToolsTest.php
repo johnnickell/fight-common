@@ -74,7 +74,7 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
 
     public function test_that_invalid_protected_output_and_query_failures_use_sanitized_protocol_errors_not_empty_success(): void
     {
-        $available = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
+        $toolAvailability = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
         $diagnostics = new class implements McpDiagnostics { public array $failures = []; public function record(Throwable $failure): void { $this->failures[] = 'sanitized_failure'; } };
         foreach ([new MessagePage([], -1, 1, 32), new RuntimeException('PROTECTED-QUERY-FAILURE')] as $outcome) {
             $queryBus = $this->mock(QueryBus::class);
@@ -82,7 +82,7 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
             if ($outcome instanceof Throwable) { $expectation->andThrow($outcome); }
             else { $expectation->andReturn($outcome); }
             $registry = new McpToolRegistry([new ListCapturedMessagesTool($queryBus)]);
-            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [new McpToolDiscovery($registry, $available, str_repeat('key-', 8)), new McpToolInvocation(new McpToolInvoker($registry, $available))]), diagnostics: $diagnostics);
+            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [new McpToolDiscovery($registry, $toolAvailability, str_repeat('key-', 8)), new McpToolInvocation(new McpToolInvoker($registry, $toolAvailability))]), diagnostics: $diagnostics);
             $response = $responder->respond(json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'execution.messages', 'arguments' => self::SELECTION, '_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR))->toArray();
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $response['error']);
             self::assertArrayNotHasKey('result', $response);

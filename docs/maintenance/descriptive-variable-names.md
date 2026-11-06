@@ -41,8 +41,12 @@ responsibility, preserving genuine header/view data and framework-shaped paramet
 marked R-01–R-13 resolved but identified Skill Resource providers named as resource data (R-14), a Skill
 availability collaborator named as its Boolean answer (R-15), and a selected readable provider named only by
 selection state (R-16). The human-authorized sixth repair makes those roles explicit, including equivalent
-changed/duplicate provider bindings and current composition examples. Enumeration had included these sites
-without establishing their semantic compliance; it is not independent acceptance.
+changed/duplicate provider bindings and current composition examples. Subsequent Review marked R-01–R-16
+resolved for their stated scope but identified three Tool-availability suppliers named as their Boolean answer
+(R-17). The final human-authorized repair names those outer locals `toolAvailability` and reconciles their
+actual discovery/invoker injections. The same bounded supplier trace corrects the Skill guide's two injected
+policy placeholders to `skillAvailability`/`resourceAvailability`, not already-obtained decisions. Enumeration
+had included these sites without establishing their semantic compliance; it is not independent acceptance.
 The repair handoff retains refreshed complete inventories and explicit type/caller dispositions for these findings
 and equivalent roles; earlier inventories remain historical evidence, not proof of naming acceptance.
 This chore is not a general behavioral/security audit. Vendor/generated output, Git data, ignored runs, immutable
@@ -92,6 +96,13 @@ and validators are included. No unreadable owned path was encountered.
   `McpSkillResources` capability, not its resource maps. Alternate changed/duplicate catalogs are
   `changedProvider`/`duplicateProvider`; Skill Resource unit and journey bindings use `skillResourceProvider`.
   The combined journey's `skillAvailability` supplies fresh decisions; `allowed` remains its Boolean state.
+  [Protected Tool tests](https://github.com/johnnickell/fight-common/blob/develop/tests/Adapter/Mcp/Tool/Detail/ProtectedExecutionToolsTest.php)
+  and [bounded Tool output tests](https://github.com/johnnickell/fight-common/blob/develop/tests/Application/Mcp/Tool/McpBoundedToolOutputTest.php)
+  use `toolAvailability` for the constant-allow supplier shared by discovery and invocation, preserving output
+  budgets, typed projections, safe errors and every assertion. The Skill guide uses `skillAvailability` and
+  `resourceAvailability` for its injected policies; neither argument is a Boolean answer. Actual Boolean
+  `available`/`allowed` state, production `availability`, contextual policy/access names and direct helper
+  returns remain distinct; no helper/API redesign or universal suffix rule is implied.
   Resource `read()` uses `selectedProvider` for the exact owner; `resources()` retains its genuine `selected`
   merge index. Ownership, availability-before-open, safe errors and consume/close behavior remain unchanged.
   OAuth examples/tests use `oauthResponseFactory`; MCP tests use `responseFactory`, `toolRegistry` and

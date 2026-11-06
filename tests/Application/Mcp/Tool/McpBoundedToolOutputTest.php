@@ -46,12 +46,12 @@ final class McpBoundedToolOutputTest extends UnitTestCase
                 return $this->budget === null ? McpToolOutput::structured(['value' => $this->value]) : McpToolOutput::boundedStructured(['value' => $this->value], $this->budget);
             }
         };
-        $available = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
+        $toolAvailability = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
         $diagnostics = new class implements McpDiagnostics { public array $failures = []; public function record(Throwable $failure): void { $this->failures[] = $failure; } };
         $registry = new McpToolRegistry([$tool]);
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('雪 \\ "', '1'), [
-            new McpToolDiscovery($registry, $available, str_repeat('key-', 8)),
-            new McpToolInvocation(new McpToolInvoker($registry, $available)),
+            new McpToolDiscovery($registry, $toolAvailability, str_repeat('key-', 8)),
+            new McpToolInvocation(new McpToolInvoker($registry, $toolAvailability)),
         ]), diagnostics: $diagnostics);
         $request = static fn(string $id): string => json_encode(['jsonrpc' => '2.0', 'id' => $id, 'method' => 'tools/call', 'params' => ['name' => 'bounded', 'arguments' => (object) [], '_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR);
         $baseline = $responder->respond($request('id雪"'))->toJson();
@@ -77,10 +77,10 @@ final class McpBoundedToolOutputTest extends UnitTestCase
         $queryBus = $this->mock(QueryBus::class);
         $queryBus->shouldReceive('fetch')->once()->andReturn(new ExecutionSummary(0, ['body' => 1], 0, 0, [], null));
         $registry = new McpToolRegistry([new SummarizeExecutionsTool($queryBus)]);
-        $available = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
+        $toolAvailability = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [
-            new McpToolDiscovery($registry, $available, str_repeat('key-', 8)),
-            new McpToolInvocation(new McpToolInvoker($registry, $available)),
+            new McpToolDiscovery($registry, $toolAvailability, str_repeat('key-', 8)),
+            new McpToolInvocation(new McpToolInvoker($registry, $toolAvailability)),
         ]));
         $request = json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'execution.summarize', 'arguments' => ['projects' => []], '_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR);
         $response = $responder->respond($request)->toArray();
