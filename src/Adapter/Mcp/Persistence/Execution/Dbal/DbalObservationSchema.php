@@ -16,6 +16,11 @@ use RuntimeException;
  */
 final readonly class DbalObservationSchema
 {
+    /**
+     * Default table names only, not the configured storage selection
+     *
+     * @deprecated Will be removed in v2.0.0. Use DbalObservationTables accessors for selected names instead.
+     */
     public const array TABLES = [
         'fight_execution_schema',
         'fight_execution_sessions',
