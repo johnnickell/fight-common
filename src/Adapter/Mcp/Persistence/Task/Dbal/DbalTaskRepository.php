@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fight\Common\Adapter\Mcp\Persistence\Task\Dbal;
 
 use Doctrine\DBAL\Connection;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use Fight\Common\Application\Mcp\Task\Exception\TaskStorageFailed;
 use Fight\Common\Application\Mcp\Task\Service\CommittedTaskReader;
 use Fight\Common\Domain\Mcp\Task\Task;
@@ -23,6 +24,7 @@ use Throwable;
 final readonly class DbalTaskRepository implements TaskRepository, CommittedTaskReader
 {
     private Connection $connection;
+    private DbalTableName $taskTable;
 
     /**
      * Constructs DbalTaskRepository
@@ -30,6 +32,7 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
     public function __construct(private DbalTaskTransaction $transactionalUnitOfWork)
     {
         $this->connection = $transactionalUnitOfWork->connection();
+        $this->taskTable = $transactionalUnitOfWork->tables()->taskTable();
     }
 
     /**
@@ -55,8 +58,9 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
 
         $key = ['scope' => $task->definition()->scope(), 'task_id' => $task->definition()->id()->toString()];
         // The namespace lock makes replacement atomic across every supported backend without an upsert dialect.
-        $this->connection->delete('fight_tasks', $key);
-        $this->connection->insert('fight_tasks', [...$key, 'payload' => $payload]);
+        $tableName = $this->taskTable->quoted($this->connection->getDatabasePlatform());
+        $this->connection->delete($tableName, $key);
+        $this->connection->insert($tableName, [...$key, 'payload' => $payload]);
     }
 
     /**
@@ -68,7 +72,12 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
         $removed = [];
         foreach ($selection->ids() as $id) {
             $key = ['scope' => $selection->scope(), 'task_id' => $id->toString()];
-            if ($this->connection->delete('fight_tasks', $key) === 1) {
+            if (
+                $this->connection->delete(
+                    $this->taskTable->quoted($this->connection->getDatabasePlatform()),
+                    $key
+                ) === 1
+            ) {
                 $removed[] = $id;
             }
         }
@@ -94,7 +103,10 @@ final readonly class DbalTaskRepository implements TaskRepository, CommittedTask
         TaskDefinition::reference($scope);
         try {
             $payload = $this->connection->fetchOne(
-                'SELECT SUBSTRING(payload, 1, 40961) FROM fight_tasks WHERE scope = ? AND task_id = ?',
+                sprintf(
+                    'SELECT SUBSTRING(payload, 1, 40961) FROM %s WHERE scope = ? AND task_id = ?',
+                    $this->taskTable->quoted($this->connection->getDatabasePlatform())
+                ),
                 [$scope, $id->toString()]
             );
             if ($payload === false) {

@@ -47,8 +47,9 @@ wire/storage/retry encoders or outer `json_encode()` options/precision. Shared l
 
 Use a dedicated idle DBAL connection to an owned SQLite, MySQL or PostgreSQL database. During exclusive deployment,
 `(new DbalTaskSchema())->install($connection)` creates or validates the version-one namespace. The schema also offers
-`addTo($schema, $platform)` for consumer migration composition; initialize `fight_task_state` with singleton/version
-`1/1` when composing manually. MySQL uses InnoDB and `utf8mb4_bin`; partial DDL is an operator recovery condition.
+`addTo($schema, $platform)` for consumer migration composition; initialize the selected state table (default
+`fight_task_state`) with singleton/version `1/1` when composing manually. MySQL uses InnoDB and `utf8mb4_bin`;
+partial DDL is an operator recovery condition.
 There are no development-format migrations, automatic cleanup or schema changes to other Common capabilities.
 
 Construct these explicit collaborators (names below are under `Fight\Common`):
@@ -153,6 +154,57 @@ single-use continuation, using this same state/version/transaction rather than a
 `RecordTaskState` cannot create/replace input contracts or clear unanswered forms with `working`. Production inputs and results must already be consumer-projected safe evidence where appropriate; JSON/schema
 validation alone is not redaction. The concrete policy's required disclosure closure decides current safety/access
 for the entire view, not just its final body. No default public-read policy exists.
+
+## Configurable durable storage
+
+`Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables` explicitly selects both physical tables independently:
+
+| Constructor parameter | Default | Responsibility |
+| --- | --- | --- |
+| `stateTable` | `fight_task_state` | Schema version and namespace serialization lock |
+| `taskTable` | `fight_tasks` | Complete retained Task, input, cancellation and retry/comparison payload |
+
+Pass the same selection to the deployment schema and Task transaction. The repository and its committed reader
+inherit that exact selection from the transaction; they accept no second potentially inconsistent configuration.
+For example (all names below are under `Fight\Common`):
+
+```php
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTransaction;
+
+$tables = new DbalTaskTables(stateTable: 'app_task_state', taskTable: 'app_tasks');
+// Explicit exclusive deployment only, never inside a handler or request.
+(new DbalTaskSchema(tables: $tables))->install($connection);
+$transactionalUnitOfWork = new DbalTaskTransaction(connection: $connection, tables: $tables);
+$taskRepository = new DbalTaskRepository(transactionalUnitOfWork: $transactionalUnitOfWork);
+$committedTaskReader = $taskRepository;
+```
+
+`new DbalTaskTables(stateTable: 'app_task_state')` retains `fight_tasks`;
+`new DbalTaskTables(taskTable: 'app_tasks')` retains `fight_task_state`. Omitting the selection preserves both
+exact defaults and existing constructor/named arguments. `DbalTaskSchema::TABLES` remains the **default inventory**,
+not a configured-table accessor; use `$tables->stateTable()->name()` / `$tables->taskTable()->name()` for selected
+logical names. `DbalTaskTransaction::tables()` exposes the exact adapter-only composition selection, without adding
+configuration to Domain/Application contracts. Give every participating connection/producer/worker the same selection.
+All Commands, protected Queries, polling and bounded retries continue through their existing handlers and policies.
+
+Names use the shared Adapter `DbalTableName`: exactly `[A-Za-z_][A-Za-z0-9_]{0,62}` (1–63 ASCII bytes), with no trimming,
+qualification, quoting syntax, whitespace or implicit prefixes. The two names must be distinct even ignoring case
+for portable MySQL composition. Invalid names/collisions raise `InvalidArgumentException` before database effects.
+Reserved words and mixed case are safely platform-quoted; data remains bound separately. Consumers retain connection/
+schema selection, privileges and database naming/case constraints. Common reads no environment/global naming settings
+and accepts no table names from MCP requests.
+
+Changing a selection **does not migrate, rename, copy or recover old data**, renew TTL, clear input/cancellation,
+change a revision, authorize access or stop a job. Runtime operations never install tables or fall back to defaults.
+A changed Task table can be empty while the old one remains populated; this is not successful migration. An explicit
+installer creates both selected tables only when neither exists, or validates the existing complete selection.
+A partial selection (including one intentionally retained default already present while its new counterpart is absent)
+rejects as incomplete: operators must explicitly reconcile/complete storage under exclusive deployment, not expect
+an automatic half-install or data transfer. Incompatible version/payload storage also rejects. Retention, permissions,
+rollback/uncertainty, actual commit and independent repository/transaction composition remain unchanged.
 
 ## State, concurrency and retries
 
@@ -353,7 +405,13 @@ ten Application, one Adapter); this bookkeeping correction adds no promise for e
 Existing tagged CQRS, Tool, framework,
 transaction, notice and Event Store APIs remain unchanged. No dependency-floor change or new suppression is required.
 
-The new reserved `fight_task_state` / `fight_tasks` namespace is version one and provisional until first tagged.
+The default `fight_task_state` / `fight_tasks` namespace is version one and provisional until first tagged.
+TASK-00199 adds public final readonly `DbalTaskTables`, optional `tables` construction for schema/transaction,
+and adapter `DbalTaskTransaction::tables()` selection. Existing repository construction and all stored/wire shapes
+remain unchanged. The selection is an Adapter configuration object, not a Domain value or an inward naming port.
+Configured SQLite/MySQL/PostgreSQL evidence retains default variants and covers partial selections with populated
+default counterparts, explicit installation/failure boundaries, lifecycle/terminal/input/confirmation/cancellation,
+retention/removal, durable reopen and configured independent-process races and guarded HTTP polling.
 TASK-00171 directly adds a private random lifetime incarnation/public-state counter to its coherent row representation,
 required comparison-context admission, and read/live revision projection, without snapshot migrations or new tables.
 Compatibility is against tags, not earlier development snapshots. There is no migration of old experimental formats,

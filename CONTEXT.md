@@ -319,8 +319,15 @@ initial acknowledgment.
 `DbalTaskTransaction` binds its exact dedicated DBAL connection and owns schema serialization/failure translation
 around reusable `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`. An unrelated DBAL/ORM transaction or
 another Task boundary on that connection cannot admit repository writes; committed reads require idle state.
-Dedicated version-one `fight_task_state` / `fight_tasks` storage supports SQLite/MySQL/PostgreSQL. A namespace lock
-serializes mutation/admission through actual commit; state/payload/comparison changes are atomic. Enclosing
+Dedicated version-one Task storage supports SQLite/MySQL/PostgreSQL. Adapter-only `DbalTaskTables` independently
+selects `stateTable` (default `fight_task_state`) and `taskTable` (default `fight_tasks`), using shared `DbalTableName`
+ordinary-name validation/platform quoting and rejecting case-insensitive collisions. The same explicit selection
+composes schema installation and the Task transaction; repository/committed reads inherit it from that exact
+transaction. Partial overrides intentionally retain omitted defaults; `DbalTaskSchema::TABLES` remains the default
+inventory. Every independent connection/worker must use the same selection. Installation stays explicit/exclusive;
+missing/partial/incompatible selected storage fails without runtime creation or fallback. A changed selection never
+renames, copies or migrates old data and confers no permissions. See [configured durable storage](docs/durable-tasks.md#configurable-durable-storage).
+A namespace lock serializes mutation/admission through actual commit; state/payload/comparison changes are atomic. Enclosing
 transactions and dirty reads reject before writes without
 committing or rolling back caller work. Unknown begin/commit/rollback closes the boundary with explicit storage
 uncertainty; fresh authorized polling reconciles possible committed state. Reference-only `TaskChanged` follows
