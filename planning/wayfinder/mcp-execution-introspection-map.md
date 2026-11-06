@@ -120,6 +120,11 @@ planning. Follow the handoff below to Board-based execution selection, not anoth
 
 ## Planning handoff
 
+Subsequent approved amendment — 2026-11-06: [TICKET-00056](../tickets/00056-TICKET.md) and its single vertical
+[TASK-00205](../tasks/00205-TASK.md) add typed activity execution facts under EPIC-00009. Their planning is complete
+and Board-based execution selection remains separate. This does not reopen the map's decisions or revoke prior
+acceptance; the original four-EPIC/thirteen-TICKET/25-TASK counts below describe the initial decomposition.
+
 [WF-048 — Approved EPIC destinations](tickets/WF-048-select-additional-mcp-capabilities-from-consumer-journeys.md#approved-epic-destinations)
 owns the approved four-way split. Separate approved grill invocations produced all four records:
 
