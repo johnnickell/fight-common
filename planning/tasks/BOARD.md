@@ -202,7 +202,7 @@ their owning records; routing and planning checks stay offline.
 | — | [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | [TICKET-00054 — Customize execution persistence tables](../tickets/00054-TICKET.md) | done | — | [PR #286](https://github.com/johnnickell/fight-common/pull/286) |
 | — | [TASK-00199](00199-TASK.md) | Configure durable Task storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #287](https://github.com/johnnickell/fight-common/pull/287) |
 | — | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #289](https://github.com/johnnickell/fight-common/pull/289) |
-| — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | — |
+| — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #291](https://github.com/johnnickell/fight-common/pull/291) |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
 <!-- /planning:board -->
