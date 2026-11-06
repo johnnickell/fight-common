@@ -31,8 +31,10 @@ final class DbalTaskTransaction implements TransactionalUnitOfWork
     /**
      * Constructs DbalTaskTransaction
      */
-    public function __construct(private readonly Connection $connection)
-    {
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly DbalTaskTables $tables = new DbalTaskTables()
+    ) {
         $this->transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
         $platform = $connection->getDatabasePlatform();
         if (
@@ -59,11 +61,12 @@ final class DbalTaskTransaction implements TransactionalUnitOfWork
             ): mixed {
                 $operationStarted = true;
                 // Serialize before admission and every lookup, including repeats, through actual commit.
+                $stateTable = $this->tables->stateTable()->quoted($this->connection->getDatabasePlatform());
                 $this->connection->executeStatement(
-                    'UPDATE fight_task_state SET version = version WHERE singleton = 1'
+                    'UPDATE '.$stateTable.' SET version = version WHERE singleton = 1'
                 );
                 if (
-                    (int) $this->connection->fetchOne('SELECT version FROM fight_task_state WHERE singleton = 1') !== 1
+                    (int) $this->connection->fetchOne('SELECT version FROM '.$stateTable.' WHERE singleton = 1') !== 1
                 ) {
                     throw new RuntimeException('Unsupported Task schema.');
                 }
@@ -101,6 +104,14 @@ final class DbalTaskTransaction implements TransactionalUnitOfWork
     public function connection(): Connection
     {
         return $this->connection;
+    }
+
+    /**
+     * Returns the exact table selection for participating Task persistence
+     */
+    public function tables(): DbalTaskTables
+    {
+        return $this->tables;
     }
 
     /**

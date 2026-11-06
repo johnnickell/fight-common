@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Utility\ClassName;
@@ -23,7 +24,8 @@ $connection->beforeCommit = static function () use ($role, $directory): void {
         usleep(10000);
     }
 };
-$fixture = new TaskFixture($connection); $events = 0;
+$tables = new DbalTaskTables($config['stateTable'], $config['taskTable']);
+$fixture = new TaskFixture($connection, $tables); $events = 0;
 $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static function () use (&$events): void { ++$events; });
 $admission = static function () use ($fixture, $role, $directory): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'yes');

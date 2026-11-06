@@ -117,7 +117,7 @@ certification is requested. These are future requirements, not passed evidence o
 <!-- planning:children -->
 | ID | Title | Status |
 |---|---|---|
-| [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | ready-for-agent |
+| [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | done |
 | [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent |
 | [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent |
 | [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent |
@@ -152,6 +152,8 @@ existing contracts/permissions, relevant docs/CONTEXT.md and required local veri
 DBAL behavior uses real SQLite/MySQL/PostgreSQL evidence. No migrations, renames/data transfers, qualified-name
 expansion or unrelated refactoring are authorized. Exact APIs and implementation details remain downstream design.
 
+The following is the original planning checkpoint, not current implementation/publication state:
+
 All four TASK records are approved and written in the user-selected isolated planning checkout. EPIC-00013 now has
 complete approved decomposition into three TICKETs and nine TASKs (TASK-00194–00202). Planning completion is not
 implementation completion: all implementation, runtime allocation, implementation branches, commits and publication
@@ -159,3 +161,17 @@ remain unstarted under these records. Order stays unranked; release target and g
 unassigned. Consult the authoritative Board for execution selection rather than inferring priority from this EPIC.
 
 Next: `/skill:next` from the isolated planning checkout.
+
+### Durable Task supplier acceptance checkpoint — 2026-11-05
+
+TASK-00199 has independent Review ACCEPT and required QA PASS on candidate
+`3c32a1a2f3cd453328683c95112159d17919c18f`, completing its two-table durable Task supplier with required
+local verification. TASK-00200/00201/00202 remain unfinished, so this TICKET and EPIC-00013 remain open.
+Notice/subscription configuration, combined live integration and final ORM/inventory qualification are not
+implied by Task acceptance. The planning-checkout instruction above is historical; current routing belongs
+to the [Board](../tasks/BOARD.md).
+
+Publication/final-head verification is pending at this administrative checkpoint. Current TASK-00199 delivery
+results and owned-resource dispositions belong in canonical
+`.runs/tasks/TASK-00199/runs/20261105-land-01/land.md` and its actual recorded PR. No merge, release,
+deployment, tracked pending-merge queue or post-merge planning chore is asserted.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
+use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
 use Fight\Common\Domain\Mcp\Task\Event\TaskChanged;
 use Fight\Common\Domain\Utility\ClassName;
@@ -18,7 +19,8 @@ ignore_user_abort(true);
 $directory = getenv('FIGHT_TASK_HTTP_DIRECTORY');
 $config = json_decode(file_get_contents($directory.'/config.json'), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($config['params']);
-$fixture = new TaskFixture($connection);
+$tables = new DbalTaskTables($config['stateTable'], $config['taskTable']);
+$fixture = new TaskFixture($connection, $tables);
 $flags = file_exists($directory.'/flags.json') ? json_decode(file_get_contents($directory.'/flags.json'), true, flags: JSON_THROW_ON_ERROR) : [];
 foreach ($flags as $key => $value) { $fixture->$key = $value; }
 $endpoint = new TaskEndpoint($fixture);
