@@ -120,7 +120,7 @@ certification is requested. These are future requirements, not passed evidence o
 | [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | done |
 | [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | done |
 | [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | done |
-| [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent |
+| [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | in-progress |
 <!-- /planning:children -->
 
 ## Decisions and progress

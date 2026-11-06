@@ -38,6 +38,13 @@ validation can optionally consume request nonces through a `Domain\Auth\NonceRep
 repository shared by all accepting instances for replay-sensitive traffic. The shipped in-memory
 repository is process-local; the Doctrine repository provides a durable shared boundary.
 
+`DoctrineNonceRepository` defaults to `nonces` through `database/schema/Auth.Nonce.orm.xml`. Consumer native ORM
+mappings/metadata remain the sole table-name authority, including native quoting and supported schema mapping.
+Both immediate raw-SQL consumption and expired purge use Doctrine's configured quote strategy and platform.
+Changing the mapping never transfers replay memory, creates storage or falls back to populated defaults. See
+[table names and native ORM composition](../../table-names.md#native-orm-authority-for-nonce-and-audit-tables) for setup,
+expiry/exception semantics and the complete ownership inventory.
+
 ---
 
 ## Table of Contents

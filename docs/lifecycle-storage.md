@@ -23,9 +23,9 @@ Each schema's `TABLES` constant remains its exact **default inventory**, not the
 
 The Task and Notice suppliers retain their [Task](durable-tasks.md#configurable-durable-storage) and
 [Notice](safe-notices.md#explicit-physical-table-selection) contracts and focused qualification. This inventory
-reconciles their composition with subscriptions, not a duplicate implementation or final ORM inventory claim.
-Nonce/audit mappings remain separate ORM metadata; TASK-00202 owns their qualification and the final whole-package
-inventory. Execution and Event Sourcing storage keep their own selections.
+reconciles their composition with subscriptions, not a duplicate implementation.
+The [whole-package table inventory](table-names.md) also covers execution, Event Sourcing and native ORM nonce/audit
+storage, their separate naming authorities, schema/runtime/cleanup paths and no-migration boundaries.
 
 ## One explicit composition across independent processes
 
