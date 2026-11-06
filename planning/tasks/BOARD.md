@@ -131,7 +131,7 @@ their owning records; routing and planning checks stay offline.
 | 14 | [TASK-00124](00124-TASK.md) | Defer Dynamic Resource-Provider Validation Until Guarded Dispatch | — (standalone chore) | done | — | [PR #187](https://github.com/johnnickell/fight-common/pull/187) |
 | 14 | [TASK-00191](00191-TASK.md) | Align MCP aggregate namespaces and move concrete Tools to adapters | — (standalone chore) | done | — | [PR #278](https://github.com/johnnickell/fight-common/pull/278) |
 | 15 | [TASK-00125](00125-TASK.md) | Reconcile v1.3 MCP documentation and prepare release qualification | — (standalone chore) | done | — | [PR #188](https://github.com/johnnickell/fight-common/pull/188) |
-| 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | done | — | — |
+| 15 | [TASK-00192](00192-TASK.md) | Check and correct descriptive variable names across the codebase | — (standalone chore) | done | — | [PR #288](https://github.com/johnnickell/fight-common/pull/288) |
 | — | [TASK-00114](00114-TASK.md) | Reconcile PR #159 strict PHPCS delivery evidence | — (standalone chore) | done | — | [PR #159](https://github.com/johnnickell/fight-common/pull/159) |
 | — | [TASK-00115](00115-TASK.md) | Adopt approved planning, ownership, and independent review conventions | — (standalone chore) | done | — | [PR #173](https://github.com/johnnickell/fight-common/pull/173) |
 | — | [TASK-00116](00116-TASK.md) | Restore DBAL schema-builder compatibility with supported dependencies | — (standalone bug) | done | — | [PR #162](https://github.com/johnnickell/fight-common/pull/162) |
