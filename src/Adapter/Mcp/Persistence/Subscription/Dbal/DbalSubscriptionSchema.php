@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use Fight\Common\Adapter\Persistence\Doctrine\DbalTableName;
 use RuntimeException;
 
 /**
@@ -18,16 +19,23 @@ final readonly class DbalSubscriptionSchema
     public const array TABLES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
 
     /**
+     * Constructs DbalSubscriptionSchema
+     */
+    public function __construct(private DbalSubscriptionTables $tables = new DbalSubscriptionTables())
+    {
+    }
+
+    /**
      * Adds bounded technical tracking through public DBAL schema APIs
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $stateTable = $schema->createTable(self::TABLES[0]);
+        $stateTable = $schema->createTable($this->tables->stateTable()->schemaName());
         $stateTable->addColumn('singleton', 'integer');
         $stateTable->addColumn('version', 'integer');
         $stateTable->setPrimaryKey(['singleton']);
 
-        $subscriptionTable = $schema->createTable(self::TABLES[1]);
+        $subscriptionTable = $schema->createTable($this->tables->subscriptionTable()->schemaName());
         foreach (['registration_id', 'owner'] as $field) {
             $subscriptionTable->addColumn($field, 'string', ['length' => 32]);
         }
@@ -38,10 +46,10 @@ final readonly class DbalSubscriptionSchema
         }
 
         $subscriptionTable->setPrimaryKey(['registration_id']);
-        $subscriptionTable->addIndex(['expires_at'], 'fight_mcp_subscription_expiry');
+        $subscriptionTable->addIndex(['expires_at'], $this->expiryIndex());
         if ($platform instanceof AbstractMySQLPlatform) {
-            foreach (self::TABLES as $name) {
-                $table = $schema->getTable($name);
+            foreach ($this->selectedTables() as $name) {
+                $table = $schema->getTable($name->schemaName());
                 $table->addOption('engine', 'InnoDB');
                 $table->addOption('charset', 'utf8mb4');
                 $table->addOption('collation', 'utf8mb4_bin');
@@ -59,12 +67,22 @@ final readonly class DbalSubscriptionSchema
         }
 
         $schemaManager = $connection->createSchemaManager();
-        $present = array_intersect(self::TABLES, $schemaManager->listTableNames());
+        // PostgreSQL reports case-sensitive names with DBAL quoting markers.
+        $existingTables = array_map(
+            static fn(string $tableName): string => trim($tableName, '`"'),
+            $schemaManager->listTableNames()
+        );
+        $selectedNames = array_map(static fn(DbalTableName $table): string => $table->name(), $this->selectedTables());
+        $present = array_intersect($selectedNames, $existingTables);
         if ($present !== []) {
             if (
-                count($present) !== 2 || (int) $connection->fetchOne(
-                    'SELECT version FROM fight_mcp_subscription_state WHERE singleton = 1'
-                ) !== 1 || !$schemaManager->introspectTable(self::TABLES[1])->hasIndex('fight_mcp_subscription_expiry')
+                count($present) !== count($selectedNames) || (int) $connection->fetchOne(
+                    sprintf(
+                        'SELECT version FROM %s WHERE singleton = 1',
+                        $this->tables->stateTable()->quoted($connection->getDatabasePlatform())
+                    )
+                ) !== 1 || !$schemaManager->introspectTable($this->tables->subscriptionTable()->schemaName())
+                    ->hasIndex($this->expiryIndex())
             ) {
                 throw new RuntimeException('Unsupported subscription schema.');
             }
@@ -74,10 +92,36 @@ final readonly class DbalSubscriptionSchema
 
         $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
-        foreach (self::TABLES as $name) {
-            $schemaManager->createTable($schema->getTable($name));
+        foreach ($this->selectedTables() as $name) {
+            $schemaManager->createTable($schema->getTable($name->schemaName()));
         }
 
-        $connection->insert(self::TABLES[0], ['singleton' => 1, 'version' => 1]);
+        $connection->insert(
+            $this->tables->stateTable()->quoted($connection->getDatabasePlatform()),
+            ['singleton' => 1, 'version' => 1]
+        );
+    }
+
+    /**
+     * Returns the selected namespace tables in installation order
+     *
+     * @return list<DbalTableName>
+     */
+    private function selectedTables(): array
+    {
+        return [$this->tables->stateTable(), $this->tables->subscriptionTable()];
+    }
+
+    /**
+     * Returns a coexistence-safe index name while preserving the default schema
+     */
+    private function expiryIndex(): string
+    {
+        $tableName = $this->tables->subscriptionTable()->name();
+        if ($tableName === self::TABLES[1]) {
+            return 'fight_mcp_subscription_expiry';
+        }
+
+        return 'mcp_subscription_expiry_'.substr(hash('sha256', $tableName), 0, 16);
     }
 }

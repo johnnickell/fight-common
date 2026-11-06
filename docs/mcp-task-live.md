@@ -46,6 +46,13 @@ is not a prerequisite. Enable Tools/Resources/Prompts separately for mixed strea
 families engage their existing qualified notice source. A mixed stream then inherits that source's continuity rules.
 No Prompt or operator-inspection capability is required. Registry composition rejects missing/mismatched Tasks.
 
+For custom physical names, compose `DbalTaskTables`, `DbalNoticeTables` and `DbalSubscriptionTables` explicitly with
+all schema/runtime collaborators and independent processes as shown in the [eight-table lifecycle inventory](lifecycle-storage.md).
+Task repositories inherit their transaction's selection; Notice recovery and subscriber readers receive their own
+capability's same selection. Missing/incompatible selected storage never falls back to default tables, and naming
+performs no migration or runtime installation. Ordinary no-override composition and partial defaults remain intact;
+none of these names changes the independent signal/read/payload/disclosure guards below.
+
 `McpSubscriptionAdmission::allows(subscriber, 'taskIds', taskId, null)` independently grants the **whole** technical
 signal/ID at opening and each disclosure. The existing `$uri` argument carries the exact Task ID for this filter;
 there is no Resource read. Fresh `TaskReadAdmission::allowsRead()` and `TaskPayloadPolicy::mayDisclose()` additionally
@@ -285,5 +292,10 @@ Tool-error/JSON-RPC-error/cancelled outcomes, reconnect, source/tracking/payload
 abrupt death/late renewal and native PSR/Symfony/Laravel/CodeIgniter/Slim/Yii emission. Existing ordinary progress/native
 journeys remain in the gate. Actual notice/tracking storage checks reject protected-state contamination; no publisher
 is composed or invoked. Unit interleavings, not sleeps alone, qualify ordering and queued revocation. No persistent
-HTTP stack or consumer deployment is introduced. Nonvisual wire/Query/storage traces, counts, warnings and gate receipts
+HTTP stack or consumer deployment is introduced. TASK-00201 retains all default journeys and adds configured variants
+on each database/native composition, sharing all eight selections through the real servers and independent producers.
+Mixed streams receive an actual safe catalog Notice from an independent configured producer alongside current Task
+updates; full Task state remains outside retained Notices and subscriber rows. Poisoned populated default counterparts
+remain unchanged. Actual tracking-version failure closes without a change/completion while independent Task Queries
+still recover committed state; fresh HTTP polling recovers after the fixture's explicit tracking repair. Nonvisual wire/Query/storage traces, counts, warnings and gate receipts
 are linked from TASK-00171's Engineer handoff. Independent Review and QA accepted the implementation at the pre-publication checkpoint recorded in `TASK-00171` (`planning/tasks/00171-TASK.md`); publication and consumer deployment remain separate.

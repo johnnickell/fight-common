@@ -11,6 +11,7 @@ use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
 use Fight\Common\Domain\Mcp\Notice\Query\RecoverNotices;
 use Fight\Test\Common\Fixture\Mcp\CoordinatedSubscriptionConnection;
 use Fight\Test\Common\Fixture\Mcp\ObservedSubscriptionStore;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
 use Symfony\Component\Process\Process;
@@ -19,6 +20,8 @@ use Symfony\Component\Process\Process;
 $connectionParameters = json_decode(file_get_contents($directory.'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
 $connectionParameters['wrapperClass'] = CoordinatedSubscriptionConnection::class;
 $subscriptionConnection = DriverManager::getConnection($connectionParameters);
+$tables = new LifecycleTables(json_decode(file_get_contents($directory.'/tables.json'), true, flags: JSON_THROW_ON_ERROR));
+$subscriptionConnection->capacityLockSql = $tables->sql($subscriptionConnection, 'UPDATE fight_mcp_subscription_state SET version = version WHERE singleton = 1');
 if ($connectionParameters['driver'] === 'pdo_sqlite') { $subscriptionConnection->executeStatement('PRAGMA busy_timeout = 7000'); }
 if ($mode === 'timeout') {
     match ($connectionParameters['driver']) {
@@ -45,12 +48,12 @@ try {
     $observedSubscriptionStore = null;
     $subscriptionFixture = new SubscriptionFixture($subscriptionConnection, lifetime: 20, subscriptionStoreDecorator: static function (McpSubscriptionStore $subscriptionStore) use (&$observedSubscriptionStore): McpSubscriptionStore {
         return $observedSubscriptionStore = new ObservedSubscriptionStore($subscriptionStore);
-    });
+    }, noticeTables: $tables->notice, subscriptionTables: $tables->subscription);
     $response = $subscriptionFixture->endpoint->handle(SubscriptionFixture::request(id: '7'));
     $body = $response->getBody();
     echo $body->read(65536);
-    (new NoticeFixture($subscriptionConnection))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']);
-    $original = $subscriptionConnection->fetchAssociative('SELECT * FROM fight_mcp_subscriptions');
+    (new NoticeFixture($subscriptionConnection, $tables->notice))->record(['id' => 'retained', 'type' => 'mcp.tools.list_changed']);
+    $original = $subscriptionConnection->fetchAssociative($tables->sql($subscriptionConnection, 'SELECT * FROM fight_mcp_subscriptions'));
     $observedSubscriptionStore->calls = [];
     // Bound the successful emitter after its first batch; the subsequent source failure is an intentional stop.
     $sourceReads = 0;
@@ -88,7 +91,7 @@ try {
     $returned = microtime(true);
     if (!file_exists($directory.'/lock-request')) { throw new RuntimeException('No observed store operation requested the capacity lock'); }
     $exit = $lockWorker->wait();
-    $row = $subscriptionConnection->fetchAssociative('SELECT * FROM fight_mcp_subscriptions');
+    $row = $subscriptionConnection->fetchAssociative($tables->sql($subscriptionConnection, 'SELECT * FROM fight_mcp_subscriptions'));
     $result = [
         'original' => $original, 'started' => $started, 'returned' => $returned,
         'bootstrap_delay_us' => $bootstrapDelayMicroseconds, 'worker_prepared' => $workerReady,
@@ -101,7 +104,7 @@ try {
         'diagnostics' => $subscriptionFixture->diagnostics, 'worker_exit' => $exit, 'worker_error' => $lockWorker->getErrorOutput(),
         'worker_output' => $lockWorker->getOutput(),
         'transaction_active' => $subscriptionConnection->isTransactionActive(),
-        'retained' => (int) $subscriptionConnection->fetchOne('SELECT COUNT(*) FROM fight_notices')
+        'retained' => (int) $subscriptionConnection->fetchOne($tables->sql($subscriptionConnection, 'SELECT COUNT(*) FROM fight_notices'))
     ];
     $body->close();
     $subscriptionFixture->queryPolicy = null;

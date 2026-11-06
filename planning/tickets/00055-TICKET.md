@@ -119,7 +119,7 @@ certification is requested. These are future requirements, not passed evidence o
 |---|---|---|
 | [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | done |
 | [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | done |
-| [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent |
+| [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | done |
 | [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent |
 <!-- /planning:children -->
 
@@ -187,4 +187,25 @@ acceptance. Earlier checkpoints and reports remain historical; current execution
 Publication/final-head verification is pending at this administrative checkpoint. Current TASK-00200 delivery
 results, accepted-candidate/administrative bridge and owned-resource dispositions belong in canonical
 `.runs/tasks/TASK-00200/runs/20261106-land-01/land.md` and its actual recorded PR. No merge, release,
+deployment, tracked delivery queue or recurring post-merge planning chore is asserted.
+
+### Current subscription delivery locator — 2026-11-06
+
+TASK-00201's authorized Land continuation result is recorded in
+`.runs/tasks/TASK-00201/runs/20261106-land-02/land.md` and its actual PR metadata. The checkpoint below and
+first-Land receipt remain historical evidence. This parent stays open for TASK-00202's unchanged scope.
+
+### Subscription / combined live acceptance checkpoint — 2026-11-06
+
+TASK-00201 has independent Review v3 ACCEPT and required QA v2 complete PASS on candidate
+`cf9a09792bbc2640c4c4b90c8165253816c2d695`, completing both subscription selections and actual configured
+Task/Notice/subscription live composition. Required local verification passed, including exact **19,138/19,138**
+statements; QA passed **55 unique fresh scenarios** and separately qualified **252 retained captures**. Canonical
+reports and the historical runtime-preservation limitation remain in TASK-00201's acceptance record.
+TASK-00202's final ORM/whole-package inventory qualification remains unfinished, so this TICKET and EPIC-00013
+stay open. Earlier checkpoints remain historical; current routing belongs to the Board.
+
+Publication/final-head verification is pending at this administrative checkpoint. Current TASK-00201 delivery
+results, accepted-candidate/administrative bridge and owned-resource dispositions belong in canonical
+`.runs/tasks/TASK-00201/runs/20261106-land-01/land.md` and its actual recorded PR. No merge, release,
 deployment, tracked delivery queue or recurring post-merge planning chore is asserted.

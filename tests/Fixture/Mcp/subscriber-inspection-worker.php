@@ -14,11 +14,13 @@ use Fight\Common\Application\Mcp\Subscription\Service\SubscriberReadAdmission;
 use Fight\Common\Domain\Mcp\Subscription\Query\ListSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\Query\SummarizeSubscribers;
 use Fight\Common\Domain\Mcp\Subscription\SubscriberSelection;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 
 require dirname(__DIR__, 3).'/vendor/autoload.php';
 
 $params = json_decode(file_get_contents($argv[1].'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($params);
+$tables = new LifecycleTables(json_decode(file_get_contents($argv[1].'/tables.json'), true, flags: JSON_THROW_ON_ERROR));
 $data = json_decode(file_get_contents($argv[1].'/inspection.json'), true, flags: JSON_THROW_ON_ERROR);
 // Fixture-owned current policy is separate from all serialized Query arguments and listen admission.
 $admission = new class implements SubscriberReadAdmission {
@@ -28,7 +30,7 @@ $admission = new class implements SubscriberReadAdmission {
     public function currentAccess(SubscriberSelection $selection): SubscriberAccess { ++$this->calls; return SubscriberAccess::create($this->scopes, $this->registrations); }
 };
 $router = new InMemoryQueryRouter();
-$reader = new DbalSubscriberReader($connection, 'package-shared-registration-db');
+$reader = new DbalSubscriberReader($connection, 'package-shared-registration-db', tables: $tables->subscription);
 foreach ([new SummarizeSubscribersHandler($admission, $reader), new ListSubscribersHandler($admission, $reader)] as $handler) { $router->registerHandler($handler::queryRegistration(), $handler); }
 $queryBus = new RoutingQueryBus($router);
 $results = [];

@@ -7,18 +7,22 @@ use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables;
 use Fight\Common\Application\Mcp\Task\Exception\TaskConflict;
 use Fight\Common\Domain\Mcp\Task\TaskState;
 use Fight\Common\Domain\Value\Basic\StrictJson;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 
 require __DIR__.'/../../../../vendor/autoload.php';
 
 $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($config['params']);
-// The live subscription journey retains its existing default-only configuration.
-$tables = new DbalTaskTables($config['stateTable'] ?? 'fight_task_state', $config['taskTable'] ?? 'fight_tasks');
+$lifecycleTables = new LifecycleTables($config['tables'] ?? []);
+// The ordinary Task HTTP journey also accepts its existing two-table configuration.
+$tables = isset($config['tables']) ? $lifecycleTables->task : new DbalTaskTables($config['stateTable'] ?? 'fight_task_state', $config['taskTable'] ?? 'fight_tasks');
 $fixture = new TaskFixture($connection, $tables);
 $mode = $argv[2];
 $attempted = false;
-if ($mode === 'input') { $fixture->issue(confirmation: true, count: 2); }
+if ($mode === 'notice') { (new NoticeFixture($connection, $lifecycleTables->notice))->record(['id' => 'live-catalog', 'type' => 'mcp.tools.list_changed']); }
+elseif ($mode === 'input') { $fixture->issue(confirmation: true, count: 2); }
 elseif ($mode === 'continue') {
     $fixture->acquire();
     // Independent consumer fixture, not a Common worker: acquisition never performs this effect itself.

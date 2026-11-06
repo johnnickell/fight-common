@@ -23,6 +23,7 @@
             <exclude>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailRemovalIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskRemovalIntegrationTest.php</exclude>
             <exclude>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalConfiguredTaskIntegrationTest.php</exclude>
+            <exclude>tests/Adapter/Mcp/Persistence/Subscription/Dbal/DbalConfiguredSubscriptionIntegrationTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/ConfiguredSqliteDbalEventStoreTest.php</exclude>
             <exclude>tests/Adapter/EventSourcing/Dbal/ConfiguredMysqlDbalEventStoreTest.php</exclude>
@@ -78,6 +79,7 @@
             <file>tests/Adapter/Mcp/Persistence/Detail/Dbal/DbalDetailRemovalIntegrationTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalTaskRemovalIntegrationTest.php</file>
             <file>tests/Adapter/Mcp/Persistence/Task/Dbal/DbalConfiguredTaskIntegrationTest.php</file>
+            <file>tests/Adapter/Mcp/Persistence/Subscription/Dbal/DbalConfiguredSubscriptionIntegrationTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/DbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/ConfiguredSqliteDbalEventStoreTest.php</file>
             <file>tests/Adapter/EventSourcing/Dbal/ConfiguredMysqlDbalEventStoreTest.php</file>

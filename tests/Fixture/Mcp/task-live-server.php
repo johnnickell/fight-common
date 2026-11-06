@@ -6,6 +6,7 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveDiagnostics;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveFixture;
 use GuzzleHttp\Psr7\HttpFactory;
@@ -26,14 +27,15 @@ require dirname(__DIR__, 3).'/vendor/autoload.php';
 $directory = getenv('FIGHT_TASK_LIVE_DIRECTORY');
 $config = json_decode(file_get_contents($directory.'/config.json'), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($config['params']);
+$tables = new LifecycleTables($config['tables'] ?? []);
 if ($connection->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $connection->executeStatement('PRAGMA busy_timeout = 3000'); }
 $scope = $_GET['scope'] ?? 'scope';
 $requestKey = $_SERVER['HTTP_X_FIGHT_TEST_REQUEST'] ?? bin2hex(random_bytes(8));
-$diagnostics = new TaskLiveDiagnostics($connection);
+$diagnostics = new TaskLiveDiagnostics($connection, $tables);
 $diagnostics->event('request-start', ['request' => $requestKey, 'query' => $_SERVER['QUERY_STRING'] ?? '', 'lifetimeSeconds' => (int) ($_GET['lifetime'] ?? 8), 'internalDeadline' => 'unavailable; execution starts lazily inside emit', 'internalStopReason' => 'unavailable']);
 $fixture = null;
 $faultTriggered = false;
-register_shutdown_function(static function () use ($directory, $requestKey, $diagnostics, $connection, &$fixture, &$faultTriggered): void {
+register_shutdown_function(static function () use ($directory, $requestKey, $diagnostics, $connection, $tables, &$fixture, &$faultTriggered): void {
     $diagnostics->event('shutdown', ['lastPhpError' => error_get_last()]);
     // A unique request file cannot be overwritten by a later intentional source-failure request on this PID.
     file_put_contents($directory.'/closed-'.getmypid().'-'.$requestKey.'.json', json_encode([
@@ -42,10 +44,10 @@ register_shutdown_function(static function () use ($directory, $requestKey, $dia
         'diagnostics' => $fixture?->endpoint->diagnostics ?? [], 'faultTriggered' => $faultTriggered,
         'guardedStates' => $fixture?->guardedStates ?? [], 'guardReleased' => !($fixture?->guarded ?? false),
         'events' => $diagnostics->events, 'heartbeats' => $diagnostics->heartbeats,
-        'rows' => TaskLiveDiagnostics::rows($connection)
+        'rows' => TaskLiveDiagnostics::rows($connection, $tables)
     ], JSON_THROW_ON_ERROR));
 });
-$fixture = new TaskLiveFixture($connection, mixed: ($_GET['mixed'] ?? '') === '1', subscriptionStore: $diagnostics, lifetime: (int) ($_GET['lifetime'] ?? 8), scope: $scope);
+$fixture = new TaskLiveFixture($connection, mixed: ($_GET['mixed'] ?? '') === '1', subscriptionStore: $diagnostics, lifetime: (int) ($_GET['lifetime'] ?? 8), scope: $scope, tables: $tables);
 $fixture->endpoint->onDiagnostic = static fn (Throwable $failure) => $diagnostics->event('private-error', ['chain' => TaskLiveDiagnostics::chain($failure)]);
 $fixture->policy = static function () use ($directory, $scope): bool { clearstatcache(); return !file_exists($directory.'/revoke-'.$scope); };
 $fixture->taskFixture->onRead = static function () use ($fixture, $directory, $diagnostics): void {
@@ -61,7 +63,7 @@ $fixture->onGuard = static function () use ($fixture, $directory): void {
 };
 if (isset($_GET['fault'])) {
     $comparisons = 0;
-    $fixture->taskFixture->onComparison = static function () use ($fixture, $directory, &$comparisons, &$faultTriggered): void {
+    $fixture->taskFixture->onComparison = static function () use ($fixture, $directory, $tables, &$comparisons, &$faultTriggered): void {
         ++$comparisons; clearstatcache();
         $phase = $_GET['phase'];
         if ($faultTriggered || !match ($phase) {
@@ -71,7 +73,7 @@ if (isset($_GET['fault'])) {
         }) { return; }
         $faultTriggered = true;
         if ($_GET['fault'] === 'signal') { $fixture->allowed = false; return; }
-        $row = $fixture->subscriptionFixture->connection->fetchAssociative('SELECT registration_id, owner FROM fight_mcp_subscriptions WHERE closed_at = 0');
+        $row = $fixture->subscriptionFixture->connection->fetchAssociative($tables->sql($fixture->subscriptionFixture->connection, 'SELECT registration_id, owner FROM fight_mcp_subscriptions WHERE closed_at = 0'));
         $fixture->subscriptionFixture->subscriptionStore->close($row['registration_id'], $row['owner'], time());
         if ($_GET['fault'] === 'cleanup') { $fixture->subscriptionFixture->subscriptionStore->cleanup(time(), 16); }
     };
