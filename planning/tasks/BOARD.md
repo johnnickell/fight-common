@@ -172,7 +172,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | — | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #291](https://github.com/johnnickell/fight-common/pull/291) |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
-| — | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | — (standalone chore) | done | — | — |
+| — | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | — (standalone chore) | done | — | [PR #292](https://github.com/johnnickell/fight-common/pull/292) |
 <!-- /planning:board -->
 
 ## Wayfinder
