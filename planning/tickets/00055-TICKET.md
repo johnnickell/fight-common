@@ -2,7 +2,7 @@
 id: TICKET-00055
 epic: EPIC-00013
 title: Customize durable MCP lifecycle tables
-status: ready-for-agent
+status: done
 ---
 
 # Customize durable MCP lifecycle tables
@@ -120,7 +120,7 @@ certification is requested. These are future requirements, not passed evidence o
 | [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | done |
 | [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | done |
 | [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | done |
-| [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | in-progress |
+| [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | done |
 <!-- /planning:children -->
 
 ## Decisions and progress
@@ -189,11 +189,21 @@ results, accepted-candidate/administrative bridge and owned-resource disposition
 `.runs/tasks/TASK-00200/runs/20261106-land-01/land.md` and its actual recorded PR. No merge, release,
 deployment, tracked delivery queue or recurring post-merge planning chore is asserted.
 
-### Current subscription delivery locator — 2026-11-06
+### Current completion and delivery locators — 2026-11-06
 
-TASK-00201's authorized Land continuation result is recorded in
-`.runs/tasks/TASK-00201/runs/20261106-land-02/land.md` and its actual PR metadata. The checkpoint below and
-first-Land receipt remain historical evidence. This parent stays open for TASK-00202's unchanged scope.
+All four children now have accepted implementation and satisfied required QA. TASK-00202 completes the native ORM
+nonce/audit qualification and whole-package nineteen-DBAL/two-ORM inventory at accepted candidate
+`fad79b50dcdee986e80ab406a301ac35494d869f`, with canonical Review v3 ACCEPT and QA v2 complete PASS. Its
+behavior-preserving integration `288030110196917861b99edb7fedf7d384df8598` retains incoming TASK-00206 and passes
+a fresh full gate: **9,975 tests / 100,495 assertions**, exact **19,141/19,141 statements**. This TICKET and
+EPIC-00013 close with the child under automatic parent completion; original supplier verdicts and historical
+checkpoints remain unchanged. No migration, release or deployed-consumer qualification is implied.
+
+TASK-00202's acceptance/report identities, integration bridge, warnings and administrative checkpoint are in its
+owning record; publication/final-head and owned-resource results belong in canonical
+`.runs/tasks/TASK-00202/runs/20261106-land-01/land.md` and its actual PR metadata. Publication is pending at this
+checkpoint, separate from acceptance and human merge. TASK-00201's earlier authorized continuation result remains
+in `.runs/tasks/TASK-00201/runs/20261106-land-02/land.md`; the checkpoint below and first-Land receipt are history.
 
 ### Subscription / combined live acceptance checkpoint — 2026-11-06
 

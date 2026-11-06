@@ -507,7 +507,8 @@ namespace. The [eight-table lifecycle composition and SQL inventory](docs/lifecy
 Task/Notice suppliers with subscriptions. Default/configured real three-database HTTP/native journeys transport all
 selected names into independent producers/readers, preserve poisoned default counterparts and independently guarded
 Task state outside retained Notices/tracking. The [whole-package inventory](docs/table-names.md) separately accounts for native ORM nonce/audit storage and the
-integrated Event Sourcing/execution suppliers; TASK-00202 owns its evidence and pending independent stages.
+integrated Event Sourcing/execution suppliers; TASK-00202 records independent Review acceptance, required QA PASS
+and the later behavior-preserving integration/verification bridge.
 Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
 stale/uncertain, not confirmed connectivity or a permission lease. Short dedicated transactions, a namespace capacity
 lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-row cleanup bound tracking. No historical
