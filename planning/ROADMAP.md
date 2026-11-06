@@ -8,7 +8,7 @@
 | [EPIC-00006](epics/00006-EPIC.md) | Reusable MCP Streamable HTTP Tool Support | next-minor | done |
 | [EPIC-00007](epics/00007-EPIC.md) | Reusable MCP Resources and Structured Skills | unassigned | done |
 | [EPIC-00008](epics/00008-EPIC.md) | Strengthen Value Objects and Validation Invariants | next-minor | done |
-| [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | done |
+| [EPIC-00009](epics/00009-EPIC.md) | Execution introspection | unassigned | ready-for-agent |
 | [EPIC-00010](epics/00010-EPIC.md) | Generic MCP Prompts | unassigned | done |
 | [EPIC-00011](epics/00011-EPIC.md) | Generic MCP Subscriptions | unassigned | done |
 | [EPIC-00012](epics/00012-EPIC.md) | Generic MCP Tasks | unassigned | done |
@@ -41,6 +41,12 @@ or proof of acceptance/delivery. Inspect the selected TASK's handoff for its nex
 post-merge planning chore remains. Historical PR references below are not live actions.
 
 ## Approved planning history
+
+On 2026-11-06 John approved a bounded pre-v1.5 [EPIC-00009 activity amendment](epics/00009-EPIC.md#approved-pre-v15-activity-amendment--2026-11-06):
+[TICKET-00056](tickets/00056-TICKET.md), delivered by the single vertical [TASK-00205](tasks/00205-TASK.md).
+Typed target/timing/result facts join canonical activity recording and existing Query/MCP inspection, without
+transaction expansion, another observation ledger or consumer implementation. Original completed tickets retain
+their acceptance; the later amendment does not reopen the closed map or alter existing lifecycle-task priority.
 
 The [TASK Board](tasks/BOARD.md) owns current implementation status. Release preparation remains a separately
 authorized operation, not an unfinished product EPIC. The decomposition narrative below records approved scope
