@@ -31,6 +31,11 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 ## Current planning handoff
 
+John approved the bounded pre-v1.5 [typed activity execution amendment](../tickets/00056-TICKET.md), decomposed as
+one complete recording-to-inspection [TASK-00205](00205-TASK.md). It preserves Common observation ownership and
+existing optional transaction/delivery limits; consumer adoption and external Tool permission binding stay separate.
+The owning records retain scope and evidence requirements; no new global priority or automatic execution follows.
+
 John approved five bounded refactoring chores on 2026-11-02. Their TASK records own the accepted scopes;
 the [namespace TASK](00181-TASK.md#outcome-and-accepted-decision) records the released-name-only deprecation
 decision. Generated sections own execution routing.
@@ -69,6 +74,7 @@ their owning records; routing and planning checks stay offline.
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
 | — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | ready-for-agent | — | — |
+| — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | ready-for-agent | — | — |
 
 ## Waiting
 
