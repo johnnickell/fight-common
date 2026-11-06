@@ -50,13 +50,13 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         $record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => $otherSession->toArray()]));
         $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.123456Z'");
         $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-22T13:00:00.000001Z', 'version' => 999], ['phase_id' => 'hidden']);
-        [$bus, $admission] = $this->bus($db, ['project' => null]);
+        [$queryBus, $admission] = $this->bus($db, ['project' => null]);
         $admission->access = ExecutionAccess::create(['project' => ['session']], ['project' => ['parent', 'child']]);
         $before = $this->inspectionState($db);
-        self::assertSame(1, $bus->fetch(new ListExecutions(ExecutionSelection::create(['project', 'other'])))->toArray()['total']);
+        self::assertSame(1, $queryBus->fetch(new ListExecutions(ExecutionSelection::create(['project', 'other'])))->toArray()['total']);
         $summaryEnvelope = QueryMessage::create(new GetExecution('project', 'session'));
         $phaseEnvelope = QueryMessage::create(new ListExecutionPhases('project', 'session', 1, 1));
-        $inspection = $bus->dispatch(QueryMessage::arrayDeserialize($summaryEnvelope->arraySerialize()))->toArray();
+        $inspection = $queryBus->dispatch(QueryMessage::arrayDeserialize($summaryEnvelope->arraySerialize()))->toArray();
         self::assertSame('succeeded', $inspection['execution']['outcome']);
         self::assertSame('2026-10-20T12:00:00.000001Z', $inspection['observation']['started_at']);
         self::assertSame('2026-10-20T12:01:00.000002Z', $inspection['observation']['ended_at']);
@@ -64,15 +64,15 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         self::assertSame(2, $inspection['summary']['activities']);
         self::assertSame('3', $inspection['summary']['usage'][0]['measured']);
         self::assertSame('2026-10-22T12:00:00.123456Z', $inspection['summary']['latest_recorded_at']);
-        self::assertSame($inspection['summary'], $bus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'], ['session_id' => 'session'])))->toArray());
-        $page = $bus->dispatch(QueryMessage::arrayDeserialize($phaseEnvelope->arraySerialize()));
+        self::assertSame($inspection['summary'], $queryBus->fetch(new SummarizeExecutions(ExecutionSelection::create(['project'], ['session_id' => 'session'])))->toArray());
+        $page = $queryBus->dispatch(QueryMessage::arrayDeserialize($phaseEnvelope->arraySerialize()));
         self::assertCount(1, $page->phases());
         self::assertSame(2, $page->toArray()['total']);
-        $pages = [$page->toArray(), $bus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->toArray()];
+        $pages = [$page->toArray(), $queryBus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->toArray()];
         $pageIds = array_map(static fn ($row) => $row['phase']['phase_id'], array_merge($pages[0]['phases'], $pages[1]['phases']));
         sort($pageIds, SORT_STRING);
         self::assertSame(['child', 'parent'], $pageIds);
-        $all = $bus->fetch(new ListExecutionPhases('project', 'session'))->toArray();
+        $all = $queryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray();
         $byId = [];
         foreach ($all['phases'] as $row) { $byId[$row['phase']['phase_id']] = $row; }
         self::assertSame('parent', $byId['child']['phase']['parent_phase_id']);
@@ -89,18 +89,18 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         self::assertFalse($db->isTransactionActive());
         // Reusing the exact envelope rechecks admission; parent access is not implied by child access.
         $admission->access = ExecutionAccess::create(['project' => ['session']], ['project' => ['child']]);
-        $onlyChild = $bus->dispatch($phaseEnvelope)->toArray();
+        $onlyChild = $queryBus->dispatch($phaseEnvelope)->toArray();
         self::assertSame(1, $onlyChild['total']);
         self::assertNull($onlyChild['phases'][0]['phase']['parent_phase_id']);
-        self::assertSame('2', $bus->dispatch($summaryEnvelope)->toArray()['summary']['usage'][0]['measured']);
+        self::assertSame('2', $queryBus->dispatch($summaryEnvelope)->toArray()['summary']['usage'][0]['measured']);
         $admission->access = ExecutionAccess::create(['project' => ['session']], ['project' => []]);
-        self::assertSame(0, $bus->dispatch($phaseEnvelope)->toArray()['total']);
-        self::assertSame([], $bus->dispatch($summaryEnvelope)->toArray()['summary']['usage']);
+        self::assertSame(0, $queryBus->dispatch($phaseEnvelope)->toArray()['total']);
+        self::assertSame([], $queryBus->dispatch($summaryEnvelope)->toArray()['summary']['usage']);
         $admission->access = ExecutionAccess::create([]);
-        self::assertNull($bus->dispatch($summaryEnvelope));
-        self::assertNull($bus->dispatch($phaseEnvelope));
+        self::assertNull($queryBus->dispatch($summaryEnvelope));
+        self::assertNull($queryBus->dispatch($phaseEnvelope));
         self::assertGreaterThan(10, $admission->calls);
-        self::assertNull($bus->fetch(new GetExecution('other', 'session')));
+        self::assertNull($queryBus->fetch(new GetExecution('other', 'session')));
     }
 
     #[DataProvider('databases')]
@@ -109,34 +109,34 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         $db = $this->database($backend);
         $record = $this->writer($db);
         $record(ObservationFixture::session());
-        [$bus] = $this->bus($db, ['project' => null]);
-        self::assertSame([], $bus->fetch(new ListExecutionPhases('project', 'session'))->phases());
-        self::assertNull($bus->fetch(new GetExecution('project', 'missing')));
-        self::assertNull($bus->fetch(new ListExecutionPhases('project', 'missing')));
+        [$queryBus] = $this->bus($db, ['project' => null]);
+        self::assertSame([], $queryBus->fetch(new ListExecutionPhases('project', 'session'))->phases());
+        self::assertNull($queryBus->fetch(new GetExecution('project', 'missing')));
+        self::assertNull($queryBus->fetch(new ListExecutionPhases('project', 'missing')));
         $record($this->phase('phase', null, 'agent', 2));
         foreach ([['phase_id' => 'wrong'], ['name' => 'work'], ['agent_id' => 'other']] as $filter) {
-            self::assertSame(0, $bus->fetch(new ListExecutionPhases('project', 'session', filters: $filter))->toArray()['total']);
+            self::assertSame(0, $queryBus->fetch(new ListExecutionPhases('project', 'session', filters: $filter))->toArray()['total']);
         }
-        self::assertSame(1, $bus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'phase', 'agent_id' => 'agent', 'name' => 'review']))->toArray()['total']);
-        self::assertSame([], $bus->fetch(new ListExecutionPhases('project', 'session', 2, 100))->phases());
+        self::assertSame(1, $queryBus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'phase', 'agent_id' => 'agent', 'name' => 'review']))->toArray()['total']);
+        self::assertSame([], $queryBus->fetch(new ListExecutionPhases('project', 'session', 2, 100))->phases());
         $different = SessionReference::fromStrings('project', 'different', 'consumer:other');
         $record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'session' => $different->toArray()]));
-        self::assertSame(0, $bus->fetch(new ListExecutionPhases('project', 'different', filters: ['phase_id' => 'phase']))->toArray()['total']);
+        self::assertSame(0, $queryBus->fetch(new ListExecutionPhases('project', 'different', filters: ['phase_id' => 'phase']))->toArray()['total']);
         $db->delete($this->table($db, 'observations'), ['project_id' => 'project']);
-        $inspection = $bus->fetch(new GetExecution('project', 'session'))->toArray();
+        $inspection = $queryBus->fetch(new GetExecution('project', 'session'))->toArray();
         self::assertNull($inspection['observation']);
         self::assertSame('unknown', $inspection['execution']['outcome']);
         self::assertNull($inspection['summary']['latest_recorded_at']);
-        $row = $bus->fetch(new ListExecutionPhases('project', 'session'))->toArray()['phases'][0];
+        $row = $queryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray()['phases'][0];
         self::assertNull($row['observation']);
         self::assertNull($row['latest_recorded_at']);
         self::assertSame([], $row['models']);
         $db->executeStatement('DROP TABLE '.$this->table($db, 'contents'));
-        self::assertNotNull($bus->fetch(new GetExecution('project', 'session')));
-        self::assertNotNull($bus->fetch(new ListExecutionPhases('project', 'session')));
+        self::assertNotNull($queryBus->fetch(new GetExecution('project', 'session')));
+        self::assertNotNull($queryBus->fetch(new ListExecutionPhases('project', 'session')));
         $db->executeStatement('DROP TABLE '.$this->table($db, 'observations'));
         foreach ([new GetExecution('project', 'session'), new ListExecutionPhases('project', 'session')] as $query) {
-            try { $bus->fetch($query); self::fail('Storage failure must not be absence.'); }
+            try { $queryBus->fetch($query); self::fail('Storage failure must not be absence.'); }
             catch (ExecutionReadFailed $failure) { self::assertSame('Execution evidence could not be read completely.', $failure->getMessage()); }
         }
     }
@@ -151,38 +151,38 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         $high = $this->phase('a-phase', null, 'agent', 1, '10000000-0000-4000-8000-ffffffffffff');
         $record($low); $record($high);
         $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         $query = new ListExecutionPhases('project', 'session', 1, 1);
-        self::assertSame('a-phase', $bus->fetch($query)->phases()[0]->phase()->phaseId());
+        self::assertSame('a-phase', $queryBus->fetch($query)->phases()[0]->phase()->phaseId());
         $time = Observation::timestamp('2026-10-22T12:00:00.000001Z');
         self::assertGreaterThan(0, $high->recorded($time)->compareRecordingTo($low->recorded($time)));
-        self::assertSame('z-phase', $bus->fetch(new ListExecutionPhases('project', 'session', 1, 1, orderings: ['latest_recorded_at' => 'asc']))->phases()[0]->phase()->phaseId());
+        self::assertSame('z-phase', $queryBus->fetch(new ListExecutionPhases('project', 'session', 1, 1, orderings: ['latest_recorded_at' => 'asc']))->phases()[0]->phase()->phaseId());
         $new = $this->phase('new', null, 'agent', 1);
         $record($new);
-        self::assertSame('a-phase', $bus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->phases()[0]->phase()->phaseId());
+        self::assertSame('a-phase', $queryBus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->phases()[0]->phase()->phaseId());
         $db->delete($this->table($db, 'observations'), ['phase_id' => 'new']);
         $db->delete($this->table($db, 'phases'), ['phase_id' => 'new']);
-        self::assertSame('z-phase', $bus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->phases()[0]->phase()->phaseId());
+        self::assertSame('z-phase', $queryBus->fetch(new ListExecutionPhases('project', 'session', 2, 1))->phases()[0]->phase()->phaseId());
         // Same phase, tied receipt and full UUID across producers: bytewise producer breaks the tie.
         $state = Observation::fromArray(array_replace($high->toArray(), ['producer_id' => 'z-producer', 'outcome' => 'failed']));
         $record($state);
         $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-        $page = $bus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'a-phase']))->toArray();
+        $page = $queryBus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'a-phase']))->toArray();
         self::assertSame('failed', $page['phases'][0]['observation']['outcome']);
         self::assertSame('z-producer', $page['phases'][0]['observation']['producer_id']);
         $producerTie = Observation::fromArray(array_replace($high->toArray(), ['producer_id' => 'zz-producer', 'phase' => $low->phase()->toArray()]));
         $record($producerTie);
         $db->executeStatement('UPDATE '.$this->table($db, 'observations')." SET recorded_at = '2026-10-22T12:00:00.000001Z'");
-        self::assertSame('z-phase', $bus->fetch($query)->phases()[0]->phase()->phaseId());
+        self::assertSame('z-phase', $queryBus->fetch($query)->phases()[0]->phase()->phaseId());
         // Later low UUID wins over earlier high UUID; occurrence does not reorder state.
         $later = Observation::fromArray(array_replace($low->toArray(), ['observation_id' => '00000000-0000-4000-8000-000000000001', 'phase' => $high->phase()->toArray(), 'outcome' => 'cancelled', 'occurred_at' => '2020-01-01T00:00:00.000000Z']));
         $record($later);
         $db->update($this->table($db, 'observations'), ['recorded_at' => '2026-10-22T12:00:00.000002Z'], ['observation_id' => $later->id()->toString()]);
-        self::assertSame('cancelled', $bus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'a-phase']))->toArray()['phases'][0]['observation']['outcome']);
+        self::assertSame('cancelled', $queryBus->fetch(new ListExecutionPhases('project', 'session', filters: ['phase_id' => 'a-phase']))->toArray()['phases'][0]['observation']['outcome']);
         $without = $this->phase('no-evidence', null, 'agent', 1);
         $record($without);
         $db->delete($this->table($db, 'observations'), ['phase_id' => 'no-evidence']);
-        self::assertSame('no-evidence', $bus->fetch(new ListExecutionPhases('project', 'session', orderings: ['latest_recorded_at' => 'asc']))->phases()[0]->phase()->phaseId());
+        self::assertSame('no-evidence', $queryBus->fetch(new ListExecutionPhases('project', 'session', orderings: ['latest_recorded_at' => 'asc']))->phases()[0]->phase()->phaseId());
     }
 
     #[DataProvider('databases')]
@@ -205,32 +205,32 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         $data['observation_id'] = ObservationId::generate()->toString();
         $data['activity']['usage'] = [];
         $record(Observation::fromArray($data));
-        [$bus] = $this->bus($db, ['project' => null]);
-        $summary = $bus->fetch(new GetExecution('project', 'session'))->toArray()['summary'];
+        [$queryBus] = $this->bus($db, ['project' => null]);
+        $summary = $queryBus->fetch(new GetExecution('project', 'session'))->toArray()['summary'];
         self::assertSame(104, $summary['activities']);
         self::assertSame(1, $summary['activities_without_usage']);
         self::assertCount(3, $summary['usage']);
         $tokens = array_values(array_filter($summary['usage'], static fn ($group) => $group['unit'] === 'token' && $group['provenance'] === 'response'))[0];
         self::assertSame('10.1', $tokens['measured']);
         self::assertSame(101, $tokens['counts']['partial']);
-        self::assertSame(101, $bus->fetch(new ListExecutionPhases('project', 'session', 1, 100))->toArray()['total']);
-        self::assertCount(1, $bus->fetch(new ListExecutionPhases('project', 'session', 2, 100))->phases());
-        self::assertSame($summary, $bus->fetch(new GetExecution('project', 'session'))->toArray()['summary']);
+        self::assertSame(101, $queryBus->fetch(new ListExecutionPhases('project', 'session', 1, 100))->toArray()['total']);
+        self::assertCount(1, $queryBus->fetch(new ListExecutionPhases('project', 'session', 2, 100))->phases());
+        self::assertSame($summary, $queryBus->fetch(new GetExecution('project', 'session'))->toArray()['summary']);
     }
 
     #[DataProvider('databases')]
     public function test_that_separate_summary_and_phase_calls_see_new_evidence_without_business_writes_or_events(string $backend): void
     {
         $db = $this->database($backend);
-        $events = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $eventCount = 0;
-        $events->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
-        $record = $this->writer($db, $events);
+        $eventDispatcher->addHandler(ClassName::underscore(ObservationRecorded::class), static function () use (&$eventCount): void { ++$eventCount; });
+        $record = $this->writer($db, $eventDispatcher);
         $record(ObservationFixture::session());
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         $selected = new GetExecution('project', 'session');
         $before = $this->inspectionState($db);
-        self::assertSame(0, $bus->fetch($selected)->toArray()['summary']['activities']);
+        self::assertSame(0, $queryBus->fetch($selected)->toArray()['summary']['activities']);
         self::assertSame($before, $this->inspectionState($db));
         self::assertSame(1, $eventCount);
         $record(ObservationFixture::phase());
@@ -238,11 +238,11 @@ abstract class ExecutionInspectionTestCase extends ExecutionReadTestCase
         $record(ObservationFixture::session(['observation_id' => ObservationId::generate()->toString(), 'outcome' => 'succeeded']));
         $before = $this->inspectionState($db);
         $count = $eventCount;
-        $phases = $bus->fetch(new ListExecutionPhases('project', 'session'))->toArray();
+        $phases = $queryBus->fetch(new ListExecutionPhases('project', 'session'))->toArray();
         self::assertSame(1, $phases['total']);
         self::assertSame('unknown', $phases['phases'][0]['observation']['outcome']);
         self::assertSame(['model:one'], $phases['phases'][0]['models']);
-        $after = $bus->fetch($selected)->toArray();
+        $after = $queryBus->fetch($selected)->toArray();
         self::assertSame(1, $after['summary']['activities']);
         self::assertSame('succeeded', $after['observation']['outcome']);
         self::assertSame($before, $this->inspectionState($db));

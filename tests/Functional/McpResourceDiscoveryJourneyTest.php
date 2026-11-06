@@ -32,7 +32,7 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
 {
     public function test_that_resources_use_the_existing_authenticated_guarded_endpoint_and_current_visibility(): void
     {
-        $provider = new class implements McpResourceProvider {
+        $resourceProvider = new class implements McpResourceProvider {
             public int $enumerations = 0;
             public int $contentReads = 0;
             public bool $fail = false;
@@ -65,7 +65,7 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
         $factory = new HttpFactory();
         $endpoint = new McpRequestHandler(
             new McpCapabilityRegistry(new McpServerInfo('Resource journey', '1'), [new McpResourceDiscovery(
-                [$provider], $availability, 'fixture-only-resource-cursor-key-00117', 'journey', new McpResourceLimits(pageSize: 1),
+                [$resourceProvider], $availability, 'fixture-only-resource-cursor-key-00117', 'journey', new McpResourceLimits(pageSize: 1),
             )]),
             new ExactMcpOriginPolicy(['https://client.test']), $guard,
             new McpResponseFactory($factory, $factory, $diagnostics),
@@ -87,12 +87,12 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
             [$request->withHeader('Accept', 'application/json'), 406],
         ] as [$rejected, $status]) {
             self::assertSame($status, $app->handle($rejected)->getStatusCode());
-            self::assertSame(0, $provider->enumerations);
+            self::assertSame(0, $resourceProvider->enumerations);
             self::assertSame([], $guard->calls);
         }
         $guard->allowed = false;
         self::assertSame(429, $app->handle($request)->getStatusCode());
-        self::assertSame(0, $provider->enumerations);
+        self::assertSame(0, $resourceProvider->enumerations);
         $guard->allowed = true;
         $response = $app->handle($request->withHeader('Origin', 'https://client.test'));
         self::assertSame(200, $response->getStatusCode());
@@ -109,11 +109,11 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
         $second = json_decode((string) $app->handle($this->request('resources/list', ['cursor' => $first['nextCursor']]))->getBody(), true)['result'];
         self::assertSame(['context:/b'], array_column($second['resources'], 'uri'));
         self::assertArrayNotHasKey('nextCursor', $second);
-        self::assertSame(2, $provider->enumerations);
+        self::assertSame(2, $resourceProvider->enumerations);
         $templates = json_decode((string) $app->handle($this->request('resources/templates/list', ['cursor' => '']))->getBody(), true)['result'];
         self::assertSame([], $templates['resourceTemplates']);
         self::assertArrayNotHasKey('nextCursor', $templates);
-        self::assertSame(2, $provider->enumerations);
+        self::assertSame(2, $resourceProvider->enumerations);
         $server = json_decode((string) $app->handle($this->request('server/discover'))->getBody(), true)['result'];
         self::assertSame(['resources' => ['subscribe' => false, 'listChanged' => false]], $server['capabilities']);
 
@@ -128,20 +128,20 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
 
         $availability->allowed = true;
         foreach (['provider', 'availability'] as $failing) {
-            $provider->fail = $failing === 'provider';
+            $resourceProvider->fail = $failing === 'provider';
             $availability->fail = $failing === 'availability';
             $failure = $app->handle($request);
             self::assertSame(500, $failure->getStatusCode());
             self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], json_decode((string) $failure->getBody(), true));
         }
         self::assertSame(['resource_failure', 'resource_failure'], $diagnostics->events);
-        self::assertSame(0, $provider->contentReads);
+        self::assertSame(0, $resourceProvider->contentReads);
     }
 
     #[DataProvider('malformedProviderMetadata')]
     public function test_that_malformed_provider_metadata_never_becomes_a_successful_page(array $metadata): void
     {
-        $provider = new class ($metadata) implements McpResourceProvider {
+        $resourceProvider = new class ($metadata) implements McpResourceProvider {
             public int $enumerations = 0;
             public function __construct(private readonly array $metadata) {}
             public function resources(): iterable {
@@ -163,14 +163,14 @@ final class McpResourceDiscoveryJourneyTest extends TestCase
         $factory = new HttpFactory();
         $endpoint = new McpRequestHandler(
             new McpCapabilityRegistry(new McpServerInfo('Resource validation', '1'), [new McpResourceDiscovery(
-                [$provider], $availability, 'fixture-only-resource-cursor-key-00117', 'validation', new McpResourceLimits(pageSize: 1),
+                [$resourceProvider], $availability, 'fixture-only-resource-cursor-key-00117', 'validation', new McpResourceLimits(pageSize: 1),
             )]),
             new ExactMcpOriginPolicy([]), $guard, new McpResponseFactory($factory, $factory, $diagnostics),
         );
         $response = $endpoint->handle($this->request('resources/list'));
         self::assertSame(500, $response->getStatusCode());
         self::assertSame(['jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.']], json_decode((string) $response->getBody(), true));
-        self::assertSame(1, $provider->enumerations);
+        self::assertSame(1, $resourceProvider->enumerations);
         self::assertSame(['resource_failure'], $diagnostics->events);
     }
 

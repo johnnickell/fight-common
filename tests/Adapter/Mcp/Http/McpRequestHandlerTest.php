@@ -41,10 +41,10 @@ final class McpRequestHandlerTest extends UnitTestCase
     public function test_that_missing_required_policies_fail_at_composition(): void
     {
         $registry = new McpCapabilityRegistry(new McpServerInfo('Test', '1'), []);
-        $responses = $this->responses();
+        $responseFactory = $this->responses();
         foreach (['origin', 'guard'] as $missing) {
             try {
-                new McpRequestHandler($registry, $missing === 'origin' ? null : new DenyAllMcpOriginPolicy(), $missing === 'guard' ? null : $this->createStub(McpInvocationGuard::class), $responses);
+                new McpRequestHandler($registry, $missing === 'origin' ? null : new DenyAllMcpOriginPolicy(), $missing === 'guard' ? null : $this->createStub(McpInvocationGuard::class), $responseFactory);
                 self::fail('A required policy was omitted.');
             } catch (TypeError) {
                 $this->addToAssertionCount(1);

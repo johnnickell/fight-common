@@ -23,14 +23,14 @@ class RoutingCommandBusTest extends UnitTestCase
         $handler = $this->mock(CommandHandler::class);
         $handler->shouldReceive('handle')
             ->once()
-            ->withArgs(fn(CommandMessage $msg): bool => $msg->payload() instanceof SampleRoutingCommand);
+            ->withArgs(fn(CommandMessage $commandMessage): bool => $commandMessage->payload() instanceof SampleRoutingCommand);
 
         /** @var MockInterface|CommandRouter $router */
         $router = $this->mock(CommandRouter::class);
         $router->shouldReceive('match')->andReturn($handler);
 
-        $bus = new RoutingCommandBus($router);
-        $bus->execute(new SampleRoutingCommand());
+        $commandBus = new RoutingCommandBus($router);
+        $commandBus->execute(new SampleRoutingCommand());
     }
 
     public function test_that_consumer_handler_refusal_propagates_unchanged(): void
@@ -75,8 +75,8 @@ class RoutingCommandBusTest extends UnitTestCase
         $router = $this->mock(CommandRouter::class);
         $router->shouldReceive('match')->with($command)->andReturn($handler);
 
-        $bus = new RoutingCommandBus($router);
-        $bus->dispatch($message);
+        $commandBus = new RoutingCommandBus($router);
+        $commandBus->dispatch($message);
     }
 }
 

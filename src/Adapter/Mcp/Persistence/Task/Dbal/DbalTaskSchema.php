@@ -30,16 +30,16 @@ final readonly class DbalTaskSchema
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $state = $schema->createTable($this->tables->stateTable()->schemaName());
-        $state->addColumn('singleton', 'integer');
-        $state->addColumn('version', 'integer');
-        $state->setPrimaryKey(['singleton']);
+        $stateTable = $schema->createTable($this->tables->stateTable()->schemaName());
+        $stateTable->addColumn('singleton', 'integer');
+        $stateTable->addColumn('version', 'integer');
+        $stateTable->setPrimaryKey(['singleton']);
 
-        $tasks = $schema->createTable($this->tables->taskTable()->schemaName());
-        $tasks->addColumn('scope', 'string', ['length' => 96]);
-        $tasks->addColumn('task_id', 'string', ['length' => 32]);
-        $tasks->addColumn('payload', 'text', ['length' => 16777215]);
-        $tasks->setPrimaryKey(['scope', 'task_id']);
+        $taskTable = $schema->createTable($this->tables->taskTable()->schemaName());
+        $taskTable->addColumn('scope', 'string', ['length' => 96]);
+        $taskTable->addColumn('task_id', 'string', ['length' => 32]);
+        $taskTable->addColumn('payload', 'text', ['length' => 16777215]);
+        $taskTable->setPrimaryKey(['scope', 'task_id']);
         if ($platform instanceof AbstractMySQLPlatform) {
             foreach ($this->selectedTables() as $name) {
                 $table = $schema->getTable($name->schemaName());
@@ -61,11 +61,11 @@ final readonly class DbalTaskSchema
             throw new RuntimeException('Task schema installation requires an idle connection.');
         }
 
-        $manager = $connection->createSchemaManager();
+        $schemaManager = $connection->createSchemaManager();
         // PostgreSQL reports case-sensitive names with DBAL quoting markers.
         $existingTables = array_map(
             static fn(string $tableName): string => trim($tableName, '`"'),
-            $manager->listTableNames()
+            $schemaManager->listTableNames()
         );
         $selectedNames = array_map(static fn(DbalTableName $table): string => $table->name(), $this->selectedTables());
         $present = array_intersect($selectedNames, $existingTables);
@@ -81,7 +81,7 @@ final readonly class DbalTaskSchema
                         $this->tables->stateTable()->quoted($connection->getDatabasePlatform())
                     )
                 ) !== 1
-                || !$manager->introspectTable($this->tables->taskTable()->schemaName())->hasColumn('payload')
+                || !$schemaManager->introspectTable($this->tables->taskTable()->schemaName())->hasColumn('payload')
             ) {
                 throw new RuntimeException('Unsupported Task schema.');
             }
@@ -89,10 +89,10 @@ final readonly class DbalTaskSchema
             return;
         }
 
-        $schema = $manager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
         foreach ($this->selectedTables() as $name) {
-            $manager->createTable($schema->getTable($name->schemaName()));
+            $schemaManager->createTable($schema->getTable($name->schemaName()));
         }
 
         $connection->insert(

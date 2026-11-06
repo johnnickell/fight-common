@@ -45,13 +45,13 @@ $projector = new class implements SafeHttpProjector {
         return null; // Fixed safe defaults; never copy $failure->getMessage() or getErrors().
     }
 };
-$errors = new SafeJSendErrorMiddleware(
+$errorMiddleware = new SafeJSendErrorMiddleware(
     new JSendResponseFactory($httpFactory, $httpFactory),
     new SafeHttpErrorPolicy(),
     $diagnostics,
     $projector
 );
-$response = $errors->process($request, $nextHandler);
+$response = $errorMiddleware->process($request, $nextHandler);
 ```
 
 Place the middleware outside the selected downstream handler. It passes successful responses through unchanged.

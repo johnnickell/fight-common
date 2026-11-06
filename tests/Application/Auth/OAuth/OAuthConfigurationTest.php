@@ -32,7 +32,7 @@ final class OAuthConfigurationTest extends UnitTestCase
         self::assertSame(['resource' => OAuthFixture::RESOURCE, 'authorization_servers' => $issuers, 'scopes_supported' => ['mcp:read'], 'bearer_methods_supported' => ['header']], json_decode($metadata->toJson(), true));
         $requirements = OAuthTokenRequirements::fromConfiguration($metadata, 'at+jwt', ['RS256'], ['https://second.test/tenant' => ['tenant-key'], OAuthFixture::ISSUER => ['current']], ['sub' => 'string']);
         self::assertTrue($requirements->accepts(OAuthFixture::claims(), time()));
-        self::assertTrue($requirements->accepts(OAuthFixture::claims(['iss' => 'https://second.test/tenant'], key: 'tenant-key'), time()));
+        self::assertTrue($requirements->accepts(OAuthFixture::claims(['iss' => 'https://second.test/tenant'], keyId: 'tenant-key'), time()));
         self::assertFalse($requirements->accepts(OAuthFixture::claims(['iss' => 'https://second.test/tenant']), time()));
     }
 
@@ -140,7 +140,7 @@ final class OAuthConfigurationTest extends UnitTestCase
     {
         $requirements = OAuthTokenRequirements::fromConfiguration(OAuthFixture::metadata(), 'at+jwt', ['RS256'], [OAuthFixture::ISSUER => ['overlap', 'current']], ['sub' => 'string', 'count' => 'integer', 'active' => 'boolean', 'ratio' => 'number', 'context' => 'object', 'items' => 'list'], 10);
         $values = ['aud' => ['https://other.test', OAuthFixture::RESOURCE], 'exp' => 100, 'nbf' => 50, 'count' => 2, 'active' => true, 'ratio' => 1.5, 'context' => (object) ['id' => 'private'], 'items' => []];
-        $claims = OAuthFixture::claims($values, key: 'overlap');
+        $claims = OAuthFixture::claims($values, keyId: 'overlap');
         self::assertTrue($requirements->accepts($claims, 90));
         self::assertTrue($requirements->accepts($claims, 109));
         self::assertFalse($requirements->accepts($claims, 110));
@@ -171,7 +171,7 @@ final class OAuthConfigurationTest extends UnitTestCase
         self::assertSame([OAuthFixture::ISSUER => ['current']], $requirements->activeKeyIds());
         self::assertSame(['sub' => 'string'], $requirements->requiredClaimTypes());
         self::assertTrue($requirements->accepts(OAuthFixture::claims(), time()));
-        self::assertFalse($requirements->accepts(OAuthFixture::claims(key: 'attacker-key'), time()));
+        self::assertFalse($requirements->accepts(OAuthFixture::claims(keyId: 'attacker-key'), time()));
     }
 
     public function test_that_getters_preserve_every_legacy_value_identity_and_serialized_state(): void

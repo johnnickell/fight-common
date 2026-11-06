@@ -66,26 +66,26 @@ final class LegacyMcpAdaptersTest extends UnitTestCase
                 $progress->report(1);
                 return McpToolOutput::structured('done');
             }));
-            $tools = new McpToolRegistry([$fixture->tool]);
-            $registry = new McpCapabilityRegistry(new McpServerInfo('Legacy', '1'), [
-                new McpToolDiscovery($tools, $fixture, str_repeat('fixture-key-', 4)),
-                new McpToolInvocation(new McpToolInvoker($tools, $fixture)),
+            $toolRegistry = new McpToolRegistry([$fixture->tool]);
+            $capabilityRegistry = new McpCapabilityRegistry(new McpServerInfo('Legacy', '1'), [
+                new McpToolDiscovery($toolRegistry, $fixture, str_repeat('fixture-key-', 4)),
+                new McpToolInvocation(new McpToolInvoker($toolRegistry, $fixture)),
             ]);
             $factory = new HttpFactory();
-            $responses = new McpResponseFactory(responses: $factory, streams: $factory, diagnostics: $fixture);
+            $responseFactory = new McpResponseFactory(responses: $factory, streams: $factory, diagnostics: $fixture);
             $handler = new McpRequestHandler(
-                registry: $registry,
+                registry: $capabilityRegistry,
                 originPolicy: new ExactMcpOriginPolicy(['https://client.test']),
                 guard: $fixture,
-                responses: $responses,
+                responses: $responseFactory,
                 decoder: new McpRequestDecoder(),
                 progressive: $progressive
             );
             self::assertSame(McpRequestHandler::class, $handler::class);
-            self::assertSame(McpResponseFactory::class, $responses::class);
+            self::assertSame(McpResponseFactory::class, $responseFactory::class);
             $request = ProgressEndpoint::request(null, 'server/discover', []);
             $decoded = (new McpRequestDecoder())->decode((string) $request->getBody());
-            self::assertNull((new McpHeaderValidator($registry))->validate($decoded, $request->getHeaders()));
+            self::assertNull((new McpHeaderValidator($capabilityRegistry))->validate($decoded, $request->getHeaders()));
             self::assertSame(403, $handler->handle($request->withHeader('Origin', 'https://denied.test'))->getStatusCode());
             self::assertSame(0, $fixture->guardCalls);
             $response = $handler->handle($request->withHeader('Origin', 'https://client.test'));

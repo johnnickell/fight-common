@@ -23,11 +23,11 @@ class EventMappingProviderCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(EventMapper::class);
+        $eventMapperDefinition = $container->findDefinition(EventMapper::class);
         $taggedServices = $container->findTaggedServiceIds('common.event_mapping_provider', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $definition->addMethodCall('registerProvider', [new Reference($id)]);
+        foreach ($taggedServices as $providerServiceId => $tags) {
+            $eventMapperDefinition->addMethodCall('registerProvider', [new Reference($providerServiceId)]);
         }
     }
 }

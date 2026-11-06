@@ -33,7 +33,7 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     #[DataProvider('databases')]
     public function test_that_failed_postcommit_publication_and_multibatch_query_http_recovery_preserve_authorized_committed_order(string $backend): void
     {
-        $db = $this->database($backend); $writer = new NoticeFixture($db); $f = new NoticeRecoveryFixture($db); $events = 0;
+        $db = $this->database($backend); $writer = new NoticeFixture($db); $fixture = new NoticeRecoveryFixture($db); $events = 0;
         $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; throw new RuntimeException('PRIVATE publication sentinel'); });
         for ($i = 1; $i <= 105; ++$i) {
             $changes = ['id' => 'notice-'.$i, 'producer' => $i % 2 ? 'producer' : 'producer-2'];
@@ -42,106 +42,106 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
             $writer->record($changes); // Matching retry does not publish again.
         }
         try { $writer->record(['scope' => 'scope-2', 'metadata' => ['app/label' => 'CONCEALED-SENTINEL']]); } catch (CommittedNoticeDispatchFailed) {}
-        $state = $f->state(); $admissions = $writer->admissions;
+        $state = $fixture->state(); $admissions = $writer->admissions;
         self::assertSame(106, $events);
-        $catalog = $f->request('tools/list')['body']['result']; self::assertSame(['notices.recover'], array_column($catalog['tools'], 'name'));
-        $capabilities = $f->request('server/discover')['body']['result']['capabilities'];
+        $catalog = $fixture->request('tools/list')['body']['result']; self::assertSame(['notices.recover'], array_column($catalog['tools'], 'name'));
+        $capabilities = $fixture->request('server/discover')['body']['result']['capabilities'];
         foreach (['subscriptions', 'resources', 'prompts', 'tasks'] as $family) { self::assertArrayNotHasKey($family, $capabilities); }
-        self::assertSame(-32601, $f->request('subscriptions/poll')['body']['error']['code']); self::assertSame(0, $f->admissions);
+        self::assertSame(-32601, $fixture->request('subscriptions/poll')['body']['error']['code']); self::assertSame(0, $fixture->admissions);
         $args = ['scopes' => ['scope', 'scope-2'], 'batch_size' => 32, 'scan_limit' => 100]; $ids = []; $statuses = [];
         do {
-            $result = $this->equivalent($f, $args); $statuses[] = $result['status'];
+            $result = $this->equivalent($fixture, $args); $statuses[] = $result['status'];
             foreach ($result['notices'] as $notice) { $ids[] = $notice['id']; self::assertArrayNotHasKey('position', $notice); }
-            self::assertStringNotContainsString('CONCEALED-SENTINEL', $f->lastResponse);
-            self::assertStringNotContainsString('PRIVATE publication sentinel', $f->lastResponse);
+            self::assertStringNotContainsString('CONCEALED-SENTINEL', $fixture->lastResponse);
+            self::assertStringNotContainsString('PRIVATE publication sentinel', $fixture->lastResponse);
             $args['continuation'] = $result['continuation'];
         } while ($result['status'] !== 'complete');
         self::assertSame(array_map(static fn ($i) => 'notice-'.$i, range(1, 105)), $ids);
         self::assertSame(['incomplete', 'incomplete', 'incomplete', 'complete'], $statuses);
-        $empty = $this->equivalent($f, $args); self::assertSame([], $empty['notices']); self::assertSame('complete', $empty['status']);
-        self::assertSame($state, $f->state()); self::assertSame($admissions, $writer->admissions); self::assertSame(106, $events);
+        $empty = $this->equivalent($fixture, $args); self::assertSame([], $empty['notices']); self::assertSame('complete', $empty['status']);
+        self::assertSame($state, $fixture->state()); self::assertSame($admissions, $writer->admissions); self::assertSame(106, $events);
         self::assertFalse($db->isTransactionActive());
         try { $writer->record(['id' => 'new-after-boundary']); } catch (CommittedNoticeDispatchFailed) {}
-        $next = $this->equivalent($f, $args); self::assertSame(['new-after-boundary'], array_column($next['notices'], 'id')); self::assertSame('complete', $next['status']);
-        self::assertSame([], $f->diagnostics);
+        $next = $this->equivalent($fixture, $args); self::assertSame(['new-after-boundary'], array_column($next['notices'], 'id')); self::assertSame('complete', $next['status']);
+        self::assertSame([], $fixture->diagnostics);
     }
 
     #[DataProvider('databases')]
     public function test_that_current_grants_context_integrity_and_hidden_loss_never_create_false_completion_or_leakage(string $backend): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $f = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
         $writer->recording->record(['id' => 'old']); $writer->recording->record(['scope' => 'scope-2', 'id' => 'newly-permitted', 'metadata' => ['app/label' => 'CONCEALED-SENTINEL']]);
-        $args = ['scopes' => ['scope', 'scope-2'], 'batch_size' => 1]; $first = $this->equivalent($f, $args); self::assertSame('complete', $first['status']);
+        $args = ['scopes' => ['scope', 'scope-2'], 'batch_size' => 1]; $first = $this->equivalent($fixture, $args); self::assertSame('complete', $first['status']);
         $old = $args + ['continuation' => $first['continuation']];
         foreach ([NoticeRecoveryFixture::access(caller: 'different'), NoticeRecoveryFixture::access(revision: 'new-revision'), NoticeRecoveryFixture::access([]), NoticeRecoveryFixture::access(['scope', 'scope-2'])] as $access) {
-            $f->access = $access; $this->assertSafeError($f->call($old));
+            $fixture->access = $access; $this->assertSafeError($fixture->call($old));
         }
-        $f->access = NoticeRecoveryFixture::access(['scope', 'scope-2'], revision: 'new-revision');
-        $restart = $this->equivalent($f, $args); self::assertSame('old', $restart['notices'][0]['id']);
-        $second = $this->equivalent($f, $args + ['continuation' => $restart['continuation']]); self::assertSame('newly-permitted', $second['notices'][0]['id']); self::assertSame('complete', $second['status']);
-        $f->access = NoticeRecoveryFixture::access();
-        foreach ([['scopes' => ['scope']], ['filters' => ['topic' => 'catalog/tools']], ['batch_size' => 2], ['scan_limit' => 1]] as $change) { $this->assertSafeError($f->call(array_replace($old, $change))); }
-        $tampered = $old; $tampered['continuation'][100] = $tampered['continuation'][100] === 'a' ? 'b' : 'a'; $this->assertSafeError($f->call($tampered));
+        $fixture->access = NoticeRecoveryFixture::access(['scope', 'scope-2'], revision: 'new-revision');
+        $restart = $this->equivalent($fixture, $args); self::assertSame('old', $restart['notices'][0]['id']);
+        $second = $this->equivalent($fixture, $args + ['continuation' => $restart['continuation']]); self::assertSame('newly-permitted', $second['notices'][0]['id']); self::assertSame('complete', $second['status']);
+        $fixture->access = NoticeRecoveryFixture::access();
+        foreach ([['scopes' => ['scope']], ['filters' => ['topic' => 'catalog/tools']], ['batch_size' => 2], ['scan_limit' => 1]] as $change) { $this->assertSafeError($fixture->call(array_replace($old, $change))); }
+        $tampered = $old; $tampered['continuation'][100] = $tampered['continuation'][100] === 'a' ? 'b' : 'a'; $this->assertSafeError($fixture->call($tampered));
         $plain = NoticeRecoveryFixture::codec()->open($first['continuation']);
         self::assertStringNotContainsString('CONCEALED-SENTINEL', $plain); self::assertStringNotContainsString('scope-2', $plain);
         $decoded = json_decode($plain, true); $decoded['expires'] = time() - 1;
-        $this->assertSafeError($f->call(array_replace($old, ['continuation' => NoticeRecoveryFixture::codec()->seal(json_encode($decoded, JSON_THROW_ON_ERROR))])));
-        $f->access = NoticeRecoveryFixture::access(revision: null, evidence: false);
-        $uncertain = $this->equivalent($f, $args); self::assertSame('uncertain', $uncertain['status']);
+        $this->assertSafeError($fixture->call(array_replace($old, ['continuation' => NoticeRecoveryFixture::codec()->seal(json_encode($decoded, JSON_THROW_ON_ERROR))])));
+        $fixture->access = NoticeRecoveryFixture::access(revision: null, evidence: false);
+        $uncertain = $this->equivalent($fixture, $args); self::assertSame('uncertain', $uncertain['status']);
         $writer->remove($writer->selection([NoticeRemovalFixture::target(2, 'newly-permitted', 'scope-2')]));
-        $after = $this->equivalent($f, $args + ['continuation' => $uncertain['continuation']]);
+        $after = $this->equivalent($fixture, $args + ['continuation' => $uncertain['continuation']]);
         self::assertSame('uncertain', $after['status']); self::assertSame([], $after['notices']); self::assertSame(1432, strlen($after['continuation']));
-        self::assertStringNotContainsString('CONCEALED-SENTINEL', $f->lastResponse);
+        self::assertStringNotContainsString('CONCEALED-SENTINEL', $fixture->lastResponse);
         // Current positive access with no trustworthy policy epoch remains uncertain even on an empty feed.
-        $f->access = NoticeRecoveryFixture::access(['scope', 'scope-2'], revision: null);
-        self::assertSame('uncertain', $this->equivalent($f, ['scopes' => ['scope', 'scope-2']])['status']);
+        $fixture->access = NoticeRecoveryFixture::access(['scope', 'scope-2'], revision: null);
+        self::assertSame('uncertain', $this->equivalent($fixture, ['scopes' => ['scope', 'scope-2']])['status']);
     }
 
     #[DataProvider('databases')]
     public function test_that_actual_removal_final_row_retirement_and_missing_evidence_are_not_successful_empty_catchup(string $backend): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $f = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
         $writer->recording->record(['id' => 'first']); $writer->recording->record(['id' => 'last']);
-        $args = ['scopes' => ['scope'], 'batch_size' => 1]; $first = $this->equivalent($f, $args); self::assertSame('incomplete', $first['status']);
+        $args = ['scopes' => ['scope'], 'batch_size' => 1]; $first = $this->equivalent($fixture, $args); self::assertSame('incomplete', $first['status']);
         $writer->remove($writer->selection([NoticeRemovalFixture::target(2, 'last')]));
-        $args['continuation'] = $first['continuation']; $missing = $this->equivalent($f, $args);
+        $args['continuation'] = $first['continuation']; $missing = $this->equivalent($fixture, $args);
         self::assertSame([], $missing['notices']); self::assertSame('incomplete', $missing['status']);
         $writer->remove($writer->selection([NoticeRemovalFixture::target(1, 'first')]));
-        self::assertSame('incomplete', $this->equivalent($f, $args)['status']);
-        self::assertSame('incomplete', $this->equivalent($f, ['scopes' => ['scope']])['status']);
+        self::assertSame('incomplete', $this->equivalent($fixture, $args)['status']);
+        self::assertSame('incomplete', $this->equivalent($fixture, ['scopes' => ['scope']])['status']);
         self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notice_comparisons'));
         $db->update('fight_notice_state', ['namespace' => bin2hex(random_bytes(16)), 'lost_through' => 2], ['singleton' => 1]);
-        $this->assertSafeError($f->call($args));
-        self::assertSame('incomplete', $this->equivalent($f, ['scopes' => ['scope']])['status']);
+        $this->assertSafeError($fixture->call($args));
+        self::assertSame('incomplete', $this->equivalent($fixture, ['scopes' => ['scope']])['status']);
         $db->delete('fight_notice_state', ['singleton' => 1]);
-        $this->assertSafeError($f->call(['scopes' => ['scope']]));
-        try { $f->queries->fetch(new RecoverNotices(NoticeSelection::create(['scope']))); self::fail('Missing evidence must fail'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
+        $this->assertSafeError($fixture->call(['scopes' => ['scope']]));
+        try { $fixture->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['scope']))); self::fail('Missing evidence must fail'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
     }
 
     #[DataProvider('databases')]
     public function test_that_scans_exact_batches_inputs_availability_guard_and_storage_failures_are_bounded_and_independent(string $backend): void
     {
-        $db = $this->database($backend); $writer = new NoticeFixture($db); $f = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend); $writer = new NoticeFixture($db); $fixture = new NoticeRecoveryFixture($db);
         for ($i = 1; $i <= 101; ++$i) { $writer->record(['id' => 'notice-'.$i, 'topic' => $i === 101 ? 'target' : 'other']); }
         $args = ['scopes' => ['scope'], 'filters' => ['topic' => 'target'], 'batch_size' => 32, 'scan_limit' => 100];
-        $scan = $this->equivalent($f, $args); self::assertSame([], $scan['notices']); self::assertSame('incomplete', $scan['status']);
-        $next = $this->equivalent($f, $args + ['continuation' => $scan['continuation']]); self::assertSame(['notice-101'], array_column($next['notices'], 'id')); self::assertSame('complete', $next['status']);
+        $scan = $this->equivalent($fixture, $args); self::assertSame([], $scan['notices']); self::assertSame('incomplete', $scan['status']);
+        $next = $this->equivalent($fixture, $args + ['continuation' => $scan['continuation']]); self::assertSame(['notice-101'], array_column($next['notices'], 'id')); self::assertSame('complete', $next['status']);
         $selection = ['scopes' => array_map(static fn ($i) => 'scope-'.$i, range(1, 16)), 'continuation' => str_repeat('x', 2048)];
-        $this->assertSafeError($f->call($selection)); // Exact byte bound reaches authenticated validation; it is not a valid token.
-        $before = $f->admissions;
+        $this->assertSafeError($fixture->call($selection)); // Exact byte bound reaches authenticated validation; it is not a valid token.
+        $before = $fixture->admissions;
         foreach ([['scopes' => array_fill(0, 17, 'scope')], ['continuation' => str_repeat('x', 2049)], ['batch_size' => 33], ['batch_size' => 0], ['scan_limit' => 101], ['scan_limit' => 0], ['caller' => 'SUPER_ADMIN'], ['access' => true], ['filters' => ['body' => 'private']]] as $bad) {
-            $response = $f->call(array_replace(['scopes' => ['scope']], $bad)); self::assertTrue($response['body']['result']['isError']); self::assertArrayNotHasKey('structuredContent', $response['body']['result']);
+            $response = $fixture->call(array_replace(['scopes' => ['scope']], $bad)); self::assertTrue($response['body']['result']['isError']); self::assertArrayNotHasKey('structuredContent', $response['body']['result']);
         }
-        self::assertSame($before, $f->admissions);
-        $f->available = false; $denied = $f->call(['scopes' => ['scope']]);
-        self::assertSame($denied, $f->request('tools/call', ['name' => 'guessed', 'arguments' => (object) ['scopes' => ['scope']]]));
-        self::assertSame([], $f->request('tools/list')['body']['result']['tools']); self::assertSame($before, $f->admissions);
-        $f->available = true; $f->guard = false; self::assertSame(429, $f->call(['scopes' => ['scope']])['status']); self::assertSame($before, $f->admissions);
-        $f->guard = true; $state = $f->state(); $f->access = NoticeRecoveryFixture::access([]);
-        $unknown = $this->equivalent($f, ['scopes' => ['scope']]); $other = $this->equivalent($f, ['scopes' => ['missing']]);
-        self::assertSame([], $unknown['notices']); self::assertSame([], $other['notices']); self::assertSame($unknown['status'], $other['status']); self::assertSame($state, $f->state());
-        $f->access = NoticeRecoveryFixture::access(); $db->executeStatement('DROP TABLE fight_notice_comparisons');
-        $this->assertSafeError($f->call(['scopes' => ['scope']]));
+        self::assertSame($before, $fixture->admissions);
+        $fixture->available = false; $denied = $fixture->call(['scopes' => ['scope']]);
+        self::assertSame($denied, $fixture->request('tools/call', ['name' => 'guessed', 'arguments' => (object) ['scopes' => ['scope']]]));
+        self::assertSame([], $fixture->request('tools/list')['body']['result']['tools']); self::assertSame($before, $fixture->admissions);
+        $fixture->available = true; $fixture->guard = false; self::assertSame(429, $fixture->call(['scopes' => ['scope']])['status']); self::assertSame($before, $fixture->admissions);
+        $fixture->guard = true; $state = $fixture->state(); $fixture->access = NoticeRecoveryFixture::access([]);
+        $unknown = $this->equivalent($fixture, ['scopes' => ['scope']]); $other = $this->equivalent($fixture, ['scopes' => ['missing']]);
+        self::assertSame([], $unknown['notices']); self::assertSame([], $other['notices']); self::assertSame($unknown['status'], $other['status']); self::assertSame($state, $fixture->state());
+        $fixture->access = NoticeRecoveryFixture::access(); $db->executeStatement('DROP TABLE fight_notice_comparisons');
+        $this->assertSafeError($fixture->call(['scopes' => ['scope']]));
     }
 
     #[DataProvider('databases')]
@@ -172,11 +172,11 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     #[DataProvider('races')]
     public function test_that_query_and_http_observe_one_serialized_recording_or_removal_boundary_with_delayed_commits(string $backend, string $mode): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $f = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
         $args = ['scopes' => ['scope'], 'batch_size' => 1];
         if ($mode !== 'record-first') {
             $writer->recording->record(); $writer->recording->record(['id' => 'last']);
-            $args['continuation'] = $f->call($args)['body']['result']['structuredContent']['continuation'];
+            $args['continuation'] = $fixture->call($args)['body']['result']['structuredContent']['continuation'];
         }
         $directory = $this->directory(); $config = $directory.'/config.json';
         $selection = $mode === 'record-first' ? null : $writer->selection([NoticeRemovalFixture::target(2, 'last')])->toArray();
@@ -196,9 +196,9 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
             self::assertSame($mode === 'remove-first' ? 'incomplete' : 'complete', $batch['status']);
             self::assertSame($mode === 'remove-first' ? [] : [$mode === 'record-first' ? 'notice-1' : 'last'], array_column($batch['notices'], 'id'));
             $args['continuation'] = $batch['continuation'];
-            if ($mode === 'record-first') { $writer->recording->record(['id' => 'notice-2']); self::assertSame(['notice-2'], array_column($this->equivalent($f, $args)['notices'], 'id')); }
-            elseif ($mode === 'remove-first') { self::assertSame('incomplete', $this->equivalent($f, $args)['status']); }
-            else { self::assertSame('complete', $this->equivalent($f, $args)['status']); self::assertSame([], $this->equivalent($f, $args)['notices']); }
+            if ($mode === 'record-first') { $writer->recording->record(['id' => 'notice-2']); self::assertSame(['notice-2'], array_column($this->equivalent($fixture, $args)['notices'], 'id')); }
+            elseif ($mode === 'remove-first') { self::assertSame('incomplete', $this->equivalent($fixture, $args)['status']); }
+            else { self::assertSame('complete', $this->equivalent($fixture, $args)['status']); self::assertSame([], $this->equivalent($fixture, $args)['notices']); }
         } finally { file_put_contents($directory.'/release', 'yes'); $first->stop(); $second->stop(); }
     }
 
@@ -215,10 +215,10 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         foreach (array_reverse(DbalNoticeSchema::TABLES) as $table) { $db->executeStatement('DROP TABLE IF EXISTS '.$table); }
         (new DbalNoticeSchema())->install($db); return $db;
     }
-    private function equivalent(NoticeRecoveryFixture $f, array $args): array
+    private function equivalent(NoticeRecoveryFixture $fixture, array $args): array
     {
-        $query = $f->queries->fetch(new RecoverNotices(NoticeSelection::create($args['scopes'], $args['filters'] ?? []), $args['continuation'] ?? null, $args['batch_size'] ?? 32, $args['scan_limit'] ?? 100));
-        $http = $f->call($args); self::assertSame(200, $http['status']); self::assertArrayHasKey('result', $http['body'], $f->lastResponse);
+        $query = $fixture->queryBus->fetch(new RecoverNotices(NoticeSelection::create($args['scopes'], $args['filters'] ?? []), $args['continuation'] ?? null, $args['batch_size'] ?? 32, $args['scan_limit'] ?? 100));
+        $http = $fixture->call($args); self::assertSame(200, $http['status']); self::assertArrayHasKey('result', $http['body'], $fixture->lastResponse);
         $actual = $http['body']['result']['structuredContent']; $expected = $query->toArray();
         $left = json_decode(NoticeRecoveryFixture::codec()->open($expected['continuation']), true); $right = json_decode(NoticeRecoveryFixture::codec()->open($actual['continuation']), true); unset($left['expires'], $right['expires']); self::assertSame($left, $right);
         unset($expected['continuation'], $actual['continuation']); self::assertSame($expected, $actual);

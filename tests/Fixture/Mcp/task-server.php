@@ -26,7 +26,7 @@ foreach ($flags as $key => $value) { $fixture->$key = $value; }
 $endpoint = new TaskEndpoint($fixture);
 $scenario = $_GET['scenario'] ?? '';
 if ($scenario === 'submission-failure') { $endpoint->tool->onStart = static fn () => throw new RuntimeException('private submission failure'); }
-if ($scenario === 'publication-failure') { $fixture->events->addHandler(ClassName::underscore(TaskChanged::class), static fn () => throw new RuntimeException('private publication failure')); }
+if ($scenario === 'publication-failure') { $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskChanged::class), static fn () => throw new RuntimeException('private publication failure')); }
 $response = $endpoint->handler->handle(ServerRequest::fromGlobals());
 $composition = $_GET['composition'] ?? 'psr';
 if ($composition === 'symfony') { new McpResponseFactory()->fromResponse($response)->send(); }

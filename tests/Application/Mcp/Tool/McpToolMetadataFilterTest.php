@@ -68,10 +68,10 @@ final class McpToolMetadataFilterTest extends UnitTestCase
         $filter = new McpToolMetadataFilter();
         $commandBus = $this->mock(SynchronousCommandBus::class);
         $queryBus = $this->mock(QueryBus::class);
-        $commands = new CommandPipeline($commandBus);
-        $queries = new QueryPipeline($queryBus);
-        $commands->addFilter($filter);
-        $queries->addFilter($filter);
+        $commandPipeline = new CommandPipeline($commandBus);
+        $queryPipeline = new QueryPipeline($queryBus);
+        $commandPipeline->addFilter($filter);
+        $queryPipeline->addFilter($filter);
         $received = [];
         $commandBus->shouldReceive('dispatch')->once()->andReturnUsing(function (CommandMessage $message) use (&$received): void {
             $received[] = $message;
@@ -82,10 +82,10 @@ final class McpToolMetadataFilterTest extends UnitTestCase
         });
         $availability = $this->mock(McpToolAvailability::class);
         $availability->shouldReceive('isAvailable')->twice()->andReturnTrue();
-        $invoker = new McpToolInvoker(new McpToolRegistry([new ReadValueTool($queries), new WriteValueTool($commands)]), $availability, metadata: $filter);
+        $invoker = new McpToolInvoker(new McpToolRegistry([new ReadValueTool($queryPipeline), new WriteValueTool($commandPipeline)]), $availability, metadata: $filter);
         self::assertArrayHasKey('structuredContent', $invoker->invoke('value.read', (object) ['id' => 'item'])->toArray());
         self::assertArrayHasKey('structuredContent', $invoker->invoke('value.write', (object) ['id' => 'item'])->toArray());
-        $queries->fetch(new SampleQuery('ordinary'));
+        $queryPipeline->fetch(new SampleQuery('ordinary'));
         self::assertSame('value.read', $received[0]->meta()->get('fight.mcp/tool'));
         self::assertSame('value.write', $received[1]->meta()->get('fight.mcp/tool'));
         self::assertNotSame($received[0]->meta()->get('fight.mcp/correlation'), $received[1]->meta()->get('fight.mcp/correlation'));

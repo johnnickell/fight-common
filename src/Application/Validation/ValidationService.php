@@ -16,14 +16,14 @@ use Fight\Common\Domain\Utility\VarPrinter;
  */
 final readonly class ValidationService
 {
-    private ValidationCoordinator $coordinator;
+    private ValidationCoordinator $validationCoordinator;
 
     /**
      * Constructs ValidationService
      */
     public function __construct(?ValidationCoordinator $coordinator = null)
     {
-        $this->coordinator = $coordinator ?: new ValidationCoordinator();
+        $this->validationCoordinator = $coordinator ?: new ValidationCoordinator();
     }
 
     /**
@@ -41,15 +41,15 @@ final readonly class ValidationService
             $this->validateRules($rules);
             $this->addValidators($rules);
 
-            $result = $this->coordinator->validate(new InputData($input));
+            $validationResult = $this->validationCoordinator->validate(new InputData($input));
 
-            if ($result->isFailed()) {
-                throw ValidationException::fromErrors($result->getErrors()->toArray());
+            if ($validationResult->isFailed()) {
+                throw ValidationException::fromErrors($validationResult->getErrors()->toArray());
             }
 
-            return $result->getData();
+            return $validationResult->getData();
         } finally {
-            $this->coordinator->resetValidators();
+            $this->validationCoordinator->resetValidators();
         }
     }
 
@@ -58,7 +58,7 @@ final readonly class ValidationService
      */
     public function addValidator(Validator $validator): void
     {
-        $this->coordinator->addValidator($validator);
+        $this->validationCoordinator->addValidator($validator);
     }
 
     /**
@@ -72,16 +72,16 @@ final readonly class ValidationService
     {
         foreach (RulesParser::parse($rules) as $fieldName => $fieldRules) {
             foreach ($fieldRules as $rule) {
-                $type = $rule['type'];
-                $args = $rule['args'];
-                $error = $rule['error'];
+                $ruleType = $rule['type'];
+                $ruleArguments = $rule['args'];
+                $errorMessage = $rule['error'];
 
-                $method = sprintf('add%sValidation', $type);
-                $methodArgs = array_merge([$fieldName, $error], $args);
+                $registrationMethod = sprintf('add%sValidation', $ruleType);
+                $registrationArguments = array_merge([$fieldName, $errorMessage], $ruleArguments);
 
                 call_user_func_array(
-                    [$this->coordinator, $method],
-                    $methodArgs
+                    [$this->validationCoordinator, $registrationMethod],
+                    $registrationArguments
                 );
             }
         }

@@ -64,15 +64,15 @@ class CommandFilterCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_command_filters(): void
     {
         $container = new ContainerBuilder();
-        $pipelineDef = $container->register(CommandPipeline::class, CommandPipeline::class);
+        $commandPipelineDefinition = $container->register(CommandPipeline::class, CommandPipeline::class);
 
-        $filterDef = $container->register('filter_id', StubCommandFilter::class);
-        $filterDef->addTag('common.command_filter', []);
+        $filterDefinition = $container->register('filter_id', StubCommandFilter::class);
+        $filterDefinition->addTag('common.command_filter', []);
 
         $pass = new CommandFilterCompilerPass();
         $pass->process($container);
 
-        $calls = $pipelineDef->getMethodCalls();
+        $calls = $commandPipelineDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('addFilter', $calls[0][0]);
         self::assertInstanceOf(Reference::class, $calls[0][1][0]);
@@ -82,18 +82,18 @@ class CommandFilterCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_command_filters(): void
     {
         $container = new ContainerBuilder();
-        $pipelineDef = $container->register(CommandPipeline::class, CommandPipeline::class);
+        $commandPipelineDefinition = $container->register(CommandPipeline::class, CommandPipeline::class);
 
-        $filterDef1 = $container->register('filter_1', StubCommandFilter::class);
-        $filterDef1->addTag('common.command_filter', []);
+        $firstFilterDefinition = $container->register('filter_1', StubCommandFilter::class);
+        $firstFilterDefinition->addTag('common.command_filter', []);
 
-        $filterDef2 = $container->register('filter_2', StubOtherCommandFilter::class);
-        $filterDef2->addTag('common.command_filter', []);
+        $secondFilterDefinition = $container->register('filter_2', StubOtherCommandFilter::class);
+        $secondFilterDefinition->addTag('common.command_filter', []);
 
         $pass = new CommandFilterCompilerPass();
         $pass->process($container);
 
-        $calls = $pipelineDef->getMethodCalls();
+        $calls = $commandPipelineDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('addFilter', $calls[0][0]);
         self::assertSame('filter_1', (string) $calls[0][1][0]);
@@ -106,8 +106,8 @@ class CommandFilterCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(CommandPipeline::class, CommandPipeline::class);
 
-        $badDef = $container->register('bad_filter', StubCmdFilterNonFilterService::class);
-        $badDef->addTag('common.command_filter', []);
+        $invalidDefinition = $container->register('bad_filter', StubCmdFilterNonFilterService::class);
+        $invalidDefinition->addTag('common.command_filter', []);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

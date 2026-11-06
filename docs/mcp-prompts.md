@@ -19,7 +19,7 @@ use Fight\Common\Application\Mcp\Prompt\McpPromptDiscovery;
 use Fight\Common\Application\Mcp\Prompt\McpPromptInfo;
 use Fight\Common\Application\Mcp\Prompt\McpPromptOutput;
 
-$review = new class implements McpPrompt {
+$reviewPrompt = new class implements McpPrompt {
     public function info(): McpPromptInfo
     {
         return McpPromptInfo::fromArray([
@@ -41,8 +41,8 @@ $review = new class implements McpPrompt {
 };
 
 // Consumer-owned request-scoped McpPromptAvailability; obtain identity from trusted authentication, not arguments.
-$prompts = new McpPromptDiscovery([$review], $currentPromptAccess, $dedicatedCursorSecret, 'consumer-review');
-$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$prompts]);
+$promptDiscovery = new McpPromptDiscovery([$reviewPrompt], $currentPromptAccess, $dedicatedCursorSecret, 'consumer-review');
+$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$promptDiscovery]);
 ```
 
 Pass this registry to the existing [guarded HTTP composition](components/mcp/index.md#guarded-http).

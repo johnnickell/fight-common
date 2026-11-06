@@ -45,7 +45,7 @@ final class DbalExecutionInspectionTest extends ExecutionInspectionTestCase
         $record($session);
         $phase = $this->phase('phase', null, 'agent', 1);
         $record($phase);
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         foreach ([
             ['producer_id' => 'different'],
             ['observation_id' => ObservationId::generate()->toString()],
@@ -56,7 +56,7 @@ final class DbalExecutionInspectionTest extends ExecutionInspectionTestCase
         ] as $changes) {
             $corrupt = Observation::fromArray(array_replace($phase->toArray(), $changes));
             $db->update('fight_execution_observations', ['payload' => $corrupt->comparison()], ['observation_id' => $phase->id()->toString()]);
-            try { $bus->fetch(new ListExecutionPhases('project', 'session')); self::fail('Corrupt relationships must fail.'); }
+            try { $queryBus->fetch(new ListExecutionPhases('project', 'session')); self::fail('Corrupt relationships must fail.'); }
             catch (ExecutionReadFailed $failure) { self::assertSame('Execution evidence could not be read completely.', $failure->getMessage()); }
         }
         $db->update('fight_execution_observations', ['payload' => $phase->comparison()], ['observation_id' => $phase->id()->toString()]);
@@ -65,7 +65,7 @@ final class DbalExecutionInspectionTest extends ExecutionInspectionTestCase
             ['session' => array_replace($session->session()->toArray(), ['consumer_reference' => 'concealed'])]
         ] as $changes) {
             $db->update('fight_execution_observations', ['payload' => Observation::fromArray(array_replace($session->toArray(), $changes))->comparison()], ['observation_id' => $session->id()->toString()]);
-            try { $bus->fetch(new GetExecution('project', 'session')); self::fail('Corrupt session must fail.'); }
+            try { $queryBus->fetch(new GetExecution('project', 'session')); self::fail('Corrupt session must fail.'); }
             catch (ExecutionReadFailed $failure) { self::assertSame('Execution evidence could not be read completely.', $failure->getMessage()); }
         }
     }
@@ -81,8 +81,8 @@ final class DbalExecutionInspectionTest extends ExecutionInspectionTestCase
             $data['activity']['model_id'] = 'model:'.$i;
             $record(Observation::fromArray($data));
         }
-        [$bus] = $this->bus($db, ['project' => null]);
+        [$queryBus] = $this->bus($db, ['project' => null]);
         $this->expectException(ExecutionReadFailed::class);
-        $bus->fetch(new ListExecutionPhases('project', 'session'));
+        $queryBus->fetch(new ListExecutionPhases('project', 'session'));
     }
 }

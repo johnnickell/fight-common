@@ -41,24 +41,24 @@ final class EventPublicationRunnerTest extends UnitTestCase
                 $this->eventRecord(4, 'order-4', '6ba7b844-9dad-11d1-80b4-00c04fd430c8'),
             ],
         );
-        $dispatcher = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $dispatched = [];
         $observedCursors = [];
-        $cursorStore = new InMemoryPublicationCursorStore();
-        $cursorStore->save('orders.subscribers', 1);
+        $publicationCursorStore = new InMemoryPublicationCursorStore();
+        $publicationCursorStore->save('orders.subscribers', 1);
 
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(PublishedOrderPlaced::class),
-            static function (EventMessage $message) use (&$dispatched, &$observedCursors, $cursorStore): void {
+            static function (EventMessage $message) use (&$dispatched, &$observedCursors, $publicationCursorStore): void {
                 $dispatched[] = $message;
-                $observedCursors[] = $cursorStore->load('orders.subscribers');
+                $observedCursors[] = $publicationCursorStore->load('orders.subscribers');
             },
         );
         $runner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             new InMemoryPublicationFailureRecorder(),
         );
 
@@ -82,7 +82,7 @@ final class EventPublicationRunnerTest extends UnitTestCase
             ),
         );
         self::assertSame([1, 2], $observedCursors);
-        self::assertSame(3, $cursorStore->load('orders.subscribers'));
+        self::assertSame(3, $publicationCursorStore->load('orders.subscribers'));
     }
 
     public function test_that_completed_fanout_failures_are_recorded_once_before_cursor_advancement(): void
@@ -91,11 +91,11 @@ final class EventPublicationRunnerTest extends UnitTestCase
             new EventMapper([new PublicationEventMappingProvider()]),
             [$this->eventRecord(1, 'order-1', '6ba7b841-9dad-11d1-80b4-00c04fd430c8')],
         );
-        $dispatcher = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $failingHandlerCalls = 0;
         $completedHandlerCalls = 0;
         $eventType = ClassName::underscore(PublishedOrderPlaced::class);
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             $eventType,
             static function () use (&$failingHandlerCalls): void {
                 $failingHandlerCalls++;
@@ -104,7 +104,7 @@ final class EventPublicationRunnerTest extends UnitTestCase
             },
             30,
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             $eventType,
             static function () use (&$failingHandlerCalls): void {
                 $failingHandlerCalls++;
@@ -113,20 +113,20 @@ final class EventPublicationRunnerTest extends UnitTestCase
             },
             20,
         );
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             $eventType,
             static function () use (&$completedHandlerCalls): void {
                 $completedHandlerCalls++;
             },
             10,
         );
-        $cursorStore = new InMemoryPublicationCursorStore();
+        $publicationCursorStore = new InMemoryPublicationCursorStore();
         $failureRecorder = new InMemoryPublicationFailureRecorder();
         $runner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
         $earliestAttemptTime = new DateTimeImmutable();
@@ -137,7 +137,7 @@ final class EventPublicationRunnerTest extends UnitTestCase
 
         self::assertSame(2, $failingHandlerCalls);
         self::assertSame(1, $completedHandlerCalls);
-        self::assertSame(1, $cursorStore->load('orders.subscribers'));
+        self::assertSame(1, $publicationCursorStore->load('orders.subscribers'));
         self::assertCount(1, $failureRecorder->failures());
 
         $failure = $failureRecorder->failures()[0];
@@ -168,7 +168,7 @@ final class EventPublicationRunnerTest extends UnitTestCase
             [$this->eventRecord(1, 'order-1', '6ba7b841-9dad-11d1-80b4-00c04fd430c8')],
         );
         $failure = new RuntimeException('Subscriber resolution failed.');
-        $dispatcher = new class($failure) extends SimpleEventDispatcher {
+        $eventDispatcher = new class($failure) extends SimpleEventDispatcher {
             public function __construct(private readonly RuntimeException $failure)
             {
             }
@@ -178,13 +178,13 @@ final class EventPublicationRunnerTest extends UnitTestCase
                 throw $this->failure;
             }
         };
-        $cursorStore = new InMemoryPublicationCursorStore();
+        $publicationCursorStore = new InMemoryPublicationCursorStore();
         $failureRecorder = new InMemoryPublicationFailureRecorder();
         $runner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
 
@@ -195,7 +195,7 @@ final class EventPublicationRunnerTest extends UnitTestCase
             self::assertSame($failure, $runtimeException);
         }
 
-        self::assertSame(0, $cursorStore->load('orders.subscribers'));
+        self::assertSame(0, $publicationCursorStore->load('orders.subscribers'));
         self::assertSame([], $failureRecorder->failures());
     }
 
@@ -205,16 +205,16 @@ final class EventPublicationRunnerTest extends UnitTestCase
             new EventMapper([new PublicationEventMappingProvider()]),
             [$this->eventRecord(1, 'order-1', '6ba7b841-9dad-11d1-80b4-00c04fd430c8')],
         );
-        $dispatcher = new SimpleEventDispatcher();
-        $dispatcher->addHandler(
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->addHandler(
             ClassName::underscore(PublishedOrderPlaced::class),
             static function (): void {
                 throw new RuntimeException('Subscriber failed.');
             },
         );
-        $calls = new PublicationCollaboratorCallLog();
-        $cursorStore = new readonly class($calls) implements PublicationCursorStore {
-            public function __construct(private PublicationCollaboratorCallLog $calls)
+        $collaboratorCallLog = new PublicationCollaboratorCallLog();
+        $publicationCursorStore = new readonly class($collaboratorCallLog) implements PublicationCursorStore {
+            public function __construct(private PublicationCollaboratorCallLog $collaboratorCallLog)
             {
             }
 
@@ -225,20 +225,20 @@ final class EventPublicationRunnerTest extends UnitTestCase
 
             public function save(string $publicationName, int $globalPosition): void
             {
-                $this->calls->calls[] = 'save';
+                $this->collaboratorCallLog->calls[] = 'save';
             }
         };
         $failure = new RuntimeException('Failure recording unavailable.');
-        $failureRecorder = new readonly class($calls, $failure) implements PublicationFailureRecorder {
+        $failureRecorder = new readonly class($collaboratorCallLog, $failure) implements PublicationFailureRecorder {
             public function __construct(
-                private PublicationCollaboratorCallLog $calls,
+                private PublicationCollaboratorCallLog $collaboratorCallLog,
                 private RuntimeException $failure,
             ) {
             }
 
             public function record(EventPublicationFailure $failure): void
             {
-                $this->calls->calls[] = 'record';
+                $this->collaboratorCallLog->calls[] = 'record';
 
                 throw $this->failure;
             }
@@ -246,8 +246,8 @@ final class EventPublicationRunnerTest extends UnitTestCase
         $runner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
 
@@ -258,8 +258,8 @@ final class EventPublicationRunnerTest extends UnitTestCase
             self::assertSame($failure, $runtimeException);
         }
 
-        self::assertSame(['record'], $calls->calls);
-        self::assertSame(0, $cursorStore->load('orders.subscribers'));
+        self::assertSame(['record'], $collaboratorCallLog->calls);
+        self::assertSame(0, $publicationCursorStore->load('orders.subscribers'));
     }
 
     public function test_that_a_cursor_save_failure_propagates_and_retry_may_duplicate_delivery(): void
@@ -268,9 +268,9 @@ final class EventPublicationRunnerTest extends UnitTestCase
             new EventMapper([new PublicationEventMappingProvider()]),
             [$this->eventRecord(1, 'order-1', '6ba7b841-9dad-11d1-80b4-00c04fd430c8')],
         );
-        $dispatcher = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $subscriberCalls = 0;
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(PublishedOrderPlaced::class),
             static function () use (&$subscriberCalls): void {
                 $subscriberCalls++;
@@ -278,15 +278,15 @@ final class EventPublicationRunnerTest extends UnitTestCase
                 throw new RuntimeException('Subscriber failed after its external effect.', 41);
             },
         );
-        $calls = new PublicationCollaboratorCallLog();
+        $collaboratorCallLog = new PublicationCollaboratorCallLog();
         $cursorFailure = new RuntimeException('Cursor save unavailable.');
-        $cursorStore = new FailingOncePublicationCursorStore($calls, $cursorFailure);
-        $failureRecorder = new RecordingPublicationFailureRecorder($calls);
+        $publicationCursorStore = new FailingOncePublicationCursorStore($collaboratorCallLog, $cursorFailure);
+        $failureRecorder = new RecordingPublicationFailureRecorder($collaboratorCallLog);
         $runner = new EventPublicationRunner(
             'orders.subscribers',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
 
@@ -298,15 +298,15 @@ final class EventPublicationRunnerTest extends UnitTestCase
         }
 
         self::assertSame(1, $subscriberCalls);
-        self::assertSame(0, $cursorStore->load('orders.subscribers'));
-        self::assertSame(['record', 'save'], $calls->calls);
+        self::assertSame(0, $publicationCursorStore->load('orders.subscribers'));
+        self::assertSame(['record', 'save'], $collaboratorCallLog->calls);
         self::assertCount(1, $failureRecorder->failures());
 
         $runner->run(1);
 
         self::assertSame(2, $subscriberCalls);
-        self::assertSame(1, $cursorStore->load('orders.subscribers'));
-        self::assertSame(['record', 'save', 'record', 'save'], $calls->calls);
+        self::assertSame(1, $publicationCursorStore->load('orders.subscribers'));
+        self::assertSame(['record', 'save', 'record', 'save'], $collaboratorCallLog->calls);
         self::assertCount(1, $failureRecorder->failures());
     }
 
@@ -316,9 +316,9 @@ final class EventPublicationRunnerTest extends UnitTestCase
             new EventMapper([new PublicationEventMappingProvider()]),
             [$this->eventRecord(1, 'order-1', '6ba7b841-9dad-11d1-80b4-00c04fd430c8')],
         );
-        $dispatcher = new SimpleEventDispatcher();
+        $eventDispatcher = new SimpleEventDispatcher();
         $subscriberCalls = 0;
-        $dispatcher->addHandler(
+        $eventDispatcher->addHandler(
             ClassName::underscore(PublishedOrderPlaced::class),
             static function () use (&$subscriberCalls): void {
                 $subscriberCalls++;
@@ -326,20 +326,20 @@ final class EventPublicationRunnerTest extends UnitTestCase
                 throw new RuntimeException('Subscriber failed.', 41);
             },
         );
-        $cursorStore = new InMemoryPublicationCursorStore();
+        $publicationCursorStore = new InMemoryPublicationCursorStore();
         $failureRecorder = new InMemoryPublicationFailureRecorder();
         $primaryRunner = new EventPublicationRunner(
             'orders.primary',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
         $secondaryRunner = new EventPublicationRunner(
             'orders.secondary',
             $eventStore,
-            $dispatcher,
-            $cursorStore,
+            $eventDispatcher,
+            $publicationCursorStore,
             $failureRecorder,
         );
 
@@ -348,8 +348,8 @@ final class EventPublicationRunnerTest extends UnitTestCase
         $primaryRunner->run(1);
 
         self::assertSame(2, $subscriberCalls);
-        self::assertSame(1, $cursorStore->load('orders.primary'));
-        self::assertSame(1, $cursorStore->load('orders.secondary'));
+        self::assertSame(1, $publicationCursorStore->load('orders.primary'));
+        self::assertSame(1, $publicationCursorStore->load('orders.secondary'));
         self::assertSame(
             [
                 ['orders.primary', 1],
@@ -424,7 +424,7 @@ final class FailingOncePublicationCursorStore implements PublicationCursorStore
     private bool $failed = false;
 
     public function __construct(
-        private readonly PublicationCollaboratorCallLog $calls,
+        private readonly PublicationCollaboratorCallLog $collaboratorCallLog,
         private readonly RuntimeException $failure,
     ) {
     }
@@ -436,7 +436,7 @@ final class FailingOncePublicationCursorStore implements PublicationCursorStore
 
     public function save(string $publicationName, int $globalPosition): void
     {
-        $this->calls->calls[] = 'save';
+        $this->collaboratorCallLog->calls[] = 'save';
 
         if (!$this->failed) {
             $this->failed = true;
@@ -450,22 +450,22 @@ final class FailingOncePublicationCursorStore implements PublicationCursorStore
 
 final readonly class RecordingPublicationFailureRecorder implements PublicationFailureRecorder
 {
-    private InMemoryPublicationFailureRecorder $recorder;
+    private InMemoryPublicationFailureRecorder $publicationFailureRecorder;
 
-    public function __construct(private PublicationCollaboratorCallLog $calls)
+    public function __construct(private PublicationCollaboratorCallLog $collaboratorCallLog)
     {
-        $this->recorder = new InMemoryPublicationFailureRecorder();
+        $this->publicationFailureRecorder = new InMemoryPublicationFailureRecorder();
     }
 
     public function record(EventPublicationFailure $failure): void
     {
-        $this->calls->calls[] = 'record';
-        $this->recorder->record($failure);
+        $this->collaboratorCallLog->calls[] = 'record';
+        $this->publicationFailureRecorder->record($failure);
     }
 
     /** @return list<EventPublicationFailure> */
     public function failures(): array
     {
-        return $this->recorder->failures();
+        return $this->publicationFailureRecorder->failures();
     }
 }

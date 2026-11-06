@@ -31,9 +31,9 @@ final class RecordingCommandsTest extends UnitTestCase
 {
     public function test_that_commands_roundtrip_and_handlers_use_the_recording_coordinator(): void
     {
-        $transaction = $this->mock(TransactionalUnitOfWork::class);
-        $transaction->shouldReceive('commitTransactional')->twice()->andReturnNull();
-        $recorder = $this->recorder($transaction);
+        $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
+        $transactionalUnitOfWork->shouldReceive('commitTransactional')->twice()->andReturnNull();
+        $recorder = $this->recorder($transactionalUnitOfWork);
         foreach ([
             [new RecordSessionObservation(ObservationFixture::session()), new RecordSessionObservationHandler($recorder)],
             [new RecordPhaseObservation(ObservationFixture::phase()), new RecordPhaseObservationHandler($recorder)],
@@ -101,10 +101,10 @@ final class RecordingCommandsTest extends UnitTestCase
         }
     }
 
-    private function recorder(TransactionalUnitOfWork $transaction): ObservationRecorder
+    private function recorder(TransactionalUnitOfWork $transactionalUnitOfWork): ObservationRecorder
     {
         return new ObservationRecorder(
-            $transaction,
+            $transactionalUnitOfWork,
             $this->mock(SessionRepository::class),
             $this->mock(PhaseRepository::class),
             $this->mock(ObservationRepository::class),

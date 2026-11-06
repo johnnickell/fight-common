@@ -107,15 +107,15 @@ final class McpToolExecutionTest extends UnitTestCase
         foreach (['value.read', 'value.write'] as $name) {
             $finals = [];
             foreach ([null, 'live'] as $token) {
-                $queries = $this->mock(QueryBus::class);
-                $commands = $this->mock(CommandBus::class);
+                $queryBus = $this->mock(QueryBus::class);
+                $commandBus = $this->mock(CommandBus::class);
                 if ($name === 'value.read') {
-                    $queries->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item'])
+                    $queryBus->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'item'])
                         ->andReturn(['value' => 'public', 'secret' => 'not-output']);
-                    $tool = new ReadValueTool($queries);
+                    $tool = new ReadValueTool($queryBus);
                 } else {
-                    $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'item']);
-                    $tool = new WriteValueTool($commands);
+                    $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'item']);
+                    $tool = new WriteValueTool($commandBus);
                 }
                 $messages = [];
                 $execution = new McpToolExecution($this->request($token, $name, ['id' => 'item']), static function (array $message) use (&$messages): void { $messages[] = $message; });
@@ -346,9 +346,9 @@ final class McpToolExecutionTest extends UnitTestCase
     {
         $messages = [];
         $execution = new McpToolExecution($this->request('live', 'value.write', ['id' => 'item']), static function (array $message) use (&$messages): void { $messages[] = $message; });
-        $commands = $this->mock(CommandBus::class);
-        $commands->shouldReceive('execute')->once()->andReturnUsing(static function () use ($execution): void { $execution->cancel(); });
-        $execution->run($this->responder(new WriteValueTool($commands), $execution));
+        $commandBus = $this->mock(CommandBus::class);
+        $commandBus->shouldReceive('execute')->once()->andReturnUsing(static function () use ($execution): void { $execution->cancel(); });
+        $execution->run($this->responder(new WriteValueTool($commandBus), $execution));
         self::assertCount(1, $messages);
         self::assertTrue($execution->isCancelled());
         self::assertSame(0.0, $messages[0]['params']['progress']);

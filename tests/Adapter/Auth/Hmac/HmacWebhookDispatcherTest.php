@@ -37,9 +37,9 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $factory = $this->mock(MessageFactory::class);
         $factory->shouldReceive('createRequest')
             ->once()
-            ->withArgs(fn(string $method, string $u, array $headers, string $body): bool =>
+            ->withArgs(fn(string $method, string $uri, array $headers, string $body): bool =>
                 $method === 'POST'
-                && $u === $url
+                && $uri === $url
                 && $headers['Content-Type'] === 'application/json'
                 && str_contains($body, '"health_check"')
             )
@@ -53,11 +53,11 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $client = $this->mock(HttpClient::class);
         $client->shouldReceive('send')->with($signedRequest)->once()->andReturn($response);
 
-        $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
-        self::assertSame(HmacWebhookDispatcher::class, $dispatcher::class);
-        self::assertInstanceOf(WebhookDispatcher::class, $dispatcher);
-        self::assertInstanceOf(McpWebhookDispatcher::class, $dispatcher);
-        $dispatcher->dispatch($url, 'health_check');
+        $webhookDispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
+        self::assertSame(HmacWebhookDispatcher::class, $webhookDispatcher::class);
+        self::assertInstanceOf(WebhookDispatcher::class, $webhookDispatcher);
+        self::assertInstanceOf(McpWebhookDispatcher::class, $webhookDispatcher);
+        $webhookDispatcher->dispatch($url, 'health_check');
     }
 
     public function test_that_dispatch_includes_payload_in_body(): void
@@ -72,7 +72,7 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $factory = $this->mock(MessageFactory::class);
         $factory->shouldReceive('createRequest')
             ->once()
-            ->withArgs(fn(string $m, string $u, array $h, string $body): bool =>
+            ->withArgs(fn(string $method, string $uri, array $headers, string $body): bool =>
                 str_contains($body, '"version"') && str_contains($body, '"1.2.3"')
             )
             ->andReturn($request);
@@ -85,8 +85,8 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $client = $this->mock(HttpClient::class);
         $client->shouldReceive('send')->andReturn($response);
 
-        $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
-        $dispatcher->dispatch('https://example.com/ops', 'deploy', ['version' => '1.2.3']);
+        $webhookDispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
+        $webhookDispatcher->dispatch('https://example.com/ops', 'deploy', ['version' => '1.2.3']);
     }
 
     public function test_that_dispatch_rejects_an_unknown_action_before_creating_a_request(): void
@@ -103,11 +103,11 @@ class HmacWebhookDispatcherTest extends UnitTestCase
         $client = $this->mock(HttpClient::class);
         $client->shouldNotReceive('send');
 
-        $dispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
+        $webhookDispatcher = new HmacWebhookDispatcher($client, $factory, $signer);
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Unknown AI operation action: unknown');
 
-        $dispatcher->dispatch('https://example.com/ops', 'unknown');
+        $webhookDispatcher->dispatch('https://example.com/ops', 'unknown');
     }
 }

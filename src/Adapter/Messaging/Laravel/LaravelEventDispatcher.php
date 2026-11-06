@@ -17,11 +17,14 @@ use Illuminate\Contracts\Bus\Dispatcher;
  */
 final readonly class LaravelEventDispatcher implements AsynchronousEventDispatcher
 {
+    private Dispatcher $jobDispatcher;
+
     /**
      * Constructs LaravelEventDispatcher
      */
-    public function __construct(private Dispatcher $dispatcher)
+    public function __construct(Dispatcher $dispatcher)
     {
+        $this->jobDispatcher = $dispatcher;
     }
 
     /**
@@ -37,7 +40,7 @@ final readonly class LaravelEventDispatcher implements AsynchronousEventDispatch
      */
     public function dispatch(EventMessage $eventMessage): void
     {
-        $this->dispatcher->dispatch(new QueuedEventMessage($eventMessage));
+        $this->jobDispatcher->dispatch(new QueuedEventMessage($eventMessage));
     }
 
     /**

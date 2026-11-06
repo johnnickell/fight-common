@@ -68,8 +68,8 @@ final class ArrayQueueIterator implements Iterator
 
         $index = $this->index;
         $front = $this->front;
-        $cap = $this->cap;
-        $offset = ($index + $front) % $cap;
+        $capacity = $this->cap;
+        $offset = ($index + $front) % $capacity;
 
         return $this->items[$offset];
     }

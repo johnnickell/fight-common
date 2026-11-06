@@ -1,5 +1,5 @@
 (() => {
-  const tabSets = '[data-atlas-format-tabs]';
+  const tabSetSelector = '[data-atlas-format-tabs]';
 
   const tabsFor = (tabSet) => Array.from(tabSet.querySelectorAll('[role="tab"]'));
 
@@ -28,22 +28,22 @@
       return;
     }
 
-    const fallback = document.createElement('textarea');
-    fallback.value = text;
-    fallback.setAttribute('readonly', '');
-    fallback.style.position = 'fixed';
-    fallback.style.opacity = '0';
-    document.body.append(fallback);
-    fallback.select();
+    const fallbackTextarea = document.createElement('textarea');
+    fallbackTextarea.value = text;
+    fallbackTextarea.setAttribute('readonly', '');
+    fallbackTextarea.style.position = 'fixed';
+    fallbackTextarea.style.opacity = '0';
+    document.body.append(fallbackTextarea);
+    fallbackTextarea.select();
     const copied = document.execCommand('copy');
-    fallback.remove();
+    fallbackTextarea.remove();
     if (!copied) {
       throw new Error('The browser did not allow copying this configuration.');
     }
   };
 
   const announceCopyStatus = (button, message) => {
-    const status = button.closest(tabSets)?.querySelector('[data-atlas-copy-status]');
+    const status = button.closest(tabSetSelector)?.querySelector('[data-atlas-copy-status]');
 
     if (status) {
       status.textContent = message;
@@ -77,12 +77,12 @@
 
     tabSet.dataset.atlasFormatTabsEnhanced = 'true';
     const tabs = tabsFor(tabSet);
-    const selected = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0];
-    if (!selected) {
+    const selectedTab = tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') || tabs[0];
+    if (!selectedTab) {
       return;
     }
 
-    selectTab(tabSet, selected);
+    selectTab(tabSet, selectedTab);
     tabSet.addEventListener('click', (event) => {
       if (!(event.target instanceof Element)) {
         return;
@@ -94,11 +94,11 @@
         return;
       }
 
-      const copy = event.target.closest('[data-atlas-copy]');
-      if (copy && tabSet.contains(copy)) {
-        void copyPanel(copy).catch(() => {
-          copy.textContent = 'Retry';
-          announceCopyStatus(copy, `Could not copy ${configurationNameFor(copy)}. Try again.`);
+      const copyButton = event.target.closest('[data-atlas-copy]');
+      if (copyButton && tabSet.contains(copyButton)) {
+        void copyPanel(copyButton).catch(() => {
+          copyButton.textContent = 'Retry';
+          announceCopyStatus(copyButton, `Could not copy ${configurationNameFor(copyButton)}. Try again.`);
         });
       }
     });
@@ -107,12 +107,12 @@
         return;
       }
 
-      const current = event.target.closest('[role="tab"]');
-      if (!current || !tabSet.contains(current)) {
+      const currentTab = event.target.closest('[role="tab"]');
+      if (!currentTab || !tabSet.contains(currentTab)) {
         return;
       }
 
-      const currentIndex = tabs.indexOf(current);
+      const currentIndex = tabs.indexOf(currentTab);
       const nextByKey = {
         ArrowLeft: (currentIndex - 1 + tabs.length) % tabs.length,
         ArrowRight: (currentIndex + 1) % tabs.length,
@@ -129,7 +129,7 @@
   };
 
   const enhance = (root = document) => {
-    root.querySelectorAll(tabSets).forEach(enhanceTabSet);
+    root.querySelectorAll(tabSetSelector).forEach(enhanceTabSet);
   };
 
   if (document.readyState === 'loading') {

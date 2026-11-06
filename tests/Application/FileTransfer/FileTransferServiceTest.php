@@ -17,44 +17,44 @@ class FileTransferServiceTest extends UnitTestCase
     public function test_that_transport_can_be_added_and_retrieved(): void
     {
         $transport = $this->mock(FileTransport::class);
-        $service   = new FileTransferService();
+        $fileTransferService   = new FileTransferService();
 
-        $service->addTransport('sftp', $transport);
+        $fileTransferService->addTransport('sftp', $transport);
 
-        self::assertSame($transport, $service->getTransport('sftp'));
+        self::assertSame($transport, $fileTransferService->getTransport('sftp'));
     }
 
     public function test_that_multiple_transports_can_be_added(): void
     {
         $sftp = $this->mock(FileTransport::class);
         $ftp  = $this->mock(FileTransport::class);
-        $service = new FileTransferService();
+        $fileTransferService = new FileTransferService();
 
-        $service->addTransport('sftp', $sftp);
-        $service->addTransport('ftp', $ftp);
+        $fileTransferService->addTransport('sftp', $sftp);
+        $fileTransferService->addTransport('ftp', $ftp);
 
-        self::assertSame($sftp, $service->getTransport('sftp'));
-        self::assertSame($ftp, $service->getTransport('ftp'));
+        self::assertSame($sftp, $fileTransferService->getTransport('sftp'));
+        self::assertSame($ftp, $fileTransferService->getTransport('ftp'));
     }
 
     public function test_that_get_transport_throws_key_exception_when_not_found(): void
     {
-        $service = new FileTransferService();
+        $fileTransferService = new FileTransferService();
 
         self::expectException(KeyException::class);
 
-        $service->getTransport('missing');
+        $fileTransferService->getTransport('missing');
     }
 
     public function test_that_add_transport_throws_file_transfer_exception_on_duplicate_key(): void
     {
         $transport = $this->mock(FileTransport::class);
-        $service   = new FileTransferService();
+        $fileTransferService   = new FileTransferService();
 
-        $service->addTransport('sftp', $transport);
+        $fileTransferService->addTransport('sftp', $transport);
 
         self::expectException(FileTransferException::class);
 
-        $service->addTransport('sftp', $transport);
+        $fileTransferService->addTransport('sftp', $transport);
     }
 }

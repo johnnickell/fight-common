@@ -401,18 +401,18 @@ final class HashTable implements Table
      */
     public function partition(callable $predicate): array
     {
-        $table1 = static::of($this->keyType(), $this->valueType());
-        $table2 = static::of($this->keyType(), $this->valueType());
+        $matchingItems = static::of($this->keyType(), $this->valueType());
+        $nonMatchingItems = static::of($this->keyType(), $this->valueType());
 
         foreach ($this->getIterator() as $key => $value) {
             if (call_user_func($predicate, $value, $key)) {
-                $table1->set($key, $value);
+                $matchingItems->set($key, $value);
             } else {
-                $table2->set($key, $value);
+                $nonMatchingItems->set($key, $value);
             }
         }
 
-        return [$table1, $table2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

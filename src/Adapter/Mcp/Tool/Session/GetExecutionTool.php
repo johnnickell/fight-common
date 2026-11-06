@@ -37,14 +37,17 @@ final readonly class GetExecutionTool implements McpTool
         ExecutionToolSchemas::GET_INPUT,
         ExecutionToolSchemas::INSPECTION
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::GET_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::GET_INPUT);
         /**
-         * @var ExecutionInspection|null $result
+         * @var ExecutionInspection|null $executionInspection
          */
-        $result = $this->queryBus->fetch(new GetExecution($input['project_id'], $input['session_id']));
+        $executionInspection = $this->queryBus->fetch(new GetExecution(
+            $arguments['project_id'],
+            $arguments['session_id']
+        ));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($executionInspection);
     }
 }

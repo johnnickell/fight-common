@@ -32,7 +32,7 @@ closes eligible parents during the child-completion operation. Execution remains
 <!-- planning:execution -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00192](tasks/00192-TASK.md) | Check and correct descriptive variable names across the codebase | ready-for-agent | — |
+| Ready Frontier | [TASK-00200](tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent | — |
 <!-- /planning:execution -->
 
 This is the [Board](tasks/BOARD.md#whats-next) selection derived from TASK records, not a second execution priority
@@ -59,7 +59,8 @@ DBAL unit of work, separate repositories, handler ownership, Task disclosure pro
 values/identities, adapter namespaces and codebase-wide descriptive variable naming. Records own technical
 dependencies and compatibility constraints; the planning approval itself started no implementation or publication.
 TASK-00183's rule surface and TASK-00184 through TASK-00191's refactors have since been accepted;
-TASK-00192 remains pending.
+TASK-00192's naming candidate has independent Review acceptance and required QA PASS; its record separates
+that acceptance from later Land integration and publication.
 
 [EPIC-00009 — Execution introspection](epics/00009-EPIC.md),
 [EPIC-00010 — Generic MCP Prompts](epics/00010-EPIC.md),

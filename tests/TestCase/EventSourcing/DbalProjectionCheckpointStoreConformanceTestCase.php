@@ -42,19 +42,19 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
         new DbalProjectionCheckpointStore($connection)->save('orders.order-summary', 99);
         $selectedTable = new DbalTableName('Order');
         $connection->executeStatement('DROP TABLE IF EXISTS '.$selectedTable->quoted($connection->getDatabasePlatform()));
-        $checkpointStore = new DbalProjectionCheckpointStore($connection, $selectedTable);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection, $selectedTable);
         $checkpointSchema = new DbalProjectionCheckpointStoreSchema($selectedTable);
         $checkpointSchema->schema();
         self::assertNotContains('Order', $connection->createSchemaManager()->listTableNames());
 
-        $this->assertStorageOperationsFail($checkpointStore);
+        $this->assertStorageOperationsFail($projectionCheckpointStore);
         self::assertSame(99, new DbalProjectionCheckpointStore($connection)->load('orders.order-summary'));
 
         $connection->executeStatement(
             'CREATE TABLE '.$selectedTable->quoted($connection->getDatabasePlatform()).' (wrong_column INT)',
         );
         $checkpointSchema->install($connection);
-        $this->assertStorageOperationsFail($checkpointStore);
+        $this->assertStorageOperationsFail($projectionCheckpointStore);
         self::assertSame(99, new DbalProjectionCheckpointStore($connection)->load('orders.order-summary'));
     }
 
@@ -64,9 +64,9 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
     }
 
     protected function reopenProjectionCheckpointStore(
-        ProjectionCheckpointStore $store,
+        ProjectionCheckpointStore $projectionCheckpointStore,
     ): ProjectionCheckpointStore {
-        unset($store);
+        unset($projectionCheckpointStore);
 
         return new DbalProjectionCheckpointStore($this->createConnection(), new DbalTableName($this->tableName));
     }
@@ -117,15 +117,15 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
             self::assertSame(0, pcntl_wexitstatus($higherStatus));
             self::assertSame('', $lowerResult);
             self::assertSame('', $higherResult);
-            $checkpointStore = new DbalProjectionCheckpointStore($this->createConnection(), new DbalTableName($tableName));
+            $projectionCheckpointStore = new DbalProjectionCheckpointStore($this->createConnection(), new DbalTableName($tableName));
             if ('save' === $operation) {
-                self::assertSame(253, $checkpointStore->load('orders.order-summary'));
+                self::assertSame(253, $projectionCheckpointStore->load('orders.order-summary'));
             } else {
                 for ($round = 1; $round <= 24; ++$round) {
-                    self::assertSame(0, $checkpointStore->load('reset-'.$round));
+                    self::assertSame(0, $projectionCheckpointStore->load('reset-'.$round));
                 }
             }
-            self::assertSame(41, $checkpointStore->load('billing.revenue-summary'));
+            self::assertSame(41, $projectionCheckpointStore->load('billing.revenue-summary'));
             if ('projection_checkpoints' !== $tableName) {
                 $this->assertDefaultStorageUntouched();
             }
@@ -186,7 +186,7 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
             return $processId;
         }
 
-        $checkpointStore = new DbalProjectionCheckpointStore(
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore(
             $this->createConnection(), new DbalTableName($this->tableName),
         );
         $failures = [];
@@ -197,9 +197,9 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
 
             try {
                 if ('save' === $operation) {
-                    $checkpointStore->save('orders.order-summary', ($round * 10) + $offset);
+                    $projectionCheckpointStore->save('orders.order-summary', ($round * 10) + $offset);
                 } else {
-                    $checkpointStore->reset('reset-'.$round);
+                    $projectionCheckpointStore->reset('reset-'.$round);
                 }
             } catch (InvalidArgumentException $exception) {
                 // Only a lower save may observe that the higher position already won.
@@ -233,14 +233,14 @@ abstract class DbalProjectionCheckpointStoreConformanceTestCase extends Projecti
         ], $rows));
     }
 
-    private function assertStorageOperationsFail(DbalProjectionCheckpointStore $checkpointStore): void
+    private function assertStorageOperationsFail(DbalProjectionCheckpointStore $projectionCheckpointStore): void
     {
         foreach (['load', 'save', 'reset'] as $operation) {
             try {
                 if ('save' === $operation) {
-                    $checkpointStore->save('orders.order-summary', 1);
+                    $projectionCheckpointStore->save('orders.order-summary', 1);
                 } else {
-                    $checkpointStore->$operation('orders.order-summary');
+                    $projectionCheckpointStore->$operation('orders.order-summary');
                 }
                 self::fail('Expected missing/incompatible selected storage to fail: '.$operation);
             } catch (Exception) {

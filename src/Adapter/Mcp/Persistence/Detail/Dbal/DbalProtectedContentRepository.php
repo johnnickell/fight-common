@@ -20,7 +20,7 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
     /**
      * Constructs DbalProtectedContentRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -34,10 +34,10 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
             throw new DomainException('Expected a protected detail observation.');
         }
 
-        $table = $this->transaction->tables()->contentTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
-        $row = $this->transaction->connection()->fetchAssociative(
+        $row = $this->recordingTransaction->connection()->fetchAssociative(
             'SELECT payload FROM '.$table.' WHERE producer_id = ? AND observation_id = ?',
             [$detail->producerId(), $detail->id()->toString()]
         );
@@ -58,17 +58,17 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
      */
     public function add(Observation $detail, ProtectedContent $content): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         $capture = $detail->detail();
         if ($capture === null) {
             throw new DomainException('Expected a protected detail observation.');
         }
 
         $capture->validateBody($content->body());
-        $table = $this->transaction->tables()->contentTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
-        $this->transaction->connection()->insert($table, [
+        $this->recordingTransaction->connection()->insert($table, [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString(),
             'payload'        => json_encode($content->toArray(), JSON_THROW_ON_ERROR)
@@ -80,15 +80,15 @@ final readonly class DbalProtectedContentRepository implements ProtectedContentR
      */
     public function removeFor(Observation $detail): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         if ($detail->detail() === null) {
             throw new DomainException('Expected a protected detail observation.');
         }
 
-        $table = $this->transaction->tables()->contentTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->contentTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
-        $this->transaction->connection()->delete($table, [
+        $this->recordingTransaction->connection()->delete($table, [
             'producer_id'    => $detail->producerId(),
             'observation_id' => $detail->id()->toString()
         ]);

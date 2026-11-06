@@ -25,10 +25,10 @@ final class OAuthFixture
         return OAuthTokenRequirements::fromConfiguration(self::metadata(), 'at+jwt', ['RS256'], [self::ISSUER => ['current', 'overlap']], ['sub' => 'string']);
     }
 
-    public static function claims(array $replace = [], string $algorithm = 'RS256', string $key = 'current', string $type = 'at+jwt', array $scopes = ['mcp:read']): OAuthValidatedClaims
+    public static function claims(array $replace = [], string $algorithm = 'RS256', string $keyId = 'current', string $tokenType = 'at+jwt', array $scopes = ['mcp:read']): OAuthValidatedClaims
     {
         return OAuthValidatedClaims::fromVerifiedToken(StrictJson::fromObject(array_replace([
             'iss' => self::ISSUER, 'aud' => self::RESOURCE, 'exp' => time() + 300, 'nbf' => time() - 60, 'sub' => 'fixture-subject'
-        ], $replace)), $algorithm, $key, $type, OAuthScopeSet::fromArray($scopes));
+        ], $replace)), $algorithm, $keyId, $tokenType, OAuthScopeSet::fromArray($scopes));
     }
 }

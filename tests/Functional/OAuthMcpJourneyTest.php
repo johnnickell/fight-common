@@ -93,10 +93,10 @@ final class OAuthMcpJourneyTest extends TestCase
             return true;
         });
         $endpoint = new McpRequestHandler(new McpCapabilityRegistry(new McpServerInfo('OAuth fixture', '1'), [$capability]), new DenyAllMcpOriginPolicy(), $guard, new McpResponseFactory($factory, $factory, $endpointDiagnostics));
-        $responses = new OAuthResponseFactory($factory, $factory);
+        $oauthResponseFactory = new OAuthResponseFactory($factory, $factory);
         $server = new OAuthResourceServer($requirements, $validator, $handoff, $diagnostics);
         $scopes = OAuthScopeSet::fromArray($scenario === 'scope' ? ['mcp:write', 'mcp:read'] : ['mcp:read']);
-        $middleware = new OAuthMiddleware($server, $scopes, $responses);
+        $middleware = new OAuthMiddleware($server, $scopes, $oauthResponseFactory);
         $request = $this->request()->withHeader('Authorization', 'Bearer fixture-token');
         $request = match ($scenario) {
             'missing' => $request->withoutHeader('Authorization'),
@@ -105,7 +105,7 @@ final class OAuthMcpJourneyTest extends TestCase
             'body' => $request->withoutHeader('Authorization')->withHeader('Content-Type', 'application/x-www-form-urlencoded')->withBody($factory->createStream('access_token=secret-token')),
             'hmac' => $request->withHeader('Authorization', 'HMAC-SHA256'), default => $request
         };
-        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata(), $responses))->handle(new ServerRequest('GET', $requirements->metadata()->metadataUrl()));
+        $metadataResponse = (new OAuthMetadataHandler($requirements->metadata(), $oauthResponseFactory))->handle(new ServerRequest('GET', $requirements->metadata()->metadataUrl()));
         self::assertSame(200, $metadataResponse->getStatusCode());
         self::assertSame(OAuthFixture::RESOURCE, json_decode((string) $metadataResponse->getBody(), true)['resource']);
         $response = $middleware->process($request, $endpoint);
@@ -147,9 +147,9 @@ final class OAuthMcpJourneyTest extends TestCase
         $signer = new HmacRequestService('fixture-key', $private, static fn(int $size): string => 'fixture-nonce');
         $signed = $signer->signRequest($this->request());
         self::assertSame('HMAC-SHA256', $signed->getHeaderLine('Authorization'));
-        $nonces = $this->createMock(NonceRepository::class);
-        $nonces->expects(self::once())->method('consume');
-        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonces);
+        $nonceRepository = $this->createMock(NonceRepository::class);
+        $nonceRepository->expects(self::once())->method('consume');
+        $hmac = new HmacAuthenticator('fixture-key', $private, 60, $nonceRepository);
         $validator = $this->createMock(OAuthTokenValidator::class);
         $validator->expects(self::never())->method('validate');
         $handoff = $this->createMock(OAuthClaimsHandoff::class);

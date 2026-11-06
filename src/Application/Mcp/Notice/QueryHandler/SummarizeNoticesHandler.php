@@ -21,8 +21,10 @@ final readonly class SummarizeNoticesHandler implements QueryHandler
     /**
      * Constructs SummarizeNoticesHandler
      */
-    public function __construct(private NoticeReadAdmission $admission, private NoticeReader $reader)
-    {
+    public function __construct(
+        private NoticeReadAdmission $noticeReadAdmission,
+        private NoticeReader $noticeReader
+    ) {
     }
 
     /**
@@ -43,9 +45,9 @@ final readonly class SummarizeNoticesHandler implements QueryHandler
          */
         $query = $queryMessage->payload();
         try {
-            $access = $this->admission->currentAccess($query->selection());
+            $access = $this->noticeReadAdmission->currentAccess($query->selection());
 
-            return $this->reader->summarize($query->selection(), $access);
+            return $this->noticeReader->summarize($query->selection(), $access);
         } catch (Throwable $throwable) {
             throw new NoticeReadFailed($throwable);
         }

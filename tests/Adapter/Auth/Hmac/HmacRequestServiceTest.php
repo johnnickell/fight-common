@@ -56,8 +56,8 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::type('string'))->once()->andReturnSelf();
 
-        $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
-        $result = $service->signRequest($request);
+        $hmacRequestService = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
+        $result = $hmacRequestService->signRequest($request);
 
         self::assertSame($request, $result);
     }
@@ -90,8 +90,8 @@ class HmacRequestServiceTest extends UnitTestCase
         $request->shouldReceive('withHeader')->with('X-Nonce', Mockery::type('string'))->once()->andReturnSelf();
         $request->shouldReceive('withHeader')->with('X-Timestamp', Mockery::type('string'))->once()->andReturnSelf();
 
-        $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
-        $result = $service->signRequest($request);
+        $hmacRequestService = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
+        $result = $hmacRequestService->signRequest($request);
 
         self::assertSame($request, $result);
     }
@@ -99,9 +99,9 @@ class HmacRequestServiceTest extends UnitTestCase
     public function test_that_sign_request_emits_valid_headers_through_a_real_psr_7_request(): void
     {
         $request = new ServerRequest('POST', 'https://example.com/api/resource?b=2&a=1', [], 'request-body');
-        $service = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
+        $hmacRequestService = new HmacRequestService(self::PUBLIC_KEY, $this->privateKeyHex);
 
-        $result = $service->signRequest($request);
+        $result = $hmacRequestService->signRequest($request);
 
         self::assertInstanceOf(ServerRequest::class, $result);
         self::assertMatchesRegularExpression('/^\d+$/', $result->getHeaderLine('X-Timestamp'));
@@ -119,7 +119,7 @@ class HmacRequestServiceTest extends UnitTestCase
     public function test_that_sign_request_wraps_nonce_generation_failure(): void
     {
         $failure = new RuntimeException('nonce generation failed', 41);
-        $service = new HmacRequestService(
+        $hmacRequestService = new HmacRequestService(
             self::PUBLIC_KEY,
             $this->privateKeyHex,
             static function () use ($failure): never {
@@ -128,7 +128,7 @@ class HmacRequestServiceTest extends UnitTestCase
         );
 
         try {
-            $service->signRequest(new ServerRequest('GET', 'https://example.com/api/resource'));
+            $hmacRequestService->signRequest(new ServerRequest('GET', 'https://example.com/api/resource'));
             self::fail('Expected credentials exception was not thrown');
         } catch (CredentialsException $credentialsException) {
             self::assertSame('nonce generation failed', $credentialsException->getMessage());

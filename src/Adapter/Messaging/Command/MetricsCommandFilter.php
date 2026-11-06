@@ -14,11 +14,14 @@ use Throwable;
  */
 final readonly class MetricsCommandFilter implements CommandFilter
 {
+    private MetricsCollector $metricsCollector;
+
     /**
      * Constructs MetricsCommandFilter
      */
-    public function __construct(private MetricsCollector $metrics)
+    public function __construct(MetricsCollector $metrics)
     {
+        $this->metricsCollector = $metrics;
     }
 
     /**
@@ -26,19 +29,19 @@ final readonly class MetricsCommandFilter implements CommandFilter
      */
     public function process(CommandMessage $commandMessage, callable $next): void
     {
-        $type = $commandMessage->payloadType()->toClassName();
-        $tags = ['type' => $type];
-        $start = hrtime(true);
+        $commandClass = $commandMessage->payloadType()->toClassName();
+        $tags = ['type' => $commandClass];
+        $startedAtNanoseconds = hrtime(true);
 
         try {
             $next($commandMessage);
-            $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('command.executed', $tags);
-            $this->metrics->histogram('command.latency_ms', $elapsed, $tags);
+            $elapsedMilliseconds = (hrtime(true) - $startedAtNanoseconds) / 1e6;
+            $this->metricsCollector->increment('command.executed', $tags);
+            $this->metricsCollector->histogram('command.latency_ms', $elapsedMilliseconds, $tags);
         } catch (Throwable $throwable) {
-            $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('command.failed', $tags + ['exception' => $throwable::class]);
-            $this->metrics->histogram('command.latency_ms', $elapsed, $tags);
+            $elapsedMilliseconds = (hrtime(true) - $startedAtNanoseconds) / 1e6;
+            $this->metricsCollector->increment('command.failed', $tags + ['exception' => $throwable::class]);
+            $this->metricsCollector->histogram('command.latency_ms', $elapsedMilliseconds, $tags);
             throw $throwable;
         }
     }

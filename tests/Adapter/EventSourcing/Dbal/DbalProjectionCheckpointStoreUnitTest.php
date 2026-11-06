@@ -43,22 +43,22 @@ final class DbalProjectionCheckpointStoreUnitTest extends UnitTestCase
             'SELECT global_position FROM "'.$tableName.'" WHERE projector_name = ?',
             ["orders' OR 1=1"],
         )->andReturn(false, '42');
-        $checkpointStore = new DbalProjectionCheckpointStore($connection, new DbalTableName($tableName));
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection, new DbalTableName($tableName));
 
-        self::assertSame(0, $checkpointStore->load("orders' OR 1=1"));
-        self::assertSame(42, $checkpointStore->load("orders' OR 1=1"));
+        self::assertSame(0, $projectionCheckpointStore->load("orders' OR 1=1"));
+        self::assertSame(42, $projectionCheckpointStore->load("orders' OR 1=1"));
     }
 
     public function test_that_save_rejects_a_negative_position_using_the_current_checkpoint(): void
     {
         $connection = $this->checkpointConnection();
         $connection->shouldReceive('fetchOne')->once()->andReturn(6);
-        $checkpointStore = new DbalProjectionCheckpointStore(connection: $connection);
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore(connection: $connection);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Projection checkpoint orders cannot move backward from 6 to -1.');
 
-        $checkpointStore->save('orders', -1);
+        $projectionCheckpointStore->save('orders', -1);
     }
 
     #[DataProvider('tableNames')]
@@ -114,12 +114,12 @@ final class DbalProjectionCheckpointStoreUnitTest extends UnitTestCase
         $connection->shouldReceive('executeStatement')->twice()->andReturn(0);
         $connection->shouldReceive('insert')->once()->andThrow($this->uniqueConstraintViolation());
         $connection->shouldReceive('fetchOne')->once()->andReturn(8);
-        $checkpointStore = new DbalProjectionCheckpointStore($connection, new DbalTableName($tableName));
+        $projectionCheckpointStore = new DbalProjectionCheckpointStore($connection, new DbalTableName($tableName));
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Projection checkpoint orders cannot move backward from 8 to 7.');
 
-        $checkpointStore->save('orders', 7);
+        $projectionCheckpointStore->save('orders', 7);
     }
 
     #[DataProvider('tableNames')]

@@ -345,18 +345,18 @@ final class LinkedDeque implements Deque
      */
     public function partition(callable $predicate): array
     {
-        $deque1 = static::of($this->itemType());
-        $deque2 = static::of($this->itemType());
+        $matchingItems = static::of($this->itemType());
+        $nonMatchingItems = static::of($this->itemType());
 
         foreach ($this->getIterator() as $index => $item) {
             if (call_user_func($predicate, $item, $index)) {
-                $deque1->addLast($item);
+                $matchingItems->addLast($item);
             } else {
-                $deque2->addLast($item);
+                $nonMatchingItems->addLast($item);
             }
         }
 
-        return [$deque1, $deque2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

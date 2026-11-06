@@ -19,8 +19,10 @@ final readonly class ListExecutionsHandler implements QueryHandler
     /**
      * Constructs ListExecutionsHandler
      */
-    public function __construct(private ExecutionReadAdmission $admission, private ExecutionReader $reader)
-    {
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private ExecutionReader $executionReader
+    ) {
     }
 
     /**
@@ -40,8 +42,8 @@ final readonly class ListExecutionsHandler implements QueryHandler
          * @var ListExecutions $query
          */
         $query = $queryMessage->payload();
-        $access = $this->admission->currentAccess($query->selection());
+        $access = $this->executionReadAdmission->currentAccess($query->selection());
 
-        return $this->reader->list($query, $access);
+        return $this->executionReader->list($query, $access);
     }
 }

@@ -18,33 +18,33 @@ class CommandPipelineTest extends UnitTestCase
 {
     public function test_that_execute_wraps_command_and_dispatches(): void
     {
-        /** @var MockInterface|SynchronousCommandBus $bus */
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')
+        /** @var MockInterface|SynchronousCommandBus $commandBus */
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')
             ->once()
-            ->withArgs(fn(CommandMessage $msg): bool => $msg->payload() instanceof SamplePipelineCommand);
+            ->withArgs(fn(CommandMessage $commandMessage): bool => $commandMessage->payload() instanceof SamplePipelineCommand);
 
-        $pipeline = new CommandPipeline($bus);
+        $pipeline = new CommandPipeline($commandBus);
         $pipeline->execute(new SamplePipelineCommand());
     }
 
     public function test_that_dispatch_pipes_message_to_inner_bus(): void
     {
-        /** @var MockInterface|SynchronousCommandBus $bus */
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->once();
+        /** @var MockInterface|SynchronousCommandBus $commandBus */
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->once();
 
-        $pipeline = new CommandPipeline($bus);
+        $pipeline = new CommandPipeline($commandBus);
         $pipeline->dispatch(CommandMessage::create(new SamplePipelineCommand()));
     }
 
     public function test_that_process_delegates_to_inner_bus(): void
     {
-        /** @var MockInterface|SynchronousCommandBus $bus */
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->once();
+        /** @var MockInterface|SynchronousCommandBus $commandBus */
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->once();
 
-        $pipeline = new CommandPipeline($bus);
+        $pipeline = new CommandPipeline($commandBus);
         $message = CommandMessage::create(new SamplePipelineCommand());
         $pipeline->process($message, function (): void {});
     }
@@ -53,9 +53,9 @@ class CommandPipelineTest extends UnitTestCase
     {
         $calls = [];
 
-        /** @var MockInterface|SynchronousCommandBus $bus */
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): void {
+        /** @var MockInterface|SynchronousCommandBus $commandBus */
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): void {
             $calls[] = 'bus';
         });
 
@@ -69,7 +69,7 @@ class CommandPipelineTest extends UnitTestCase
             }
         };
 
-        $pipeline = new CommandPipeline($bus);
+        $pipeline = new CommandPipeline($commandBus);
         $pipeline->addFilter($filter);
         $pipeline->dispatch(CommandMessage::create(new SamplePipelineCommand()));
 
@@ -80,9 +80,9 @@ class CommandPipelineTest extends UnitTestCase
     {
         $calls = [];
 
-        /** @var MockInterface|SynchronousCommandBus $bus */
-        $bus = $this->mock(SynchronousCommandBus::class);
-        $bus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): void {
+        /** @var MockInterface|SynchronousCommandBus $commandBus */
+        $commandBus = $this->mock(SynchronousCommandBus::class);
+        $commandBus->shouldReceive('dispatch')->andReturnUsing(function () use (&$calls): void {
             $calls[] = 'bus';
         });
 
@@ -98,7 +98,7 @@ class CommandPipelineTest extends UnitTestCase
             };
         };
 
-        $pipeline = new CommandPipeline($bus);
+        $pipeline = new CommandPipeline($commandBus);
         $pipeline->addFilter($makeFilter('first'));
         $pipeline->addFilter($makeFilter('second'));
         $pipeline->dispatch(CommandMessage::create(new SamplePipelineCommand()));

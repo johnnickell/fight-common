@@ -1,6 +1,6 @@
 {
     "schema_version": "fight-common.compatibility-manifest/v1",
-    "operation_shapes_sha256": "d830bea95b3be450625e68df33018d6e8533149ddf5d57e6249c92872aff75c4",
+    "operation_shapes_sha256": "a5b757105bd0c502fbc5da1e5c1e400935ced5dc572afc1f574d36bf39185cb2",
     "baseline": {
         "version": "1.1.0",
         "tag_name": "1.1.0",

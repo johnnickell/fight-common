@@ -44,14 +44,14 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
         $table = new DbalTableName('Order');
         $sqlTable = $table->quoted($connection->getDatabasePlatform());
         $connection->executeStatement('DROP TABLE IF EXISTS '.$sqlTable);
-        $cursorStore = new DbalPublicationCursorStore($connection, $table);
+        $publicationCursorStore = new DbalPublicationCursorStore($connection, $table);
         $schema = new DbalPublicationCursorStoreSchema($table);
         $schema->schema();
-        $this->assertStorageOperationsFail($cursorStore);
+        $this->assertStorageOperationsFail($publicationCursorStore);
         self::assertSame(99, new DbalPublicationCursorStore($connection)->load('orders.primary'));
         $connection->executeStatement('CREATE TABLE '.$sqlTable.' (wrong_column INT)');
         $schema->install($connection);
-        $this->assertStorageOperationsFail($cursorStore);
+        $this->assertStorageOperationsFail($publicationCursorStore);
         self::assertSame(99, new DbalPublicationCursorStore($connection)->load('orders.primary'));
     }
 
@@ -102,9 +102,9 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             self::assertSame(0, pcntl_wexitstatus($higherStatus));
             self::assertSame('', $lowerResult);
             self::assertSame('', $higherResult);
-            $cursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($tableName));
-            self::assertSame(253, $cursorStore->load('orders.primary'));
-            self::assertSame(41, $cursorStore->load('orders.secondary'));
+            $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($tableName));
+            self::assertSame(253, $publicationCursorStore->load('orders.primary'));
+            self::assertSame(41, $publicationCursorStore->load('orders.secondary'));
             if ('publication_cursors' !== $tableName) {
                 $this->assertDefaultStorageUntouched();
             }
@@ -143,9 +143,9 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
      * Returns the publication cursor store with a new connection
      */
     protected function reopenPublicationCursorStore(
-        PublicationCursorStore $store,
+        PublicationCursorStore $publicationCursorStore,
     ): PublicationCursorStore {
-        unset($store);
+        unset($publicationCursorStore);
 
         return new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($this->tableName));
     }
@@ -193,7 +193,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             return $processId;
         }
 
-        $cursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($this->tableName));
+        $publicationCursorStore = new DbalPublicationCursorStore($this->createConnection(), new DbalTableName($this->tableName));
         $failures = [];
 
         for ($round = 1; $round <= 24; ++$round) {
@@ -201,7 +201,7 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
             $this->waitForFile(sprintf('%s/go-%d', $coordinationPath, $round));
 
             try {
-                $cursorStore->save('orders.primary', ($round * 10) + $offset);
+                $publicationCursorStore->save('orders.primary', ($round * 10) + $offset);
             } catch (InvalidArgumentException) {
                 // A lower worker may observe that the higher position already won.
             } catch (Throwable $exception) {
@@ -224,14 +224,14 @@ abstract class DbalPublicationCursorStoreConformanceTestCase extends Publication
         ], $connection->fetchAllAssociative('SELECT * FROM publication_cursors ORDER BY publication_name'));
     }
 
-    private function assertStorageOperationsFail(DbalPublicationCursorStore $cursorStore): void
+    private function assertStorageOperationsFail(DbalPublicationCursorStore $publicationCursorStore): void
     {
         foreach (['load', 'save'] as $operation) {
             try {
                 if ('save' === $operation) {
-                    $cursorStore->save('orders.primary', 1);
+                    $publicationCursorStore->save('orders.primary', 1);
                 } else {
-                    $cursorStore->load('orders.primary');
+                    $publicationCursorStore->load('orders.primary');
                 }
                 self::fail('Expected missing/incompatible selected cursor storage to fail.');
             } catch (Exception) {

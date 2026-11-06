@@ -17,7 +17,7 @@ use Throwable;
  */
 final class DbalTransactionalUnitOfWork implements TransactionalUnitOfWork
 {
-    private bool $owned = false;
+    private bool $ownsTransaction = false;
     private bool $closed = false;
 
     /**
@@ -36,7 +36,7 @@ final class DbalTransactionalUnitOfWork implements TransactionalUnitOfWork
             throw new LogicException('The DBAL transactional unit of work is closed.');
         }
 
-        if ($this->owned || $this->connection->isTransactionActive()) {
+        if ($this->ownsTransaction || $this->connection->isTransactionActive()) {
             throw new LogicException('Nested transactional execution is not supported.');
         }
 
@@ -52,7 +52,7 @@ final class DbalTransactionalUnitOfWork implements TransactionalUnitOfWork
             throw new DbalTransactionOutcomeUncertain($throwable);
         }
 
-        $this->owned = true;
+        $this->ownsTransaction = true;
         try {
             try {
                 $result = $operation();
@@ -85,7 +85,7 @@ final class DbalTransactionalUnitOfWork implements TransactionalUnitOfWork
 
             return $result;
         } finally {
-            $this->owned = false;
+            $this->ownsTransaction = false;
         }
     }
 

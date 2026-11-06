@@ -58,94 +58,94 @@ A byte-oriented string wrapper with rich manipulation methods. Implements `Array
 ### Construction
 
 ```php-inline
-$str = string('hello');                       // helper
-$str = StringObject::create('hello');
-$str = StringObject::fromString('hello');
+$stringValue = string('hello');                       // helper
+$stringValue = StringObject::create('hello');
+$stringValue = StringObject::fromString('hello');
 ```
 
 ### Basic Access
 
 ```php-inline
-$str->value();                               // "hello"
-$str->length();                              // 5
-$str->isEmpty();                             // false
-$str->count();                               // 5
-$str->get(1);                                // "e"
-$str->has(10);                               // false
-$str->chars();                               // ArrayList("h", "e", "l", "l", "o")
+$stringValue->value();                               // "hello"
+$stringValue->length();                              // 5
+$stringValue->isEmpty();                             // false
+$stringValue->count();                               // 5
+$stringValue->get(1);                                // "e"
+$stringValue->has(10);                               // false
+$stringValue->chars();                               // ArrayList("h", "e", "l", "l", "o")
 ```
 
 ### Content Checks
 
 ```php-inline
-$str->contains('ell');                       // true
-$str->contains('ELL', caseSensitive: false); // true
-$str->startsWith('hel');                     // true
-$str->endsWith('lo');                        // true
-$str->indexOf('l');                          // 2
-$str->lastIndexOf('l');                      // 3
+$stringValue->contains('ell');                       // true
+$stringValue->contains('ELL', caseSensitive: false); // true
+$stringValue->startsWith('hel');                     // true
+$stringValue->endsWith('lo');                        // true
+$stringValue->indexOf('l');                          // 2
+$stringValue->lastIndexOf('l');                      // 3
 ```
 
 ### Mutation (always returns new instance)
 
 ```php-inline
-$str->append(' world');                      // "hello world"
-$str->prepend('>> ');                        // ">> hello"
-$str->insert(5, '!');                        // "hello!"
-$str->surround('*');                         // "*hello*"
-$str->trim();                                // removes surrounding whitespace
-$str->trimLeft('h');                         // "ello"
-$str->trimRight('o');                        // "hell"
-$str->pad(7, '-');                           // "-hello--"
-$str->padLeft(7, '-');                       // "--hello"
-$str->padRight(7, '-');                      // "hello--"
-$str->truncate(4, '...');                    // "h..."
-$str->truncateWords(8, '...');               // word-aware truncation
-$str->repeat(3);                             // "hellohellohello"
-$str->replace('l', 'z');                     // "hezzo"
-$str->expandTabs(4);                         // replaces tabs with spaces
+$stringValue->append(' world');                      // "hello world"
+$stringValue->prepend('>> ');                        // ">> hello"
+$stringValue->insert(5, '!');                        // "hello!"
+$stringValue->surround('*');                         // "*hello*"
+$stringValue->trim();                                // removes surrounding whitespace
+$stringValue->trimLeft('h');                         // "ello"
+$stringValue->trimRight('o');                        // "hell"
+$stringValue->pad(7, '-');                           // "-hello--"
+$stringValue->padLeft(7, '-');                       // "--hello"
+$stringValue->padRight(7, '-');                      // "hello--"
+$stringValue->truncate(4, '...');                    // "h..."
+$stringValue->truncateWords(8, '...');               // word-aware truncation
+$stringValue->repeat(3);                             // "hellohellohello"
+$stringValue->replace('l', 'z');                     // "hezzo"
+$stringValue->expandTabs(4);                         // replaces tabs with spaces
 ```
 
 ### Substrings
 
 ```php-inline
-$str->slice(1, 4);                           // "ell"  (between indexes)
-$str->substr(0, 3);                          // "hel"  (start + length)
-$str->split(' ');                            // ArrayList of StringObject parts
-$str->chunk(2);                              // ArrayList("he", "ll", "o")
+$stringValue->slice(1, 4);                           // "ell"  (between indexes)
+$stringValue->substr(0, 3);                          // "hel"  (start + length)
+$stringValue->split(' ');                            // ArrayList of StringObject parts
+$stringValue->chunk(2);                              // ArrayList("he", "ll", "o")
 ```
 
 ### Case Transforms
 
 ```php-inline
-$str->toLowerCase();                         // "hello"
-$str->toUpperCase();                         // "HELLO"
-$str->toFirstLowerCase();                    // "hELLO"
-$str->toFirstUpperCase();                    // "Hello"
-$str->toCamelCase();                         // "hello"
-$str->toPascalCase();                        // "Hello"
-$str->toSnakeCase();                         // "hello"
-$str->toLowerHyphenated();                   // "hello"
-$str->toUpperHyphenated();                   // "HELLO"
-$str->toLowerUnderscored();                  // "hello"
-$str->toUpperUnderscored();                  // "HELLO"
-$str->toSlug();                              // URL-safe slug
+$stringValue->toLowerCase();                         // "hello"
+$stringValue->toUpperCase();                         // "HELLO"
+$stringValue->toFirstLowerCase();                    // "hELLO"
+$stringValue->toFirstUpperCase();                    // "Hello"
+$stringValue->toCamelCase();                         // "hello"
+$stringValue->toPascalCase();                        // "Hello"
+$stringValue->toSnakeCase();                         // "hello"
+$stringValue->toLowerHyphenated();                   // "hello"
+$stringValue->toUpperHyphenated();                   // "HELLO"
+$stringValue->toLowerUnderscored();                  // "hello"
+$stringValue->toUpperUnderscored();                  // "HELLO"
+$stringValue->toSlug();                              // URL-safe slug
 ```
 
 ### ArrayAccess & Iteration
 
 ```php-inline
-$str[0];                                     // "h"
-$str[1] = 'a';                               // throws ImmutableException
-isset($str[0]);                              // true
+$stringValue[0];                                     // "h"
+$stringValue[1] = 'a';                               // throws ImmutableException
+isset($stringValue[0]);                              // true
 
-foreach ($str as $char) { /* ... */ }        // iterates characters
+foreach ($stringValue as $char) { /* ... */ }        // iterates characters
 ```
 
 ### Comparison
 
 ```php-inline
-$str->compareTo(StringObject::create('world')); // negative (natural sort)
+$stringValue->compareTo(StringObject::create('world')); // negative (natural sort)
 ```
 
 ---
@@ -157,11 +157,11 @@ $str->compareTo(StringObject::create('world')); // negative (natural sort)
 Identical API to `StringObject`, but uses multibyte-safe `mb_*` functions with hard-coded UTF-8 encoding. Use this for Unicode strings where character indexes and lengths must account for multi-byte characters.
 
 ```php-inline
-$mb = mb_string('café');                     // helper
-$mb = MbStringObject::create('café');
-$mb->length();                               // 4 (not 5)
-$mb->get(3);                                 // "é"
-$mb->toUpperCase();                          // "CAFÉ"
+$multibyteString = mb_string('café');                     // helper
+$multibyteString = MbStringObject::create('café');
+$multibyteString->length();                               // 4 (not 5)
+$multibyteString->get(3);                                 // "é"
+$multibyteString->toUpperCase();                          // "CAFÉ"
 ```
 
 The following methods differ internally:
@@ -897,11 +897,11 @@ $id->toString();                             // "f47ac10b-58cc-4372-a567-0e02b2c
 Two `UserId` instances with the same UUID are equal; a `UserId` and an `OrderId` with the same UUID are not — the type check prevents cross-entity identity confusion:
 
 ```php-inline
-$uid = UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
-$oid = OrderId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+$userId = UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+$orderId = OrderId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 
-$uid->equals($oid);                          // false (different types)
-$uid->equals(UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479')); // true
+$userId->equals($orderId);                          // false (different types)
+$userId->equals(UserId::fromString('f47ac10b-58cc-4372-a567-0e02b2c3d479')); // true
 ```
 
 ### Interface

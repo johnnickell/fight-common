@@ -38,19 +38,19 @@ final readonly class ListExecutionsTool implements McpTool
         ExecutionToolSchemas::LIST_INPUT,
         ExecutionToolSchemas::LIST_OUTPUT
     )]
-    public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput
+    public function handle(ApplicationData $input, McpProgressReporter $progress): McpToolOutput
     {
-        $input = ExecutionToolInput::read($data, ExecutionToolSchemas::LIST_INPUT);
+        $arguments = ExecutionToolInput::read($input, ExecutionToolSchemas::LIST_INPUT);
         /**
-         * @var ExecutionPage $result
+         * @var ExecutionPage $executionPage
          */
-        $result = $this->queryBus->fetch(new ListExecutions(
-            ExecutionSelection::create($input['projects'], $input['filters'] ?? []),
-            $input['page'] ?? null,
-            $input['per_page'] ?? null,
-            ['latest_recorded_at' => $input['direction'] ?? 'DESC']
+        $executionPage = $this->queryBus->fetch(new ListExecutions(
+            ExecutionSelection::create($arguments['projects'], $arguments['filters'] ?? []),
+            $arguments['page'] ?? null,
+            $arguments['per_page'] ?? null,
+            ['latest_recorded_at' => $arguments['direction'] ?? 'DESC']
         ));
 
-        return ExecutionToolOutput::create($result);
+        return ExecutionToolOutput::create($executionPage);
     }
 }

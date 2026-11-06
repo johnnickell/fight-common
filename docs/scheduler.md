@@ -231,9 +231,9 @@ validation. Passed to `Scheduler` to anchor cron and datetime schedule compariso
 ```php
 use Fight\Common\Domain\Value\DateTime\Timezone;
 
-$tz = new Timezone('America/Chicago');
-$tz->value();     // 'America/Chicago'
-(string) $tz;     // 'America/Chicago'
+$timezone = new Timezone('America/Chicago');
+$timezone->value();     // 'America/Chicago'
+(string) $timezone;     // 'America/Chicago'
 
 Timezone::fromString('Europe/London');  // factory method
 

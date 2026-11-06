@@ -105,7 +105,7 @@ try {
     ];
     $body->close();
     $subscriptionFixture->queryPolicy = null;
-    $recovery = $subscriptionFixture->queries->fetch(new RecoverNotices(NoticeSelection::create(['scope'])));
+    $recovery = $subscriptionFixture->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['scope'])));
     $result['recovery'] = ['status' => $recovery->status(), 'ids' => array_map(static fn ($noticeView) => $noticeView->notice()->id(), $recovery->notices())];
     file_put_contents($directory.'/contention-result.json', json_encode($result, JSON_THROW_ON_ERROR));
 } catch (Throwable $failure) {

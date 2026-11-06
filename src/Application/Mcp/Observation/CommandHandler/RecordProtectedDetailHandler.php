@@ -18,7 +18,7 @@ final readonly class RecordProtectedDetailHandler implements CommandHandler
     /**
      * Constructs RecordProtectedDetailHandler
      */
-    public function __construct(private ObservationRecorder $recorder)
+    public function __construct(private ObservationRecorder $observationRecorder)
     {
     }
 
@@ -40,6 +40,6 @@ final readonly class RecordProtectedDetailHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected recording command.');
         }
 
-        $this->recorder->record($command->observation(), $command->content());
+        $this->observationRecorder->record($command->observation(), $command->content());
     }
 }

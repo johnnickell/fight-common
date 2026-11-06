@@ -30,12 +30,12 @@ final class Services extends BaseService
 
     private static function fightRoutes(): RouteCollectionInterface
     {
-        $routes = static::get('fightRoutesCollaborator');
+        $routeCollection = static::get('fightRoutesCollaborator');
 
-        if (! $routes instanceof RouteCollectionInterface) {
+        if (! $routeCollection instanceof RouteCollectionInterface) {
             throw new RuntimeException('The project route collection collaborator is unavailable.');
         }
 
-        return $routes;
+        return $routeCollection;
     }
 }

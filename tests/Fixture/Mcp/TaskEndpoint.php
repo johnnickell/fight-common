@@ -33,22 +33,22 @@ final class TaskEndpoint implements McpDiagnostics, McpInvocationGuard, McpToolA
     public bool $allowed = true;
     public bool $available = true;
     public readonly TaskTool $tool;
-    public readonly McpTasks $tasks;
+    public readonly McpTasks $taskCapability;
     public readonly McpToolInvoker $invoker;
     public readonly McpToolInvocation $invocation;
     public readonly McpCapabilityRegistry $registry;
     public readonly McpRequestHandler $handler;
 
-    public function __construct(TaskFixture $fixture, int $budget = McpTasks::MAX_RESPONSE_BYTES, ?Closure $subscriptions = null, string $scope = 'scope')
+    public function __construct(TaskFixture $fixture, int $budget = McpTasks::MAX_RESPONSE_BYTES, ?Closure $subscriptionCompositionFactory = null, string $scope = 'scope')
     {
         $this->tool = new TaskTool($fixture);
-        $this->tasks = new McpTasks($fixture->queries, $fixture->commands, $scope, 'caller', $budget);
-        $tools = new McpToolRegistry([$this->tool]);
-        $this->invoker = new McpToolInvoker($tools, $this, tasks: $this->tasks);
+        $this->taskCapability = new McpTasks($fixture->queryBus, $fixture->commandBus, $scope, 'caller', $budget);
+        $toolRegistry = new McpToolRegistry([$this->tool]);
+        $this->invoker = new McpToolInvoker($toolRegistry, $this, taskCapability: $this->taskCapability);
         $this->invocation = new McpToolInvocation($this->invoker);
         $this->registry = new McpCapabilityRegistry(new McpServerInfo('Task fixture', '1'), [
-            new McpToolDiscovery($tools, $this, str_repeat('task-fixture-key-', 4)), $this->invocation, $this->tasks
-        ], $subscriptions === null ? null : $subscriptions($this->tasks));
+            new McpToolDiscovery($toolRegistry, $this, str_repeat('task-fixture-key-', 4)), $this->invocation, $this->taskCapability
+        ], $subscriptionCompositionFactory === null ? null : $subscriptionCompositionFactory($this->taskCapability));
         $factory = new HttpFactory();
         $this->handler = new McpRequestHandler($this->registry, new ExactMcpOriginPolicy(['https://example.test']), $this, new McpResponseFactory($factory, $factory, $this));
     }

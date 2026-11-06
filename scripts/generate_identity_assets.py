@@ -171,59 +171,59 @@ def horizontal_svg(
     height: int = 160,
     title: str = "Fight Common horizontal lockup",
 ) -> bytes:
-    polygons = place(components["mark"], VARIANTS[variant_name], 16, 16)
-    polygons += place(components["family"], VARIANTS[variant_name], 168, 16)
+    placed_shapes = place(components["mark"], VARIANTS[variant_name], 16, 16)
+    placed_shapes += place(components["family"], VARIANTS[variant_name], 168, 16)
     if include_descriptor:
-        polygons += place(components["descriptor"], VARIANTS[variant_name], 168, 16)
+        placed_shapes += place(components["descriptor"], VARIANTS[variant_name], 168, 16)
     description = "The Inward Port mark beside the outlined FIGHT wordmark"
     if include_descriptor:
         description += " and independently outlined COMMON descriptor"
-    return svg_document(width, height, title, description + ".", polygons)
+    return svg_document(width, height, title, description + ".", placed_shapes)
 
 
 def stacked_svg(components: Mapping[str, Sequence[Shape]], variant_name: str) -> bytes:
-    polygons = place(components["mark"], VARIANTS[variant_name], 90, 12, 1.25)
-    polygons += place(components["family"], VARIANTS[variant_name], 28, 158)
-    polygons += place(components["descriptor"], VARIANTS[variant_name], 78, 164)
+    placed_shapes = place(components["mark"], VARIANTS[variant_name], 90, 12, 1.25)
+    placed_shapes += place(components["family"], VARIANTS[variant_name], 28, 158)
+    placed_shapes += place(components["descriptor"], VARIANTS[variant_name], 78, 164)
     return svg_document(
         340,
         300,
         "Fight Common stacked lockup",
         "The Inward Port mark above the outlined FIGHT wordmark and independently outlined COMMON descriptor.",
-        polygons,
+        placed_shapes,
     )
 
 
 def specimen_geometry(components: Mapping[str, Sequence[Shape]]) -> List[PlacedShape]:
-    polygons: List[PlacedShape] = []
+    placed_shapes: List[PlacedShape] = []
     quiet = "#CBD3D7"
-    polygons.append(((((40, 330), (1400, 330), (1400, 334), (40, 334)),), quiet))
-    polygons.append(((((40, 682), (1400, 682), (1400, 686), (40, 686)),), quiet))
-    polygons.append(((((720, 720), (1380, 720), (1380, 980), (720, 980)),), PALETTE["canvas_dark"]))
-    polygons += place(components["mark"], VARIANTS["light"], 64, 64, 1.5)
-    polygons += place(components["family"], VARIANTS["light"], 296, 79, 1.5)
-    polygons += place(components["descriptor"], VARIANTS["light"], 296, 79, 1.5)
-    polygons += place(components["mark"], VARIANTS["one-color-light"], 64, 410, 1.5)
-    polygons += place(components["family"], VARIANTS["one-color-light"], 296, 425, 1.5)
-    polygons += place(components["descriptor"], VARIANTS["one-color-light"], 296, 425, 1.5)
-    polygons.append(((((760, 374), (1380, 374), (1380, 638), (760, 638)),), PALETTE["canvas_dark"]))
-    polygons += place(components["mark"], VARIANTS["reversed"], 808, 410, 1.5)
-    polygons += place(components["family"], VARIANTS["reversed"], 1040, 425, 0.9)
-    polygons += place(components["descriptor"], VARIANTS["reversed"], 1040, 425, 0.9)
+    placed_shapes.append(((((40, 330), (1400, 330), (1400, 334), (40, 334)),), quiet))
+    placed_shapes.append(((((40, 682), (1400, 682), (1400, 686), (40, 686)),), quiet))
+    placed_shapes.append(((((720, 720), (1380, 720), (1380, 980), (720, 980)),), PALETTE["canvas_dark"]))
+    placed_shapes += place(components["mark"], VARIANTS["light"], 64, 64, 1.5)
+    placed_shapes += place(components["family"], VARIANTS["light"], 296, 79, 1.5)
+    placed_shapes += place(components["descriptor"], VARIANTS["light"], 296, 79, 1.5)
+    placed_shapes += place(components["mark"], VARIANTS["one-color-light"], 64, 410, 1.5)
+    placed_shapes += place(components["family"], VARIANTS["one-color-light"], 296, 425, 1.5)
+    placed_shapes += place(components["descriptor"], VARIANTS["one-color-light"], 296, 425, 1.5)
+    placed_shapes.append(((((760, 374), (1380, 374), (1380, 638), (760, 638)),), PALETTE["canvas_dark"]))
+    placed_shapes += place(components["mark"], VARIANTS["reversed"], 808, 410, 1.5)
+    placed_shapes += place(components["family"], VARIANTS["reversed"], 1040, 425, 0.9)
+    placed_shapes += place(components["descriptor"], VARIANTS["reversed"], 1040, 425, 0.9)
 
     sizes = ((64, 80), (32, 248), (16, 360))
     for size, x in sizes:
         scale = size / 128
-        polygons += place(components["mark"], VARIANTS["one-color-light"], x, 786, scale)
+        placed_shapes += place(components["mark"], VARIANTS["one-color-light"], x, 786, scale)
         frame = ((
             ((x - 8, 778), (x + size + 8, 778), (x + size + 8, 786 + size + 8), (x - 8, 786 + size + 8)),
         ), quiet)
-        polygons.insert(len(polygons) - len(components["mark"]), frame)
+        placed_shapes.insert(len(placed_shapes) - len(components["mark"]), frame)
 
-    polygons += place(components["mark"], VARIANTS["dark"], 760, 754, 1.5)
-    polygons += place(components["family"], VARIANTS["dark"], 992, 769, 0.9)
-    polygons += place(components["descriptor"], VARIANTS["dark"], 992, 769, 0.9)
-    return polygons
+    placed_shapes += place(components["mark"], VARIANTS["dark"], 760, 754, 1.5)
+    placed_shapes += place(components["family"], VARIANTS["dark"], 992, 769, 0.9)
+    placed_shapes += place(components["descriptor"], VARIANTS["dark"], 992, 769, 0.9)
+    return placed_shapes
 
 
 def specimen_svg(components: Mapping[str, Sequence[Shape]]) -> bytes:
@@ -330,15 +330,15 @@ def raster_mark(
 ) -> bytes:
     padding = size * padding_ratio
     scale = (size - 2 * padding) / 128
-    polygons = place(components["mark"], VARIANTS[variant_name], padding, padding, scale)
-    return rasterize(size, size, PALETTE["canvas_dark"], polygons)
+    placed_shapes = place(components["mark"], VARIANTS[variant_name], padding, padding, scale)
+    return rasterize(size, size, PALETTE["canvas_dark"], placed_shapes)
 
 
 def social_image(components: Mapping[str, Sequence[Shape]]) -> bytes:
-    polygons = place(components["mark"], VARIANTS["dark"], 104, 192, 2)
-    polygons += place(components["family"], VARIANTS["dark"], 424, 204, 2)
-    polygons += place(components["descriptor"], VARIANTS["dark"], 424, 204, 2)
-    return rasterize(1280, 640, PALETTE["canvas_dark"], polygons)
+    placed_shapes = place(components["mark"], VARIANTS["dark"], 104, 192, 2)
+    placed_shapes += place(components["family"], VARIANTS["dark"], 424, 204, 2)
+    placed_shapes += place(components["descriptor"], VARIANTS["dark"], 424, 204, 2)
+    return rasterize(1280, 640, PALETTE["canvas_dark"], placed_shapes)
 
 
 def build_outputs(source: Path) -> Dict[str, bytes]:

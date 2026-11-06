@@ -473,18 +473,18 @@ final class SortedSet implements OrderedSet
      */
     public function partition(callable $predicate): array
     {
-        $set1 = static::create($this->comparator, $this->itemType());
-        $set2 = static::create($this->comparator, $this->itemType());
+        $matchingItems = static::create($this->comparator, $this->itemType());
+        $nonMatchingItems = static::create($this->comparator, $this->itemType());
 
         foreach ($this->getIterator() as $index => $item) {
             if (call_user_func($predicate, $item, $index)) {
-                $set1->add($item);
+                $matchingItems->add($item);
             } else {
-                $set2->add($item);
+                $nonMatchingItems->add($item);
             }
         }
 
-        return [$set1, $set2];
+        return [$matchingItems, $nonMatchingItems];
     }
 
     /**

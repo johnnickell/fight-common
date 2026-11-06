@@ -143,7 +143,7 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
         $delegate = $this->mock(PublicationFailureRecorder::class);
         $delegate->shouldNotReceive('record');
 
-        [$runner, $cursorStore] = $this->runner(
+        [$runner, $publicationCursorStore] = $this->runner(
             new LoggingPublicationFailureRecorder($delegate, $logger),
         );
 
@@ -154,7 +154,7 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
             self::assertSame($loggerFailure, $runtimeException);
         }
 
-        self::assertSame(0, $cursorStore->load('orders.subscribers'));
+        self::assertSame(0, $publicationCursorStore->load('orders.subscribers'));
     }
 
     public function test_that_a_delegate_failure_propagates_after_logging_without_cursor_advancement(): void
@@ -169,7 +169,7 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
         $delegate = $this->mock(PublicationFailureRecorder::class);
         $delegate->shouldReceive('record')->once()->globally()->ordered()->andThrow($delegateFailure);
 
-        [$runner, $cursorStore] = $this->runner(
+        [$runner, $publicationCursorStore] = $this->runner(
             new LoggingPublicationFailureRecorder($delegate, $logger),
         );
 
@@ -180,7 +180,7 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
             self::assertSame($delegateFailure, $runtimeException);
         }
 
-        self::assertSame(0, $cursorStore->load('orders.subscribers'));
+        self::assertSame(0, $publicationCursorStore->load('orders.subscribers'));
     }
 
     /**
@@ -207,9 +207,9 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
         $eventStore = $this->mock(EventStore::class);
         $eventStore->shouldReceive('readAllAfter')->once()->with(0, 1)->andReturn([$storedEvent]);
 
-        /** @var MockInterface|SynchronousEventDispatcher $dispatcher */
-        $dispatcher = $this->mock(SynchronousEventDispatcher::class);
-        $dispatcher->shouldReceive('dispatch')->once()->with($storedEvent->message())->andThrow(
+        /** @var MockInterface|SynchronousEventDispatcher $eventDispatcher */
+        $eventDispatcher = $this->mock(SynchronousEventDispatcher::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->with($storedEvent->message())->andThrow(
             new EventDispatchFailed([
                 new EventHandlerFailure(
                     'OrdersSubscriber::onOrderPlaced',
@@ -218,17 +218,17 @@ final class LoggingPublicationFailureRecorderTest extends UnitTestCase
             ]),
         );
 
-        $cursorStore = new InMemoryPublicationCursorStore();
+        $publicationCursorStore = new InMemoryPublicationCursorStore();
 
         return [
             new EventPublicationRunner(
                 'orders.subscribers',
                 $eventStore,
-                $dispatcher,
-                $cursorStore,
+                $eventDispatcher,
+                $publicationCursorStore,
                 $recorder,
             ),
-            $cursorStore,
+            $publicationCursorStore,
         ];
     }
 

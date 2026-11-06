@@ -28,10 +28,10 @@ final readonly class DbalPublicationCursorStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $cursors = $schema->createTable($this->table->schemaName());
-        $cursors->addColumn('publication_name', 'string', ['length' => 255]);
-        $cursors->addColumn('global_position', 'bigint');
-        $cursors->setPrimaryKey(['publication_name']);
+        $cursorTable = $schema->createTable($this->table->schemaName());
+        $cursorTable->addColumn('publication_name', 'string', ['length' => 255]);
+        $cursorTable->addColumn('global_position', 'bigint');
+        $cursorTable->setPrimaryKey(['publication_name']);
 
         return $schema;
     }

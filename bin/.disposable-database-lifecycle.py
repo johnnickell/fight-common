@@ -42,26 +42,26 @@ def volume_identity(value):
 class Lifecycle:
     def __init__(self, args):
         self.args = args
-        self.path = Path(args.receipt).resolve()
-        self.state = json.loads(self.path.read_text()) if self.path.exists() else None
+        self.receipt_path = Path(args.receipt).resolve()
+        self.state = json.loads(self.receipt_path.read_text()) if self.receipt_path.exists() else None
 
     def save(self):
-        fd, name = tempfile.mkstemp(prefix='.database-', dir=self.path.parent)
+        fd, temporary_receipt_path = tempfile.mkstemp(prefix='.database-', dir=self.receipt_path.parent)
         try:
             with os.fdopen(fd, 'w') as output:
                 json.dump(self.state, output, indent=2)
                 output.write('\n')
                 output.flush()
                 os.fsync(output.fileno())
-            os.replace(name, self.path)
-            directory = os.open(self.path.parent, os.O_RDONLY)
+            os.replace(temporary_receipt_path, self.receipt_path)
+            directory = os.open(self.receipt_path.parent, os.O_RDONLY)
             try:
                 os.fsync(directory)
             finally:
                 os.close(directory)
         finally:
-            if os.path.exists(name):
-                os.unlink(name)
+            if os.path.exists(temporary_receipt_path):
+                os.unlink(temporary_receipt_path)
 
     def run(self, *args):
         result = subprocess.run([self.args.docker, *args], capture_output=True, timeout=120)

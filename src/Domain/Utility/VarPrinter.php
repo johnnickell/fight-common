@@ -117,12 +117,12 @@ final class VarPrinter
      */
     private static function readArray(array $array): string
     {
-        $data = [];
+        $formattedEntries = [];
 
         foreach ($array as $key => $value) {
-            $data[] = sprintf('%s => %s', $key, static::toString($value));
+            $formattedEntries[] = sprintf('%s => %s', $key, static::toString($value));
         }
 
-        return sprintf('Array(%s)', implode(', ', $data));
+        return sprintf('Array(%s)', implode(', ', $formattedEntries));
     }
 }

@@ -42,19 +42,19 @@ final class McpToolInvocationTest extends UnitTestCase
             public function isAvailable(McpToolInfo $tool): bool { return $this->allowed; }
         };
         $invocation = new McpToolInvocation(new McpToolInvoker($registry, $availability));
-        $headers = new McpHeaderValidator(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
+        $headerValidator = new McpHeaderValidator(new McpCapabilityRegistry(new McpServerInfo('Test', '1'), [
             new McpToolDiscovery($registry, $availability, str_repeat('x', 32)), $invocation,
         ]));
         $arguments = (object) ['account' => (object) ['region' => 'west']];
         $base = ['MCP-Protocol-Version' => ['2026-07-28'], 'Mcp-Method' => ['tools/call']];
         $request = $this->request('mirrored', $arguments);
-        self::assertSame('mirrored', $headers->validate($request, $base + ['Mcp-Name' => ['mirrored'], 'Mcp-Param-Region' => ['west']]));
-        self::assertSame('echo', $headers->validate($this->request('echo', $arguments), $base + ['Mcp-Name' => ['echo']]));
+        self::assertSame('mirrored', $headerValidator->validate($request, $base + ['Mcp-Name' => ['mirrored'], 'Mcp-Param-Region' => ['west']]));
+        self::assertSame('echo', $headerValidator->validate($this->request('echo', $arguments), $base + ['Mcp-Name' => ['echo']]));
         self::assertSame(0, $tool->calls);
         self::assertNull($registry->definition('absent'));
         self::assertSame([], $registry->mirrorsFor('absent'));
         try {
-            $headers->validate($request, $base + ['Mcp-Name' => ['mirrored']]);
+            $headerValidator->validate($request, $base + ['Mcp-Name' => ['mirrored']]);
             self::fail('A selected Tool must validate its declared header.');
         } catch (McpProtocolException $failure) {
             self::assertSame(-32020, $failure->protocolError()->toArray()['code']);
@@ -63,7 +63,7 @@ final class McpToolInvocationTest extends UnitTestCase
         $failures = [];
         foreach (['mirrored', 'absent'] as $name) {
             try {
-                $headers->validate($this->request($name, $arguments), $base + ['Mcp-Name' => [$name]]);
+                $headerValidator->validate($this->request($name, $arguments), $base + ['Mcp-Name' => [$name]]);
                 self::fail('Unavailable and missing Tools must conceal equally.');
             } catch (McpProtocolException $failure) {
                 $failures[] = $failure->protocolError()->toArray();

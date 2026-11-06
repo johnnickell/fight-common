@@ -40,7 +40,7 @@ final class DbalDetailReaderTest extends DetailReadTestCase
         $record(ObservationFixture::session()); $record(ObservationFixture::phase());
         $activity = ObservationFixture::activity(); $record($activity);
         $detail = $this->captured($activity); $record($detail, ProtectedContent::create($detail->detail(), 'SECRET'));
-        [$bus, $admission] = $this->detailBus($db); $selection = $this->selection($activity);
+        [$queryBus, $admission] = $this->detailBus($db); $selection = $this->selection($activity);
         $get = new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE);
         $list = new ListCapturedMessages($selection);
         foreach ([
@@ -52,8 +52,8 @@ final class DbalDetailReaderTest extends DetailReadTestCase
         ] as $changes) {
             $invalid = Observation::fromArray(array_replace($activity->toArray(), $changes));
             $db->update('fight_execution_observations', ['payload' => $invalid->comparison()], ['observation_id' => $activity->id()->toString()]);
-            $this->assertDetailFailure(static fn () => $bus->fetch($get));
-            $this->assertDetailFailure(static fn () => $bus->fetch($list));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($get));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($list));
         }
         $db->update('fight_execution_observations', ['payload' => $activity->comparison()], ['observation_id' => $activity->id()->toString()]);
         foreach ([
@@ -63,25 +63,25 @@ final class DbalDetailReaderTest extends DetailReadTestCase
         ] as $changes) {
             $invalid = Observation::fromArray(array_replace($detail->toArray(), $changes));
             $db->update('fight_execution_observations', ['payload' => $invalid->comparison()], ['observation_id' => $detail->id()->toString()]);
-            $this->assertDetailFailure(static fn () => $bus->fetch($get));
-            $this->assertDetailFailure(static fn () => $bus->fetch($list));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($get));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($list));
         }
         $db->update('fight_execution_observations', ['payload' => $detail->comparison()], ['observation_id' => $detail->id()->toString()]);
         foreach (['null', '{', '{"version":2,"body":"SECRET"}', '{"version":1,"body":2}'] as $payload) {
             $db->update('fight_execution_contents', ['payload' => $payload], ['observation_id' => $detail->id()->toString()]);
-            $this->assertDetailFailure(static fn () => $bus->fetch($get));
-            $this->assertDetailFailure(static fn () => $bus->fetch($list));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($get));
+            $this->assertDetailFailure(static fn () => $queryBus->fetch($list));
         }
         // Current metadata-only permission never opens/decodes even a corrupt protected payload.
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => null]);
-        self::assertNull($bus->fetch($get)->toArray()['chunk']);
+        self::assertNull($queryBus->fetch($get)->toArray()['chunk']);
         $admission->access = $this->allDetailAccess();
         $db->update('fight_execution_contents', ['payload' => json_encode(['version' => 1, 'body' => 'SECRET'])], ['observation_id' => $detail->id()->toString()]);
-        $this->assertDetailFailure(static fn () => $bus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 7, 1)));
+        $this->assertDetailFailure(static fn () => $queryBus->fetch(new GetCapturedDetail($selection, $detail->id(), DetailKind::MESSAGE, 7, 1)));
         $db->update('fight_execution_observations', ['version' => 2], ['observation_id' => $detail->id()->toString()]);
-        $this->assertDetailFailure(static fn () => $bus->fetch($get));
+        $this->assertDetailFailure(static fn () => $queryBus->fetch($get));
         $admission->access = DetailAccess::create(['project' => null], metadataGrants: ['project' => ['other/'.$detail->id()->toString()]]);
-        self::assertNull($bus->fetch($get));
-        self::assertSame(0, $bus->fetch($list)->toArray()['total']);
+        self::assertNull($queryBus->fetch($get));
+        self::assertSame(0, $queryBus->fetch($list)->toArray()['total']);
     }
 }

@@ -33,10 +33,10 @@ final readonly class SftpFileTransport implements FileTransport
             if (!$this->sftp->put($path, $contents)) {
                 throw new FileTransferException(sprintf('Unable to send file to path: %s', $path));
             }
-        } catch (FileTransferException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new FileTransferException($e->getMessage(), (int) $e->getCode(), $e);
+        } catch (FileTransferException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw new FileTransferException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
     }
 
@@ -53,10 +53,10 @@ final readonly class SftpFileTransport implements FileTransport
             }
 
             return $contents;
-        } catch (FileTransferException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new FileTransferException($e->getMessage(), (int) $e->getCode(), $e);
+        } catch (FileTransferException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw new FileTransferException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
     }
 
@@ -80,15 +80,15 @@ final readonly class SftpFileTransport implements FileTransport
     public function readDirectory(string $directory): iterable
     {
         try {
-            $list = $this->sftp->rawlist($directory);
+            $directoryEntries = $this->sftp->rawlist($directory);
 
-            if ($list === false) {
+            if ($directoryEntries === false) {
                 throw new FileTransferException(
                     sprintf('Unable to read directory: %s', $directory)
                 );
             }
 
-            foreach ($list as $name => $data) {
+            foreach ($directoryEntries as $name => $entryAttributes) {
                 if ($name === '.') {
                     continue;
                 }
@@ -97,7 +97,7 @@ final readonly class SftpFileTransport implements FileTransport
                     continue;
                 }
 
-                $resourceType = match ((int) $data['type']) {
+                $resourceType = match ((int) $entryAttributes['type']) {
                     1 => ResourceType::FILE,
                     2 => ResourceType::DIR,
                     3 => ResourceType::LINK,
@@ -106,19 +106,19 @@ final readonly class SftpFileTransport implements FileTransport
 
                 yield new Resource(
                     sprintf('%s/%s', rtrim($directory, '/'), $name),
-                    (int) $data['size'],
-                    (int) $data['uid'],
-                    (int) $data['gid'],
-                    (int) $data['mode'],
-                    new DateTimeImmutable('@'.(int) $data['atime']),
-                    new DateTimeImmutable('@'.(int) $data['mtime']),
+                    (int) $entryAttributes['size'],
+                    (int) $entryAttributes['uid'],
+                    (int) $entryAttributes['gid'],
+                    (int) $entryAttributes['mode'],
+                    new DateTimeImmutable('@'.(int) $entryAttributes['atime']),
+                    new DateTimeImmutable('@'.(int) $entryAttributes['mtime']),
                     $resourceType
                 );
             }
-        } catch (FileTransferException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            throw new FileTransferException($e->getMessage(), (int) $e->getCode(), $e);
+        } catch (FileTransferException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            throw new FileTransferException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
     }
 }

@@ -19,8 +19,10 @@ final readonly class SummarizeExecutionsHandler implements QueryHandler
     /**
      * Constructs SummarizeExecutionsHandler
      */
-    public function __construct(private ExecutionReadAdmission $admission, private ExecutionReader $reader)
-    {
+    public function __construct(
+        private ExecutionReadAdmission $executionReadAdmission,
+        private ExecutionReader $executionReader
+    ) {
     }
 
     /**
@@ -40,8 +42,8 @@ final readonly class SummarizeExecutionsHandler implements QueryHandler
          * @var SummarizeExecutions $query
          */
         $query = $queryMessage->payload();
-        $access = $this->admission->currentAccess($query->selection());
+        $access = $this->executionReadAdmission->currentAccess($query->selection());
 
-        return $this->reader->summarize($query->selection(), $access);
+        return $this->executionReader->summarize($query->selection(), $access);
     }
 }

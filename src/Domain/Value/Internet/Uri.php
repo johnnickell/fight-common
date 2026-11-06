@@ -84,10 +84,10 @@ readonly class Uri extends ValueObject implements Comparable
         ?string $query = null,
         ?string $fragment = null
     ) {
-        $auth = static::parseAuthority($authority);
-        $this->userInfo = static::normalizeUserInfo($auth['userInfo']);
-        $this->host = static::normalizeHost($auth['host']);
-        $this->port = static::normalizePort($auth['port'], $scheme);
+        $authorityComponents = static::parseAuthority($authority);
+        $this->userInfo = static::normalizeUserInfo($authorityComponents['userInfo']);
+        $this->host = static::normalizeHost($authorityComponents['host']);
+        $this->port = static::normalizePort($authorityComponents['port'], $scheme);
         $this->authority = static::buildAuthority(
             $this->userInfo,
             $this->host,
@@ -140,57 +140,57 @@ readonly class Uri extends ValueObject implements Comparable
         }
 
         preg_match(static::URI_PATTERN, $reference, $matches);
-        $ref = static::componentsFromMatches($matches);
+        $referenceComponents = static::componentsFromMatches($matches);
 
         // http://tools.ietf.org/html/rfc3986#section-5.2.2
         // A non-strict parser may ignore a scheme in the reference if it is
         // identical to the base URI's scheme
         if (
             !$strict
-            && ($ref['scheme'] !== null && $base->scheme() === $ref['scheme'])
+            && ($referenceComponents['scheme'] !== null && $base->scheme() === $referenceComponents['scheme'])
         ) {
-            $ref['scheme'] = null;
+            $referenceComponents['scheme'] = null;
         }
 
-        if ($ref['scheme'] !== null) {
-            $scheme = $ref['scheme'];
-            $authority = $ref['authority'];
-            $path = static::removeDotSegments($ref['path']);
-            $query = $ref['query'];
+        if ($referenceComponents['scheme'] !== null) {
+            $scheme = $referenceComponents['scheme'];
+            $authority = $referenceComponents['authority'];
+            $path = static::removeDotSegments($referenceComponents['path']);
+            $query = $referenceComponents['query'];
         } else {
             // http://tools.ietf.org/html/rfc3986#section-3.3
             // In addition, a URI reference (Section 4.1) may be a
             // relative-path reference, in which case the first path segment
             // cannot contain a colon (":") character.
             // START: extra check for colon in first segment
-            $segments = explode('/', trim((string) $ref['path'], '/'));
+            $segments = explode('/', trim((string) $referenceComponents['path'], '/'));
             if (str_contains($segments[0], ':')) {
                 $message = sprintf('First segment in reference (%s) cannot contain a colon (":")', $reference);
                 throw new DomainException($message);
             }
 
             // END: extra check for colon in first segment
-            if ($ref['authority'] !== null) {
-                $authority = $ref['authority'];
-                $path = static::removeDotSegments($ref['path']);
-                $query = $ref['query'];
+            if ($referenceComponents['authority'] !== null) {
+                $authority = $referenceComponents['authority'];
+                $path = static::removeDotSegments($referenceComponents['path']);
+                $query = $referenceComponents['query'];
             } else {
-                if ($ref['path'] === '') {
+                if ($referenceComponents['path'] === '') {
                     $path = $base->path();
-                    if ($ref['query'] !== null) {
-                        $query = $ref['query'];
+                    if ($referenceComponents['query'] !== null) {
+                        $query = $referenceComponents['query'];
                     } else {
                         $query = $base->query();
                     }
                 } else {
-                    if ($ref['path'][0] === '/') {
-                        $path = static::removeDotSegments($ref['path']);
+                    if ($referenceComponents['path'][0] === '/') {
+                        $path = static::removeDotSegments($referenceComponents['path']);
                     } else {
-                        $path = static::mergePaths($base, $ref['path']);
+                        $path = static::mergePaths($base, $referenceComponents['path']);
                         $path = static::removeDotSegments($path);
                     }
 
-                    $query = $ref['query'];
+                    $query = $referenceComponents['query'];
                 }
 
                 $authority = $base->authority();
@@ -199,7 +199,7 @@ readonly class Uri extends ValueObject implements Comparable
             $scheme = $base->scheme();
         }
 
-        $fragment = $ref['fragment'];
+        $fragment = $referenceComponents['fragment'];
 
         return new static($path, $scheme, $authority, $query, $fragment);
     }
@@ -860,26 +860,26 @@ readonly class Uri extends ValueObject implements Comparable
                     break;
                 case (str_starts_with($path, '/../')):
                     $path = '/'.substr($path, 4);
-                    $pos = false;
+                    $lastSlashOffset = false;
                     if (!empty($output)) {
-                        $pos = strrpos($output, '/', -1);
+                        $lastSlashOffset = strrpos($output, '/', -1);
                     }
 
-                    if ($pos !== false) {
-                        $output = substr($output, 0, $pos);
+                    if ($lastSlashOffset !== false) {
+                        $output = substr($output, 0, $lastSlashOffset);
                     }
 
                     break;
                 case (str_starts_with($path, '/..')
                     && (in_array(substr($path, 3, 1), ['', '/'], true))):
                     $path = '/'.substr($path, 3);
-                    $pos = false;
+                    $lastSlashOffset = false;
                     if (!empty($output)) {
-                        $pos = strrpos($output, '/', -1);
+                        $lastSlashOffset = strrpos($output, '/', -1);
                     }
 
-                    if ($pos !== false) {
-                        $output = substr($output, 0, $pos);
+                    if ($lastSlashOffset !== false) {
+                        $output = substr($output, 0, $lastSlashOffset);
                     }
 
                     break;
@@ -1072,9 +1072,9 @@ readonly class Uri extends ValueObject implements Comparable
         }
 
         // IPv4address = dec-octet "." dec-octet "." dec-octet "." dec-octet
-        $dec = '(?:(?:2[0-4]|1[0-9]|[1-9])?[0-9]|25[0-5])';
-        $ipV4 = sprintf('/\A(?:%s\.){3}%s\z/', $dec, $dec);
-        if (preg_match($ipV4, $host)) {
+        $decimalOctetPattern = '(?:(?:2[0-4]|1[0-9]|[1-9])?[0-9]|25[0-5])';
+        $ipv4Pattern = sprintf('/\A(?:%s\.){3}%s\z/', $decimalOctetPattern, $decimalOctetPattern);
+        if (preg_match($ipv4Pattern, $host)) {
             return true;
         }
 

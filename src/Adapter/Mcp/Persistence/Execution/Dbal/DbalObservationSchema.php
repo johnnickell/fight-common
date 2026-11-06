@@ -36,79 +36,79 @@ final readonly class DbalObservationSchema
      */
     public function addTo(Schema $schema, AbstractPlatform $platform): void
     {
-        $version = $schema->createTable($this->tables->schemaTable()->schemaName());
-        $version->addColumn('singleton', 'integer');
-        $version->addColumn('version', 'integer');
-        $version->setPrimaryKey(['singleton']);
+        $schemaVersionTable = $schema->createTable($this->tables->schemaTable()->schemaName());
+        $schemaVersionTable->addColumn('singleton', 'integer');
+        $schemaVersionTable->addColumn('version', 'integer');
+        $schemaVersionTable->setPrimaryKey(['singleton']);
 
-        $sessions = $schema->createTable($this->tables->sessionTable()->schemaName());
-        $sessions->addColumn('project_id', 'string', ['length' => 128]);
-        $sessions->addColumn('session_id', 'string', ['length' => 128]);
-        $sessions->addColumn('consumer_reference', 'string', ['length' => 128]);
-        $sessions->setPrimaryKey(['project_id', 'session_id']);
+        $sessionTable = $schema->createTable($this->tables->sessionTable()->schemaName());
+        $sessionTable->addColumn('project_id', 'string', ['length' => 128]);
+        $sessionTable->addColumn('session_id', 'string', ['length' => 128]);
+        $sessionTable->addColumn('consumer_reference', 'string', ['length' => 128]);
+        $sessionTable->setPrimaryKey(['project_id', 'session_id']);
 
-        $phases = $schema->createTable($this->tables->phaseTable()->schemaName());
-        $phases->addColumn('project_id', 'string', ['length' => 128]);
-        $phases->addColumn('session_id', 'string', ['length' => 128]);
-        $phases->addColumn('phase_id', 'string', ['length' => 128]);
-        $phases->addColumn('parent_phase_id', 'string', ['length' => 128, 'notnull' => false]);
-        $phases->addColumn('agent_id', 'string', ['length' => 128]);
-        $phases->addColumn('name', 'string', ['length' => 64]);
-        $phases->addColumn('attempt', 'integer');
-        $phases->setPrimaryKey(['project_id', 'phase_id']);
-        $phases->addUniqueIndex(
+        $phaseTable = $schema->createTable($this->tables->phaseTable()->schemaName());
+        $phaseTable->addColumn('project_id', 'string', ['length' => 128]);
+        $phaseTable->addColumn('session_id', 'string', ['length' => 128]);
+        $phaseTable->addColumn('phase_id', 'string', ['length' => 128]);
+        $phaseTable->addColumn('parent_phase_id', 'string', ['length' => 128, 'notnull' => false]);
+        $phaseTable->addColumn('agent_id', 'string', ['length' => 128]);
+        $phaseTable->addColumn('name', 'string', ['length' => 64]);
+        $phaseTable->addColumn('attempt', 'integer');
+        $phaseTable->setPrimaryKey(['project_id', 'phase_id']);
+        $phaseTable->addUniqueIndex(
             ['project_id', 'session_id', 'phase_id'],
             $this->indexName($this->tables->phaseTable(), self::TABLES[2], 'fight_execution_phase_session')
         );
-        $phases->addForeignKeyConstraint(
+        $phaseTable->addForeignKeyConstraint(
             $this->tables->sessionTable()->schemaName(),
             ['project_id', 'session_id'],
             ['project_id', 'session_id']
         );
-        $phases->addForeignKeyConstraint(
+        $phaseTable->addForeignKeyConstraint(
             $this->tables->phaseTable()->schemaName(),
             ['project_id', 'session_id', 'parent_phase_id'],
             ['project_id', 'session_id', 'phase_id']
         );
 
-        $observations = $schema->createTable($this->tables->observationTable()->schemaName());
-        $observations->addColumn('producer_id', 'string', ['length' => 128]);
-        $observations->addColumn('observation_id', 'string', ['length' => 36]);
-        $observations->addColumn('project_id', 'string', ['length' => 128]);
-        $observations->addColumn('session_id', 'string', ['length' => 128]);
-        $observations->addColumn('phase_id', 'string', ['length' => 128, 'notnull' => false]);
-        $observations->addColumn('activity_id', 'string', ['length' => 36, 'notnull' => false]);
-        $observations->addColumn('version', 'integer');
-        $observations->addColumn('payload', 'text');
-        $observations->addColumn('recorded_at', 'string', ['length' => 27]);
-        $observations->setPrimaryKey(['producer_id', 'observation_id']);
-        $observations->addIndex(
+        $observationTable = $schema->createTable($this->tables->observationTable()->schemaName());
+        $observationTable->addColumn('producer_id', 'string', ['length' => 128]);
+        $observationTable->addColumn('observation_id', 'string', ['length' => 36]);
+        $observationTable->addColumn('project_id', 'string', ['length' => 128]);
+        $observationTable->addColumn('session_id', 'string', ['length' => 128]);
+        $observationTable->addColumn('phase_id', 'string', ['length' => 128, 'notnull' => false]);
+        $observationTable->addColumn('activity_id', 'string', ['length' => 36, 'notnull' => false]);
+        $observationTable->addColumn('version', 'integer');
+        $observationTable->addColumn('payload', 'text');
+        $observationTable->addColumn('recorded_at', 'string', ['length' => 27]);
+        $observationTable->setPrimaryKey(['producer_id', 'observation_id']);
+        $observationTable->addIndex(
             ['recorded_at', 'observation_id'],
             $this->indexName($this->tables->observationTable(), self::TABLES[3], 'fight_execution_recording_order')
         );
-        $observations->addForeignKeyConstraint(
+        $observationTable->addForeignKeyConstraint(
             $this->tables->sessionTable()->schemaName(),
             ['project_id', 'session_id'],
             ['project_id', 'session_id']
         );
-        $observations->addForeignKeyConstraint(
+        $observationTable->addForeignKeyConstraint(
             $this->tables->phaseTable()->schemaName(),
             ['project_id', 'session_id', 'phase_id'],
             ['project_id', 'session_id', 'phase_id']
         );
-        $observations->addForeignKeyConstraint(
+        $observationTable->addForeignKeyConstraint(
             $this->tables->observationTable()->schemaName(),
             ['producer_id', 'activity_id'],
             ['producer_id', 'observation_id']
         );
 
-        $contents = $schema->createTable($this->tables->contentTable()->schemaName());
-        $contents->addColumn('producer_id', 'string', ['length' => 128]);
-        $contents->addColumn('observation_id', 'string', ['length' => 36]);
+        $protectedContentTable = $schema->createTable($this->tables->contentTable()->schemaName());
+        $protectedContentTable->addColumn('producer_id', 'string', ['length' => 128]);
+        $protectedContentTable->addColumn('observation_id', 'string', ['length' => 36]);
         // JSON escaping may expand a bounded body beyond MySQL's ordinary TEXT limit.
-        $contents->addColumn('payload', 'text', ['length' => 16777215]);
-        $contents->setPrimaryKey(['producer_id', 'observation_id']);
-        $contents->addForeignKeyConstraint(
+        $protectedContentTable->addColumn('payload', 'text', ['length' => 16777215]);
+        $protectedContentTable->setPrimaryKey(['producer_id', 'observation_id']);
+        $protectedContentTable->addForeignKeyConstraint(
             $this->tables->observationTable()->schemaName(),
             ['producer_id', 'observation_id'],
             ['producer_id', 'observation_id'],
@@ -137,10 +137,10 @@ final readonly class DbalObservationSchema
             throw new RuntimeException('Observation schema installation requires an idle connection.');
         }
 
-        $manager = $connection->createSchemaManager();
+        $schemaManager = $connection->createSchemaManager();
         $existingTables = array_map(
             static fn(string $tableName): string => trim($tableName, '`"'),
-            $manager->listTableNames()
+            $schemaManager->listTableNames()
         );
         $selectedNames = array_map(static fn(DbalTableName $table): string => $table->name(), $this->selectedTables());
         $present = array_intersect($selectedNames, $existingTables);
@@ -157,23 +157,23 @@ final readonly class DbalObservationSchema
                 throw new RuntimeException('Unsupported or incomplete observation schema.');
             }
 
-            $table = $manager->introspectTable($this->tables->observationTable()->schemaName());
+            $observationTable = $schemaManager->introspectTable($this->tables->observationTable()->schemaName());
             $indexName = $this->indexName(
                 $this->tables->observationTable(),
                 self::TABLES[3],
                 'fight_execution_recording_order'
             );
-            if (!$table->hasIndex($indexName) || !$table->hasColumn('activity_id')) {
+            if (!$observationTable->hasIndex($indexName) || !$observationTable->hasColumn('activity_id')) {
                 throw new RuntimeException('Incomplete observation schema version one.');
             }
 
             return;
         }
 
-        $schema = $manager->introspectSchema();
+        $schema = $schemaManager->introspectSchema();
         $this->addTo($schema, $connection->getDatabasePlatform());
-        foreach ($this->selectedTables() as $table) {
-            $manager->createTable($schema->getTable($table->schemaName()));
+        foreach ($this->selectedTables() as $tableName) {
+            $schemaManager->createTable($schema->getTable($tableName->schemaName()));
         }
 
         $connection->insert(

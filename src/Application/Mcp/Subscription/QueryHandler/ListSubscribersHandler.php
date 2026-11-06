@@ -21,8 +21,10 @@ final readonly class ListSubscribersHandler implements QueryHandler
     /**
      * Constructs ListSubscribersHandler
      */
-    public function __construct(private SubscriberReadAdmission $admission, private SubscriberReader $reader)
-    {
+    public function __construct(
+        private SubscriberReadAdmission $subscriberReadAdmission,
+        private SubscriberReader $subscriberReader
+    ) {
     }
 
     /**
@@ -43,7 +45,10 @@ final readonly class ListSubscribersHandler implements QueryHandler
          */
         $query = $queryMessage->payload();
         try {
-            return $this->reader->list($query, $this->admission->currentAccess($query->selection()));
+            return $this->subscriberReader->list(
+                $query,
+                $this->subscriberReadAdmission->currentAccess($query->selection())
+            );
         } catch (Throwable $throwable) {
             throw new SubscriberReadFailed($throwable);
         }

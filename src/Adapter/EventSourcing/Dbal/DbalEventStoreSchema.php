@@ -27,31 +27,31 @@ final readonly class DbalEventStoreSchema
     public function schema(): Schema
     {
         $schema = new Schema();
-        $events = $schema->createTable($this->tables->eventTable()->schemaName());
-        $events->addColumn('global_position', 'bigint');
-        $events->addColumn('aggregate_name', 'string', ['length' => 255]);
-        $events->addColumn('aggregate_identifier', 'string', ['length' => 255]);
-        $events->addColumn('stream_version', 'integer');
-        $events->addColumn('event_name', 'string', ['length' => 255]);
-        $events->addColumn('schema_version', 'integer');
-        $events->addColumn('payload', 'text');
-        $events->addColumn('message_id', 'string', ['length' => 36]);
-        $events->addColumn('message_timestamp', 'string', ['length' => 32]);
-        $events->addColumn('message_meta', 'text');
-        $events->setPrimaryKey(['global_position']);
-        $events->addUniqueIndex(
+        $eventTable = $schema->createTable($this->tables->eventTable()->schemaName());
+        $eventTable->addColumn('global_position', 'bigint');
+        $eventTable->addColumn('aggregate_name', 'string', ['length' => 255]);
+        $eventTable->addColumn('aggregate_identifier', 'string', ['length' => 255]);
+        $eventTable->addColumn('stream_version', 'integer');
+        $eventTable->addColumn('event_name', 'string', ['length' => 255]);
+        $eventTable->addColumn('schema_version', 'integer');
+        $eventTable->addColumn('payload', 'text');
+        $eventTable->addColumn('message_id', 'string', ['length' => 36]);
+        $eventTable->addColumn('message_timestamp', 'string', ['length' => 32]);
+        $eventTable->addColumn('message_meta', 'text');
+        $eventTable->setPrimaryKey(['global_position']);
+        $eventTable->addUniqueIndex(
             ['aggregate_name', 'aggregate_identifier', 'stream_version'],
             $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_stream_version_unique' : null
         );
-        $events->addUniqueIndex(
+        $eventTable->addUniqueIndex(
             ['message_id'],
             $this->tables->eventTable()->name() === 'event_store_events' ? 'event_store_message_id_unique' : null
         );
 
-        $position = $schema->createTable($this->tables->globalPositionTable()->schemaName());
-        $position->addColumn('singleton', 'smallint');
-        $position->addColumn('position', 'bigint');
-        $position->setPrimaryKey(['singleton']);
+        $globalPositionTable = $schema->createTable($this->tables->globalPositionTable()->schemaName());
+        $globalPositionTable->addColumn('singleton', 'smallint');
+        $globalPositionTable->addColumn('position', 'bigint');
+        $globalPositionTable->setPrimaryKey(['singleton']);
 
         return $schema;
     }

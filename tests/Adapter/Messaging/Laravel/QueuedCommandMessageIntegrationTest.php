@@ -34,8 +34,8 @@ final class QueuedCommandMessageIntegrationTest extends UnitTestCase
         $container->instance(ContainerContract::class, $container);
         $container->instance(EventDispatcherContract::class, new EventDispatcher($container));
         $container->instance(DispatcherContract::class, new BusDispatcher($container));
-        $transactions = new DatabaseTransactionsManager();
-        $container->instance('db.transactions', $transactions);
+        $transactionManager = new DatabaseTransactionsManager();
+        $container->instance('db.transactions', $transactionManager);
         $commandBus = new QueuedCommandMessageIntegrationBus();
         $container->instance(
             CommandMessageHandler::class,
@@ -44,7 +44,7 @@ final class QueuedCommandMessageIntegrationTest extends UnitTestCase
         $queue = new RecordingSyncQueue();
         $queue->setContainer($container);
         $queue->setConnectionName('sync');
-        $transactions->begin('fight-common', 1);
+        $transactionManager->begin('fight-common', 1);
 
         $job = new QueuedCommandMessage(new CommandMessage(
             MessageId::fromString('018c0f69-c5a4-7a7d-9bc7-6abddda6cb2e'),
@@ -58,7 +58,7 @@ final class QueuedCommandMessageIntegrationTest extends UnitTestCase
 
         self::assertSame([], $commandBus->messages);
 
-        $transactions->commit('fight-common', 1, 0);
+        $transactionManager->commit('fight-common', 1, 0);
 
         $payload = json_decode($queue->lastPayload(), true, flags: JSON_THROW_ON_ERROR);
         $serializedJob = $payload['data']['command'] ?? null;

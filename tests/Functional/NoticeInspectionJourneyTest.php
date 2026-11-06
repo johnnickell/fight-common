@@ -45,17 +45,17 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
         self::assertSame(106, $events);
         $connection->executeStatement("UPDATE fight_notices SET recorded_at = '2026-10-25T10:00:00.123456Z'");
         $state = $this->state($connection); $caller = new NoticeInspectionFixture($connection); $selection = NoticeSelection::create(['scope', 'scope-2']);
-        $detail = $caller->bus->fetch(new GetNotice('scope', 'producer-2', 'notice-1'));
+        $detail = $caller->queryBus->fetch(new GetNotice('scope', 'producer-2', 'notice-1'));
         self::assertSame('author-agent', $detail->notice()->relationships()->toArray()['author']);
         self::assertSame(['command' => 'command-id', 'event' => 'event-id', 'action' => 'action-id'], array_intersect_key($detail->notice()->relationships()->toArray(), array_flip(['command', 'event', 'action'])));
         self::assertSame('2026-10-25T01:02:03.12Z', $detail->notice()->occurrence()->toString());
-        $summary = $caller->bus->fetch(new SummarizeNotices($selection))->toArray();
+        $summary = $caller->queryBus->fetch(new SummarizeNotices($selection))->toArray();
         self::assertSame(105, $summary['total']); self::assertSame(['named' => 103, 'broadcast' => 1, 'unknown' => 1], $summary['audience']);
         self::assertSame(['subject' => 2, 'author' => 2, 'causation' => 2, 'occurrence' => 2], $summary['unknown']);
         self::assertSame([['value' => 'catalog/resources', 'count' => 52], ['value' => 'catalog/tools', 'count' => 53]], $summary['topics']);
         $ids = [];
         for ($page = 1; $page <= 4; ++$page) {
-            $result = $caller->bus->fetch(new ListNotices($selection, $page, 32, ['recorded_at' => 'ASC']));
+            $result = $caller->queryBus->fetch(new ListNotices($selection, $page, 32, ['recorded_at' => 'ASC']));
             self::assertSame(105, $result->toArray()['total']);
             foreach ($result->notices() as $view) { $ids[] = $view->notice()->id(); self::assertArrayNotHasKey('position', $view->toArray()); }
             self::assertStringNotContainsString('CONCEALED-SENTINEL', json_encode($result->toArray(), JSON_THROW_ON_ERROR));
@@ -64,24 +64,24 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
         foreach (['topic' => 'catalog/tools', 'subject' => 'subject-agent', 'recipient' => 'recipient-agent', 'type' => 'catalog-changed', 'producer' => 'producer', 'author' => 'author-agent', 'command' => 'command-id', 'event' => 'event-id', 'action' => 'action-id', 'occurred_from' => '2026-10-25T01:02:03.120Z', 'recorded_from' => '2026-10-25T10:00:00.123456Z'] as $field => $value) {
             $filtered = NoticeSelection::create(['scope'], [$field => $value]);
             $expected = match ($field) { 'topic', 'producer' => 53, 'type', 'recorded_from' => 105, default => 103 };
-            self::assertSame($expected, $caller->bus->fetch(new SummarizeNotices($filtered))->toArray()['total'], $field);
-            self::assertSame($expected, $caller->bus->fetch(new ListNotices($filtered, 2, 2))->toArray()['total'], $field);
+            self::assertSame($expected, $caller->queryBus->fetch(new SummarizeNotices($filtered))->toArray()['total'], $field);
+            self::assertSame($expected, $caller->queryBus->fetch(new ListNotices($filtered, 2, 2))->toArray()['total'], $field);
         }
         foreach (['recipient' => 'author-agent', 'subject' => 'recipient-agent', 'author' => 'subject-agent', 'occurred_until' => '2026-10-25T01:02:03.120000Z', 'recorded_until' => '2026-10-25T10:00:00.123456Z'] as $field => $value) {
-            self::assertSame(0, $caller->bus->fetch(new SummarizeNotices(NoticeSelection::create(['scope'], [$field => $value])))->toArray()['total']);
+            self::assertSame(0, $caller->queryBus->fetch(new SummarizeNotices(NoticeSelection::create(['scope'], [$field => $value])))->toArray()['total']);
         }
-        foreach ([new GetNotice('scope-2', 'producer', 'notice-1'), new GetNotice('scope', 'producer', 'guessed')] as $query) { self::assertNull($caller->bus->fetch($query)); }
+        foreach ([new GetNotice('scope-2', 'producer', 'notice-1'), new GetNotice('scope', 'producer', 'guessed')] as $query) { self::assertNull($caller->queryBus->fetch($query)); }
         $caller->access = NoticeAccess::create(['scope-2']);
-        self::assertSame(1, $caller->bus->fetch(new SummarizeNotices($selection))->toArray()['total']);
-        self::assertSame('CONCEALED-SENTINEL', $caller->bus->fetch(new GetNotice('scope-2', 'producer', 'notice-1'))->notice()->metadata()->toArray()['app/label']);
+        self::assertSame(1, $caller->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertSame('CONCEALED-SENTINEL', $caller->queryBus->fetch(new GetNotice('scope-2', 'producer', 'notice-1'))->notice()->metadata()->toArray()['app/label']);
         $caller->access = NoticeAccess::create(['scope'], ['producer' => 'producer-2', 'recipient' => 'recipient-agent']);
-        self::assertSame(51, $caller->bus->fetch(new SummarizeNotices($selection))->toArray()['total']);
-        self::assertNull($caller->bus->fetch(new GetNotice('scope', 'producer', 'notice-0')));
+        self::assertSame(51, $caller->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertNull($caller->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-0')));
         $caller->access = NoticeAccess::create([]);
-        self::assertNull($caller->bus->fetch(new GetNotice('scope', 'producer-2', 'notice-1')));
-        self::assertSame(0, $caller->bus->fetch(new SummarizeNotices($selection))->toArray()['total']);
-        self::assertSame([], $caller->bus->fetch(new ListNotices($selection))->notices());
-        self::assertSame(0, $caller->bus->fetch(new SummarizeNotices(NoticeSelection::create(['SUPER_ADMIN'])))->toArray()['total']);
+        self::assertNull($caller->queryBus->fetch(new GetNotice('scope', 'producer-2', 'notice-1')));
+        self::assertSame(0, $caller->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertSame([], $caller->queryBus->fetch(new ListNotices($selection))->notices());
+        self::assertSame(0, $caller->queryBus->fetch(new SummarizeNotices(NoticeSelection::create(['SUPER_ADMIN'])))->toArray()['total']);
         self::assertGreaterThan(30, $caller->admissions);
         self::assertSame($state, $this->state($connection)); self::assertSame(106, $events);
     }
@@ -91,23 +91,23 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
     {
         $connection = $this->database($backend); $writer = new NoticeFixture($connection); $reader = new NoticeInspectionFixture($connection);
         $selection = NoticeSelection::create(['scope']); $writer->record(['id' => 'first']); $writer->record(['id' => 'second']);
-        $before = $reader->bus->fetch(new ListNotices($selection, 1, 1)); self::assertSame(2, $before->toArray()['total']);
+        $before = $reader->queryBus->fetch(new ListNotices($selection, 1, 1)); self::assertSame(2, $before->toArray()['total']);
         $other = DriverManager::getConnection($connection->getParams()); $this->connections[] = $other;
         // Owned storage fixture only: this proves disappearance, not the removal/recovery use case.
         $other->executeStatement("DELETE FROM fight_notices WHERE notice_id = 'second'");
-        self::assertNull($reader->bus->fetch(new GetNotice('scope', 'producer', 'second')));
-        self::assertSame(1, $reader->bus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertNull($reader->queryBus->fetch(new GetNotice('scope', 'producer', 'second')));
+        self::assertSame(1, $reader->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
         (new NoticeFixture($other))->record(['id' => 'third']);
-        self::assertSame('third', $reader->bus->fetch(new ListNotices($selection, 1, 1))->notices()[0]->notice()->id());
-        $reader->access = NoticeAccess::create([]); self::assertNull($reader->bus->fetch(new GetNotice('scope', 'producer', 'first')));
-        $reader->access = NoticeAccess::create(['scope']); self::assertNotNull($reader->bus->fetch(new GetNotice('scope', 'producer', 'first')));
-        self::assertSame(2, $reader->bus->fetch(new ListNotices($selection, 2, 1))->toArray()['total']);
+        self::assertSame('third', $reader->queryBus->fetch(new ListNotices($selection, 1, 1))->notices()[0]->notice()->id());
+        $reader->access = NoticeAccess::create([]); self::assertNull($reader->queryBus->fetch(new GetNotice('scope', 'producer', 'first')));
+        $reader->access = NoticeAccess::create(['scope']); self::assertNotNull($reader->queryBus->fetch(new GetNotice('scope', 'producer', 'first')));
+        self::assertSame(2, $reader->queryBus->fetch(new ListNotices($selection, 2, 1))->toArray()['total']);
         $other->executeStatement('DELETE FROM fight_notices');
-        self::assertSame(0, $reader->bus->fetch(new SummarizeNotices($selection))->toArray()['total']);
-        self::assertNull($reader->bus->fetch(new GetNotice('scope', 'producer', 'first')));
+        self::assertSame(0, $reader->queryBus->fetch(new SummarizeNotices($selection))->toArray()['total']);
+        self::assertNull($reader->queryBus->fetch(new GetNotice('scope', 'producer', 'first')));
         $other->executeStatement('DROP TABLE fight_notice_comparisons'); $other->executeStatement('DROP TABLE fight_notice_relationships');
         foreach ([new SummarizeNotices($selection), new ListNotices($selection), new GetNotice('scope', 'producer', 'first')] as $query) {
-            try { $reader->bus->fetch($query); self::fail('Database failure must not become empty.'); }
+            try { $reader->queryBus->fetch($query); self::fail('Database failure must not become empty.'); }
             catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
         }
     }
@@ -118,10 +118,10 @@ final class NoticeInspectionJourneyTest extends UnitTestCase
         $connection = $this->database($backend); $writer = new NoticeFixture($connection); $reader = new NoticeInspectionFixture($connection);
         for ($i = 0; $i < 128; ++$i) { $writer->record(['id' => 'notice-'.$i, 'topic' => 'topic-'.$i]); }
         $query = new SummarizeNotices(NoticeSelection::create(['scope']));
-        self::assertCount(128, $reader->bus->fetch($query)->toArray()['topics']);
+        self::assertCount(128, $reader->queryBus->fetch($query)->toArray()['topics']);
         $writer->record(['id' => 'overflow', 'topic' => 'topic-overflow']);
-        try { $reader->bus->fetch($query); self::fail('Full summary must not truncate.'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
-        self::assertSame(129, $reader->bus->fetch(new ListNotices(NoticeSelection::create(['scope'])))->toArray()['total']);
+        try { $reader->queryBus->fetch($query); self::fail('Full summary must not truncate.'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
+        self::assertSame(129, $reader->queryBus->fetch(new ListNotices(NoticeSelection::create(['scope'])))->toArray()['total']);
     }
 
     public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }

@@ -56,7 +56,7 @@ use Fight\Common\Application\Service\Container;
 
 $container = new Container();
 
-$container->set('logger', function (Container $c): LoggerInterface {
+$container->set('logger', function (Container $container): LoggerInterface {
     return new Monolog\Logger('app');
 });
 
@@ -74,10 +74,10 @@ Use `set()` for objects that should be singletons within the container: database
 Same signature as `set()`, but the factory is invoked **fresh on every `get()` call**.
 
 ```php-inline
-$container->factory('request', fn ($c) => Request::fromGlobals());
+$container->factory('request', fn ($container) => Request::fromGlobals());
 
-$req1 = $container->get('request');   // new instance
-$req2 = $container->get('request');   // different instance
+$firstRequest = $container->get('request');   // new instance
+$secondRequest = $container->get('request');   // different instance
 ```
 
 Use `factory()` for objects that must not be shared: request objects, command instances, or any stateful value that should be created anew each time.
@@ -125,43 +125,43 @@ A stand-alone application wired through the container:
 ```php-inline
 use Fight\Common\Application\Service\Container;
 
-$c = new Container();
+$container = new Container();
 
 // --- Parameters ---
-$c->setParameter('db.host', 'localhost');
-$c->setParameter('db.name', 'myapp');
-$c->setParameter('db.user', 'root');
-$c->setParameter('db.pass', 'secret');
+$container->setParameter('db.host', 'localhost');
+$container->setParameter('db.name', 'myapp');
+$container->setParameter('db.user', 'root');
+$container->setParameter('db.pass', 'secret');
 
 // --- Shared services ---
-$c->set('pdo', function (Container $c): PDO {
+$container->set('pdo', function (Container $container): PDO {
     return new PDO(
         sprintf(
             'mysql:host=%s;dbname=%s',
-            $c->getParameter('db.host'),
-            $c->getParameter('db.name')
+            $container->getParameter('db.host'),
+            $container->getParameter('db.name')
         ),
-        $c->getParameter('db.user'),
-        $c->getParameter('db.pass')
+        $container->getParameter('db.user'),
+        $container->getParameter('db.pass')
     );
 });
 
-$c->set('user_repository', function (Container $c): UserRepository {
-    return new UserRepository($c->get('pdo'));
+$container->set('user_repository', function (Container $container): UserRepository {
+    return new UserRepository($container->get('pdo'));
 });
 
-$c->set('mailer', function (Container $c): MailerInterface {
+$container->set('mailer', function (Container $container): MailerInterface {
     return new SmtpMailer('smtp.example.com', 587);
 });
 
 // --- Prototype factories ---
-$c->factory('request', fn (Container $c) => Request::fromGlobals());
+$container->factory('request', fn (Container $container) => Request::fromGlobals());
 
 // --- Usage ---
-$repo = $c->get('user_repository');
-$users = $repo->findAll();
+$userRepository = $container->get('user_repository');
+$users = $userRepository->findAll();
 
-$mailer = $c->get('mailer');
+$mailer = $container->get('mailer');
 $mailer->send(new WelcomeEmail($users[0]));
 ```
 
@@ -177,7 +177,7 @@ Extends `\Exception` and implements `Psr\Container\NotFoundExceptionInterface`. 
 use Fight\Common\Application\Service\Exception\NotFoundException;
 
 try {
-    $c->get('nonexistent');
+    $container->get('nonexistent');
 } catch (NotFoundException $e) {
     echo $e->getMessage();       // "Service 'nonexistent' not found."
 }

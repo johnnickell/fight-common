@@ -144,7 +144,7 @@ final class TaskHandlerTest extends UnitTestCase
             $fixture->$callback = static fn () => throw new RuntimeException('private authority');
             try {
                 if ($callback === 'onAdmission') {
-                    $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
+                    $fixture->commandBus->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
                 } else {
                     $fixture->acquire();
                 }
@@ -191,12 +191,12 @@ final class TaskHandlerTest extends UnitTestCase
             $fixture->now += 1000;
         }
         $before = $connection->fetchAllAssociative('SELECT * FROM fight_tasks');
-        $fixture->events->addHandler(ClassName::underscore(AllEvents::class), static fn () => self::fail('No unavailable mutation facts'));
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(AllEvents::class), static fn () => self::fail('No unavailable mutation facts'));
         try {
             if ($operation === 'acquire') {
                 $fixture->acquire();
             } else {
-                $fixture->commands->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
+                $fixture->commandBus->execute(new RetireTaskInput('scope', TaskFixture::id(), 'producer', 3, TaskFixture::KEY_1));
             }
             self::fail('Unavailable Tasks must reject');
         } catch (TaskRejected) {
@@ -236,7 +236,7 @@ final class TaskHandlerTest extends UnitTestCase
         $fixture->create();
         $fixture->record(TaskFixture::completed());
         $before = $fixture->get()->toString();
-        $fixture->events->addHandler(ClassName::underscore(AllEvents::class), static fn () => self::fail('No duplicate fact'));
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(AllEvents::class), static fn () => self::fail('No duplicate fact'));
 
         $fixture->recordTaskStateHandler->handle(CommandMessage::create(new RecordTaskState('scope', TaskFixture::id(), 'producer', 1, TaskFixture::completed())));
 
@@ -247,8 +247,8 @@ final class TaskHandlerTest extends UnitTestCase
     {
         $connection = $this->database();
         $fixture = new TaskFixture($connection);
-        $commandBus = new CommandPipeline($fixture->commands);
-        $queryBus = new QueryPipeline($fixture->queries);
+        $commandBus = new CommandPipeline($fixture->commandBus);
+        $queryBus = new QueryPipeline($fixture->queryBus);
         $commandFilter = $this->mock(CommandFilter::class);
         $commandFilter->shouldReceive('process')->times(5)->andReturnUsing(static function ($message, $next) use ($connection): void {
             self::assertFalse($connection->isTransactionActive());

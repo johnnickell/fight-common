@@ -25,8 +25,8 @@ final class BroadcastingServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(Publisher::class, static function (Container $container): LaravelBroadcastPublisher {
-            $factory = $container->make(Factory::class);
-            $broadcaster = $factory->connection();
+            $broadcastingFactory = $container->make(Factory::class);
+            $broadcaster = $broadcastingFactory->connection();
             $eventName = $container->make('config')->get('fight.broadcast.event_name');
             assert(is_string($eventName));
 

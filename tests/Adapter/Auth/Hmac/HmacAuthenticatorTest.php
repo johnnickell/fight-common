@@ -340,13 +340,13 @@ class HmacAuthenticatorTest extends UnitTestCase
         $request->shouldReceive('getMethod')->andReturn($method);
         $request->shouldReceive('getUri')->andReturn($uri);
 
-        /** @var MockInterface|NonceRepository $nonces */
-        $nonces = $this->mock(NonceRepository::class);
-        $nonces->shouldReceive('consume')
+        /** @var MockInterface|NonceRepository $nonceRepository */
+        $nonceRepository = $this->mock(NonceRepository::class);
+        $nonceRepository->shouldReceive('consume')
             ->once()
-            ->withArgs(fn(Nonce $n): bool => $n->value() === $nonce);
+            ->withArgs(fn(Nonce $consumedNonce): bool => $consumedNonce->value() === $nonce);
 
-        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonces);
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonceRepository);
 
         self::assertTrue($authenticator->validate($request));
     }
@@ -390,11 +390,11 @@ class HmacAuthenticatorTest extends UnitTestCase
         $request->shouldReceive('getUri')->andReturn($uri);
 
         $failure = new RuntimeException('nonce repository failed', 42);
-        /** @var MockInterface|NonceRepository $nonces */
-        $nonces = $this->mock(NonceRepository::class);
-        $nonces->shouldReceive('consume')->once()->andThrow($failure);
+        /** @var MockInterface|NonceRepository $nonceRepository */
+        $nonceRepository = $this->mock(NonceRepository::class);
+        $nonceRepository->shouldReceive('consume')->once()->andThrow($failure);
 
-        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonces);
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonceRepository);
 
         try {
             $authenticator->validate($request);

@@ -14,14 +14,17 @@ use Psr\Log\LogLevel;
  */
 final readonly class LoggingMailTransport implements MailTransport
 {
+    private MailTransport $mailTransport;
+
     /**
      * Constructs LoggingMailTransport
      */
     public function __construct(
-        private MailTransport $transport,
+        MailTransport $transport,
         private LoggerInterface $logger,
         private string $logLevel = LogLevel::DEBUG
     ) {
+        $this->mailTransport = $transport;
     }
 
     /**
@@ -44,6 +47,6 @@ final readonly class LoggingMailTransport implements MailTransport
             'max_line_length' => $message->getMaxLineLength()
         ]);
 
-        $this->transport->send($message);
+        $this->mailTransport->send($message);
     }
 }

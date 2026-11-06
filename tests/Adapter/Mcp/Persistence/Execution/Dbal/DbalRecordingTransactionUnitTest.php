@@ -45,31 +45,31 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
     public function test_that_owned_transactions_persist_complete_references_and_precise_evidence(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
-        self::assertFalse($store->isClosed());
-        self::assertNull((new DbalObservationRepository($store))->getById('instrumentation', ObservationId::generate()));
-        self::assertNull((new DbalSessionRepository($store))->getById(SessionId::fromStrings('project', 'missing')));
-        self::assertNull((new DbalPhaseRepository($store))->getById(PhaseId::fromStrings('project', 'missing')));
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        self::assertFalse($recordingTransaction->isClosed());
+        self::assertNull((new DbalObservationRepository($recordingTransaction))->getById('instrumentation', ObservationId::generate()));
+        self::assertNull((new DbalSessionRepository($recordingTransaction))->getById(SessionId::fromStrings('project', 'missing')));
+        self::assertNull((new DbalPhaseRepository($recordingTransaction))->getById(PhaseId::fromStrings('project', 'missing')));
         $session = ObservationFixture::session();
         $phase = ObservationFixture::phase();
         $first = $session->recorded(new DateTimeImmutable('2026-10-21T12:00:00.000001Z'));
         $second = $phase->recorded(new DateTimeImmutable('2026-10-21T12:00:00.000002Z'));
-        $store->commitTransactional(static function () use ($store, $first): void {
-            (new DbalSessionRepository($store))->add(new Session($first->session()));
-            (new DbalObservationRepository($store))->add($first);
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $first): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($first->session()));
+            (new DbalObservationRepository($recordingTransaction))->add($first);
         });
-        $store->commitTransactional(static function () use ($store, $second): void {
-            (new DbalPhaseRepository($store))->add(new Phase('project', $second->phase()));
-            (new DbalObservationRepository($store))->add($second);
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $second): void {
+            (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', $second->phase()));
+            (new DbalObservationRepository($recordingTransaction))->add($second);
         });
         foreach ([$first, $second] as $recorded) {
-            $reconstructed = (new DbalObservationRepository($store))->getById('instrumentation', $recorded->id());
+            $reconstructed = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $recorded->id());
             self::assertSame($recorded->toArray(), $reconstructed->toArray());
             self::assertSame($recorded->recordedAt()->format('Y-m-d\TH:i:s.u\Z'), $reconstructed->recordedAt()->format('Y-m-d\TH:i:s.u\Z'));
             self::assertNotEquals($recorded->occurredAt(), $reconstructed->recordedAt());
         }
-        self::assertSame($session->session()->toArray(), (new DbalSessionRepository($store))->getById(SessionId::fromStrings('project', 'session'))->reference()->toArray());
-        self::assertSame($phase->phase()->toArray(), (new DbalPhaseRepository($store))->getById(PhaseId::fromStrings('project', 'phase'))->reference()->toArray());
+        self::assertSame($session->session()->toArray(), (new DbalSessionRepository($recordingTransaction))->getById(SessionId::fromStrings('project', 'session'))->reference()->toArray());
+        self::assertSame($phase->phase()->toArray(), (new DbalPhaseRepository($recordingTransaction))->getById(PhaseId::fromStrings('project', 'phase'))->reference()->toArray());
         self::assertFalse($connection->isTransactionActive());
         self::assertSame(1, (int) $connection->fetchOne('PRAGMA foreign_keys'));
     }
@@ -77,8 +77,8 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
     public function test_that_write_methods_reject_unowned_and_caller_owned_transactions(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
-        self::assertSame($connection, $store->connection());
+        $recordingTransaction = new DbalRecordingTransaction($connection);
+        self::assertSame($connection, $recordingTransaction->connection());
         foreach ([false, true] as $outer) {
             if ($outer) {
                 $connection->beginTransaction();
@@ -86,10 +86,10 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
                 $connection->insert('caller_work', ['id' => 42]);
             }
             foreach ([
-                static fn () => (new DbalSessionRepository($store))->add(new Session(ObservationFixture::session()->session())),
-                static fn () => (new DbalPhaseRepository($store))->add(new Phase('project', ObservationFixture::phase()->phase())),
-                static fn () => (new DbalObservationRepository($store))->add(ObservationFixture::session()->recorded(new DateTimeImmutable('now'))),
-                static fn () => $store->commitTransactional(static fn () => $store->commitTransactional(static fn () => null)),
+                static fn () => (new DbalSessionRepository($recordingTransaction))->add(new Session(ObservationFixture::session()->session())),
+                static fn () => (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', ObservationFixture::phase()->phase())),
+                static fn () => (new DbalObservationRepository($recordingTransaction))->add(ObservationFixture::session()->recorded(new DateTimeImmutable('now'))),
+                static fn () => $recordingTransaction->commitTransactional(static fn () => $recordingTransaction->commitTransactional(static fn () => null)),
             ] as $write) {
                 try {
                     $write();
@@ -104,7 +104,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
             }
         }
         self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
-        self::assertFalse($store->isClosed());
+        self::assertFalse($recordingTransaction->isClosed());
     }
 
     public function test_that_unrecorded_evidence_cannot_be_persisted_with_a_fabricated_receipt(): void
@@ -147,12 +147,12 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
     public function test_that_a_late_database_failure_rolls_back_all_related_writes_and_remains_reusable(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
         $observation = ObservationFixture::session();
         try {
-            $store->commitTransactional(static function () use ($store, $connection, $observation): void {
-                (new DbalSessionRepository($store))->add(new Session($observation->session()));
-                (new DbalObservationRepository($store))->add($observation->recorded(new DateTimeImmutable('now')));
+            $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $connection, $observation): void {
+                (new DbalSessionRepository($recordingTransaction))->add(new Session($observation->session()));
+                (new DbalObservationRepository($recordingTransaction))->add($observation->recorded(new DateTimeImmutable('now')));
                 $connection->executeStatement('INSERT INTO absent_failure_table (id) VALUES (1)');
             });
             self::fail('Expected explicit rolled-back storage failure.');
@@ -162,17 +162,17 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         }
         self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_sessions'));
         self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_execution_observations'));
-        self::assertFalse($store->isClosed());
-        self::assertSame('committed', $store->commitTransactional(static fn (): string => 'committed'));
+        self::assertFalse($recordingTransaction->isClosed());
+        self::assertSame('committed', $recordingTransaction->commitTransactional(static fn (): string => 'committed'));
     }
 
     public function test_that_domain_rejection_rolls_back_without_becoming_a_storage_failure(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
         $failure = new DomainException('safe rejection');
         try {
-            $store->commitTransactional(static function () use ($failure) { throw $failure; });
+            $recordingTransaction->commitTransactional(static function () use ($failure) { throw $failure; });
             self::fail('Expected rejection.');
         } catch (DomainException $exception) {
             self::assertSame($failure, $exception);
@@ -204,9 +204,9 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
                 }
             }
         }
-        $store = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
         try {
-            $store->commitTransactional(static function () use ($stage, $failure) {
+            $recordingTransaction->commitTransactional(static function () use ($stage, $failure) {
                 if ($stage === 'rollback') { throw $failure; }
                 return null;
             });
@@ -215,9 +215,9 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
             self::assertTrue($exception->outcomeUncertain());
             self::assertSame($failure, $exception->getPrevious());
         }
-        self::assertTrue($store->isClosed());
+        self::assertTrue($recordingTransaction->isClosed());
         $this->expectException(LogicException::class);
-        $store->commitTransactional(static fn () => null);
+        $recordingTransaction->commitTransactional(static fn () => null);
     }
 
     public static function uncertainFailures(): iterable
@@ -260,16 +260,16 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
     public function test_that_unsupported_stored_payload_and_schema_versions_reject_clearly(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
         $observation = ObservationFixture::session();
-        $store->commitTransactional(static function () use ($store, $observation): void {
-            (new DbalSessionRepository($store))->add(new Session($observation->session()));
-            (new DbalObservationRepository($store))->add($observation->recorded(new DateTimeImmutable('now')));
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $observation): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($observation->session()));
+            (new DbalObservationRepository($recordingTransaction))->add($observation->recorded(new DateTimeImmutable('now')));
         });
         foreach ([['version' => 2], ['version' => 1, 'payload' => 'null'], ['payload' => '{"version":2}']] as $changes) {
             $connection->update('fight_execution_observations', $changes, ['producer_id' => 'instrumentation']);
             try {
-                (new DbalObservationRepository($store))->getById('instrumentation', $observation->id());
+                (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $observation->id());
                 self::fail('Expected stored version or shape rejection.');
             } catch (DomainException $exception) {
                 self::assertStringContainsString('observation', $exception->getMessage());
@@ -278,7 +278,7 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
         $connection->update('fight_execution_schema', ['version' => 2], ['singleton' => 1]);
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Unsupported observation storage version.');
-        $store->commitTransactional(static fn () => null);
+        $recordingTransaction->commitTransactional(static fn () => null);
     }
 
     public function test_that_schema_composition_preserves_consumer_tables_and_qualifies_mysql_binary_identity(): void
@@ -326,14 +326,14 @@ final class DbalRecordingTransactionUnitTest extends UnitTestCase
     public function test_that_activity_uses_the_same_atomic_version_one_payload(): void
     {
         $connection = $this->database();
-        $store = new DbalRecordingTransaction($connection);
+        $recordingTransaction = new DbalRecordingTransaction($connection);
         $activity = ObservationFixture::activity()->recorded(new DateTimeImmutable('2026-10-21T00:00:00.000001Z'));
-        $store->commitTransactional(static function () use ($store, $activity): void {
-            (new DbalSessionRepository($store))->add(new Session($activity->session()));
-            (new DbalPhaseRepository($store))->add(new Phase('project', $activity->phase()));
-            (new DbalObservationRepository($store))->add($activity);
+        $recordingTransaction->commitTransactional(static function () use ($recordingTransaction, $activity): void {
+            (new DbalSessionRepository($recordingTransaction))->add(new Session($activity->session()));
+            (new DbalPhaseRepository($recordingTransaction))->add(new Phase('project', $activity->phase()));
+            (new DbalObservationRepository($recordingTransaction))->add($activity);
         });
-        $saved = (new DbalObservationRepository($store))->getById('instrumentation', $activity->id());
+        $saved = (new DbalObservationRepository($recordingTransaction))->getById('instrumentation', $activity->id());
         self::assertSame($activity->comparison(), $saved->comparison());
         self::assertSame('2026-10-20T12:34:56.120Z', $saved->occurrence()->toString());
         self::assertEquals($activity->recordedAt(), $saved->recordedAt());

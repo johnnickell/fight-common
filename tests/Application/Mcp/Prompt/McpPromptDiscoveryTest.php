@@ -38,9 +38,9 @@ final class McpPromptDiscoveryTest extends UnitTestCase
         self::assertSame(['prompts/list', 'prompts/get'], $capability->methods());
         self::assertSame(['prompts' => ['listChanged' => false]], $capability->capabilities());
         self::assertSame([], $capability->mirrorDeclarations());
-        foreach ($providers as $provider) {
-            self::assertSame(1, $provider->metadataCalls);
-            self::assertSame([], $provider->calls);
+        foreach ($providers as $promptProvider) {
+            self::assertSame(1, $promptProvider->metadataCalls);
+            self::assertSame([], $promptProvider->calls);
         }
         $first = $capability->handle($this->request())->toArray();
         self::assertSame(['Alpha'], array_column($first['prompts'], 'name'));
@@ -55,8 +55,8 @@ final class McpPromptDiscoveryTest extends UnitTestCase
         $last = $fresh->handle($this->request(['cursor' => $first['nextCursor']]))->toArray();
         self::assertSame(['Zulu'], array_column($last['prompts'], 'name'));
         self::assertArrayNotHasKey('nextCursor', $last);
-        foreach ($providers as $provider) {
-            self::assertSame([], $provider->calls);
+        foreach ($providers as $promptProvider) {
+            self::assertSame([], $promptProvider->calls);
         }
         $empty = $this->capability([], new PromptAvailability())->handle($this->request())->toArray();
         self::assertSame([], $empty['prompts']);
@@ -174,11 +174,11 @@ final class McpPromptDiscoveryTest extends UnitTestCase
 
     public function test_that_actual_central_metadata_and_envelope_escaping_are_in_exact_independent_serving_budgets(): void
     {
-        $provider = new PromptProvider(McpPromptInfo::fromArray(['name' => 'Prompt', 'description' => '雪"\\']));
-        $provider->output = McpPromptOutput::fromArray(['messages' => [['role' => 'assistant', 'content' => ['type' => 'text', 'text' => "雪\n\"\\"]]]]);
+        $promptProvider = new PromptProvider(McpPromptInfo::fromArray(['name' => 'Prompt', 'description' => '雪"\\']));
+        $promptProvider->output = McpPromptOutput::fromArray(['messages' => [['role' => 'assistant', 'content' => ['type' => 'text', 'text' => "雪\n\"\\"]]]]);
         foreach (['prompts/list' => [], 'prompts/get' => ['name' => 'Prompt']] as $method => $params) {
             $info = new McpServerInfo('Identity雪"', str_repeat('v', 200));
-            $providers = [$provider, new PromptProvider(McpPromptInfo::fromArray(['name' => 'Zulu']))];
+            $providers = [$promptProvider, new PromptProvider(McpPromptInfo::fromArray(['name' => 'Zulu']))];
             $normal = $this->capability($providers, new PromptAvailability());
             $responder = new McpResponder(new McpCapabilityRegistry($info, [$normal]));
             $wire = $this->wire($params, $method, str_repeat('"', 40));
@@ -205,7 +205,7 @@ final class McpPromptDiscoveryTest extends UnitTestCase
             self::assertArrayHasKey('result', (new McpResponder(new McpCapabilityRegistry(new McpServerInfo('s', '1'), [$small])))->respond($wire)->toArray());
             self::assertArrayHasKey('error', (new McpResponder(new McpCapabilityRegistry($info, [$small])))->respond($wire)->toArray());
         }
-        $tiny = $this->capability([$provider], new PromptAvailability(), limits: new McpPromptLimits(maxResultBytes: 1));
+        $tiny = $this->capability([$promptProvider], new PromptAvailability(), limits: new McpPromptLimits(maxResultBytes: 1));
         self::assertSame(-32603, $this->respond($tiny)['error']['code']);
     }
 
@@ -229,7 +229,7 @@ final class McpPromptDiscoveryTest extends UnitTestCase
     public function test_that_exact_count_and_catalog_byte_limits_include_concealed_metadata(): void
     {
         $providers = $this->providers();
-        $bytes = array_sum(array_map(fn($provider) => strlen(json_encode($provider->definition->toArray())), $providers));
+        $bytes = array_sum(array_map(fn($promptProvider) => strlen(json_encode($promptProvider->definition->toArray())), $providers));
         $capability = $this->capability($providers, new PromptAvailability(), limits: new McpPromptLimits(maxPrompts: 3, maxCatalogBytes: $bytes));
         self::assertCount(2, $capability->handle($this->request())->toArray()['prompts']);
         $this->expectException(DomainException::class);

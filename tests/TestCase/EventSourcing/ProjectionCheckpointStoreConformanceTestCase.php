@@ -13,20 +13,20 @@ abstract class ProjectionCheckpointStoreConformanceTestCase extends UnitTestCase
     abstract protected function createProjectionCheckpointStore(): ProjectionCheckpointStore;
 
     protected function reopenProjectionCheckpointStore(
-        ProjectionCheckpointStore $store,
+        ProjectionCheckpointStore $projectionCheckpointStore,
     ): ProjectionCheckpointStore {
-        return $store;
+        return $projectionCheckpointStore;
     }
 
     public function test_that_checkpoints_follow_the_durable_lifecycle_contract(): void
     {
-        $store = $this->createProjectionCheckpointStore();
+        $projectionCheckpointStore = $this->createProjectionCheckpointStore();
 
-        self::assertSame(0, $store->load('orders.order-summary'));
-        self::assertSame(0, $store->load('billing.revenue-summary'));
+        self::assertSame(0, $projectionCheckpointStore->load('orders.order-summary'));
+        self::assertSame(0, $projectionCheckpointStore->load('billing.revenue-summary'));
 
         try {
-            $store->save('orders.order-summary', -1);
+            $projectionCheckpointStore->save('orders.order-summary', -1);
             self::fail('Expected a checkpoint below the initial position to be rejected.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame(
@@ -35,20 +35,20 @@ abstract class ProjectionCheckpointStoreConformanceTestCase extends UnitTestCase
             );
         }
 
-        $store->reset('inventory.stock-summary');
-        $store->reset('inventory.stock-summary');
-        self::assertSame(0, $store->load('inventory.stock-summary'));
+        $projectionCheckpointStore->reset('inventory.stock-summary');
+        $projectionCheckpointStore->reset('inventory.stock-summary');
+        self::assertSame(0, $projectionCheckpointStore->load('inventory.stock-summary'));
 
-        $store->save('orders.order-summary', 3);
-        $store->save('orders.order-summary', 3);
-        $store->save('orders.order-summary', 5);
-        $store->save('billing.revenue-summary', 2);
+        $projectionCheckpointStore->save('orders.order-summary', 3);
+        $projectionCheckpointStore->save('orders.order-summary', 3);
+        $projectionCheckpointStore->save('orders.order-summary', 5);
+        $projectionCheckpointStore->save('billing.revenue-summary', 2);
 
-        self::assertSame(5, $store->load('orders.order-summary'));
-        self::assertSame(2, $store->load('billing.revenue-summary'));
+        self::assertSame(5, $projectionCheckpointStore->load('orders.order-summary'));
+        self::assertSame(2, $projectionCheckpointStore->load('billing.revenue-summary'));
 
         try {
-            $store->save('orders.order-summary', 4);
+            $projectionCheckpointStore->save('orders.order-summary', 4);
             self::fail('Expected a backward checkpoint save to be rejected.');
         } catch (InvalidArgumentException $exception) {
             self::assertSame(
@@ -57,17 +57,17 @@ abstract class ProjectionCheckpointStoreConformanceTestCase extends UnitTestCase
             );
         }
 
-        $store = $this->reopenProjectionCheckpointStore($store);
+        $projectionCheckpointStore = $this->reopenProjectionCheckpointStore($projectionCheckpointStore);
 
-        self::assertSame(5, $store->load('orders.order-summary'));
-        self::assertSame(2, $store->load('billing.revenue-summary'));
+        self::assertSame(5, $projectionCheckpointStore->load('orders.order-summary'));
+        self::assertSame(2, $projectionCheckpointStore->load('billing.revenue-summary'));
 
-        $store->reset('orders.order-summary');
-        $store->reset('orders.order-summary');
-        $store = $this->reopenProjectionCheckpointStore($store);
+        $projectionCheckpointStore->reset('orders.order-summary');
+        $projectionCheckpointStore->reset('orders.order-summary');
+        $projectionCheckpointStore = $this->reopenProjectionCheckpointStore($projectionCheckpointStore);
 
-        self::assertSame(0, $store->load('orders.order-summary'));
-        self::assertSame(2, $store->load('billing.revenue-summary'));
-        self::assertSame(0, $store->load('inventory.stock-summary'));
+        self::assertSame(0, $projectionCheckpointStore->load('orders.order-summary'));
+        self::assertSame(2, $projectionCheckpointStore->load('billing.revenue-summary'));
+        self::assertSame(0, $projectionCheckpointStore->load('inventory.stock-summary'));
     }
 }

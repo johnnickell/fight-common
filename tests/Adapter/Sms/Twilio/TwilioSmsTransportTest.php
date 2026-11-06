@@ -28,13 +28,13 @@ class TwilioSmsTransportTest extends UnitTestCase
     ): void {
         $client = $this->mock(Client::class);
         $client->allows('getAccountSid')->andReturns('ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-        $service = new SmsService(new TwilioSmsTransport($client));
+        $smsService = new SmsService(new TwilioSmsTransport($client));
         // No request expectation exists yet: construction must not contact the provider.
         if ($adoptPhoneValue) {
             $to = E164PhoneNumber::fromString($to)->toString();
             $from = E164PhoneNumber::fromString($from)->toString();
         }
-        $message = $service->createMessage(
+        $message = $smsService->createMessage(
             $to,
             $from,
             'Hello, World!',
@@ -58,7 +58,7 @@ class TwilioSmsTransportTest extends UnitTestCase
                 return true;
             }
         )->andReturns(new Response(201, '{}'));
-        $service->send($message);
+        $smsService->send($message);
     }
 
     /**

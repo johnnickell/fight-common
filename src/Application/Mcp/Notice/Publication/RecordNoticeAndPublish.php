@@ -18,7 +18,7 @@ final readonly class RecordNoticeAndPublish
     /**
      * Constructs RecordNoticeAndPublish
      */
-    public function __construct(private CommandBus $commands, private NoticePublication $publication)
+    public function __construct(private CommandBus $commandBus, private NoticePublication $noticePublication)
     {
     }
 
@@ -31,9 +31,9 @@ final readonly class RecordNoticeAndPublish
      */
     public function record(RecordNotice $command): NoticePublicationStatus
     {
-        $this->commands->execute($command);
+        $this->commandBus->execute($command);
         $notice = $command->notice();
 
-        return $this->publication->publish(new GetNotice($notice->scope(), $notice->producer(), $notice->id()));
+        return $this->noticePublication->publish(new GetNotice($notice->scope(), $notice->producer(), $notice->id()));
     }
 }

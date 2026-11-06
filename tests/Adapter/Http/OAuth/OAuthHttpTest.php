@@ -70,8 +70,8 @@ final class OAuthHttpTest extends UnitTestCase
     public function test_that_challenges_preserve_distinct_statuses_all_scopes_and_public_safety(OAuthFailure $failure, int $status, ?string $error): void
     {
         $factory = new HttpFactory();
-        $responses = new OAuthResponseFactory($factory, $factory, 'consumer "realm" \\ scope');
-        $response = $responses->rejection($failure, OAuthFixture::metadata(), OAuthScopeSet::fromArray(['write', 'read']));
+        $oauthResponseFactory = new OAuthResponseFactory($factory, $factory, 'consumer "realm" \\ scope');
+        $response = $oauthResponseFactory->rejection($failure, OAuthFixture::metadata(), OAuthScopeSet::fromArray(['write', 'read']));
         self::assertSame($status, $response->getStatusCode());
         self::assertSame('', (string) $response->getBody());
         self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));

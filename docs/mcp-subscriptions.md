@@ -27,27 +27,27 @@ Separate opt-in
 4. Supply an idle dedicated connection to `DbalSubscriptionStore`; never share an active caller transaction or hold
    any transaction across a stream or network wait. Consumers own connection pools, SQL timeouts and cleanup scheduling.
 5. Pass `McpSubscriptions` as the optional **third registry constructor argument**. For example, with existing
-   `$queries`, `$admission`, `$selection`, `$capabilities` and `$serverInfo`:
+   `$queryBus`, `$subscriptionAdmission`, `$selection`, `$capabilities` and `$serverInfo`:
 
    ```php
-   $tracking = new DbalSubscriptionStore($trackingConnection);
-   $subscriptions = new McpSubscriptions(
-       $queries,
-       $tracking,
-       $admission,
+   $subscriptionStore = new DbalSubscriptionStore($trackingConnection);
+   $subscriptionComposition = new McpSubscriptions(
+       $queryBus,
+       $subscriptionStore,
+       $subscriptionAdmission,
        $selection,
        tools: true,
        resources: true
    );
-   $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptions);
+   $registry = new McpCapabilityRegistry($serverInfo, $capabilities, $subscriptionComposition);
    ```
 
    Import these names from `Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal` and
    `Fight\Common\Application\Mcp\Subscription`, respectively; registry is in `Application\Mcp\Capability`.
    The matching serving capabilities **must exist**. Set `tools: false` or `resources: false` when absent/disabled;
    at least one family must be enabled. Optional `prompts: true` also requires a serving Prompt capability (see below).
-   Optional `tasks: $tasks` requires the same complete Task capability **and** a consumer-implemented
-   `taskDisclosure: $taskDisclosureGuard`; no Boolean-only/allow-all default is supplied. Task-only composition disables
+   Optional `taskCapability: $taskCapability` requires the same complete Task capability **and** a consumer-implemented
+   `taskDisclosureGuard: $taskDisclosureGuard`; no Boolean-only/allow-all default is supplied. Task-only composition disables
    Tools/Resources and needs no retained-notice Query. See [Task composition](mcp-task-live.md#composition-and-authority).
    Existing serving capabilities continue to declare their ordinary false flags;
    the registry derives `tools.listChanged`, `resources.listChanged`, `resources.subscribe` and optional

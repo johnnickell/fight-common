@@ -44,15 +44,15 @@ final class McpSubscriptionExecution
         private readonly int|string $requestId,
         private readonly McpSubscriptionFilter $requested,
         private readonly array $supported,
-        private readonly QueryBus $queries,
-        private readonly McpSubscriptionStore $store,
-        private readonly McpSubscriptionAdmission $admission,
+        private readonly QueryBus $queryBus,
+        private readonly McpSubscriptionStore $subscriptionStore,
+        private readonly McpSubscriptionAdmission $subscriptionAdmission,
         private readonly NoticeSelection $selection,
         private readonly int $lifetimeSeconds,
         private readonly int $waitMicroseconds,
         private readonly int $maxFrameBytes,
-        private readonly ?McpTasks $tasks = null,
-        private readonly ?McpTaskDisclosureGuard $taskDisclosure = null
+        private readonly ?McpTasks $taskCapability = null,
+        private readonly ?McpTaskDisclosureGuard $taskDisclosureGuard = null
     ) {
     }
 
@@ -89,7 +89,7 @@ final class McpSubscriptionExecution
         }
 
         try {
-            $subscriber = Notice::reference($this->admission->subscriber());
+            $subscriber = Notice::reference($this->subscriptionAdmission->subscriber());
             if ($this->shouldStop($deadline)) {
                 return;
             }
@@ -111,7 +111,7 @@ final class McpSubscriptionExecution
 
             $now = time();
             $this->expiresAt = $now + 5;
-            $this->store->open($id, $owner, [
+            $this->subscriptionStore->open($id, $owner, [
                 'subscriber' => $subscriber,
                 'selection'  => $this->selection->toArray(),
                 'requested'  => $this->requested->toArray(),
@@ -168,7 +168,7 @@ final class McpSubscriptionExecution
                         return;
                     }
 
-                    if ($this->tasks !== null) {
+                    if ($this->taskCapability !== null) {
                         $this->renew($id, $owner);
                     }
 
@@ -185,7 +185,7 @@ final class McpSubscriptionExecution
                     }
                 });
             };
-            if ($this->tasks !== null) {
+            if ($this->taskCapability !== null) {
                 $deliver(new McpSubscriptionDelivery($acknowledge));
             } else {
                 $acknowledge($emit);
@@ -346,7 +346,7 @@ final class McpSubscriptionExecution
         } finally {
             if ($opened) {
                 try {
-                    $this->store->close($id, $owner, time());
+                    $this->subscriptionStore->close($id, $owner, time());
                 } catch (Throwable $failure) {
                     $this->diagnose($diagnostics, $failure);
                 }
@@ -363,7 +363,13 @@ final class McpSubscriptionExecution
      */
     private function accepted(string $subscriber, array &$states = []): array
     {
-        return $this->requested->accepted($this->supported, $this->admission, $subscriber, $this->tasks, $states);
+        return $this->requested->accepted(
+            $this->supported,
+            $this->subscriptionAdmission,
+            $subscriber,
+            $this->taskCapability,
+            $states
+        );
     }
 
     /**
@@ -374,19 +380,19 @@ final class McpSubscriptionExecution
      */
     private function disclose(string $subscriber, array $states, Closure $write): void
     {
-        if ($this->tasks === null) {
+        if ($this->taskCapability === null) {
             $write();
 
             return;
         }
 
-        if ($this->taskDisclosure === null) {
+        if ($this->taskDisclosureGuard === null) {
             throw new RuntimeException('Task disclosure guard unavailable.');
         }
 
         $action = new McpDisclosureAction($write);
         try {
-            $this->taskDisclosure->run($subscriber, $states, $action->invoke(...));
+            $this->taskDisclosureGuard->run($subscriber, $states, $action->invoke(...));
         } finally {
             $action->finish();
         }
@@ -399,11 +405,11 @@ final class McpSubscriptionExecution
      */
     private function task(string $id, string $subscriber): array
     {
-        if (!$this->admission->allows($subscriber, 'taskIds', $id, null)) {
+        if (!$this->subscriptionAdmission->allows($subscriber, 'taskIds', $id, null)) {
             throw new RuntimeException('Task delivery unavailable.');
         }
 
-        $state = $this->tasks?->current($id);
+        $state = $this->taskCapability?->current($id);
         if ($state === null) {
             throw new RuntimeException('Task delivery unavailable.');
         }
@@ -417,7 +423,7 @@ final class McpSubscriptionExecution
     private function finish(string $id, string $owner): void
     {
         $this->renew($id, $owner);
-        $this->store->close($id, $owner, time());
+        $this->subscriptionStore->close($id, $owner, time());
         $this->requireFreshness();
     }
 
@@ -429,7 +435,7 @@ final class McpSubscriptionExecution
         $this->requireFreshness();
         $now = time();
         $expires = $now + 5;
-        $this->store->heartbeat($id, $owner, $now, $expires);
+        $this->subscriptionStore->heartbeat($id, $owner, $now, $expires);
         $this->expiresAt = $expires;
         $this->requireFreshness();
     }
@@ -461,7 +467,7 @@ final class McpSubscriptionExecution
      */
     private function batch(?string $continuation, bool $start = false): NoticeRecoveryBatch
     {
-        $batch = $this->queries->fetch(new RecoverNotices($this->selection, $continuation, startAtCurrent: $start));
+        $batch = $this->queryBus->fetch(new RecoverNotices($this->selection, $continuation, startAtCurrent: $start));
         if (!$batch instanceof NoticeRecoveryBatch || $batch->status() !== 'complete') {
             // Conservative loss/incomplete/uncertain assessment requires polling/reload, never silent dropping.
             throw new RuntimeException('Live notice continuity is unavailable.');
@@ -493,7 +499,7 @@ final class McpSubscriptionExecution
             }
         }
 
-        if (!$this->admission->allows($subscriber, $filter, $uri, $notice)) {
+        if (!$this->subscriptionAdmission->allows($subscriber, $filter, $uri, $notice)) {
             return null;
         }
 

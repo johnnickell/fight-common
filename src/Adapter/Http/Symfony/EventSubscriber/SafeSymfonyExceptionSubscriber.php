@@ -15,11 +15,14 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
  */
 final readonly class SafeSymfonyExceptionSubscriber
 {
+    private SafeErrorController $errorController;
+
     /**
      * Constructs SafeSymfonyExceptionSubscriber
      */
-    public function __construct(private SafeErrorController $errors)
+    public function __construct(SafeErrorController $errors)
     {
+        $this->errorController = $errors;
     }
 
     /**
@@ -31,7 +34,7 @@ final readonly class SafeSymfonyExceptionSubscriber
             return;
         }
 
-        $event->setResponse($this->errors->handle($event->getThrowable()));
+        $event->setResponse($this->errorController->handle($event->getThrowable()));
     }
 
     /**

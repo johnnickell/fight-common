@@ -66,16 +66,16 @@ class QueryHandlerCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_tagged_query_handlers(): void
     {
         $container = new ContainerBuilder();
-        $routerDef = $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
+        $queryRouterDefinition = $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
 
-        $handlerDef = $container->register('handler_id', StubQueryHandler::class);
-        $handlerDef->addTag('common.query_handler', []);
-        $handlerDef->setPublic(true);
+        $handlerDefinition = $container->register('handler_id', StubQueryHandler::class);
+        $handlerDefinition->addTag('common.query_handler', []);
+        $handlerDefinition->setPublic(true);
 
         $pass = new QueryHandlerCompilerPass();
         $pass->process($container);
 
-        $calls = $routerDef->getMethodCalls();
+        $calls = $queryRouterDefinition->getMethodCalls();
         self::assertCount(1, $calls);
         self::assertSame('registerHandler', $calls[0][0]);
         self::assertSame([StubQuery::class, 'handler_id'], $calls[0][1]);
@@ -84,20 +84,20 @@ class QueryHandlerCompilerPassTest extends UnitTestCase
     public function test_that_it_registers_multiple_tagged_query_handlers(): void
     {
         $container = new ContainerBuilder();
-        $routerDef = $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
+        $queryRouterDefinition = $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
 
-        $handlerDef1 = $container->register('handler_1', StubQueryHandler::class);
-        $handlerDef1->addTag('common.query_handler', []);
-        $handlerDef1->setPublic(true);
+        $firstHandlerDefinition = $container->register('handler_1', StubQueryHandler::class);
+        $firstHandlerDefinition->addTag('common.query_handler', []);
+        $firstHandlerDefinition->setPublic(true);
 
-        $handlerDef2 = $container->register('handler_2', StubOtherQueryHandler::class);
-        $handlerDef2->addTag('common.query_handler', []);
-        $handlerDef2->setPublic(true);
+        $secondHandlerDefinition = $container->register('handler_2', StubOtherQueryHandler::class);
+        $secondHandlerDefinition->addTag('common.query_handler', []);
+        $secondHandlerDefinition->setPublic(true);
 
         $pass = new QueryHandlerCompilerPass();
         $pass->process($container);
 
-        $calls = $routerDef->getMethodCalls();
+        $calls = $queryRouterDefinition->getMethodCalls();
         self::assertCount(2, $calls);
         self::assertSame('registerHandler', $calls[0][0]);
         self::assertSame([StubQuery::class, 'handler_1'], $calls[0][1]);
@@ -110,9 +110,9 @@ class QueryHandlerCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
 
-        $handlerDef = $container->register('private_handler', StubQueryHandler::class);
-        $handlerDef->addTag('common.query_handler', []);
-        $handlerDef->setPublic(false);
+        $handlerDefinition = $container->register('private_handler', StubQueryHandler::class);
+        $handlerDefinition->addTag('common.query_handler', []);
+        $handlerDefinition->setPublic(false);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must be public');
@@ -126,9 +126,9 @@ class QueryHandlerCompilerPassTest extends UnitTestCase
         $container = new ContainerBuilder();
         $container->register(ServiceAwareQueryRouter::class, ServiceAwareQueryRouter::class);
 
-        $badDef = $container->register('bad_handler', StubQueryNonHandlerService::class);
-        $badDef->addTag('common.query_handler', []);
-        $badDef->setPublic(true);
+        $invalidDefinition = $container->register('bad_handler', StubQueryNonHandlerService::class);
+        $invalidDefinition->addTag('common.query_handler', []);
+        $invalidDefinition->setPublic(true);
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('must implement interface');

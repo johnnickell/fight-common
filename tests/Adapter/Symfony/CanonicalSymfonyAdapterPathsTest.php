@@ -113,15 +113,15 @@ final class CanonicalSymfonyAdapterPathsTest extends UnitTestCase
 
     public function test_that_the_canonical_exception_subscriber_translates_a_json_kernel_exception(): void
     {
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
         $request = new Request();
         $request->headers->set('Accept', 'application/json');
 
         /** @var HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
         $event = new ExceptionEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST, new RuntimeException('broken'));
-        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $eventDispatcher->dispatch($event, KernelEvents::EXCEPTION);
 
         self::assertSame(500, $event->getResponse()?->getStatusCode());
         self::assertSame('{"status":"error","message":"broken"}', $event->getResponse()?->getContent());
@@ -129,8 +129,8 @@ final class CanonicalSymfonyAdapterPathsTest extends UnitTestCase
 
     public function test_that_the_canonical_exception_subscriber_ignores_non_json_requests(): void
     {
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
 
         /** @var HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
@@ -140,22 +140,22 @@ final class CanonicalSymfonyAdapterPathsTest extends UnitTestCase
             HttpKernelInterface::MAIN_REQUEST,
             new RuntimeException('broken')
         );
-        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $eventDispatcher->dispatch($event, KernelEvents::EXCEPTION);
 
         self::assertNull($event->getResponse());
     }
 
     public function test_that_the_canonical_exception_subscriber_accepts_xml_http_requests(): void
     {
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
+        $eventDispatcher = new EventDispatcher();
+        $eventDispatcher->addSubscriber(new SymfonyExceptionSubscriber(new ErrorController()));
         $request = new Request();
         $request->headers->set('X-Requested-With', 'XMLHttpRequest');
 
         /** @var HttpKernelInterface $kernel */
         $kernel = $this->mock(HttpKernelInterface::class);
         $event = new ExceptionEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST, new RuntimeException('broken'));
-        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $eventDispatcher->dispatch($event, KernelEvents::EXCEPTION);
 
         self::assertSame(500, $event->getResponse()?->getStatusCode());
     }

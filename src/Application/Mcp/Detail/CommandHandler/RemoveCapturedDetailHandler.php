@@ -18,7 +18,7 @@ final readonly class RemoveCapturedDetailHandler implements CommandHandler
     /**
      * Constructs RemoveCapturedDetailHandler
      */
-    public function __construct(private DetailRemover $remover)
+    public function __construct(private DetailRemover $detailRemover)
     {
     }
 
@@ -40,6 +40,6 @@ final readonly class RemoveCapturedDetailHandler implements CommandHandler
             throw new InvalidArgumentException('Unexpected detail removal command.');
         }
 
-        $this->remover->remove($command);
+        $this->detailRemover->remove($command);
     }
 }

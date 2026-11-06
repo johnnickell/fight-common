@@ -52,10 +52,10 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
     {
         $path = tempnam(sys_get_temp_dir(), 'fight-dbal-');
         self::assertIsString($path);
-        $reader = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        $readConnection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
         try {
-            $reader->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
+            $readConnection->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
             self::assertFalse($connection->isConnected());
             $transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
             self::assertSame('committed', $transactionalUnitOfWork->commitTransactional(static function () use ($connection): string {
@@ -63,13 +63,13 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
                 return 'committed';
             }));
             self::assertFalse($connection->isTransactionActive());
-            self::assertSame([184], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            self::assertSame([184], $readConnection->fetchFirstColumn('SELECT id FROM consumer_work'));
             self::assertFalse($transactionalUnitOfWork->isClosed());
             $connection->close();
-            self::assertSame([184], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            self::assertSame([184], $readConnection->fetchFirstColumn('SELECT id FROM consumer_work'));
         } finally {
             $connection->close();
-            $reader->close();
+            $readConnection->close();
             unlink($path);
         }
     }
@@ -81,10 +81,10 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
         self::assertIsString($path);
         $configuration = new Configuration();
         $configuration->setAutoCommit($state === 'established idle');
-        $reader = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
+        $readConnection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path]);
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $path], $configuration);
         try {
-            $reader->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
+            $readConnection->executeStatement('CREATE TABLE consumer_work (id INTEGER)');
             if ($state === 'established idle') {
                 $connection->fetchOne('SELECT 1');
                 $connection->setAutoCommit(false);
@@ -112,15 +112,15 @@ final class DbalTransactionalUnitOfWorkTest extends TransactionalUnitOfWorkConfo
             self::assertFalse($connection->isAutoCommit());
             self::assertSame($state !== 'lazy', $connection->isConnected());
             self::assertSame($state === 'caller work', $connection->isTransactionActive());
-            self::assertSame([], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+            self::assertSame([], $readConnection->fetchFirstColumn('SELECT id FROM consumer_work'));
             if ($state === 'caller work') {
                 self::assertSame([42], $connection->fetchFirstColumn('SELECT id FROM consumer_work'));
                 $connection->commit();
-                self::assertSame([42], $reader->fetchFirstColumn('SELECT id FROM consumer_work'));
+                self::assertSame([42], $readConnection->fetchFirstColumn('SELECT id FROM consumer_work'));
             }
         } finally {
             $connection->close();
-            $reader->close();
+            $readConnection->close();
             unlink($path);
         }
     }

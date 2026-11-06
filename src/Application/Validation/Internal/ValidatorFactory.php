@@ -75,17 +75,21 @@ final class ValidatorFactory
      * The existing convenience signatures check required arguments before construction.
      * Parsed service rules use those same signatures, not a second construction API.
      *
-     * @phpstan-param array<array-key, string> $args
+     * @phpstan-param array<array-key, string> $ruleArguments
      */
-    public static function create(string $type, string $fieldName, string $errorMessage, array $args = []): Validator
-    {
-        $specification = match ($type) {
+    public static function create(
+        string $ruleType,
+        string $fieldName,
+        string $errorMessage,
+        array $ruleArguments = []
+    ): Validator {
+        $specification = match ($ruleType) {
             'Required'  => new RequiredFieldSpecification($fieldName),
-            'Equals'    => new EqualFieldsSpecification($fieldName, $args[0]),
-            'NotEquals' => new EqualFieldsSpecification($fieldName, $args[0])->not(),
-            'Same'      => new SameFieldsSpecification($fieldName, $args[0]),
-            'NotSame'   => new SameFieldsSpecification($fieldName, $args[0])->not(),
-            default     => new SingleFieldSpecification($fieldName, self::rule($type, $args))
+            'Equals'    => new EqualFieldsSpecification($fieldName, $ruleArguments[0]),
+            'NotEquals' => new EqualFieldsSpecification($fieldName, $ruleArguments[0])->not(),
+            'Same'      => new SameFieldsSpecification($fieldName, $ruleArguments[0]),
+            'NotSame'   => new SameFieldsSpecification($fieldName, $ruleArguments[0])->not(),
+            default     => new SingleFieldSpecification($fieldName, self::rule($ruleType, $ruleArguments))
         };
 
         return new BasicValidator($specification, $fieldName, $errorMessage);
@@ -94,43 +98,43 @@ final class ValidatorFactory
     /**
      * Creates a single-value rule with the existing argument conversions
      *
-     * @phpstan-param array<array-key, string> $args
+     * @phpstan-param array<array-key, string> $ruleArguments
      */
-    private static function rule(string $type, array $args): Specification
+    private static function rule(string $ruleType, array $ruleArguments): Specification
     {
-        return match ($type) {
+        return match ($ruleType) {
             'Alpha'         => new IsAlpha(),
             'AlphaDash'     => new IsAlphaDashed(),
             'AlphaNum'      => new IsAlnum(),
             'AlphaNumDash'  => new IsAlnumDashed(),
             'Blank'         => new IsBlank(),
-            'Contains'      => new StringContains($args[0]),
-            'Date'          => new IsDateTime($args[0]),
-            'DateTime'      => new IsDateTime($args[0]),
+            'Contains'      => new StringContains($ruleArguments[0]),
+            'Date'          => new IsDateTime($ruleArguments[0]),
+            'DateTime'      => new IsDateTime($ruleArguments[0]),
             'Digits'        => new IsDigits(),
             'Email'         => new IsEmail(),
             'Empty'         => new IsEmpty(),
-            'EndsWith'      => new StringEndsWith($args[0]),
-            'ExactCount'    => new CountExact((int) $args[0]),
-            'ExactLength'   => new LengthExact((int) $args[0]),
-            'ExactNumber'   => new NumberExact(self::number($args[0])),
+            'EndsWith'      => new StringEndsWith($ruleArguments[0]),
+            'ExactCount'    => new CountExact((int) $ruleArguments[0]),
+            'ExactLength'   => new LengthExact((int) $ruleArguments[0]),
+            'ExactNumber'   => new NumberExact(self::number($ruleArguments[0])),
             'False'         => new IsFalse(),
             'Falsy'         => new IsFalsy(),
-            'InList'        => new InList($args),
+            'InList'        => new InList($ruleArguments),
             'IpAddress'     => new IsIpAddress(),
             'IpV4Address'   => new IsIpV4Address(),
             'IpV6Address'   => new IsIpV6Address(),
             'Json'          => new IsJson(),
-            'KeyIsset'      => new KeyIsset($args[0]),
-            'KeyNotEmpty'   => new KeyNotEmpty($args[0]),
-            'ListOf'        => new IsListOf($args[0]),
-            'Match'         => new IsMatch($args[0]),
-            'MaxCount'      => new CountMax((int) $args[0]),
-            'MaxLength'     => new LengthMax((int) $args[0]),
-            'MaxNumber'     => new NumberMax(self::number($args[0])),
-            'MinCount'      => new CountMin((int) $args[0]),
-            'MinLength'     => new LengthMin((int) $args[0]),
-            'MinNumber'     => new NumberMin(self::number($args[0])),
+            'KeyIsset'      => new KeyIsset($ruleArguments[0]),
+            'KeyNotEmpty'   => new KeyNotEmpty($ruleArguments[0]),
+            'ListOf'        => new IsListOf($ruleArguments[0]),
+            'Match'         => new IsMatch($ruleArguments[0]),
+            'MaxCount'      => new CountMax((int) $ruleArguments[0]),
+            'MaxLength'     => new LengthMax((int) $ruleArguments[0]),
+            'MaxNumber'     => new NumberMax(self::number($ruleArguments[0])),
+            'MinCount'      => new CountMin((int) $ruleArguments[0]),
+            'MinLength'     => new LengthMin((int) $ruleArguments[0]),
+            'MinNumber'     => new NumberMin(self::number($ruleArguments[0])),
             'NaturalNumber' => new IsNaturalNumber(),
             'NotBlank'      => new IsNotBlank(),
             'NotEmpty'      => new IsEmpty()->not(),
@@ -138,21 +142,21 @@ final class ValidatorFactory
             'NotScalar'     => new IsScalar()->not(),
             'Null'          => new IsNull(),
             'Numeric'       => new IsNumeric(),
-            'RangeCount'    => new CountRange((int) $args[0], (int) $args[1]),
-            'RangeLength'   => new LengthRange((int) $args[0], (int) $args[1]),
-            'RangeNumber'   => new NumberRange(self::number($args[0]), self::number($args[1])),
+            'RangeCount'    => new CountRange((int) $ruleArguments[0], (int) $ruleArguments[1]),
+            'RangeLength'   => new LengthRange((int) $ruleArguments[0], (int) $ruleArguments[1]),
+            'RangeNumber'   => new NumberRange(self::number($ruleArguments[0]), self::number($ruleArguments[1])),
             'Scalar'        => new IsScalar(),
-            'StartsWith'    => new StringStartsWith($args[0]),
-            'Time'          => new IsDateTime($args[0]),
+            'StartsWith'    => new StringStartsWith($ruleArguments[0]),
+            'Time'          => new IsDateTime($ruleArguments[0]),
             'Timezone'      => new IsTimezone(),
             'True'          => new IsTrue(),
             'Truthy'        => new IsTruthy(),
-            'Type'          => new IsType($args[0]),
+            'Type'          => new IsType($ruleArguments[0]),
             'Uri'           => new IsUri(),
             'Urn'           => new IsUrn(),
             'Uuid'          => new IsUuid(),
             'WholeNumber'   => new IsWholeNumber(),
-            default         => throw new LogicException(sprintf('Unsupported validation registration: %s', $type))
+            default         => throw new LogicException(sprintf('Unsupported validation registration: %s', $ruleType))
         };
     }
 

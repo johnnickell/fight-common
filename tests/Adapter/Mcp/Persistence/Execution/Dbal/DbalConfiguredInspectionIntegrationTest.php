@@ -63,7 +63,7 @@ final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
         $safeBefore = $this->snapshot($fresh, $tables, false);
         $removal = new RemovalFixture($transaction);
         $detail = ObservationFixture::detail();
-        $removal->bus->execute(RemovalFixture::command($detail));
+        $removal->commandBus->execute(RemovalFixture::command($detail));
         $after = $this->inspect($fresh, $tables);
         self::assertNull($after['detail']['chunk']);
         self::assertSame('missing', $after['detail']['reference']['availability']);
@@ -71,7 +71,7 @@ final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
         self::assertSame($safeBefore, $this->snapshot($fresh, $tables, false));
         self::assertSame($before['summary'], $after['summary']);
         self::assertSame($before['phases'], $after['phases']);
-        $removal->bus->execute(RemovalFixture::command($detail));
+        $removal->commandBus->execute(RemovalFixture::command($detail));
         try {
             $recording->record($detail, ProtectedContent::create($detail->detail(), 'new-body'));
             self::fail('Retained selected identity must prevent restoration.');
@@ -131,7 +131,7 @@ final class DbalConfiguredInspectionIntegrationTest extends UnitTestCase
         $transaction = new DbalRecordingTransaction($connection, $tables);
         $this->seed($transaction, 'selected-private');
         self::assertSame('selected-private', base64_decode($this->inspect($connection, $tables)['detail']['chunk']['data'], true));
-        (new RemovalFixture($transaction))->bus->execute(RemovalFixture::command(ObservationFixture::detail()));
+        (new RemovalFixture($transaction))->commandBus->execute(RemovalFixture::command(ObservationFixture::detail()));
         self::assertNull($this->inspect($connection, $tables)['detail']['chunk']);
         self::assertSame('default-private', base64_decode($this->inspect($connection, $defaults)['detail']['chunk']['data'], true));
         self::assertSame($before, $this->snapshot($connection, $defaults));

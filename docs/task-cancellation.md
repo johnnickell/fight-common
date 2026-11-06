@@ -40,7 +40,7 @@ Caller/scope are trusted consumer bindings, not credentials issued by Common. Id
 submitted administrator labels and earlier answers grant nothing. False or throwing decisions conceal policy
 text. Callbacks must be bounded/local and never control jobs or change transaction ownership.
 
-The shared APIs below take the original `Domain\Mcp\Task\TaskId` as `$id`, including admission ports. Parse bytes
+The shared APIs below take the original `Domain\Mcp\Task\TaskId` as `$taskId`, including admission ports. Parse bytes
 with `TaskId::fromString()` at the boundary; protected Query output and MCP `taskId` retain exact strings. Scope remains
 separate and trusted. Neither the value nor its equality grants cancellation, observation or worker authority.
 
@@ -48,8 +48,8 @@ separate and trusted. Neither the value nor its equality grants cancellation, ob
 use Fight\Common\Domain\Mcp\Task\Command\RequestTaskCancellation;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskCancellation;
 
-$commands->execute(new RequestTaskCancellation('project:example', $id, 'caller:example'));
-$observation = $queries->fetch(new GetTaskCancellation('project:example', $id, 'worker:example'));
+$commandBus->execute(new RequestTaskCancellation('project:example', $taskId, 'caller:example'));
+$observation = $queryBus->fetch(new GetTaskCancellation('project:example', $taskId, 'worker:example'));
 // null means denied/unavailable, not "no cancellation".
 // A non-null observation has id, current version and nullable cancellation.
 // cancellation contains only original requested_at milliseconds and admission version.
@@ -128,7 +128,7 @@ terminal updates to conflict until a fresh producer decision. No automatic refus
 
 ## Actual tasks/cancel method
 
-`Application\Mcp\Task\McpTaskCancellation($commands, $trustedScope, $trustedCaller)->handle($request)` implements
+`Application\Mcp\Task\McpTaskCancellation($commandBus, $trustedScope, $trustedCaller)->handle($request)` implements
 only `tasks/cancel`. It checks that request's object declaration
 `extensions["io.modelcontextprotocol/tasks"]` **before mutation**, then accepts exactly one `taskId` parameter.
 The ID must be exactly 32 lowercase ASCII hexadecimal bytes; scope/caller use the existing 1–96-byte ASCII reference

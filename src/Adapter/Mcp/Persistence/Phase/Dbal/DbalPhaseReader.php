@@ -24,7 +24,7 @@ use Throwable;
  */
 final readonly class DbalPhaseReader implements PhaseReader
 {
-    private DbalExecutionReadSupport $sql;
+    private DbalExecutionReadSupport $executionReadSupport;
 
     /**
      * Constructs DbalPhaseReader
@@ -33,7 +33,7 @@ final readonly class DbalPhaseReader implements PhaseReader
         private Connection $connection,
         private DbalObservationTables $tables = new DbalObservationTables()
     ) {
-        $this->sql = new DbalExecutionReadSupport($connection, $tables);
+        $this->executionReadSupport = new DbalExecutionReadSupport($connection, $tables);
     }
 
     /**
@@ -46,7 +46,10 @@ final readonly class DbalPhaseReader implements PhaseReader
             $sessionTable = $this->tables->sessionTable()->quoted($platform);
             $phaseTable = $this->tables->phaseTable()->quoted($platform);
             $observationTable = $this->tables->observationTable()->quoted($platform);
-            [$sessionWhere, $sessionParameters] = $this->sql->constraints($query->execution()->selection(), $access);
+            [$sessionWhere, $sessionParameters] = $this->executionReadSupport->constraints(
+                $query->execution()->selection(),
+                $access
+            );
             $session = $this->connection->fetchAssociative(
                 'SELECT s.* FROM '.$sessionTable.' s WHERE '.$sessionWhere,
                 $sessionParameters
@@ -55,7 +58,7 @@ final readonly class DbalPhaseReader implements PhaseReader
                 return null;
             }
 
-            [$visible, $visibleParameters] = $this->sql->phaseConstraints($access, 'p');
+            [$visible, $visibleParameters] = $this->executionReadSupport->phaseConstraints($access, 'p');
             $where = 'p.project_id = ? AND p.session_id = ? AND '.$visible;
             $parameters = [$session['project_id'], $session['session_id'], ...$visibleParameters];
             foreach ($query->filters() as $field => $value) {
@@ -67,16 +70,16 @@ final readonly class DbalPhaseReader implements PhaseReader
                 'SELECT COUNT(*) FROM '.$phaseTable.' p WHERE '.$where,
                 $parameters
             );
-            [$parentWhere, $parentParameters] = $this->sql->phaseConstraints($access, 'parent');
+            [$parentWhere, $parentParameters] = $this->executionReadSupport->phaseConstraints($access, 'parent');
             $sql = 'SELECT p.*, parent.phase_id AS visible_parent';
             $scope = ' FROM '.$observationTable.' o WHERE o.project_id = p.project_id';
             $scope .= ' AND o.session_id = p.session_id AND o.phase_id = p.phase_id';
             $scope .= ' ORDER BY o.recorded_at DESC, o.observation_id DESC, ';
-            $scope .= $this->sql->binary('o.producer_id').' DESC LIMIT 1)';
+            $scope .= $this->executionReadSupport->binary('o.producer_id').' DESC LIMIT 1)';
             foreach (['recorded_at', 'observation_id', 'producer_id'] as $field) {
                 $expression = "COALESCE((SELECT o.".$field.$scope.", '')";
                 if ($field === 'producer_id') {
-                    $expression = $this->sql->binary($expression);
+                    $expression = $this->executionReadSupport->binary($expression);
                 }
 
                 $sql .= ', '.$expression.' AS latest_'.$field;
@@ -88,9 +91,9 @@ final readonly class DbalPhaseReader implements PhaseReader
             $direction = $query->pagination()->orderings()['latest_recorded_at'] ?? 'DESC';
             $sql .= ' WHERE '.$where.' ORDER BY latest_recorded_at '.$direction;
             $sql .= ', latest_observation_id '.$direction.', latest_producer_id '.$direction;
-            $sql .= ', '.$this->sql->binary('p.phase_id').' ASC';
+            $sql .= ', '.$this->executionReadSupport->binary('p.phase_id').' ASC';
             $rows = $this->connection->fetchAllAssociative(
-                $this->sql->limit($sql, $query->pagination()->limit(), $query->pagination()->offset()),
+                $this->executionReadSupport->limit($sql, $query->pagination()->limit(), $query->pagination()->offset()),
                 [...$parentParameters, ...$parameters]
             );
             $views = [];
@@ -121,7 +124,12 @@ final readonly class DbalPhaseReader implements PhaseReader
         );
         $latestState = null;
         $models = [];
-        $observations = $this->sql->observations($row['project_id'], $row['session_id'], $access, $row['phase_id']);
+        $observations = $this->executionReadSupport->observations(
+            $row['project_id'],
+            $row['session_id'],
+            $access,
+            $row['phase_id']
+        );
         foreach ($observations as $evidence) {
             if (
                 $evidence->phase()?->toArray() !== $phase->toArray()

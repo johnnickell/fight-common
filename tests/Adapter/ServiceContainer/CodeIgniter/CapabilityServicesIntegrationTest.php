@@ -70,8 +70,8 @@ final class CapabilityServicesIntegrationTest extends UnitTestCase
 
         $cache = $this->mock(CacheInterface::class);
         self::assertInstanceOf(MutableCache::class, CacheServices::mutableCache($cache));
-        $routes = $this->mock(RouteCollectionInterface::class);
-        self::assertInstanceOf(UrlGenerator::class, RoutingServices::routing($routes, 'https://fight.example'));
+        $routeCollection = $this->mock(RouteCollectionInterface::class);
+        self::assertInstanceOf(UrlGenerator::class, RoutingServices::routing($routeCollection, 'https://fight.example'));
         $mailer = $this->mock(MailerInterface::class);
         self::assertInstanceOf(MailFactory::class, MailServices::mailFactory());
         self::assertInstanceOf(MailTransport::class, MailServices::mailTransport($mailer));
@@ -141,8 +141,8 @@ final class CapabilityServicesIntegrationTest extends UnitTestCase
     public function test_that_a_project_owned_routing_fixture_boots_its_selected_native_capability(): void
     {
         $this->bootProjectServices('RoutingServices.php');
-        $routes = $this->mock(RouteCollectionInterface::class);
-        \Config\Services::override('fightRoutesCollaborator', $routes);
+        $routeCollection = $this->mock(RouteCollectionInterface::class);
+        \Config\Services::override('fightRoutesCollaborator', $routeCollection);
         self::assertInstanceOf(CodeIgniterUrlGenerator::class, \Config\Services::fightCodeIgniterUrlGenerator());
         self::assertInstanceOf(UrlGenerator::class, \Config\Services::fightUrlGenerator());
         self::assertFalse(method_exists(\Config\Services::class, 'fightCodeIgniterCache'));

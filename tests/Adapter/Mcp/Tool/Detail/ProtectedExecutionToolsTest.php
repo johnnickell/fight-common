@@ -57,13 +57,13 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
             [GetCapturedDetailTool::class, self::SELECTION + ['detail_id' => self::DETAIL, 'kind' => 'message'], GetCapturedDetail::fromArray(['selection' => self::SELECTION, 'detail_id' => self::DETAIL, 'kind' => 'message', 'offset' => 0, 'length' => 4096]), $detail],
             [GetCapturedDetailTool::class, self::SELECTION + ['detail_id' => self::DETAIL, 'kind' => 'process_output', 'offset' => 12, 'length' => 7], GetCapturedDetail::fromArray(['selection' => self::SELECTION, 'detail_id' => self::DETAIL, 'kind' => 'process_output', 'offset' => 12, 'length' => 7]), null]
         ] as [$class, $arguments, $expected, $result]) {
-            $bus = $this->mock(QueryBus::class);
-            $bus->shouldReceive('fetch')->once()->withArgs(static function (Query $query) use ($expected): bool {
+            $queryBus = $this->mock(QueryBus::class);
+            $queryBus->shouldReceive('fetch')->once()->withArgs(static function (Query $query) use ($expected): bool {
                 self::assertSame($expected::class, $query::class);
                 self::assertSame($expected->toArray(), $query->toArray());
                 return true;
             })->andReturn($result);
-            $output = new $class($bus)->handle(new ApplicationData($arguments), new NullMcpProgressReporter());
+            $output = new $class($queryBus)->handle(new ApplicationData($arguments), new NullMcpProgressReporter());
             self::assertEquals(StrictJson::fromData($result?->toArray()), $output->structuredContent());
             self::assertSame($output->structuredContent()->toString(), $output->text());
             self::assertSame(1048576, $output->maxEncodedResponseBytes());
@@ -74,15 +74,15 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
 
     public function test_that_invalid_protected_output_and_query_failures_use_sanitized_protocol_errors_not_empty_success(): void
     {
-        $available = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
+        $toolAvailability = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
         $diagnostics = new class implements McpDiagnostics { public array $failures = []; public function record(Throwable $failure): void { $this->failures[] = 'sanitized_failure'; } };
         foreach ([new MessagePage([], -1, 1, 32), new RuntimeException('PROTECTED-QUERY-FAILURE')] as $outcome) {
-            $bus = $this->mock(QueryBus::class);
-            $expectation = $bus->shouldReceive('fetch')->once();
+            $queryBus = $this->mock(QueryBus::class);
+            $expectation = $queryBus->shouldReceive('fetch')->once();
             if ($outcome instanceof Throwable) { $expectation->andThrow($outcome); }
             else { $expectation->andReturn($outcome); }
-            $registry = new McpToolRegistry([new ListCapturedMessagesTool($bus)]);
-            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [new McpToolDiscovery($registry, $available, str_repeat('key-', 8)), new McpToolInvocation(new McpToolInvoker($registry, $available))]), diagnostics: $diagnostics);
+            $registry = new McpToolRegistry([new ListCapturedMessagesTool($queryBus)]);
+            $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [new McpToolDiscovery($registry, $toolAvailability, str_repeat('key-', 8)), new McpToolInvocation(new McpToolInvoker($registry, $toolAvailability))]), diagnostics: $diagnostics);
             $response = $responder->respond(json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => ['name' => 'execution.messages', 'arguments' => self::SELECTION, '_meta' => ['io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) []]]], JSON_THROW_ON_ERROR))->toArray();
             self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $response['error']);
             self::assertArrayNotHasKey('result', $response);
@@ -93,7 +93,7 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
 
     public function test_that_direct_calls_reject_forged_fields_malformed_identity_kind_and_unbounded_ranges_before_fetch(): void
     {
-        $bus = $this->mock(QueryBus::class); $bus->shouldNotReceive('fetch');
+        $queryBus = $this->mock(QueryBus::class); $queryBus->shouldNotReceive('fetch');
         foreach ([
             [ListCapturedMessagesTool::class, self::SELECTION + ['principal' => 'human']],
             [ListCapturedMessagesTool::class, array_replace(self::SELECTION, ['activity_id' => str_repeat('x', 36)])],
@@ -105,7 +105,7 @@ final class ProtectedExecutionToolsTest extends UnitTestCase
             [GetCapturedDetailTool::class, self::SELECTION + ['detail_id' => self::DETAIL, 'kind' => 'message', 'length' => 4097]],
             [GetCapturedDetailTool::class, self::SELECTION + ['detail_id' => self::DETAIL, 'kind' => 'message', 'offset' => 65537]]
         ] as [$class, $arguments]) {
-            try { new $class($bus)->handle(new ApplicationData($arguments), new NullMcpProgressReporter()); self::fail('Invalid protected input must reject before fetch'); }
+            try { new $class($queryBus)->handle(new ApplicationData($arguments), new NullMcpProgressReporter()); self::fail('Invalid protected input must reject before fetch'); }
             catch (DomainException) { self::assertTrue(true); }
         }
     }

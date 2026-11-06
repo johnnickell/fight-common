@@ -22,15 +22,22 @@ use Throwable;
  */
 final readonly class SafeJSendErrorMiddleware implements MiddlewareInterface
 {
+    private JSendResponseFactory $responseFactory;
+    private SafeHttpErrorPolicy $httpErrorPolicy;
+    private ?SafeHttpProjector $httpErrorProjector;
+
     /**
      * Constructs SafeJSendErrorMiddleware
      */
     public function __construct(
-        private JSendResponseFactory $responses,
-        private SafeHttpErrorPolicy $policy,
+        JSendResponseFactory $responses,
+        SafeHttpErrorPolicy $policy,
         private SafeHttpDiagnostics $diagnostics,
-        private ?SafeHttpProjector $projector = null
+        ?SafeHttpProjector $projector = null
     ) {
+        $this->responseFactory = $responses;
+        $this->httpErrorPolicy = $policy;
+        $this->httpErrorProjector = $projector;
     }
 
     /**
@@ -46,19 +53,19 @@ final readonly class SafeJSendErrorMiddleware implements MiddlewareInterface
 
         try {
             $this->diagnostics->report($throwable);
-            $status = $this->policy->status($throwable);
-            $projection = $this->projector?->project($throwable, $status);
-            [$status, $envelope, $headers] = $this->policy->present($throwable, $projection);
+            $status = $this->httpErrorPolicy->status($throwable);
+            $projection = $this->httpErrorProjector?->project($throwable, $status);
+            [$status, $envelope, $headers] = $this->httpErrorPolicy->present($throwable, $projection);
 
-            return $this->responses->fromEnvelope($envelope, $status, $headers);
+            return $this->responseFactory->fromEnvelope($envelope, $status, $headers);
         } catch (Throwable) {
             // The original reporting attempt may have failed. No second log attempt is made.
         }
 
         try {
-            [$status, $envelope, $headers] = $this->policy->fallback();
+            [$status, $envelope, $headers] = $this->httpErrorPolicy->fallback();
 
-            return $this->responses->fromEnvelope($envelope, $status, $headers);
+            return $this->responseFactory->fromEnvelope($envelope, $status, $headers);
         } catch (Throwable) {
             // A broken PSR response/stream factory cannot be replaced by a valid PSR response.
             throw new RuntimeException('Unable to render safe HTTP error.');

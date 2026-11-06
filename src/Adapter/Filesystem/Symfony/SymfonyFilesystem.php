@@ -33,10 +33,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->mkdir($dirs, $mode);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -47,10 +47,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->touch($files, $time, $atime);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -61,10 +61,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->rename($origin, $target, $override);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -75,10 +75,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->symlink($origin, $target, $copyOnWindows);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -93,10 +93,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
 
         try {
             $this->filesystem->copy($originFile, $targetFile, $override);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -118,10 +118,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
 
         try {
             $this->filesystem->mirror($originDir, $targetDir, null, $options);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -140,10 +140,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->remove($paths);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -173,10 +173,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->dumpFile($path, $content);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -416,10 +416,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->chmod($paths, $mode, $umask, $recursive);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -430,10 +430,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->chown($paths, $user, $recursive);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 
@@ -444,10 +444,10 @@ readonly class SymfonyFilesystem implements FilesystemInterface
     {
         try {
             $this->filesystem->chgrp($paths, $group, $recursive);
-        } catch (IOException $e) {
-            throw new FilesystemException($e->getMessage(), $e->getPath(), $e);
-        } catch (Throwable $e) {
-            throw new FilesystemException($e->getMessage(), null, $e);
+        } catch (IOException $exception) {
+            throw new FilesystemException($exception->getMessage(), $exception->getPath(), $exception);
+        } catch (Throwable $exception) {
+            throw new FilesystemException($exception->getMessage(), null, $exception);
         }
     }
 }

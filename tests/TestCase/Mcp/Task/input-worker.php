@@ -25,13 +25,13 @@ $connection->beforeCommit = static function () use ($role, $directory): void {
     }
 };
 $tables = new DbalTaskTables($config['stateTable'], $config['taskTable']);
-$f = new TaskFixture($connection, $tables); $events = 0;
-$f->events->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore(\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class), static function () use (&$events): void { ++$events; });
-$admission = static function () use ($f, $directory, $role): void {
+$fixture = new TaskFixture($connection, $tables); $events = 0;
+$fixture->eventDispatcher->addHandler(\Fight\Common\Domain\Utility\ClassName::underscore(\Fight\Common\Domain\Mcp\Task\Event\TaskChanged::class), static function () use (&$events): void { ++$events; });
+$admission = static function () use ($fixture, $directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'yes');
-    if ($role === 'second' && file_exists($directory.'/revoked')) { $f->submitAllowed = false; $f->continueAllowed = false; $f->updateAllowed = false; }
+    if ($role === 'second' && file_exists($directory.'/revoked')) { $fixture->submitAllowed = false; $fixture->continueAllowed = false; $fixture->updateAllowed = false; }
 };
-$f->onInputAdmission = $admission; $f->onAdmission = $admission;
+$fixture->onInputAdmission = $admission; $fixture->onAdmission = $admission;
 file_put_contents($directory.'/'.$role.'-started', 'yes');
 $trace = getenv('FIGHT_COMMON_TASK_INPUT_TRACE');
 if (is_string($trace) && $trace !== '') {
@@ -45,16 +45,16 @@ try {
             'cancelled-first' => TaskState::create('cancelled'),
             default => TaskFixture::completed()
         };
-        $f->record($state, 2);
+        $fixture->record($state, 2);
     } elseif ($mode === 'acquire') {
-        $f->acquire();
+        $fixture->acquire();
     } elseif ($mode === 'refusal' && $role === 'first') {
-        $f->supply([TaskFixture::KEY_1 => ['action' => 'decline']]);
+        $fixture->supply([TaskFixture::KEY_1 => ['action' => 'decline']]);
     } elseif ($mode === 'partial-refusal' && $role === 'second') {
-        $f->supply([TaskFixture::KEY_2 => ['action' => 'cancel']]);
+        $fixture->supply([TaskFixture::KEY_2 => ['action' => 'cancel']]);
     } else {
         $answer = $role === 'second' && $mode === 'conflict' ? 'conflicting-second' : 'first-answer';
-        $f->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => $answer]]]);
+        $fixture->supply([TaskFixture::KEY_1 => ['action' => 'accept', 'content' => (object) ['answer' => $answer]]]);
     }
     $status = 'committed';
 } catch (Throwable $failure) { $status = $failure::class; }

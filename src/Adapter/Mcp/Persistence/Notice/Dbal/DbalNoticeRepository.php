@@ -19,7 +19,7 @@ use Fight\Common\Domain\Mcp\Notice\RecordedNotice;
 final readonly class DbalNoticeRepository implements NoticeRepository
 {
     private Connection $connection;
-    private DbalNoticeRecords $noticeRecords;
+    private DbalNoticeRecords $noticeRecordSupport;
 
     /**
      * Constructs DbalNoticeRepository
@@ -27,7 +27,7 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     public function __construct(private DbalNoticeTransaction $noticeTransaction)
     {
         $this->connection = $noticeTransaction->connection();
-        $this->noticeRecords = new DbalNoticeRecords($this->connection);
+        $this->noticeRecordSupport = new DbalNoticeRecords($this->connection);
     }
 
     /**
@@ -41,7 +41,7 @@ final readonly class DbalNoticeRepository implements NoticeRepository
             [$identity->scope(), $identity->producer(), $identity->id()]
         );
 
-        return $row === false ? null : $this->noticeRecords->hydrate($row);
+        return $row === false ? null : $this->noticeRecordSupport->hydrate($row);
     }
 
     /**
@@ -92,7 +92,7 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     public function remove(NoticeRemovalSelection $selection): void
     {
         $this->noticeTransaction->requireOwnedTransaction();
-        $state = $this->noticeRecords->recoveryState();
+        $state = $this->noticeRecordSupport->recoveryState();
         if ($selection->namespace() !== $state->namespace()) {
             throw new NoticeRemovalRejected();
         }

@@ -14,10 +14,11 @@ final readonly class PackageSurfaceInspector
     /**
      * Constructs PackageSurfaceInspector
      *
-     * @param PhpParserStructuralInventory $inventory Structural inventory adapter
+     * @param PhpParserStructuralInventory $structuralInventoryScanner Structural inventory adapter
      */
-    public function __construct(private PhpParserStructuralInventory $inventory = new PhpParserStructuralInventory())
-    {
+    public function __construct(
+        private PhpParserStructuralInventory $structuralInventoryScanner = new PhpParserStructuralInventory()
+    ) {
     }
 
     /**
@@ -32,9 +33,9 @@ final readonly class PackageSurfaceInspector
         $manifest = json_decode($manifestBytes, true, flags: JSON_THROW_ON_ERROR);
         is_array($manifest) || throw new RuntimeException('The compatibility manifest must be an object.');
 
-        $inventory = $this->inventory->structuralInventory($packageRoot, $commit);
+        $structuralInventory = $this->structuralInventoryScanner->structuralInventory($packageRoot, $commit);
         $expected = [...($manifest['declarations'] ?? []), ...($manifest['functions'] ?? [])];
-        $actual = [...$inventory['declarations'], ...$inventory['functions']];
+        $actual = [...$structuralInventory['declarations'], ...$structuralInventory['functions']];
         $expectedByName = array_column($expected, null, 'name');
         $actualByName = array_column($actual, null, 'name');
 
@@ -97,7 +98,7 @@ final readonly class PackageSurfaceInspector
             }
         }
 
-        $canonicalInventory = $this->canonicalJson($inventory);
+        $canonicalInventory = $this->canonicalJson($structuralInventory);
         $operationShapesSha256 = hash('sha256', $this->canonicalJson(array_map(
             static fn (array $entry): array => [
                 'name'       => $entry['name'],

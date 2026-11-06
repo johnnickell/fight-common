@@ -62,7 +62,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
     public function test_that_only_actual_committed_deletions_emit_one_bounded_fact_and_dispatch_failure_cannot_restore_data(): void
     {
         $connection = $this->database(); $fixture = new TaskFixture($connection); $fixture->create(); $facts = [];
-        $fixture->events->addHandler(ClassName::underscore(TaskDataRemoved::class), static function (EventMessage $message) use ($connection, &$facts): void {
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskDataRemoved::class), static function (EventMessage $message) use ($connection, &$facts): void {
             self::assertFalse($connection->isTransactionActive());
             self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_tasks'));
             $facts[] = $message->payload()->toArray();
@@ -89,7 +89,7 @@ final class DbalTaskRemovalTest extends UnitTestCase
         $fixture->create(); $fixture->record(TaskFixture::input()); $fixture->create(id: $other);
         $before = $connection->fetchAllAssociative('SELECT * FROM fight_tasks ORDER BY task_id');
         $facts = 0;
-        $fixture->events->addHandler(ClassName::underscore(TaskDataRemoved::class), static function () use (&$facts): void { ++$facts; });
+        $fixture->eventDispatcher->addHandler(ClassName::underscore(TaskDataRemoved::class), static function () use (&$facts): void { ++$facts; });
         $connection->executeStatement("CREATE TRIGGER fail_removal BEFORE DELETE ON fight_tasks WHEN OLD.task_id = '".$other."' BEGIN SELECT RAISE(ABORT, 'private'); END");
         try { $fixture->remove([TaskFixture::ID, $other]); self::fail('Atomic removal must fail.'); }
         catch (TaskStorageFailed $failure) { self::assertFalse($failure->outcomeUncertain()); }

@@ -34,8 +34,8 @@ final class QueueEventDispatcherIntegrationTest extends UnitTestCase
     {
         $queue = $this->mock(QueueInterface::class);
         $queue->shouldReceive('push')->once()->andReturn(QueuePushResult::success(73));
-        $dispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
-        $dispatcher->trigger(new QueueEventDispatcherIntegrationEvent('event-73', 3));
+        $eventDispatcher = new QueueEventDispatcher($queue, 'events', 'fight-event');
+        $eventDispatcher->trigger(new QueueEventDispatcherIntegrationEvent('event-73', 3));
 
         $subscriber = new class implements EventSubscriber {
             public static function eventRegistration(): array
@@ -45,12 +45,12 @@ final class QueueEventDispatcherIntegrationTest extends UnitTestCase
         };
         $handler = static function (): void {
         };
-        $dispatcher->register($subscriber);
-        $dispatcher->unregister($subscriber);
-        $dispatcher->addHandler('event', $handler);
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertFalse($dispatcher->hasHandlers());
-        $dispatcher->removeHandler('event', $handler);
+        $eventDispatcher->register($subscriber);
+        $eventDispatcher->unregister($subscriber);
+        $eventDispatcher->addHandler('event', $handler);
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
+        $eventDispatcher->removeHandler('event', $handler);
 
         $failedQueue = $this->mock(QueueInterface::class);
         $failedQueue->shouldReceive('push')->once()->andReturn(QueuePushResult::failure());
@@ -107,11 +107,11 @@ final class QueueEventDispatcherIntegrationTest extends UnitTestCase
         $calls = [];
         $failFirstAttempt = true;
         $fanOutFailure = new RuntimeException('first fan-out attempt fails after delivery');
-        $dispatcher = new SimpleEventDispatcher();
-        $dispatcher->addHandler(ClassName::underscore(QueueEventDispatcherIntegrationEvent::class), static function (EventMessage $message) use (&$calls): void {
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->addHandler(ClassName::underscore(QueueEventDispatcherIntegrationEvent::class), static function (EventMessage $message) use (&$calls): void {
             $calls[] = ['high', $message->arraySerialize()];
         }, 100);
-        $dispatcher->addHandler(ClassName::underscore(QueueEventDispatcherIntegrationEvent::class), static function (EventMessage $message) use (&$calls, &$failFirstAttempt, $fanOutFailure): void {
+        $eventDispatcher->addHandler(ClassName::underscore(QueueEventDispatcherIntegrationEvent::class), static function (EventMessage $message) use (&$calls, &$failFirstAttempt, $fanOutFailure): void {
             $calls[] = ['low', $message->arraySerialize()];
             if ($failFirstAttempt) {
                 $failFirstAttempt = false;
@@ -119,10 +119,10 @@ final class QueueEventDispatcherIntegrationTest extends UnitTestCase
                 throw $fanOutFailure;
             }
         });
-        $dispatcher->addHandler(ClassName::underscore(\Fight\Common\Domain\Messaging\Event\AllEvents::class), static function (EventMessage $message) use (&$calls): void {
+        $eventDispatcher->addHandler(ClassName::underscore(\Fight\Common\Domain\Messaging\Event\AllEvents::class), static function (EventMessage $message) use (&$calls): void {
             $calls[] = ['all', $message->arraySerialize()];
         });
-        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($dispatcher));
+        Services::override(EventMessageJob::HANDLER_SERVICE, new EventMessageHandler($eventDispatcher));
 
         try {
             $message = new EventMessage(

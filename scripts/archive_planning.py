@@ -71,7 +71,7 @@ def archive_tickets(identifiers: list[str]) -> dict[Path, Path]:
     all_tasks = records("tasks", "-TASK.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
-        children = [ticket for ticket in all_tasks.values() if frontmatter(ticket).get("ticket") == identifier]
+        children = [task_path for task_path in all_tasks.values() if frontmatter(task_path).get("ticket") == identifier]
         require_terminal(children)
     return {path: PLANNING / "tickets/archive" / path.name for path in selected}
 
@@ -83,7 +83,7 @@ def archive_epics(identifiers: list[str]) -> dict[Path, Path]:
     all_tickets = records("tickets", "-TICKET.md")
     for path in selected:
         identifier = frontmatter(path)["id"]
-        children = [spec for spec in all_tickets.values() if frontmatter(spec).get("epic") == identifier]
+        children = [ticket_path for ticket_path in all_tickets.values() if frontmatter(ticket_path).get("epic") == identifier]
         require_terminal(children)
     return {path: PLANNING / "epics/archive" / path.name for path in selected}
 

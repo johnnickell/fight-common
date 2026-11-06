@@ -212,7 +212,7 @@ while they still own the released messages.
 When a migration changes read-model logic or adds an event class to
 `eventClasses()`, rebuild that model using the projection sequence already
 documented below: Stop the projection worker. Clear or recreate the read model.
-Run `$checkpointStore->reset('orders.order-summary');`. Restart the projection
+Run `$projectionCheckpointStore->reset('orders.order-summary');`. Restart the projection
 worker. Do not apply that checkpoint procedure to publication cursors, which
 have no reset operation in 1.2.
 

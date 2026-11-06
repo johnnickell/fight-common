@@ -69,7 +69,7 @@ form-elicitation support. Task negotiation alone never enables arbitrary server-
 
 ## Issue and retrieve supported requests
 
-Here `$id` is the original `Domain\Mcp\Task\TaskId`, not a form/group key. Reconstruct incoming Task bytes with
+Here `$taskId` is the original `Domain\Mcp\Task\TaskId`, not a form/group key. Reconstruct incoming Task bytes with
 `TaskId::fromString()`; Domain Commands/Queries and admission ports take that value, while MCP `taskId` stays a string.
 `TaskInputBatch` is a ValueObject describing bound contracts; `TaskInputs` and identified groups own nested lifecycle
 state and are not values. See the [complete classification](durable-tasks.md#model-classification-and-value-contracts).
@@ -89,8 +89,8 @@ $form = McpInputRequest::form('Choose a public label', [
 $input = McpInputRequired::fromRequests(['label' => $form]);
 // Use McpInputRequired::confirmation(...) only when consumer policy requires all-accept confirmation.
 $batch = TaskInputForms::batch($input, 'caller:example', $serverNowMs + 60000);
-$commands->execute(new RequestTaskInput('project:example', $id, 'producer:example', $observedVersion, $batch));
-$view = $queries->fetch(new GetTask('project:example', $id));
+$commandBus->execute(new RequestTaskInput('project:example', $taskId, 'producer:example', $observedVersion, $batch));
+$taskView = $queryBus->fetch(new GetTask('project:example', $taskId));
 ```
 
 The immutable original `TaskDefinition` must retain operation identity/revision, original arguments and other bounded
@@ -155,12 +155,12 @@ and does not retire unrelated ordinary forms.
 use Fight\Common\Domain\Mcp\Task\Command\AcquireTaskInput;
 use Fight\Common\Domain\Mcp\Task\Query\GetTaskInput;
 
-$observed = $queries->fetch(new GetTaskInput('project:example', $id, 'caller:example'));
+$observed = $queryBus->fetch(new GetTaskInput('project:example', $taskId, 'caller:example'));
 // Inspect the exact group and its answers under current consumer authorization.
 // If ready, issue acquisition before any consumer continuation:
-$commands->execute(new AcquireTaskInput('project:example', $id, 'caller:example', $group));
+$commandBus->execute(new AcquireTaskInput('project:example', $taskId, 'caller:example', $group));
 // A successful return admits this invocation once. Fetch current intent before deciding how to continue:
-$current = $queries->fetch(new GetTaskInput('project:example', $id, 'caller:example'));
+$current = $queryBus->fetch(new GetTaskInput('project:example', $taskId, 'caller:example'));
 // Unavailable/revoked is not absence of intent or permission to execute. Consumer work happens separately.
 ```
 

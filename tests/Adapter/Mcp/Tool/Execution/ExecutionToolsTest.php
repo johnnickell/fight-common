@@ -52,14 +52,14 @@ final class ExecutionToolsTest extends UnitTestCase
             [ListPhaseActivityTool::class, ['project_id' => 'p', 'session_id' => 's', 'phase_id' => 'ph', 'page' => 3, 'per_page' => 4, 'filters' => ['kind' => 'app/call'], 'direction' => 'ASC'], 'ListPhaseActivity', ['project_id' => 'p', 'session_id' => 's', 'phase_id' => 'ph', 'page' => 3, 'per_page' => 4, 'filters' => ['kind' => 'app/call'], 'orderings' => ['recorded_at' => 'ASC']], null],
         ];
         foreach ($cases as [$class, $arguments, $queryName, $expected, $result]) {
-            $bus = $this->mock(QueryBus::class);
-            $bus->shouldReceive('fetch')->once()->withArgs(static function (Query $query) use ($queryName, $expected): bool {
+            $queryBus = $this->mock(QueryBus::class);
+            $queryBus->shouldReceive('fetch')->once()->withArgs(static function (Query $query) use ($queryName, $expected): bool {
                 self::assertSame($queryName, (new \ReflectionClass($query))->getShortName());
                 self::assertSame($expected, $query->toArray());
                 return true;
             })->andReturn($result);
             $json = StrictJson::fromData($arguments);
-            $output = (new $class($bus))->handle(new ApplicationData($json->properties()), new NullMcpProgressReporter());
+            $output = (new $class($queryBus))->handle(new ApplicationData($json->properties()), new NullMcpProgressReporter());
             self::assertEquals(StrictJson::fromData($result?->toArray()), $output->structuredContent());
             self::assertSame(1048576, $output->maxEncodedResponseBytes());
             self::assertSame($output->structuredContent()->toString(), $output->text());
@@ -68,9 +68,9 @@ final class ExecutionToolsTest extends UnitTestCase
 
     public function test_that_direct_tool_calls_reject_forged_authority_and_invalid_domain_references_without_dispatch(): void
     {
-        $bus = $this->mock(QueryBus::class);
-        $bus->shouldNotReceive('fetch');
-        $tool = new GetExecutionTool($bus);
+        $queryBus = $this->mock(QueryBus::class);
+        $queryBus->shouldNotReceive('fetch');
+        $tool = new GetExecutionTool($queryBus);
         foreach ([['project_id' => 'p', 'session_id' => 's', 'access' => true], ['project_id' => '../p', 'session_id' => 's']] as $arguments) {
             try {
                 $tool->handle(new ApplicationData($arguments), new NullMcpProgressReporter());

@@ -40,34 +40,34 @@ use RuntimeException;
 #[CoversClass(CommittedObservationDispatchFailed::class)]
 final class ObservationRecorderTest extends UnitTestCase
 {
-    private mixed $transaction;
-    private mixed $sessions;
-    private mixed $phases;
-    private mixed $observations;
+    private mixed $transactionalUnitOfWork;
+    private mixed $sessionRepository;
+    private mixed $phaseRepository;
+    private mixed $observationRepository;
     private mixed $admission;
-    private mixed $events;
+    private mixed $eventDispatcher;
     private bool $committed = false;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->transaction = $this->mock(TransactionalUnitOfWork::class);
-        $this->sessions = $this->mock(SessionRepository::class);
-        $this->phases = $this->mock(PhaseRepository::class);
-        $this->observations = $this->mock(ObservationRepository::class);
+        $this->transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
+        $this->sessionRepository = $this->mock(SessionRepository::class);
+        $this->phaseRepository = $this->mock(PhaseRepository::class);
+        $this->observationRepository = $this->mock(ObservationRepository::class);
         $this->admission = $this->mock(ObservationAdmission::class);
-        $this->events = $this->mock(EventDispatcher::class);
+        $this->eventDispatcher = $this->mock(EventDispatcher::class);
     }
 
     public function test_that_activity_requires_an_existing_phase_after_current_admission(): void
     {
         $observation = ObservationFixture::activity();
         $this->admission->shouldReceive('admit')->once()->with($observation)->globally()->ordered();
-        $this->sessions->shouldReceive('getById')->once()->globally()->ordered()->andReturn(new Session($observation->session()));
-        $this->phases->shouldReceive('getById')->once()->globally()->ordered()->andReturnNull();
-        $this->phases->shouldNotReceive('add');
-        $this->observations->shouldNotReceive('getById', 'add');
-        $this->events->shouldNotReceive('trigger');
+        $this->sessionRepository->shouldReceive('getById')->once()->globally()->ordered()->andReturn(new Session($observation->session()));
+        $this->phaseRepository->shouldReceive('getById')->once()->globally()->ordered()->andReturnNull();
+        $this->phaseRepository->shouldNotReceive('add');
+        $this->observationRepository->shouldNotReceive('getById', 'add');
+        $this->eventDispatcher->shouldNotReceive('trigger');
         $this->expectException(InvalidObservationRelationship::class);
         $this->transactionalRecorder()->record($observation);
     }
@@ -77,17 +77,17 @@ final class ObservationRecorderTest extends UnitTestCase
         $observation = ObservationFixture::session()->recorded(new DateTimeImmutable('2000-01-01Z'));
         $before = new DateTimeImmutable('now');
         $this->admission->shouldReceive('admit')->once()->with($observation)->globally()->ordered();
-        $this->sessions->shouldReceive('getById')->once()->withArgs(static fn (SessionId $id): bool => $id->equals(SessionId::fromStrings('project', 'session')))->globally()->ordered()->andReturnNull();
-        $this->sessions->shouldReceive('add')->once()->withArgs(static fn (Session $session): bool => $session->matches($observation->session()))->globally()->ordered();
-        $this->observations->shouldReceive('getById')->once()->with('instrumentation', $observation->id())->globally()->ordered()->andReturnNull();
+        $this->sessionRepository->shouldReceive('getById')->once()->withArgs(static fn (SessionId $id): bool => $id->equals(SessionId::fromStrings('project', 'session')))->globally()->ordered()->andReturnNull();
+        $this->sessionRepository->shouldReceive('add')->once()->withArgs(static fn (Session $session): bool => $session->matches($observation->session()))->globally()->ordered();
+        $this->observationRepository->shouldReceive('getById')->once()->with('instrumentation', $observation->id())->globally()->ordered()->andReturnNull();
         $saved = null;
-        $this->observations->shouldReceive('add')->once()->globally()->ordered()->andReturnUsing(static function (Observation $root) use (&$saved, $observation, $before): void {
+        $this->observationRepository->shouldReceive('add')->once()->globally()->ordered()->andReturnUsing(static function (Observation $root) use (&$saved, $observation, $before): void {
             self::assertTrue($root->matches($observation));
             self::assertGreaterThanOrEqual($before, $root->recordedAt());
             self::assertLessThanOrEqual(new DateTimeImmutable('now'), $root->recordedAt());
             $saved = $root;
         });
-        $this->events->shouldReceive('trigger')->once()->andReturnUsing(function (ObservationRecorded $event) use (&$saved, $observation): void {
+        $this->eventDispatcher->shouldReceive('trigger')->once()->andReturnUsing(function (ObservationRecorded $event) use (&$saved, $observation): void {
             self::assertTrue($this->committed);
             self::assertTrue($event->id()->equals($observation->id()));
             self::assertNull($event->phaseId());
@@ -100,11 +100,11 @@ final class ObservationRecorderTest extends UnitTestCase
     {
         $observation = ObservationFixture::session();
         $this->admission->shouldReceive('admit')->once()->with($observation);
-        $this->sessions->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
-        $this->observations->shouldReceive('getById')->once()->andReturn($observation->recorded(new DateTimeImmutable('2020-01-01Z')));
-        $this->observations->shouldNotReceive('add');
-        $this->sessions->shouldNotReceive('add');
-        $this->events->shouldNotReceive('trigger');
+        $this->sessionRepository->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
+        $this->observationRepository->shouldReceive('getById')->once()->andReturn($observation->recorded(new DateTimeImmutable('2020-01-01Z')));
+        $this->observationRepository->shouldNotReceive('add');
+        $this->sessionRepository->shouldNotReceive('add');
+        $this->eventDispatcher->shouldNotReceive('trigger');
         $this->transactionalRecorder()->record($observation);
     }
 
@@ -112,10 +112,10 @@ final class ObservationRecorderTest extends UnitTestCase
     {
         $observation = ObservationFixture::session(['outcome' => 'failed']);
         $this->admission->shouldReceive('admit')->once();
-        $this->sessions->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
-        $this->observations->shouldReceive('getById')->once()->andReturn(ObservationFixture::session()->recorded(new DateTimeImmutable('2020-01-01Z')));
-        $this->observations->shouldNotReceive('add');
-        $this->events->shouldNotReceive('trigger');
+        $this->sessionRepository->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
+        $this->observationRepository->shouldReceive('getById')->once()->andReturn(ObservationFixture::session()->recorded(new DateTimeImmutable('2020-01-01Z')));
+        $this->observationRepository->shouldNotReceive('add');
+        $this->eventDispatcher->shouldNotReceive('trigger');
         $this->expectException(ObservationConflict::class);
         $this->transactionalRecorder()->record($observation);
     }
@@ -123,10 +123,10 @@ final class ObservationRecorderTest extends UnitTestCase
     public function test_that_denied_retry_never_looks_up_concealed_relationships_or_retained_content(): void
     {
         $this->admission->shouldReceive('admit')->once()->andThrow(new RecordingDenied());
-        $this->sessions->shouldNotReceive('getById', 'add');
-        $this->phases->shouldNotReceive('getById', 'add');
-        $this->observations->shouldNotReceive('getById', 'add');
-        $this->events->shouldNotReceive('trigger');
+        $this->sessionRepository->shouldNotReceive('getById', 'add');
+        $this->phaseRepository->shouldNotReceive('getById', 'add');
+        $this->observationRepository->shouldNotReceive('getById', 'add');
+        $this->eventDispatcher->shouldNotReceive('trigger');
         $this->expectException(RecordingDenied::class);
         $this->expectExceptionMessage('Observation recording is not permitted.');
         $this->transactionalRecorder()->record(ObservationFixture::session());
@@ -147,14 +147,14 @@ final class ObservationRecorderTest extends UnitTestCase
         } elseif ($case === 'session-mismatch') {
             $session = new Session(SessionReference::fromStrings('project', 'session', 'other'));
         }
-        $this->sessions->shouldReceive('getById')->once()->andReturn($session);
+        $this->sessionRepository->shouldReceive('getById')->once()->andReturn($session);
         if (str_starts_with($case, 'parent')) {
             $parent = match ($case) {
                 'parent-missing' => null,
                 'parent-cross-session' => new Phase('project', PhaseReference::fromStrings('other', 'parent', null, 'agent', 'work', 1)),
                 default => new Phase('project', PhaseReference::fromStrings('session', 'parent', null, 'agent', 'work', 1)),
             };
-            $this->phases->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', 'parent')))->once()->andReturn($parent);
+            $this->phaseRepository->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', 'parent')))->once()->andReturn($parent);
         }
         if (!in_array($case, ['session-mismatch', 'missing-session', 'parent-missing', 'parent-cross-session'], true)) {
             $existing = match ($case) {
@@ -162,20 +162,20 @@ final class ObservationRecorderTest extends UnitTestCase
                 'phase-mismatch' => new Phase('project', PhaseReference::fromStrings('session', 'phase', null, 'different-agent', 'review', 1)),
                 default => null,
             };
-            $this->phases->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', $observation->phase()->phaseId())))->once()->andReturn($existing);
+            $this->phaseRepository->shouldReceive('getById')->withArgs(static fn (PhaseId $id): bool => $id->equals(PhaseId::fromStrings('project', $observation->phase()->phaseId())))->once()->andReturn($existing);
             if ($existing === null) {
-                $this->phases->shouldReceive('add')->once()->withArgs(static fn (Phase $phase): bool => $phase->matches('project', $observation->phase()));
+                $this->phaseRepository->shouldReceive('add')->once()->withArgs(static fn (Phase $phase): bool => $phase->matches('project', $observation->phase()));
             }
         }
         if (!$valid) {
-            $this->observations->shouldNotReceive('add', 'getById');
-            $this->events->shouldNotReceive('trigger');
+            $this->observationRepository->shouldNotReceive('add', 'getById');
+            $this->eventDispatcher->shouldNotReceive('trigger');
             $this->expectException(InvalidObservationRelationship::class);
             $this->expectExceptionMessage('Observation relationship is unavailable or inconsistent.');
         } else {
-            $this->observations->shouldReceive('getById')->once()->andReturnNull();
-            $this->observations->shouldReceive('add')->once()->withArgs(static fn (Observation $root): bool => $root->matches($observation));
-            $this->events->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId() === $observation->phase()->phaseId());
+            $this->observationRepository->shouldReceive('getById')->once()->andReturnNull();
+            $this->observationRepository->shouldReceive('add')->once()->withArgs(static fn (Observation $root): bool => $root->matches($observation));
+            $this->eventDispatcher->shouldReceive('trigger')->once()->withArgs(static fn (ObservationRecorded $event): bool => $event->phaseId() === $observation->phase()->phaseId());
         }
         $this->transactionalRecorder()->record($observation);
     }
@@ -190,11 +190,11 @@ final class ObservationRecorderTest extends UnitTestCase
     {
         $observation = ObservationFixture::session();
         $this->admission->shouldReceive('admit')->once();
-        $this->sessions->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
-        $this->observations->shouldReceive('getById')->once()->andReturnNull();
-        $this->observations->shouldReceive('add')->once();
+        $this->sessionRepository->shouldReceive('getById')->once()->andReturn(new Session($observation->session()));
+        $this->observationRepository->shouldReceive('getById')->once()->andReturnNull();
+        $this->observationRepository->shouldReceive('add')->once();
         $failure = new RuntimeException('private subscriber diagnostic');
-        $this->events->shouldReceive('trigger')->once()->andThrow($failure);
+        $this->eventDispatcher->shouldReceive('trigger')->once()->andThrow($failure);
         try {
             $this->transactionalRecorder()->record($observation);
             self::fail('Expected committed dispatch failure.');
@@ -211,12 +211,12 @@ final class ObservationRecorderTest extends UnitTestCase
     public function test_that_storage_failure_prevents_event_dispatch_and_distinguishes_uncertainty(): void
     {
         foreach ([false, true] as $uncertain) {
-            $transaction = $this->mock(TransactionalUnitOfWork::class);
+            $transactionalUnitOfWork = $this->mock(TransactionalUnitOfWork::class);
             $cause = new RuntimeException('private storage diagnostic');
-            $transaction->shouldReceive('commitTransactional')->once()->andThrow(new ObservationStorageFailed($uncertain, $cause));
-            $this->events->shouldNotReceive('trigger');
+            $transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andThrow(new ObservationStorageFailed($uncertain, $cause));
+            $this->eventDispatcher->shouldNotReceive('trigger');
             try {
-                $this->recorder($transaction)->record(ObservationFixture::session());
+                $this->recorder($transactionalUnitOfWork)->record(ObservationFixture::session());
                 self::fail('Expected storage failure.');
             } catch (ObservationStorageFailed $exception) {
                 self::assertSame($cause, $exception->getPrevious());
@@ -229,16 +229,16 @@ final class ObservationRecorderTest extends UnitTestCase
 
     private function transactionalRecorder(): ObservationRecorder
     {
-        $this->transaction->shouldReceive('commitTransactional')->once()->andReturnUsing(function (callable $operation): mixed {
+        $this->transactionalUnitOfWork->shouldReceive('commitTransactional')->once()->andReturnUsing(function (callable $operation): mixed {
             $result = $operation();
             $this->committed = true;
             return $result;
         });
-        return $this->recorder($this->transaction);
+        return $this->recorder($this->transactionalUnitOfWork);
     }
 
-    private function recorder(TransactionalUnitOfWork $transaction): ObservationRecorder
+    private function recorder(TransactionalUnitOfWork $transactionalUnitOfWork): ObservationRecorder
     {
-        return new ObservationRecorder($transaction, $this->sessions, $this->phases, $this->observations, $this->admission, $this->events, $this->mock(ProtectedContentRepository::class));
+        return new ObservationRecorder($transactionalUnitOfWork, $this->sessionRepository, $this->phaseRepository, $this->observationRepository, $this->admission, $this->eventDispatcher, $this->mock(ProtectedContentRepository::class));
     }
 }

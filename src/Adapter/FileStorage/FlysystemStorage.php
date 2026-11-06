@@ -43,8 +43,8 @@ final readonly class FlysystemStorage implements FileStorageInterface
             } else {
                 throw new FileStorageException('File contents must be a string or resource');
             }
-        } catch (FileStorageException $e) {
-            throw $e;
+        } catch (FileStorageException $exception) {
+            throw $exception;
         } catch (Throwable $throwable) {
             throw new FileStorageException($throwable->getMessage(), 0, $throwable);
         }

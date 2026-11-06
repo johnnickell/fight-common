@@ -41,9 +41,9 @@ final class DbalPublicationCursorStoreUnitTest extends UnitTestCase
         $this->connection->shouldReceive('fetchOne')->twice()->with(
             'SELECT global_position FROM '.$sqlTable.' WHERE publication_name = ?', ["orders'pipeline"],
         )->andReturn(false, '42');
-        $cursorStore = $this->cursorStore($table);
-        self::assertSame(0, $cursorStore->load("orders'pipeline"));
-        self::assertSame(42, $cursorStore->load("orders'pipeline"));
+        $publicationCursorStore = $this->cursorStore($table);
+        self::assertSame(0, $publicationCursorStore->load("orders'pipeline"));
+        self::assertSame(42, $publicationCursorStore->load("orders'pipeline"));
     }
 
     public function test_that_save_rejects_a_negative_position_using_the_current_cursor(): void

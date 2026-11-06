@@ -875,16 +875,16 @@ final class Validate
             return true;
         }
 
-        $result = true;
+        $allItemsMatch = true;
 
-        foreach ($value as $val) {
-            if (!static::isType($val, $type)) {
-                $result = false;
+        foreach ($value as $item) {
+            if (!static::isType($item, $type)) {
+                $allItemsMatch = false;
                 break;
             }
         }
 
-        return $result;
+        return $allItemsMatch;
     }
 
     /**
@@ -1391,9 +1391,9 @@ final class Validate
         }
 
         // IPv4address = dec-octet "." dec-octet "." dec-octet "." dec-octet
-        $dec = '(?:(?:2[0-4]|1[0-9]|[1-9])?[0-9]|25[0-5])';
-        $ipV4 = sprintf('/\A(?:%s\.){3}%s\z/', $dec, $dec);
-        if (preg_match($ipV4, $host)) {
+        $decimalOctetPattern = '(?:(?:2[0-4]|1[0-9]|[1-9])?[0-9]|25[0-5])';
+        $ipv4Pattern = sprintf('/\A(?:%s\.){3}%s\z/', $decimalOctetPattern, $decimalOctetPattern);
+        if (preg_match($ipv4Pattern, $host)) {
             return true;
         }
 

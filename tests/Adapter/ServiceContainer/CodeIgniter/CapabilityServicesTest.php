@@ -78,9 +78,9 @@ final class CapabilityServicesTest extends UnitTestCase
         self::assertInstanceOf(CodeIgniterCache::class, CacheServices::cache($cache));
         self::assertInstanceOf(MutableCache::class, CacheServices::mutableCache($cache));
 
-        $routes = $this->mock(RouteCollectionInterface::class);
-        self::assertInstanceOf(CodeIgniterUrlGenerator::class, RoutingServices::urlGenerator($routes, 'https://fight.example'));
-        self::assertInstanceOf(UrlGenerator::class, RoutingServices::routing($routes, 'https://fight.example'));
+        $routeCollection = $this->mock(RouteCollectionInterface::class);
+        self::assertInstanceOf(CodeIgniterUrlGenerator::class, RoutingServices::urlGenerator($routeCollection, 'https://fight.example'));
+        self::assertInstanceOf(UrlGenerator::class, RoutingServices::routing($routeCollection, 'https://fight.example'));
 
         $mailer = $this->mock(MailerInterface::class);
         self::assertInstanceOf(MailFactory::class, MailServices::mailFactory());

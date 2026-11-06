@@ -27,8 +27,8 @@ final readonly class McpTasks implements McpCapability
     public const int MAX_RESPONSE_BYTES = 65536;
     public const string REVISION = 'org.fight/taskRevision';
 
-    private McpTaskInput $input;
-    private McpTaskCancellation $cancellation;
+    private McpTaskInput $taskInput;
+    private McpTaskCancellation $taskCancellation;
 
     /**
      * Constructs McpTasks
@@ -36,8 +36,8 @@ final readonly class McpTasks implements McpCapability
      * Buses must route the actual shared use cases; scope/caller come from trusted request composition.
      */
     public function __construct(
-        private QueryBus $queries,
-        CommandBus $commands,
+        private QueryBus $queryBus,
+        CommandBus $commandBus,
         private string $scope,
         string $caller,
         private int $maxResponseBytes = self::MAX_RESPONSE_BYTES
@@ -47,8 +47,8 @@ final readonly class McpTasks implements McpCapability
             throw new DomainException('Invalid Task response budget.');
         }
 
-        $this->input = new McpTaskInput($commands, $scope, $caller);
-        $this->cancellation = new McpTaskCancellation($commands, $scope, $caller);
+        $this->taskInput = new McpTaskInput($commandBus, $scope, $caller);
+        $this->taskCancellation = new McpTaskCancellation($commandBus, $scope, $caller);
     }
 
     /**
@@ -105,11 +105,11 @@ final readonly class McpTasks implements McpCapability
     {
         $this->validate($request);
         if ($request->method() === 'tasks/update') {
-            return $this->input->handle($request)->withResponseLimit($this->maxResponseBytes);
+            return $this->taskInput->handle($request)->withResponseLimit($this->maxResponseBytes);
         }
 
         if ($request->method() === 'tasks/cancel') {
-            return $this->cancellation->handle($request)->withResponseLimit($this->maxResponseBytes);
+            return $this->taskCancellation->handle($request)->withResponseLimit($this->maxResponseBytes);
         }
 
         $parameters = $request->parameters();
@@ -146,7 +146,7 @@ final readonly class McpTasks implements McpCapability
     public function current(string $id): ?array
     {
         $taskId = TaskId::fromString($id);
-        $view = $this->queries->fetch(new GetTask($this->scope, $taskId));
+        $view = $this->queryBus->fetch(new GetTask($this->scope, $taskId));
         if ($view === null) {
             return null;
         }
@@ -161,7 +161,7 @@ final readonly class McpTasks implements McpCapability
      */
     private function read(TaskId $id): StrictJson
     {
-        $view = $this->queries->fetch(new GetTask($this->scope, $id));
+        $view = $this->queryBus->fetch(new GetTask($this->scope, $id));
         if ($view === null) {
             throw new McpProtocolException(McpProtocolError::invalidParams(), null);
         }

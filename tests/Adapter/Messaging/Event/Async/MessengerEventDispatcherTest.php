@@ -29,9 +29,9 @@ class MessengerEventDispatcherTest extends UnitTestCase
                 return $envelope;
             });
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->trigger($event);
+        $eventDispatcher->trigger($event);
     }
 
     public function test_that_dispatch_sends_envelope_via_sender(): void
@@ -47,29 +47,29 @@ class MessengerEventDispatcherTest extends UnitTestCase
                 return $envelope;
             });
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->dispatch($eventMessage);
+        $eventDispatcher->dispatch($eventMessage);
     }
 
     public function test_that_register_is_no_op(): void
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->register(new SampleEventSubscriber());
+        $eventDispatcher->register(new SampleEventSubscriber());
 
-        self::assertFalse($dispatcher->hasHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers());
     }
 
     public function test_that_unregister_is_no_op(): void
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->unregister(new SampleEventSubscriber());
+        $eventDispatcher->unregister(new SampleEventSubscriber());
 
         self::assertTrue(true);
     }
@@ -78,9 +78,9 @@ class MessengerEventDispatcherTest extends UnitTestCase
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->addHandler('some_event', function (): void {});
+        $eventDispatcher->addHandler('some_event', function (): void {});
 
         self::assertTrue(true);
     }
@@ -89,29 +89,29 @@ class MessengerEventDispatcherTest extends UnitTestCase
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        self::assertSame([], $dispatcher->getHandlers());
-        self::assertSame([], $dispatcher->getHandlers('some_event'));
+        self::assertSame([], $eventDispatcher->getHandlers());
+        self::assertSame([], $eventDispatcher->getHandlers('some_event'));
     }
 
     public function test_that_has_handlers_always_returns_false(): void
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        self::assertFalse($dispatcher->hasHandlers());
-        self::assertFalse($dispatcher->hasHandlers('some_event'));
+        self::assertFalse($eventDispatcher->hasHandlers());
+        self::assertFalse($eventDispatcher->hasHandlers('some_event'));
     }
 
     public function test_that_remove_handler_is_no_op(): void
     {
         $sender = $this->mock(SenderInterface::class);
 
-        $dispatcher = new MessengerEventDispatcher($sender);
+        $eventDispatcher = new MessengerEventDispatcher($sender);
 
-        $dispatcher->removeHandler('some_event', function (): void {});
+        $eventDispatcher->removeHandler('some_event', function (): void {});
 
         self::assertTrue(true);
     }

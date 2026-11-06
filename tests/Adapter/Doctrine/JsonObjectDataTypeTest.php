@@ -61,8 +61,8 @@ class JsonObjectDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_database_value_returns_string_for_json_object(): void
     {
-        $obj = JsonObject::fromString('{"key":"value"}');
-        $result = $this->type->convertToDatabaseValue($obj, $this->platform);
+        $jsonObject = JsonObject::fromString('{"key":"value"}');
+        $result = $this->type->convertToDatabaseValue($jsonObject, $this->platform);
 
         self::assertSame('{"key":"value"}', $result);
     }
@@ -92,10 +92,10 @@ class JsonObjectDataTypeTest extends UnitTestCase
 
     public function test_that_convert_to_php_value_returns_same_instance(): void
     {
-        $obj = JsonObject::fromString('{"x":1}');
-        $result = $this->type->convertToPHPValue($obj, $this->platform);
+        $jsonObject = JsonObject::fromString('{"x":1}');
+        $result = $this->type->convertToPHPValue($jsonObject, $this->platform);
 
-        self::assertSame($obj, $result);
+        self::assertSame($jsonObject, $result);
     }
 
     public function test_that_convert_to_php_value_creates_json_object_from_valid_string(): void

@@ -128,7 +128,7 @@ final class TaskRevisionTest extends UnitTestCase
         };
 
         self::assertNull($fixture->get());
-        self::assertNull($endpoint->tasks->current(TaskFixture::ID));
+        self::assertNull($endpoint->taskCapability->current(TaskFixture::ID));
 
         $fixture->readAllowed = true;
         $fixture->onComparison = function () use ($fixture): void {

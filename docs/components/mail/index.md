@@ -88,7 +88,7 @@ use Fight\Common\Application\Mail\Transport\MailTransport;
 
 final readonly class OrderConfirmationService
 {
-    public function __construct(private MailTransport $mail) {}
+    public function __construct(private MailTransport $mailTransport) {}
 
     public function send(Order $order): void
     {
@@ -101,7 +101,7 @@ final readonly class OrderConfirmationService
             ->addContent(sprintf('<h1>%s</h1>', $subject), MailMessage::CONTENT_TYPE_HTML)
             ->addContent($subject, MailMessage::CONTENT_TYPE_PLAIN);
 
-        $this->mail->send($message);
+        $this->mailTransport->send($message);
     }
 }
 ```
@@ -117,24 +117,24 @@ create messages, and send them:
 ```php-inline
 final readonly class InvoiceService
 {
-    public function __construct(private MailService $mail) {}
+    public function __construct(private MailService $mailService) {}
 
     public function send(Invoice $invoice): void
     {
-        $attachment = $this->mail->createAttachmentFromString(
+        $attachment = $this->mailService->createAttachmentFromString(
             $this->generatePdf($invoice),
             sprintf('invoice-%d.pdf', $invoice->number()),
             'application/pdf',
         );
 
-        $message = $this->mail->createMessage()
+        $message = $this->mailService->createMessage()
             ->setSubject('Your Invoice')
             ->addTo($invoice->customerEmail())
             ->addFrom('billing@example.com')
             ->addContent('Please find your invoice attached.', MailMessage::CONTENT_TYPE_PLAIN)
             ->addAttachment($attachment);
 
-        $this->mail->send($message);
+        $this->mailService->send($message);
     }
 }
 ```
@@ -147,8 +147,8 @@ evidence, so tests that need to assert the message should provide a consumer-own
 ```php-inline
 use Fight\Common\Adapter\Mail\Null\NullMailTransport;
 
-$transport = new NullMailTransport();
-$transport->send($message);
+$mailTransport = new NullMailTransport();
+$mailTransport->send($message);
 ```
 
 ## Configuration formats
@@ -214,9 +214,9 @@ use Fight\Common\Adapter\Mail\Symfony\SymfonyMailFactory;
 use Fight\Common\Adapter\Mail\Symfony\SymfonyMailTransport;
 use Fight\Common\Application\Mail\MailService;
 
-$factory = new SymfonyMailFactory();
-$transport = new SymfonyMailTransport($mailer);
-$mail = new MailService($transport, $factory);
+$mailFactory = new SymfonyMailFactory();
+$mailTransport = new SymfonyMailTransport($mailer);
+$mailService = new MailService($mailTransport, $mailFactory);
 ```
 
 `$mailer` is the application-selected `Symfony\Component\Mailer\MailerInterface`. If a use case
@@ -358,28 +358,28 @@ These additional variations cover inline images and development diagnostics.
 ### Sending with an inline image
 
 ```php-inline
-$embedId = $mail->generateEmbedId();
-$logo = $mail->createAttachmentFromPath(
+$embedId = $mailService->generateEmbedId();
+$logo = $mailService->createAttachmentFromPath(
     '/assets/logo.png',
     'logo.png',
     'image/png',
     $embedId,
 );
 
-$message = $mail->createMessage()
+$message = $mailService->createMessage()
     ->setSubject('Welcome')
     ->addTo($email)
     ->addFrom('noreply@example.com')
     ->addContent(sprintf('<img src="%s" alt="Logo">', $logo->embed()), MailMessage::CONTENT_TYPE_HTML)
     ->addAttachment($logo);
 
-$mail->send($message);
+$mailService->send($message);
 ```
 
 ### Development diagnostics
 
 ```php-inline
-$transport = new LoggingMailTransport(
+$mailTransport = new LoggingMailTransport(
     new NullMailTransport(),
     $logger,
     LogLevel::DEBUG,

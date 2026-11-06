@@ -95,9 +95,9 @@ final readonly class McpSubscriptionFilter
      */
     public function accepted(
         array $supported,
-        McpSubscriptionAdmission $admission,
+        McpSubscriptionAdmission $subscriptionAdmission,
         string $subscriber,
-        ?McpTasks $tasks = null,
+        ?McpTasks $taskCapability = null,
         array &$states = []
     ): array {
         $accepted = [];
@@ -110,12 +110,18 @@ final readonly class McpSubscriptionFilter
             if ($filter === 'taskIds') {
                 $ids = array_values(array_filter(
                     $value,
-                    static function (string $id) use ($admission, $subscriber, $filter, $tasks, &$states): bool {
-                        if (!$admission->allows($subscriber, $filter, $id, null)) {
+                    static function (string $id) use (
+                        $subscriptionAdmission,
+                        $subscriber,
+                        $filter,
+                        $taskCapability,
+                        &$states
+                    ): bool {
+                        if (!$subscriptionAdmission->allows($subscriber, $filter, $id, null)) {
                             return false;
                         }
 
-                        $state = $tasks?->current($id);
+                        $state = $taskCapability?->current($id);
                         if ($state === null) {
                             return false;
                         }
@@ -131,12 +137,12 @@ final readonly class McpSubscriptionFilter
             } elseif ($filter === 'resourceSubscriptions') {
                 $uris = array_values(array_filter(
                     $value,
-                    static fn (string $uri): bool => $admission->allows($subscriber, $filter, $uri, null)
+                    static fn (string $uri): bool => $subscriptionAdmission->allows($subscriber, $filter, $uri, null)
                 ));
                 if ($uris !== []) {
                     $accepted[$filter] = $uris;
                 }
-            } elseif ($value === true && $admission->allows($subscriber, $filter, null, null)) {
+            } elseif ($value === true && $subscriptionAdmission->allows($subscriber, $filter, null, null)) {
                 $accepted[$filter] = true;
             }
         }

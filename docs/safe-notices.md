@@ -52,9 +52,9 @@ Install the optional DBAL dependency (`^4.4` remains supported). During exclusiv
 $transactionalUnitOfWork = new DbalNoticeTransaction($connection);
 $noticeRepository = new DbalNoticeRepository($transactionalUnitOfWork);
 $noticeRecoveryReader = new DbalNoticeRecoveryReader($connection);
-$recorder = new NoticeRecorder($noticeRepository, $transactionalUnitOfWork, $trustedAdmission, $eventDispatcher);
-$handler = new RecordNoticeHandler($recorder);
-$router->registerHandler(RecordNotice::class, $handler);
+$noticeRecorder = new NoticeRecorder($noticeRepository, $transactionalUnitOfWork, $trustedAdmission, $eventDispatcher);
+$recordNoticeHandler = new RecordNoticeHandler($noticeRecorder);
+$commandRouter->registerHandler(RecordNotice::class, $recordNoticeHandler);
 $commandBus->execute(RecordNotice::fromArray($safeNoticeData));
 ```
 
@@ -62,7 +62,7 @@ Imports are `Adapter\Mcp\Persistence\Notice\Dbal\{DbalNoticeSchema,DbalNoticeTra
 `Domain\Mcp\Notice\NoticeRepository`, `Application\Repository\TransactionalUnitOfWork`,
 `Application\Mcp\Notice\Service\{NoticeAdmission,NoticeRecorder,NoticeRecoveryReader}`,
 `Application\Mcp\Notice\CommandHandler\RecordNoticeHandler`, and `Domain\Mcp\Notice\Command\RecordNotice`, beneath
-`Fight\Common\`. `$router` may be `InMemoryCommandRouter`, paired with `RoutingCommandBus`. No automatic container
+`Fight\Common\`. `$commandRouter` may be `InMemoryCommandRouter`, paired with `RoutingCommandBus`. No automatic container
 registration is implied. Supply a dedicated DBAL connection, not an unrelated ORM unit of work.
 
 The consumer implements `NoticeAdmission::admit(Notice): void` using **trusted current invocation context**. It must
@@ -171,8 +171,8 @@ not complete catch-up. [Inspection Queries](notice-inspection.md) separately enf
 Compose the same repository and transaction boundary with an **independent** current permission implementation:
 
 ```php
-$remover = new NoticeRemover($noticeRepository, $transactionalUnitOfWork, $trustedRemovalAdmission);
-$router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler($remover));
+$noticeRemover = new NoticeRemover($noticeRepository, $transactionalUnitOfWork, $trustedRemovalAdmission);
+$commandRouter->registerHandler(RemoveNotices::class, new RemoveNoticesHandler($noticeRemover));
 $selection = NoticeRemovalSelection::fromArray([
     'version' => 1,
     'namespace' => $trustedStorageWindow->namespace(),

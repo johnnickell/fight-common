@@ -14,17 +14,17 @@ use Psr\Http\Message\StreamInterface;
 #[CoversClass(GuzzleStreamFactory::class)]
 class GuzzleStreamFactoryTest extends UnitTestCase
 {
-    private GuzzleStreamFactory $factory;
+    private GuzzleStreamFactory $streamFactory;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->factory = new GuzzleStreamFactory();
+        $this->streamFactory = new GuzzleStreamFactory();
     }
 
     public function test_that_create_stream_returns_stream_for_string_body(): void
     {
-        $stream = $this->factory->createStream('hello world');
+        $stream = $this->streamFactory->createStream('hello world');
 
         self::assertInstanceOf(StreamInterface::class, $stream);
         self::assertSame('hello world', (string) $stream);
@@ -32,7 +32,7 @@ class GuzzleStreamFactoryTest extends UnitTestCase
 
     public function test_that_create_stream_returns_stream_for_null_body(): void
     {
-        $stream = $this->factory->createStream(null);
+        $stream = $this->streamFactory->createStream(null);
 
         self::assertInstanceOf(StreamInterface::class, $stream);
     }
@@ -40,6 +40,6 @@ class GuzzleStreamFactoryTest extends UnitTestCase
     public function test_that_create_stream_throws_domain_exception_for_invalid_body(): void
     {
         $this->expectException(DomainException::class);
-        $this->factory->createStream(new stdClass());
+        $this->streamFactory->createStream(new stdClass());
     }
 }

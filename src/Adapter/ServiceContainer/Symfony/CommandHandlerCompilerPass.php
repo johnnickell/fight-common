@@ -25,14 +25,17 @@ class CommandHandlerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $definition = $container->findDefinition(ServiceAwareCommandRouter::class);
+        $commandRouterDefinition = $container->findDefinition(ServiceAwareCommandRouter::class);
         $taggedServices = $container->findTaggedServiceIds('common.command_handler', true);
 
-        foreach ($taggedServices as $id => $tags) {
-            $serviceDefinition = $container->getDefinition($id);
+        foreach ($taggedServices as $handlerServiceId => $tags) {
+            $serviceDefinition = $container->getDefinition($handlerServiceId);
 
             if (!$serviceDefinition->isPublic()) {
-                $message = sprintf('The service "%s" must be public as command handlers are lazy-loaded', $id);
+                $message = sprintf(
+                    'The service "%s" must be public as command handlers are lazy-loaded',
+                    $handlerServiceId
+                );
                 throw new Exception($message);
             }
 
@@ -43,13 +46,17 @@ class CommandHandlerCompilerPass implements CompilerPassInterface
             $reflection = new ReflectionClass($serviceClass);
 
             if (!$reflection->implementsInterface(CommandHandler::class)) {
-                $message = sprintf('Service "%s" must implement interface "%s"', $id, CommandHandler::class);
+                $message = sprintf(
+                    'Service "%s" must implement interface "%s"',
+                    $handlerServiceId,
+                    CommandHandler::class
+                );
                 throw new Exception($message);
             }
 
-            $command = $serviceClass::commandRegistration();
+            $commandClass = $serviceClass::commandRegistration();
 
-            $definition->addMethodCall('registerHandler', [$command, $id]);
+            $commandRouterDefinition->addMethodCall('registerHandler', [$commandClass, $handlerServiceId]);
         }
     }
 }

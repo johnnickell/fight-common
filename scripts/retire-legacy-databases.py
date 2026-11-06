@@ -4,11 +4,11 @@ from pathlib import Path
 import subprocess
 import sys
 
-root = Path(__file__).resolve().parent.parent
-common = Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], text=True).strip()).parent
+tooling_checkout = Path(__file__).resolve().parent.parent
+canonical_checkout = Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], text=True).strip()).parent
 checkout = Path(sys.argv[1])
-for receipt in sorted((common / '.runs/database-runs').glob('*.json')):
-    value = json.loads(receipt.read_text())
-    if value.get('source') != str(checkout / 'bin/.disposable-database-lifecycle.py'):
+for receipt_path in sorted((canonical_checkout / '.runs/database-runs').glob('*.json')):
+    receipt_data = json.loads(receipt_path.read_text())
+    if receipt_data.get('source') != str(checkout / 'bin/.disposable-database-lifecycle.py'):
         continue
-    subprocess.run(['python3', '-B', str(root / 'bin/.disposable-database-lifecycle.py'), 'cleanup', '--receipt', str(receipt)], check=True)
+    subprocess.run(['python3', '-B', str(tooling_checkout / 'bin/.disposable-database-lifecycle.py'), 'cleanup', '--receipt', str(receipt_path)], check=True)

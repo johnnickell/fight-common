@@ -25,9 +25,9 @@ require dirname(__DIR__, 3).'/vendor/autoload.php';
 $directory = getenv('MCP_SUBSCRIPTION_DIRECTORY');
 $scope = getenv('MCP_SUBSCRIPTION_SCOPE');
 $params = json_decode(file_get_contents($directory.'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
-$db = DriverManager::getConnection($params);
-if ($db->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $db->executeStatement('PRAGMA busy_timeout = 3000'); }
-$fixture = new SubscriptionFixture($db, $scope, (int) ($_GET['lifetime'] ?? 2), (int) ($_GET['frameBytes'] ?? 16384), prompts: ($_GET['prompts'] ?? '0') === '1', servePrompts: ($_GET['servePrompts'] ?? '0') === '1');
+$connection = DriverManager::getConnection($params);
+if ($connection->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $connection->executeStatement('PRAGMA busy_timeout = 3000'); }
+$fixture = new SubscriptionFixture($connection, $scope, (int) ($_GET['lifetime'] ?? 2), (int) ($_GET['frameBytes'] ?? 16384), prompts: ($_GET['prompts'] ?? '0') === '1', servePrompts: ($_GET['servePrompts'] ?? '0') === '1');
 $fixture->policy = static function ($filter, $uri, $notice) use ($directory, $scope): bool {
     clearstatcache();
     if ($filter === 'promptsListChanged' && ($notice?->metadata()->toArray()['app/concealed'] ?? false)) { return false; }
@@ -51,8 +51,8 @@ $request = ServerRequest::fromGlobals(); $emitter = new McpResponseEmitter(); $f
 if ($composition === 'slim') {
     $app = new App($factory); $app->post('/mcp', fn (ServerRequestInterface $request) => $fixture->endpoint->handle($request)); $response = $app->handle($request);
 } elseif ($composition === 'yii') {
-    $collector = new RouteCollector(); $collector->addRoute(Route::post('/mcp')->action(fn (ServerRequestInterface $request) => $fixture->endpoint->handle($request)));
-    $router = new Router(new UrlMatcher(new RouteCollection($collector)), $factory, new MiddlewareFactory(new Container()), new CurrentRoute()); $response = $router->process($request, $fixture->endpoint);
+    $routeCollector = new RouteCollector(); $routeCollector->addRoute(Route::post('/mcp')->action(fn (ServerRequestInterface $request) => $fixture->endpoint->handle($request)));
+    $router = new Router(new UrlMatcher(new RouteCollection($routeCollector)), $factory, new MiddlewareFactory(new Container()), new CurrentRoute()); $response = $router->process($request, $fixture->endpoint);
 } else { $response = $fixture->endpoint->handle($request); }
 try {
     if (isset($_GET['buffered'])) { ob_start(); }

@@ -18,7 +18,7 @@ final readonly class DbalObservationRepository implements ObservationRepository
     /**
      * Constructs DbalObservationRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -27,12 +27,12 @@ final readonly class DbalObservationRepository implements ObservationRepository
      */
     public function getById(string $producerId, ObservationId $id): ?Observation
     {
-        $table = $this->transaction->tables()->observationTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->observationTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
         $sql = 'SELECT version, payload, recorded_at FROM '.$table;
         $sql .= ' WHERE producer_id = ? AND observation_id = ?';
-        $row = $this->transaction->connection()->fetchAssociative($sql, [$producerId, $id->toString()]);
+        $row = $this->recordingTransaction->connection()->fetchAssociative($sql, [$producerId, $id->toString()]);
         if ($row === false) {
             return null;
         }
@@ -54,12 +54,12 @@ final readonly class DbalObservationRepository implements ObservationRepository
      */
     public function add(Observation $observation): void
     {
-        $this->transaction->requireOwnedTransaction();
+        $this->recordingTransaction->requireOwnedTransaction();
         $recordedAt = $observation->recordedAt();
-        $table = $this->transaction->tables()->observationTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->observationTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
-        $this->transaction->connection()->insert($table, [
+        $this->recordingTransaction->connection()->insert($table, [
             'producer_id'    => $observation->producerId(),
             'observation_id' => $observation->id()->toString(),
             'project_id'     => $observation->session()->projectId(),

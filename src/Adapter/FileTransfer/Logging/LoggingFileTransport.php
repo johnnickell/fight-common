@@ -13,14 +13,17 @@ use Psr\Log\LogLevel;
  */
 final readonly class LoggingFileTransport implements FileTransport
 {
+    private FileTransport $fileTransport;
+
     /**
      * Constructs LoggingFileTransport
      */
     public function __construct(
-        private FileTransport $transport,
+        FileTransport $transport,
         private LoggerInterface $logger,
         private string $logLevel = LogLevel::DEBUG
     ) {
+        $this->fileTransport = $transport;
     }
 
     /**
@@ -32,7 +35,7 @@ final readonly class LoggingFileTransport implements FileTransport
             'path' => $path
         ]);
 
-        $this->transport->sendFile($path, $contents);
+        $this->fileTransport->sendFile($path, $contents);
     }
 
     /**
@@ -44,7 +47,7 @@ final readonly class LoggingFileTransport implements FileTransport
             'path' => $path
         ]);
 
-        return $this->transport->retrieveFileContents($path);
+        return $this->fileTransport->retrieveFileContents($path);
     }
 
     /**
@@ -56,7 +59,7 @@ final readonly class LoggingFileTransport implements FileTransport
             'path' => $path
         ]);
 
-        return $this->transport->retrieveFileResource($path);
+        return $this->fileTransport->retrieveFileResource($path);
     }
 
     /**
@@ -68,6 +71,6 @@ final readonly class LoggingFileTransport implements FileTransport
             'path' => $directory
         ]);
 
-        return $this->transport->readDirectory($directory);
+        return $this->fileTransport->readDirectory($directory);
     }
 }

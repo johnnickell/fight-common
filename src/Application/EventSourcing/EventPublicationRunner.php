@@ -16,6 +16,9 @@ use Fight\Common\Domain\EventSourcing\EventStore;
  */
 final readonly class EventPublicationRunner
 {
+    private PublicationCursorStore $publicationCursorStore;
+    private PublicationFailureRecorder $publicationFailureRecorder;
+
     /**
      * Constructs EventPublicationRunner
      */
@@ -23,9 +26,11 @@ final readonly class EventPublicationRunner
         private string $publicationName,
         private EventStore $eventStore,
         private SynchronousEventDispatcher $eventDispatcher,
-        private PublicationCursorStore $cursorStore,
-        private PublicationFailureRecorder $failureRecorder
+        PublicationCursorStore $cursorStore,
+        PublicationFailureRecorder $failureRecorder
     ) {
+        $this->publicationCursorStore = $cursorStore;
+        $this->publicationFailureRecorder = $failureRecorder;
     }
 
     /**
@@ -33,7 +38,7 @@ final readonly class EventPublicationRunner
      */
     public function run(int $limit): void
     {
-        $cursor = $this->cursorStore->load($this->publicationName);
+        $cursor = $this->publicationCursorStore->load($this->publicationName);
 
         foreach ($this->eventStore->readAllAfter($cursor, $limit) as $event) {
             $dispatchStartedAt = new DateTimeImmutable();
@@ -41,7 +46,7 @@ final readonly class EventPublicationRunner
             try {
                 $this->eventDispatcher->dispatch($event->message());
             } catch (EventDispatchFailed $dispatchFailure) {
-                $this->failureRecorder->record(EventPublicationFailure::fromDispatchFailure(
+                $this->publicationFailureRecorder->record(EventPublicationFailure::fromDispatchFailure(
                     $this->publicationName,
                     $event,
                     $dispatchStartedAt,
@@ -49,7 +54,7 @@ final readonly class EventPublicationRunner
                 ));
             }
 
-            $this->cursorStore->save($this->publicationName, $event->globalPosition());
+            $this->publicationCursorStore->save($this->publicationName, $event->globalPosition());
         }
     }
 }

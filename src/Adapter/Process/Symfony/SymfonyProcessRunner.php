@@ -125,11 +125,11 @@ final class SymfonyProcessRunner implements ProcessRunner
             ];
 
             $this->logProcessStarted($symfonyProcess);
-        } catch (ProcessException $e) {
-            throw $e;
-        } catch (Throwable $e) {
+        } catch (ProcessException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
             if ($errorBehavior === ProcessErrorBehavior::EXCEPTION) {
-                throw new ProcessException($e->getMessage(), (int) $e->getCode(), $e);
+                throw new ProcessException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
         }
     }
@@ -166,9 +166,9 @@ final class SymfonyProcessRunner implements ProcessRunner
 
                 if ($errorBehavior === ProcessErrorBehavior::RETRY) {
                     /**
-                     * @var Process $original
+                     * @var Process $processDescriptor
                      */
-                    $original  = $processData['original'];
+                    $processDescriptor = $processData['original'];
                     $iteration = $processData['iteration'];
 
                     if ($iteration >= $this->tries) {
@@ -177,22 +177,22 @@ final class SymfonyProcessRunner implements ProcessRunner
                         );
                     }
 
-                    $retried = $this->exchangeProcess($original);
+                    $retryProcess = $this->exchangeProcess($processDescriptor);
                     $this->startProcess(
-                        $retried,
-                        $original->stdout(),
-                        $original->stderr(),
-                        $original->isOutputDisabled()
+                        $retryProcess,
+                        $processDescriptor->stdout(),
+                        $processDescriptor->stderr(),
+                        $processDescriptor->isOutputDisabled()
                     );
 
-                    $retryPid = (int) $retried->getPid();
+                    $retryPid = (int) $retryProcess->getPid();
                     $this->processes[$retryPid] = [
                         'iteration' => $iteration + 1,
-                        'original'  => $original,
-                        'process'   => $retried
+                        'original'  => $processDescriptor,
+                        'process'   => $retryProcess
                     ];
 
-                    $this->logProcessRestarted($retried);
+                    $this->logProcessRestarted($retryProcess);
                 }
 
                 if ($errorBehavior === ProcessErrorBehavior::EXCEPTION) {
@@ -201,11 +201,11 @@ final class SymfonyProcessRunner implements ProcessRunner
                     );
                 }
             }
-        } catch (ProcessException $e) {
-            throw $e;
-        } catch (Throwable $e) {
+        } catch (ProcessException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
             if ($errorBehavior === ProcessErrorBehavior::EXCEPTION) {
-                throw new ProcessException($e->getMessage(), (int) $e->getCode(), $e);
+                throw new ProcessException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
         }
     }
@@ -225,16 +225,16 @@ final class SymfonyProcessRunner implements ProcessRunner
             return;
         }
 
-        $out = SymfonyProcess::OUT;
+        $stdoutType = SymfonyProcess::OUT;
 
-        $process->start(function ($type, $data) use ($stdout, $stderr, $out): void {
-            if ($type === $out) {
+        $process->start(function ($outputType, $outputChunk) use ($stdout, $stderr, $stdoutType): void {
+            if ($outputType === $stdoutType) {
                 if ($stdout !== null) {
-                    call_user_func($stdout, $data);
+                    call_user_func($stdout, $outputChunk);
                 }
             } else {
                 if ($stderr !== null) {
-                    call_user_func($stderr, $data);
+                    call_user_func($stderr, $outputChunk);
                 }
             }
         });

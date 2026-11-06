@@ -60,8 +60,8 @@ final class McpToolInteractionTest extends UnitTestCase
 {
     public function test_that_a_fresh_instance_resumes_protected_query_input_without_initial_validation_or_handle(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $first = new InteractiveValueTool($queries);
+        $queryBus = $this->mock(QueryBus::class);
+        $first = new InteractiveValueTool($queryBus);
         $arguments = ['id' => 'original', 'nested' => ['b' => [true, null], 'a' => (object) []]];
         $issued = $this->responder([$first])->respond($this->wire(['name' => 'value.interactive', 'arguments' => $arguments]))->toArray();
         self::assertSame('input_required', $issued['result']['resultType']);
@@ -72,8 +72,8 @@ final class McpToolInteractionTest extends UnitTestCase
         self::assertSame('elicitation/create', $issued['result']['inputRequests']->get('details')->get('method'));
         self::assertStringNotContainsString('private validation label', json_encode($issued));
 
-        $queries->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'original'])->andReturn('safe public value');
-        $second = new InteractiveValueTool($queries);
+        $queryBus->shouldReceive('fetch')->once()->withArgs(fn(SampleQuery $query): bool => $query->toArray() === ['value' => 'original'])->andReturn('safe public value');
+        $second = new InteractiveValueTool($queryBus);
         $validator = $this->mock(Validator::class); // No method expectation: initial validation must not run again.
         $validation = new ValidationService();
         $validation->addValidator($validator);
@@ -92,12 +92,12 @@ final class McpToolInteractionTest extends UnitTestCase
     #[DataProvider('ordinaryActions')]
     public function test_that_ordinary_actions_resume_once_and_only_accept_dispatches_a_mutation(string $action): void
     {
-        $commands = $this->mock(CommandBus::class);
-        $tool = new InteractiveValueTool($commands);
+        $commandBus = $this->mock(CommandBus::class);
+        $tool = new InteractiveValueTool($commandBus);
         $responder = $this->responder([$tool]);
         $token = $responder->respond($this->wire(['name' => 'value.interactive', 'arguments' => ['id' => 'original']]))->toArray()['result']['requestState'];
         if ($action === 'accept') {
-            $commands->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
+            $commandBus->shouldReceive('execute')->once()->withArgs(fn(SampleCommand $command): bool => $command->toArray() === ['value' => 'original']);
         }
         $params = $this->retry($token);
         $params['inputResponses'] = ['details' => ['action' => $action]];
@@ -376,8 +376,8 @@ final class McpToolInteractionTest extends UnitTestCase
 
     public function test_that_initial_state_overflow_is_sanitized_without_dispatch(): void
     {
-        $queries = $this->mock(QueryBus::class);
-        $tool = new InteractiveValueTool($queries);
+        $queryBus = $this->mock(QueryBus::class);
+        $tool = new InteractiveValueTool($queryBus);
         $diagnostics = $this->mock(McpDiagnostics::class);
         $diagnostics->shouldReceive('record')->once();
         $result = $this->responder([$tool], diagnostics: $diagnostics)->respond($this->wire([

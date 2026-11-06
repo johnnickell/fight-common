@@ -62,8 +62,8 @@ final class QuickStartOrderProcessingTest extends UnitTestCase
     {
         $customerId = CustomerId::fromString('CUSTOMER-42');
         $orderId = OrderId::fromString('ORDER-1001');
-        $orders = new InMemoryOrderRepository();
-        $payments = new FakePaymentProcessor(
+        $orderRepository = new InMemoryOrderRepository();
+        $paymentProcessor = new FakePaymentProcessor(
             PaymentReference::fromString('PAYMENT-1001'),
             PaymentStatus::SUCCEEDED,
         );
@@ -71,18 +71,18 @@ final class QuickStartOrderProcessingTest extends UnitTestCase
             new InMemoryShoppingCartRepository(
                 ShoppingCart::forCustomer($customerId, Item::create('COFFEE-BEANS', 1800, 2)),
             ),
-            $orders,
-            $payments,
-            new DemoTransactionalUnitOfWork([$orders]),
+            $orderRepository,
+            $paymentProcessor,
+            new DemoTransactionalUnitOfWork([$orderRepository]),
             new SimpleEventDispatcher(),
         );
 
         $command = new ProcessOrder($customerId, $orderId, PaymentMethod::tokenized('provider-token'));
         $handler->handle(CommandMessage::create($command));
 
-        self::assertSame(3600, $payments->processedPayments()[0]['amount']);
-        self::assertSame('provider-token', $payments->processedPayments()[0]['payment_method']->providerToken());
-        self::assertSame('PAYMENT-1001', $orders->get($orderId)->paymentReference()->toString());
+        self::assertSame(3600, $paymentProcessor->processedPayments()[0]['amount']);
+        self::assertSame('provider-token', $paymentProcessor->processedPayments()[0]['payment_method']->providerToken());
+        self::assertSame('PAYMENT-1001', $orderRepository->get($orderId)->paymentReference()->toString());
     }
 
     public function test_that_post_commit_event_publication_routes_fulfillment_exactly_once(): void
@@ -183,33 +183,33 @@ final class QuickStartOrderProcessingTest extends UnitTestCase
     {
         $customerId = CustomerId::fromString('CUSTOMER-42');
         $orderId = OrderId::fromString('ORDER-1001');
-        $orders = new InMemoryOrderRepository();
-        $payments = new FakePaymentProcessor(PaymentReference::fromString('PAYMENT-1001'), $paymentStatus);
-        $fulfillment = new FakeFulfillmentRequester();
+        $orderRepository = new InMemoryOrderRepository();
+        $paymentProcessor = new FakePaymentProcessor(PaymentReference::fromString('PAYMENT-1001'), $paymentStatus);
+        $fulfillmentRequester = new FakeFulfillmentRequester();
         $router = new InMemoryCommandRouter();
-        $commands = new RoutingCommandBus($router);
-        $events = new SimpleEventDispatcher();
-        $events->register(new OrderProcessedSubscriber($commands));
+        $commandBus = new RoutingCommandBus($router);
+        $eventDispatcher = new SimpleEventDispatcher();
+        $eventDispatcher->register(new OrderProcessedSubscriber($commandBus));
         $router->registerHandlers([
             ProcessOrder::class => new ProcessOrderHandler(
                 new InMemoryShoppingCartRepository(
                     ShoppingCart::forCustomer($customerId, Item::create('COFFEE-BEANS', 1800, 1)),
                 ),
-                $orders,
-                $payments,
-                new DemoTransactionalUnitOfWork([$orders]),
-                $events,
+                $orderRepository,
+                $paymentProcessor,
+                new DemoTransactionalUnitOfWork([$orderRepository]),
+                $eventDispatcher,
             ),
-            FulfillOrder::class => new FulfillOrderHandler($orders, $payments, $fulfillment),
+            FulfillOrder::class => new FulfillOrderHandler($orderRepository, $paymentProcessor, $fulfillmentRequester),
         ]);
 
         return [
-            'commands' => $commands,
+            'commands' => $commandBus,
             'customer_id' => $customerId,
-            'fulfillment' => $fulfillment,
+            'fulfillment' => $fulfillmentRequester,
             'order_id' => $orderId,
-            'orders' => $orders,
-            'payments' => $payments,
+            'orders' => $orderRepository,
+            'payments' => $paymentProcessor,
         ];
     }
 }

@@ -16,11 +16,14 @@ use Illuminate\Contracts\Bus\Dispatcher;
  */
 final readonly class LaravelCommandBus implements AsynchronousCommandBus
 {
+    private Dispatcher $jobDispatcher;
+
     /**
      * Constructs LaravelCommandBus
      */
-    public function __construct(private Dispatcher $dispatcher)
+    public function __construct(Dispatcher $dispatcher)
     {
+        $this->jobDispatcher = $dispatcher;
     }
 
     /**
@@ -36,6 +39,6 @@ final readonly class LaravelCommandBus implements AsynchronousCommandBus
      */
     public function dispatch(CommandMessage $commandMessage): void
     {
-        $this->dispatcher->dispatch(new QueuedCommandMessage($commandMessage));
+        $this->jobDispatcher->dispatch(new QueuedCommandMessage($commandMessage));
     }
 }

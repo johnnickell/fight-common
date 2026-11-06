@@ -24,11 +24,11 @@ final class DbalSubscriberReaderTest extends UnitTestCase
 {
     public function test_that_actual_tracking_rows_are_counted_once_and_live_pages_are_bounded_with_deterministic_ties(): void
     {
-        $db = $this->database(); $store = new DbalSubscriptionStore($db);
-        for ($i = 1; $i <= 40; ++$i) { $store->open(self::id($i), self::id(99), self::context('agent-'.($i % 2)), 100, 105); }
-        $store->open(self::id(41), self::id(99), self::context('CONCEALED', ['concealed']), 100, 105);
-        $store->open(self::id(42), self::id(99), self::context('CONCEALED-MIX', ['scope', 'concealed']), 100, 105);
-        $store->open(self::id(43), self::id(99), self::context('unknown-scope', []), 100, 105);
+        $db = $this->database(); $subscriptionStore = new DbalSubscriptionStore($db);
+        for ($i = 1; $i <= 40; ++$i) { $subscriptionStore->open(self::id($i), self::id(99), self::context('agent-'.($i % 2)), 100, 105); }
+        $subscriptionStore->open(self::id(41), self::id(99), self::context('CONCEALED', ['concealed']), 100, 105);
+        $subscriptionStore->open(self::id(42), self::id(99), self::context('CONCEALED-MIX', ['scope', 'concealed']), 100, 105);
+        $subscriptionStore->open(self::id(43), self::id(99), self::context('unknown-scope', []), 100, 105);
         $before = $db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions ORDER BY registration_id');
         $reader = new DbalSubscriberReader($db, 'shared-db', static fn () => 103);
         $selection = SubscriberSelection::create(['scope', 'concealed']); $access = SubscriberAccess::create(['scope']);
@@ -46,11 +46,11 @@ final class DbalSubscriberReaderTest extends UnitTestCase
         self::assertSame(0, $reader->list(new ListSubscribers(SubscriberSelection::create(['scope'], ['subscriber' => 'SUPER_ADMIN'])), $access)->toArray()['total']);
         self::assertSame($before, $db->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions ORDER BY registration_id'));
         self::assertFalse($db->isTransactionActive());
-        $store->close(self::id(1), self::id(99), 103);
+        $subscriptionStore->close(self::id(1), self::id(99), 103);
         self::assertSame(1, $reader->summarize(SubscriberSelection::create(['scope'], ['state' => 'disconnected']), $access)->toArray()['subscriptions']);
         self::assertSame([], $reader->list(new ListSubscribers($selection, 100, 16), $access)->toArray()['subscribers']);
         self::assertGreaterThan(0, (new DbalSubscriberReader($db, 'shared-db'))->summarize($selection, $access)->toArray()['scope']['queried_at']);
-        $store->open(self::id(44), self::id(99), array_replace(self::context(), ['requested' => [], 'accepted' => []]), 100, 105);
+        $subscriptionStore->open(self::id(44), self::id(99), array_replace(self::context(), ['requested' => [], 'accepted' => []]), 100, 105);
         $emptyMaps = $reader->list(new ListSubscribers(SubscriberSelection::create(['scope'], ['registration_id' => self::id(44)])), $access)->subscribers()[0]->toArray();
         self::assertSame('{}', $emptyMaps['requested']->toString()); self::assertSame('{}', $emptyMaps['accepted']->toString());
     }
@@ -76,8 +76,8 @@ final class DbalSubscriberReaderTest extends UnitTestCase
 
     public function test_that_corrupt_oversized_context_and_unbounded_concurrent_churn_fail_instead_of_partial_statistics(): void
     {
-        $db = $this->database(); $store = new DbalSubscriptionStore($db); $selection = SubscriberSelection::create(['scope']); $access = SubscriberAccess::create(['scope']);
-        $store->open(self::id(1), self::id(99), self::context(), 100, 105);
+        $db = $this->database(); $subscriptionStore = new DbalSubscriptionStore($db); $selection = SubscriberSelection::create(['scope']); $access = SubscriberAccess::create(['scope']);
+        $subscriptionStore->open(self::id(1), self::id(99), self::context(), 100, 105);
         $reader = new DbalSubscriberReader($db, 'db', static fn () => 103);
         foreach (['{bad', str_repeat('x', 65537), '{}', '{"subscriber":"a","selection":false,"requested":{},"accepted":{}}'] as $context) {
             $db->executeStatement('UPDATE fight_mcp_subscriptions SET context = ?', [$context]);

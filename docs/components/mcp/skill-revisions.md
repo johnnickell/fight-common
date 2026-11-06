@@ -120,16 +120,16 @@ $revision = McpSkillRevision::fromFiles(
     resourceLimits: $metadataLimits,
     readLimits: $readLimits
 );
-$skillFiles = new McpSkillResources([$revision], $currentWholeSkillDecision, $psrStreamFactory);
-$resources = new McpResourceDiscovery(
-    [$skillFiles, ...$otherReadableProviders],
-    $currentResourceDecision,
+$skillResourceProvider = new McpSkillResources([$revision], $skillAvailability, $psrStreamFactory);
+$resourceDiscovery = new McpResourceDiscovery(
+    [$skillResourceProvider, ...$otherReadableProviders],
+    $resourceAvailability,
     $cursorSecret,
     'consumer-catalog',
     $metadataLimits,
     readLimits: $readLimits
 );
-// Register $resources once in the existing McpCapabilityRegistry / guarded McpRequestHandler.
+// Register $resourceDiscovery once in the existing McpCapabilityRegistry / guarded McpRequestHandler.
 ```
 
 A client can read `SKILL.md` and then just `references/guide.md`. Only each selected file gets a response stream;
@@ -188,14 +188,14 @@ use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscovery;
 use Fight\Common\Application\Mcp\Skill\McpSkillDiscoveryLimits;
 
-$skills = new McpSkillDiscovery(
-    $skillFiles,
-    $resources,
+$skillDiscovery = new McpSkillDiscovery(
+    $skillResourceProvider,
+    $resourceDiscovery,
     $dedicatedSkillsCursorSecret, // Stable secret of 32–4096 bytes, not an access credential.
     'consumer-skills',            // Nonempty catalog scope, at most 128 bytes.
     new McpSkillDiscoveryLimits(pageSize: 25)
 );
-$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$resources, $skills]);
+$registry = new McpCapabilityRegistry(new McpServerInfo('Consumer', '1'), [$resourceDiscovery, $skillDiscovery]);
 // Supply this registry to the existing guarded McpRequestHandler; retain all HTTP safeguards.
 ```
 

@@ -32,18 +32,25 @@ use Throwable;
  */
 final readonly class McpToolInvoker
 {
+    private ValidationService $validationService;
+    private McpToolFailureMap $toolFailureMap;
+    private ?McpToolMetadataFilter $toolMetadataFilter;
+
     /**
      * Constructs McpToolInvoker
      */
     public function __construct(
         private McpToolRegistry $registry,
         private McpToolAvailability $availability,
-        private ValidationService $validation = new ValidationService(),
-        private McpToolFailureMap $failures = new McpToolFailureMap(),
-        private ?McpToolMetadataFilter $metadata = null,
+        ValidationService $validation = new ValidationService(),
+        McpToolFailureMap $failures = new McpToolFailureMap(),
+        ?McpToolMetadataFilter $metadata = null,
         private ?McpToolInteraction $interaction = null,
-        private ?McpTasks $tasks = null
+        private ?McpTasks $taskCapability = null
     ) {
+        $this->validationService = $validation;
+        $this->toolFailureMap = $failures;
+        $this->toolMetadataFilter = $metadata;
     }
 
     /**
@@ -53,7 +60,7 @@ final readonly class McpToolInvoker
      */
     public function tasks(): ?McpTasks
     {
-        return $this->tasks;
+        return $this->taskCapability;
     }
 
     /**
@@ -117,7 +124,7 @@ final readonly class McpToolInvoker
         [$tool, $info] = $this->select($name);
         if ($tool instanceof McpTaskTool) {
             McpTasks::requireSupport($request);
-            if ($this->tasks === null) {
+            if ($this->taskCapability === null) {
                 throw new DomainException('Task Tools require explicit complete Tasks composition.');
             }
         }
@@ -147,7 +154,7 @@ final readonly class McpToolInvoker
         $attributes = new ReflectionMethod($tool, 'handle')->getAttributes(Validation::class);
         $rules = $attributes === [] ? [] : $attributes[0]->newInstance()->rules();
         try {
-            $validated = $this->validation->validate($input, $rules);
+            $validated = $this->validationService->validate($input, $rules);
         } catch (ValidationException) {
             // Rules may interpolate labels or supplied values; those diagnostics are not public-safe.
             return $this->error('Tool argument validation failed.');
@@ -234,7 +241,7 @@ final readonly class McpToolInvoker
             $confirmation
         );
         try {
-            return $this->metadata?->invoke($info, $invoke) ?? $invoke();
+            return $this->toolMetadataFilter?->invoke($info, $invoke) ?? $invoke();
         } catch (Throwable $throwable) {
             throw new DomainException('Tool execution failed.', 0, $throwable);
         }
@@ -291,7 +298,7 @@ final readonly class McpToolInvoker
                 $output = $tool->handle($validated, $progress);
             }
         } catch (Throwable $throwable) {
-            $message = $this->failures->messageFor($throwable);
+            $message = $this->toolFailureMap->messageFor($throwable);
             if ($message !== null) {
                 return $this->error($message);
             }
@@ -300,7 +307,7 @@ final readonly class McpToolInvoker
         }
 
         if ($output instanceof McpTaskHandle) {
-            return $this->tasks->created($output);
+            return $this->taskCapability->created($output);
         }
 
         if ($output instanceof McpInputRequired) {

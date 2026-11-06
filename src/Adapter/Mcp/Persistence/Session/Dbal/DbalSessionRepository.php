@@ -18,7 +18,7 @@ final readonly class DbalSessionRepository implements SessionRepository
     /**
      * Constructs DbalSessionRepository
      */
-    public function __construct(private DbalRecordingTransaction $transaction)
+    public function __construct(private DbalRecordingTransaction $recordingTransaction)
     {
     }
 
@@ -27,12 +27,12 @@ final readonly class DbalSessionRepository implements SessionRepository
      */
     public function getById(SessionId $id): ?Session
     {
-        $table = $this->transaction->tables()->sessionTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $table = $this->recordingTransaction->tables()->sessionTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
         $sql = 'SELECT project_id, session_id, consumer_reference FROM '.$table;
         $sql .= ' WHERE project_id = ? AND session_id = ?';
-        $row = $this->transaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->sessionId()]);
+        $row = $this->recordingTransaction->connection()->fetchAssociative($sql, [$id->projectId(), $id->sessionId()]);
 
         return $row === false ? null : new Session(SessionReference::fromArray($row));
     }
@@ -42,10 +42,10 @@ final readonly class DbalSessionRepository implements SessionRepository
      */
     public function add(Session $session): void
     {
-        $this->transaction->requireOwnedTransaction();
-        $table = $this->transaction->tables()->sessionTable()->quoted(
-            $this->transaction->connection()->getDatabasePlatform()
+        $this->recordingTransaction->requireOwnedTransaction();
+        $table = $this->recordingTransaction->tables()->sessionTable()->quoted(
+            $this->recordingTransaction->connection()->getDatabasePlatform()
         );
-        $this->transaction->connection()->insert($table, $session->reference()->toArray());
+        $this->recordingTransaction->connection()->insert($table, $session->reference()->toArray());
     }
 }

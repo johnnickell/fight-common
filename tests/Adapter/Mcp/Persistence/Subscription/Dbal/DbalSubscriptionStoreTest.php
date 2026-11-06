@@ -28,21 +28,21 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
 
     public function test_that_real_owned_registration_freshness_closure_and_cleanup_never_resurrect_or_touch_other_owners(): void
     {
-        $db = $this->database(); $store = new DbalSubscriptionStore($db);
-        $store->open(self::ID, self::OWNER, self::context(), 100, 105);
-        $store->heartbeat(self::ID, self::OWNER, 101, 106);
-        $store->heartbeat(self::ID, self::OWNER, 101, 106);
-        $store->close(self::ID, str_repeat('3', 32), 102);
+        $db = $this->database(); $subscriptionStore = new DbalSubscriptionStore($db);
+        $subscriptionStore->open(self::ID, self::OWNER, self::context(), 100, 105);
+        $subscriptionStore->heartbeat(self::ID, self::OWNER, 101, 106);
+        $subscriptionStore->heartbeat(self::ID, self::OWNER, 101, 106);
+        $subscriptionStore->close(self::ID, str_repeat('3', 32), 102);
         self::assertSame(0, (int) $db->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
-        $store->close(self::ID, self::OWNER, 102);
-        $store->close(self::ID, self::OWNER, 103);
+        $subscriptionStore->close(self::ID, self::OWNER, 102);
+        $subscriptionStore->close(self::ID, self::OWNER, 103);
         self::assertSame(102, (int) $db->fetchOne('SELECT closed_at FROM fight_mcp_subscriptions'));
-        try { $store->heartbeat(self::ID, self::OWNER, 103, 108); self::fail('Closed'); } catch (RuntimeException) { self::assertTrue(true); }
+        try { $subscriptionStore->heartbeat(self::ID, self::OWNER, 103, 108); self::fail('Closed'); } catch (RuntimeException) { self::assertTrue(true); }
         self::assertSame(1, (new DbalSubscriptionStore($db))->cleanup(103, 1));
         self::assertSame(0, (new DbalSubscriptionStore($db))->cleanup(103, 1));
-        $store = new DbalSubscriptionStore($db);
-        $store->open(self::ID, self::OWNER, self::context(), 104, 109);
-        try { $store->heartbeat(self::ID, self::OWNER, 109, 114); self::fail('Expired'); } catch (RuntimeException) { self::assertTrue(true); }
+        $subscriptionStore = new DbalSubscriptionStore($db);
+        $subscriptionStore->open(self::ID, self::OWNER, self::context(), 104, 109);
+        try { $subscriptionStore->heartbeat(self::ID, self::OWNER, 109, 114); self::fail('Expired'); } catch (RuntimeException) { self::assertTrue(true); }
         self::assertSame(1, (new DbalSubscriptionStore($db))->cleanup(109, 256));
         self::assertFalse($db->isTransactionActive());
     }
@@ -57,9 +57,9 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         }
         foreach ([[0, 1], [2147483648, 1], [100, 0], [100, 257]] as $args) { try { (new DbalSubscriptionStore($db))->cleanup(...$args); self::fail('Cleanup'); } catch (LogicException) { self::assertTrue(true); } }
         try { (new DbalSubscriptionStore($db))->open(self::ID, self::OWNER, array_replace(self::context(), ['requested' => ['huge' => str_repeat('x', 65536)]]), 100, 105); self::fail('Context'); } catch (RuntimeException) { self::assertTrue(true); }
-        $store = new DbalSubscriptionStore($db, 1); $store->open(self::ID, self::OWNER, self::context(), 100, 105);
-        try { $store->open(str_repeat('3', 32), self::OWNER, self::context(), 100, 105); self::fail('Capacity'); } catch (RuntimeException) { self::assertTrue(true); }
-        try { $store->cleanup(100, 1); self::fail('Failed store'); } catch (LogicException) { self::assertTrue(true); }
+        $subscriptionStore = new DbalSubscriptionStore($db, 1); $subscriptionStore->open(self::ID, self::OWNER, self::context(), 100, 105);
+        try { $subscriptionStore->open(str_repeat('3', 32), self::OWNER, self::context(), 100, 105); self::fail('Capacity'); } catch (RuntimeException) { self::assertTrue(true); }
+        try { $subscriptionStore->cleanup(100, 1); self::fail('Failed store'); } catch (LogicException) { self::assertTrue(true); }
         $db->beginTransaction();
         try { (new DbalSubscriptionStore($db))->cleanup(100, 1); self::fail('Caller transaction'); } catch (LogicException) { self::assertTrue($db->isTransactionActive()); }
         $db->rollBack(); self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
@@ -69,11 +69,11 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
 
     public function test_that_total_capacity_is_bounded_even_when_abandoned_rows_are_no_longer_fresh(): void
     {
-        $db = $this->database(); $store = new DbalSubscriptionStore($db);
+        $db = $this->database(); $subscriptionStore = new DbalSubscriptionStore($db);
         $db->beginTransaction();
         for ($i = 0; $i < 4096; ++$i) { $db->insert('fight_mcp_subscriptions', ['registration_id' => str_pad(dechex($i), 32, '0', STR_PAD_LEFT), 'owner' => self::OWNER, 'context' => '{}', 'opened_at' => 1, 'observed_at' => 1, 'expires_at' => 2, 'closed_at' => 0]); }
         $db->commit();
-        try { $store->open(self::ID, self::OWNER, self::context(), 100, 105); self::fail('Total capacity'); } catch (RuntimeException) { self::assertTrue(true); }
+        try { $subscriptionStore->open(self::ID, self::OWNER, self::context(), 100, 105); self::fail('Total capacity'); } catch (RuntimeException) { self::assertTrue(true); }
         self::assertSame(256, (new DbalSubscriptionStore($db))->cleanup(100, 256));
         (new DbalSubscriptionStore($db))->open(self::ID, self::OWNER, self::context(), 100, 105);
         self::assertSame(3841, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
@@ -90,8 +90,8 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
             $db->shouldReceive('fetchOne')->andReturn(1, $failure === 'noop' ? self::ID : false);
             $db->shouldReceive('commit')->andReturnUsing(static function () use ($failure): void { if ($failure !== 'noop') { throw new RuntimeException('commit'); } });
             $db->shouldReceive('rollBack')->andReturnUsing(static function () use ($failure): void { if ($failure === 'rollback') { throw new RuntimeException('rollback'); } });
-            $store = new DbalSubscriptionStore($db);
-            try { $store->heartbeat(self::ID, self::OWNER, 100, 105); self::assertSame('noop', $failure); } catch (RuntimeException) { self::assertNotSame('noop', $failure); }
+            $subscriptionStore = new DbalSubscriptionStore($db);
+            try { $subscriptionStore->heartbeat(self::ID, self::OWNER, 100, 105); self::assertSame('noop', $failure); } catch (RuntimeException) { self::assertNotSame('noop', $failure); }
         }
     }
 
@@ -105,7 +105,7 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         try { $schema->install($db); self::fail('Version'); } catch (RuntimeException) { self::assertTrue(true); }
         $db->executeStatement('DROP TABLE fight_mcp_subscriptions');
         try { $schema->install($db); self::fail('Partial'); } catch (RuntimeException) { self::assertTrue(true); }
-        $manager = $this->database()->createSchemaManager(); $model = $manager->introspectSchema();
+        $schemaManager = $this->database()->createSchemaManager(); $model = $schemaManager->introspectSchema();
         foreach (DbalSubscriptionSchema::TABLES as $table) { $model->dropTable($table); }
         $schema->addTo($model, new MySQL84Platform());
         self::assertSame('InnoDB', $model->getTable('fight_mcp_subscriptions')->getOption('engine'));
@@ -121,10 +121,10 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         $db = DriverManager::getConnection($params);
         $db->executeStatement('PRAGMA busy_timeout = 7000');
         (new DbalSubscriptionSchema())->install($db);
-        $store = new DbalSubscriptionStore($db);
+        $subscriptionStore = new DbalSubscriptionStore($db);
         // A non-host epoch is supported: advance the supplied clock, do not replace it with time().
         $oldExpiry = $mode === 'fast' ? 105 : 101;
-        $store->open(self::ID, self::OWNER, self::context(), 100, $oldExpiry);
+        $subscriptionStore->open(self::ID, self::OWNER, self::context(), 100, $oldExpiry);
         $worker = new Process([PHP_BINARY, 'tests/Fixture/Mcp/subscription-lock-worker.php', $directory, (string) $hold], dirname(__DIR__, 6));
         try {
             $worker->start();
@@ -133,7 +133,7 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
             self::assertFileExists($directory.'/lock-ready', $worker->getErrorOutput());
             $started = time();
             $failure = null;
-            try { $store->heartbeat(self::ID, self::OWNER, 100, 105); } catch (RuntimeException $error) { $failure = $error; }
+            try { $subscriptionStore->heartbeat(self::ID, self::OWNER, 100, 105); } catch (RuntimeException $error) { $failure = $error; }
             $returned = time();
             self::assertSame(0, $worker->wait(), $worker->getErrorOutput());
             $locked = json_decode(file_get_contents($directory.'/locked-state.json'), true, flags: JSON_THROW_ON_ERROR);

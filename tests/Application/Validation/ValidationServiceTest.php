@@ -27,9 +27,9 @@ class ValidationServiceTest extends UnitTestCase
 {
     public function test_that_constructing_without_coordinator_creates_one_internally(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
-        $result = $service->validate(
+        $result = $validationService->validate(
             ['name' => 'Alice'],
             [['field' => 'name', 'label' => 'Name', 'rules' => 'alpha']]
         );
@@ -50,17 +50,17 @@ class ValidationServiceTest extends UnitTestCase
             }
         });
 
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
 
         $this->expectException(ValidationException::class);
-        $service->validate([], []);
+        $validationService->validate([], []);
     }
 
     public function test_that_validate_returns_application_data_when_all_rules_pass(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
-        $result = $service->validate(
+        $result = $validationService->validate(
             ['email' => 'user@example.com'],
             [['field' => 'email', 'label' => 'Email', 'rules' => 'email']]
         );
@@ -71,9 +71,9 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_returned_application_data_contains_all_input_values(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
-        $result = $service->validate(
+        $result = $validationService->validate(
             ['name' => 'Alice', 'age' => 30],
             [['field' => 'name', 'label' => 'Name', 'rules' => 'alpha']]
         );
@@ -84,11 +84,11 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_validation_exception_when_rules_fail(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(ValidationException::class);
 
-        $service->validate(
+        $validationService->validate(
             ['email' => 'not-an-email'],
             [['field' => 'email', 'label' => 'Email', 'rules' => 'email']]
         );
@@ -96,10 +96,10 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_validation_exception_with_correct_field_errors(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         try {
-            $service->validate(
+            $validationService->validate(
                 ['email' => 'not-an-email'],
                 [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']]
             );
@@ -112,8 +112,8 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_add_validator_registers_a_custom_validator_implementation(): void
     {
-        $service = new ValidationService();
-        $service->addValidator(new class implements Validator {
+        $validationService = new ValidationService();
+        $validationService->addValidator(new class implements Validator {
             public function validate(ValidationContext $context): bool
             {
                 $context->addError('custom', 'Custom validator failed');
@@ -124,7 +124,7 @@ class ValidationServiceTest extends UnitTestCase
 
         $this->expectException(ValidationException::class);
 
-        $service->validate(
+        $validationService->validate(
             ['name' => 'Alice'],
             [['field' => 'name', 'label' => 'Name', 'rules' => 'alpha']]
         );
@@ -135,7 +135,7 @@ class ValidationServiceTest extends UnitTestCase
     public function test_that_validator_failure_preserves_throwable_and_isolates_service_reuse(string $failureClass): void
     {
         $coordinator = new ValidationCoordinator();
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
         $cause = new Error('Original cause');
         $failure = new $failureClass('Validator failed', 31, $cause);
         $throwing = $this->mock(Validator::class);
@@ -143,11 +143,11 @@ class ValidationServiceTest extends UnitTestCase
         $skipped = $this->mock(Validator::class);
         $skipped->shouldNotReceive('validate');
         $coordinator->addRequiredValidation('missing', 'Old error');
-        $service->addValidator($throwing);
-        $service->addValidator($skipped);
+        $validationService->addValidator($throwing);
+        $validationService->addValidator($skipped);
 
         try {
-            $service->validate([], [['field' => 'old', 'label' => 'Old', 'rules' => 'required']]);
+            $validationService->validate([], [['field' => 'old', 'label' => 'Old', 'rules' => 'required']]);
             self::fail('Expected validator failure');
         } catch (Throwable $caught) {
             self::assertSame($failure, $caught);
@@ -155,7 +155,7 @@ class ValidationServiceTest extends UnitTestCase
             self::assertSame($cause, $caught->getPrevious());
         }
 
-        self::assertSame(['new' => 'input'], $service->validate(['new' => 'input'], [])->toArray());
+        self::assertSame(['new' => 'input'], $validationService->validate(['new' => 'input'], [])->toArray());
         self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
 
         $custom = $this->mock(Validator::class);
@@ -163,12 +163,12 @@ class ValidationServiceTest extends UnitTestCase
         $coordinator->addValidator($custom);
         self::assertSame(
             ['email' => 'new@example.com'],
-            $service->validate(
+            $validationService->validate(
                 ['email' => 'new@example.com'],
                 [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']]
             )->toArray()
         );
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
     }
 
     #[DataProvider('preparationFailures')]
@@ -179,33 +179,33 @@ class ValidationServiceTest extends UnitTestCase
         string $message
     ): void {
         $coordinator = new ValidationCoordinator();
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
         $skipped = $this->mock(Validator::class);
         $skipped->shouldNotReceive('validate');
-        $service->addValidator($skipped);
+        $validationService->addValidator($skipped);
         $coordinator->addRequiredValidation('old', 'Old error');
 
         $caught = null;
         try {
-            $service->validate($input, $rules);
+            $validationService->validate($input, $rules);
         } catch (Throwable $failure) {
             $caught = $failure;
         }
 
         self::assertInstanceOf($failureClass, $caught);
         self::assertStringContainsString($message, $caught->getMessage());
-        self::assertSame(['fresh' => 'value'], $service->validate(['fresh' => 'value'], [])->toArray());
+        self::assertSame(['fresh' => 'value'], $validationService->validate(['fresh' => 'value'], [])->toArray());
         self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
 
         // The injected coordinator must still be the service's registration boundary.
         $coordinator->addRequiredValidation('current', 'Current error');
         try {
-            $service->validate([], []);
+            $validationService->validate([], []);
             self::fail('Expected current validation error');
         } catch (ValidationException $failure) {
             self::assertSame(['current' => ['Current error']], $failure->getErrors());
         }
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
     }
 
     public static function preparationFailures(): iterable
@@ -233,9 +233,9 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_partial_rule_registration_is_discarded_after_preparation_failure(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
         try {
-            $service->validate([], [[
+            $validationService->validate([], [[
                 'field' => 'prepared',
                 'label' => 'Prepared',
                 'rules' => 'required|type',
@@ -247,27 +247,27 @@ class ValidationServiceTest extends UnitTestCase
         }
 
         // The preceding required rule was registered before addTypeValidation rejected its arguments.
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
     }
 
     public function test_that_normal_service_results_and_errors_remain_isolated_on_reuse(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
         $rules = [['field' => 'email', 'label' => 'Email', 'rules' => 'required|email']];
 
         self::assertSame(
             ['email' => 'user@example.com', 'extra' => 42],
-            $service->validate(['email' => 'user@example.com', 'extra' => 42], $rules)->toArray()
+            $validationService->validate(['email' => 'user@example.com', 'extra' => 42], $rules)->toArray()
         );
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
 
         $coordinator = new ValidationCoordinator();
         $coordinator->addNotBlankValidation('email', 'Email cannot be blank');
         $coordinator->addEmailValidation('email', 'Email must be valid');
         $coordinator->addRequiredValidation('name', 'Name is required');
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
         try {
-            $service->validate(['email' => ''], []);
+            $validationService->validate(['email' => ''], []);
             self::fail('Expected accumulated validation errors');
         } catch (ValidationException $failure) {
             self::assertSame([
@@ -276,9 +276,9 @@ class ValidationServiceTest extends UnitTestCase
             ], $failure->getErrors());
         }
 
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
         try {
-            $service->validate([], [['field' => 'new', 'label' => 'New', 'rules' => 'required']]);
+            $validationService->validate([], [['field' => 'new', 'label' => 'New', 'rules' => 'required']]);
             self::fail('Expected only the newly registered rule');
         } catch (ValidationException $failure) {
             self::assertSame(['new' => ['New is required']], $failure->getErrors());
@@ -307,20 +307,20 @@ class ValidationServiceTest extends UnitTestCase
         );
         self::assertTrue($coordinator->validate(new InputData([]))->isPassed());
 
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
         $ruleName = explode('[', $rule)[0];
         $rules = [[
             'field' => 'value', 'label' => 'Value', 'rules' => $rule,
             'errors' => [$ruleName => '%s rejected']
         ]];
-        self::assertSame($passing, $service->validate($passing, $rules)->toArray());
+        self::assertSame($passing, $validationService->validate($passing, $rules)->toArray());
         try {
-            $service->validate($failing, $rules);
+            $validationService->validate($failing, $rules);
             self::fail('Expected declared validation error');
         } catch (ValidationException $failure) {
             self::assertSame(['value' => ['Value rejected']], $failure->getErrors());
         }
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
     }
 
     public static function ruleExamples(): iterable
@@ -347,13 +347,13 @@ class ValidationServiceTest extends UnitTestCase
                 self::assertSame(['value' => ['Comparison failed']], $result->getErrors()->toArray());
             }
 
-            $service = new ValidationService($coordinator);
+            $validationService = new ValidationService($coordinator);
             $rules = [[
                 'field' => 'value', 'label' => 'Value', 'rules' => $rule.'[other]',
                 'errors' => [$rule => 'Comparison failed']
             ]];
             try {
-                $data = $service->validate($input, $rules);
+                $data = $validationService->validate($input, $rules);
                 self::assertTrue($passed);
                 self::assertSame($input, $data->toArray());
             } catch (ValidationException $failure) {
@@ -367,7 +367,7 @@ class ValidationServiceTest extends UnitTestCase
     {
         $coordinator = new ValidationCoordinator();
         $coordinator->addRequiredValidation(fieldName: 'custom', errorMessage: 'Custom first');
-        $service = new ValidationService($coordinator);
+        $validationService = new ValidationService($coordinator);
         $rules = [
             [
                 'field' => 'value', 'label' => 'Value',
@@ -378,7 +378,7 @@ class ValidationServiceTest extends UnitTestCase
             ['field' => 'value', 'label' => 'Value', 'rules' => 'not_blank']
         ];
         try {
-            $service->validate(['value' => ''], $rules);
+            $validationService->validate(['value' => ''], $rules);
             self::fail('Expected accumulated errors');
         } catch (ValidationException $failure) {
             self::assertSame([
@@ -387,17 +387,17 @@ class ValidationServiceTest extends UnitTestCase
                 'other' => ['Other is required']
             ], $failure->getErrors());
         }
-        self::assertSame([], $service->validate([], [])->toArray());
+        self::assertSame([], $validationService->validate([], [])->toArray());
     }
 
     public function test_that_validate_rejects_an_unsupported_rule_name(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Unsupported rule name: unknown');
 
-        $service->validate(
+        $validationService->validate(
             ['name' => 'Alice'],
             [['field' => 'name', 'label' => 'Name', 'rules' => 'unknown']]
         );
@@ -405,20 +405,20 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_domain_exception_when_rule_entry_is_not_an_array(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate([], ['not-an-array']);
+        $validationService->validate([], ['not-an-array']);
     }
 
     public function test_that_validate_throws_domain_exception_when_rule_is_missing_field_key(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate(
+        $validationService->validate(
             [],
             [['label' => 'Name', 'rules' => 'required']]
         );
@@ -426,11 +426,11 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_domain_exception_when_rule_is_missing_label_key(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate(
+        $validationService->validate(
             [],
             [['field' => 'name', 'rules' => 'required']]
         );
@@ -438,11 +438,11 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_domain_exception_when_rule_is_missing_rules_key(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate(
+        $validationService->validate(
             [],
             [['field' => 'name', 'label' => 'Name']]
         );
@@ -450,11 +450,11 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_domain_exception_when_rule_field_value_is_not_a_string(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate(
+        $validationService->validate(
             ['name' => 'Alice'],
             [['field' => 123, 'label' => 'Name', 'rules' => 'alpha']]
         );
@@ -462,10 +462,10 @@ class ValidationServiceTest extends UnitTestCase
 
     public function test_that_validate_throws_domain_exception_when_input_has_non_string_key(): void
     {
-        $service = new ValidationService();
+        $validationService = new ValidationService();
 
         $this->expectException(DomainException::class);
 
-        $service->validate([0 => 'value'], []);
+        $validationService->validate([0 => 'value'], []);
     }
 }

@@ -16,12 +16,12 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(StorageService::class)]
 class StorageServiceTest extends UnitTestCase
 {
-    private StorageService $service;
+    private StorageService $storageService;
 
     #[Override]
     protected function setUp(): void
     {
-        $this->service = new StorageService();
+        $this->storageService = new StorageService();
     }
 
     public function test_that_add_storage_registers_file_storage_under_given_name(): void
@@ -29,20 +29,20 @@ class StorageServiceTest extends UnitTestCase
         /** @var MockInterface|FileStorage $storage */
         $storage = $this->mock(FileStorage::class);
 
-        $this->service->addStorage('s3', $storage);
+        $this->storageService->addStorage('s3', $storage);
 
-        self::assertSame($storage, $this->service->getStorage('s3'));
+        self::assertSame($storage, $this->storageService->getStorage('s3'));
     }
 
     public function test_that_add_storage_throws_duplicate_storage_exception_for_duplicate_name(): void
     {
         /** @var MockInterface|FileStorage $storage */
         $storage = $this->mock(FileStorage::class);
-        $this->service->addStorage('s3', $storage);
+        $this->storageService->addStorage('s3', $storage);
 
         self::expectException(DuplicateStorageException::class);
 
-        $this->service->addStorage('s3', $storage);
+        $this->storageService->addStorage('s3', $storage);
     }
 
     public function test_that_get_storage_returns_correct_file_storage_instance(): void
@@ -52,18 +52,18 @@ class StorageServiceTest extends UnitTestCase
         /** @var MockInterface|FileStorage $local */
         $local = $this->mock(FileStorage::class);
 
-        $this->service->addStorage('s3', $s3);
-        $this->service->addStorage('local', $local);
+        $this->storageService->addStorage('s3', $s3);
+        $this->storageService->addStorage('local', $local);
 
-        self::assertSame($local, $this->service->getStorage('local'));
-        self::assertSame($s3, $this->service->getStorage('s3'));
+        self::assertSame($local, $this->storageService->getStorage('local'));
+        self::assertSame($s3, $this->storageService->getStorage('s3'));
     }
 
     public function test_that_get_storage_throws_storage_not_found_exception_for_unregistered_name(): void
     {
         self::expectException(StorageNotFoundException::class);
 
-        $this->service->getStorage('unknown');
+        $this->storageService->getStorage('unknown');
     }
 
     public function test_that_copy_storage_to_storage_delegates_to_source_and_destination(): void
@@ -83,10 +83,10 @@ class StorageServiceTest extends UnitTestCase
             ->once()
             ->with('uploads/photo.jpg', $resource);
 
-        $this->service->addStorage('source', $source);
-        $this->service->addStorage('destination', $destination);
+        $this->storageService->addStorage('source', $source);
+        $this->storageService->addStorage('destination', $destination);
 
-        $this->service->copyStorageToStorage('source', 'images/photo.jpg', 'destination', 'uploads/photo.jpg');
+        $this->storageService->copyStorageToStorage('source', 'images/photo.jpg', 'destination', 'uploads/photo.jpg');
     }
 
     public function test_that_move_storage_to_storage_delegates_to_source_and_destination_and_removes_source(): void
@@ -110,9 +110,9 @@ class StorageServiceTest extends UnitTestCase
             ->once()
             ->with('images/photo.jpg');
 
-        $this->service->addStorage('source', $source);
-        $this->service->addStorage('destination', $destination);
+        $this->storageService->addStorage('source', $source);
+        $this->storageService->addStorage('destination', $destination);
 
-        $this->service->moveStorageToStorage('source', 'images/photo.jpg', 'destination', 'uploads/photo.jpg');
+        $this->storageService->moveStorageToStorage('source', 'images/photo.jpg', 'destination', 'uploads/photo.jpg');
     }
 }

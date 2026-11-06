@@ -14,11 +14,14 @@ use Throwable;
  */
 final readonly class MetricsQueryFilter implements QueryFilter
 {
+    private MetricsCollector $metricsCollector;
+
     /**
      * Constructs MetricsQueryFilter
      */
-    public function __construct(private MetricsCollector $metrics)
+    public function __construct(MetricsCollector $metrics)
     {
+        $this->metricsCollector = $metrics;
     }
 
     /**
@@ -26,19 +29,19 @@ final readonly class MetricsQueryFilter implements QueryFilter
      */
     public function process(QueryMessage $queryMessage, callable $next): void
     {
-        $type = $queryMessage->payloadType()->toClassName();
-        $tags = ['type' => $type];
-        $start = hrtime(true);
+        $queryClass = $queryMessage->payloadType()->toClassName();
+        $tags = ['type' => $queryClass];
+        $startedAtNanoseconds = hrtime(true);
 
         try {
             $next($queryMessage);
-            $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('query.executed', $tags);
-            $this->metrics->histogram('query.latency_ms', $elapsed, $tags);
+            $elapsedMilliseconds = (hrtime(true) - $startedAtNanoseconds) / 1e6;
+            $this->metricsCollector->increment('query.executed', $tags);
+            $this->metricsCollector->histogram('query.latency_ms', $elapsedMilliseconds, $tags);
         } catch (Throwable $throwable) {
-            $elapsed = (hrtime(true) - $start) / 1e6;
-            $this->metrics->increment('query.failed', $tags + ['exception' => $throwable::class]);
-            $this->metrics->histogram('query.latency_ms', $elapsed, $tags);
+            $elapsedMilliseconds = (hrtime(true) - $startedAtNanoseconds) / 1e6;
+            $this->metricsCollector->increment('query.failed', $tags + ['exception' => $throwable::class]);
+            $this->metricsCollector->histogram('query.latency_ms', $elapsedMilliseconds, $tags);
             throw $throwable;
         }
     }

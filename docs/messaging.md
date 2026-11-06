@@ -279,12 +279,12 @@ Two implementations:
 
 ```php-inline
 // InMemory — useful in tests
-$router = new InMemoryCommandRouter();
-$router->registerHandler(RegisterUserCommand::class, $handler);
+$commandRouter = new InMemoryCommandRouter();
+$commandRouter->registerHandler(RegisterUserCommand::class, $handler);
 
 // ServiceAware — production with DI
-$router = new ServiceAwareCommandRouter($container);
-$router->registerHandler(RegisterUserCommand::class, 'app.handler.register_user');
+$commandRouter = new ServiceAwareCommandRouter($container);
+$commandRouter->registerHandler(RegisterUserCommand::class, 'app.handler.register_user');
 ```
 
 **`RoutingCommandBus`** — sync bus that delegates to the router:
@@ -386,8 +386,8 @@ final readonly class RegisterUserCommand implements Command
 class RegisterUserHandler implements CommandHandler
 {
     public function __construct(
-        private UserRepository $users,
-        private SynchronousEventDispatcher $events,
+        private UserRepository $userRepository,
+        private SynchronousEventDispatcher $eventDispatcher,
     ) {}
 
     public static function commandRegistration(): string
@@ -399,9 +399,9 @@ class RegisterUserHandler implements CommandHandler
     {
         $command = $commandMessage->payload();
         $user = User::register($command->email(), $command->name());
-        $this->users->save($user);
+        $this->userRepository->save($user);
 
-        $this->events->trigger(new UserRegisteredEvent($user->id()));
+        $this->eventDispatcher->trigger(new UserRegisteredEvent($user->id()));
     }
 }
 ```
@@ -495,7 +495,7 @@ final readonly class GetUserQuery implements Query
 
 class GetUserHandler implements QueryHandler
 {
-    public function __construct(private UserRepository $users) {}
+    public function __construct(private UserRepository $userRepository) {}
 
     public static function queryRegistration(): string
     {
@@ -505,7 +505,7 @@ class GetUserHandler implements QueryHandler
     public function handle(QueryMessage $queryMessage): mixed
     {
         $query = $queryMessage->payload();
-        return $this->users->find($query->userId());
+        return $this->userRepository->find($query->userId());
     }
 }
 ```
@@ -604,21 +604,21 @@ type, sorted by priority (highest first). `dispatch()` calls handlers for the sp
 type, then handlers registered for `AllEvents`.
 
 ```php-inline
-$dispatcher = new SimpleEventDispatcher();
-$dispatcher->register($subscriber);
-$dispatcher->addHandler(UserRegisteredEvent::class, $callable, 10);
-$dispatcher->trigger(new UserRegisteredEvent($userId));
+$eventDispatcher = new SimpleEventDispatcher();
+$eventDispatcher->register($subscriber);
+$eventDispatcher->addHandler(UserRegisteredEvent::class, $callable, 10);
+$eventDispatcher->trigger(new UserRegisteredEvent($userId));
 ```
 
 **`ServiceAwareEventDispatcher`** — extends `SimpleEventDispatcher`. Accepts service IDs
 instead of concrete instances. Lazy-loads handlers from the container on first dispatch:
 
 ```php-inline
-$dispatcher = new ServiceAwareEventDispatcher($container);
-$dispatcher->registerService(UserRegisteredEvent::class, 'app.subscriber.send_welcome_email');
+$eventDispatcher = new ServiceAwareEventDispatcher($container);
+$eventDispatcher->registerService(UserRegisteredEvent::class, 'app.subscriber.send_welcome_email');
 
 // On dispatch, loads 'app.subscriber.send_welcome_email' from container
-$dispatcher->trigger(new UserRegisteredEvent($userId));
+$eventDispatcher->trigger(new UserRegisteredEvent($userId));
 ```
 
 ### Async Adapter
@@ -719,8 +719,8 @@ class LoggingQueryFilter implements QueryFilter
 use Fight\Common\Adapter\Messaging\Command\Sync\CommandPipeline;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 
-$bus     = new RoutingCommandBus($router);
-$pipeline = new CommandPipeline($bus);
+$commandBus = new RoutingCommandBus($commandRouter);
+$pipeline = new CommandPipeline($commandBus);
 
 $pipeline->addFilter(new LoggingCommandFilter());
 $pipeline->addFilter(new ValidationCommandFilter());
@@ -1202,18 +1202,18 @@ use Fight\Common\Application\Messaging\Event\SynchronousEventDispatcher;
 class RegisterUserHandler implements CommandHandler
 {
     public function __construct(
-        private UserRepository $users,
-        private SynchronousEventDispatcher $events,
+        private UserRepository $userRepository,
+        private SynchronousEventDispatcher $eventDispatcher,
     ) {}
 
     public function handle(CommandMessage $commandMessage): void
     {
         $command = $commandMessage->payload();
         $user    = User::register($command->email(), $command->name());
-        $this->users->save($user);
+        $this->userRepository->save($user);
 
         // In async setups, use AsynchronousEventDispatcher here instead
-        $this->events->trigger(new UserRegisteredEvent($user->id()));
+        $this->eventDispatcher->trigger(new UserRegisteredEvent($user->id()));
     }
 }
 ```

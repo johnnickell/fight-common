@@ -19,7 +19,7 @@ final class NoticeInspectionFixture implements NoticeReadAdmission
 {
     public NoticeAccess $access;
     public int $admissions = 0;
-    public readonly RoutingQueryBus $bus;
+    public readonly RoutingQueryBus $queryBus;
 
     public function __construct(Connection $connection)
     {
@@ -28,7 +28,7 @@ final class NoticeInspectionFixture implements NoticeReadAdmission
         foreach ([SummarizeNoticesHandler::class, ListNoticesHandler::class, GetNoticeHandler::class] as $class) {
             $router->registerHandler($class::queryRegistration(), new $class($this, $reader));
         }
-        $this->bus = new RoutingQueryBus($router);
+        $this->queryBus = new RoutingQueryBus($router);
     }
 
     public function currentAccess(NoticeSelection $selection): NoticeAccess { ++$this->admissions; return $this->access; }

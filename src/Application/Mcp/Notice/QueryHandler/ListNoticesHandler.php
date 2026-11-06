@@ -21,8 +21,10 @@ final readonly class ListNoticesHandler implements QueryHandler
     /**
      * Constructs ListNoticesHandler
      */
-    public function __construct(private NoticeReadAdmission $admission, private NoticeReader $reader)
-    {
+    public function __construct(
+        private NoticeReadAdmission $noticeReadAdmission,
+        private NoticeReader $noticeReader
+    ) {
     }
 
     /**
@@ -43,9 +45,9 @@ final readonly class ListNoticesHandler implements QueryHandler
          */
         $query = $queryMessage->payload();
         try {
-            $access = $this->admission->currentAccess($query->selection());
+            $access = $this->noticeReadAdmission->currentAccess($query->selection());
 
-            return $this->reader->list($query, $access);
+            return $this->noticeReader->list($query, $access);
         } catch (Throwable $throwable) {
             throw new NoticeReadFailed($throwable);
         }
