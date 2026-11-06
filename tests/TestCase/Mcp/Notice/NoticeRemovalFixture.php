@@ -6,6 +6,7 @@ namespace Fight\Test\Common\TestCase\Mcp\Notice;
 
 use Closure;
 use Doctrine\DBAL\Connection;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
 use Fight\Common\Application\Mcp\Notice\CommandHandler\RemoveNoticesHandler;
@@ -26,9 +27,9 @@ final class NoticeRemovalFixture implements NoticeRemovalAdmission
     public readonly NoticeFixture $recording;
     public readonly RoutingCommandBus $commandBus;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
     {
-        $this->recording = new NoticeFixture($connection);
+        $this->recording = new NoticeFixture($connection, $tables);
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RemoveNotices::class, new RemoveNoticesHandler(new NoticeRemover(
             $this->recording->noticeRepository, $this->recording->transactionalUnitOfWork, $this

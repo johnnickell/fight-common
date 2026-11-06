@@ -33,16 +33,14 @@ use Throwable;
 final readonly class DbalNoticeReader implements NoticeReader
 {
     private const int BATCH_SIZE = 100;
-    private const string SELECT = <<<'SQL'
-        SELECT n.position, n.scope, n.producer, n.notice_id, n.recorded_at, n.payload, r.payload AS relationships
-        FROM fight_notices n LEFT JOIN fight_notice_relationships r ON r.position = n.position
-        SQL;
 
     /**
      * Constructs DbalNoticeReader
      */
-    public function __construct(private Connection $connection)
-    {
+    public function __construct(
+        private Connection $connection,
+        private DbalNoticeTables $tables = new DbalNoticeTables()
+    ) {
         $platform = $connection->getDatabasePlatform();
         if (
             !$platform instanceof SQLitePlatform && !$platform instanceof AbstractMySQLPlatform
@@ -142,7 +140,16 @@ final readonly class DbalNoticeReader implements NoticeReader
         $afterPosition = 0;
         $operator = $direction === 'ASC' ? '>' : '<';
         do {
-            $sql = self::SELECT.' WHERE '.$where;
+            $platform = $this->connection->getDatabasePlatform();
+            $sql = sprintf(
+                <<<'SQL'
+                    SELECT n.position, n.scope, n.producer, n.notice_id, n.recorded_at, n.payload,
+                        r.payload AS relationships FROM %s n LEFT JOIN %s r ON r.position = n.position WHERE %s
+                    SQL,
+                $this->tables->noticeTable()->quoted($platform),
+                $this->tables->relationshipTable()->quoted($platform),
+                $where
+            );
             $batchParameters = $parameters;
             if ($afterTime !== null) {
                 $sql .= ' AND (n.recorded_at '.$operator.' ? OR (n.recorded_at = ? AND n.position '.$operator.' ?))';

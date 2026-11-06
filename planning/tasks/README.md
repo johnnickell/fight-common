@@ -102,7 +102,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00197](00197-TASK.md) | Record executions in configurable tables | done | [TICKET-00054](../tickets/00054-TICKET.md) |
 | [TASK-00198](00198-TASK.md) | Inspect and remove captured detail from configurable execution storage | done | [TICKET-00054](../tickets/00054-TICKET.md) |
 | [TASK-00199](00199-TASK.md) | Configure durable Task storage | done | [TICKET-00055](../tickets/00055-TICKET.md) |
-| [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | in-progress | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |

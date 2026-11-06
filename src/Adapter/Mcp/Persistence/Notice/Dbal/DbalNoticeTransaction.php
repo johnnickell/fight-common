@@ -31,8 +31,10 @@ final class DbalNoticeTransaction implements TransactionalUnitOfWork
     /**
      * Constructs DbalNoticeTransaction
      */
-    public function __construct(private readonly Connection $connection)
-    {
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly DbalNoticeTables $tables = new DbalNoticeTables()
+    ) {
         $this->transactionalUnitOfWork = new DbalTransactionalUnitOfWork($connection);
         $platform = $connection->getDatabasePlatform();
         if (
@@ -70,13 +72,14 @@ final class DbalNoticeTransaction implements TransactionalUnitOfWork
                 &$operationStarted
             ): mixed {
                 $operationStarted = true;
+                $stateTable = $this->tables->stateTable()->quoted($this->connection->getDatabasePlatform());
                 // Serialize before identity reads and hold allocation and loss evidence through actual commit.
                 $this->connection->executeStatement(
-                    'UPDATE fight_notice_state SET last_position = last_position WHERE singleton = 1'
+                    'UPDATE '.$stateTable.' SET last_position = last_position WHERE singleton = 1'
                 );
                 if (
                     (int) $this->connection->fetchOne(
-                        'SELECT version FROM fight_notice_state WHERE singleton = 1'
+                        'SELECT version FROM '.$stateTable.' WHERE singleton = 1'
                     ) !== 1
                 ) {
                     throw new RuntimeException('Unsupported notice schema.');
@@ -115,6 +118,14 @@ final class DbalNoticeTransaction implements TransactionalUnitOfWork
     public function connection(): Connection
     {
         return $this->connection;
+    }
+
+    /**
+     * Returns the exact selected tables for participating notice repositories
+     */
+    public function tables(): DbalNoticeTables
+    {
+        return $this->tables;
     }
 
     /**

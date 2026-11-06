@@ -10,7 +10,7 @@ use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Mcp\Notice\SodiumNoticeContinuationProtector;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
-use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Mcp\Tool\Notice\RecoverNoticesTool;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -48,11 +48,11 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
     public string $lastResponse = '';
     public string $requestId = 'notice-雪-"-\\';
 
-    public function __construct(public readonly Connection $connection, int $maxResultBytes = 65536, int $maxResponseBytes = 1048576, string $serverName = 'Notice fixture', ?NoticeContinuationProtector $protector = null)
+    public function __construct(public readonly Connection $connection, int $maxResultBytes = 65536, int $maxResponseBytes = 1048576, string $serverName = 'Notice fixture', ?NoticeContinuationProtector $protector = null, private readonly DbalNoticeTables $tables = new DbalNoticeTables())
     {
         $this->access = self::access();
         $router = new InMemoryQueryRouter();
-        $recovery = new NoticeRecovery(new DbalNoticeRecoveryReader($connection), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
+        $recovery = new NoticeRecovery(new DbalNoticeRecoveryReader($connection, $tables), $protector ?? self::codec(), maxResultBytes: $maxResultBytes);
         $handler = new RecoverNoticesHandler($this, $recovery);
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queryBus = new RoutingQueryBus($router);
@@ -80,5 +80,11 @@ final class NoticeRecoveryFixture implements NoticeReadAdmission, McpToolAvailab
         return ['status' => $response->getStatusCode(), 'body' => json_decode($this->lastResponse, true, flags: JSON_THROW_ON_ERROR)];
     }
 
-    public function state(): array { return array_map(fn ($table) => $this->connection->fetchAllAssociative('SELECT * FROM '.$table), DbalNoticeSchema::TABLES); }
+    public function state(): array
+    {
+        return array_map(
+            fn ($table) => $this->connection->fetchAllAssociative('SELECT * FROM '.$table->quoted($this->connection->getDatabasePlatform())),
+            [$this->tables->stateTable(), $this->tables->noticeTable(), $this->tables->relationshipTable(), $this->tables->comparisonTable()]
+        );
+    }
 }

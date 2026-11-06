@@ -19,17 +19,30 @@ use RuntimeException;
  */
 final readonly class DbalNoticeRecords
 {
-    public const string SELECT = <<<'SQL'
-        SELECT n.*, r.payload AS relationships, c.payload AS comparison, c.version
-        FROM fight_notices n LEFT JOIN fight_notice_relationships r ON r.position = n.position
-        LEFT JOIN fight_notice_comparisons c ON c.position = n.position
-        SQL;
-
     /**
      * Constructs DbalNoticeRecords
      */
-    public function __construct(private Connection $connection)
+    public function __construct(private Connection $connection, private DbalNoticeTables $tables)
     {
+    }
+
+    /**
+     * Returns the selected whole-Notice reconstruction join
+     */
+    public function select(): string
+    {
+        $platform = $this->connection->getDatabasePlatform();
+
+        return sprintf(
+            <<<'SQL'
+                SELECT n.*, r.payload AS relationships, c.payload AS comparison, c.version
+                FROM %s n LEFT JOIN %s r ON r.position = n.position
+                LEFT JOIN %s c ON c.position = n.position
+                SQL,
+            $this->tables->noticeTable()->quoted($platform),
+            $this->tables->relationshipTable()->quoted($platform),
+            $this->tables->comparisonTable()->quoted($platform)
+        );
     }
 
     /**
@@ -38,7 +51,10 @@ final readonly class DbalNoticeRecords
     public function recoveryState(): NoticeRecoveryWindow
     {
         $row = $this->connection->fetchAssociative(
-            'SELECT namespace, last_position, lost_through FROM fight_notice_state WHERE singleton = 1'
+            sprintf(
+                'SELECT namespace, last_position, lost_through FROM %s WHERE singleton = 1',
+                $this->tables->stateTable()->quoted($this->connection->getDatabasePlatform())
+            )
         );
         if ($row === false) {
             throw new RuntimeException('Missing notice recovery evidence.');

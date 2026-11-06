@@ -36,6 +36,11 @@ Imports beneath `Fight\Common\` are:
 existing schema exclusively before use. Supply a dedicated idle DBAL connection with committed isolation;
 active caller transactions and DBAL `READ_UNCOMMITTED` fail without changing the transaction or connection policy.
 Consumers configure connection/statement timeouts and must not bypass isolation through raw SQL.
+For configured storage, pass the same optional `tables: DbalNoticeTables` selection to `DbalNoticeReader` as to
+the installer and recording transaction, including on independent reader connections. The inspection join uses
+only its selected Notice/relationship tables and never reads comparison/state evidence. See
+[all four defaults, partial overrides and no-migration consequences](safe-notices.md#explicit-physical-table-selection).
+Naming grants no access; absent/incompatible selected storage remains a read failure without default fallback.
 
 Implement `NoticeReadAdmission::currentAccess(NoticeSelection): NoticeAccess` from **trusted current invocation
 context**. Each handler calls it afresh, including every page, direct lookup and repeat. `NoticeAccess::create(scopes,
@@ -80,7 +85,7 @@ values, unsupported order fields and arbitrary SQL fragments reject.
 
 Ordering is deterministic for unchanged retained data; the private tie-breaker is **not returned**, nor are namespace,
 high water, history-loss counters, comparison evidence, hidden-row counts or global positions. Ordering by recording
-time is not causal order, occurrence order or a recovery continuation. All SQL identifiers/directions are fixed or
+time is not causal order, occurrence order or a recovery continuation. All SQL identifiers/directions are fixed, platform-quoted validated table selections, or
 selected from validated constants. Scope and identity/producer constraints use bound parameters before decoding;
 other caller and trusted predicates are applied to one reconstructed notice before any count or returned projection.
 Reference/recipient representation has one row per notice: no relationship join can multiply matching counts.

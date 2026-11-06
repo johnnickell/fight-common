@@ -537,6 +537,21 @@ No removal event, receipt, cleanup eligibility, archive, public mutation Tool or
 only with retained evidence; deletion ends deduplication, and new admitted same-ID content is a later recording,
 not restoration. Old removal targets cannot delete that new incarnation.
 
+Adapter-owned `DbalNoticeTables` independently selects `stateTable` (default `fight_notice_state`),
+`noticeTable` (`fight_notices`), `relationshipTable` (`fight_notice_relationships`) and `comparisonTable`
+(`fight_notice_comparisons`). Omitted overrides retain their own defaults. Schema/transaction/inspection/recovery
+composition explicitly shares this immutable selection; the repository inherits its exact transaction's selection.
+All schema/FK/index, lock/allocation, retry/reconstruction, live inspection, coherent recovery and exact removal/loss
+SQL uses selected names with shared `Adapter\Persistence\Doctrine\DbalTableName` ordinary-name validation and
+platform quoting. Names preserve case, support quoted reserved words and reject qualification/prequoting or
+case-insensitive collisions; they stay outside Domain/Application and confer no permission. Default schema/index
+names and stored meanings remain unchanged; renamed Notice tables receive table-derived index names for coexistence.
+Configuration/constructors do no DDL, migration, rename or transfer, and runtime never falls back to default tables.
+Explicit installation rejects partially present selections and incompatible state/index/comparison/FK evidence.
+Partial choices intentionally share omitted tables, not an independent namespace; consumers own coherent existing-data
+operations and deployment. A new full selection starts empty with a fresh incarnation, not migrated history or
+valid old continuation/removal authority. See [table composition](docs/safe-notices.md#explicit-physical-table-selection).
+
 Separate Application `NoticeRecoveryReader`/Adapter `DbalNoticeRecoveryReader` own bounded feed reconstruction.
 Its trusted `readWindow()` returns `Application\Mcp\Notice\Data\NoticeRecoveryWindow` with coherently locked bounded rows,
 namespace, committed high water and conservative global loss boundary. Its continuity predicate is storage proof

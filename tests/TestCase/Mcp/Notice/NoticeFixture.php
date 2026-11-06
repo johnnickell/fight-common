@@ -8,6 +8,7 @@ use Closure;
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRepository;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTransaction;
 use Fight\Common\Adapter\Messaging\Command\Sync\Routing\InMemoryCommandRouter;
 use Fight\Common\Adapter\Messaging\Command\Sync\RoutingCommandBus;
@@ -31,11 +32,11 @@ final class NoticeFixture implements NoticeAdmission
     public readonly RoutingCommandBus $commandBus;
     public readonly SimpleEventDispatcher $eventDispatcher;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
     {
-        $this->transactionalUnitOfWork = new DbalNoticeTransaction($connection);
+        $this->transactionalUnitOfWork = new DbalNoticeTransaction($connection, $tables);
         $this->noticeRepository = new DbalNoticeRepository($this->transactionalUnitOfWork);
-        $this->noticeRecoveryReader = new DbalNoticeRecoveryReader($connection);
+        $this->noticeRecoveryReader = new DbalNoticeRecoveryReader($connection, $tables);
         $this->eventDispatcher = new SimpleEventDispatcher();
         $router = new InMemoryCommandRouter();
         $router->registerHandler(RecordNotice::class, new RecordNoticeHandler(new NoticeRecorder(

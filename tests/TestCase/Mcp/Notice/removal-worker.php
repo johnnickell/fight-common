@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRemovalRejected;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeStorageFailed;
@@ -13,6 +14,7 @@ use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRemovalFixture;
 require dirname(__DIR__, 4).'/vendor/autoload.php';
 
 $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
+$tables = new DbalNoticeTables(...($config['tables'] ?? []));
 $role = $argv[2]; $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
@@ -20,9 +22,9 @@ $proxy = Mockery::mock(Connection::class);
 foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'fetchAllAssociative', 'insert', 'update', 'delete'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
-$barrier = static function () use ($role, $directory, $connection): void {
+$barrier = static function () use ($role, $directory, $connection, $tables): void {
     if ($role !== 'first') { return; }
-    file_put_contents($directory.'/first-locked', json_encode(['high' => (int) $connection->fetchOne('SELECT last_position FROM fight_notice_state'), 'lost' => (int) $connection->fetchOne('SELECT lost_through FROM fight_notice_state')], JSON_THROW_ON_ERROR));
+    file_put_contents($directory.'/first-locked', json_encode(['high' => (int) $connection->fetchOne('SELECT last_position FROM '.$tables->stateTable()->quoted($connection->getDatabasePlatform())), 'lost' => (int) $connection->fetchOne('SELECT lost_through FROM '.$tables->stateTable()->quoted($connection->getDatabasePlatform()))], JSON_THROW_ON_ERROR));
     $deadline = microtime(true) + 15;
     while (!file_exists($directory.'/release')) {
         if (microtime(true) > $deadline) { throw new RuntimeException('Worker barrier timeout.'); }
@@ -35,7 +37,7 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($barrier
     $connection->commit();
 });
 $proxy->shouldReceive('rollBack')->andReturnUsing(static function () use ($barrier, $connection): void { $barrier(); $connection->rollBack(); });
-$fixture = new NoticeRemovalFixture($proxy);
+$fixture = new NoticeRemovalFixture($proxy, $tables);
 $fixture->onAdmit = static function () use ($directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'removal');
     if ($role === 'second' && file_exists($directory.'/revoked')) { throw new NoticeRemovalRejected(); }

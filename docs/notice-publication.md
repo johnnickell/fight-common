@@ -18,6 +18,14 @@ separate `DbalNoticeRecoveryReader`, not the write repository or caller-managed 
 a separate idle reader connection is supported. Never substitute a queued CommandBus or a Query handler returning
 caller-asserted saved payloads. These collaborators are trusted composition, not an untrusted remote API.
 
+For renamed tables, explicitly share the same `DbalNoticeTables` selection between the schema installer,
+recording transaction, inspection and recovery readers, including independent connections. The repository
+inherits the transaction's selection. Publication adds no storage selection or SQL of its own: it reconstructs
+from the configured authorized `GetNotice` Query after commit. See
+[all four defaults, partial overrides, naming limits and no-migration behavior](safe-notices.md#explicit-physical-table-selection).
+A changed selection neither copies retained content nor grants read/broadcast authority; an empty new namespace
+cannot establish old-feed continuity or successful delivery.
+
 ```php
 use Fight\Common\Adapter\Socket\MercureHubPublisher;
 use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
