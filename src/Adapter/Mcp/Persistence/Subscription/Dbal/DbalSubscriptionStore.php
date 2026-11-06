@@ -22,13 +22,20 @@ use Throwable;
 final class DbalSubscriptionStore implements McpSubscriptionStore
 {
     private bool $failed = false;
+    private readonly string $stateTable;
+    private readonly string $subscriptionTable;
 
     /**
      * Constructs DbalSubscriptionStore
      */
-    public function __construct(private readonly Connection $connection, private readonly int $maxActive = 256)
-    {
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly int $maxActive = 256,
+        DbalSubscriptionTables $tables = new DbalSubscriptionTables()
+    ) {
         $platform = $connection->getDatabasePlatform();
+        $this->stateTable = $tables->stateTable()->quoted($platform);
+        $this->subscriptionTable = $tables->subscriptionTable()->quoted($platform);
         if (
             (!$platform instanceof SQLitePlatform && !$platform instanceof AbstractMySQLPlatform
             && !$platform instanceof PostgreSQLPlatform) || $maxActive < 1 || $maxActive > 256
@@ -53,15 +60,15 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
 
         $this->transaction(function () use ($id, $owner, $payload, $now, $expires): void {
             $active = (int) $this->connection->fetchOne(
-                'SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0 AND expires_at > ?',
+                'SELECT COUNT(*) FROM '.$this->subscriptionTable.' WHERE closed_at = 0 AND expires_at > ?',
                 [$now]
             );
-            $total = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions');
+            $total = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM '.$this->subscriptionTable);
             if ($active >= $this->maxActive || $total >= 4096) {
                 throw new RuntimeException('Subscription capacity exhausted.');
             }
 
-            $this->connection->insert('fight_mcp_subscriptions', [
+            $this->connection->insert($this->subscriptionTable, [
                 'registration_id' => $id,
                 'owner'           => $owner,
                 'context'         => $payload,
@@ -89,8 +96,8 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
             }
 
             $changed = $this->connection->executeStatement(
-                <<<'SQL'
-                UPDATE fight_mcp_subscriptions SET observed_at = ?, expires_at = ?
+                <<<SQL
+                UPDATE {$this->subscriptionTable} SET observed_at = ?, expires_at = ?
                 WHERE registration_id = ? AND owner = ? AND closed_at = 0 AND observed_at <= ? AND expires_at > ?
                 SQL,
                 [$now, $expires, $id, $owner, $now, $now]
@@ -98,8 +105,8 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
             // MySQL may report zero for a same-second no-op; independently verify the owned fresh state.
             if (
                 $changed === 0 && !$this->connection->fetchOne(
-                    <<<'SQL'
-                    SELECT registration_id FROM fight_mcp_subscriptions WHERE registration_id = ? AND owner = ?
+                    <<<SQL
+                    SELECT registration_id FROM {$this->subscriptionTable} WHERE registration_id = ? AND owner = ?
                     AND closed_at = 0 AND observed_at = ? AND expires_at = ? AND expires_at > ?
                     SQL,
                     [$id, $owner, $now, $expires, $now]
@@ -118,8 +125,8 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
         $this->identity($id, $owner, $now);
         $this->transaction(function () use ($id, $owner, $now): void {
             $this->connection->executeStatement(
-                <<<'SQL'
-                UPDATE fight_mcp_subscriptions SET closed_at = ?, observed_at = ?
+                <<<SQL
+                UPDATE {$this->subscriptionTable} SET closed_at = ?, observed_at = ?
                 WHERE registration_id = ? AND owner = ? AND closed_at = 0 AND observed_at <= ?
                 SQL,
                 [$now, $now, $id, $owner, $now]
@@ -137,13 +144,13 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
         }
 
         return $this->transaction(function () use ($now, $limit): int {
-            $sql = <<<'SQL'
-                SELECT registration_id FROM fight_mcp_subscriptions WHERE expires_at <= ? OR closed_at > 0
+            $sql = <<<SQL
+                SELECT registration_id FROM {$this->subscriptionTable} WHERE expires_at <= ? OR closed_at > 0
                 ORDER BY expires_at, registration_id
                 SQL;
             $rows = $this->connection->fetchFirstColumn($sql.' LIMIT '.$limit, [$now]);
             foreach ($rows as $id) {
-                $this->connection->delete('fight_mcp_subscriptions', ['registration_id' => $id]);
+                $this->connection->delete($this->subscriptionTable, ['registration_id' => $id]);
             }
 
             return count($rows);
@@ -190,11 +197,11 @@ final class DbalSubscriptionStore implements McpSubscriptionStore
         try {
             $this->connection->beginTransaction();
             $this->connection->executeStatement(
-                'UPDATE fight_mcp_subscription_state SET version = version WHERE singleton = 1'
+                'UPDATE '.$this->stateTable.' SET version = version WHERE singleton = 1'
             );
             if (
                 (int) $this->connection->fetchOne(
-                    'SELECT version FROM fight_mcp_subscription_state WHERE singleton = 1'
+                    'SELECT version FROM '.$this->stateTable.' WHERE singleton = 1'
                 ) !== 1
             ) {
                 throw new RuntimeException('Unsupported subscription schema.');

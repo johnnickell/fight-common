@@ -109,6 +109,11 @@ DDL may partially succeed: stop and recover exclusively rather than rerun record
 
 ### Explicit physical table selection
 
+The [eight-table lifecycle composition and SQL inventory](lifecycle-storage.md) connects this actual supplier to
+configured subscriptions and Tasks in independent-process live journeys. Generic live signals still use authorized
+Notice recovery; protected Task input/result/full state stays outside retained Notices. Naming adds no disclosure,
+retention, replay or delivery promise.
+
 `Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables` independently selects all four tables. Its constructor
 arguments and exact defaults are `stateTable: 'fight_notice_state'`, `noticeTable: 'fight_notices'`,
 `relationshipTable: 'fight_notice_relationships'` and `comparisonTable: 'fight_notice_comparisons'`.

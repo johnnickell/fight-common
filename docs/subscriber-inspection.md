@@ -31,6 +31,13 @@ belongs to the existing lifecycle owner, not the reader. Use an **idle connectio
 SQLite, MySQL or PostgreSQL. Active caller transactions and READ_UNCOMMITTED reject without committing or rolling
 back caller work. No reader lock or transaction spans statements or requests.
 
+For configured storage, supply the lifecycle owner's same `DbalSubscriptionTables` through the optional trailing
+`tables:` argument: `new DbalSubscriberReader($inspectionConnection, 'production-eu-registration-db', tables: $subscriptionTables)`.
+The existing `connection`, `storageScope` and optional trusted `clock` arguments/defaults remain unchanged. Both the
+selected state-version check and every bounded registration scan use these names; the reader neither installs storage
+nor falls back to defaults. See [subscription table selection](mcp-subscriptions.md#explicit-physical-table-selection)
+and the [eight-table composition](lifecycle-storage.md). A storage label is not table selection or access authority.
+
 Consumers implement **separate** `SubscriberReadAdmission::currentAccess(SubscriberSelection): SubscriberAccess`.
 It resolves trusted identity and current inspection policy on **every** summary/page, including retries and empty
 pages. Neither listen/notice permission, a requested subscriber ID, a protocol request ID, previous page, Agent/human
@@ -161,7 +168,11 @@ owner cleanup. Storage failure is separate from empty authorized results. Contro
 adapter clock seam to commit a later heartbeat after capture and assert exact future/open/expiry/closure
 classifications on all three databases. Live journey state assertions use each page's own clock and allow ongoing
 registrations to be recently observed or stale/uncertain; they do not assume a cross-query state snapshot.
-Existing cross-process lifecycle lock and failure journeys remain in the complete product gate.
+Existing cross-process lifecycle lock and failure journeys remain in the complete product gate. Default and configured
+three-database variants propagate explicit selections into independent inspection workers and real HTTP processes.
+Poisoned populated default counterparts remain unchanged, including state-version/cleanup paths; omitted partial
+defaults remain intentional. Direct configured-storage tests also prove multi-batch reads and committed isolation
+against separate connections without inventing a snapshot guarantee.
 
 These nonvisual Before/After lifecycle/Query transcripts are appropriate for a PHP library, not screenshots of a
 nonexistent dashboard. They identify the backend, worker PIDs, HTTP frames/timestamps and before/after Query results;

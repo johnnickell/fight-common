@@ -7,6 +7,7 @@ namespace Fight\Test\Common\TestCase\Mcp\Task;
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
 use Fight\Common\Application\Mcp\Subscription\McpSubscriptionStore;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Throwable;
 
 /**
@@ -20,9 +21,9 @@ final class TaskLiveDiagnostics implements McpSubscriptionStore
     public array $heartbeats = ['count' => 0];
     private readonly McpSubscriptionStore $subscriptionStore;
 
-    public function __construct(private readonly Connection $connection)
+    public function __construct(private readonly Connection $connection, LifecycleTables $tables = new LifecycleTables())
     {
-        $this->subscriptionStore = new DbalSubscriptionStore($connection);
+        $this->subscriptionStore = new DbalSubscriptionStore($connection, tables: $tables->subscription);
     }
 
     public static function clock(): array
@@ -40,12 +41,12 @@ final class TaskLiveDiagnostics implements McpSubscriptionStore
         return $chain;
     }
 
-    public static function rows(Connection $connection): array
+    public static function rows(Connection $connection, LifecycleTables $tables = new LifecycleTables()): array
     {
         $rows = ['sampleStarted' => self::clock(), 'coherentSnapshot' => false];
         // Separate bounded live reads, not an invented atomic snapshot or per-heartbeat database work.
         foreach (['fight_mcp_subscriptions', 'fight_tasks'] as $table) {
-            try { $rows[$table] = $connection->fetchAllAssociative('SELECT * FROM '.$table.' LIMIT 16'); }
+            try { $rows[$table] = $connection->fetchAllAssociative($tables->sql($connection, 'SELECT * FROM '.$table.' LIMIT 16')); }
             catch (Throwable $failure) { $rows[$table] = ['unavailable' => self::chain($failure)]; }
         }
         $rows['sampleFinished'] = self::clock();

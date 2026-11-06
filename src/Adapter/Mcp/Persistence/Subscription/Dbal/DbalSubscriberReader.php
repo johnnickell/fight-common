@@ -34,6 +34,9 @@ use Throwable;
  */
 final readonly class DbalSubscriberReader implements SubscriberReader
 {
+    private string $stateTable;
+    private string $subscriptionTable;
+
     /**
      * Constructs DbalSubscriberReader
      *
@@ -42,10 +45,13 @@ final readonly class DbalSubscriberReader implements SubscriberReader
     public function __construct(
         private Connection $connection,
         private string $storageScope,
-        private ?Closure $clock = null
+        private ?Closure $clock = null,
+        DbalSubscriptionTables $tables = new DbalSubscriptionTables()
     ) {
         Notice::reference($storageScope);
         $platform = $connection->getDatabasePlatform();
+        $this->stateTable = $tables->stateTable()->quoted($platform);
+        $this->subscriptionTable = $tables->subscriptionTable()->quoted($platform);
         if (
             !$platform instanceof SQLitePlatform && !$platform instanceof AbstractMySQLPlatform
             && !$platform instanceof PostgreSQLPlatform
@@ -130,7 +136,7 @@ final readonly class DbalSubscriberReader implements SubscriberReader
             $this->connection->isTransactionActive()
             || $this->connection->getTransactionIsolation() === TransactionIsolationLevel::READ_UNCOMMITTED
             || (int) $this->connection->fetchOne(
-                'SELECT version FROM fight_mcp_subscription_state WHERE singleton = 1'
+                'SELECT version FROM '.$this->stateTable.' WHERE singleton = 1'
             ) !== 1
         ) {
             throw new LogicException('Subscriber reads require idle committed version-one storage.');
@@ -141,9 +147,9 @@ final readonly class DbalSubscriberReader implements SubscriberReader
         $examined = 0;
         $operator = $direction === 'ASC' ? '>' : '<';
         do {
-            $sql = <<<'SQL'
+            $sql = <<<SQL
                 SELECT registration_id, context, opened_at, observed_at, expires_at, closed_at
-                FROM fight_mcp_subscriptions
+                FROM {$this->subscriptionTable}
                 SQL;
             $parameters = [];
             if ($afterTime !== null) {

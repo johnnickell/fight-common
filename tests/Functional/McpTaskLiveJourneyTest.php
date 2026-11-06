@@ -13,6 +13,8 @@ use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore
 use Fight\Common\Adapter\Mcp\Persistence\Task\Dbal\DbalTaskSchema;
 use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Test\Common\Fixture\Mcp\TaskEndpoint;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
+use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskFixture;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveDiagnostics;
 use Fight\Test\Common\TestCase\Mcp\Task\TaskLiveFixture;
@@ -28,14 +30,16 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 {
     private string $directory;
     private Connection $connection;
+    private LifecycleTables $tables;
+    private array $defaultSnapshot = [];
     private array $servers = [];
     private array $trace = [];
     private array $socketRequests = [];
 
     #[DataProvider('compositions')]
-    public function test_that_real_http_native_frames_follow_independent_suppliers_and_reconnect_without_replaying_intermediates(string $backend, string $composition): void
+    public function test_that_real_http_native_frames_follow_independent_suppliers_and_reconnect_without_replaying_intermediates(string $backend, string $composition, bool $configured): void
     {
-        $this->database($backend);
+        $this->database($backend, $configured);
         $leftServer = $this->server(); $rightServer = $this->server(); $poll = $this->server();
         $start = $this->rpc($poll, TaskEndpoint::request()); self::assertSame('task', $start['result']['resultType']);
         $left = $this->open($leftServer, $composition, ['taskIds' => [TaskFixture::ID]], 7, 'left');
@@ -46,6 +50,8 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
         self::assertSame(7, $baseline['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
         self::assertSame('7', $other['params']['_meta']['io.modelcontextprotocol/subscriptionId']);
         $delayed = $this->rpc($poll, TaskEndpoint::request('tasks/get', ['taskId' => TaskFixture::ID]))['result'];
+        $this->worker('notice');
+        self::assertSame('notifications/tools/list_changed', $this->next($right)['method']);
         $this->worker('input');
         $input = $this->next($left)['params']; $this->next($right);
         self::assertSame('input_required', $input['status']); self::assertCount(2, $input['inputRequests']);
@@ -75,44 +81,44 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('outcomes')]
-    public function test_that_independent_failed_cancelled_outcomes_tracking_loss_and_disappearance_are_not_successful_idle_streams(string $backend, string $outcome): void
+    public function test_that_independent_failed_cancelled_outcomes_tracking_loss_and_disappearance_are_not_successful_idle_streams(string $backend, string $outcome, bool $configured): void
     {
-        $this->database($backend); $fixture = new TaskFixture($this->connection); $fixture->create();
+        $this->database($backend, $configured); $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create();
         $leftServer = $this->server(); $rightServer = $this->server(); $socket = $this->open($leftServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($socket); $this->next($socket);
         $this->worker($outcome); $terminal = $this->untilStatus($socket, $outcome);
         if ($outcome === 'failed') { self::assertSame(['code' => -32603, 'message' => 'Internal error'], $terminal['error']); }
-        $this->connection->executeStatement('UPDATE fight_mcp_subscriptions SET expires_at = ?', [time()]); self::assertSame([], $this->drain($socket));
+        $this->connection->executeStatement($this->sql('UPDATE fight_mcp_subscriptions SET expires_at = ?'), [time()]); self::assertSame([], $this->drain($socket));
         $again = $this->open($rightServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($again); self::assertSame($outcome, $this->next($again)['params']['status']);
         $before = $fixture->get()->toString();
         touch($this->directory.'/deny-payload'); self::assertSame([], $this->drain($again)); unlink($this->directory.'/deny-payload'); self::assertSame($before, $fixture->get()->toString());
-        $missing = $this->open($leftServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($missing); $this->next($missing); $this->connection->executeStatement('DELETE FROM fight_tasks'); self::assertSame([], $this->drain($missing));
+        $missing = $this->open($leftServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($missing); $this->next($missing); $this->connection->executeStatement($this->sql('DELETE FROM fight_tasks')); self::assertSame([], $this->drain($missing));
         self::assertSame(-32602, $this->rpc($rightServer, TaskEndpoint::request('tasks/get', ['taskId' => TaskFixture::ID]))['error']['code']);
         $this->assertPrivateStorage();
     }
 
     #[DataProvider('databases')]
-    public function test_that_idle_disconnect_abrupt_death_and_graceful_completion_preserve_truthful_native_tracking(string $backend): void
+    public function test_that_idle_disconnect_abrupt_death_and_graceful_completion_preserve_truthful_native_tracking(string $backend, bool $configured): void
     {
-        $this->database($backend); $fixture = new TaskFixture($this->connection); $fixture->create(); $leftServer = $this->server();
+        $this->database($backend, $configured); $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create(); $leftServer = $this->server();
         $socket = $this->open($leftServer, 'psr&lifetime=1', ['taskIds' => [TaskFixture::ID]], 'graceful'); $this->next($socket); $this->next($socket);
         $tail = $this->drain($socket); self::assertCount(1, $tail); self::assertSame('graceful', $tail[0]['result']['_meta']['io.modelcontextprotocol/subscriptionId']);
         $socket = $this->open($leftServer, 'psr', ['taskIds' => [TaskFixture::ID]]); $this->next($socket); $this->next($socket); $this->disconnect($socket);
         $deadline = microtime(true) + 3;
-        do { $open = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0'); if ($open === 0) { break; } usleep(10000); } while (microtime(true) < $deadline);
+        do { $open = (int) $this->connection->fetchOne($this->sql('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0')); if ($open === 0) { break; } usleep(10000); } while (microtime(true) < $deadline);
         self::assertSame(0, $open);
         $abrupt = $this->open($leftServer, 'psr&abrupt=1', ['taskIds' => [TaskFixture::ID]]); self::assertSame('notifications/subscriptions/acknowledged', $this->next($abrupt)['method']); $this->drain($abrupt);
-        $row = $this->connection->fetchAssociative('SELECT * FROM fight_mcp_subscriptions WHERE closed_at = 0'); self::assertIsArray($row);
-        $subscriptionStore = new DbalSubscriptionStore($this->connection); $now = (int) $row['expires_at'];
+        $row = $this->connection->fetchAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions WHERE closed_at = 0')); self::assertIsArray($row);
+        $subscriptionStore = new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription); $now = (int) $row['expires_at'];
         try { $subscriptionStore->heartbeat($row['registration_id'], $row['owner'], $now, $now + 5); self::fail('Expired owner cannot revive'); } catch (\RuntimeException) {}
-        self::assertSame(3, (new DbalSubscriptionStore($this->connection))->cleanup($now, 16));
+        self::assertSame(3, (new DbalSubscriptionStore($this->connection, tables: $this->tables->subscription))->cleanup($now, 16));
         self::assertSame('working', $fixture->get()->get('state')->get('status')); self::assertNull($fixture->cancellation()->get('cancellation'));
         $this->assertPrivateStorage();
     }
 
     #[DataProvider('sourceRaces')]
-    public function test_that_native_http_source_races_deny_opening_baseline_and_update_after_revocation_or_owner_close(string $backend, string $fault, string $phase): void
+    public function test_that_native_http_source_races_deny_opening_baseline_and_update_after_revocation_or_owner_close(string $backend, string $fault, string $phase, bool $configured): void
     {
-        $this->database($backend); $fixture = new TaskFixture($this->connection); $fixture->create();
+        $this->database($backend, $configured); $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create();
         $server = $this->server();
         $socket = $this->open($server, 'psr&fault='.$fault.'&phase='.$phase, ['taskIds' => [TaskFixture::ID]]);
         if ($phase !== 'opening') { self::assertSame('notifications/subscriptions/acknowledged', $this->next($socket)['method']); }
@@ -121,35 +127,89 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
             touch($this->directory.'/arm-fault'); $this->worker('failed');
         }
         self::assertSame([], $this->drain($socket), 'No new protected data or successful completion');
-        self::assertSame(0, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0'));
+        self::assertSame(0, (int) $this->connection->fetchOne($this->sql('SELECT COUNT(*) FROM fight_mcp_subscriptions WHERE closed_at = 0')));
         $native = json_decode(file_get_contents(glob($this->directory.'/closed-*.json')[0]), true, flags: JSON_THROW_ON_ERROR);
         self::assertTrue($native['faultTriggered']); self::assertTrue($native['guardReleased']); self::assertNotEmpty($native['diagnostics']);
         self::assertSame($phase === 'update' ? 'failed' : 'working', $fixture->get()->get('state')->get('status'));
         self::assertNull($fixture->cancellation()->get('cancellation')); $this->assertPrivateStorage();
     }
 
+    #[DataProvider('databases')]
+    public function test_that_tracking_storage_failure_closes_without_success_and_independent_current_state_survives(string $backend, bool $configured): void
+    {
+        $this->database($backend, $configured);
+        $fixture = new TaskFixture($this->connection, $this->tables->task); $fixture->create();
+        $server = $this->server(); $poll = $this->server();
+        $socket = $this->open($server, 'psr', ['taskIds' => [TaskFixture::ID]]);
+        self::assertSame('notifications/subscriptions/acknowledged', $this->next($socket)['method']);
+        self::assertSame('working', $this->next($socket)['params']['status']);
+        $this->connection->executeStatement($this->sql('UPDATE fight_mcp_subscription_state SET version = 77'));
+        $this->worker('completed');
+        self::assertSame([], $this->drain($socket), 'Storage failure cannot become a change frame or graceful completion.');
+        self::assertSame('completed', $fixture->get()->get('state')->get('status'), 'Independent Task Query does not depend on tracking health.');
+        self::assertNull($fixture->cancellation()->get('cancellation'));
+        // Repair is an explicit fixture/operator action, never runtime fallback or migration.
+        // A fresh HTTP fixture explicitly validates all of its composed schemas before serving.
+        $this->connection->executeStatement($this->sql('UPDATE fight_mcp_subscription_state SET version = 1'));
+        $current = $this->rpc($poll, TaskEndpoint::request('tasks/get', ['taskId' => TaskFixture::ID]))['result'];
+        self::assertSame('completed', $current['status']);
+        $this->assertPrivateStorage();
+    }
+
     public static function sourceRaces(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
             foreach (['signal', 'close', 'cleanup'] as $fault) {
-                foreach (['opening', 'baseline', 'update'] as $phase) { yield $backend.'-'.$fault.'-'.$phase => [$backend, $fault, $phase]; }
+                foreach (['opening', 'baseline', 'update'] as $phase) {
+                    foreach ([false, true] as $configured) { yield $backend.'-'.$fault.'-'.$phase.'-'.($configured ? 'configured' : 'default') => [$backend, $fault, $phase, $configured]; }
+                }
             }
         }
     }
 
-    public static function compositions(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $backend.'-'.$composition => [$backend, $composition]; } } }
-    public static function outcomes(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['failed', 'cancelled'] as $outcome) { yield $backend.'-'.$outcome => [$backend, $outcome]; } } }
-    public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }
-
-    private function database(string $backend): void
+    public static function compositions(): iterable
     {
+        foreach (self::databases() as $label => [$backend, $configured]) {
+            foreach (['psr', 'symfony', 'laravel', 'codeigniter', 'slim', 'yii'] as $composition) { yield $label.'-'.$composition => [$backend, $composition, $configured]; }
+        }
+    }
+
+    public static function outcomes(): iterable
+    {
+        foreach (self::databases() as $label => [$backend, $configured]) {
+            foreach (['failed', 'cancelled'] as $outcome) { yield $label.'-'.$outcome => [$backend, $outcome, $configured]; }
+        }
+    }
+
+    public static function databases(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            foreach ([false, true] as $configured) { yield $backend.'-'.($configured ? 'configured' : 'default') => [$backend, $configured]; }
+        }
+    }
+
+    private function database(string $backend, bool $configured): void
+    {
+        $this->tables = $configured ? LifecycleTables::configured() : new LifecycleTables();
         $this->directory = sys_get_temp_dir().'/fight-task-live-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($this->directory, 0700));
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $this->directory.'/db.sqlite']; }
         else { $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN'); self::assertIsString($dsn, 'Real disposable database required'); $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn); }
         $this->connection = DriverManager::getConnection($params); if ($backend === 'sqlite') { $this->connection->executeStatement('PRAGMA busy_timeout = 3000'); }
-        foreach ([...array_reverse(DbalTaskSchema::TABLES), ...array_reverse(DbalSubscriptionSchema::TABLES), ...array_reverse(DbalNoticeSchema::TABLES)] as $table) { $this->connection->executeStatement('DROP TABLE IF EXISTS '.$table); }
-        (new DbalTaskSchema())->install($this->connection); (new DbalSubscriptionSchema())->install($this->connection); (new DbalNoticeSchema())->install($this->connection);
-        file_put_contents($this->directory.'/config.json', json_encode(['params' => $params], JSON_THROW_ON_ERROR)); $this->trace['backend'] = $backend;
+        $this->dropTables();
+        (new DbalTaskSchema($this->tables->task))->install($this->connection);
+        (new DbalSubscriptionSchema($this->tables->subscription))->install($this->connection);
+        (new DbalNoticeSchema($this->tables->notice))->install($this->connection);
+        if ($configured) {
+            (new DbalTaskSchema())->install($this->connection); (new DbalSubscriptionSchema())->install($this->connection); (new DbalNoticeSchema())->install($this->connection);
+            (new TaskFixture($this->connection))->create(1000, 99);
+            (new NoticeFixture($this->connection))->record(['id' => 'default-only', 'type' => 'mcp.tools.list_changed']);
+            (new DbalSubscriptionStore($this->connection))->open(str_repeat('d', 32), str_repeat('e', 32), ['subscriber' => 'default-only', 'selection' => ['scopes' => ['scope'], 'filters' => []], 'requested' => [], 'accepted' => []], 100, 105);
+            foreach (['fight_task_state', 'fight_notice_state', 'fight_mcp_subscription_state'] as $table) { $this->connection->executeStatement('UPDATE '.$table.' SET version = 77'); }
+            $this->defaultSnapshot = $this->defaultRows();
+        }
+        file_put_contents($this->directory.'/config.json', json_encode(['params' => $params, 'tables' => $this->tables->configuration], JSON_THROW_ON_ERROR));
+        $this->trace['backend'] = $backend; $this->trace['tables'] = $this->tables->configuration;
+        $this->trace['default_before'] = $this->defaultSnapshot;
     }
 
     private function server(): string
@@ -187,7 +247,7 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
     {
         while (($line = fgets($socket)) !== false) { $this->recordRaw($socket, $line); if (str_starts_with($line, 'data: ')) { $data = json_decode(substr($line, 6), true, flags: JSON_THROW_ON_ERROR); $this->trace['frames'][] = ['request' => $this->socketRequests[(int) $socket] ?? 'unregistered', ...TaskLiveDiagnostics::clock(), 'data' => $data]; return $data; } }
         $this->socketBoundary($socket, 'next-read-false');
-        if (isset($this->connection)) { $this->trace['failedReadRows'] = TaskLiveDiagnostics::rows($this->connection); }
+        if (isset($this->connection)) { $this->trace['failedReadRows'] = TaskLiveDiagnostics::rows($this->connection, $this->tables); }
         self::fail('Expected live frame before closure');
     }
 
@@ -228,17 +288,31 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
 
     private function assertPrivateStorage(): void
     {
-        $rows = $this->connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscriptions'); $this->trace['tracking'] = $rows;
+        $rows = $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_mcp_subscriptions')); $this->trace['tracking'] = $rows;
         $encoded = json_encode($rows, JSON_THROW_ON_ERROR);
         foreach (['PRIVATE ANSWER SENTINEL', 'inputRequests', 'structuredContent', 'taskRevision', 'creation_digest'] as $private) { self::assertStringNotContainsString($private, $encoded); }
-        self::assertSame(0, (int) $this->connection->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        $notices = $this->connection->fetchAllAssociative($this->sql('SELECT * FROM fight_notices'));
+        $this->trace['notices'] = $notices;
+        self::assertLessThanOrEqual(1, count($notices));
+        foreach ($notices as $notice) { self::assertSame('mcp.tools.list_changed', json_decode($notice['payload'], true, flags: JSON_THROW_ON_ERROR)['type']); }
+        foreach (['PRIVATE ANSWER SENTINEL', 'inputRequests', 'structuredContent', 'taskRevision', 'creation_digest'] as $private) { self::assertStringNotContainsString($private, json_encode($notices, JSON_THROW_ON_ERROR)); }
         foreach ($this->trace['frames'] ?? [] as $frame) { self::assertStringNotContainsString('PRIVATE ANSWER SENTINEL', json_encode($frame)); }
     }
 
     protected function tearDown(): void
     {
         foreach ($this->servers as $process) { $process->stop(); $this->trace['servers'][] = ['exit' => $process->getExitCode(), 'log' => $process->getErrorOutput(), 'output' => $process->getOutput()]; } $this->servers = [];
-        if (isset($this->connection)) { $this->trace['finalRows'] = TaskLiveDiagnostics::rows($this->connection); $this->connection->close(); }
+        $defaultsUnchanged = true;
+        if (isset($this->connection)) {
+            $this->trace['finalRows'] = TaskLiveDiagnostics::rows($this->connection, $this->tables);
+            if ($this->defaultSnapshot !== []) {
+                $this->trace['default_after'] = $this->defaultRows();
+                $defaultsUnchanged = $this->defaultSnapshot === $this->trace['default_after'];
+            }
+            $this->dropTables();
+            $this->trace['remaining_owned_tables'] = $this->ownedTableNames();
+            $this->connection->close();
+        }
         if (isset($this->directory)) {
             foreach (glob($this->directory.'/closed-*.json') as $file) { $this->trace['native'][] = json_decode(file_get_contents($file), true, flags: JSON_THROW_ON_ERROR); }
             // Native build/exec does not forward arbitrary host env vars. Keep default capture on the /app bind mount.
@@ -248,6 +322,35 @@ final class McpTaskLiveJourneyTest extends UnitTestCase
             file_put_contents($destination.'/'.str_replace([' ', '"', '/'], '-', $this->nameWithDataSet()).'-'.bin2hex(random_bytes(4)).'.json', json_encode($this->trace, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
             $this->removeTemporaryDirectory($this->directory, 'fight-task-live-');
         }
-        $this->trace = []; $this->socketRequests = []; parent::tearDown();
+        $this->trace = []; $this->socketRequests = []; $this->defaultSnapshot = [];
+        parent::tearDown();
+        self::assertTrue($defaultsUnchanged, 'Configured live suppliers must not read or mutate populated default counterparts.');
+    }
+
+    private function sql(string $sql): string
+    {
+        return $this->tables->sql($this->connection, $sql);
+    }
+
+    private function defaultRows(): array
+    {
+        $rows = [];
+        foreach (array_keys($this->tables->names()) as $name) { $rows[$name] = $this->connection->fetchAllAssociative('SELECT * FROM '.$name); }
+        return $rows;
+    }
+
+    private function ownedTableNames(): array
+    {
+        $names = [];
+        foreach ([$this->tables, new LifecycleTables()] as $selection) {
+            foreach (array_reverse($selection->names()) as $table) { $names[$table->name()] = $table; }
+        }
+        $existing = array_map(static fn ($name) => trim($name, '`"'), $this->connection->createSchemaManager()->listTableNames());
+        return array_intersect_key($names, array_flip($existing));
+    }
+
+    private function dropTables(): void
+    {
+        foreach ($this->ownedTableNames() as $table) { $this->connection->executeStatement('DROP TABLE '.$table->quoted($this->connection->getDatabasePlatform())); }
     }
 }

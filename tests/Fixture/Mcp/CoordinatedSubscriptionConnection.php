@@ -16,6 +16,7 @@ final class CoordinatedSubscriptionConnection extends Connection
     public ?Closure $beforeTransaction = null;
     public ?string $operation = null;
     public array $capacityLocks = [];
+    public string $capacityLockSql = '';
 
     /**
      * Records entry inside the real store operation before its capacity lock
@@ -33,7 +34,7 @@ final class CoordinatedSubscriptionConnection extends Connection
      */
     public function executeStatement(string $sql, array $params = [], array $types = []): int|string
     {
-        if ($this->operation === null || $sql !== 'UPDATE fight_mcp_subscription_state SET version = version WHERE singleton = 1') {
+        if ($this->operation === null || $sql !== $this->capacityLockSql) {
             return parent::executeStatement($sql, $params, $types);
         }
         $lockEvent = ['operation' => $this->operation, 'entered_at' => microtime(true)];

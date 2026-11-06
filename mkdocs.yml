@@ -123,6 +123,7 @@ nav:
       - Durable Safe Notices: safe-notices.md
       - Retained Notice Recovery: notice-recovery.md
       - Optional Notice Publication: notice-publication.md
+      - Lifecycle Storage Composition: lifecycle-storage.md
       - Live MCP Subscriptions: mcp-subscriptions.md
       - Subscriber Inspection: subscriber-inspection.md
       - MCP Protocol Semantics: components/mcp/index.md

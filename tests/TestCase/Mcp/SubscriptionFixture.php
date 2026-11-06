@@ -11,8 +11,10 @@ use Fight\Common\Adapter\Mcp\Http\McpRequestHandler;
 use Fight\Common\Adapter\Mcp\Http\McpResponseFactory;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeRecoveryReader;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionTables;
 use Fight\Common\Adapter\Mcp\Tool\Notice\RecoverNoticesTool;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
@@ -64,13 +66,13 @@ final class SubscriptionFixture implements McpSubscriptionAdmission, NoticeReadA
     public readonly DbalSubscriptionStore $subscriptionStore;
     public readonly McpCapabilityRegistry $registry;
 
-    public function __construct(public readonly Connection $connection, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?Closure $subscriptionStoreDecorator = null)
+    public function __construct(public readonly Connection $connection, public readonly string $scope = 'scope', int $lifetime = 1, int $frameBytes = 16384, bool $tools = true, bool $resources = true, bool $prompts = false, bool $servePrompts = false, ?Closure $subscriptionStoreDecorator = null, DbalNoticeTables $noticeTables = new DbalNoticeTables(), DbalSubscriptionTables $subscriptionTables = new DbalSubscriptionTables())
     {
-        (new DbalNoticeSchema())->install($connection);
-        (new DbalSubscriptionSchema())->install($connection);
-        $this->subscriptionStore = new DbalSubscriptionStore($connection);
+        (new DbalNoticeSchema($noticeTables))->install($connection);
+        (new DbalSubscriptionSchema($subscriptionTables))->install($connection);
+        $this->subscriptionStore = new DbalSubscriptionStore($connection, tables: $subscriptionTables);
         $router = new InMemoryQueryRouter();
-        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($connection), NoticeRecoveryFixture::codec()));
+        $handler = new RecoverNoticesHandler($this, new NoticeRecovery(new DbalNoticeRecoveryReader($connection, $noticeTables), NoticeRecoveryFixture::codec()));
         $router->registerHandler($handler::queryRegistration(), $handler);
         $this->queryBus = new RoutingQueryBus($router);
         $subscriptionStore = $subscriptionStoreDecorator === null ? $this->subscriptionStore : $subscriptionStoreDecorator($this->subscriptionStore);

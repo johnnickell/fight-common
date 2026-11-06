@@ -184,9 +184,41 @@ not replay. Use `notices.recover` or the shared recovery Query with its independ
 history/access limits to recover retained data. An incomplete/uncertain recovery requires consumer current-data reload;
 Common supplies neither a receipt ledger nor exactly-once delivery/processing. See [recovery](notice-recovery.md).
 
+## Explicit physical table selection
+
+`Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionTables` independently selects
+`stateTable: 'fight_mcp_subscription_state'` and `subscriptionTable: 'fight_mcp_subscriptions'`.
+Omitted names retain their exact defaults; partial choices intentionally share omitted storage, not a fresh namespace.
+Share the same selection with installation, every tracking/cleanup connection and independent subscriber readers:
+
+```php
+$subscriptionTables = new DbalSubscriptionTables(
+    stateTable: 'app_subscription_state',
+    subscriptionTable: 'app_subscriptions'
+);
+(new DbalSubscriptionSchema($subscriptionTables))->install($deploymentConnection);
+$subscriptionStore = new DbalSubscriptionStore($trackingConnection, maxActive: 128, tables: $subscriptionTables);
+$subscriberReader = new DbalSubscriberReader($inspectionConnection, 'production-registration-db', tables: $subscriptionTables);
+```
+
+All four classes are in the Subscription DBAL namespace above. Existing no-argument schema and `connection`,
+`maxActive`, `storageScope`, `clock` construction/named parameters remain; `tables` is optional and trailing.
+`DbalSubscriptionSchema::TABLES` stays the default inventory. Shared `DbalTableName` validates ordinary ASCII names
+`[A-Za-z_][A-Za-z0-9_]{0,62}`, rejects qualification/prequoting/unsafe inputs and quotes selected names per platform;
+the pair also rejects case-insensitive collisions. Default expiry index naming stays unchanged; renamed registration
+tables receive a bounded table-derived index so default/custom installations can coexist. Every state/version/lock,
+capacity count, registration write/renewal/closure/cleanup and inspection scan uses selected names with bound values.
+
+Configuration and runtime do no DDL, rename, copy or migration. Explicit idle/exclusive installation initializes the
+selected state only for a fresh complete installation; partial or unsupported version/index evidence rejects without
+repair or default fallback. Missing/incompatible runtime storage fails explicitly even when populated defaults coexist.
+Consumers own coherent pairings, privileges, rollout and existing-data operations. Naming neither grants permission
+nor extends expiry, retention or delivery guarantees. See the [complete eight-table composition and SQL inventory](lifecycle-storage.md)
+for configured Task/Notice suppliers and propagation to independent processes.
+
 ## Technical tracking and operational bounds
 
-Reserved version-one `fight_mcp_subscription_state` serializes short capacity/lifecycle transactions;
+Default version-one `fight_mcp_subscription_state` serializes short capacity/lifecycle transactions;
 `fight_mcp_subscriptions` stores random registration ID/owner, trusted subscriber, trusted notice selection,
 requested/accepted filters, opened/observed/expiry/closed timestamps. No credentials, protected bodies, JSON-RPC ID
 or per-notice historical audience is saved. SQLite, MySQL/InnoDB/binary collation and PostgreSQL use public DBAL 4.4+
@@ -271,7 +303,10 @@ The optional Prompt journey additionally composes actual visible/hidden Prompt p
 on all three databases: mixed families, concurrent scopes/typed IDs, concealed signals, changed retrieval visibility,
 notification revocation, provider call counters, generic inspection and source-failure recovery. Exact escaped frame
 bounds, unsupported/unrequested cases, queued revocation and policy failure have direct tests. These are actual
-package HTTP journeys, not in-memory transcripts; no new DBAL behavior/schema is introduced.
+package HTTP journeys, not in-memory transcripts. Default and configured variants preserve those contracts;
+selected storage and independent producer/reader processes share explicit Notice/subscription names, while populated
+incompatible defaults remain unchanged. The [combined Task live journey](mcp-task-live.md#compatibility-and-evidence)
+consumes all eight actual suppliers and separately guarded Task state; no new protocol or stronger guarantee is introduced.
 Existing direct JSON and opt-in Tool-progress
 journeys remain in the complete product gate. These are package proofs, not deployed Agent OS/Pi, proxy/server,
 client receipt or application processing qualification.
@@ -301,3 +336,8 @@ tracking/recovery formats are unchanged. The internal execution gains a fixed ma
 check for all mapped families. Against v1.4.0 this is additive opt-in behavior, not a migration or compatibility
 alias for unreleased snapshots. The existing manifest classifications (public final callable/constructible composition
 and registry; public implementable admission/store; internal execution) remain unchanged.
+
+TASK-00201 adds final readonly Adapter `DbalSubscriptionTables` and optional trailing `tables` parameters to the
+schema, store and subscriber reader. Exact defaults, version-one registration/context meanings, owner/freshness/capacity,
+committed-read/failure contracts and tagged public construction remain. No new inward interface, payload, migration,
+required dependency, protocol or consumer deployment qualification is added.

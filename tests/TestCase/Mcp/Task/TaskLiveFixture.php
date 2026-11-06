@@ -14,6 +14,7 @@ use Fight\Common\Application\Mcp\Task\McpTasks;
 use Fight\Common\Domain\Mcp\Notice\Notice;
 use Fight\Common\Domain\Mcp\Notice\NoticeSelection;
 use Fight\Test\Common\Fixture\Mcp\TaskEndpoint;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
 use GuzzleHttp\Psr7\ServerRequest;
 use RuntimeException;
@@ -30,10 +31,10 @@ final class TaskLiveFixture implements McpSubscriptionAdmission, McpTaskDisclosu
     public array $guardedStates = [];
     public array $writers = [];
 
-    public function __construct(Connection $connection, int $frameBytes = 65536, bool $mixed = false, ?McpSubscriptionStore $subscriptionStore = null, int $lifetime = 1, string $scope = 'scope')
+    public function __construct(Connection $connection, int $frameBytes = 65536, bool $mixed = false, ?McpSubscriptionStore $subscriptionStore = null, int $lifetime = 1, string $scope = 'scope', LifecycleTables $tables = new LifecycleTables())
     {
-        $this->taskFixture = new TaskFixture($connection);
-        $this->subscriptionFixture = new SubscriptionFixture($connection);
+        $this->taskFixture = new TaskFixture($connection, $tables->task);
+        $this->subscriptionFixture = new SubscriptionFixture($connection, noticeTables: $tables->notice, subscriptionTables: $tables->subscription);
         $this->endpoint = new TaskEndpoint($this->taskFixture, subscriptionCompositionFactory: fn (McpTasks $taskCapability) => new McpSubscriptions(
             $this->subscriptionFixture->queryBus, $subscriptionStore ?? $this->subscriptionFixture->subscriptionStore, $this, NoticeSelection::create([$scope]),
             tools: $mixed, resources: false, lifetimeSeconds: $lifetime, waitMicroseconds: 10000,

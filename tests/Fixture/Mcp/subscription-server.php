@@ -6,6 +6,7 @@ use Doctrine\DBAL\DriverManager;
 use Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse;
 use Fight\Common\Adapter\Mcp\Http\McpResponseEmitter;
 use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory;
+use Fight\Test\Common\TestCase\Mcp\LifecycleTables;
 use Fight\Test\Common\TestCase\Mcp\SubscriptionFixture;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\ServerRequest;
@@ -26,8 +27,9 @@ $directory = getenv('MCP_SUBSCRIPTION_DIRECTORY');
 $scope = getenv('MCP_SUBSCRIPTION_SCOPE');
 $params = json_decode(file_get_contents($directory.'/connection.json'), true, flags: JSON_THROW_ON_ERROR);
 $connection = DriverManager::getConnection($params);
+$tables = new LifecycleTables(json_decode(file_get_contents($directory.'/tables.json'), true, flags: JSON_THROW_ON_ERROR));
 if ($connection->getDatabasePlatform() instanceof Doctrine\DBAL\Platforms\SQLitePlatform) { $connection->executeStatement('PRAGMA busy_timeout = 3000'); }
-$fixture = new SubscriptionFixture($connection, $scope, (int) ($_GET['lifetime'] ?? 2), (int) ($_GET['frameBytes'] ?? 16384), prompts: ($_GET['prompts'] ?? '0') === '1', servePrompts: ($_GET['servePrompts'] ?? '0') === '1');
+$fixture = new SubscriptionFixture($connection, $scope, (int) ($_GET['lifetime'] ?? 2), (int) ($_GET['frameBytes'] ?? 16384), prompts: ($_GET['prompts'] ?? '0') === '1', servePrompts: ($_GET['servePrompts'] ?? '0') === '1', noticeTables: $tables->notice, subscriptionTables: $tables->subscription);
 $fixture->policy = static function ($filter, $uri, $notice) use ($directory, $scope): bool {
     clearstatcache();
     if ($filter === 'promptsListChanged' && ($notice?->metadata()->toArray()['app/concealed'] ?? false)) { return false; }

@@ -157,6 +157,10 @@ for the entire view, not just its final body. No default public-read policy exis
 
 ## Configurable durable storage
 
+The [eight-table lifecycle composition and SQL inventory](lifecycle-storage.md) combines this Task supplier with
+configured Notices/subscriptions in actual live HTTP journeys. It preserves this supplier's focused ownership and
+independent current-state/retention/disclosure contracts; live delivery is not Task execution or completion proof.
+
 `Adapter\Mcp\Persistence\Task\Dbal\DbalTaskTables` explicitly selects both physical tables independently:
 
 | Constructor parameter | Default | Responsibility |

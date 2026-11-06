@@ -482,7 +482,19 @@ unknown/failure meanings, cross-process runtime evidence and tagged-release comp
 
 `Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema`/`DbalSubscriptionStore` own actual SQLite/MySQL/PostgreSQL
 version-one technical registrations, requested/accepted filters, trusted subscriber/scope, random ownership and
-observed open/closed/five-second freshness. Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
+observed open/closed/five-second freshness. Adapter-only `DbalSubscriptionTables` independently selects `stateTable`
+(default `fight_mcp_subscription_state`) and `subscriptionTable` (default `fight_mcp_subscriptions`). Optional trailing
+`tables` construction shares it explicitly across schema, store/cleanup and subscriber reader, preserving existing
+arguments and exact omitted defaults. Shared `DbalTableName` validates ordinary ASCII identifiers and quotes every
+schema/lock/version/count/lifecycle/inspection path; case-insensitive collisions reject. Default expiry index naming
+remains; renamed registration tables use a short table-derived index for coexistence. Configuration/constructors do
+no DDL, migration, rename or copy; explicit installation and existing missing/partial/version/index failure boundaries
+never fall back to populated defaults. Partial choices intentionally retain omitted counterparts, not an independent
+namespace. The [eight-table lifecycle composition and SQL inventory](docs/lifecycle-storage.md) reconciles the actual
+Task/Notice suppliers with subscriptions. Default/configured real three-database HTTP/native journeys transport all
+selected names into independent producers/readers, preserve poisoned default counterparts and independently guarded
+Task state outside retained Notices/tracking. Final ORM/whole-package inventory qualification remains TASK-00202.
+Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
 stale/uncertain, not confirmed connectivity or a permission lease. Short dedicated transactions, a namespace capacity
 lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-row cleanup bound tracking. No historical
 audience/receipt ledger is added. The existing lazy event stream/emitter and native integrations carry subscriptions

@@ -11,6 +11,7 @@ use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionSchema;
 use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionStore;
+use Fight\Common\Adapter\Mcp\Persistence\Subscription\Dbal\DbalSubscriptionTables;
 use Fight\Test\Common\TestCase\UnitTestCase;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -109,6 +110,28 @@ final class DbalSubscriptionStoreTest extends UnitTestCase
         foreach (DbalSubscriptionSchema::TABLES as $table) { $model->dropTable($table); }
         $schema->addTo($model, new MySQL84Platform());
         self::assertSame('InnoDB', $model->getTable('fight_mcp_subscriptions')->getOption('engine'));
+    }
+
+    public function test_that_selected_schema_and_runtime_quote_names_and_keep_default_storage_unchanged(): void
+    {
+        $connection = $this->database();
+        $defaults = $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscription_state');
+        $tables = new DbalSubscriptionTables(stateTable: 'Group', subscriptionTable: 'Order');
+        $schema = new DbalSubscriptionSchema(tables: $tables);
+        $schema->install($connection); $schema->install($connection);
+        $subscriptionStore = new DbalSubscriptionStore(connection: $connection, maxActive: 1, tables: $tables);
+        $subscriptionStore->open(self::ID, self::OWNER, self::context(), 100, 105);
+        $subscriptionStore->heartbeat(self::ID, self::OWNER, 101, 106);
+        $subscriptionStore->close(self::ID, self::OWNER, 102);
+        self::assertSame(1, $subscriptionStore->cleanup(102, 1));
+        self::assertSame($defaults, $connection->fetchAllAssociative('SELECT * FROM fight_mcp_subscription_state'));
+        self::assertSame(0, (int) $connection->fetchOne('SELECT COUNT(*) FROM fight_mcp_subscriptions'));
+        $model = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true])->createSchemaManager()->introspectSchema();
+        $schema->addTo($model, new MySQL84Platform());
+        self::assertSame('InnoDB', $model->getTable($tables->subscriptionTable()->schemaName())->getOption('engine'));
+        $connection->executeStatement('DROP INDEX mcp_subscription_expiry_'.substr(hash('sha256', 'Order'), 0, 16));
+        try { $schema->install($connection); self::fail('Selected expiry index is required.'); }
+        catch (RuntimeException $failure) { self::assertSame('Unsupported subscription schema.', $failure->getMessage()); }
     }
 
     #[DataProvider('lockWaits')]
