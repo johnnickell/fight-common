@@ -16,6 +16,11 @@ use RuntimeException;
  */
 final readonly class DbalSubscriptionSchema
 {
+    /**
+     * Default table names only, not the configured storage selection
+     *
+     * @deprecated Will be removed in v2.0.0. Use DbalSubscriptionTables accessors for selected names instead.
+     */
     public const array TABLES = ['fight_mcp_subscription_state', 'fight_mcp_subscriptions'];
 
     /**
