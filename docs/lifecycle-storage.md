@@ -8,7 +8,9 @@ request field, global registry, environment lookup or mandatory prefix.
 ## Complete defaults and SQL ownership
 
 All class names in this table are under `Fight\Common\Adapter\Mcp\Persistence\{Task,Notice,Subscription}\Dbal`.
-Each schema's `TABLES` constant remains its exact **default inventory**, not the current selection.
+Each schema's `TABLES` constant remains its exact **default inventory**, not the current selection. These constants
+are **deprecated for removal in v2.0.0**; use the selection accessors below instead. See the
+[complete constant migration map and release-window limits](maintenance/table-name-constants.md).
 
 | Selection / constructor argument | Omitted default | Schema and runtime owner |
 | --- | --- | --- |

@@ -108,4 +108,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |
 | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | done | — |
 | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | ready-for-agent | [TICKET-00056](../tickets/00056-TICKET.md) |
+| [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | done | — |
 <!-- /planning:records -->
