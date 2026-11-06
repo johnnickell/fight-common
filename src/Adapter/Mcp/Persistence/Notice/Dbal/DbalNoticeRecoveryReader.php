@@ -29,10 +29,10 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
     /**
      * Constructs DbalNoticeRecoveryReader
      */
-    public function __construct(private Connection $connection)
+    public function __construct(private Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
     {
-        $this->noticeTransaction = new DbalNoticeTransaction($connection);
-        $this->noticeRecordSupport = new DbalNoticeRecords($connection);
+        $this->noticeTransaction = new DbalNoticeTransaction($connection, $tables);
+        $this->noticeRecordSupport = new DbalNoticeRecords($connection, $tables);
     }
 
     /**
@@ -55,7 +55,11 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
                     $where = 'n.scope IN ('.implode(', ', array_fill(0, count($scopes), '?')).')';
                 }
 
-                $sql = DbalNoticeRecords::SELECT.' WHERE '.$where.' AND n.position > ? ORDER BY n.position ASC';
+                $sql = sprintf(
+                    '%s WHERE %s AND n.position > ? ORDER BY n.position ASC',
+                    $this->noticeRecordSupport->select(),
+                    $where
+                );
                 $sql = $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit);
                 $rows = $this->connection->fetchAllAssociative($sql, [...$scopes, $position]);
 
@@ -86,7 +90,7 @@ final readonly class DbalNoticeRecoveryReader implements NoticeRecoveryReader
         }
 
         try {
-            $sql = DbalNoticeRecords::SELECT.' WHERE n.scope = ? AND n.position > ? ORDER BY n.position ASC';
+            $sql = $this->noticeRecordSupport->select().' WHERE n.scope = ? AND n.position > ? ORDER BY n.position ASC';
             $sql = $this->connection->getDatabasePlatform()->modifyLimitQuery($sql, $limit);
             $rows = $this->connection->fetchAllAssociative($sql, [$scope, $position]);
 

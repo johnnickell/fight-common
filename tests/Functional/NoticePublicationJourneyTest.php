@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Socket\MercureHubPublisher;
 use Fight\Common\Adapter\Socket\PrivateMercureHubPublisher;
 use Fight\Common\Application\Mcp\Notice\Data\NoticeView;
@@ -48,22 +49,23 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     private array $directories = [];
 
     #[DataProvider('databases')]
-    public function test_that_actual_commits_current_policy_and_real_mercure_adapters_preserve_safe_relationships_and_recovery(string $backend): void
+    public function test_that_actual_commits_current_policy_and_real_mercure_adapters_preserve_safe_relationships_and_recovery(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend);
-        $writer = new NoticeFixture($db);
+        $db = $this->database($backend, $tables);
+        $noticeTable = $tables->noticeTable()->quoted($db->getDatabasePlatform());
+        $writer = new NoticeFixture($db, $tables);
         $other = $this->connect($db->getParams());
-        $inspection = new NoticeInspectionFixture($other);
-        $recovery = new NoticeRecoveryFixture($other);
+        $inspection = new NoticeInspectionFixture($other, $tables);
+        $recovery = new NoticeRecoveryFixture($other, tables: $tables);
         $grant = NoticePublicationGrant::create('https://feed.test/private', true, NoticePublicationGrant::FIELDS, ['app/label']);
         $policyCalls = 0;
         $policy = $this->mock(NoticePublicationPolicy::class);
         $policy->shouldReceive('currentGrant')->times(5)->andReturnUsing(
-            static function (NoticeView $view) use ($db, $other, &$grant, &$policyCalls): ?NoticePublicationGrant {
+            static function (NoticeView $view) use ($db, $other, $noticeTable, &$grant, &$policyCalls): ?NoticePublicationGrant {
                 ++$policyCalls;
                 self::assertFalse($db->isTransactionActive());
                 self::assertFalse($other->isTransactionActive());
-                self::assertGreaterThan(0, (int) $other->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+                self::assertGreaterThan(0, (int) $other->fetchOne('SELECT COUNT(*) FROM '.$noticeTable));
                 self::assertSame('scope', $view->notice()->scope());
                 return $grant;
             }
@@ -91,7 +93,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $saved = $inspection->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-1'));
         self::assertSame(NoticePublicationStatus::FAILED, $composition->record($command));
         self::assertSame($saved->toArray(), $inspection->queryBus->fetch(new GetNotice('scope', 'producer', 'notice-1'))->toArray());
-        self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$noticeTable));
         $grant = null;
         self::assertSame(NoticePublicationStatus::DENIED, $composition->record($command));
         self::assertSame(3, $policyCalls);
@@ -131,11 +133,12 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_failed_precommit_recording_and_caller_transactions_send_nothing_and_preserve_unrelated_work(string $backend): void
+    public function test_that_failed_precommit_recording_and_caller_transactions_send_nothing_and_preserve_unrelated_work(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend);
-        $writer = new NoticeFixture($db);
-        $inspection = new NoticeInspectionFixture($db);
+        $db = $this->database($backend, $tables);
+        $comparisonTable = $tables->comparisonTable()->quoted($db->getDatabasePlatform());
+        $writer = new NoticeFixture($db, $tables);
+        $inspection = new NoticeInspectionFixture($db, $tables);
         $policy = $this->mock(NoticePublicationPolicy::class);
         $policy->shouldNotReceive('currentGrant');
         $hub = $this->mock(HubInterface::class);
@@ -146,9 +149,9 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         $composition = new RecordNoticeAndPublish($writer->commandBus, $operation);
         $command = RecordNotice::fromArray(NoticeFixture::data());
         if ($backend === 'sqlite') {
-            $db->executeStatement("CREATE TRIGGER publication_fail BEFORE INSERT ON fight_notice_comparisons BEGIN SELECT RAISE(ABORT, 'PRIVATE storage'); END");
+            $db->executeStatement("CREATE TRIGGER publication_fail BEFORE INSERT ON ".$comparisonTable." BEGIN SELECT RAISE(ABORT, 'PRIVATE storage'); END");
         } else {
-            $db->executeStatement('ALTER TABLE fight_notice_comparisons ADD CONSTRAINT publication_fail CHECK (position < 0)');
+            $db->executeStatement('ALTER TABLE '.$comparisonTable.' ADD CONSTRAINT publication_fail CHECK (position < 0)');
         }
         try {
             $composition->record($command);
@@ -157,7 +160,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             self::assertFalse($failure->outcomeUncertain());
             self::assertSame('Notice storage failed.', $failure->getMessage());
         }
-        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->noticeTable()->quoted($db->getDatabasePlatform())));
         self::assertFalse($db->isTransactionActive());
         $db->executeStatement('CREATE TABLE publication_caller_work (id INTEGER)');
         $db->beginTransaction();
@@ -177,12 +180,12 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_shared_history_polling_http_revocation_and_removal_remain_independent_of_optional_output(string $backend): void
+    public function test_that_shared_history_polling_http_revocation_and_removal_remain_independent_of_optional_output(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend);
-        $removal = new NoticeRemovalFixture($db);
-        $inspection = new NoticeInspectionFixture($db);
-        $recovery = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend, $tables);
+        $removal = new NoticeRemovalFixture($db, $tables);
+        $inspection = new NoticeInspectionFixture($db, $tables);
+        $recovery = new NoticeRecoveryFixture($db, tables: $tables);
         $policy = $this->mock(NoticePublicationPolicy::class);
         $policy->shouldReceive('currentGrant')->once()->andReturn(NoticePublicationGrant::create('https://feed.test/private', true));
         $diagnostics = $this->mock(NoticePublicationDiagnostics::class);
@@ -219,11 +222,11 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_existing_committed_fact_dispatch_failure_stays_distinct_and_a_later_explicit_attempt_uses_retained_content(string $backend): void
+    public function test_that_existing_committed_fact_dispatch_failure_stays_distinct_and_a_later_explicit_attempt_uses_retained_content(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend);
-        $writer = new NoticeFixture($db);
-        $inspection = new NoticeInspectionFixture($db);
+        $db = $this->database($backend, $tables);
+        $writer = new NoticeFixture($db, $tables);
+        $inspection = new NoticeInspectionFixture($db, $tables);
         $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function (): void {
             throw new RuntimeException('PRIVATE recording subscriber failure');
         });
@@ -247,7 +250,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             self::assertSame('notice-1', $failure->event()->toArray()['id']);
             self::assertSame(0, $sent);
             self::assertSame(0, $inspection->admissions);
-            self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+            self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->noticeTable()->quoted($db->getDatabasePlatform())));
         }
         self::assertSame(NoticePublicationStatus::PUBLISHED, $operation->publish(new GetNotice('scope', 'producer', 'notice-1')));
         self::assertSame(1, $sent);
@@ -256,7 +259,9 @@ final class NoticePublicationJourneyTest extends UnitTestCase
     public static function databases(): iterable
     {
         foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
-            yield $backend => [$backend];
+            yield $backend => [$backend, new DbalNoticeTables()];
+            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
+            yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
         }
     }
 
@@ -271,7 +276,7 @@ final class NoticePublicationJourneyTest extends UnitTestCase
         parent::tearDown();
     }
 
-    private function database(string $backend): Connection
+    private function database(string $backend, DbalNoticeTables $tables): Connection
     {
         if ($backend === 'sqlite') {
             $directory = sys_get_temp_dir().'/fight-notice-publication-'.bin2hex(random_bytes(8));
@@ -284,10 +289,17 @@ final class NoticePublicationJourneyTest extends UnitTestCase
             $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn);
         }
         $db = $this->connect($params);
-        foreach (array_reverse(DbalNoticeSchema::TABLES) as $table) {
-            $db->executeStatement('DROP TABLE IF EXISTS '.$table);
+        // Drop children from every journey selection before shared default parents.
+        $names = ['IsolationComparisons', 'IsolationRelations', 'PartialComparisons', 'PartialRelations'];
+        foreach (self::databases() as [, $selection]) {
+            foreach ([$selection->comparisonTable(), $selection->relationshipTable()] as $table) { $names[] = $table->name(); }
         }
-        (new DbalNoticeSchema())->install($db);
+        $names = [...$names, 'Select', 'IsolationState', 'PartialState'];
+        foreach (self::databases() as [, $selection]) {
+            foreach ([$selection->noticeTable(), $selection->stateTable()] as $table) { $names[] = $table->name(); }
+        }
+        foreach (array_unique($names) as $name) { $db->executeStatement('DROP TABLE IF EXISTS '.$db->getDatabasePlatform()->quoteSingleIdentifier($name)); }
+        (new DbalNoticeSchema($tables))->install($db);
         return $db;
     }
 

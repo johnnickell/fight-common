@@ -19,6 +19,7 @@ use Fight\Common\Domain\Mcp\Notice\RecordedNotice;
 final readonly class DbalNoticeRepository implements NoticeRepository
 {
     private Connection $connection;
+    private DbalNoticeTables $tables;
     private DbalNoticeRecords $noticeRecordSupport;
 
     /**
@@ -27,7 +28,8 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     public function __construct(private DbalNoticeTransaction $noticeTransaction)
     {
         $this->connection = $noticeTransaction->connection();
-        $this->noticeRecordSupport = new DbalNoticeRecords($this->connection);
+        $this->tables = $noticeTransaction->tables();
+        $this->noticeRecordSupport = new DbalNoticeRecords($this->connection, $this->tables);
     }
 
     /**
@@ -37,7 +39,7 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     {
         $this->noticeTransaction->requireOwnedTransaction();
         $row = $this->connection->fetchAssociative(
-            DbalNoticeRecords::SELECT.' WHERE n.scope = ? AND n.producer = ? AND n.notice_id = ?',
+            $this->noticeRecordSupport->select().' WHERE n.scope = ? AND n.producer = ? AND n.notice_id = ?',
             [$identity->scope(), $identity->producer(), $identity->id()]
         );
 
@@ -50,8 +52,9 @@ final readonly class DbalNoticeRepository implements NoticeRepository
     public function append(Notice $notice, string $recordedAt): RecordedNotice
     {
         $this->noticeTransaction->requireOwnedTransaction();
+        $platform = $this->connection->getDatabasePlatform();
         $lastPosition = (int) $this->connection->fetchOne(
-            'SELECT last_position FROM fight_notice_state WHERE singleton = 1'
+            'SELECT last_position FROM '.$this->tables->stateTable()->quoted($platform).' WHERE singleton = 1'
         );
         if ($lastPosition < 0 || $lastPosition >= RecordedNotice::MAX_POSITION) {
             throw new DomainException('Notice position capacity exhausted.');
@@ -61,11 +64,11 @@ final readonly class DbalNoticeRepository implements NoticeRepository
         $data = $notice->toArray();
         unset($data['relationships']);
         $this->connection->update(
-            'fight_notice_state',
+            $this->tables->stateTable()->quoted($platform),
             ['last_position' => $recordedNotice->position()],
             ['singleton' => 1]
         );
-        $this->connection->insert('fight_notices', [
+        $this->connection->insert($this->tables->noticeTable()->quoted($platform), [
             'position'    => $recordedNotice->position(),
             'scope'       => $notice->scope(),
             'producer'    => $notice->producer(),
@@ -73,11 +76,11 @@ final readonly class DbalNoticeRepository implements NoticeRepository
             'recorded_at' => $recordedAt,
             'payload'     => json_encode($data, JSON_THROW_ON_ERROR)
         ]);
-        $this->connection->insert('fight_notice_relationships', [
+        $this->connection->insert($this->tables->relationshipTable()->quoted($platform), [
             'position' => $recordedNotice->position(),
             'payload'  => json_encode($notice->relationships()->toArray(), JSON_THROW_ON_ERROR)
         ]);
-        $this->connection->insert('fight_notice_comparisons', [
+        $this->connection->insert($this->tables->comparisonTable()->quoted($platform), [
             'position' => $recordedNotice->position(),
             'version'  => 1,
             'payload'  => $notice->comparison()
@@ -97,9 +100,10 @@ final readonly class DbalNoticeRepository implements NoticeRepository
             throw new NoticeRemovalRejected();
         }
 
+        $platform = $this->connection->getDatabasePlatform();
         $lostThrough = $state->lostThrough();
         foreach ($selection->targets() as $target) {
-            $removed = $this->connection->delete('fight_notices', [
+            $removed = $this->connection->delete($this->tables->noticeTable()->quoted($platform), [
                 'scope'     => $target['scope'],
                 'producer'  => $target['producer'],
                 'notice_id' => $target['id'],
@@ -113,7 +117,11 @@ final readonly class DbalNoticeRepository implements NoticeRepository
         }
 
         if ($lostThrough !== $state->lostThrough()) {
-            $this->connection->update('fight_notice_state', ['lost_through' => $lostThrough], ['singleton' => 1]);
+            $this->connection->update(
+                $this->tables->stateTable()->quoted($platform),
+                ['lost_through' => $lostThrough],
+                ['singleton' => 1]
+            );
         }
     }
 }

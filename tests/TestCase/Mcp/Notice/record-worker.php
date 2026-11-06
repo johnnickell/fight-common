@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeRejected;
 use Fight\Common\Domain\Mcp\Notice\Command\RecordNotice;
 use Fight\Common\Domain\Mcp\Notice\Event\NoticeRecorded;
@@ -13,6 +14,7 @@ use Fight\Test\Common\TestCase\Mcp\Notice\NoticeFixture;
 require dirname(__DIR__, 4).'/vendor/autoload.php';
 
 $config = json_decode(file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR);
+$tables = new DbalNoticeTables(...($config['tables'] ?? []));
 $role = $argv[2]; $directory = dirname($argv[1]);
 $connection = DriverManager::getConnection($config['params']);
 if ($config['params']['driver'] === 'pdo_sqlite') { $connection->executeStatement('PRAGMA busy_timeout = 10000'); }
@@ -20,10 +22,10 @@ $proxy = Mockery::mock(Connection::class);
 foreach (['getDatabasePlatform', 'isTransactionActive', 'getTransactionIsolation', 'isAutoCommit', 'getTransactionNestingLevel', 'beginTransaction', 'executeStatement', 'fetchOne', 'fetchAssociative', 'insert', 'update', 'rollBack'] as $method) {
     $proxy->shouldReceive($method)->andReturnUsing(static fn (...$arguments) => $connection->$method(...$arguments));
 }
-$proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $directory, $config, $connection): void {
+$proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $directory, $config, $connection, $tables): void {
     if ($role === 'first') {
         // Publish the complete barrier atomically: existence alone is the parent's readiness signal.
-        file_put_contents($directory.'/first-precommit.tmp', (string) $connection->fetchOne('SELECT last_position FROM fight_notice_state'));
+        file_put_contents($directory.'/first-precommit.tmp', (string) $connection->fetchOne('SELECT last_position FROM '.$tables->stateTable()->quoted($connection->getDatabasePlatform())));
         rename($directory.'/first-precommit.tmp', $directory.'/first-precommit');
         $deadline = microtime(true) + 15;
         while (!file_exists($directory.'/release')) {
@@ -34,7 +36,7 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $
     }
     $connection->commit();
 });
-$fixture = new NoticeFixture($proxy);
+$fixture = new NoticeFixture($proxy, $tables);
 $fixture->onAdmit = static function () use ($directory, $role): void {
     file_put_contents($directory.'/'.$role.'-admitted', 'yes');
     if ($role === 'second' && file_exists($directory.'/revoked')) { throw new NoticeRejected(); }

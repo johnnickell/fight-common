@@ -118,7 +118,7 @@ certification is requested. These are future requirements, not passed evidence o
 | ID | Title | Status |
 |---|---|---|
 | [TASK-00199](../tasks/00199-TASK.md) | Configure durable Task storage | done |
-| [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | ready-for-agent |
+| [TASK-00200](../tasks/00200-TASK.md) | Configure Notice persistence and recovery storage | done |
 | [TASK-00201](../tasks/00201-TASK.md) | Configure subscription storage and complete live integration | ready-for-agent |
 | [TASK-00202](../tasks/00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent |
 <!-- /planning:children -->
@@ -175,3 +175,16 @@ Publication/final-head verification is pending at this administrative checkpoint
 results and owned-resource dispositions belong in canonical
 `.runs/tasks/TASK-00199/runs/20261105-land-01/land.md` and its actual recorded PR. No merge, release,
 deployment, tracked pending-merge queue or post-merge planning chore is asserted.
+
+### Notice supplier acceptance checkpoint — 2026-11-06
+
+TASK-00200 has independent Review v3 ACCEPT and required QA v2 complete PASS on candidate
+`daafa753fd39d0ef66073c6044e4e3912d6ee1a3`, completing its four-table configured Notice supplier with required
+local verification. TASK-00201/00202 remain unfinished, so this TICKET and EPIC-00013 stay open. Subscription
+configuration, combined live integration and final ORM/inventory qualification are not implied by Notice
+acceptance. Earlier checkpoints and reports remain historical; current execution routing belongs to the Board.
+
+Publication/final-head verification is pending at this administrative checkpoint. Current TASK-00200 delivery
+results, accepted-candidate/administrative bridge and owned-resource dispositions belong in canonical
+`.runs/tasks/TASK-00200/runs/20261106-land-01/land.md` and its actual recorded PR. No merge, release,
+deployment, tracked delivery queue or recurring post-merge planning chore is asserted.

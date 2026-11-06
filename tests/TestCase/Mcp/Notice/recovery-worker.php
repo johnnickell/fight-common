@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Test\Common\TestCase\Mcp\Notice\NoticeRecoveryFixture;
 
 require dirname(__DIR__, 4).'/vendor/autoload.php';
@@ -27,7 +28,7 @@ $proxy->shouldReceive('commit')->andReturnUsing(static function () use ($role, $
     }
     $connection->commit();
 });
-$fixture = new NoticeRecoveryFixture($proxy);
+$fixture = new NoticeRecoveryFixture($proxy, tables: new DbalNoticeTables(...($config['tables'] ?? [])));
 file_put_contents($directory.'/'.$role.'-started', 'recovery');
 echo json_encode($fixture->call($config['arguments']), JSON_THROW_ON_ERROR);
 $connection->close(); Mockery::close();

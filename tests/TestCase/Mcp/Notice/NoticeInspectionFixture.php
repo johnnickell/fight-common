@@ -6,6 +6,7 @@ namespace Fight\Test\Common\TestCase\Mcp\Notice;
 
 use Doctrine\DBAL\Connection;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeReader;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Adapter\Messaging\Query\Routing\InMemoryQueryRouter;
 use Fight\Common\Adapter\Messaging\Query\RoutingQueryBus;
 use Fight\Common\Application\Mcp\Notice\QueryHandler\GetNoticeHandler;
@@ -21,10 +22,10 @@ final class NoticeInspectionFixture implements NoticeReadAdmission
     public int $admissions = 0;
     public readonly RoutingQueryBus $queryBus;
 
-    public function __construct(Connection $connection)
+    public function __construct(Connection $connection, DbalNoticeTables $tables = new DbalNoticeTables())
     {
         $this->access = NoticeAccess::create(['scope']);
-        $reader = new DbalNoticeReader($connection); $router = new InMemoryQueryRouter();
+        $reader = new DbalNoticeReader($connection, $tables); $router = new InMemoryQueryRouter();
         foreach ([SummarizeNoticesHandler::class, ListNoticesHandler::class, GetNoticeHandler::class] as $class) {
             $router->registerHandler($class::queryRegistration(), new $class($this, $reader));
         }

@@ -88,7 +88,7 @@ The transaction seam owns namespace locking, schema validation and Notice failur
 rollback mechanics stay in TASK-00184's `Adapter\Persistence\Doctrine\DbalTransactionalUnitOfWork`.
 `DbalNoticeRecoveryReader` separately owns coherent read transactions and bounded feed reconstruction. Authorized
 live browsing remains `NoticeReader`/`DbalNoticeReader`, not a second role on the write repository or recovery port.
-The DBAL adapters support actual SQLite, MySQL and PostgreSQL only. Their reserved schema namespace is:
+The DBAL adapters support actual SQLite, MySQL and PostgreSQL only. Their default schema namespace is:
 
 - `fight_notice_state`: singleton version, last allocated position, random namespace incarnation and conservative
   `lost_through` boundary, also the shared serialization lock;
@@ -102,9 +102,58 @@ have no whitespace/padding ambiguity. SQLite enables foreign keys; consumers con
 composition uses public DBAL schema-manager APIs, without a new internal-API exception, migration or dependency floor.
 `addTo()` supports consumer-owned deployment schemas; seed singleton `1`, version `1`, last position `0`, a fresh
 `bin2hex(random_bytes(16))` namespace and loss boundary `0` when managing a new deployment yourself.
-`install()` creates an empty namespace or validates the current version marker and identity/recovery indexes; it is
+`install()` creates an empty namespace or validates the current version marker, identity/recovery indexes,
+namespace/loss and comparison-version columns, and dependent cascading FKs to the selected Notice parent; it is
 not an exhaustive drift repair/fingerprint or online migration. Partial schemas/unsupported versions reject. MySQL
 DDL may partially succeed: stop and recover exclusively rather than rerun recording against incomplete storage.
+
+### Explicit physical table selection
+
+`Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables` independently selects all four tables. Its constructor
+arguments and exact defaults are `stateTable: 'fight_notice_state'`, `noticeTable: 'fight_notices'`,
+`relationshipTable: 'fight_notice_relationships'` and `comparisonTable: 'fight_notice_comparisons'`.
+Omitted arguments intentionally retain their own defaults; there is no inferred prefix or environment lookup.
+Share one selection explicitly across schema installation and the separated adapters:
+
+```php
+$noticeTables = new DbalNoticeTables(
+    stateTable: 'app_notice_state',
+    noticeTable: 'app_notices',
+    relationshipTable: 'app_notice_relationships',
+    comparisonTable: 'app_notice_comparisons'
+);
+(new DbalNoticeSchema($noticeTables))->install($connection); // Explicit deployment action only.
+$transactionalUnitOfWork = new DbalNoticeTransaction($connection, $noticeTables);
+$noticeRepository = new DbalNoticeRepository($transactionalUnitOfWork); // Inherits its exact selection.
+$noticeReader = new DbalNoticeReader($readerConnection, $noticeTables);
+$noticeRecoveryReader = new DbalNoticeRecoveryReader($recoveryConnection, $noticeTables);
+// Partial example: only the comparison name changes; the other three retain their defaults.
+$partialNoticeTables = new DbalNoticeTables(comparisonTable: 'app_notice_comparisons');
+```
+
+Use the same explicit selection in independent connections/workers, inspection, recovery and publication
+composition. No table knowledge enters Domain/Application contracts or grants recording, reading, removal or
+publication permission. `DbalNoticeSchema::TABLES` remains the default-name inventory, not the selected names.
+The transaction's `tables()` exposes its immutable selection for Adapter composition, not a runtime setter.
+
+Shared `Adapter\Persistence\Doctrine\DbalTableName` accepts exactly `[A-Za-z_][A-Za-z0-9_]{0,62}` (1–63 ASCII
+characters), preserving case. Ordinary reserved words work through schema/platform quoting. Qualified, prequoted,
+unsafe and unsupported names reject with `InvalidArgumentException`, without SQL interpretation or fallback.
+The selection rejects case-insensitive collisions among its four tables; consumers own cross-capability collisions,
+connection/schema selection and privileges. Identity/recovery indexes retain their default names for the default
+Notice table and gain a stable table-derived suffix for renamed Notice tables so independent installations can coexist.
+Both dependent FKs always target the selected Notice table.
+
+Configuration, constructors and schema definition perform no installation, rename, migration, data copy or
+continuity reset. Runtime uses only selected names; missing/incompatible selected storage fails explicitly, never
+falls back to populated defaults. `install()` rejects a partially present selected set rather than completing or
+retargeting old FKs. A partial override can intentionally reuse omitted tables, so it is not an independent new
+namespace; do not switch a populated installation one table at a time or mix state/comparisons from different
+histories. Consumers own any operational data movement, lock/position coherence and deployment sequencing.
+A fully new installed selection starts empty with a fresh namespace incarnation; it does not prove old history was
+migrated or make an old continuation/removal target valid. Retain conservative recovery uncertainty/loss handling.
+
+### Retained identity
 
 The tuple **scope + producer + notice ID** owns retry identity. Under the lock, a currently admitted equal version-one
 comparison deduplicates without modifying recording time/position or dispatching again. Changed accepted content

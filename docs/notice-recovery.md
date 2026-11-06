@@ -32,6 +32,14 @@ callers need no transaction injection or sequencing. It neither implements the w
 on the write path. Live authorized `NoticeReader` browsing has different consistency/authorization responsibilities
 and remains separate. An empty scope list reads no bodies. This is trusted storage, not a public grant.
 
+For configured storage, pass the same optional `tables: DbalNoticeTables` to `DbalNoticeRecoveryReader` as to
+the explicit installer and recording/removal transaction, including on separate connections and in workers.
+It internally shares that selection between its coherent state lock and all three reconstruction joins. See
+[the four defaults, independent partial overrides and naming limits](safe-notices.md#explicit-physical-table-selection).
+Changing selection never migrates history or transfers high-water/loss/incarnation evidence. A newly installed
+empty namespace invalidates old continuations; empty rows are not proof of old-data recovery. Missing/partial or
+incompatible selected storage fails without fallback or a successful empty catch-up claim.
+
 Reuse `NoticeReadAdmission::currentAccess(selection)` from [inspection](notice-inspection.md). Every call obtains
 fresh whole-notice grants, intersected with the caller selection, before any disclosure. It must additionally supply
 `NoticeAccess::create(scopes, filters, recoveryIdentity: new NoticeRecoveryIdentity(caller, revision, namespaceEvidence))`:

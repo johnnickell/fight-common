@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeSchema;
+use Fight\Common\Adapter\Mcp\Persistence\Notice\Dbal\DbalNoticeTables;
 use Fight\Common\Application\Mcp\Notice\Exception\CommittedNoticeDispatchFailed;
 use Fight\Common\Application\Mcp\Notice\Exception\NoticeReadFailed;
 use Fight\Common\Application\Mcp\Notice\Service\NoticeContinuationProtector;
@@ -31,9 +32,9 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     private array $directories = [];
 
     #[DataProvider('databases')]
-    public function test_that_failed_postcommit_publication_and_multibatch_query_http_recovery_preserve_authorized_committed_order(string $backend): void
+    public function test_that_failed_postcommit_publication_and_multibatch_query_http_recovery_preserve_authorized_committed_order(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeFixture($db); $fixture = new NoticeRecoveryFixture($db); $events = 0;
+        $db = $this->database($backend, $tables); $writer = new NoticeFixture($db, $tables); $fixture = new NoticeRecoveryFixture($db, tables: $tables); $events = 0;
         $writer->eventDispatcher->addHandler(ClassName::underscore(NoticeRecorded::class), static function () use (&$events): void { ++$events; throw new RuntimeException('PRIVATE publication sentinel'); });
         for ($i = 1; $i <= 105; ++$i) {
             $changes = ['id' => 'notice-'.$i, 'producer' => $i % 2 ? 'producer' : 'producer-2'];
@@ -67,9 +68,9 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_current_grants_context_integrity_and_hidden_loss_never_create_false_completion_or_leakage(string $backend): void
+    public function test_that_current_grants_context_integrity_and_hidden_loss_never_create_false_completion_or_leakage(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend, $tables); $writer = new NoticeRemovalFixture($db, $tables); $fixture = new NoticeRecoveryFixture($db, tables: $tables);
         $writer->recording->record(['id' => 'old']); $writer->recording->record(['scope' => 'scope-2', 'id' => 'newly-permitted', 'metadata' => ['app/label' => 'CONCEALED-SENTINEL']]);
         $args = ['scopes' => ['scope', 'scope-2'], 'batch_size' => 1]; $first = $this->equivalent($fixture, $args); self::assertSame('complete', $first['status']);
         $old = $args + ['continuation' => $first['continuation']];
@@ -98,9 +99,10 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
     }
 
     #[DataProvider('databases')]
-    public function test_that_actual_removal_final_row_retirement_and_missing_evidence_are_not_successful_empty_catchup(string $backend): void
+    public function test_that_actual_removal_final_row_retirement_and_missing_evidence_are_not_successful_empty_catchup(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend, $tables); $writer = new NoticeRemovalFixture($db, $tables); $fixture = new NoticeRecoveryFixture($db, tables: $tables);
+        $stateTable = $tables->stateTable()->quoted($db->getDatabasePlatform());
         $writer->recording->record(['id' => 'first']); $writer->recording->record(['id' => 'last']);
         $args = ['scopes' => ['scope'], 'batch_size' => 1]; $first = $this->equivalent($fixture, $args); self::assertSame('incomplete', $first['status']);
         $writer->remove($writer->selection([NoticeRemovalFixture::target(2, 'last')]));
@@ -109,19 +111,19 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         $writer->remove($writer->selection([NoticeRemovalFixture::target(1, 'first')]));
         self::assertSame('incomplete', $this->equivalent($fixture, $args)['status']);
         self::assertSame('incomplete', $this->equivalent($fixture, ['scopes' => ['scope']])['status']);
-        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notice_comparisons'));
-        $db->update('fight_notice_state', ['namespace' => bin2hex(random_bytes(16)), 'lost_through' => 2], ['singleton' => 1]);
+        self::assertSame(0, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->comparisonTable()->quoted($db->getDatabasePlatform())));
+        $db->update($stateTable, ['namespace' => bin2hex(random_bytes(16)), 'lost_through' => 2], ['singleton' => 1]);
         $this->assertSafeError($fixture->call($args));
         self::assertSame('incomplete', $this->equivalent($fixture, ['scopes' => ['scope']])['status']);
-        $db->delete('fight_notice_state', ['singleton' => 1]);
+        $db->delete($stateTable, ['singleton' => 1]);
         $this->assertSafeError($fixture->call(['scopes' => ['scope']]));
         try { $fixture->queryBus->fetch(new RecoverNotices(NoticeSelection::create(['scope']))); self::fail('Missing evidence must fail'); } catch (NoticeReadFailed $error) { self::assertSame('Retained notices could not be read completely.', $error->getMessage()); }
     }
 
     #[DataProvider('databases')]
-    public function test_that_scans_exact_batches_inputs_availability_guard_and_storage_failures_are_bounded_and_independent(string $backend): void
+    public function test_that_scans_exact_batches_inputs_availability_guard_and_storage_failures_are_bounded_and_independent(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeFixture($db); $fixture = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend, $tables); $writer = new NoticeFixture($db, $tables); $fixture = new NoticeRecoveryFixture($db, tables: $tables);
         for ($i = 1; $i <= 101; ++$i) { $writer->record(['id' => 'notice-'.$i, 'topic' => $i === 101 ? 'target' : 'other']); }
         $args = ['scopes' => ['scope'], 'filters' => ['topic' => 'target'], 'batch_size' => 32, 'scan_limit' => 100];
         $scan = $this->equivalent($fixture, $args); self::assertSame([], $scan['notices']); self::assertSame('incomplete', $scan['status']);
@@ -140,39 +142,39 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         $fixture->guard = true; $state = $fixture->state(); $fixture->access = NoticeRecoveryFixture::access([]);
         $unknown = $this->equivalent($fixture, ['scopes' => ['scope']]); $other = $this->equivalent($fixture, ['scopes' => ['missing']]);
         self::assertSame([], $unknown['notices']); self::assertSame([], $other['notices']); self::assertSame($unknown['status'], $other['status']); self::assertSame($state, $fixture->state());
-        $fixture->access = NoticeRecoveryFixture::access(); $db->executeStatement('DROP TABLE fight_notice_comparisons');
+        $fixture->access = NoticeRecoveryFixture::access(); $db->executeStatement('DROP TABLE '.$tables->comparisonTable()->quoted($db->getDatabasePlatform()));
         $this->assertSafeError($fixture->call(['scopes' => ['scope']]));
     }
 
     #[DataProvider('databases')]
-    public function test_that_actual_encoded_envelope_and_projection_exact_limits_include_escaping_text_metadata_and_one_oversized_notice(string $backend): void
+    public function test_that_actual_encoded_envelope_and_projection_exact_limits_include_escaping_text_metadata_and_one_oversized_notice(string $backend, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeFixture($db);
+        $db = $this->database($backend, $tables); $writer = new NoticeFixture($db, $tables);
         $writer->record(['metadata' => ['app/label' => str_repeat('雪"\\/', 20)]]);
         // Fixed-width presentation-only protector isolates exact byte arithmetic from random nonce bytes.
         // Production encryption/tampering is exercised separately and on every ordinary journey above.
         $fixed = new class implements NoticeContinuationProtector { public function seal(string $plaintext): string { return str_repeat('x', 1432); } public function open(string $token): string { throw new RuntimeException('Not used'); } };
         $args = ['scopes' => ['scope']];
-        $baseline = new NoticeRecoveryFixture($db, protector: $fixed); $result = $baseline->call($args)['body']['result'];
+        $baseline = new NoticeRecoveryFixture($db, protector: $fixed, tables: $tables); $result = $baseline->call($args)['body']['result'];
         self::assertSame(json_decode($result['content'][0]['text'], true), $result['structuredContent']);
         $encoded = strlen($baseline->lastResponse); $projection = strlen(json_encode($result['structuredContent'], JSON_THROW_ON_ERROR));
         self::assertGreaterThan(2048, $projection);
-        $exact = new NoticeRecoveryFixture($db, maxResultBytes: $projection, maxResponseBytes: $encoded, protector: $fixed);
+        $exact = new NoticeRecoveryFixture($db, maxResultBytes: $projection, maxResponseBytes: $encoded, protector: $fixed, tables: $tables);
         self::assertArrayHasKey('result', $exact->call($args)['body']); self::assertSame($encoded, strlen($exact->lastResponse));
-        $small = new NoticeRecoveryFixture($db, maxResultBytes: $projection - 1, protector: $fixed); $this->assertSafeError($small->call($args));
-        $small = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded - 1, protector: $fixed); $this->assertSafeError($small->call($args));
+        $small = new NoticeRecoveryFixture($db, maxResultBytes: $projection - 1, protector: $fixed, tables: $tables); $this->assertSafeError($small->call($args));
+        $small = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded - 1, protector: $fixed, tables: $tables); $this->assertSafeError($small->call($args));
         self::assertStringNotContainsString('continuation', $small->lastResponse);
-        $metadata = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded, serverName: str_repeat('"雪\\', 100), protector: $fixed); $this->assertSafeError($metadata->call($args));
-        $largeId = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded, protector: $fixed); $largeId->requestId = str_repeat('"雪\\', 100); $this->assertSafeError($largeId->call($args));
-        $oversized = new NoticeRecoveryFixture($db, maxResultBytes: 2048); $this->assertSafeError($oversized->call($args));
-        $normal = new NoticeRecoveryFixture($db); self::assertSame('notice-1', $normal->call($args)['body']['result']['structuredContent']['notices'][0]['id']);
-        self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM fight_notices'));
+        $metadata = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded, serverName: str_repeat('"雪\\', 100), protector: $fixed, tables: $tables); $this->assertSafeError($metadata->call($args));
+        $largeId = new NoticeRecoveryFixture($db, maxResponseBytes: $encoded, protector: $fixed, tables: $tables); $largeId->requestId = str_repeat('"雪\\', 100); $this->assertSafeError($largeId->call($args));
+        $oversized = new NoticeRecoveryFixture($db, maxResultBytes: 2048, tables: $tables); $this->assertSafeError($oversized->call($args));
+        $normal = new NoticeRecoveryFixture($db, tables: $tables); self::assertSame('notice-1', $normal->call($args)['body']['result']['structuredContent']['notices'][0]['id']);
+        self::assertSame(1, (int) $db->fetchOne('SELECT COUNT(*) FROM '.$tables->noticeTable()->quoted($db->getDatabasePlatform())));
     }
 
     #[DataProvider('races')]
-    public function test_that_query_and_http_observe_one_serialized_recording_or_removal_boundary_with_delayed_commits(string $backend, string $mode): void
+    public function test_that_query_and_http_observe_one_serialized_recording_or_removal_boundary_with_delayed_commits(string $backend, string $mode, DbalNoticeTables $tables): void
     {
-        $db = $this->database($backend); $writer = new NoticeRemovalFixture($db); $fixture = new NoticeRecoveryFixture($db);
+        $db = $this->database($backend, $tables); $writer = new NoticeRemovalFixture($db, $tables); $fixture = new NoticeRecoveryFixture($db, tables: $tables);
         $args = ['scopes' => ['scope'], 'batch_size' => 1];
         if ($mode !== 'record-first') {
             $writer->recording->record(); $writer->recording->record(['id' => 'last']);
@@ -180,7 +182,7 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         }
         $directory = $this->directory(); $config = $directory.'/config.json';
         $selection = $mode === 'record-first' ? null : $writer->selection([NoticeRemovalFixture::target(2, 'last')])->toArray();
-        file_put_contents($config, json_encode(['params' => $db->getParams(), 'mode' => match ($mode) { 'record-first' => 'distinct', 'recover-first' => 'record-first-remove', default => 'remove-first-window' }, 'selection' => $selection, 'arguments' => $args], JSON_THROW_ON_ERROR));
+        file_put_contents($config, json_encode(['params' => $db->getParams(), 'mode' => match ($mode) { 'record-first' => 'distinct', 'recover-first' => 'record-first-remove', default => 'remove-first-window' }, 'selection' => $selection, 'arguments' => $args, 'tables' => $this->workerTables($tables)], JSON_THROW_ON_ERROR));
         $firstScript = match ($mode) { 'record-first' => 'record-worker.php', 'remove-first' => 'removal-worker.php', default => 'recovery-worker.php' };
         $secondScript = $mode === 'recover-first' ? 'removal-worker.php' : 'recovery-worker.php';
         $first = new Process([PHP_BINARY, __DIR__.'/../TestCase/Mcp/Notice/'.$firstScript, $config, 'first'], timeout: 25);
@@ -202,18 +204,38 @@ final class NoticeRecoveryJourneyTest extends UnitTestCase
         } finally { file_put_contents($directory.'/release', 'yes'); $first->stop(); $second->stop(); }
     }
 
-    public static function databases(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { yield $backend => [$backend]; } }
-    public static function races(): iterable { foreach (['sqlite', 'mysql', 'postgresql'] as $backend) { foreach (['record-first', 'remove-first', 'recover-first'] as $mode) { yield $backend.'-'.$mode => [$backend, $mode]; } } }
+    public static function databases(): iterable
+    {
+        foreach (['sqlite', 'mysql', 'postgresql'] as $backend) {
+            yield $backend => [$backend, new DbalNoticeTables()];
+            yield $backend.'-partial' => [$backend, new DbalNoticeTables(stateTable: 'PartialNoticeState', comparisonTable: 'PartialNoticeComparisons')];
+            yield $backend.'-configured' => [$backend, new DbalNoticeTables('NoticeState', 'Order', 'NoticeRelationships', 'NoticeComparisons')];
+        }
+    }
+    public static function races(): iterable { foreach (self::databases() as $name => [$backend, $tables]) { foreach (['record-first', 'remove-first', 'recover-first'] as $mode) { yield $name.'-'.$mode => [$backend, $mode, $tables]; } } }
     protected function tearDown(): void { foreach ($this->connections as $db) { $db->close(); } foreach ($this->directories as $directory) { $this->removeTemporaryDirectory($directory, 'fight-notice-recovery-'); } parent::tearDown(); }
     private function directory(): string { $path = sys_get_temp_dir().'/fight-notice-recovery-'.bin2hex(random_bytes(8)); self::assertTrue(mkdir($path, 0700)); $this->directories[] = $path; return $path; }
-    private function database(string $backend): Connection
+    private function database(string $backend, DbalNoticeTables $tables): Connection
     {
         if ($backend === 'sqlite') { $params = ['driver' => 'pdo_sqlite', 'path' => $this->directory().'/notices.sqlite']; }
         else { $dsn = getenv($backend === 'mysql' ? 'FIGHT_COMMON_MYSQL_DSN' : 'FIGHT_COMMON_POSTGRESQL_DSN'); self::assertIsString($dsn, 'Actual disposable database required'); $params = (new DsnParser(['mysql' => 'pdo_mysql', 'postgresql' => 'pdo_pgsql']))->parse($dsn); }
         $db = DriverManager::getConnection($params); $this->connections[] = $db;
         if ($backend === 'sqlite') { $db->executeStatement('PRAGMA foreign_keys = ON'); $db->executeStatement('PRAGMA busy_timeout = 10000'); }
-        foreach (array_reverse(DbalNoticeSchema::TABLES) as $table) { $db->executeStatement('DROP TABLE IF EXISTS '.$table); }
-        (new DbalNoticeSchema())->install($db); return $db;
+        // Drop children from every journey selection before shared default parents.
+        $names = ['IsolationComparisons', 'IsolationRelations', 'PartialComparisons', 'PartialRelations'];
+        foreach (self::databases() as [, $selection]) {
+            foreach ([$selection->comparisonTable(), $selection->relationshipTable()] as $table) { $names[] = $table->name(); }
+        }
+        $names = [...$names, 'Select', 'IsolationState', 'PartialState'];
+        foreach (self::databases() as [, $selection]) {
+            foreach ([$selection->noticeTable(), $selection->stateTable()] as $table) { $names[] = $table->name(); }
+        }
+        foreach (array_unique($names) as $name) { $db->executeStatement('DROP TABLE IF EXISTS '.$db->getDatabasePlatform()->quoteSingleIdentifier($name)); }
+        (new DbalNoticeSchema($tables))->install($db); return $db;
+    }
+    private function workerTables(DbalNoticeTables $tables): array
+    {
+        return ['stateTable' => $tables->stateTable()->name(), 'noticeTable' => $tables->noticeTable()->name(), 'relationshipTable' => $tables->relationshipTable()->name(), 'comparisonTable' => $tables->comparisonTable()->name()];
     }
     private function equivalent(NoticeRecoveryFixture $fixture, array $args): array
     {
