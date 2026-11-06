@@ -104,7 +104,7 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00199](00199-TASK.md) | Configure durable Task storage | done | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00200](00200-TASK.md) | Configure Notice persistence and recovery storage | done | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00201](00201-TASK.md) | Configure subscription storage and complete live integration | done | [TICKET-00055](../tickets/00055-TICKET.md) |
-| [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | ready-for-agent | [TICKET-00055](../tickets/00055-TICKET.md) |
+| [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | done | [TICKET-00055](../tickets/00055-TICKET.md) |
 | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | done | — |
 | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | done | — |
 | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | ready-for-agent | [TICKET-00056](../tickets/00056-TICKET.md) |

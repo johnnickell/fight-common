@@ -128,6 +128,19 @@ Commands use `execute()` for payloads and `dispatch()` for messages. Queries use
 
 ## Persistence and validation
 
+**Physical table selection:** Common's current source inventory comprises nineteen DBAL tables and two ORM-mapped
+tables, including schema/state, sequence, comparison and lock-bearing storage. The
+[complete table inventory and composition guide](docs/table-names.md) accounts for each default/configuration route,
+schema/runtime/read/removal path and supplier. DBAL selections use the shared ordinary-name boundary; nonce/audit
+retain native ORM metadata and the configured Doctrine quote strategy, without retroactive DBAL restrictions.
+`DoctrineNonceRepository` uses that strategy/platform for raw-SQL consume and expired purge; audit persist/DQL uses
+native ORM resolution with unchanged custom types, pagination and inclusive timestamp bounds. Real native ORM tests
+exercise defaults, full/individual overrides, quoted tables, populated-default isolation, connection reopen and
+missing selected storage/no fallback; nonce quoting/schema execution also runs on MySQL/PostgreSQL. Mapping alone
+never installs, renames, copies or migrates replay memory/history. Framework/provider backend tables, consumer read
+models and test fixtures remain separately owned. This finite package evidence is not deployed-consumer or release
+qualification; independent acceptance stays in the owning TASK/reports.
+
 | Term | Meaning in Fight Common |
 | --- | --- |
 | **Repository** | A domain-oriented collection boundary for retrieving and persisting domain records without exposing infrastructure details. |
@@ -493,7 +506,9 @@ never fall back to populated defaults. Partial choices intentionally retain omit
 namespace. The [eight-table lifecycle composition and SQL inventory](docs/lifecycle-storage.md) reconciles the actual
 Task/Notice suppliers with subscriptions. Default/configured real three-database HTTP/native journeys transport all
 selected names into independent producers/readers, preserve poisoned default counterparts and independently guarded
-Task state outside retained Notices/tracking. Final ORM/whole-package inventory qualification remains TASK-00202.
+Task state outside retained Notices/tracking. The [whole-package inventory](docs/table-names.md) separately accounts for native ORM nonce/audit storage and the
+integrated Event Sourcing/execution suppliers; TASK-00202 records independent Review acceptance, required QA PASS
+and the later behavior-preserving integration/verification bridge.
 Owner heartbeats cannot revive closed/expired rows; abrupt death becomes
 stale/uncertain, not confirmed connectivity or a permission lease. Short dedicated transactions, a namespace capacity
 lock, at most 256 fresh registrations/4,096 retained rows and explicit 1–256-row cleanup bound tracking. No historical

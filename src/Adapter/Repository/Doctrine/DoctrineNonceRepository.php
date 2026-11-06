@@ -28,7 +28,10 @@ class DoctrineNonceRepository extends DoctrineRepository implements NonceReposit
     public function __construct(EntityManagerInterface $entityManager)
     {
         parent::__construct($entityManager, Nonce::class);
-        $this->table = $entityManager->getClassMetadata(Nonce::class)->getTableName();
+        $this->table = $entityManager->getConfiguration()->getQuoteStrategy()->getTableName(
+            $entityManager->getClassMetadata(Nonce::class),
+            $entityManager->getConnection()->getDatabasePlatform()
+        );
     }
 
     /**
