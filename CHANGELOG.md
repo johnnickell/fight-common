@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-07
+
 ### Changed
 
 - Organize the new execution, Notice, Task and subscription APIs beneath `Domain\Mcp`, `Application\Mcp` and
@@ -148,7 +150,7 @@ No API removal, mandatory v1.6.0, platform/coding-standard tightening or final-1
 
 [Reconciliation scope and deliberate exclusions](docs/maintenance/v1.5.0-reconciliation.md) account for the complete
 v1.4.1-to-candidate change set. Earlier v1.4 features and the v1.4.1 Laravel repair are not new v1.5.0 fixes.
-These Unreleased notes do not certify, date or approve a release.
+The dated notes identify the v1.5.0 candidate scope, not certification, ship approval or proof of publication.
 
 ## [1.4.1] - 2026-11-04
 
@@ -448,7 +450,8 @@ for exact limits and composition requirements.
 - PHP 8.5+ required
 - PSR-3, PSR-6, PSR-7, PSR-11, PSR-17, PSR-18 interface compliance
 
-[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/johnnickell/fight-common/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/johnnickell/fight-common/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/johnnickell/fight-common/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/johnnickell/fight-common/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/johnnickell/fight-common/compare/v1.2.0...v1.3.0
