@@ -59,7 +59,10 @@ followed by an admitted no-op while safe identity remains. There is no count or 
 The operation deletes **only the selected protected-content table's row** (default `fight_execution_contents`),
 including its exact body/comparison representation
 (or a null-body explicit-absence row). It deliberately retains safe detail identity, original capture metadata,
-recording time and activity link, as well as activity/usage, session and phase summaries. There is no duplicate
+recording time and activity link, as well as activity/usage, optional typed execution target/timing/result, session
+and phase summaries. Body removal does not redact safe summaries/execution metadata or consumer copies, and adds
+no generic safe-metadata purge, removal event or stronger physical-erasure claim. Unsupported lifecycle coverage
+must stay denied/held until its owning participants are qualified. There is no duplicate
 body/digest in safe retry evidence. There are no link mutations to commit separately: the retained links remain
 valid and Query availability depends on actual protected-row presence, not historical capture completeness.
 No metadata purge, second body store, schema/index change, tombstone reason, migration or retention lease is added.

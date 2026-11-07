@@ -88,8 +88,8 @@ digits. Rollover, offsets, leap seconds, year zero and finer precision reject. `
 these represent the same instant but different reported precision and therefore different retry content. Ordinary
 session/phase native timestamps use canonical six-digit UTC text.
 
-`PhaseActivity::create(kind, summary, modelId: null, usage: [])` owns immutable private safe data. Its exact nested
-version-one representation is `version`, `kind`, `summary`, `model_id`, `usage`:
+`PhaseActivity::create(kind, summary, modelId: null, usage: [], execution: null)` owns immutable private safe data.
+Its exact nested version-one representation is `version`, `kind`, `summary`, `model_id`, `execution`, `usage`:
 
 - Kind and metric names are consumer-owned namespaced ASCII vocabulary, matching the extension-key pattern and
   bounded to 96 bytes. Common assigns no automatic semantics to `consumer/model-call` or any other kind.
@@ -100,6 +100,8 @@ version-one representation is `version`, `kind`, `summary`, `model_id`, `usage`:
 - Usage contains at most 32 `UsageMeasurement` values, one per exact metric name, sorted bytewise by metric for
   canonical comparison. Empty usage means no supplied measurements, not zero. Array references and output copies
   cannot mutate the retained immutable snapshot. Nested unknown fields and duplicate metrics reject.
+- Optional `execution` is a cohesive `ActivityExecution` value, exposed by `execution()`. Omission emits explicit
+  JSON null, not zero duration or a returned/successful result. Its closed representation is documented below.
 
 `UsageMeasurement::create(metric, unit, provenance, completeness, value)` holds a consumer-reported measurement.
 Its exact version-one array is `version`, `metric`, `unit`, `provenance`, `completeness`, `value`. Unit and provenance
@@ -141,7 +143,96 @@ This uses the composition below after session and phase recording. No second pip
 instrumentation is required. The observation row contains the entire bounded activity/usage snapshot and retained
 retry identity together, FK-linked to its existing project/session/phase. There are no independently committed
 measurement rows; protected bodies use the separate storage described below. The existing `ObservationRecorded` fact
-covers activity and its usage atomically; it includes **no** kind, summary, model, usage, extensions or bodies.
+covers activity, execution facts and usage atomically; it includes **no** kind, summary, model, execution facts,
+usage, extensions or bodies.
+
+### Typed activity execution facts
+
+All four values are final readonly `ValueObject`s under `Domain\Mcp\Activity`. They own validated named factories,
+typed accessors, closed `fromArray()`/`toArray()`, `fromString()`/`toString()`, same-type canonical equality/hash and
+structured JSON. The current activity version remains integer `1`; the never-released payload is amended directly,
+with required `execution` (possibly null), not a historical codec, alias, migration or format negotiation.
+
+| Value / factory | Accessors / exact fields and bounds |
+|---|---|
+| `ActivityExecution::fromParts(?ActivityTarget $target, ActivityTiming $timing, ActivityResult $result)` | `target()`, `timing()`, `result()`; exact fields `target`, `timing`, `result`. Unknown target is null; timing and result are explicit values. |
+| `ActivityTarget::fromStrings(string $capability, string $name)` | `capability()`, `name()`; exact fields `capability`, `name`, each the existing 1–128 ASCII reference grammar. No arguments, shell commands, paths or raw Resource URIs. |
+| `ActivityTiming::fromParts(?ObservationOccurrence $startedAt, ?ObservationOccurrence $endedAt, ?Duration $elapsed)` | `startedAt()`, `endedAt()`, `elapsed()`; exact fields `started_at`, `ended_at`, `elapsed`, each independently nullable. Occurrences preserve the supplied zero-to-six fractional digits; elapsed uses canonical nonnegative native-integer microseconds plus `us` (for example `0us`, `12001us`). |
+| `ActivityResult::unknown()`, `returned()`, `threw(string $failureKind)`, `exited(int $exitCode)`, `cancelled()` | `kind()`, `failureKind()`, `exitCode()`; exact fields `kind`, `failure_kind`, `exit_code`. `threw` requires a 1–128 ASCII reference failure classification and null exit code; `exited` requires a native integer exit code and null failure classification. All other kinds require both fields null. |
+
+Known reversed endpoints and negative elapsed reject. Equal endpoints and measured zero are valid. Elapsed is an
+**independent measurement**, not derived from wall endpoints: it need not equal their difference. Missing endpoints,
+elapsed and result stay explicit; no clock correction, clamping, precision invention or continuous-active-time
+inference occurs. Omit an unqualified measurement. String reconstruction preserves endpoint precision as retry
+content; reordered object fields canonicalize, but a different precision is not an identical retry.
+
+A returned call proves only that it returned, not business commit, durable publication or successful delivery. A
+thrown result retains only a selected safe classification, never a Throwable/message/stack. Any native integer exit
+code, including negative and nonzero, is retained without Workflow inference. Cancelled means actual observed
+cancellation, not cancellation intent. The operation target is distinct from producer, performing Agent and model.
+Structural validation cannot detect a secret disguised as a valid reference; trusted producers choose safe values.
+
+Before (still valid; inspection now returns `activity.execution: null`):
+
+```php
+$activity = PhaseActivity::create('agent-os/tool', 'Tool invocation returned');
+```
+
+After, changing only activity construction and using the **same** `Observation::forActivity()` and
+`$commandBus->execute(new RecordPhaseObservation($evidence))` recording path:
+
+```php
+use Fight\Common\Domain\Mcp\Activity\ActivityExecution;
+use Fight\Common\Domain\Mcp\Activity\ActivityResult;
+use Fight\Common\Domain\Mcp\Activity\ActivityTarget;
+use Fight\Common\Domain\Mcp\Activity\ActivityTiming;
+use Fight\Common\Domain\Value\DateTime\Duration;
+
+$activity = PhaseActivity::create(
+    'agent-os/tool',
+    'Tool invocation returned',
+    execution: ActivityExecution::fromParts(
+        ActivityTarget::fromStrings('tool', 'read'),
+        ActivityTiming::fromParts(
+            ObservationOccurrence::fromString('2026-11-06T12:00:00.120Z'),
+            ObservationOccurrence::fromString('2026-11-06T12:00:01Z'),
+            Duration::fromMicroseconds(12001)
+        ),
+        ActivityResult::returned()
+    )
+);
+```
+
+The exact `activity.execution` stored/reconstructed and returned by `ListPhaseActivity`/`execution.activity` is:
+
+```json
+{
+  "target": {"capability": "tool", "name": "read"},
+  "timing": {"started_at": "2026-11-06T12:00:00.120Z", "ended_at": "2026-11-06T12:00:01Z", "elapsed": "12001us"},
+  "result": {"kind": "returned", "failure_kind": null, "exit_code": null}
+}
+```
+
+Keep the producer/full UUID stable on an exact retry; changed target, timing or result conflicts rather than
+updates the original receipt. Separate start and terminal observations require separate immutable identities;
+their actual invocation relationship remains consumer attribution, never inferred from summary text. Admission
+still precedes retained lookup; matching retries never redispatch. Activity's **top-level** start/end remain null
+and outcome unknown. Latest session/phase state excludes activity/detail, and usage arithmetic/pagination is unchanged.
+
+These facts reuse the existing real recording transaction, comparison payload, repositories, Query and final
+permission-neutral Tool. No DDL/index change, second ledger, Tool, transaction API, automatic capture or producer
+integration is introduced. Existing default/configured SQLite/MySQL/PostgreSQL compositions carry them in the same
+payload. No durable data is disposed or migrated: keep needed existing data and obtain an explicit plan/authority
+before any format/data replacement; old development snapshots are not supported readers.
+
+Optional capture/application-derived state can use committed event → consumer policy subscriber → configured
+CommandBus → secondary Command with independent transactions. A post-commit subscriber is not required audit,
+durable intent, reference/hold participation or a late-write/disclosure fence; those guarantees stay with their
+owning operation. Missing/delayed observations are permitted and do not prove business outcome or zero usage.
+Removing protected bodies keeps safe execution metadata and does **not** redact it or consumer copies. No new
+removal event, safe-metadata purge, permanent tombstone or stronger physical-erasure promise is added. Unsupported
+lifecycle coverage must remain denied/held. Retained detail identity still prevents old-body retry resurrection;
+deliberate identity purge ends deduplication. Recording/read/reference/body/removal permissions remain independent.
 
 ## Protected detail recording
 

@@ -91,7 +91,7 @@ final class EvidenceValuesTest extends UnitTestCase
         yield 'detail selection' => [DetailSelection::class, ['project_id' => 'P:1', 'session_id' => 'S:1', 'phase_id' => 'phase', 'producer_id' => 'producer', 'activity_id' => $id]];
         yield 'extensions' => [ObservationExtensions::class, ['vendor/a' => null, 'vendor/b' => 0, 'vendor/c' => false]];
         yield 'empty extensions' => [ObservationExtensions::class, []];
-        yield 'activity' => [PhaseActivity::class, ['version' => 1, 'kind' => 'vendor/call', 'summary' => '', 'model_id' => null, 'usage' => []]];
+        yield 'activity' => [PhaseActivity::class, ['version' => 1, 'kind' => 'vendor/call', 'summary' => '', 'model_id' => null, 'execution' => null, 'usage' => []]];
         yield 'measured zero' => [UsageMeasurement::class, ['version' => 1, 'metric' => 'vendor/tokens', 'unit' => 'token', 'provenance' => 'provider', 'completeness' => 'complete', 'value' => '0']];
         yield 'missing measurement' => [UsageMeasurement::class, ['version' => 1, 'metric' => 'vendor/tokens', 'unit' => 'token', 'provenance' => 'provider', 'completeness' => 'unknown', 'value' => null]];
         yield 'usage total' => [UsageTotal::class, ['metric' => 'vendor/tokens', 'unit' => 'token', 'provenance' => 'provider', 'measured' => '12.5', 'counts' => ['complete' => 1, 'partial' => 0, 'unknown' => 1, 'unavailable' => 0]]];

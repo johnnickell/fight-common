@@ -21,7 +21,9 @@ active TASK. Otherwise return the first executable TASK in Ready Frontier. Do no
 <!-- planning:next -->
 | Route | TASK | Title | Status | Blocked by |
 |---|---|---|---|---|
-| Ready Frontier | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | ready-for-agent | — |
+| None | — | — | — | — |
+
+No TASK is currently executable; unresolved work may remain.
 <!-- /planning:next -->
 
 This summary and the [Roadmap execution handoff](../ROADMAP.md#current-task-handoff) derive from the same TASK
@@ -40,7 +42,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 
 | Order | TASK ID | Title | Parent TICKET | Status | Blocked by | PR |
 |---|---|---|---|---|---|---|
-| — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | ready-for-agent | — | — |
+| None | — | — | — | — | — | — |
 
 ## Waiting
 
@@ -172,6 +174,7 @@ prose here. Historical completion and delivery evidence remain in the owning TAS
 | — | [TASK-00202](00202-TASK.md) | Qualify ORM table overrides and complete the inventory | [TICKET-00055 — Customize durable MCP lifecycle tables](../tickets/00055-TICKET.md) | done | — | [PR #293](https://github.com/johnnickell/fight-common/pull/293) |
 | — | [TASK-00203](00203-TASK.md) | Contain terminal Laravel safe-error rendering faults | — (standalone bug) | done | — | [PR #276](https://github.com/johnnickell/fight-common/pull/276) |
 | — | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | — (standalone bug) | done | — | [PR #280](https://github.com/johnnickell/fight-common/pull/280) |
+| — | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | [TICKET-00056 — Record and inspect typed activity execution facts](../tickets/00056-TICKET.md) | done | — | [PR #294](https://github.com/johnnickell/fight-common/pull/294) |
 | — | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | — (standalone chore) | done | — | [PR #292](https://github.com/johnnickell/fight-common/pull/292) |
 <!-- /planning:board -->
 

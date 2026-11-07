@@ -6,6 +6,7 @@ namespace Fight\Test\Common\Adapter\Mcp\Tool\Execution;
 
 use Fight\Common\Adapter\Mcp\Tool\Execution\ExecutionToolInput;
 use Fight\Common\Adapter\Mcp\Tool\Execution\ExecutionToolOutput;
+use Fight\Common\Adapter\Mcp\Tool\Execution\ExecutionToolSchemas;
 use Fight\Common\Adapter\Mcp\Tool\Observation\ListPhaseActivityTool;
 use Fight\Common\Adapter\Mcp\Tool\Phase\ListExecutionPhasesTool;
 use Fight\Common\Adapter\Mcp\Tool\Session\GetExecutionTool;
@@ -16,6 +17,7 @@ use Fight\Common\Application\Mcp\Observation\Data\ActivityView;
 use Fight\Common\Application\Mcp\Phase\Data\PhasePage;
 use Fight\Common\Application\Mcp\Session\Data\ExecutionPage;
 use Fight\Common\Application\Mcp\Session\Data\ExecutionSummary;
+use Fight\Common\Application\Mcp\Tool\McpToolSchema;
 use Fight\Common\Application\Mcp\Tool\McpToolSchemaValidator;
 use Fight\Common\Application\Mcp\Tool\NullMcpProgressReporter;
 use Fight\Common\Application\Messaging\Query\QueryBus;
@@ -35,6 +37,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(ListPhaseActivityTool::class)]
 #[CoversClass(ExecutionToolInput::class)]
 #[CoversClass(ExecutionToolOutput::class)]
+#[CoversClass(ExecutionToolSchemas::class)]
 final class ExecutionToolsTest extends UnitTestCase
 {
     public function test_that_tools_map_only_declared_fields_to_explicit_read_queries_and_preserve_safe_results(): void
@@ -77,6 +80,56 @@ final class ExecutionToolsTest extends UnitTestCase
                 self::fail('Invalid input must not reach the query bus');
             } catch (DomainException) { self::assertTrue(true); }
         }
+    }
+
+    public function test_that_activity_output_schema_requires_closed_execution_facts_and_result_specific_fields(): void
+    {
+        $schema = McpToolSchema::create(ExecutionToolSchemas::ACTIVITY_EXECUTION, false);
+        $timing = ['started_at' => '2026-11-06T12:00:00.120Z', 'ended_at' => null, 'elapsed' => '0us'];
+        $target = ['capability' => 'tool', 'name' => 'read'];
+        $execution = ['target' => $target, 'timing' => $timing, 'result' => ['kind' => 'unknown', 'failure_kind' => null, 'exit_code' => null]];
+        self::assertTrue(McpToolSchemaValidator::matches(null, $schema));
+        foreach ([
+            ['kind' => 'unknown', 'failure_kind' => null, 'exit_code' => null],
+            ['kind' => 'returned', 'failure_kind' => null, 'exit_code' => null],
+            ['kind' => 'cancelled', 'failure_kind' => null, 'exit_code' => null],
+            ['kind' => 'threw', 'failure_kind' => 'io-error', 'exit_code' => null],
+            ['kind' => 'exited', 'failure_kind' => null, 'exit_code' => PHP_INT_MIN],
+            ['kind' => 'exited', 'failure_kind' => null, 'exit_code' => PHP_INT_MAX],
+        ] as $result) {
+            self::assertTrue(McpToolSchemaValidator::matches(StrictJson::fromData(array_replace($execution, ['result' => $result])), $schema));
+        }
+        foreach ([
+            ['body' => 'SECRET'],
+            ['target' => $target + ['arguments' => 'SECRET']],
+            ['target' => ['capability' => '', 'name' => 'read']],
+            ['target' => ['capability' => 'tool', 'name' => str_repeat('n', 129)]],
+            ['timing' => $timing + ['wall_duration' => '1us']],
+            ['timing' => ['started_at' => null, 'ended_at' => null]],
+            ['timing' => array_replace($timing, ['elapsed' => 0])],
+            ['timing' => array_replace($timing, ['elapsed' => str_repeat('9', 22)])],
+            ['result' => null],
+            ['result' => ['kind' => 'returned', 'failure_kind' => 'io-error', 'exit_code' => null]],
+            ['result' => ['kind' => 'exited', 'failure_kind' => null, 'exit_code' => null]],
+            ['result' => ['kind' => 'exited', 'failure_kind' => null, 'exit_code' => 1.5]],
+            ['result' => ['kind' => 'threw', 'failure_kind' => null, 'exit_code' => null]],
+            ['result' => ['kind' => 'threw', 'failure_kind' => '', 'exit_code' => null]],
+            ['result' => ['kind' => 'threw', 'failure_kind' => 'io-error', 'exit_code' => 1]],
+            ['result' => ['kind' => 'succeeded', 'failure_kind' => null, 'exit_code' => null]],
+            ['result' => ['kind' => 'unknown', 'failure_kind' => null, 'exit_code' => null, 'message' => 'SECRET']],
+        ] as $change) {
+            self::assertFalse(McpToolSchemaValidator::matches(StrictJson::fromData(array_replace($execution, $change)), $schema), json_encode($change));
+        }
+        foreach (array_keys($execution) as $field) {
+            $missing = $execution;
+            unset($missing[$field]);
+            self::assertFalse(McpToolSchemaValidator::matches(StrictJson::fromData($missing), $schema));
+        }
+        $activitySchema = McpToolSchema::create(ExecutionToolSchemas::ACTIVITY['properties']['activity'], false);
+        $activity = PhaseActivity::create('app/call', 'Safe')->toArray();
+        self::assertTrue(McpToolSchemaValidator::matches(StrictJson::fromData($activity), $activitySchema));
+        unset($activity['execution']);
+        self::assertFalse(McpToolSchemaValidator::matches(StrictJson::fromData($activity), $activitySchema));
     }
 
     public function test_that_safe_projection_overflow_rejects_instead_of_truncating_activity(): void

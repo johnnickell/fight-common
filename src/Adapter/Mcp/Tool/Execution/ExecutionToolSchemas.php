@@ -326,6 +326,59 @@ final class ExecutionToolSchemas
             'messages' => ['type' => 'array', 'items' => self::CAPTURED_DETAIL, 'maxItems' => 32]
         ]
     ];
+    public const array ACTIVITY_TARGET = [
+        'type'                 => ['object', 'null'],
+        'additionalProperties' => false,
+        'required'             => ['capability', 'name'],
+        'properties'           => ['capability' => self::REFERENCE, 'name' => self::REFERENCE]
+    ];
+    public const array ACTIVITY_TIMING = [
+        'type'                 => 'object',
+        'additionalProperties' => false,
+        'required'             => ['started_at', 'ended_at', 'elapsed'],
+        'properties'           => [
+            'started_at' => self::TIME,
+            'ended_at'   => self::TIME,
+            'elapsed'    => ['type' => ['string', 'null'], 'maxLength' => 21]
+        ]
+    ];
+    public const array ACTIVITY_RESULT = [
+        'type'                 => 'object',
+        'additionalProperties' => false,
+        'required'             => ['kind', 'failure_kind', 'exit_code'],
+        'properties'           => [
+            'kind'         => ['enum' => ['unknown', 'returned', 'threw', 'exited', 'cancelled']],
+            'failure_kind' => self::NULL_REFERENCE,
+            'exit_code'    => ['type' => ['integer', 'null']]
+        ],
+        'oneOf'                => [
+            ['properties' => [
+                'kind'         => ['enum' => ['unknown', 'returned', 'cancelled']],
+                'failure_kind' => ['type' => 'null'],
+                'exit_code'    => ['type' => 'null']
+            ]],
+            ['properties' => [
+                'kind'         => ['const' => 'threw'],
+                'failure_kind' => self::REFERENCE,
+                'exit_code'    => ['type' => 'null']
+            ]],
+            ['properties' => [
+                'kind'         => ['const' => 'exited'],
+                'failure_kind' => ['type' => 'null'],
+                'exit_code'    => ['type' => 'integer']
+            ]]
+        ]
+    ];
+    public const array ACTIVITY_EXECUTION = [
+        'type'                 => ['object', 'null'],
+        'additionalProperties' => false,
+        'required'             => ['target', 'timing', 'result'],
+        'properties'           => [
+            'target' => self::ACTIVITY_TARGET,
+            'timing' => self::ACTIVITY_TIMING,
+            'result' => self::ACTIVITY_RESULT
+        ]
+    ];
     public const array ACTIVITY = [
         'type'                 => 'object',
         'additionalProperties' => false,
@@ -347,13 +400,14 @@ final class ExecutionToolSchemas
             'activity'       => [
                 'type'                 => 'object',
                 'additionalProperties' => false,
-                'required'             => ['version', 'kind', 'summary', 'model_id', 'usage'],
+                'required'             => ['version', 'kind', 'summary', 'model_id', 'usage', 'execution'],
                 'properties'           => [
-                    'version'  => ['const' => 1],
-                    'kind'     => self::REFERENCE,
-                    'summary'  => ['type' => 'string', 'maxLength' => 512],
-                    'model_id' => self::NULL_REFERENCE,
-                    'usage'    => ['type' => 'array', 'items' => self::MEASUREMENT, 'maxItems' => 32]
+                    'version'   => ['const' => 1],
+                    'kind'      => self::REFERENCE,
+                    'summary'   => ['type' => 'string', 'maxLength' => 512],
+                    'model_id'  => self::NULL_REFERENCE,
+                    'usage'     => ['type' => 'array', 'items' => self::MEASUREMENT, 'maxItems' => 32],
+                    'execution' => self::ACTIVITY_EXECUTION
                 ]
             ],
             'details'        => ['type' => 'array', 'items' => self::DETAIL, 'maxItems' => 32]
