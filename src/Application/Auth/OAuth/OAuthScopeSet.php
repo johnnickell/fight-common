@@ -18,7 +18,8 @@ final readonly class OAuthScopeSet
      */
     private function __construct(
         /**
-         * @deprecated Use values() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use values() instead
+         * Retained until a future major after at least one released minor
          */
         public array $values
     ) {

@@ -9,7 +9,8 @@ use Fight\Common\Adapter\Mcp\Http\McpResponseFactory as CanonicalMcpResponseFact
 /**
  * Class McpResponseFactory
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Http\McpResponseFactory instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Http\McpResponseFactory instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class McpResponseFactory extends CanonicalMcpResponseFactory
 {

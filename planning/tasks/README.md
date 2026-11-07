@@ -109,4 +109,5 @@ Generated from individual records. Preserve IDs and history; archive only on an 
 | [TASK-00204](00204-TASK.md) | Make subscriber inspection journey respect live clock semantics | done | — |
 | [TASK-00205](00205-TASK.md) | Record and inspect typed activity execution facts | done | [TICKET-00056](../tickets/00056-TICKET.md) |
 | [TASK-00206](00206-TASK.md) | Deprecate public table-name constants for 2.0 removal | done | — |
+| [TASK-00207](00207-TASK.md) | Resolve v1.5.0 pre-tag audit findings and complete release notes | done | — |
 <!-- /planning:records -->

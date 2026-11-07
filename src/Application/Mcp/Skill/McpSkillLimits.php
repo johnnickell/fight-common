@@ -19,24 +19,28 @@ final readonly class McpSkillLimits
      */
     public function __construct(
         /**
-         * @deprecated Use maxFiles() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxFiles() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxFiles = 512,
         /**
-         * @deprecated Use maxTotalBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxTotalBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxTotalBytes = 16777216,
         /**
-         * @deprecated Use maxFrontmatterBytes() instead
+         * @deprecated Planned v1.5.0; use maxFrontmatterBytes() instead
          * Retained until a future major after at least one released minor
          */
         public int $maxFrontmatterBytes = 65536,
         /**
-         * @deprecated Use maxDepth() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxDepth() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxDepth = 32,
         /**
-         * @deprecated Use maxEntryBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxEntryBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxEntryBytes = 4194304
     ) {

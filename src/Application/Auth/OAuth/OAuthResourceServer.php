@@ -20,7 +20,8 @@ final readonly class OAuthResourceServer
      */
     public function __construct(
         /**
-         * @deprecated Use requirements() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use requirements() instead
+         * Retained until a future major after at least one released minor
          */
         public OAuthTokenRequirements $requirements,
         OAuthTokenValidator $validator,

@@ -59,7 +59,8 @@ atlas_local_contents:
 
 Read released MCP limit values through typed property-name getters such as `maxBytes()`, `maxDepth()`,
 `pageSize()` and `maxResultBytes()`. Skill members likewise expose `path()`, `bytes()`, `mimeType()`, `text()`
-and `digest()`. Their old public readonly properties remain supported with documentation-only deprecation;
+and `digest()`. Their old public readonly properties remain supported; documentation-only deprecation is
+planned to first ship in v1.5.0 (not yet released);
 see the [complete getter migration and release window](../../maintenance/public-property-getters.md).
 No budget, validation or wire representation changes with getter adoption.
 
@@ -83,7 +84,8 @@ principal, or make an authorization decision.
 percent-encoding and Base64 rules. Both live under `Fight\Common\Application\Mcp\Protocol` and move directly
 as untagged internals, without root aliases or deprecations. Public foundation imports now use `Capability`,
 `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root.
-The 17 relocated root spellings remain functional, deprecated in documentation only. Canonical aliases preserve
+The 17 relocated root spellings remain functional; documentation-only deprecation is planned to first ship in
+v1.5.0 (not yet released). Canonical aliases preserve
 released runtime identities, both consumer type directions and saved values; see the
 [complete foundation migration map](../../maintenance/mcp-foundation-namespaces.md).
 Neither collaborator is a consumer validator API or an additional composition step. This extraction preserves
@@ -524,8 +526,10 @@ Lists default to `ttlMs: 0` and `cacheScope: private`. Constructor overrides req
 integer TTL and exactly `private` or `public`. Selecting public caching is an explicit consumer assertion that the
 catalog is safe to share across authorization contexts; Common cannot prove that policy. Positive TTL also means
 the consumer accepts cached discovery being stale. These overrides do not alter `server/discover` cache defaults.
-Availability failures propagate to the existing guarded endpoint's diagnostics/sanitization boundary; they never
-become a partially returned list or an exposed policy reason.
+Availability failures are contained at the callback boundary, including consumer-thrown `McpProtocolException`.
+They reach the semantic responder or guarded HTTP boundary as unexpected failures: generic `-32603` /
+`Internal error.` with one central diagnostic attempt retaining the original cause, never private protocol data,
+a partial list or a policy reason. Common-owned cursor/parameter protocol rejections remain deliberate `-32602`.
 
 ## Schema declarations and semantic output
 
@@ -587,6 +591,11 @@ encoded bytes after text duplication, escaping, request identity and current ser
 without truncation; existing unbounded factories retain their behavior. The five opt-in
 [safe execution inspection Tools](../../mcp-execution-inspection.md) use this bound plus finite projection/schema
 limits over shared authorized Queries, without protected-body or mutation exposure.
+
+Native Tool outputs saved by tagged v1.3.0/v1.4.0 predate this optional budget. Backward reads initialize an
+absent budget to null/unbounded while retaining the saved class identity, StrictJson content, matching text and
+Resource links. Current native round trips retain a present budget and its overflow behavior; no stored-object
+rewrite is required. Native unserialization is trusted-only, not an untrusted-input or service-graph storage API.
 
 ### Combined Tool, Resource and Skill journey
 
@@ -1128,8 +1137,8 @@ Paths below omit the common `Fight\Common\` prefix.
 | `Adapter\Http\CodeIgniter\McpResponse` | `Adapter\Mcp\CodeIgniter\McpResponse` |
 
 All nine deprecated names remain functional throughout 1.x, with PHPDoc/documentation-only deprecation and no
-runtime notices. The first deprecating release is unassigned; removal requires separate future-major authorization
-and at least one released minor of deprecation. Existing consumers need not change immediately. Native Symfony
+runtime notices. Their first deprecation is planned to ship in v1.5.0, not yet released; removal requires separate
+future-major authorization and at least one actually released minor of deprecation. Existing consumers need not change immediately. Native Symfony
 responses remain usable by Laravel; no extra Laravel adapter or container auto-registration is introduced.
 
 Eight legacy classes are final compatibility subclasses of their canonical implementations. The canonical parents

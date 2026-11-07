@@ -21,23 +21,28 @@ final readonly class OAuthValidatedClaims
      */
     private function __construct(
         /**
-         * @deprecated Use claims() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use claims() instead
+         * Retained until a future major after at least one released minor
          */
         public StrictJson $claims,
         /**
-         * @deprecated Use algorithm() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use algorithm() instead
+         * Retained until a future major after at least one released minor
          */
         public string $algorithm,
         /**
-         * @deprecated Use keyId() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use keyId() instead
+         * Retained until a future major after at least one released minor
          */
         public string $keyId,
         /**
-         * @deprecated Use tokenType() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use tokenType() instead
+         * Retained until a future major after at least one released minor
          */
         public string $tokenType,
         /**
-         * @deprecated Use grantedScopes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use grantedScopes() instead
+         * Retained until a future major after at least one released minor
          */
         public OAuthScopeSet $grantedScopes
     ) {

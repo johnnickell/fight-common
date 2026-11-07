@@ -6,8 +6,10 @@ namespace Fight\Test\Common\Application\Mcp\Tool;
 
 use Fight\Common\Application\Mcp\Capability\McpCapability;
 use Fight\Common\Application\Mcp\Capability\McpCapabilityRegistry;
+use Fight\Common\Application\Mcp\McpDiagnostics;
 use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\Protocol\Exception\McpProtocolException;
+use Fight\Common\Application\Mcp\Protocol\McpProtocolError;
 use Fight\Common\Application\Mcp\Protocol\McpRequest;
 use Fight\Common\Application\Mcp\Protocol\McpRequestDecoder;
 use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
@@ -29,6 +31,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use stdClass;
+use Throwable;
 
 #[CoversClass(McpToolDiscovery::class)]
 #[CoversClass(McpToolRegistry::class)]
@@ -253,14 +256,59 @@ final class McpToolDiscoveryTest extends UnitTestCase
     public function test_that_availability_failure_propagates_to_the_existing_diagnostic_boundary(): void
     {
         $availability = $this->mock(McpToolAvailability::class);
-        $availability->shouldReceive('isAvailable')->andThrow(new RuntimeException('private policy details'));
+        $failure = new RuntimeException('private policy details');
+        $availability->shouldReceive('isAvailable')->andThrow($failure);
         $capability = $this->discovery($availability);
         $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Consumer', '1.0'), [$capability]));
         self::assertSame([
             'jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.'],
         ], $responder->respond($this->wire('tools/list'))->toArray());
-        $this->expectException(RuntimeException::class);
-        $responder->dispatch($this->request());
+        try {
+            $responder->dispatch($this->request());
+            self::fail('Expected availability failure.');
+        } catch (DomainException $exception) {
+            self::assertSame($failure, $exception->getPrevious());
+        }
+    }
+
+    public function test_that_callback_protocol_failures_are_private_and_recorded_once_with_original_cause(): void
+    {
+        $failure = new McpProtocolException(
+            McpProtocolError::unsupportedProtocolVersion(['private-availability-supported'], 'private-availability-requested'), 999
+        );
+        $availability = $this->mock(McpToolAvailability::class);
+        $availability->shouldReceive('isAvailable')->once()->andThrow($failure);
+        $diagnostics = new class implements McpDiagnostics {
+            public array $failures = [];
+            public function record(Throwable $failure): void { $this->failures[] = $failure; }
+        };
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Consumer', '1.0'), [
+            $this->discovery($availability),
+        ]), diagnostics: $diagnostics);
+        $response = $responder->respond($this->wire('tools/list'))->toArray();
+        self::assertSame([
+            'jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32603, 'message' => 'Internal error.'],
+        ], $response);
+        self::assertStringNotContainsString('private-availability', json_encode($response, JSON_THROW_ON_ERROR));
+        self::assertCount(1, $diagnostics->failures);
+        self::assertSame($failure, $diagnostics->failures[0]->getPrevious());
+    }
+
+    public function test_that_common_parameter_and_cursor_errors_remain_protocol_errors_without_diagnostics(): void
+    {
+        $diagnostics = new class implements McpDiagnostics {
+            public array $failures = [];
+            public function record(Throwable $failure): void { $this->failures[] = $failure; }
+        };
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Consumer', '1.0'), [
+            $this->discovery(new DiscoveryAvailability()),
+        ]), diagnostics: $diagnostics);
+        foreach ([['unexpected' => true], ['cursor' => str_repeat('!', 48)]] as $parameters) {
+            self::assertSame([
+                'jsonrpc' => '2.0', 'id' => 7, 'error' => ['code' => -32602, 'message' => 'Invalid params.'],
+            ], $responder->respond($this->wire('tools/list', $parameters))->toArray());
+        }
+        self::assertSame([], $diagnostics->failures);
     }
 
     private function discovery(McpToolAvailability $availability): McpToolDiscovery

@@ -9,7 +9,8 @@ use Fight\Common\Adapter\Mcp\Http\McpHeaderValidator as CanonicalMcpHeaderValida
 /**
  * Class McpHeaderValidator
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Http\McpHeaderValidator instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Http\McpHeaderValidator instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class McpHeaderValidator extends CanonicalMcpHeaderValidator
 {

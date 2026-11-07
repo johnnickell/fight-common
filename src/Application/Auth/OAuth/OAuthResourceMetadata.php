@@ -19,20 +19,23 @@ final readonly class OAuthResourceMetadata
      */
     private function __construct(
         /**
-         * @deprecated Use resource() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use resource() instead
+         * Retained until a future major after at least one released minor
          */
         public string $resource,
         /**
-         * @deprecated Use metadataUrl() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use metadataUrl() instead
+         * Retained until a future major after at least one released minor
          */
         public string $metadataUrl,
         /**
-         * @deprecated Use authorizationServers() instead
+         * @deprecated Planned v1.5.0; use authorizationServers() instead
          * Retained until a future major after at least one released minor
          */
         public array $authorizationServers,
         /**
-         * @deprecated Use scopesSupported() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use scopesSupported() instead
+         * Retained until a future major after at least one released minor
          */
         public OAuthScopeSet $scopesSupported
     ) {

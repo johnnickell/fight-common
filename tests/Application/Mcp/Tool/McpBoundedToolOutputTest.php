@@ -12,6 +12,7 @@ use Fight\Common\Application\Mcp\McpResponder;
 use Fight\Common\Application\Mcp\Protocol\McpJsonResponse;
 use Fight\Common\Application\Mcp\Protocol\McpResult;
 use Fight\Common\Application\Mcp\Protocol\McpServerInfo;
+use Fight\Common\Application\Mcp\Resource\McpResourceInfo;
 use Fight\Common\Application\Mcp\Session\Data\ExecutionSummary;
 use Fight\Common\Application\Mcp\Tool\McpProgressReporter;
 use Fight\Common\Application\Mcp\Tool\McpTool;
@@ -70,6 +71,70 @@ final class McpBoundedToolOutputTest extends UnitTestCase
         self::assertSame(-32603, $responder->respond($request('id雪"longer'))->errorCode(), 'Request identity is inside the bound');
         $tool->budget = 67108864;
         self::assertArrayHasKey('result', $responder->respond($request('id'))->toArray());
+    }
+
+    public function test_that_tagged_native_outputs_survive_ordinary_invocation_without_a_response_budget(): void
+    {
+        $fixture = json_decode(file_get_contents(dirname(__DIR__, 3).'/Fixture/Mcp/serialized-tool-output-v1.3.0-v1.4.0.json'), true, flags: JSON_THROW_ON_ERROR);
+        $output = unserialize(base64_decode($fixture['nativeOutput'], true));
+        self::assertInstanceOf(McpToolOutput::class, $output);
+        self::assertSame(McpToolOutput::class, $output::class);
+        $response = $this->invokeRestoredOutput($output)->toArray();
+        self::assertArrayNotHasKey('error', $response);
+        self::assertNull($output->maxEncodedResponseBytes());
+        self::assertSame('tagged 雪', $response['result']['structuredContent']->get('value'));
+        self::assertTrue($response['result']['structuredContent']->get('empty')->isObject());
+        self::assertSame([1, null, true], $response['result']['structuredContent']->get('list'));
+        self::assertSame($output->text(), $response['result']['content'][0]['text']);
+        self::assertSame([
+            'type' => 'resource_link', 'uri' => 'fixture://tagged/document', 'name' => 'Tagged document', 'mimeType' => 'text/plain',
+        ], $response['result']['content'][1]);
+        self::assertEquals($output, unserialize(serialize($output)));
+    }
+
+    public function test_that_current_native_round_trips_preserve_unbounded_linked_and_bounded_outputs(): void
+    {
+        foreach ([
+            McpToolOutput::structured(['value' => 'current']),
+            McpToolOutput::structuredWithResourceLinks(['value' => 'current'], McpResourceInfo::fromArray(['uri' => 'fixture://current', 'name' => 'Current'])),
+            McpToolOutput::boundedStructured(['value' => 'current'], 4096),
+            McpToolOutput::boundedStructured(['value' => 'current'], 1),
+        ] as $output) {
+            $restored = unserialize(serialize($output));
+            self::assertSame(McpToolOutput::class, $restored::class);
+            self::assertSame($output->maxEncodedResponseBytes(), $restored->maxEncodedResponseBytes());
+            self::assertSame($output->text(), $restored->text());
+            self::assertSame($output->contentItems(), $restored->contentItems());
+            $response = $this->invokeRestoredOutput($restored)->toArray();
+            if ($output->maxEncodedResponseBytes() === 1) {
+                self::assertSame(['code' => -32603, 'message' => 'Internal error.'], $response['error']);
+                self::assertArrayNotHasKey('result', $response);
+            } else {
+                self::assertArrayNotHasKey('error', $response);
+                self::assertSame($output->contentItems(), $response['result']['content']);
+            }
+        }
+    }
+
+    private function invokeRestoredOutput(McpToolOutput $output): McpJsonResponse
+    {
+        $tool = new class($output) implements McpTool {
+            public function __construct(private McpToolOutput $output) {}
+            #[McpToolInfo('restored', 'Saved output fixture', ['type' => 'object'], ['type' => 'object'])]
+            public function handle(ApplicationData $data, McpProgressReporter $progress): McpToolOutput { return $this->output; }
+        };
+        $availability = new class implements McpToolAvailability { public function isAvailable(McpToolInfo $tool): bool { return true; } };
+        $registry = new McpToolRegistry([$tool]);
+        $responder = new McpResponder(new McpCapabilityRegistry(new McpServerInfo('Fixture', '1'), [
+            new McpToolDiscovery($registry, $availability, str_repeat('key-', 8)),
+            new McpToolInvocation(new McpToolInvoker($registry, $availability)),
+        ]));
+
+        return $responder->respond(json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/call', 'params' => [
+            'name' => 'restored', 'arguments' => (object) [], '_meta' => [
+                'io.modelcontextprotocol/protocolVersion' => '2026-07-28', 'io.modelcontextprotocol/clientCapabilities' => (object) [],
+            ],
+        ]], JSON_THROW_ON_ERROR));
     }
 
     public function test_that_execution_output_schema_rejects_unexpected_typed_projection_fields_at_runtime(): void

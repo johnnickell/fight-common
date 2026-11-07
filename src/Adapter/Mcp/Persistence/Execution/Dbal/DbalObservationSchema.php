@@ -19,7 +19,8 @@ final readonly class DbalObservationSchema
     /**
      * Default table names only, not the configured storage selection
      *
-     * @deprecated Will be removed in v2.0.0. Use DbalObservationTables accessors for selected names instead.
+     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
+     * Use DbalObservationTables accessors for selected names instead
      */
     public const array TABLES = [
         'fight_execution_schema',

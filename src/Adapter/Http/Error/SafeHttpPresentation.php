@@ -17,7 +17,8 @@ final readonly class SafeHttpPresentation
     /**
      * @var array<array-key, mixed>|null
      *
-     * @deprecated Use data() instead; retained until a future major after at least one released minor
+     * @deprecated Planned v1.5.0; use data() instead
+     * Retained until a future major after at least one released minor
      */
     public ?array $data;
 
@@ -30,12 +31,14 @@ final readonly class SafeHttpPresentation
      */
     public function __construct(
         /**
-         * @deprecated Use message() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use message() instead
+         * Retained until a future major after at least one released minor
          */
         public ?string $message = null,
         ?array $data = null,
         /**
-         * @deprecated Use metadata() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use metadata() instead
+         * Retained until a future major after at least one released minor
          */
         public ?SafeHttpMetadata $metadata = null
     ) {

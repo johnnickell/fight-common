@@ -13,7 +13,8 @@ use Fight\Common\Application\Mcp\McpRequestDecoder;
 /**
  * Class McpRequestHandler
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Http\McpRequestHandler instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Http\McpRequestHandler instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class McpRequestHandler extends CanonicalMcpRequestHandler
 {

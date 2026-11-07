@@ -106,7 +106,12 @@ final readonly class McpToolRegistry
      */
     public function available(McpToolAvailability $availability): array
     {
-        $definitions = array_values(array_filter($this->definitions, $availability->isAvailable(...)));
+        try {
+            $definitions = array_values(array_filter($this->definitions, $availability->isAvailable(...)));
+        } catch (Throwable $throwable) {
+            throw new DomainException('Tool availability failed.', 0, $throwable);
+        }
+
         usort($definitions, fn(McpToolInfo $left, McpToolInfo $right): int => strcmp($left->name(), $right->name()));
 
         return $definitions;

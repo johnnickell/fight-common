@@ -10,7 +10,8 @@ use Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory as CanonicalMcpResponseF
 /**
  * Class McpResponseFactory
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Symfony\McpResponseFactory instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class McpResponseFactory extends CanonicalMcpResponseFactory
 {

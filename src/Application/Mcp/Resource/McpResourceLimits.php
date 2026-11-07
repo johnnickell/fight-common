@@ -19,27 +19,33 @@ final readonly class McpResourceLimits
      */
     public function __construct(
         /**
-         * @deprecated Use maxUriBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxUriBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxUriBytes = 4096,
         /**
-         * @deprecated Use maxDescriptorBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxDescriptorBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxDescriptorBytes = 16384,
         /**
-         * @deprecated Use pageSize() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use pageSize() instead
+         * Retained until a future major after at least one released minor
          */
         public int $pageSize = 100,
         /**
-         * @deprecated Use maxDescriptors() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxDescriptors() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxDescriptors = 10000,
         /**
-         * @deprecated Use maxProviders() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxProviders() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxProviders = 32,
         /**
-         * @deprecated Use maxResultBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxResultBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxResultBytes = 1048576
     ) {

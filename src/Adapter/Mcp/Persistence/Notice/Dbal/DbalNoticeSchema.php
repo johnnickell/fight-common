@@ -20,7 +20,8 @@ final readonly class DbalNoticeSchema
     /**
      * Default table names only, not the configured storage selection
      *
-     * @deprecated Will be removed in v2.0.0. Use DbalNoticeTables accessors for selected names instead.
+     * @deprecated Planned v1.5.0; targeted for v2.0.0 removal after the released-minor window
+     * Use DbalNoticeTables accessors for selected names instead
      */
     public const array TABLES = [
         'fight_notice_state', 'fight_notices', 'fight_notice_relationships', 'fight_notice_comparisons'
