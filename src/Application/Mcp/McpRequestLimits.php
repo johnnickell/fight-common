@@ -19,11 +19,13 @@ final readonly class McpRequestLimits
      */
     public function __construct(
         /**
-         * @deprecated Use maxBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxBytes = 1048576,
         /**
-         * @deprecated Use maxDepth() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxDepth() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxDepth = 512
     ) {

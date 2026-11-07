@@ -101,4 +101,19 @@ final readonly class McpToolOutput
     {
         return $this->content->toString();
     }
+
+    /**
+     * Restores native saved outputs including tagged frames without the later response budget
+     *
+     * @phpstan-param array<string, mixed> $data
+     *
+     * @internal
+     */
+    public function __unserialize(array $data): void
+    {
+        $scope = "\0".self::class."\0";
+        $this->content = $data[$scope.'content'];
+        $this->resources = $data[$scope.'resources'];
+        $this->maxEncodedResponseBytes = $data[$scope.'maxEncodedResponseBytes'] ?? null;
+    }
 }

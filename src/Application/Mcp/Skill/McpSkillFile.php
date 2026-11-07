@@ -16,23 +16,28 @@ final readonly class McpSkillFile
      */
     private function __construct(
         /**
-         * @deprecated Use path() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use path() instead
+         * Retained until a future major after at least one released minor
          */
         public string $path,
         /**
-         * @deprecated Use bytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use bytes() instead
+         * Retained until a future major after at least one released minor
          */
         public string $bytes,
         /**
-         * @deprecated Use mimeType() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use mimeType() instead
+         * Retained until a future major after at least one released minor
          */
         public string $mimeType,
         /**
-         * @deprecated Use text() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use text() instead
+         * Retained until a future major after at least one released minor
          */
         public bool $text,
         /**
-         * @deprecated Use digest() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use digest() instead
+         * Retained until a future major after at least one released minor
          */
         public string $digest
     ) {

@@ -25,27 +25,33 @@ final readonly class OAuthTokenRequirements
      */
     private function __construct(
         /**
-         * @deprecated Use metadata() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use metadata() instead
+         * Retained until a future major after at least one released minor
          */
         public OAuthResourceMetadata $metadata,
         /**
-         * @deprecated Use tokenType() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use tokenType() instead
+         * Retained until a future major after at least one released minor
          */
         public string $tokenType,
         /**
-         * @deprecated Use allowedAlgorithms() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use allowedAlgorithms() instead
+         * Retained until a future major after at least one released minor
          */
         public array $allowedAlgorithms,
         /**
-         * @deprecated Use activeKeyIds() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use activeKeyIds() instead
+         * Retained until a future major after at least one released minor
          */
         public array $activeKeyIds,
         /**
-         * @deprecated Use requiredClaimTypes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use requiredClaimTypes() instead
+         * Retained until a future major after at least one released minor
          */
         public array $requiredClaimTypes,
         /**
-         * @deprecated Use clockSkewSeconds() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use clockSkewSeconds() instead
+         * Retained until a future major after at least one released minor
          */
         public int $clockSkewSeconds
     ) {

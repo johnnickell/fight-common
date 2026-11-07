@@ -75,7 +75,8 @@ There is no OAuth authorization server, key fetcher, JWT validator, route, ident
 
 Read OAuth value/configuration state through typed property-name getters such as
 `$requirements->metadata()->resource()`, `$claims->claims()` and `$claims->grantedScopes()->values()`.
-The old public readonly properties remain supported with documentation-only deprecation. The complete map and
+The old public readonly properties remain supported; documentation-only deprecation is planned to first ship
+in v1.5.0, not yet released. The complete map and
 release window are documented in `docs/maintenance/public-property-getters.md`.
 Getter access does not validate a token or make claims safe to publish.
 
@@ -278,7 +279,8 @@ final class HmacAuthenticator implements Authenticator
         private string $public,
         string $private,
         private int $timeTolerance,
-        private ?NonceRepository $nonceRepository = null,
+        ?NonceRepository $nonceRepository = null,
+        ?NonceRepository $nonces = null,
     ) {}
 }
 ```
@@ -288,6 +290,14 @@ final class HmacAuthenticator implements Authenticator
 | `$public` | Public credential value (sent in the `Credential` header) |
 | `$private` | Hex-encoded shared secret (converted to binary internally) |
 | `$timeTolerance` | Allowed clock skew in seconds for `X-Timestamp` |
+| `$nonceRepository` | Optional replay storage; retains fourth positional and later released named construction |
+| `$nonces` | Historical canonical `1.1.0` named spelling for the same optional repository |
+
+Both spellings remain supported. Null means no supplied repository; one non-null repository selects that exact
+instance. Supplying the identical object through both spellings agrees and consumes once. Distinct non-null
+instances raise `DomainException` at construction, before authentication or repository effects. Omission or
+explicit null remains valid and provides no replay protection. The historical authority is the canonical bare
+`1.1.0` tag at `1666dbaa503e40ea2fc652bccbeba22e6cda6b70`, not the different lightweight `v1.1.0` lineage.
 
 ### Validation flow
 

@@ -19,23 +19,28 @@ final readonly class McpSkillDiscoveryLimits
      */
     public function __construct(
         /**
-         * @deprecated Use pageSize() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use pageSize() instead
+         * Retained until a future major after at least one released minor
          */
         public int $pageSize = 100,
         /**
-         * @deprecated Use maxEntries() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxEntries() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxEntries = 10000,
         /**
-         * @deprecated Use maxEntryBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxEntryBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxEntryBytes = 4194304,
         /**
-         * @deprecated Use maxResultBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxResultBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxResultBytes = 8388608,
         /**
-         * @deprecated Use maxUriBytes() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use maxUriBytes() instead
+         * Retained until a future major after at least one released minor
          */
         public int $maxUriBytes = 8192
     ) {

@@ -495,7 +495,8 @@ changes only protected storage; the other four names remain exactly as above. Sh
 repositories inherit it from their transaction, including relationship/retry reads and protected-content removal. Separate connections/workers must
 receive the same explicit selection. There is no global/environment lookup or inward naming contract.
 
-`DbalObservationSchema::TABLES` contains only the five default names and is **deprecated for removal in v2.0.0**.
+`DbalObservationSchema::TABLES` contains only the five default names. Deprecation is **planned to first ship in
+v1.5.0 (not yet released)**, targeting separately authorized v2.0.0 removal after the released-minor window.
 Use the matching `DbalObservationTables` accessors (`schemaTable()`, `sessionTable()`, `phaseTable()`,
 `observationTable()`, `contentTable()`) and `name()` for the actual selected names. See the
 [complete constant migration map and release-window limits](maintenance/table-name-constants.md).

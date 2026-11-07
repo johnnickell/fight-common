@@ -139,7 +139,8 @@ $partialNoticeTables = new DbalNoticeTables(comparisonTable: 'app_notice_compari
 Use the same explicit selection in independent connections/workers, inspection, recovery and publication
 composition. No table knowledge enters Domain/Application contracts or grants recording, reading, removal or
 publication permission. `DbalNoticeSchema::TABLES` remains the default-name inventory, not the selected names,
-and is **deprecated for removal in v2.0.0**. Use the `DbalNoticeTables` accessors instead; see the
+with deprecation **planned to first ship in v1.5.0 (not yet released)**, targeting separately authorized v2.0.0
+removal after the released-minor window. Use the `DbalNoticeTables` accessors instead; see the
 [complete constant migration map and release-window limits](maintenance/table-name-constants.md).
 The transaction's `tables()` exposes its immutable selection for Adapter composition, not a runtime setter.
 

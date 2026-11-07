@@ -18,15 +18,18 @@ final readonly class SafeHttpMetadata
      */
     public function __construct(
         /**
-         * @deprecated Use challenge() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use challenge() instead
+         * Retained until a future major after at least one released minor
          */
         public ?string $challenge = null,
         /**
-         * @deprecated Use allow() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use allow() instead
+         * Retained until a future major after at least one released minor
          */
         public ?string $allow = null,
         /**
-         * @deprecated Use retryAfterSeconds() instead; retained until a future major after at least one released minor
+         * @deprecated Planned v1.5.0; use retryAfterSeconds() instead
+         * Retained until a future major after at least one released minor
          */
         public ?int $retryAfterSeconds = null
     ) {

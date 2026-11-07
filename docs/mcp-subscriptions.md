@@ -203,7 +203,8 @@ $subscriberReader = new DbalSubscriberReader($inspectionConnection, 'production-
 
 All four classes are in the Subscription DBAL namespace above. Existing no-argument schema and `connection`,
 `maxActive`, `storageScope`, `clock` construction/named parameters remain; `tables` is optional and trailing.
-`DbalSubscriptionSchema::TABLES` stays the default inventory but is **deprecated for removal in v2.0.0**;
+`DbalSubscriptionSchema::TABLES` stays the default inventory; deprecation is **planned to first ship in v1.5.0
+(not yet released)**, targeting separately authorized v2.0.0 removal after the released-minor window;
 use `$subscriptionTables->stateTable()->name()` / `$subscriptionTables->subscriptionTable()->name()` instead.
 See the [complete constant migration map and release-window limits](maintenance/table-name-constants.md).
 Shared `DbalTableName` validates ordinary ASCII names

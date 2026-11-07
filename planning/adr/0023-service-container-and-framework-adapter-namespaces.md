@@ -145,7 +145,7 @@ for catches and type checks; ordinary consumer containers still own their litera
 
 Deprecate only the 17 relocated released root **spellings**, in documentation rather than annotating the shared
 runtime type as deprecated. Canonical aliases, unchanged roots and untagged internals are not deprecated.
-The first deprecating release is unassigned; no publication is claimed. Removal needs separately authorized
+TASK-00207 assigns first deprecation to planned v1.5.0; it is not yet released. Removal needs separately authorized
 future-major work after at least one released minor of deprecation, not an inferred 2.0 deadline from unrelated
 legacy AI APIs. Untagged internal grammar/composition helpers retain their direct homes without snapshot bridges.
 Application retains semantic MCP and inward HTTP ownership; concrete transport stays in Adapter. No protocol,

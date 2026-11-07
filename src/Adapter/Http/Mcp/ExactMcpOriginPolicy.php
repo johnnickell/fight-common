@@ -9,7 +9,8 @@ use Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy as CanonicalExactMcpOrigi
 /**
  * Class ExactMcpOriginPolicy
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Http\ExactMcpOriginPolicy instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class ExactMcpOriginPolicy extends CanonicalExactMcpOriginPolicy
 {

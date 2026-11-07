@@ -9,9 +9,12 @@ use Fight\Common\Adapter\Auth\Hmac\HmacMethods;
 use Fight\Common\Application\Auth\Exception\AuthException;
 use Fight\Common\Domain\Auth\NonceRepository;
 use Fight\Common\Domain\Auth\Nonce;
+use Fight\Common\Domain\Exception\DomainException;
 use Fight\Test\Common\TestCase\UnitTestCase;
+use GuzzleHttp\Psr7\ServerRequest;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
@@ -120,6 +123,64 @@ class HmacAuthenticatorTest extends UnitTestCase
         $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300);
 
         self::assertTrue($authenticator->validate($request));
+    }
+
+    #[DataProvider('repositoryConstruction')]
+    public function test_that_released_repository_construction_consumes_exactly_one_nonce(string $construction): void
+    {
+        $nonceRepository = $this->mock(NonceRepository::class);
+        $nonceRepository->shouldReceive('consume')->once()->withArgs(
+            fn(Nonce $nonce): bool => $nonce->value() === 'named-construction'
+                && $nonce->expiresAt()->getTimestamp() === 1700000300
+        );
+        $arguments = match ($construction) {
+            'canonical-1.1.0' => ['nonces' => $nonceRepository],
+            'later-name' => ['nonceRepository' => $nonceRepository],
+            'fourth-positional' => [$nonceRepository],
+            'same-instance' => ['nonceRepository' => $nonceRepository, 'nonces' => $nonceRepository],
+            'null-later-name' => ['nonceRepository' => null, 'nonces' => $nonceRepository],
+            'null-historical-name' => ['nonceRepository' => $nonceRepository, 'nonces' => null],
+        };
+        $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, ...$arguments);
+
+        self::assertTrue($authenticator->validate($this->signedRequest()));
+    }
+
+    public static function repositoryConstruction(): iterable
+    {
+        // Canonical bare 1.1.0: 1666dbaa503e40ea2fc652bccbeba22e6cda6b70, not lightweight v1.1.0.
+        foreach (['canonical-1.1.0', 'later-name', 'fourth-positional', 'same-instance', 'null-later-name', 'null-historical-name'] as $construction) {
+            yield $construction => [$construction];
+        }
+    }
+
+    public function test_that_omitted_and_explicit_null_repositories_remain_optional(): void
+    {
+        foreach ([[], [null], ['nonces' => null], ['nonceRepository' => null], ['nonceRepository' => null, 'nonces' => null]] as $arguments) {
+            $authenticator = new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, ...$arguments);
+            self::assertTrue($authenticator->validate($this->signedRequest()));
+        }
+    }
+
+    public function test_that_distinct_repositories_reject_at_construction_before_effects(): void
+    {
+        $nonceRepository = $this->mock(NonceRepository::class);
+        $historicalRepository = $this->mock(NonceRepository::class);
+        $nonceRepository->shouldNotReceive('consume');
+        $historicalRepository->shouldNotReceive('consume');
+        $this->expectException(DomainException::class);
+        new HmacAuthenticator(self::PUBLIC_KEY, $this->privateKeyHex, 300, $nonceRepository, nonces: $historicalRepository);
+    }
+
+    private function signedRequest(): ServerRequestInterface
+    {
+        $timestamp = 1700000000;
+        $headers = ['X-Timestamp' => $timestamp, 'X-Nonce' => 'named-construction'];
+        $signature = $this->computeSignature($this->privateKeyHex, 'GET', 'example.com', '/api', '', $headers, $timestamp);
+
+        return new ServerRequest('GET', 'https://example.com/api', [
+            ...$headers, 'Authorization' => 'HMAC', 'Credential' => self::PUBLIC_KEY, 'Signature' => $signature,
+        ], '', serverParams: ['REQUEST_TIME' => $timestamp]);
     }
 
     public function test_that_validate_throws_when_signature_does_not_match(): void

@@ -9,79 +9,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Align execution Application homes directly with Session, Phase, Observation and Detail. Move concrete execution
-  inspection and Notice recovery Tools, schemas and public-safe mapping to `Adapter\Mcp\Tool`; dispatch still
-  uses the shared QueryBus. Group MCP DBAL persistence/read adapters under `Adapter\Mcp\Persistence\{Aggregate}\Dbal`,
-  retaining genuinely shared execution support separately. All affected declarations are never-tagged and move
-  directly without snapshot aliases. Generic Application protocol semantics, released foundation/HTTP bridges,
-  Tool identifiers/schemas, grants, storage, transaction ownership and live delivery remain unchanged. See the
-  [aggregate namespace map](docs/mcp-namespaces.md#approved-aggregate-alignment-target).
-- Model durable Task IDs as exact 32-lowercase-hex `TaskId` values across Domain messages, repositories, admissions
-  and handles, explicitly retaining string wire/database boundaries and separate trusted scope. Definition, state,
-  input batch and ordered scoped selection now extend ValueObject with equality/hash/reconstruction and deliberate
-  structured JSON preserving nested representation distinctions. Definition/state/batch value operations retain
-  exact finite floats independently of ambient serialization precision, including lossless construction/reconstruction
-  byte checks at the existing limits; explicit boundary encodings stay unchanged.
-  Task remains the aggregate and TaskInputs remains
-  nested lifecycle bookkeeping. Revise never-tagged APIs directly, without snapshot aliases or schema/lifecycle,
-  retry, input/cancellation or public revision changes. See [Task classification](docs/durable-tasks.md#model-classification-and-value-contracts).
-- Classify execution/Notice Domain roots, values, messages and ports; add role-specific scoped SessionId, PhaseId,
-  NoticeId and producer/UUID ObservationIdentity values. Affected values extend ValueObject with stable
-  reconstruction, same-type equality/hash and deliberate JSON. Remove ObservationFields and receipt-only
-  RecordedObservation; recorded roots still own time and post-commit facts, while RecordedNotice keeps its
-  substantive commit position. Exact storage/wire bytes, precision, null/empty meanings, protected separation,
-  independent grammars and permissions remain unchanged; no schema or aggregate namespace change.
-- Separate Task disclosure into internal Application `TaskProjection`, retaining bounded Query fields and exact
-  visibility-bound revision encoding through native PHP. Domain keeps atomic lifetime/public-write/expiry ordering
-  and compares lifecycle state/readable metadata without constructing transport views. Remove never-tagged aggregate
-  view/revision APIs directly; shared get/live/reconnect authorization, guarded byte handoff, schema and wire format
-  remain unchanged, without new caller setup or encoding-provider dependencies.
-- Make all eight Task CommandHandlers and three QueryHandlers own their named use cases with operation-specific
-  repository/read, transaction and policy dependencies. Remove the never-tagged TaskLifecycle, TaskInputLifecycle
-  and TaskCancellationLifecycle directly, without forwarding replacements. Preserve independent admissions,
-  aggregate invariants, committed cancellation reconstruction, single-use input, bus/filter dispatch and post-commit
-  failure semantics. This handler-ownership change does not alter ObservationRecorder.
-- Replace never-tagged `NoticeStore`/`DbalNoticeStore` with Domain `NoticeRepository`, separately injected
-  `TransactionalUnitOfWork`, and Application `NoticeRecoveryReader`. Separate DBAL repository, namespace-serialized
-  transaction and self-contained coherent recovery reads preserve allocation/removal atomicity, uncertainty,
-  confidential continuations and independent inspection/subscription/publication policy. No payload/schema change,
-  release bridge or caller-managed recovery transaction sequence.
-- Separate durable Task persistence into Domain `TaskRepository` and a separately injected existing
-  `TransactionalUnitOfWork`. `DbalTaskRepository` supplies aggregate persistence and the narrow Application
-  `CommittedTaskReader`; `DbalTaskTransaction` retains namespace locking and Task failure translation around the
-  reusable DBAL boundary. Remove the never-tagged TaskStore APIs directly. Shared-connection commit/read isolation,
-  input/cancellation/revision/expiry/removal and retry/failure semantics remain unchanged, without schema changes.
-- Execution recording/removal now inject the existing `TransactionalUnitOfWork` directly. Remove the never-released
-  empty `RecordingTransaction` subtype; the execution DBAL seam retains schema serialization and capability-specific
-  failures around reusable transaction mechanics. Same-connection ownership, retry/removal races and post-commit
-  dispatch semantics remain unchanged; no schema or aggregate namespace changes.
-- Group all agent/MCP-owned execution tracking, notices, durable Task lifecycle and subscription concepts present
-  on develop beneath `Domain\Mcp`, `Application\Mcp` and `Adapter\Mcp`. Provisional tracking APIs move directly
-  without development aliases; existing CQRS, authorization, storage, stateless input and protocol behavior remain
-  unchanged. Legacy AI-operation/webhook APIs receive equally deprecated MCP homes while their released names
-  remain functional with the original sunset. See the [complete namespace map](docs/mcp-namespaces.md).
+- Organize the new execution, Notice, Task and subscription APIs beneath `Domain\Mcp`, `Application\Mcp` and
+  `Adapter\Mcp`. Application homes follow their aggregate; concrete execution inspection/Notice recovery Tools,
+  schemas and public-safe mapping live in `Adapter\Mcp\Tool`, dispatching through the shared QueryBus. DBAL
+  persistence/read adapters use `Adapter\Mcp\Persistence\{Aggregate}\Dbal`, with genuinely shared execution support
+  separate. These APIs have never shipped in a tag: final composition replaces development-only Store/Lifecycle,
+  RecordingTransaction and receipt wrappers directly, without snapshot aliases or data migrations. Task handlers
+  own operation-specific use cases; repositories, transaction boundaries, committed/recovery readers and Application
+  disclosure projection have distinct owners. See the [namespace map](docs/mcp-namespaces.md).
+- Give new Task/execution/Notice values explicit ValueObject equality, hashing, reconstruction and deliberate
+  structured JSON. Role-specific SessionId, PhaseId, NoticeId, producer/UUID ObservationIdentity and exact
+  32-lowercase-hex TaskId retain their separate trusted scope and explicit string wire/storage boundaries.
+  Task definition/state/input values preserve finite floats and nested object/list/null distinctions independently
+  of ambient serialization precision, including byte-limit reconstruction checks. Recorded roots retain time;
+  RecordedNotice additionally retains its substantive commit position. See [Task classification](docs/durable-tasks.md#model-classification-and-value-contracts)
+  and [execution/Notice classification](docs/maintenance/evidence-domain-values.md).
+- Legacy AI-operation/webhook APIs gain equally deprecated `Mcp\Operation` homes while released `Auth` names
+  remain functional with their **original v1.2.0 deprecation** and v2.0.0 target. No retired AI Tool is revived.
+  Generic protocol semantics, routes, authorization, stateless forms and signing remain independently composed.
 
 ### Deprecated
 
 - The 17 relocated MCP foundation root spellings, in documentation only. Prefer `Application\Mcp\Capability`,
   `Protocol` (including `Protocol\Exception`), `Http` and `Tool`; `McpResponder` and `McpDiagnostics` remain at root
   without deprecation. Canonical aliases preserve released runtime identity, finality, named construction,
-  consumer type compatibility, catches, reflection and saved values. The first deprecating release is unassigned;
-  removal requires separate future-major authorization after a released minor of deprecation. See the
+  consumer type compatibility, catches, reflection and saved values. First deprecation is **planned to ship in
+  v1.5.0, not yet released**; removal needs separate future-major authorization after an actually released minor. See the
   [complete foundation migration map](docs/maintenance/mcp-foundation-namespaces.md).
 - The nine released MCP HTTP adapter names under `Adapter\Http\Mcp`, `Adapter\Http\Symfony` and
   `Adapter\Http\CodeIgniter`. Use their canonical `Adapter\Mcp\Http`, `Adapter\Mcp\Symfony` and
   `Adapter\Mcp\CodeIgniter` names instead. Old public names remain functional throughout 1.x without runtime
-  notices; removal requires a separately authorized future major after at least one released minor of deprecation.
+  notices. First deprecation is **planned to ship in v1.5.0, not yet released**; removal requires a separately
+  authorized future major after at least one actually released minor of deprecation.
   See the [complete adapter migration map](docs/components/mcp/index.md#canonical-adapter-namespaces-and-1x-compatibility).
 - Direct reads of 50 public readonly properties across 14 released HTTP/OAuth/MCP classes, in documentation only.
   Use the matching typed property-name getters instead. Storage, construction, named arguments, validation,
-  serialization and wire/security behavior remain unchanged; no runtime notices are emitted. The first
-  deprecating release is unassigned. Retain at least one released minor before separately authorized removal
-  in a future major; Standards is entirely excluded. See the [complete migration map](docs/maintenance/public-property-getters.md).
+  serialization and wire/security behavior remain unchanged; no runtime notices are emitted. First deprecation
+  is **planned to ship in v1.5.0, not yet released**. Retain at least one actually released minor before separately
+  authorized future-major removal; Standards is entirely excluded. See the [complete migration map](docs/maintenance/public-property-getters.md).
+- Four default-only schema `TABLES` constants for Execution, Task, Notice and Subscription, with first deprecation
+  **planned to ship in v1.5.0, not yet released**, targeting separately authorized v2.0.0 removal after that window.
+  Read actual configured names from the existing selection objects; values/order/visibility remain unchanged.
+  See the [constant migration map](docs/maintenance/table-name-constants.md).
+
+The [consolidated deprecation inventory](docs/maintenance/deprecations.md) preserves earlier v1.2.0/v1.4.0 dates,
+replacements and alias/serializer/container/queue/storage risks. ResultSet legacy construction is **not deprecated**.
+No API removal, mandatory v1.6.0, platform/coding-standard tightening or final-1.x support retirement is authorized.
 
 ### Added
 
+- Opt-in bounded `prompts/list` and independent `prompts/get`, with fresh availability, declared string arguments,
+  lazy selected providers, complete text/Resource-link messages, authenticated visible-catalog pagination and final
+  encoded-response limits. No content execution, link fetch or permission-by-listing is implied. See [Prompts](docs/mcp-prompts.md).
+- Durable execution Session/Phase/Observation facts, phase activity and measured usage, with trusted admission,
+  retained-content retry identity, atomic DBAL recording and safe reference-only post-commit events. Protected
+  Detail bodies are stored separately; independent authorized reads/removal preserve safe evidence and prevent
+  retry resurrection while identity remains. Authorized summary/list/get/phase/activity Queries distinguish
+  unknown/partial measurement and live pages from snapshots or Workflow authority. See [recording](docs/execution-observations.md),
+  [inspection](docs/execution-reads.md), [protected reads](docs/execution-protected-reads.md) and [removal](docs/execution-detail-removal.md).
+- Durable safe Notice recording, independently admitted inspection/removal, and confidential authenticated
+  continuation recovery with explicit complete/incomplete/uncertain outcomes. The optional `notices.recover` Tool
+  uses shared Queries; namespace/loss evidence never becomes a public global counter. Optional public/private
+  Mercure publication separately reauthorizes the current whole audience after commit, with safe failure statuses,
+  not an outbox or delivery/retry guarantee. See [Notices](docs/safe-notices.md), [inspection](docs/notice-inspection.md),
+  [recovery](docs/notice-recovery.md) and [publication](docs/notice-publication.md).
+- Guarded request-scoped Tool/Resource subscriptions and optionally Prompt catalog changes, with current signal
+  admission, owner-bound finite tracking, bounded continuity and callback-time cancellation/deadline/freshness
+  checks. Independently authorized subscriber summaries/pages distinguish registrations, subscriber identities
+  and recently observed/disconnected/stale-uncertain evidence, not actual connectivity. See [subscriptions](docs/mcp-subscriptions.md)
+  and [subscriber inspection](docs/subscriber-inspection.md).
+- Durable asynchronous Task lifecycle, retrieval and whole-row removal, with independent admissions, TTL and
+  retained-lifetime retry/version fences. Protected requested input has atomic partial-batch validation and
+  single-use continuation; cancellation records cooperative intent, not a stopped worker or rollback. Explicit
+  MCP Tasks composition adds negotiated start/get/update/cancel and bounded outputs. Guarded live/reconnect
+  delivery rereads authorized whole state and uses visibility/lifetime-bound revisions plus a consumer-supplied
+  synchronized byte-handoff guard; it neither replays history nor grants a stream-long permission lease.
+  See [Tasks](docs/durable-tasks.md), [input](docs/task-input.md), [cancellation](docs/task-cancellation.md),
+  [MCP serving](docs/mcp-tasks.md) and [live state](docs/mcp-task-live.md). Workers and consumer policy remain external.
+- Explicit physical-name configuration across all nineteen DBAL tables, including Event Store sequences,
+  checkpoints/publication, execution state/bodies, Task/Notice and subscriptions. Share selections across schema,
+  runtime, readers, removal and independent processes; omitted names keep exact defaults. Two ORM-mapped nonce/audit
+  tables retain native metadata/quote-strategy authority, not retroactive DBAL identifier restrictions. Changing
+  selections performs **no automatic installation, migration, rename, replay-memory transfer or default fallback**.
+  See the [complete table inventory](docs/table-names.md).
+- Opt-in `ResultSet::strict()` validates page/size/count/total bounds and uses exact integer page arithmetic.
+  Legacy construction remains permissive and **not newly deprecated**; both paths retain the mutable list and
+  record identities, not a frozen snapshot or permanent validation guarantee. See [repositories](docs/repositories.md#strict-result-construction).
 - Optional typed phase activity execution facts: final readonly `ActivityExecution`, `ActivityTarget`,
   `ActivityTiming` and `ActivityResult`, reusing precision-preserving occurrences and fixed elapsed Duration.
   Existing recording/reconstruction, immutable retries, shared activity Query and guarded `execution.activity`
@@ -102,19 +115,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atomic relationship/comparison deletion and bounded empty-feed history-loss evidence on SQLite/MySQL/PostgreSQL.
   Trusted coherent storage recovery remains separate from public polling; consumers own retention policy.
   See [safe notices](docs/safe-notices.md#bounded-authorized-removal).
-- Five opt-in read-only MCP execution inspection Tools over shared authorized Queries, with bounded safe
-  summaries, live execution/phase/activity pages and no protected bodies or mutation exposure.
+- Five opt-in safe read-only MCP execution inspection Tools plus two separately opted-in protected Detail Tools
+  (`execution.messages`, `execution.detail`), all through shared authorized Queries. Tool availability does not
+  replace independent current reference/body grants; no removal Tool is exposed. See [MCP inspection](docs/mcp-execution-inspection.md).
 - Opt-in `McpToolOutput::boundedStructured()` final encoded JSON-RPC success-response budgets, including text,
   escaping, request identity and central metadata; existing output factories remain unbounded.
 
 ### Fixed
 
-- Disposable database allocation/mount capture now retains uncertainty before fallible inspection. Cleanup
+- Restore canonical `1.1.0` HMAC `nonces:` named construction alongside later `nonceRepository:` and fourth
+  positional injection. Omission/null remains optional; the same object supplied twice consumes once, while
+  distinct non-null repositories reject at construction before effects. No storage means no replay protection.
+- Restore native `McpToolOutput` objects saved by v1.3.0/v1.4.0 through ordinary Tool invocation: absent later
+  response budgets become null/unbounded without losing content, text, Resource links or saved identity. Present
+  bounds still survive native round trips and enforce overflow; native unserialization remains trusted-only.
+- Contain Tool-list availability callback failures even when they throw a protocol exception: return only generic
+  `-32603` / `Internal error.` and make one central diagnostic attempt retaining the original cause. Deliberate
+  Common-owned parameter/cursor errors and filter-before-pagination behavior remain unchanged.
+- Doctrine nonce consumption and expiry purge honor the configured ORM quote strategy/platform for mapped table
+  names; replay/expiry semantics and explicit consumer schema/data responsibilities remain unchanged.
+- Reconcile all seven public DBAL table-selection/name declarations and complete operation shapes/counts in the
+  compatibility manifest without weakening package-surface checks or changing the authoritative baseline.
+- Clarify subscriber inspection's caller-clock semantics and correct its journey evidence: heartbeats later than
+  the captured invocation clock remain `stale_uncertain`. This is not a new production liveness fix or resolution
+  of the separately documented intermittent Task-live attribution limit.
+- Maintainer tooling: disposable database allocation/mount capture now retains uncertainty before fallible inspection. Cleanup
   establishes complete original mount coverage before creator removal; interrupted capture recovers only against
   the original corroborated creator or holds safely, never reporting completion with unknown storage.
 - Removed the tracked delivery marker/table/live-check/reconciliation mechanism and recurring intake/post-merge
   bookkeeping. Land owns accepted TASK/current-doc closeout, exact live own-PR validation and eligible local
   resource retirement; historical evidence and human merge remain separate. Planning/routing stays offline.
+
+[Reconciliation scope and deliberate exclusions](docs/maintenance/v1.5.0-reconciliation.md) account for the complete
+v1.4.1-to-candidate change set. Earlier v1.4 features and the v1.4.1 Laravel repair are not new v1.5.0 fixes.
+These Unreleased notes do not certify, date or approve a release.
 
 ## [1.4.1] - 2026-11-04
 
@@ -259,7 +293,11 @@ for exact limits and composition requirements.
 - Typed JSend now has `Application\Http\JSend\JSendEnvelope` and `JSendStatus` semantics, while `Adapter\Http\Symfony\JSendResponse` preserves controller-selected HTTP metadata and renders `Arrayable` and paginated `ResultSet` presentation data.
 - Symfony Messenger now uses canonical command and event bus and serializer paths, with transport-neutral `CommandMessageHandler` and `EventMessageHandler` for handing messages from a worker to synchronous application buses.
 - Message envelopes now isolate their mutable `Meta` snapshots by copying metadata on construction and access. Code that previously mutated metadata through `meta()` must derive a same-ID envelope with `withMeta()` or `mergeMeta()` instead.
-- `Application\Scheduler\Scheduler` now requires an Application `ProcessRunner` as its third constructor argument and builds command jobs through `ProcessBuilder`; the former Scheduler `processFactory` constructor seam has been removed.
+- **Corrected historical description:** portable Scheduler composition uses `Scheduler::withProcessRunner()`
+  and builds command jobs through `ProcessBuilder`. The exact legacy constructor order (`timezone`, `tempDirectory`,
+  `logger`, `mailService`, `fromEmail`, `processFactory`) remains supported, deprecated since v1.2.0, with the
+  conditional Symfony Process bridge. No third-position ProcessRunner requirement or 1.x seam removal occurred;
+  see [ADR 0017](planning/adr/0017-scheduler-1x-construction-compatibility.md).
 - Pinned all `symfony/*` `require-dev` components to the `^8.1` floor per ADR 0020's current-only support window. `symfony/process` moves from `^7.0` to `^8.1`. The widened `^8.2 || ^8.1` form will be adopted only when Symfony 8.2 ships (~Nov 2026).
 
 ## [1.1.0] - 2026-06-03

@@ -9,7 +9,8 @@ use Fight\Common\Adapter\Mcp\Http\McpOrigin as CanonicalMcpOrigin;
 /**
  * Class McpOrigin
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\Http\McpOrigin instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\Http\McpOrigin instead
+ * Retained throughout 1.x without runtime notices
  */
 final readonly class McpOrigin
 {

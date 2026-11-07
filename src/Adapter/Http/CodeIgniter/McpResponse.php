@@ -11,7 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Class McpResponse
  *
- * @deprecated Use \Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse instead; retained throughout 1.x
+ * @deprecated Planned v1.5.0; use \Fight\Common\Adapter\Mcp\CodeIgniter\McpResponse instead
+ * Retained throughout 1.x without runtime notices
  */
 final class McpResponse extends CanonicalMcpResponse
 {
